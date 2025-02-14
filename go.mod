@@ -1,6 +1,6 @@
 module github.com/Netcracker/qubership-monitoring-operator
 
-go 1.23.0
+go 1.23
 
 require (
 	github.com/VictoriaMetrics/operator/api v0.0.0-20241014161824-90a26652481b
