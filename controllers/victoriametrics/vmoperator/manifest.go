@@ -208,6 +208,10 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *v1alpha1.PlatformMonitori
 		if cr.Spec.Victoriametrics.VmOperator.NodeSelector != nil {
 			d.Spec.Template.Spec.NodeSelector = cr.Spec.Victoriametrics.VmOperator.NodeSelector
 		}
+		// Set affinity for VmOperator
+		if cr.Spec.Victoriametrics.VmOperator.Affinity != nil {
+			d.Spec.Template.Spec.Affinity = cr.Spec.Victoriametrics.VmOperator.Affinity
+		}
 
 		// Add extraEnvs for VmOperator
 		if cr.Spec.Victoriametrics.VmOperator.ExtraEnvs != nil {

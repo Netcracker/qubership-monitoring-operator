@@ -184,6 +184,10 @@ func alertmanager(cr *v1alpha1.PlatformMonitoring) (*promv1.Alertmanager, error)
 		if cr.Spec.AlertManager.NodeSelector != nil {
 			am.Spec.NodeSelector = cr.Spec.AlertManager.NodeSelector
 		}
+		// Set affinity for AlertManager
+		if cr.Spec.AlertManager.Affinity != nil {
+			am.Spec.Affinity = cr.Spec.AlertManager.Affinity
+		}
 
 		// Set PodMetadata.Labels
 		am.Spec.PodMetadata = &promv1.EmbeddedObjectMetadata{Labels: map[string]string{

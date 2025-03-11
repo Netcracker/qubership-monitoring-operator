@@ -181,6 +181,10 @@ func grafana(cr *v1alpha1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		if cr.Spec.Grafana.NodeSelector != nil {
 			graf.Spec.Deployment.NodeSelector = cr.Spec.Grafana.NodeSelector
 		}
+		// Set affinity for Grafana deployment
+		if cr.Spec.Grafana.Affinity != nil {
+			graf.Spec.Deployment.Affinity = cr.Spec.Grafana.Affinity
+		}
 
 		if len(strings.TrimSpace(cr.Spec.Grafana.PriorityClassName)) > 0 {
 			graf.Spec.Deployment.PriorityClassName = cr.Spec.Grafana.PriorityClassName

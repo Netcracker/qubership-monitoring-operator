@@ -163,6 +163,10 @@ func vmSingle(r *VmSingleReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetrics
 		if cr.Spec.Victoriametrics.VmSingle.NodeSelector != nil {
 			vmsingle.Spec.NodeSelector = cr.Spec.Victoriametrics.VmSingle.NodeSelector
 		}
+		// Set affinity for vmsingle deployment
+		if cr.Spec.Victoriametrics.VmSingle.Affinity != nil {
+			vmsingle.Spec.Affinity = cr.Spec.Victoriametrics.VmSingle.Affinity
+		}
 
 		if cr.Spec.Victoriametrics.VmSingle.ExtraArgs != nil {
 			maps.Copy(vmsingle.Spec.ExtraArgs, cr.Spec.Victoriametrics.VmSingle.ExtraArgs)

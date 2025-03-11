@@ -46,6 +46,7 @@ spec:
       {{- end }}
       tolerations: {{- toYaml .Values.monitoringOperator.tolerations | nindent 8 }}
       nodeSelector: {{- toYaml .Values.monitoringOperator.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .Values.monitoringOperator.affinity | nindent 8 }}
       containers:
         - name: monitoring-operator
           image: {{ template "monitoring.operator.image" . }}

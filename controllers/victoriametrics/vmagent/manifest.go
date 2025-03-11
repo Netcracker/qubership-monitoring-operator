@@ -185,6 +185,10 @@ func vmAgent(r *VmAgentReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1
 		if cr.Spec.Victoriametrics.VmAgent.NodeSelector != nil {
 			vmagent.Spec.NodeSelector = cr.Spec.Victoriametrics.VmAgent.NodeSelector
 		}
+		// Set affinity for Vmagent cr
+		if cr.Spec.Victoriametrics.VmAgent.Affinity != nil {
+			vmagent.Spec.Affinity = cr.Spec.Victoriametrics.VmAgent.Affinity
+		}
 
 		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
 			vmagent.Spec.ScrapeInterval = cr.Spec.Victoriametrics.VmAgent.ScrapeInterval

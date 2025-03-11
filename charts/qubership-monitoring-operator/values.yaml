@@ -204,6 +204,14 @@ monitoringOperator:
   #
   nodeSelector: {}
 
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
   # They are not queryable and should be preserved when modifying objects.
@@ -432,6 +440,14 @@ alertManager:
   #
   nodeSelector: {}
 
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
   # They are not queryable and should be preserved when modifying objects.
@@ -597,6 +613,14 @@ kubeStateMetrics:
   # Default: not set
   #
   nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
 
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
@@ -777,7 +801,7 @@ nodeExporter:
   tolerations: []
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1415,6 +1439,14 @@ pushgateway:
   #
   nodeSelector: {}
 
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
   # Define resources requests and limits for single Pods.
   # ref: https://kubernetes.io/docs/user-guide/compute-resources/
   #
@@ -1534,6 +1566,14 @@ integrationTests:
   # Default: not set
   #
   nodeSelector: {}
+  
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
 
   # Allow select which test cases to run
   # Type: string

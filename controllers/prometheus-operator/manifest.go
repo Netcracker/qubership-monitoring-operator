@@ -177,6 +177,10 @@ func prometheusOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Depl
 		if cr.Spec.Prometheus.Operator.NodeSelector != nil {
 			d.Spec.Template.Spec.NodeSelector = cr.Spec.Prometheus.Operator.NodeSelector
 		}
+		// Set affinity for PrometheusOperator
+		if cr.Spec.Prometheus.Operator.Affinity != nil {
+			d.Spec.Template.Spec.Affinity = cr.Spec.Prometheus.Operator.Affinity
+		}
 
 		// Set labels
 		d.Labels["name"] = utils.TruncLabel(d.GetName())

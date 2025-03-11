@@ -52,7 +52,7 @@ cleanup:
     #image: bitnami/kubectl:1.28.10
   
     # If specified, the pod's scheduling constraints
-    # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
+    # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
     # Type: object
     # Mandatory: no
     #
@@ -226,6 +226,14 @@ vmOperator:
   #
   nodeSelector: {}
 
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
   # Type: object
@@ -380,6 +388,14 @@ vmSingle:
     # Mandatory: no
     #
     # fsGroup: 2000
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
 
   # Tolerations allow the pods to schedule onto nodes with matching taints.
   # Type: object
@@ -587,6 +603,14 @@ vmAgent:
   #
   nodeSelector: {}
 
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+  
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
   # Type: object
@@ -874,7 +898,7 @@ vmAlertManager:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1096,7 +1120,7 @@ vmAlert:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1310,7 +1334,7 @@ vmAuth:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set

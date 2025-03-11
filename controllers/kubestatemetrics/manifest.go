@@ -152,6 +152,10 @@ func kubeStateMetricsDeployment(cr *v1alpha1.PlatformMonitoring, hasIngress bool
 		if cr.Spec.KubeStateMetrics.NodeSelector != nil {
 			d.Spec.Template.Spec.NodeSelector = cr.Spec.KubeStateMetrics.NodeSelector
 		}
+		// Set affinity for KubeStateMetrics
+		if cr.Spec.KubeStateMetrics.Affinity != nil {
+			d.Spec.Template.Spec.Affinity = cr.Spec.KubeStateMetrics.Affinity
+		}
 
 		// Set labels
 		d.Labels["name"] = utils.TruncLabel(d.GetName())

@@ -93,6 +93,9 @@ type AlertManager struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
@@ -164,6 +167,9 @@ type Grafana struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
 	// DataStorage provides a means to configure the grafana data storage
@@ -213,6 +219,9 @@ type GrafanaOperator struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
@@ -406,6 +415,9 @@ type KubeStateMetrics struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Service monitor for pulling metrics
 	ServiceMonitor *Monitor `json:"serviceMonitor,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
@@ -448,6 +460,9 @@ type PrometheusOperator struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
 	//Namespaces to scope the interaction of the Prometheus Operator and the apiserver.
@@ -515,6 +530,9 @@ type VmOperator struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
 	// and services.
@@ -561,6 +579,9 @@ type VmSingle struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
 	// and services.
@@ -657,6 +678,9 @@ type VmAgent struct {
 	// NodeSelector Define which Nodes the Pods are scheduled on.
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
 	// and services.
@@ -1255,7 +1279,7 @@ type NodeExporter struct {
 	// Tolerations allow the pods to schedule onto nodes with matching taints.
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -1324,6 +1348,9 @@ type Pushgateway struct {
 	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
 	// NodeSelector select nodes for deploy
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Set paused to reconsilation
 	Paused bool `json:"paused,omitempty"`
 	// Service monitor for pulling metrics

@@ -37,6 +37,7 @@ func (r *PushgatewayReconciler) handleDeployment(cr *v1alpha1.PlatformMonitoring
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
+	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
 	e.Spec.Replicas = m.Spec.Replicas
 	e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
 

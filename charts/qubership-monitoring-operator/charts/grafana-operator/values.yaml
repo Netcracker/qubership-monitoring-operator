@@ -241,7 +241,7 @@ securityContext: {}
   # Type: integer
   # Mandatory: no
   #
-# fsGroup: 2000
+  # fsGroup: 2000
 
 # Tolerations allow the pods to schedule onto nodes with matching taints.
 # Type: object
@@ -255,6 +255,14 @@ tolerations: []
 # Default: not set
 #
 nodeSelector: {}
+
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
 
 # Annotations is an unstructured key value map stored
 # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
@@ -418,6 +426,14 @@ operator:
   #
   nodeSelector: {}
 
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+  
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
   # They are not queryable and should be preserved when modifying objects.
@@ -530,6 +546,14 @@ imageRenderer:
   # Default: not set
   #
   nodeSelector: {}
+  
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
 
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.

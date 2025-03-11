@@ -188,6 +188,10 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 		if cr.Spec.Grafana.Operator.NodeSelector != nil {
 			d.Spec.Template.Spec.NodeSelector = cr.Spec.Grafana.Operator.NodeSelector
 		}
+		// Set affinity for GrafanaOperator
+		if cr.Spec.Grafana.Operator.Affinity != nil {
+			d.Spec.Template.Spec.Affinity = cr.Spec.Grafana.Operator.Affinity
+		}
 
 		// Set labels
 		d.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())

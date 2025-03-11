@@ -107,7 +107,7 @@ clean:
 .PHONY: generate
 generate: controller-gen
 	echo "=> Generate CRDs and deepcopy ..."
-	$(CONTROLLER_GEN) crd:crdVersions={v1} \
+	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=256 \
 					  object:headerFile="hack/boilerplate.go.txt" \
 					  paths="./..." \
 					  output:crd:artifacts:config=charts/qubership-monitoring-operator/crds/

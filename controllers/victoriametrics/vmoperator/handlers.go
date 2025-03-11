@@ -211,6 +211,7 @@ func (r *VmOperatorReconciler) handleDeployment(cr *v1alpha1.PlatformMonitoring)
 	e.Spec.Selector = m.Spec.Selector
 	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
+	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
 	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName

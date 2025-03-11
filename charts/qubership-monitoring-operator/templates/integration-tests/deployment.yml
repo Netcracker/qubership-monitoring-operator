@@ -51,6 +51,7 @@ spec:
       affinity: {}
       tolerations: {{- toYaml .Values.integrationTests.tolerations | nindent 8 }}
       nodeSelector: {{- toYaml .Values.integrationTests.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .Values.integrationTests.affinity | nindent 8 }}
       securityContext: {{- toYaml .Values.integrationTests.securityContext | nindent 8 }}
       containers:
         - name: {{ .Values.integrationTests.name }}

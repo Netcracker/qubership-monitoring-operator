@@ -159,6 +159,14 @@ tolerations: []
 #
 # nodeSelector: {}
 
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
+
 # Annotations is an unstructured key value map stored
 # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
 # They are not queryable and should be preserved when modifying objects.

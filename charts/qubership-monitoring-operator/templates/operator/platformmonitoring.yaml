@@ -278,6 +278,10 @@ spec:
       nodeSelector:
         {{- toYaml .Values.prometheus.operator.nodeSelector | nindent 8 }}
       {{- end }}
+      {{- if .Values.prometheus.operator.affinity }}
+      affinity:
+        {{- toYaml .Values.prometheus.operator.affinity | nindent 8 }}
+      {{- end }}
       {{- if .Values.prometheus.operator.labels }}
       labels:
         {{- toYaml .Values.prometheus.operator.labels | nindent 8 }}
@@ -381,6 +385,10 @@ spec:
       nodeSelector:
         {{- toYaml .Values.victoriametrics.vmOperator.nodeSelector | nindent 8 }}
       {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmOperator.affinity | nindent 8 }}
+      {{- end }}
       {{- if .Values.victoriametrics.vmOperator.labels }}
       labels:
         {{- toYaml .Values.victoriametrics.vmOperator.labels | nindent 8 }}
@@ -415,6 +423,10 @@ spec:
       {{- if .Values.victoriametrics.vmSingle.nodeSelector }}
       nodeSelector:
         {{- toYaml .Values.victoriametrics.vmSingle.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmSingle.affinity | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmSingle.priorityClassName }}
       priorityClassName: {{ .Values.victoriametrics.vmSingle.priorityClassName }}
@@ -495,6 +507,10 @@ spec:
       {{- if .Values.victoriametrics.vmAgent.nodeSelector }}
       nodeSelector:
         {{- toYaml .Values.victoriametrics.vmAgent.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmAgent.affinity | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAgent.labels }}
       labels:
@@ -1079,6 +1095,10 @@ spec:
     nodeSelector:
       {{- toYaml .Values.alertManager.nodeSelector | nindent 6 }}
     {{- end }}
+    {{- if .Values.alertManager.affinity }}
+    affinity:
+      {{- toYaml .Values.alertManager.affinity | nindent 6 }}
+    {{- end }}
     {{- if .Values.alertManager.labels }}
     labels:
       {{- toYaml .Values.alertManager.labels | nindent 6 }}
@@ -1144,6 +1164,10 @@ spec:
     nodeSelector:
       {{- toYaml .Values.grafana.nodeSelector | nindent 6 }}
     {{- end }}
+    {{- if .Values.grafana.affinity }}
+    affinity:
+      {{- toYaml .Values.grafana.affinity | nindent 6 }}
+    {{- end }}
     {{- if .Values.grafana.labels }}
     labels:
       {{- toYaml .Values.grafana.labels | nindent 6 }}
@@ -1188,6 +1212,10 @@ spec:
       {{- if .Values.grafana.operator.nodeSelector }}
       nodeSelector:
         {{- toYaml .Values.grafana.operator.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.affinity }}
+      affinity:
+        {{- toYaml .Values.grafana.operator.affinity | nindent 8 }}
       {{- end }}
       {{- if .Values.grafana.operator.labels }}
       labels:
@@ -1258,6 +1286,10 @@ spec:
     {{- if .Values.kubeStateMetrics.nodeSelector }}
     nodeSelector:
       {{- toYaml .Values.kubeStateMetrics.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.affinity }}
+    affinity:
+      {{- toYaml .Values.kubeStateMetrics.affinity | nindent 6 }}
     {{- end }}
     {{- if .Values.kubeStateMetrics.labels }}
     labels:
@@ -1378,6 +1410,10 @@ spec:
     {{- if .Values.pushgateway.nodeSelector }}
     nodeSelector:
       {{- toYaml .Values.pushgateway.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.affinity }}
+    affinity:
+      {{- toYaml .Values.pushgateway.affinity | nindent 6 }}
     {{- end }}
     resources:
       {{ include "pushgateway.resources" . }}

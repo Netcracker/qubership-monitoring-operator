@@ -104,10 +104,6 @@ func pushgatewayDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment,
 				break
 			}
 		}
-		// Set NodeSelector for pushgateway
-		if cr.Spec.Pushgateway.NodeSelector != nil {
-			d.Spec.Template.Spec.NodeSelector = cr.Spec.Pushgateway.NodeSelector
-		}
 		// Set security context
 		if cr.Spec.Pushgateway.SecurityContext != nil {
 			if d.Spec.Template.Spec.SecurityContext == nil {
@@ -123,6 +119,14 @@ func pushgatewayDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment,
 		// Set tolerations for pushgateway
 		if cr.Spec.Pushgateway.Tolerations != nil {
 			d.Spec.Template.Spec.Tolerations = cr.Spec.Pushgateway.Tolerations
+		}
+		// Set NodeSelector for pushgateway
+		if cr.Spec.Pushgateway.NodeSelector != nil {
+			d.Spec.Template.Spec.NodeSelector = cr.Spec.Pushgateway.NodeSelector
+		}
+		// Set affinity for pushgateway
+		if cr.Spec.Pushgateway.Affinity != nil {
+			d.Spec.Template.Spec.Affinity = cr.Spec.Pushgateway.Affinity
 		}
 		// Set volumes
 		if cr.Spec.Pushgateway.Volumes != nil {

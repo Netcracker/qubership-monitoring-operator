@@ -74,6 +74,11 @@ func (in *AlertManager) DeepCopyInto(out *AlertManager) {
 			(*out)[key] = val
 		}
 	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.PodMonitor != nil {
 		in, out := &in.PodMonitor, &out.PodMonitor
 		*out = new(Monitor)
@@ -240,6 +245,11 @@ func (in *Grafana) DeepCopyInto(out *Grafana) {
 			(*out)[key] = val
 		}
 	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.PodMonitor != nil {
 		in, out := &in.PodMonitor, &out.PodMonitor
 		*out = new(Monitor)
@@ -333,6 +343,11 @@ func (in *GrafanaOperator) DeepCopyInto(out *GrafanaOperator) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.PodMonitor != nil {
 		in, out := &in.PodMonitor, &out.PodMonitor
@@ -481,6 +496,11 @@ func (in *KubeStateMetrics) DeepCopyInto(out *KubeStateMetrics) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.ServiceMonitor != nil {
 		in, out := &in.ServiceMonitor, &out.ServiceMonitor
@@ -1101,6 +1121,11 @@ func (in *PrometheusOperator) DeepCopyInto(out *PrometheusOperator) {
 			(*out)[key] = val
 		}
 	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.PodMonitor != nil {
 		in, out := &in.PodMonitor, &out.PodMonitor
 		*out = new(Monitor)
@@ -1261,6 +1286,11 @@ func (in *Pushgateway) DeepCopyInto(out *Pushgateway) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.ServiceMonitor != nil {
 		in, out := &in.ServiceMonitor, &out.ServiceMonitor
@@ -1467,6 +1497,11 @@ func (in *VmAgent) DeepCopyInto(out *VmAgent) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
@@ -2184,6 +2219,11 @@ func (in *VmOperator) DeepCopyInto(out *VmOperator) {
 			(*out)[key] = val
 		}
 	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))
@@ -2247,6 +2287,11 @@ func (in *VmSingle) DeepCopyInto(out *VmSingle) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.Affinity != nil {
+		in, out := &in.Affinity, &out.Affinity
+		*out = new(v1.Affinity)
+		(*in).DeepCopyInto(*out)
 	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
