@@ -3853,7 +3853,7 @@ Example:
 promxy:
   install: true
   name: "promxy"
-  image: jacksontj/promxy:v0.0.71
+  image: quay.io/jacksontj/promxy:v0.0.92
   extraArgs:
     - '--log-level=info'
   config:

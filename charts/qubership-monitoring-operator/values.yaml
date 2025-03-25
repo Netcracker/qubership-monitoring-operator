@@ -103,6 +103,13 @@ monitoringOperator:
   #
   securityContext: {}
 
+  # Kubernetes secret name. Only pods which provide own keys
+  # can access the private registry.
+  # Type: Array
+  # Mandatory: no
+  #
+  imagePullSecrets: []
+
     # The UID to run the entrypoint of the container process.
     # Defaults to user specified in image metadata if unspecified.
     # Type: integer

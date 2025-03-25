@@ -52,6 +52,7 @@ spec:
             - name: config
               mountPath: /graphite-remote-adapter
           args:
+            - /bin/graphite-remote-adapter
             - '--config.file=/graphite-remote-adapter/additionalGraphiteConfig.yaml'
             - '--web.listen-address=0.0.0.0:9201'
             - '--graphite.write.carbon-address={{ .Values.writeCarbonAddress }}'

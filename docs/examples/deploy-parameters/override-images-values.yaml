@@ -48,7 +48,7 @@ promxy:
   image: jacksontj/promxy:latest
 versionExporter:
   install: true
-  image: product/prod.platform.system.monitoring_exporters_version-exporter:latest
+  image: ghcr.io/netcracker/version-exporter:main
 stackdriverExporter:
   install: true
   image: prometheuscommunity/stackdriver-exporter:latest

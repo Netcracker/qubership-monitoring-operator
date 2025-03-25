@@ -38,6 +38,10 @@ spec:
         {{- toYaml .Values.monitoringOperator.annotations | nindent 8 }}
       {{- end }}
     spec:
+      {{- with .Values.monitoringOperator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ .Values.monitoringOperator.serviceAccount.name }}
       securityContext:
         {{ include "monitoring.operator.securityContext" . }}

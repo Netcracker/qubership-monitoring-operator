@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- print "prod.platform.system.monitoring_exporters_version-exporter:latest" -}}
+    {{- print "ghcr.io/netcracker/version-exporter:main" -}}
   {{- end -}}
 {{- end -}}
 

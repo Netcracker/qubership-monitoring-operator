@@ -21,7 +21,7 @@ name: "promxy"
 # Type: string
 # Mandatory: yes
 #
-# image: jacksontj/promxy:v0.0.75
+# image: quay.io/jacksontj/promxy:v0.0.92
 
 # Additional arguments for promxy container.
 # Type: list[string]

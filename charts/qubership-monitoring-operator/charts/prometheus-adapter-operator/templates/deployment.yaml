@@ -40,6 +40,10 @@ spec:
       securityContext:
         {{ include "prometheusAdapter.operator.securityContext" . }}
       serviceAccountName: prometheus-adapter-operator
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       affinity: {{- toYaml .Values.operator.affinity | nindent 8 }}
       nodeSelector: {{- toYaml .Values.operator.nodeSelector | nindent 8 }}
       tolerations: {{- toYaml .Values.operator.tolerations | nindent 8 }}
