@@ -34,7 +34,7 @@ jobs:
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
       - name: Wait for deployment to be ready
-        run: sleep 30
+        run: sleep 5
 
       - name: Check kubectl context
         run: kubectl config current-context
@@ -47,6 +47,9 @@ jobs:
 
       - name: Check Kind version
         run: kind version
+
+      - name: Check kubectl version
+        run: kubectl version --short
         
       #- name: Download artifacts
       #  uses: actions/download-artifact@v4
@@ -74,11 +77,31 @@ jobs:
         integrationTests_install: true
 
     steps:
+    
+      - name: Wait for deployment to be ready
+        run: sleep 5
+
+      - name: Check kubectl context
+        run: kubectl config current-context
+
+      - name: Check cluster status
+        run: kubectl get pods --all-namespaces
+
+      - name: Show kubeconfig
+        run: cat ~/.kube/config
+
+      - name: Check Kind version
+        run: kind version
+
+      - name: Check kubectl version
+        run: kubectl version --short
+
       - name: Install Qubership Monitoring Operator
         run: |
           helm upgrade --install qubership-monitoring-operator \
             --namespace=${{ env.namespace }} \
             --create-namespace \
+            --kube-context kind-kind-cluster \
             --set grafanaDashboards.install=${{ env.grafanaDashboards_install }} \
             --set prometheusRules.install=${{ env.prometheusRules_install }} \
             --set pushgateway.install=${{ env.pushgateway_install }} \
@@ -92,6 +115,7 @@ jobs:
             --set versionExporter.install=${{ env.versionExporter_install }} \
             --set cloudEventsExporter.install=${{ env.cloudEventsExporter_install }} \
             --set integrationTests.install=${{ env.integrationTests_install }} \
+            --debug \
             ./charts/qubership-monitoring-operator
 
   check_integration_tests:
