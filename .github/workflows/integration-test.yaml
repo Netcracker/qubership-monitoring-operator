@@ -32,6 +32,12 @@ jobs:
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Wait for deployment to be ready
+        run: sleep 30
+
+      - name: Check kubectl context
+        run: kubectl config current-context
         
       #- name: Download artifacts
       #  uses: actions/download-artifact@v4
