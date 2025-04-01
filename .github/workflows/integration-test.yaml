@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  Install dependencies:
+  install_dependencies:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,9 +36,9 @@ jobs:
       #    path: qubership-monitoring-operator/
       #    github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  Install helm:
+  install_helm:
     runs-on: ubuntu-latest
-    needs: Install dependencies
+    needs: install_dependencies
     env:
         namespace: monitoring
         kind_name: kind-cluster
@@ -77,9 +77,9 @@ jobs:
             --set integrationTests.install=${{ env.integrationTests_install }} \
             ./charts/qubership-monitoring-operator
 
-  Check integration tests:
+  check_integration_tests:
     runs-on: ubuntu-latest
-    needs: Install helm
+    needs: install_helm
 
     steps: 
       - name: print test result
