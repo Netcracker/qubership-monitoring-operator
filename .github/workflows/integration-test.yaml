@@ -11,25 +11,8 @@ on:
       - main
 
 jobs:
-  test-monitoring-operator:
+  Install dependencies:
     runs-on: ubuntu-latest
-
-    env:
-      namespace: monitoring
-      kind_name: kind-cluster
-      grafanaDashboards_install: true
-      prometheusRules_install: true
-      pushgateway_install: true
-      commonDashboards_install: true
-      prometheusAdapter_install: true
-      promxy_install: true
-      graphite_remote_adapter_install: true
-      blackboxExporter_install: true
-      jsonExporter_install: true
-      networkLatencyExporter_install: true
-      versionExporter_install: true
-      cloudEventsExporter_install: true
-      integrationTests_install: true
 
     steps:
       - name: Checkout code
@@ -53,6 +36,27 @@ jobs:
       #    path: qubership-monitoring-operator/
       #    github-token: ${{ secrets.GITHUB_TOKEN }}
 
+  Install helm:
+    runs-on: ubuntu-latest
+    needs: Install dependencies
+    env:
+        namespace: monitoring
+        kind_name: kind-cluster
+        grafanaDashboards_install: true
+        prometheusRules_install: true
+        pushgateway_install: true
+        commonDashboards_install: true
+        prometheusAdapter_install: true
+        promxy_install: true
+        graphite_remote_adapter_install: true
+        blackboxExporter_install: true
+        jsonExporter_install: true
+        networkLatencyExporter_install: true
+        versionExporter_install: true
+        cloudEventsExporter_install: true
+        integrationTests_install: true
+
+    steps:
       - name: Install Qubership Monitoring Operator
         run: |
           helm upgrade --install qubership-monitoring-operator \
@@ -72,6 +76,22 @@ jobs:
             --set cloudEventsExporter.install=${{ env.cloudEventsExporter_install }} \
             --set integrationTests.install=${{ env.integrationTests_install }} \
             ./charts/qubership-monitoring-operator
+
+  Check integration tests:
+    runs-on: ubuntu-latest
+    needs: Install helm
+
+    steps: 
+      - name: print test result
+        run: |
+          kubectl get pods -n monitoring
+
+      - name: Wait for deployment to be ready
+        run: sleep 25
+
+      - name: print test result
+        run: |
+          kubectl get pods -n monitoring
 
       - name: Check Deployment Status
         run: |
