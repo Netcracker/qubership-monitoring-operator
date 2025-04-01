@@ -49,7 +49,7 @@ jobs:
         run: kind version
 
       - name: Check kubectl version
-        run: kubectl version --short
+        run: kubectl version
         
       #- name: Download artifacts
       #  uses: actions/download-artifact@v4
@@ -77,9 +77,6 @@ jobs:
         integrationTests_install: true
 
     steps:
-
-      - name: Wait for deployment to be ready
-        run: sleep 5
 
       - name: Check kubectl context
         run: kubectl config current-context
