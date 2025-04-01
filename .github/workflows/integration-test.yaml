@@ -38,6 +38,15 @@ jobs:
 
       - name: Check kubectl context
         run: kubectl config current-context
+
+      - name: Check cluster status
+        run: kubectl get pods --all-namespaces
+
+      - name: Show kubeconfig
+        run: cat ~/.kube/config
+
+      - name: Check Kind version
+        run: kind version
         
       #- name: Download artifacts
       #  uses: actions/download-artifact@v4
