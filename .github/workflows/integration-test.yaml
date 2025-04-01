@@ -1,0 +1,95 @@
+name: Test Monitoring Operator Installation
+
+on:
+  workflow_run:
+    workflows: ["Build Artifacts"]
+    types:
+      - completed
+  #todo delete later
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-monitoring-operator:
+    runs-on: ubuntu-latest
+
+    env:
+      namespace: monitoring
+      kind_name: kind-cluster
+      grafanaDashboards_install: true
+      prometheusRules_install: true
+      pushgateway_install: true
+      commonDashboards_install: true
+      prometheusAdapter_install: true
+      promxy_install: true
+      graphite_remote_adapter_install: true
+      blackboxExporter_install: true
+      jsonExporter_install: true
+      networkLatencyExporter_install: true
+      versionExporter_install: true
+      cloudEventsExporter_install: true
+      integrationTests_install: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kind
+        run: |
+          curl -sLo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/
+          kind create cluster --name ${{ env.kind_name }}
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Wait for build artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { exec } = require('child_process');
+            exec('gh run list --workflow=build.yaml --status=completed', (err, stdout, stderr) => {
+              if (err) {
+                console.error(`Error: ${stderr}`);
+                process.exit(1);
+              }
+              console.log(stdout);
+            });
+        
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: qubership-monitoring-operator
+          path: /tmp/qubership-monitoring-operator
+
+      - name: Install Qubership Monitoring Operator
+        run: |
+          helm upgrade --install qubership-monitoring-operator \
+            --namespace=${{ env.namespace }} \
+            --create-namespace \
+            --set grafanaDashboards.install=${{ env.grafanaDashboards_install }} \
+            --set prometheusRules.install=${{ env.prometheusRules_install }} \
+            --set pushgateway.install=${{ env.pushgateway_install }} \
+            --set commonDashboards.install=${{ env.commonDashboards_install }} \
+            --set prometheusAdapter.install=${{ env.prometheusAdapter_install }} \
+            --set promxy.install=${{ env.promxy_install }} \
+            --set graphite_remote_adapter.install=${{ env.graphite_remote_adapter_install }} \
+            --set blackboxExporter.install=${{ env.blackboxExporter_install }} \
+            --set jsonExporter.install=${{ env.jsonExporter_install }} \
+            --set networkLatencyExporter.install=${{ env.networkLatencyExporter_install }} \
+            --set versionExporter.install=${{ env.versionExporter_install }} \
+            --set cloudEventsExporter.install=${{ env.cloudEventsExporter_install }} \
+            --set integrationTests.install=${{ env.integrationTests_install }} \
+            /tmp/qubership-monitoring-operator/charts/qubership-monitoring-operator
+
+      - name: Check Deployment Status
+        run: |
+          kubectl rollout status deployment/qubership-monitoring-operator -n monitoring
+
+      - name: Cleanup
+        run: |
+          kind delete cluster --name ${{ env.kind_name }}
