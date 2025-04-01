@@ -1,3 +1,4 @@
+---
 name: Test Monitoring Operator Installation
 
 on:
@@ -76,20 +77,6 @@ jobs:
           helm upgrade --install qubership-monitoring-operator \
             --namespace=${{ env.namespace }} \
             --create-namespace \
-            --kube-context kind-kind-cluster \
-            --set grafanaDashboards.install=${{ env.grafanaDashboards_install }} \
-            --set prometheusRules.install=${{ env.prometheusRules_install }} \
-            --set pushgateway.install=${{ env.pushgateway_install }} \
-            --set commonDashboards.install=${{ env.commonDashboards_install }} \
-            --set prometheusAdapter.install=${{ env.prometheusAdapter_install }} \
-            --set promxy.install=${{ env.promxy_install }} \
-            --set graphite_remote_adapter.install=${{ env.graphite_remote_adapter_install }} \
-            --set blackboxExporter.install=${{ env.blackboxExporter_install }} \
-            --set jsonExporter.install=${{ env.jsonExporter_install }} \
-            --set networkLatencyExporter.install=${{ env.networkLatencyExporter_install }} \
-            --set versionExporter.install=${{ env.versionExporter_install }} \
-            --set cloudEventsExporter.install=${{ env.cloudEventsExporter_install }} \
-            --set integrationTests.install=${{ env.integrationTests_install }} \
             --debug \
             ./charts/qubership-monitoring-operator
 
