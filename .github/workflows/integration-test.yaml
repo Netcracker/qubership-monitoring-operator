@@ -77,7 +77,7 @@ jobs:
         integrationTests_install: true
 
     steps:
-    
+
       - name: Wait for deployment to be ready
         run: sleep 5
 
@@ -94,7 +94,7 @@ jobs:
         run: kind version
 
       - name: Check kubectl version
-        run: kubectl version --short
+        run: kubectl version
 
       - name: Install Qubership Monitoring Operator
         run: |
