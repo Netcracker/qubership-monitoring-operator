@@ -5,7 +5,6 @@ on:
     workflows: ["Build Artifacts"]
     types:
       - completed
-  #todo delete later
   workflow_dispatch:
   pull_request:
     branches:
@@ -47,11 +46,12 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
         
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: qubership-monitoring-operator
-          path: qubership-monitoring-operator/
+      #- name: Download artifacts
+      #  uses: actions/download-artifact@v4
+      #  with:
+      #    name: qubership-monitoring-operator
+      #    path: qubership-monitoring-operator/
+      #    github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Qubership Monitoring Operator
         run: |
@@ -71,7 +71,7 @@ jobs:
             --set versionExporter.install=${{ env.versionExporter_install }} \
             --set cloudEventsExporter.install=${{ env.cloudEventsExporter_install }} \
             --set integrationTests.install=${{ env.integrationTests_install }} \
-            /tmp/qubership-monitoring-operator/charts/qubership-monitoring-operator
+            ./charts/qubership-monitoring-operator
 
       - name: Check Deployment Status
         run: |
