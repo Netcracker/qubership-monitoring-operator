@@ -25,7 +25,7 @@ jobs:
 
       - name: Display GitHub Context
         run: |
-          echo "GitHub Context: ${{ github }}"
+          echo "GitHub Context: ${{ toJSON(github) }}"
 
       - name: Set up Kind
         run: |
