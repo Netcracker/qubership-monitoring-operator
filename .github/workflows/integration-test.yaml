@@ -64,19 +64,13 @@ jobs:
 
       - name: Check kubectl version
         run: kubectl version
-        
-      #- name: Download artifacts
-      #  uses: actions/download-artifact@v4
-      #  with:
-      #    name: qubership-monitoring-operator
-      #    path: qubership-monitoring-operator/
-      #    github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Qubership Monitoring Operator
         run: |
           helm upgrade --install qubership-monitoring-operator \
             --namespace=${{ env.namespace }} \
             --create-namespace \
+            --set integrationTests.install=${{ env.integrationTests_install }} \
             --debug \
             ./charts/qubership-monitoring-operator
 
@@ -85,15 +79,15 @@ jobs:
           kubectl get pods -n ${{ env.namespace }}
 
       - name: Wait for deployment to be ready
-        run: sleep 25
+        run: sleep 100
 
       - name: print test result
         run: |
           kubectl get pods -n ${{ env.namespace }}
 
-      - name: Check Deployment Status
+      - name: Check Tests Deployment Status
         run: |
-          kubectl rollout status deployment/qubership-monitoring-operator -n ${{ env.namespace }}
+          kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }}
 
       - name: Cleanup
         run: |
