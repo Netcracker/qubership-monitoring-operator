@@ -23,6 +23,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Display GitHub Context
+        run: echo "GitHub Context: ${{ toJson(github) }}"
+
+      - name: Display Env Context
+        run: echo "Env Context: ${{ toJson(env) }}"
+
+      - name: Display Vars Context
+        run: echo "Vars Context: ${{ toJson(vars) }}"
+
+      - name: Display Job Context
+        run: echo "Job Context: ${{ toJson(job) }}"
+
+      - name: Display Jobs Context
+        run: echo "Jobs Context: ${{ toJson(jobs) }}"
+
+      - name: Display Steps Context
+        run: echo "Steps Context: ${{ toJson(steps) }}"
+
+      - name: Display Runner Context
+        run: echo "Runner Context: ${{ toJson(runner) }}"
+
+      - name: Display Secrets Context
+        run: echo "Secrets Context: ${{ toJson(secrets) }}"
+
+      - name: Display Strategy Context
+        run: echo "Strategy Context: ${{ toJson(strategy) }}"
+
+      - name: Display Matrix Context
+        run: echo "Matrix Context: ${{ toJson(matrix) }}"
+
+      - name: Display Needs Context
+        run: echo "Needs Context: ${{ toJson(needs) }}"
+
+      - name: Display Inputs Context
+        run: echo "Inputs Context: ${{ toJson(inputs) }}"
+
       - name: Set up Kind
         run: |
           curl -sLo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
@@ -67,6 +103,7 @@ jobs:
             else
               echo "No pod found with name containing 'monitoring-tests'"
             fi
+            exit 1
           else
             echo "Rollout succeeded."
           fi
