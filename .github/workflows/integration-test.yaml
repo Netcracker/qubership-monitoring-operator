@@ -43,6 +43,8 @@ jobs:
           cat <<EOF > values.yaml
           integrationTests:
             install: true
+          monitoringOperator:
+            image: ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}:${{ github.sha }}
           EOF
 
       - name: Install Qubership Monitoring Operator
