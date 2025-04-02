@@ -82,9 +82,14 @@ jobs:
 
       - name: Get Logs of monitoring-tests Pod
         run: |
-          POD_NAME=$(kubectl get pods -n ${{ env.namespace }} --no-headers | grep 'monitoring-tests' | awk '{print $1}')
+          POD_NAME=$(kubectl get pods -n monitoring --no-headers | grep 'monitoring-tests' | awk '{print $1}')
           if [ -n "$POD_NAME" ]; then
-            kubectl logs -n ${{ env.namespace }} "$POD_NAME"
+            STATUS=$(kubectl get pod -n monitoring "$POD_NAME" -o jsonpath='{.status.phase}')
+            if [ "$STATUS" == "Running" ]; then
+              kubectl logs -n monitoring "$POD_NAME"
+            else
+              echo "Pod $POD_NAME is not running. Current status: $STATUS"
+            fi
           else
             echo "No pod found with name containing 'monitoring-tests'"
           fi
