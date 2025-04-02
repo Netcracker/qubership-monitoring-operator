@@ -76,9 +76,18 @@ jobs:
         run: |
           kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }} --timeout=100s
 
-      - name: Print Pod Info
+      - name: Print All Pods Info
         run: |
           kubectl get pods -n ${{ env.namespace }}
+
+      - name: Get Logs of monitoring-tests Pod
+        run: |
+          POD_NAME=$(kubectl get pods -n ${{ env.namespace }} --no-headers | grep 'monitoring-tests' | awk '{print $1}')
+          if [ -n "$POD_NAME" ]; then
+            kubectl logs -n ${{ env.namespace }} "$POD_NAME"
+          else
+            echo "No pod found with name containing 'monitoring-tests'"
+          fi
 
       - name: Cleanup
         run: |
