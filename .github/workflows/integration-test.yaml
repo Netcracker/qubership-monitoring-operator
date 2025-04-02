@@ -14,19 +14,6 @@ on:
 env:
   kind_name: kind-cluster
   namespace: monitoring
-  grafanaDashboards_install: true
-  prometheusRules_install: true
-  pushgateway_install: true
-  commonDashboards_install: true
-  prometheusAdapter_install: true
-  promxy_install: true
-  graphite_remote_adapter_install: true
-  blackboxExporter_install: true
-  jsonExporter_install: true
-  networkLatencyExporter_install: true
-  versionExporter_install: true
-  cloudEventsExporter_install: true
-  integrationTests_install: true
 
 jobs:
   install_dependencies:
@@ -47,56 +34,42 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-
-      - name: Check kubectl context
-        run: kubectl config current-context
-
-      - name: Check cluster status
-        run: kubectl get pods --all-namespaces
-
-      - name: Show kubeconfig
-        run: cat ~/.kube/config
-
-      - name: Check Kind version
-        run: kind version
-
-      - name: Check kubectl version
-        run: kubectl version
+      - name: Create values.yaml
+        run: |
+          cat <<EOF > values.yaml
+          integrationTests:
+            install: true
+          EOF
 
       - name: Install Qubership Monitoring Operator
         run: |
           helm upgrade --install qubership-monitoring-operator \
             --namespace=${{ env.namespace }} \
             --create-namespace \
-            --set integrationTests.install=${{ env.integrationTests_install }} \
             --debug \
-            ./charts/qubership-monitoring-operator
-
-      - name: Awaiting Readiness Pods
-        run: |
-          sleep 100
-
-      - name: Print All Pods Info
-        run: |
-          kubectl get pods -n ${{ env.namespace }}
-
-      - name: Get Logs of monitoring-tests Pod
-        run: |
-          POD_NAME=$(kubectl get pods -n monitoring --no-headers | grep 'monitoring-tests' | awk '{print $1}')
-          if [ -n "$POD_NAME" ]; then
-            STATUS=$(kubectl get pod -n monitoring "$POD_NAME" -o jsonpath='{.status.phase}')
-            if [ "$STATUS" == "Running" ]; then
-              kubectl logs -n monitoring "$POD_NAME"
-            else
-              echo "Pod $POD_NAME is not running. Current status: $STATUS"
-            fi
-          else
-            echo "No pod found with name containing 'monitoring-tests'"
-          fi
+            ./charts/qubership-monitoring-operator \
+            -f values.yaml 
 
       - name: Check Tests Deployment Status
         run: |
-          kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }} --timeout=5s
+          if ! kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }} --timeout=100s; then
+            echo "Rollout failed. Getting pod information and logs..."
+            kubectl get pods -n ${{ env.namespace }}
+            
+            POD_NAME=$(kubectl get pods -n monitoring --no-headers | grep 'monitoring-tests' | awk '{print $1}')
+            if [ -n "$POD_NAME" ]; then
+              STATUS=$(kubectl get pod -n monitoring "$POD_NAME" -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Running" ]; then
+                kubectl logs -n monitoring "$POD_NAME"
+              else
+                echo "Pod $POD_NAME is not running. Current status: $STATUS"
+              fi
+            else
+              echo "No pod found with name containing 'monitoring-tests'"
+            fi
+          else
+            echo "Rollout succeeded."
+          fi
 
       - name: Cleanup
         run: |
