@@ -72,9 +72,9 @@ jobs:
             --debug \
             ./charts/qubership-monitoring-operator
 
-      - name: Check Tests Deployment Status
+      - name: Awaiting Readiness Pods
         run: |
-          kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }} --timeout=100s
+          sleep 100
 
       - name: Print All Pods Info
         run: |
@@ -88,6 +88,10 @@ jobs:
           else
             echo "No pod found with name containing 'monitoring-tests'"
           fi
+
+      - name: Check Tests Deployment Status
+        run: |
+          kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }} --timeout=5s
 
       - name: Cleanup
         run: |
