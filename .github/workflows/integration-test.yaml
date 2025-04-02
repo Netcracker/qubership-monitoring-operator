@@ -47,8 +47,6 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Wait for deployment to be ready
-        run: sleep 5
 
       - name: Check kubectl context
         run: kubectl config current-context
@@ -74,20 +72,13 @@ jobs:
             --debug \
             ./charts/qubership-monitoring-operator
 
-      - name: print test result
-        run: |
-          kubectl get pods -n ${{ env.namespace }}
-
-      - name: Wait for deployment to be ready
-        run: sleep 100
-
-      - name: print test result
-        run: |
-          kubectl get pods -n ${{ env.namespace }}
-
       - name: Check Tests Deployment Status
         run: |
-          kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }}
+          kubectl rollout status deployment/monitoring-tests -n ${{ env.namespace }} --timeout=100s
+
+      - name: Print Pod Info
+        run: |
+          kubectl get pods -n ${{ env.namespace }}
 
       - name: Cleanup
         run: |
