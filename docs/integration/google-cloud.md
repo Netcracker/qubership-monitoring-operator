@@ -3,23 +3,23 @@ tools and managed services.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Google Cloud Operations (Stackdriver)](#google-cloud-operations-stackdriver)
-  * [Get Metrics from Google Cloud Operations](#get-metrics-from-google-cloud-operations)
-    * [How to Configure Metrics Collection Using stackdriver-exporter](#how-to-configure-metrics-collection-using-stackdriver-exporter)
-      * [Workload Identity](#workload-identity)
-      * [Service Account and Key](#service-account-and-key)
-    * [How to Configure List of Collected Metrics](#how-to-configure-list-of-collected-metrics)
-  * [Send Collected Metrics to Google Cloud Operations](#send-collected-metrics-to-google-cloud-operations)
-    * [Metrics](#metrics)
-    * [Dashboards](#dashboards)
-    * [Alerting](#alerting)
-    * [Autoscaling](#autoscaling)
-    * [How to setup integration with GCO](#how-to-setup-integration-with-gco)
-      * [Preparing Parameters](#preparing-parameters)
-      * [How to Check Integration](#how-to-check-integration)
-    * [Setup External Virtual Machines Monitoring](#setup-external-virtual-machines-monitoring)
-* [Links](#links)
+- [Table of Content](#table-of-content)
+- [Google Cloud Operations (Stackdriver)](#google-cloud-operations-stackdriver)
+  - [Get Metrics from Google Cloud Operations](#get-metrics-from-google-cloud-operations)
+    - [How to Configure Metrics Collection Using stackdriver-exporter](#how-to-configure-metrics-collection-using-stackdriver-exporter)
+      - [Workload Identity](#workload-identity)
+      - [Service Account and Key](#service-account-and-key)
+    - [How to Configure List of Collected Metrics](#how-to-configure-list-of-collected-metrics)
+  - [Send Collected Metrics to Google Cloud Operations](#send-collected-metrics-to-google-cloud-operations)
+    - [Metrics](#metrics)
+    - [Dashboards](#dashboards)
+    - [Alerting](#alerting)
+    - [Autoscaling](#autoscaling)
+    - [How to setup integration with GCO](#how-to-setup-integration-with-gco)
+      - [Preparing Parameters](#preparing-parameters)
+      - [How to Check Integration](#how-to-check-integration)
+    - [Setup External Virtual Machines Monitoring](#setup-external-virtual-machines-monitoring)
+- [Links](#links)
 
 # Google Cloud Operations (Stackdriver)
 
@@ -315,7 +315,7 @@ For example, to collect metrics from CloudSQL, configure stackdriver-exporter as
 
 The following image describes how platform monitoring is integrated with Google Cloud Operations (GCO).
 
-![Platform monitoring integration with GCO](/docs/public/images/prometheus_k8s_gco.png)
+![Platform monitoring integration with GCO](../images/prometheus_k8s_gco.png)
 
 In general, a sidecar container to Prometheus pod that reads Prometheus WAL and sends read metrics to Google
 Cloud Operations is added. These metrics can be used for alerting and visualization supported by GCO.
@@ -367,7 +367,7 @@ You have to collect the following parameters to set up the monitoring integratio
 
 Do not forget to replace these parameters with the values in the examples of the following parameters.
 You can see list of all possible parameters for the `monitoring-operator` in the
-[Parameters document](docs/internal/install/parameters.md).
+[Installation document](../installation.md).
 
 #### How to Check Integration
 

@@ -89,7 +89,7 @@ oc apply -f prometheus-rule.yaml
 ## Links
 
 * Prometheus operator
-  * [API Documentation](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md)
+  * [API Documentation](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md)
 * [Alerting Rules](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/)
 * Victoriametrics operator
   * [API Documentation](https://docs.victoriametrics.com/operator/api.html)

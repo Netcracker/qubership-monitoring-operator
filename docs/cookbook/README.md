@@ -1,6 +1,6 @@
 For more information, refer to the following:
 
-* [Monitoring Overview](/docs/internal/cookbook/overview.md)
+* [Monitoring Overview](overview.md)
 * Architecture Overview
 * Best Practices
 * Features
@@ -39,6 +39,6 @@ The important links are described in the following table.
 | Prometheus Official Documentation          | [https://prometheus.io/docs/introduction/overview/](https://prometheus.io/docs/introduction/overview/)                                                                                                             |
 | Prometheus-operator Official Documentation | [https://github.com/prometheus-operator/prometheus-operator/tree/master/Documentation](https://github.com/prometheus-operator/prometheus-operator/tree/master/Documentation)                                       |
 | Grafana Official Documentation             | [https://grafana.com/docs/grafana/latest/](https://grafana.com/docs/grafana/latest/)                                                                                                                               |
-| Grafana-operator Official Documentation    | [https://github.com/grafana-operator/grafana-operator/tree/master/documentation](https://github.com/grafana-operator/grafana-operator/tree/master/documentation)                                                   |
+| Grafana-operator Official Documentation    | [https://github.com/grafana/grafana-operator/tree/v4.10.1/documentation](https://github.com/grafana/grafana-operator/tree/v4.10.1/documentation)                                                   |
 | OpenMetrics / OpenTelemetry specification  | [https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/README.md](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/README.md) |
 <!-- markdownlint-enable line-length -->

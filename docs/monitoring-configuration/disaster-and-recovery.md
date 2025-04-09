@@ -2,17 +2,17 @@ This document describes how to configure Monitoring work in Disaster and Recover
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [Deployment assumptions](#deployment-assumptions)
-  * [Deployment schema](#deployment-schema)
-    * [Installation with Promxy](#installation-with-promxy)
-      * [Promxy configuration examples](#promxy-configuration-examples)
-      * [Blackbox-exporter configuration examples](#blackbox-exporter-configuration-examples)
-    * [Migration to non-DR schema](#migration-to-non-dr-schema)
-* [Alerting](#alerting)
-  * [Alerting assumptions](#alerting-assumptions)
-  * [How to prevent alert generation on DR site (Use inhibition)](#how-to-prevent-alert-generation-on-dr-site-use-inhibition)
+- [Table of Content](#table-of-content)
+- [Metrics](#metrics)
+  - [Deployment assumptions](#deployment-assumptions)
+  - [Deployment schema](#deployment-schema)
+    - [Installation with Promxy](#installation-with-promxy)
+      - [Promxy configuration examples](#promxy-configuration-examples)
+      - [Blackbox-exporter configuration examples](#blackbox-exporter-configuration-examples)
+    - [Migration to non-DR schema](#migration-to-non-dr-schema)
+- [Alerting](#alerting)
+  - [Alerting assumptions](#alerting-assumptions)
+  - [How to prevent alert generation on DR site (Use inhibition)](#how-to-prevent-alert-generation-on-dr-site-use-inhibition)
 
 # Metrics
 
@@ -32,7 +32,7 @@ This document describes how to configure Monitoring work in Disaster and Recover
 
 Deployment schema:
 
-![Prometheus with Promxy](/docs/public/images/prometheus-dr-with-promxy-overview.png)
+![Prometheus with Promxy](../images/prometheus-dr-with-promxy-overview.png)
 
 You can use [Promxy](https://github.com/jacksontj/promxy) to deploy monitoring in DR mode.
 It's a proxy to request data from several Prometheuses/VictoriaMetrics from different clusters and show all data in the
@@ -122,7 +122,7 @@ promxy:
 
 Detailed scenarios how to use select data with using Promxy:
 
-![Prometheus with Promxy - Detailed](/docs/public/images/prometheus-dr-with-promxy-detailed.png)
+![Prometheus with Promxy - Detailed](../images/prometheus-dr-with-promxy-detailed.png)
 
 #### Blackbox-exporter configuration examples
 

@@ -83,8 +83,8 @@ To configure it you need to use a section `basicAuth` for each endpoint in CRs.
 
 Official `prometheus-operator` documentation:
 
-* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint)
-* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
+* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#endpoint)
+* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
 
 For example, suppose we have a Secret:
 
@@ -153,9 +153,9 @@ To configure it you need to use a section `bearerTokenSecret` or `authorization`
 
 Official `prometheus-operator` documentation:
 
-* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint)
-* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
-* [Authorization](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.SafeAuthorization)
+* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#endpoint)
+* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
+* [Authorization](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#monitoring.coreos.com/v1.SafeAuthorization)
 
 For example, suppose we have a Secret:
 
@@ -251,9 +251,9 @@ To configure it you need to use a section `oauth2` for each endpoint in CRs.
 
 Official `prometheus-operator` documentation:
 
-* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint)
-* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
-* [OAuth2](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.OAuth2)
+* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#endpoint)
+* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
+* [OAuth2](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#monitoring.coreos.com/v1.OAuth2)
 
 For example, suppose we have a Secret:
 
@@ -334,8 +334,8 @@ In case your service requires some custom URL parameters to auth users you can s
 
 Official `prometheus-operator` documentation:
 
-* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint)
-* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
+* [ServiceMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#endpoint)
+* [PodMonitor: Endpoint](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#monitoring.coreos.com/v1.PodMetricsEndpoint)
 
 So to collect metrics from the endpoint you can configure `ServiceMonitor` or `PodMonitor` as follows:
 

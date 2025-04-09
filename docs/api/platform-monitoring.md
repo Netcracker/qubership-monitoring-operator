@@ -7,40 +7,40 @@ This section describes the types introduced by the Monitoring Operator.
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [AlertManager](#alertmanager)
-* [Auth](#auth)
-* [EmbeddedObjectMetadata](#embeddedobjectmetadata)
-* [Grafana](#grafana)
-* [GrafanaDashboards](#grafanadashboards)
-* [GrafanaOperator](#grafanaoperator)
-* [Ingress](#ingress)
-* [Integration](#integration)
-* [Jaeger](#jaeger)
-* [KubeStateMetrics](#kubestatemetrics)
-* [Monitor](#monitor)
-* [NodeExporter](#nodeexporter)
-* [OAuthProxy](#oauthproxy)
-* [PlatformMonitoring](#platformmonitoring)
-* [PlatformMonitoringCondition](#platformmonitoringcondition)
-* [PlatformMonitoringList](#platformmonitoringlist)
-* [PlatformMonitoringSpec](#platformmonitoringspec)
-* [PlatformMonitoringStatus](#platformmonitoringstatus)
-* [Prometheus](#prometheus)
-* [PrometheusOperator](#prometheusoperator)
-* [PrometheusRule](#prometheusrule)
-* [PrometheusRules](#prometheusrules)
-* [Promxy](#promxy)
-* [Pushgateway](#pushgateway)
-* [SecurityContext](#securitycontext)
-* [StackDriverIntegrationConfig](#stackdriverintegrationconfig)
-* [TLSConfig](#tlsconfig)
-* [Victoriametrics](#victoriametrics)
-* [VmOperator](#vmoperator)
-* [VmAgent](#vmagent)
-* [VmSingle](#vmsingle)
-* [VmAlert](#vmalert)
-* [VmAlertManager](#vmalertmanager)
+- [Table of Contents](#table-of-contents)
+- [AlertManager](#alertmanager)
+- [Auth](#auth)
+- [EmbeddedObjectMetadata](#embeddedobjectmetadata)
+- [Grafana](#grafana)
+- [GrafanaDashboards](#grafanadashboards)
+- [GrafanaOperator](#grafanaoperator)
+- [Ingress](#ingress)
+- [Integration](#integration)
+- [Jaeger](#jaeger)
+- [KubeStateMetrics](#kubestatemetrics)
+- [Monitor](#monitor)
+- [NodeExporter](#nodeexporter)
+- [OAuthProxy](#oauthproxy)
+- [PlatformMonitoring](#platformmonitoring)
+- [PlatformMonitoringCondition](#platformmonitoringcondition)
+- [PlatformMonitoringList](#platformmonitoringlist)
+- [PlatformMonitoringSpec](#platformmonitoringspec)
+- [PlatformMonitoringStatus](#platformmonitoringstatus)
+- [Prometheus](#prometheus)
+- [PrometheusOperator](#prometheusoperator)
+- [PrometheusRule](#prometheusrule)
+- [PrometheusRules](#prometheusrules)
+- [Promxy](#promxy)
+- [Pushgateway](#pushgateway)
+- [SecurityContext](#securitycontext)
+- [StackDriverIntegrationConfig](#stackdriverintegrationconfig)
+- [TLSConfig](#tlsconfig)
+- [Victoriametrics](#victoriametrics)
+- [VmOperator](#vmoperator)
+- [VmAgent](#vmagent)
+- [VmSingle](#vmsingle)
+- [VmAlert](#vmalert)
+- [VmAlertManager](#vmalertmanager)
 
 ## AlertManager
 
@@ -60,8 +60,8 @@ AlertManager defines the desired state for some part of the prometheus-operator 
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
 | podMonitor | Pod monitor for self monitoring | *[Monitor](#monitor) | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/label](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/label](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
@@ -91,8 +91,8 @@ EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimac
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [http://kubernetes.io/docs/user-guide/annotations](http://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [http://kubernetes.io/docs/user-guide/labels](http://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
 
 
 [Back to TOC](#table-of-contents)
@@ -120,8 +120,8 @@ Grafana defines the desired state for some part of the grafana-operator deployme
 | nodeSelector               | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                                                                                                                                      | map[string]string                                                                                                            | false    |
 | podMonitor                 | Pod monitor for self monitoring                                                                                                                                                                                                                                                                                                     | *[Monitor](#monitor)                                                                                                         | false    |
 | dataStorage                | DataStorage provides a means to configure the grafana data storage                                                                                                                                                                                                                                                                  | *grafv1alpha1.GrafanaDataStorage                                                                                             | false    |
-| labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels)                                                          | map[string]string                                                                                                            | false    |
-| annotations                | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/labels) | map[string]string                                                                                                            | false    |
+| labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)                                                          | map[string]string                                                                                                            | false    |
+| annotations                | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string                                                                                                            | false    |
 | replicas                   | Set replicas                                                                                                                                                                                                                                                                                                                        | *int32                                                                                                                       | false    |
 | serviceAccount             | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Grafana for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata.                                                                                                               | *[EmbeddedObjectMetadata](#embeddedobjectmetadata)                                                                           | false    |
 
@@ -148,7 +148,7 @@ GrafanaOperator defines the desired state for some part of the grafana-operator 
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| image | Image to use for a `grafana-operator` deployment. The `grafana-operator` is a control, deploy and process custom resources into Grafana entities. More info: [https://github.com/integr8ly/grafana-operator](https://github.com/integr8ly/grafana-operator) | string | true |
+| image | Image to use for a `grafana-operator` deployment. The `grafana-operator` is a control, deploy and process custom resources into Grafana entities. More info: [https://github.com/grafana/grafana-operator](https://github.com/grafana/grafana-operator) | string | true |
 | initContainerImage | Image to use to initialize Grafana deployment. | string | true |
 | namespaces | Namespaces to scope the interaction of the Grafana operator. | string | false |
 | securityContext | SecurityContext holds pod-level security attributes. | *[SecurityContext](#securitycontext) | false |
@@ -157,9 +157,9 @@ GrafanaOperator defines the desired state for some part of the grafana-operator 
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
 | podMonitor | Pod monitor for self monitoring | *[Monitor](#monitor) | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
-| logLevel | Zap log level (one of 'debug', 'info', 'error' or any integer value > 0) (default info) More info: [https://github.com/grafana-operator/grafana-operator/blob/master/documentation/deploy_grafana.md](https://github.com/grafana-operator/grafana-operator/blob/master/documentation/deploy_grafana.md) | string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
+| logLevel | Zap log level (one of 'debug', 'info', 'error' or any integer value > 0) (default info) More info: [https://github.com/grafana/grafana-operator/blob/v4/documentation/deploy_grafana.md](https://github.com/grafana/grafana-operator/blob/v4/documentation/deploy_grafana.md) | string | false |
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
@@ -227,8 +227,8 @@ KubeStateMetrics defines the desired state for some part of the kube-state-metri
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
 | serviceMonitor | Service monitor for pulling metrics | *[Monitor](#monitor) | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
@@ -268,8 +268,8 @@ NodeExporter defines the desired state for some part of the node-exporter deploy
 | paused | Set paused to reconsilation | bool | false |
 | serviceMonitor | Service monitor for pulling metrics | *[Monitor](#monitor) | false |
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 | CollectorTextfileDirectory | Directory for textfile collector. More info: [https://github.com/prometheus/node_exporter#textfile-collector](https://github.com/prometheus/node_exporter#textfile-collector) | string | false |
 | extraArgs | Additional arguments for node-exporter container. For example: "--collector.systemd". | list[string] | false |
@@ -391,11 +391,11 @@ Prometheus defines the link to PrometheusSpec objects from prometheus-operator.
 | externalLabels | The labels to add to any time series or alerts when communicating with external systems (federation, remote storage, Alertmanager). | map[string]string | false |
 | securityContext | SecurityContext holds pod-level security attributes. | *[SecurityContext](#securitycontext) | false |
 | nodeSelector | Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
-| affinity | If specified, the pod's scheduling constraints. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#affinity-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#affinity-v1-core) | *v1.Affinity | false |
+| affinity | If specified, the pod's scheduling constraints. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core) | *v1.Affinity | false |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
-| storage | Storage spec to specify how storage shall be used. More info: [https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#storagespec](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#storagespec) | *promv1.StorageSpec | false |
-| volumes | Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core) | []v1.Volume | false |
-| volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core) | []v1.VolumeMount | false |
+| storage | Storage spec to specify how storage shall be used. More info: [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#storagespec](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#storagespec) | *promv1.StorageSpec | false |
+| volumes | Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core) | []v1.Volume | false |
+| volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core) | []v1.VolumeMount | false |
 | ingress | Ingress allows to create Ingress for Prometheus UI. | *[Ingress](#ingress) | false |
 | retention | Retention policy by time | string | false |
 | retentionsize | Retention policy by size [EXPERIMENTAL] | string | false |
@@ -414,8 +414,8 @@ Prometheus defines the link to PrometheusSpec objects from prometheus-operator.
 | query | QuerySpec defines the query command line flags when starting Prometheus | *promv1.QuerySpec | false |
 | tlsConfig | TLS define TLS configuration for Prometheus. | *promv1.WebTLSConfig | false |
 | enableAdminAPI | Enable access to prometheus web admin API. Defaults to the value of false. WARNING: Enabling the admin APIs enables mutating endpoints, to delete data, shutdown Prometheus, and more. Enabling this should be done with care and the user is advised to add additional authentication authorization via a proxy to ensure only clients authorized to perform these actions can do so. For more information see [https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-admin-apis](https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-admin-apis) | bool | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Prometheus for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 | replicaExternalLabelName | Name of Prometheus external label used to denote replica name. Defaults to the value of `prometheus_replica`. External label will _not_ be added when value is set to empty string (`\"\"`). | *string | false |
 | enableFeatures | Enable access to Prometheus disabled features. By default, no features are enabled. Enabling disabled features is entirely outside the scope of what the maintainers will support and by doing so, you accept that this behavior may break at any time without notice. For more information see [https://prometheus.io/docs/prometheus/latest/disabled_features/](https://prometheus.io/docs/prometheus/latest/disabled_features/) | []string | false |
@@ -438,8 +438,8 @@ PrometheusOperator defines the desired state for some part of the prometheus-ope
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
 | podMonitor | Pod monitor for self monitoring | *[Monitor](#monitor) | false |
 | namespaces | Namespaces to scope the interaction of the Prometheus Operator and the apiserver. | string | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
@@ -500,8 +500,8 @@ Pushgateway defines the desired state for some part of pushgateway deployment
 | image | Image to use for a `pushgateway` deployment. The `pushgateway` is an exporter to collect metrics from VM More info: [https://github.com/prometheus/pushgateway](https://github.com/prometheus/pushgateway) | string | true |
 | replicas | Set replicas | *int32 | false |
 | extraArgs | Additional pushgateway container arguments. | []string | false |
-| volumes | Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core) | []v1.Volume | false |
-| volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core) | []v1.VolumeMount | false |
+| volumes | Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core) | []v1.Volume | false |
+| volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core) | []v1.VolumeMount | false |
 | storage | PVC spec for Pushgateway. If specified, also adds flags --persistence.file and --persistence.interval with default values, creates volume and volumeMount with name \"storage-volume\" in the deployment. | *v1.PersistentVolumeClaimSpec | false |
 | port | Port for `pushgateway` deployment and service | int32 | true |
 | ingress | Ingress allows to create Ingress. | *[Ingress](#ingress) | false |
@@ -511,8 +511,8 @@ Pushgateway defines the desired state for some part of pushgateway deployment
 | paused | Set paused to reconsilation | bool | false |
 | serviceMonitor | Service monitor for pulling metrics | *[Monitor](#monitor) | false |
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 
 
 [Back to TOC](#table-of-contents)
@@ -597,8 +597,8 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | extraEnvs | ExtraEnvs that will be added to VMOperator pod | []v1.EnvVar | false |
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
 | serviceMonitor | Service monitor for pulling metrics | *[Monitor](#monitor) | false |
 
 
@@ -617,8 +617,8 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | paused | Set paused to reconsilation | bool | false |
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | ingress | Ingress allows to create Ingress for VM UI. | *[Ingress](#ingress) | false |
 | scrapeInterval | ScrapeInterval defines how often scrape targets by default | string | false |
 | vmAgentExternalLabelName | VMAgentExternalLabelName Name of vmAgent external label used to denote VmAgent instance name. Defaults to the value of `vmagent`. External label will _not_ be added when value is set to empty string (`\"\"`). | *string | false |
@@ -652,8 +652,8 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | paused | Set paused to reconsilation | bool | false |
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | ingress | Ingress allows to create Ingress for VmSingle UI. | *[Ingress](#ingress) | false |
 | retentionPeriod | RetentionPeriod for the stored metrics Note VictoriaMetrics has data/ and indexdb/ folders metrics from data/ removed eventually as soon as partition leaves retention period reverse index data at indexdb rotates once at the half of configured retention period [https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention](https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention) | string | true |
 | extraArgs | ExtraArgs that will be passed to  VMSingle pod for example remoteWrite.tmpDataPath: /tmp | map[string]string | false |
@@ -697,8 +697,8 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. | map[string]string | false |
 | terminationGracePeriodSeconds | TerminationGracePeriodSeconds period for container graceful termination | *int64 | false |
 | paused | Set paused to reconsilation | bool | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | volumes | Volumes allows configuration of additional volumes on the output Deployment definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. | []v1.Volume | false |
 | volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output Deployment definition. VolumeMounts specified will be appended to other VolumeMounts in the VMAlert container, that are generated as a result of StorageSpec objects. | []v1.VolumeMount | false |
 
@@ -729,8 +729,8 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | configSelector | ConfigSelector defines selector for VMAlertmanagerConfig, result config will be merged with with Raw or Secret config. Works in combination with NamespaceSelector. NamespaceSelector nil - only objects at VMAlertmanager namespace. Selector nil - only objects at NamespaceSelector namespaces. If both nil - behaviour controlled by selectAllByDefault | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#labelselector-v1-meta) | false |
 | configNamespaceSelector | ConfigNamespaceSelector defines namespace selector for VMAlertmanagerConfig. Works in combination with Selector. NamespaceSelector nil - only objects at VMAlertmanager namespace. Selector nil - only objects at NamespaceSelector namespaces. If both nil - behaviour controlled by selectAllByDefault | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#labelselector-v1-meta) | false |
 | terminationGracePeriodSeconds | TerminationGracePeriodSeconds period for container graceful termination | *int64 | false |
-| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/user-guide/labels](https://kubernetes.io/docs/user-guide/labels) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/user-guide/annotations](https://kubernetes.io/docs/user-guide/annotations) | map[string]string | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | storage | Storage is the definition of how storage will be used by the VMAlertmanager instances. | *vmetricsv1b1.StorageSpec | false |
 | volumes | Volumes allows configuration of additional volumes on the output deploy definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. | []v1.Volume | false |
 | volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output deploy definition. VolumeMounts specified will be appended to other VolumeMounts in the alertmanager container, that are generated as a result of StorageSpec objects. | []v1.VolumeMount | false |

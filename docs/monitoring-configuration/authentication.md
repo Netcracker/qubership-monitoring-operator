@@ -3,33 +3,33 @@ in the Monitoring stack.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [List of supported auth methods](#list-of-supported-auth-methods)
-  * [Ingress annotations](#ingress-annotations)
-    * [Before you begin](#before-you-begin)
-    * [Restrictions](#restrictions)
-    * [Ingress BasicAuth](#ingress-basicauth)
-      * [Grafana](#grafana)
-      * [Prometheus Stack](#prometheus-stack)
-        * [Alertmanager](#alertmanager)
-        * [Prometheus](#prometheus)
-      * [VictoriaMetrics Stack](#victoriametrics-stack)
-        * [VMAgent](#vmagent)
-        * [VMAlert](#vmalert)
-        * [VMAuth](#vmauth)
-        * [VMAlertmanager](#vmalertmanager)
-        * [VMSingle](#vmsingle)
-  * [Built-in auth](#built-in-auth)
-    * [Common](#common)
-    * [Grafana](#grafana-1)
-    * [Prometheus Stack](#prometheus-stack-1)
-      * [Alertmanager](#alertmanager-1)
-      * [Prometheus](#prometheus-1)
-    * [VictoriaMetrics Stack](#victoriametrics-stack-1)
-      * [VMAgent](#vmagent-1)
-      * [VMAlert](#vmalert-1)
-      * [VMAlertmanager](#vmalertmanager-1)
-      * [VMSingle](#vmsingle-1)
+- [Table of Content](#table-of-content)
+- [List of supported auth methods](#list-of-supported-auth-methods)
+  - [Ingress annotations](#ingress-annotations)
+    - [Before you begin](#before-you-begin)
+    - [Restrictions](#restrictions)
+    - [Ingress BasicAuth](#ingress-basicauth)
+      - [Grafana](#grafana)
+      - [Prometheus Stack](#prometheus-stack)
+        - [Alertmanager](#alertmanager)
+        - [Prometheus](#prometheus)
+      - [VictoriaMetrics Stack](#victoriametrics-stack)
+        - [VMAgent](#vmagent)
+        - [VMAlert](#vmalert)
+        - [VMAuth](#vmauth)
+        - [VMAlertmanager](#vmalertmanager)
+        - [VMSingle](#vmsingle)
+  - [Built-in auth](#built-in-auth)
+    - [Common](#common)
+    - [Grafana](#grafana-1)
+    - [Prometheus Stack](#prometheus-stack-1)
+      - [Alertmanager](#alertmanager-1)
+      - [Prometheus](#prometheus-1)
+    - [VictoriaMetrics Stack](#victoriametrics-stack-1)
+      - [VMAgent](#vmagent-1)
+      - [VMAlert](#vmalert-1)
+      - [VMAlertmanager](#vmalertmanager-1)
+      - [VMSingle](#vmsingle-1)
 
 # List of supported auth methods
 
@@ -480,7 +480,7 @@ Settings from `auth` section will provide to:
 * `Prometheus` - in the Prometheus pod will add a sidecar with `oauth2-proxy` to block access to the UI
 * `Alertmanager` - in the Alertmanager pod will add sidecar with `oauth2-proxy` to block access to the UI
 
-Details and parameters description see at [Installation Guide: Auth](../../installation.md#auth).
+Details and parameters description see at [Installation Guide: Auth](../installation.md#auth).
 
 
 [Back to TOC](#table-of-content)

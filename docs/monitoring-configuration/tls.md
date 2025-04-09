@@ -2,36 +2,37 @@ his document describes how to configure TLS for Monitoring components and how to
 
 # Table of content
 
-* [Table of content](#table-of-content)
-* [Overview](#overview)
-  * [Architecture](#architecture)
-    * [Steps to renew certificates](#steps-to-renew-certificates)
-    * [Restrictions and bugs](#restrictions-and-bugs)
-  * [Parameters for Prometheus](#parameters-for-prometheus)
-    * [webTLSConfig](#webtlsconfig)
-      * [clientAuthType](#clientauthtype)
-    * [generateCerts](#generatecerts)
-    * [createSecret](#createsecret)
-  * [Ingress configuration](#ingress-configuration)
-  * [About cert-manager](#about-cert-manager)
-    * [Monitoring-operator integration with cert-manager](#monitoring-operator-integration-with-cert-manager)
-      * [Cert-manager certificates for Prometheus](#cert-manager-certificates-for-prometheus)
-      * [Cert-manager certificates for AlertManager](#cert-manager-certificates-for-alertmanager)
-      * [Cert-manager certificates for Grafana](#cert-manager-certificates-for-grafana)
-      * [Cert-manager certificates for Victoriametrics](#cert-manager-certificates-for-victoriametrics)
-  * [Examples](#examples)
-    * [Example to create secret](#example-to-create-secret)
-    * [Example with manually pre-created secret](#example-with-manually-pre-created-secret)
-    * [Example full parameters with creating secret](#example-full-parameters-with-creating-secret)
-    * [Simple example to use cert-manager](#simple-example-to-use-cert-manager)
-    * [Full example to use cert-manager](#full-example-to-use-cert-manager)
-    * [Example for prometheus-adapter-operator to use cert-manager](#example-for-prometheus-adapter-operator-to-use-cert-manager)
-    * [Example for prometheus-adapter-operator to use createSecret](#example-for-prometheus-adapter-operator-to-use-createsecret)
-    * [Example for prometheus-adapter-operator to use existingSecret](#example-for-prometheus-adapter-operator-to-use-existingsecret)
-    * [Example for prometheus-adapter-operator to use multiple secrets containing certificates](#example-for-prometheus-adapter-operator-to-use-multiple-secrets-containing-certificates)
-    * [Example for victoriametrics to use cert-manager](#example-for-victoriametrics-to-use-cert-manager)
-    * [Example for victoriametrics to use createSecret](#example-for-victoriametrics-to-use-createsecret)
-    * [Example for victoriametrics to use existingSecret](#example-for-victoriametrics-to-use-existingsecret)
+- [Table of content](#table-of-content)
+- [Overview](#overview)
+  - [Architecture](#architecture)
+    - [Steps to renew certificates](#steps-to-renew-certificates)
+    - [Restrictions and bugs](#restrictions-and-bugs)
+  - [Parameters for Prometheus](#parameters-for-prometheus)
+    - [webTLSConfig](#webtlsconfig)
+      - [clientAuthType](#clientauthtype)
+    - [generateCerts](#generatecerts)
+    - [createSecret](#createsecret)
+  - [Ingress configuration](#ingress-configuration)
+  - [About cert-manager](#about-cert-manager)
+    - [Monitoring-operator integration with cert-manager](#monitoring-operator-integration-with-cert-manager)
+      - [Cert-manager certificates for Prometheus](#cert-manager-certificates-for-prometheus)
+      - [Cert-manager certificates for AlertManager](#cert-manager-certificates-for-alertmanager)
+      - [Cert-manager certificates for Grafana](#cert-manager-certificates-for-grafana)
+      - [Cert-manager certificates for Victoriametrics](#cert-manager-certificates-for-victoriametrics)
+  - [Examples](#examples)
+    - [Example to create secret](#example-to-create-secret)
+      - [Cert-manager certificates for Victoriametrics](#cert-manager-certificates-for-victoriametrics-1)
+    - [Example with manually pre-created secret](#example-with-manually-pre-created-secret)
+    - [Example full parameters with creating secret](#example-full-parameters-with-creating-secret)
+    - [Simple example to use cert-manager](#simple-example-to-use-cert-manager)
+    - [Full example to use cert-manager](#full-example-to-use-cert-manager)
+    - [Example for prometheus-adapter-operator to use cert-manager](#example-for-prometheus-adapter-operator-to-use-cert-manager)
+    - [Example for prometheus-adapter-operator to use createSecret](#example-for-prometheus-adapter-operator-to-use-createsecret)
+    - [Example for prometheus-adapter-operator to use existingSecret](#example-for-prometheus-adapter-operator-to-use-existingsecret)
+    - [Example for prometheus-adapter-operator to use multiple secrets containing certificates](#example-for-prometheus-adapter-operator-to-use-multiple-secrets-containing-certificates)
+    - [Example for victoriametrics to use cert-manager](#example-for-victoriametrics-to-use-cert-manager)
+    - [Example for victoriametrics to use createSecret](#example-for-victoriametrics-to-use-createsecret)
+    - [Example for victoriametrics to use existingSecret](#example-for-victoriametrics-to-use-existingsecret)
 
 # Overview
 
@@ -46,7 +47,7 @@ like to enforce TLS for those connections, you would need to create a specific w
 
 The diagram below shows a simplified structure of the architecture and secure connections between components.
 
-![Prometheus TLS architecture](/docs/public/images/prometheus_k8s_tls.png)
+![Prometheus TLS architecture](../images/prometheus_k8s_tls.png)
 
 In general, we provide ability to enable TLS in Prometheus,but connection between prometheus and
 grafana\alertmanager is unsecured (HTTP) with option to skipping TLS verify.
@@ -107,14 +108,14 @@ community to support TLS.
 Section `prometheus.tlsConfig` defines the TLS parameters for Prometheus.
 
 For more information, refer to
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#webtlsconfig](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#webtlsconfig)
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#webtlsconfig](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#webtlsconfig)
 
 <!-- markdownlint-disable line-length -->
 | Field          | Description                                                                                                                                                                                                                                      | Scheme |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#secretkeyselector-v1-core)                                             | object |
-| cert           | Contains the TLS certificate for the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#secretorconfigmap)                                     | object |
-| client_ca      | Contains the CA certificate for client certificate authentication to the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#secretorconfigmap) | object |
+| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core)                                             | object |
+| cert           | Contains the TLS certificate for the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap)                                     | object |
+| client_ca      | Contains the CA certificate for client certificate authentication to the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap) | object |
 | clientAuthType | Server policy for client authentication. Maps to ClientAuth Policies. For more detail on clientAuth options: [https://golang.org/pkg/crypto/tls/#ClientAuthType](https://golang.org/pkg/crypto/tls/#ClientAuthType)                              | string |
 | generateCerts  | Allows to configure generation of TLS certificate for Prometheus by [cert-manager](https://cert-manager.io/).                                                                                                                                    | object |
 | createSecret   | Specifies content for secret that will be created.                                                                                                                                                                                               | object |

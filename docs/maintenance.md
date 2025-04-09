@@ -3,29 +3,29 @@ services.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Ways to Make Changes](#ways-to-make-changes)
-  * [Redeploy/Update](#redeployupdate)
-    * [Manual Deploy using Helm](#manual-deploy-using-helm)
-      * [Installing the Chart](#installing-the-chart)
-      * [Upgrading the Chart](#upgrading-the-chart)
-      * [Uninstalling the Chart](#uninstalling-the-chart)
-  * [Change Parameters in Custom Resource in Runtime](#change-parameters-in-custom-resource-in-runtime)
-  * [Work with legacy CRDs](#work-with-legacy-crds)
-* [Provided Procedures](#provided-procedures)
-  * [Update Procedure](#update-procedure)
-  * [Remove Procedure](#remove-procedure)
-    * [Remove PlatformMonitoring CR](#remove-platformmonitoring-cr)
-    * [Remove PlatformMonitoring CR and Operator](#remove-platformmonitoring-cr-and-operator)
-    * [Remove all Created CRDs](#remove-all-created-crds)
-  * [Deploy/Skip/Remove based components](#deployskipremove-based-components)
-  * [Pause reconciliation for components which control by monitoring-operator](#pause-reconciliation-for-components-which-control-by-monitoring-operator)
-  * [Export Prometheus Data](#export-prometheus-data)
-    * [Export using Snapshots](#export-using-snapshots)
-    * [Copy PV Content](#copy-pv-content)
-  * [Import Prometheus Data](#import-prometheus-data)
-    * [Import from Snapshots](#import-from-snapshots)
-    * [Use early copied PV Content](#use-early-copied-pv-content)
+- [Table of Content](#table-of-content)
+- [Ways to Make Changes](#ways-to-make-changes)
+  - [Redeploy/Update](#redeployupdate)
+    - [Manual Deploy using Helm](#manual-deploy-using-helm)
+      - [Installing the Chart](#installing-the-chart)
+      - [Upgrading the Chart](#upgrading-the-chart)
+      - [Uninstalling the Chart](#uninstalling-the-chart)
+  - [Change Parameters in Custom Resource in Runtime](#change-parameters-in-custom-resource-in-runtime)
+  - [Work with legacy CRDs](#work-with-legacy-crds)
+- [Provided Procedures](#provided-procedures)
+  - [Update Procedure](#update-procedure)
+  - [Remove Procedure](#remove-procedure)
+    - [Remove PlatformMonitoring CR](#remove-platformmonitoring-cr)
+    - [Remove PlatformMonitoring CR and Operator](#remove-platformmonitoring-cr-and-operator)
+    - [Remove all Created CRDs](#remove-all-created-crds)
+  - [Deploy/Skip/Remove based components](#deployskipremove-based-components)
+  - [Pause reconciliation for components which control by monitoring-operator](#pause-reconciliation-for-components-which-control-by-monitoring-operator)
+  - [Export Prometheus Data](#export-prometheus-data)
+    - [Export using Snapshots](#export-using-snapshots)
+    - [Copy PV Content](#copy-pv-content)
+  - [Import Prometheus Data](#import-prometheus-data)
+    - [Import from Snapshots](#import-from-snapshots)
+    - [Use early copied PV Content](#use-early-copied-pv-content)
 
 # Ways to Make Changes
 
@@ -195,7 +195,7 @@ If you use **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower, you mu
 But the Helm chart uses CRDs _v1_ version, which are incompatible with _v1beta1_ CRDs.
 
 So if you use Kubernetes or OpenShift of specified version or lower, you have to work with _v1beta1_ CRDs which
-are contained in the [crds/v1beta1 directory](./crds/v1beta1). Also, you have to use the features of deployment tools
+are contained in the [crds directory](crds/). Also, you have to use the features of deployment tools
 to skip installing CRDs to avoid errors.
 
 If you want to deploy the `monitoring-operator` in a cluster (Kubernetes v1.15 or lower or
@@ -204,7 +204,7 @@ OpenShift v3.11 or lower) for the first time, you have to install CRDs manually 
 To create CRDs version _v1beta1_ need:
 
 1. Login into cluster using `kubectl` client for Kubernetes or `oc` client for `OpenShift`
-2. Navigate to `docs/public/crds` directory
+2. Navigate to `docs/crds` directory
 3. Execute the following command for Kubernetes:
 
 ```bash
@@ -220,7 +220,7 @@ oc create -f ./v1beta1
 To update CRDs version _v1beta1_ need:
 
 1. Login into cluster using `kubectl` client for Kubernetes or `oc` client for `OpenShift`
-2. Navigate to `docs/public/crds` directory
+2. Navigate to `docs/crds` directory
 3. Execute the following command for Kubernetes:
 
 ```bash

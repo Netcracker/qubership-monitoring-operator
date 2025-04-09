@@ -3,23 +3,23 @@ list of namespaces.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Types of metrics](#types-of-metrics)
-* [How to configure filters for Monitoring CRs and metrics collection](#how-to-configure-filters-for-monitoring-crs-and-metrics-collection)
-  * [How configured filters will apply](#how-configured-filters-will-apply)
-  * [Filters by labels](#filters-by-labels)
-  * [Filters by namespaces](#filters-by-namespaces)
-  * [Disable metric collection for default metric sources](#disable-metric-collection-for-default-metric-sources)
-    * [kube-state-metrics](#kube-state-metrics)
-    * [kubelet](#kubelet)
-    * [kube-apiserver](#kube-apiserver)
-    * [etcd](#etcd)
-    * [node-exporter](#node-exporter)
-  * [Examples](#examples)
-    * [Whitelist by the namespace name](#whitelist-by-the-namespace-name)
-    * [Blacklist by the namespace name](#blacklist-by-the-namespace-name)
-    * [Whitelist by the special label](#whitelist-by-the-special-label)
-    * [Blacklist by the special label](#blacklist-by-the-special-label)
+- [Table of Content](#table-of-content)
+- [Types of metrics](#types-of-metrics)
+- [How to configure filters for Monitoring CRs and metrics collection](#how-to-configure-filters-for-monitoring-crs-and-metrics-collection)
+  - [How configured filters will apply](#how-configured-filters-will-apply)
+  - [Filters by labels](#filters-by-labels)
+  - [Filters by namespaces](#filters-by-namespaces)
+  - [Disable metric collection for default metric sources](#disable-metric-collection-for-default-metric-sources)
+    - [kube-state-metrics](#kube-state-metrics)
+    - [kubelet](#kubelet)
+    - [kube-apiserver](#kube-apiserver)
+    - [etcd](#etcd)
+    - [node-exporter](#node-exporter)
+  - [Examples](#examples)
+    - [Whitelist by the namespace name](#whitelist-by-the-namespace-name)
+    - [Blacklist by the namespace name](#blacklist-by-the-namespace-name)
+    - [Whitelist by the special label](#whitelist-by-the-special-label)
+    - [Blacklist by the special label](#blacklist-by-the-special-label)
 
 # Types of metrics
 
@@ -270,7 +270,7 @@ for specific namespaces.
 
 How to do it you can read:
 
-* [Monitoring: Kubernetes Monitors](/docs/public/installation.md#kubernetes-monitors)
+* [Monitoring: Kubernetes Monitors](../installation.md#kubernetes-monitors)
 * [https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config)
 
 For example:

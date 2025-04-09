@@ -3,41 +3,41 @@ It also provides the configurations of monitoring services.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Deploy](#deploy)
-  * [Manifests Contain a New Resource that Already Exists](#manifests-contain-a-new-resource-that-already-exists)
-  * [Set Integer Parameter Value to Zero](#set-integer-parameter-value-to-zero)
-* [Runtime Issues](#runtime-issues)
-  * [Common Issues](#common-issues)
-    * [Prometheus or Grafana Operators are Restarting](#prometheus-or-grafana-operators-are-restarting)
-    * [Metrics absent or errors during metrics collection](#metrics-absent-or-errors-during-metrics-collection)
-    * [Unable to update Etcd certificates](#unable-to-update-etcd-certificates)
-  * [Prometheus Stack](#prometheus-stack)
-    * [Prometheus Target is Down](#prometheus-target-is-down)
-  * [VictoriaMetrics Stack](#victoriametrics-stack)
-    * [VictoriaMetrics Operator Can't Remove ClusterRole/ClusterRoleBinding](#victoriametrics-operator-cant-remove-clusterroleclusterrolebinding)
-    * [EFS Persistence Volume overflow](#efs-persistence-volume-overflow)
-    * [Cannot read stream body](#cannot-read-stream-body)
-    * [VictoriaMetrics pods continuously restart](#victoriametrics-pods-continuously-restart)
-    * [VictoriaMetrics config secret does not contain inhibit rules](#victoriametrics-config-secret-does-not-contain-inhibit-rules)
-  * [Grafana](#grafana)
-    * [Grafana Data Source not found](#grafana-data-source-not-found)
-    * [Grafana-operator stop discover new dashboards or locked](#grafana-operator-stop-discover-new-dashboards-or-locked)
-  * [Exporters](#exporters)
-    * [NodeExporter](#nodeexporter)
-      * [Not all node-exporter Endpoints have UP Status in OpenShift](#not-all-node-exporter-endpoints-have-up-status-in-openshift)
-    * [Network-latency-exporter](#network-latency-exporter)
-      * [Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy](#network-latency-dashboards-do-not-contain-data-but-exporter-pods-are-healthy)
-    * [Kubelet](#kubelet)
-      * [VMSingle/Prometheus cannot handle container\_start\_time\_seconds metric with too small a timestamp](#vmsingleprometheus-cannot-handle-container_start_time_seconds-metric-with-too-small-a-timestamp)
-  * [Integrations](#integrations)
-    * [Graphite-remote-adapter](#graphite-remote-adapter)
-      * [Graphite-remote-adapter Regularly Restarts with OOM](#graphite-remote-adapter-regularly-restarts-with-oom)
-      * [Graphite-remote-adapter send metrics with delay](#graphite-remote-adapter-send-metrics-with-delay)
-  * [Prometheus-adapter](#prometheus-adapter)
-    * [ServiceNotFound for `v1.custom.metrics.k8s.io` API Service](#servicenotfound-for-v1custommetricsk8sio-api-service)
-    * [FailedDiscoveryCheck for `v1.custom.metrics.k8s.io` API Service](#faileddiscoverycheck-for-v1custommetricsk8sio-api-service)
-    * [prometheus-adapter Pod is Down or Restarting](#prometheus-adapter-pod-is-down-or-restarting)
+- [Table of Content](#table-of-content)
+- [Deploy](#deploy)
+  - [Manifests Contain a New Resource that Already Exists](#manifests-contain-a-new-resource-that-already-exists)
+  - [Set Integer Parameter Value to Zero](#set-integer-parameter-value-to-zero)
+- [Runtime Issues](#runtime-issues)
+  - [Common Issues](#common-issues)
+    - [Prometheus or Grafana Operators are Restarting](#prometheus-or-grafana-operators-are-restarting)
+    - [Metrics absent or errors during metrics collection](#metrics-absent-or-errors-during-metrics-collection)
+    - [Unable to update Etcd certificates](#unable-to-update-etcd-certificates)
+  - [Prometheus Stack](#prometheus-stack)
+    - [Prometheus Target is Down](#prometheus-target-is-down)
+  - [VictoriaMetrics Stack](#victoriametrics-stack)
+    - [VictoriaMetrics Operator Can't Remove ClusterRole/ClusterRoleBinding](#victoriametrics-operator-cant-remove-clusterroleclusterrolebinding)
+    - [EFS Persistence Volume overflow](#efs-persistence-volume-overflow)
+    - [Cannot read stream body](#cannot-read-stream-body)
+    - [VictoriaMetrics pods continuously restart](#victoriametrics-pods-continuously-restart)
+    - [VictoriaMetrics config secret does not contain inhibit rules](#victoriametrics-config-secret-does-not-contain-inhibit-rules)
+  - [Grafana](#grafana)
+    - [Grafana Data Source not found](#grafana-data-source-not-found)
+    - [Grafana-operator stop discover new dashboards or locked](#grafana-operator-stop-discover-new-dashboards-or-locked)
+  - [Exporters](#exporters)
+    - [NodeExporter](#nodeexporter)
+      - [Not all node-exporter Endpoints have UP Status in OpenShift](#not-all-node-exporter-endpoints-have-up-status-in-openshift)
+    - [Network-latency-exporter](#network-latency-exporter)
+      - [Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy](#network-latency-dashboards-do-not-contain-data-but-exporter-pods-are-healthy)
+    - [Kubelet](#kubelet)
+      - [VMSingle/Prometheus cannot handle container\_start\_time\_seconds metric with too small a timestamp](#vmsingleprometheus-cannot-handle-container_start_time_seconds-metric-with-too-small-a-timestamp)
+  - [Integrations](#integrations)
+    - [Graphite-remote-adapter](#graphite-remote-adapter)
+      - [Graphite-remote-adapter Regularly Restarts with OOM](#graphite-remote-adapter-regularly-restarts-with-oom)
+      - [Graphite-remote-adapter send metrics with delay](#graphite-remote-adapter-send-metrics-with-delay)
+  - [Prometheus-adapter](#prometheus-adapter)
+    - [ServiceNotFound for `v1.custom.metrics.k8s.io` API Service](#servicenotfound-for-v1custommetricsk8sio-api-service)
+    - [FailedDiscoveryCheck for `v1.custom.metrics.k8s.io` API Service](#faileddiscoverycheck-for-v1custommetricsk8sio-api-service)
+    - [prometheus-adapter Pod is Down or Restarting](#prometheus-adapter-pod-is-down-or-restarting)
 
 # Deploy
 
@@ -159,7 +159,7 @@ By default `prometheus/victoriametrics` tries to fetch metrics and endpoints fro
 `serviceMonitors/podMonitors/probeMonitors` and monitor them. However in some cases filters can be used to specify particular
 namespaces for monitoring using labels like `serviceMonitorNamespaceSelector/podMonitorNamespaceSelector/probeNamespaceSelector`
 in prometheus specifications. Details for these labels can be found in
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus).
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md).
 
 Now when our namespace is being monitored, usually we are using the following flow.
 
@@ -646,8 +646,6 @@ by Openshift.
 #### Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy
 
 This may be due to insufficient rights for the exporter. Make sure that RBAC resources were created correctly.
-
-For more information about RBAC, refer to the [RBAC documentation](rbac/rbac.md#network-latency-exporter).
 
 Network-latency-exporter requires root permissions to work, so make sure that `securityContext` for exporter pods has
 the `runAsUser: "0"` parameter.

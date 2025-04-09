@@ -2,48 +2,48 @@ This section describes the various configurations that can be performed on Monit
 
 # Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Configuration](#configuration)
-  * [Frequently used Installation Options](#frequently-used-installation-options)
-    * [Use PV as Storage](#use-pv-as-storage)
-      * [Storage with Dynamic Provisioning](#storage-with-dynamic-provisioning)
-      * [Manual Storage Provisioning](#manual-storage-provisioning)
-    * [Specify custom requests and limits](#specify-custom-requests-and-limits)
-    * [Override SecurityContext](#override-securitycontext)
-    * [Integration with external systems](#integration-with-external-systems)
-      * [Metrics Collectors and Long Term Storages](#metrics-collectors-and-long-term-storages)
-      * [Alerting Systems](#alerting-systems)
-      * [Dashboards](#dashboards)
-  * [User Extension Points](#user-extension-points)
-    * [Custom Resources in application namespaces](#custom-resources-in-application-namespaces)
-      * [Difference between ServiceMonitor and PodMonitor](#difference-between-servicemonitor-and-podmonitor)
-      * [ServiceMonitor](#servicemonitor)
-        * [ServiceMonitor and `container` label](#servicemonitor-and-container-label)
-      * [PodMonitor](#podmonitor)
-      * [Probe](#probe)
-      * [AlertmanagerConfig](#alertmanagerconfig)
-      * [CustomScaleMetricRule](#customscalemetricrule)
-      * [GrafanaDashboard](#grafanadashboard)
-        * [GrafanaDashboard Known Issues](#grafanadashboard-known-issues)
-        * [Inline JSON](#inline-json)
-        * [Dashboard in ConfigMap](#dashboard-in-configmap)
-        * [Dashboard from Grafana Official Site](#dashboard-from-grafana-official-site)
-        * [Dashboard by URL](#dashboard-by-url)
-    * [Useful examples of Users Extensions](#useful-examples-of-users-extensions)
-      * [AlertmanagerConfig for Email](#alertmanagerconfig-for-email)
-      * [AlermanagerConfig for Rocket.Chat](#alermanagerconfig-for-rocketchat)
-      * [mTLS Config](#mtls-config)
-  * [Admin Extension Points](#admin-extension-points)
-    * [Custom Resources in monitoring namespace](#custom-resources-in-monitoring-namespace)
-      * [PlatformMonitoring](#platformmonitoring)
-      * [Prometheus](#prometheus)
-      * [Alertmanager](#alertmanager)
-      * [Grafana](#grafana)
-      * [GrafanaDataSource](#grafanadatasource)
-    * [Secrets](#secrets)
-      * [Additional Scrape Config](#additional-scrape-config)
-      * [Additional Alert Relabel Config](#additional-alert-relabel-config)
-      * [Additional AlertManager Config](#additional-alertmanager-config)
+- [Table of Contents](#table-of-contents)
+- [Configuration](#configuration)
+  - [Frequently used Installation Options](#frequently-used-installation-options)
+    - [Use PV as Storage](#use-pv-as-storage)
+      - [Storage with Dynamic Provisioning](#storage-with-dynamic-provisioning)
+      - [Manual Storage Provisioning](#manual-storage-provisioning)
+    - [Specify custom requests and limits](#specify-custom-requests-and-limits)
+    - [Override SecurityContext](#override-securitycontext)
+    - [Integration with external systems](#integration-with-external-systems)
+      - [Metrics Collectors and Long Term Storages](#metrics-collectors-and-long-term-storages)
+      - [Alerting Systems](#alerting-systems)
+      - [Dashboards](#dashboards)
+  - [User Extension Points](#user-extension-points)
+    - [Custom Resources in application namespaces](#custom-resources-in-application-namespaces)
+      - [Difference between ServiceMonitor and PodMonitor](#difference-between-servicemonitor-and-podmonitor)
+      - [ServiceMonitor](#servicemonitor)
+        - [ServiceMonitor and `container` label](#servicemonitor-and-container-label)
+      - [PodMonitor](#podmonitor)
+      - [Probe](#probe)
+      - [AlertmanagerConfig](#alertmanagerconfig)
+      - [CustomScaleMetricRule](#customscalemetricrule)
+      - [GrafanaDashboard](#grafanadashboard)
+        - [GrafanaDashboard Known Issues](#grafanadashboard-known-issues)
+        - [Inline JSON](#inline-json)
+        - [Dashboard in ConfigMap](#dashboard-in-configmap)
+        - [Dashboard from Grafana Official Site](#dashboard-from-grafana-official-site)
+        - [Dashboard by URL](#dashboard-by-url)
+    - [Useful examples of Users Extensions](#useful-examples-of-users-extensions)
+      - [AlertmanagerConfig for Email](#alertmanagerconfig-for-email)
+      - [AlermanagerConfig for Rocket.Chat](#alermanagerconfig-for-rocketchat)
+      - [mTLS Config](#mtls-config)
+  - [Admin Extension Points](#admin-extension-points)
+    - [Custom Resources in monitoring namespace](#custom-resources-in-monitoring-namespace)
+      - [PlatformMonitoring](#platformmonitoring)
+      - [Prometheus](#prometheus)
+      - [Alertmanager](#alertmanager)
+      - [Grafana](#grafana)
+      - [GrafanaDataSource](#grafanadatasource)
+    - [Secrets](#secrets)
+      - [Additional Scrape Config](#additional-scrape-config)
+      - [Additional Alert Relabel Config](#additional-alert-relabel-config)
+      - [Additional AlertManager Config](#additional-alertmanager-config)
 
 # Configuration
 
@@ -377,12 +377,12 @@ In the above example, the metrics are collected with the following settings:
 The following schema illustrates how prometheus-operator discovers ServiceMonitor, processes it, and applies
 the configuration to Prometheus:
 
-![ServiceMonitor](/docs/public/images/prometheus-k8s_service-monitor.png)
+![ServiceMonitor](images/prometheus-k8s_service-monitor.png)
 
 [Back to TOC](#table-of-contents)
 
 For more information about all available fields in `ServiceMonitor`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitor).
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor).
 
 ##### ServiceMonitor and `container` label
 
@@ -482,10 +482,10 @@ In the above example, the metrics are collected with the following settings:
 The following schema illustrates how prometheus-operator discovers PodMonitor, processes it, and applies
 the configuration to Prometheus:
 
-![PodMonitor](/docs/public/images/prometheus_k8s_pod-monitor.png)
+![PodMonitor](images/prometheus_k8s_pod-monitor.png)
 
 For more information about all available fields in `PodMonitor`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#podmonitor).
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor).
 
 [Back to TOC](#table-of-contents)
 
@@ -563,7 +563,7 @@ spec:
 ```
 
 For more information about all available fields in `Probe`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#probe](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#probe).
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#probe](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#probe).
 
 [Back to TOC](#table-of-contents)
 
@@ -618,8 +618,8 @@ data:
 
 For more information about AlertmanagerConfig and its examples, refer to the following official documentation:
 
-* Prometheus-operator API at [https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanagerconfig](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanagerconfig)
-* Configure Alertmanager at [https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/alerting.md](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/alerting.md)
+* Prometheus-operator API at [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#alertmanagerconfig](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#alertmanagerconfig)
+* Configure Alertmanager at [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/user-guides/alerting.md](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/user-guides/alerting.md)
 * Configure VMAlertmanager at [https://docs.victoriametrics.com/operator/resources/vmalertmanager/?highlight=alertmanager](https://docs.victoriametrics.com/operator/resources/vmalertmanager/?highlight=alertmanager)
 
 [Back to TOC](#table-of-contents)
@@ -1269,7 +1269,7 @@ spec:
 ```
 
 For more information about all the available fields in `Prometheus`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus).
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#prometheus).
 
 
 [Back to TOC](#table-of-contents)
@@ -1319,7 +1319,7 @@ spec:
 ```
 
 For more information about all the available fields in `Alertmanager`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanager](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanager).
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#alertmanager](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#alertmanager).
 
 
 [Back to TOC](#table-of-contents)
@@ -1351,7 +1351,6 @@ this custom resource in any other namespace, but grafana-operator will not disco
 **Note**: This is a known limitation and the community already has plans to change this behavior.
 Refer to the following links for more details:
 
-* Milestone - [https://github.com/grafana-operator/grafana-operator/milestone/1](https://github.com/grafana-operator/grafana-operator/milestone/1)
 * Issue - [https://github.com/grafana-operator/grafana-operator/issues/304](https://github.com/grafana-operator/grafana-operator/issues/304)
 
 `GrafanaDatasource` is used when:

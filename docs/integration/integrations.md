@@ -2,12 +2,12 @@ This document describes the integration capabilities with various third party mo
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-* [Integrations](#integrations)
-  * [Public Clouds](#public-clouds)
-  * [Vendor observability solutions](#vendor-observability-solutions)
-  * [Enabling/disabling specific monitoring components](#enablingdisabling-specific-monitoring-components)
+- [Table of Content](#table-of-content)
+- [Overview](#overview)
+- [Integrations](#integrations)
+  - [Public Clouds](#public-clouds)
+  - [Vendor observability solutions](#vendor-observability-solutions)
+  - [Enabling/disabling specific monitoring components](#enablingdisabling-specific-monitoring-components)
 
 **[Back](../README.md)**
 
@@ -46,14 +46,14 @@ The sections below describe integration details for the certain monitoring syste
 
 ## Public Clouds
 
-* [Amazon Cloud Watch](integration/amazon-aws.md#aws-cloudwatch)
-* [Amazon Managed Prometheus](integration/amazon-aws.md#aws-managed-prometheus)
-* [Azure Monitor](integration/azure-monitor.md)
-* [Google Cloud Operations](integration/google-cloud.md)
+* [Amazon Cloud Watch](amazon-aws.md#aws-cloudwatch)
+* [Amazon Managed Prometheus](amazon-aws.md#aws-managed-prometheus)
+* [Azure Monitor](azure-monitor.md)
+* [Google Cloud Operations](google-cloud.md)
 
 ## Vendor observability solutions
 
-* [IBM Netcool](integration/ibm-netcool.md)
+* [IBM Netcool](ibm-netcool.md)
 
 ## Enabling/disabling specific monitoring components
 

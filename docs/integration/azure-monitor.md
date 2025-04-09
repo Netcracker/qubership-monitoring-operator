@@ -3,24 +3,24 @@ and managed services.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Azure Monitor](#azure-monitor)
-  * [Integration with Azure Monitor](#integration-with-azure-monitor)
-  * [Promitor Agent Scraper](#promitor-agent-scraper)
-    * [How to Install Promitor Agent Scraper](#how-to-install-promitor-agent-scraper)
-    * [How to Configure Azure Authentication](#how-to-configure-azure-authentication)
-      * [Service Principle Authentication Mode](#service-principle-authentication-mode)
-      * [Managed Identity Authentication Mode](#managed-identity-authentication-mode)
-    * [Metric Declaration for Promitor Agent Scraper](#metric-declaration-for-promitor-agent-scraper)
-      * [Azure Kubernetes Service](#azure-kubernetes-service)
-      * [Azure Event Hubs (Kafka)](#azure-event-hubs-kafka)
-      * [Azure Database for PostgreSQL](#azure-database-for-postgresql)
-      * [Azure Cache for Redis](#azure-cache-for-redis)
-      * [Azure SQL Elastic Pool](#azure-sql-elastic-pool)
-      * [Azure Cosmos DB (Cassandra/MongoDB)](#azure-cosmos-db-cassandramongodb)
-  * [Promitor Agent Resource Discovery](#promitor-agent-resource-discovery)
-    * [How to Install Promitor Agent Resource Discovery](#how-to-install-promitor-agent-resource-discovery)
-    * [How to Configure Resource Discovery Groups](#how-to-configure-resource-discovery-groups)
+- [Table of Content](#table-of-content)
+- [Azure Monitor](#azure-monitor)
+  - [Integration with Azure Monitor](#integration-with-azure-monitor)
+  - [Promitor Agent Scraper](#promitor-agent-scraper)
+    - [How to Install Promitor Agent Scraper](#how-to-install-promitor-agent-scraper)
+    - [How to Configure Azure Authentication](#how-to-configure-azure-authentication)
+      - [Service Principle Authentication Mode](#service-principle-authentication-mode)
+      - [Managed Identity Authentication Mode](#managed-identity-authentication-mode)
+    - [Metric Declaration for Promitor Agent Scraper](#metric-declaration-for-promitor-agent-scraper)
+      - [Azure Kubernetes Service](#azure-kubernetes-service)
+      - [Azure Event Hubs (Kafka)](#azure-event-hubs-kafka)
+      - [Azure Database for PostgreSQL](#azure-database-for-postgresql)
+      - [Azure Cache for Redis](#azure-cache-for-redis)
+      - [Azure SQL Elastic Pool](#azure-sql-elastic-pool)
+      - [Azure Cosmos DB (Cassandra/MongoDB)](#azure-cosmos-db-cassandramongodb)
+  - [Promitor Agent Resource Discovery](#promitor-agent-resource-discovery)
+    - [How to Install Promitor Agent Resource Discovery](#how-to-install-promitor-agent-resource-discovery)
+    - [How to Configure Resource Discovery Groups](#how-to-configure-resource-discovery-groups)
 
 # Azure Monitor
 
@@ -124,7 +124,7 @@ To get information for the `azureMetadata` section from the Azure UI:
 You can set `metricDefaults.aggregation.interval` (`00:05:00` by default)
 and `metricDefaults.scraping.schedule` (`*/5 * * * *` by default - one scrape per 5 minute).
 These values are used for metrics by default and can override each metric separately.
-For more information about the parameters, refer to the [Platform Monitoring Installation Procedure](installation.md#promitor-agent-scraper).
+For more information about the parameters, refer to the [Platform Monitoring Installation Procedure](../installation.md#promitor-agent-scraper).
 
 To collect metrics from Azure Monitor, set up the `metrics` parameter.
 This parameter is a list of objects. Each item in the list describe one metric that should be
@@ -142,7 +142,7 @@ Every metric that is being declared needs to define the following fields:
   `metricDefaults.aggregation.interval` with a new interval.
 * `resources` - An array of one or more resources to get the metrics for.
   The fields required vary depending on the `resourceType` being created, and are documented
-  for each resource in the official documentation at [https://docs.promitor.io/configuration/v2.x/metrics/](https://docs.promitor.io/configuration/v2.x/metrics/).
+  for each resource in the official documentation at [https://docs.promitor.io/latest/scraping/overview/](https://docs.promitor.io/latest/scraping/overview/).
 * `azureMetricConfiguration.limit` - The maximum amount of resources to scrape when using
   dimensions or filters.
 * `resourceDiscoveryGroups` - An array of one or more resource discovery groups
@@ -162,7 +162,7 @@ Additionally, the following fields are optional:
 * `scraping.schedule` - A scraping schedule for the individual metric. Overrides `metricDefaults.scraping.schedule`.
 
 For more information about metrics, see the list of supported Azure resources for scraping at
-[https://docs.promitor.io/configuration/v2.x/metrics/](https://docs.promitor.io/configuration/v2.x/metrics/).
+[https://docs.promitor.io/latest/scraping/overview/](https://docs.promitor.io/latest/scraping/overview/).
 
 For all metrics supported by Azure monitor, see
 [https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported](https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).

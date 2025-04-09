@@ -1,0 +1,31 @@
+{
+    "ignorePatterns": [
+        {
+            "pattern": "^http://victoria-metrics-single:8429/api/v1/write"
+        },
+        {
+            "pattern": "^(..)?/?images/prometheus_cpu_usage_[35]0s.png"
+        },
+        {
+            "pattern": "^https://pages.netcracker.com/cla-main.html"
+        },
+        {
+            "pattern": "^(/?docs/)?sources/draw.io"
+        },
+        {
+            "pattern": "^(/?docs/)?sources/plantuml"
+        },
+        {
+            "pattern": "^hardware-sizing.md"
+        }
+    ],
+    "timeout": "20s",
+    "retryOn429": true,
+    "retryCount": 5,
+    "fallbackRetryDelay": "30s",
+    "aliveStatusCodes": [
+        200,
+        206,
+        429
+    ]
+}

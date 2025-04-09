@@ -60,7 +60,7 @@ oc apply -f dashboard.yaml
 ## Links
 
 * Prometheus operator
-  * [API Documentation](https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md)
-  * [Alerting user guide](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/alerting.md)
+  * [API Documentation](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md)
+  * [Alerting user guide](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/user-guides/alerting.md)
 * Victoriametrics operator
   * [API Documentation](https://docs.victoriametrics.com/operator/api.html)

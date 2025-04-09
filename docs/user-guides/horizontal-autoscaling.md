@@ -2,34 +2,34 @@ This document describes the abilities and work of integration between Horizontal
 
 # Table Of Contents
 
-* [Table Of Contents](#table-of-contents)
-* [Overview](#overview)
-  * [What is HorizontalPodAutoscaler?](#what-is-horizontalpodautoscaler)
-  * [How does a HorizontalPodAutoscaler Work?](#how-does-a-horizontalpodautoscaler-work)
-  * [Support for Resource Metrics](#support-for-resource-metrics)
-    * [Container Resource Metrics](#container-resource-metrics)
-  * [Scaling on Custom Metrics](#scaling-on-custom-metrics)
-    * [Adapter to Support Custom Metrics in Monitoring](#adapter-to-support-custom-metrics-in-monitoring)
-* [Manage Prometheus-adapter for Scale by Custom Metrics](#manage-prometheus-adapter-for-scale-by-custom-metrics)
-  * [Before You Begin](#before-you-begin)
-    * [Prometheus Adapter and How it can Affect Kubernetes](#prometheus-adapter-and-how-it-can-affect-kubernetes)
-      * [Problems with Kubernetes API Server when Adapter is Unavailable](#problems-with-kubernetes-api-server-when-adapter-is-unavailable)
-      * [In-built HPA Adapter Does Not Work](#in-built-hpa-adapter-does-not-work)
-  * [Installing Prometheus Adapter for Enabling HPA by Custom Metrics](#installing-prometheus-adapter-for-enabling-hpa-by-custom-metrics)
-  * [Uninstalling Prometheus Adapter](#uninstalling-prometheus-adapter)
-    * [Removing the Object with Kind Prometheus Adapter](#removing-the-object-with-kind-prometheus-adapter)
-    * [Removing all Components using Helm](#removing-all-components-using-helm)
-* [Using prometheus-adapter](#using-prometheus-adapter)
-  * [Declaring New Custom Metrics for Scale](#declaring-new-custom-metrics-for-scale)
-    * [How to Read and Write Prometheus Adapter Configurations?](#how-to-read-and-write-prometheus-adapter-configurations)
-      * [Discovery](#discovery)
-      * [Association](#association)
-      * [Naming](#naming)
-      * [Querying](#querying)
-    * [How to Check whether Metrics are Exposed in Metrics API?](#how-to-check-whether-metrics-are-exposed-in-metrics-api)
-  * [Writing HorizontalPodAutoscaler for Scale by Custom Metrics](#writing-horizontalpodautoscaler-for-scale-by-custom-metrics)
-  * [Resource Metrics](#resource-metrics)
-* [Useful Links](#useful-links)
+- [Table Of Contents](#table-of-contents)
+- [Overview](#overview)
+  - [What is HorizontalPodAutoscaler?](#what-is-horizontalpodautoscaler)
+  - [How does a HorizontalPodAutoscaler Work?](#how-does-a-horizontalpodautoscaler-work)
+  - [Support for Resource Metrics](#support-for-resource-metrics)
+    - [Container Resource Metrics](#container-resource-metrics)
+  - [Scaling on Custom Metrics](#scaling-on-custom-metrics)
+    - [Adapter to Support Custom Metrics in Monitoring](#adapter-to-support-custom-metrics-in-monitoring)
+- [Manage Prometheus-adapter for Scale by Custom Metrics](#manage-prometheus-adapter-for-scale-by-custom-metrics)
+  - [Before You Begin](#before-you-begin)
+    - [Prometheus Adapter and How it can Affect Kubernetes](#prometheus-adapter-and-how-it-can-affect-kubernetes)
+      - [Problems with Kubernetes API Server when Adapter is Unavailable](#problems-with-kubernetes-api-server-when-adapter-is-unavailable)
+      - [In-built HPA Adapter Does Not Work](#in-built-hpa-adapter-does-not-work)
+  - [Installing Prometheus Adapter for Enabling HPA by Custom Metrics](#installing-prometheus-adapter-for-enabling-hpa-by-custom-metrics)
+  - [Uninstalling Prometheus Adapter](#uninstalling-prometheus-adapter)
+    - [Removing the Object with Kind Prometheus Adapter](#removing-the-object-with-kind-prometheus-adapter)
+    - [Removing all Components using Helm](#removing-all-components-using-helm)
+- [Using prometheus-adapter](#using-prometheus-adapter)
+  - [Declaring New Custom Metrics for Scale](#declaring-new-custom-metrics-for-scale)
+    - [How to Read and Write prometheus-adapter Configurations?](#how-to-read-and-write-prometheus-adapter-configurations)
+      - [Discovery](#discovery)
+      - [Association](#association)
+      - [Naming](#naming)
+      - [Querying](#querying)
+    - [How to Check whether Metrics are Exposed in Metrics API?](#how-to-check-whether-metrics-are-exposed-in-metrics-api)
+  - [Writing HorizontalPodAutoscaler for Scale by Custom Metrics](#writing-horizontalpodautoscaler-for-scale-by-custom-metrics)
+  - [Resource Metrics](#resource-metrics)
+- [Useful Links](#useful-links)
 
 # Overview
 
@@ -60,7 +60,7 @@ the average CPU utilization, average memory utilization, or any other custom met
 
 ## How does a HorizontalPodAutoscaler Work?
 
-![Horizontal Pod Autoscaler](/docs/public/images/horizontal-pod-autoscaler.png)
+![Horizontal Pod Autoscaler](../images/horizontal-pod-autoscaler.png)
 
 HorizontalPodAutoscaler controls the scale of a deployment and its ReplicaSet.
 

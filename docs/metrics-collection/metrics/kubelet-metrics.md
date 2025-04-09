@@ -2,14 +2,14 @@ This document describes kubelet metrics list and how to collect them.
 
 # Table of Content
 
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-  * [Metrics List](#metrics-list)
-  * [Volumes usage metrics](#volumes-usage-metrics)
-    * [Built-in storages](#built-in-storages)
-    * [CSI Drivers](#csi-drivers)
-    * [External Provisioners](#external-provisioners)
+- [Table of Content](#table-of-content)
+- [Metrics](#metrics)
+  - [How to Collect](#how-to-collect)
+  - [Metrics List](#metrics-list)
+  - [Volumes usage metrics](#volumes-usage-metrics)
+    - [Built-in storages](#built-in-storages)
+    - [CSI Drivers](#csi-drivers)
+    - [External Provisioners](#external-provisioners)
 
 # Metrics
 
@@ -156,8 +156,8 @@ You can't use `wget` because it doesn't allow to add headers for authorization.
 
 Metrics list of `kubelet` you can find in files:
 
-* [Kubelet](examples/kubelet-metrics.txt)
-* [cAdvisor](examples/kubelet-cadvisor-metrics.txt)
+- [Kubelet](../../defaults/metrics.md#kubelet-kubernetes-v123)
+- [cAdvisor](../../defaults/metrics.md#cadvisor-kubernetes-v123)
 
 ## Volumes usage metrics
 

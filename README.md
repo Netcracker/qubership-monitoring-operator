@@ -27,32 +27,32 @@ This section contains documents of directories which may be provide to customers
 
 Guides:
 
-* [Installation](docs/public/installation.md)
-* [Maintenance](docs/public/maintenance.md)
-* [Troubleshooting](docs/public/troubleshooting.md)
+* [Installation](docs/installation.md)
+* [Maintenance](docs/maintenance.md)
+* [Troubleshooting](docs/troubleshooting.md)
 
 Documents described Custom Resources Definitions (CRDs):
 
-* [PlatformMonitoring](docs/public/apis/platform-monitoring.md)
-* [PrometheusAdapter](docs/public/apis/prometheus-adapter.md)
-* [CustomScaleMetricRule](docs/public/apis/custom-scale-metric-rule.md)
+* [PlatformMonitoring](docs/api/platform-monitoring.md)
+* [PrometheusAdapter](docs/api/prometheus-adapter.md)
+* [CustomScaleMetricRule](docs/api/custom-scale-metric-rule.md)
 
 Documents described metrics, alerts, dashboards which deploy with monitoring out-of-box (OOB):
 
-* [Metrics](docs/public/metrics-oob.md)
-* [Alerts](docs/public/alerts-oob.md)
-* [Dashboards](docs/public/dashboards-oob)
+* [Metrics](docs/defaults/metrics.md)
+* [Alerts](docs/defaults/alerts.md)
+* [Dashboards](docs/defaults/dashboards)
 
 Examples:
 
-* [Custom resources](docs/public/examples/custom-resources)
+* [Custom resources](docs/examples/custom-resources)
 
 ### Internal documents
 
 This section contains documents or directories which should not be provided to customers and should be used only
 within the company.
 
-### Images and them sources
+### Images
 
 All images are stored in [docs/images](docs/images).
 

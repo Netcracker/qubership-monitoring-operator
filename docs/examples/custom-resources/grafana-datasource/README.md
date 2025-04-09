@@ -54,7 +54,7 @@ type of datasource.
 * [Full DataSource example](full-datasource-example.yaml)
 
 See more examples in the
-[`grafana-operator` repository](https://github.com/grafana-operator/grafana-operator/tree/master/deploy/examples/datasources).
+[`grafana-operator` repository](https://github.com/grafana/grafana-operator/tree/v4.10.1/deploy/examples/datasources).
 
 ## How to apply the simple example
 
@@ -76,6 +76,6 @@ oc apply -f simple-datasource-example.yaml
   * [Configuration of datasource example](https://grafana.com/docs/grafana/latest/administration/provisioning/#data-sources)
   * [Add a data source (via UI)](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source)
 * Grafana-operator
-  * [Working with data sources](https://github.com/grafana-operator/grafana-operator/blob/master/documentation/datasources.md)
-  * [Plugins](https://github.com/grafana-operator/grafana-operator/blob/master/documentation/plugins.md)
-  * [Examples of data sources](https://github.com/grafana-operator/grafana-operator/tree/master/deploy/examples/datasources)
+  * [Working with data sources](https://github.com/grafana/grafana-operator/blob/v4/documentation/datasources.md)
+  * [Plugins](https://github.com/grafana/grafana-operator/blob/v4/documentation/plugins.md)
+  * [Examples of data sources](https://github.com/grafana/grafana-operator/tree/v4.10.1/deploy/examples/datasources)

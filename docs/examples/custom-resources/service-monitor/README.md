@@ -48,7 +48,7 @@ oc apply -f service-monitor.yaml
 
 Prometheus operator API
 
-* [API Documentation](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md)
+* [API Documentation](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md)
 
 Victoriametrics operator API
 
