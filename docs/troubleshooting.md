@@ -159,7 +159,7 @@ By default `prometheus/victoriametrics` tries to fetch metrics and endpoints fro
 `serviceMonitors/podMonitors/probeMonitors` and monitor them. However in some cases filters can be used to specify particular
 namespaces for monitoring using labels like `serviceMonitorNamespaceSelector/podMonitorNamespaceSelector/probeNamespaceSelector`
 in prometheus specifications. Details for these labels can be found in
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus).
+[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#prometheus).
 
 Now when our namespace is being monitored, usually we are using the following flow.
 
@@ -646,8 +646,6 @@ by Openshift.
 #### Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy
 
 This may be due to insufficient rights for the exporter. Make sure that RBAC resources were created correctly.
-
-For more information about RBAC, refer to the [RBAC documentation](rbac/rbac.md#network-latency-exporter).
 
 Network-latency-exporter requires root permissions to work, so make sure that `securityContext` for exporter pods has
 the `runAsUser: "0"` parameter.

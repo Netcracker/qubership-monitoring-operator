@@ -70,17 +70,17 @@
       * Check Etcd VMAgent Target Metrics
       * Check Kubelet VMAgent Target Metrics
       * Check Non Mandatory Victoriametrics Target Metrics
-3. [Test application](test/robot-tests/src/tests/test-app)
+3. [Test application](src/tests/test-app)
    * Check Prometheus Target's Status, Url, Labels
    * Wait Until Metrics Of Test App Is Exist
    * Check Available Metrics Of Test App
    * Update Service Monitor Label To 'monitoring-test'
    * Target Of Test App Has Been Deleted And No Metrics Are Written
    * Return label: Update label in Custom Resource to 'monitoring'
-4. [Autoscaling test application](test/robot-tests/src/tests/adapter)
+4. [Autoscaling test application](src/tests/adapter)
    * Increase Autoscaler Replicas To 3 And Check Metric Is 5
    * Decrease Autoscaler Replicas To 2 And Check Metric Is 1
-5. [Image tests](test/robot-tests/src/tests/image-tests)
+5. [Image tests](src/tests/image-tests)
    * Check Images in Deployments, StatefulSets and DaemonSets
 
 ### Tags
@@ -90,7 +90,7 @@
 | --------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | full                        | Tag to run all tests                                            | all                                                                                                                                                                                    |
 | smoke                       | Tag to run smoke tests                                          | [Smoke tests](test/robot-tests/src/tests/simple-test), [Image tests](test/robot-tests/src/tests/image-tests)                                                                     |
-| grafana                     | Tag to run grafana tests                                        | [Grafana](test/robot-tests/src/tests/grafana)                                                                                                                                       |
+| grafana                     | Tag to run grafana tests                                        | [Grafana](src/tests/grafana)                                                                                                                                       |
 | test-app                    | Tag to run tests of test application                            | [Test application](test/robot-tests/src/tests/test-app)                                                                                                                             |
 | blackbox-exporter           | Tag to run blackbox-exporter tests, included in smoke           | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Blackbox Exporter Deployment Pods Are Running                                                                         |
 | cert-exporter               | Tag to run cert-exporter tests, included in smoke               | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Cert Exporter Deployment Pods Are Running                                                                             |
@@ -100,7 +100,6 @@
 | network-latency-exporter    | Tag to run graphite-remote-adapter tests, included in smoke     | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Network Latency Exporter Pods Are Running                                                                             |
 | prometheus-adapter          | Tag to run prometheus-adapter  tests, included in smoke         | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Prometheus Adapter Deployment Pods Are Running; [Autoscaling test application](test/robot-tests/src/tests/adapter) |
 | prometheus-adapter-operator | Tag to run prometheus-adapter-operator tests, included in smoke | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Prometheus Adapter Operator Deployment Pods Are Running                                                               |
-| promitor-agent-scraper      | Tag to run promitor-agent-scraper tests, included in smoke      | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Promitor Agent Scraper Deployment Pods Are Running                                                                    |
 | promxy                      | Tag to run promxy tests, included in smoke                      | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Promxy Deployment Pods Are Running                                                                                    |
 | version-exporter            | Tag to run version-exporter tests, included in smoke            | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Version Exporter Deployment Pods Are Running                                                                          |
 | alertmanager                | Tag to run alertmanager tests, included in smoke                | [Smoke tests](test/robot-tests/src/tests/simple-test) - Check Alertmanager                                                                                                          |

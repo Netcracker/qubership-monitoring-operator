@@ -377,12 +377,12 @@ In the above example, the metrics are collected with the following settings:
 The following schema illustrates how prometheus-operator discovers ServiceMonitor, processes it, and applies
 the configuration to Prometheus:
 
-![ServiceMonitor](/docs/public/images/prometheus-k8s_service-monitor.png)
+![ServiceMonitor](../docs/images/prometheus-k8s_service-monitor.png)
 
 [Back to TOC](#table-of-contents)
 
 For more information about all available fields in `ServiceMonitor`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitor).
+[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#servicemonitor).
 
 ##### ServiceMonitor and `container` label
 
@@ -482,10 +482,10 @@ In the above example, the metrics are collected with the following settings:
 The following schema illustrates how prometheus-operator discovers PodMonitor, processes it, and applies
 the configuration to Prometheus:
 
-![PodMonitor](/docs/public/images/prometheus_k8s_pod-monitor.png)
+![PodMonitor](../docs/images/prometheus_k8s_pod-monitor.png)
 
 For more information about all available fields in `PodMonitor`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#podmonitor).
+[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#podmonitor).
 
 [Back to TOC](#table-of-contents)
 
@@ -563,7 +563,7 @@ spec:
 ```
 
 For more information about all available fields in `Probe`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#probe](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#probe).
+[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#probe](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#probe).
 
 [Back to TOC](#table-of-contents)
 
@@ -618,8 +618,8 @@ data:
 
 For more information about AlertmanagerConfig and its examples, refer to the following official documentation:
 
-* Prometheus-operator API at [https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanagerconfig](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanagerconfig)
-* Configure Alertmanager at [https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/alerting.md](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/alerting.md)
+* Prometheus-operator API at [https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#alertmanagerconfig](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#alertmanagerconfig)
+* Configure Alertmanager at [https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/user-guides/alerting.md](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/user-guides/alerting.md)
 * Configure VMAlertmanager at [https://docs.victoriametrics.com/operator/resources/vmalertmanager/?highlight=alertmanager](https://docs.victoriametrics.com/operator/resources/vmalertmanager/?highlight=alertmanager)
 
 [Back to TOC](#table-of-contents)
@@ -1269,7 +1269,7 @@ spec:
 ```
 
 For more information about all the available fields in `Prometheus`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#prometheus).
+[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#prometheus).
 
 
 [Back to TOC](#table-of-contents)
@@ -1319,7 +1319,7 @@ spec:
 ```
 
 For more information about all the available fields in `Alertmanager`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanager](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#alertmanager).
+[https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#alertmanager](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#alertmanager).
 
 
 [Back to TOC](#table-of-contents)
