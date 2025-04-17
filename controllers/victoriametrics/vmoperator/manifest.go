@@ -7,7 +7,6 @@ import (
 	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
-	docker "github.com/distribution/reference"
 	secv1 "github.com/openshift/api/security/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -20,19 +19,6 @@ import (
 
 //go:embed  assets/*.yaml
 var assets embed.FS
-
-const containerRegistry = "VM_CONTAINERREGISTRY"
-
-var extVarSet map[string]bool
-
-func init() {
-	extVarSet = make(map[string]bool)
-	extVarSet["VM_CUSTOMCONFIGRELOADERIMAGE"] = true
-	extVarSet["VM_VMALERTMANAGER_CONFIGRELOADERIMAGE"] = true
-	extVarSet["VM_VMALERTDEFAULT_CONFIGRELOADIMAGE"] = true
-	extVarSet["VM_VMAGENTDEFAULT_CONFIGRELOADIMAGE"] = true
-	extVarSet["VM_VMAUTHDEFAULT_CONFIGRELOADIMAGE"] = true
-}
 
 // VmOperatorRole builds the ServiceAccount resource manifest
 // and fill it with parameters from the CR.
@@ -218,37 +204,7 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *v1alpha1.PlatformMonitori
 			for it := range d.Spec.Template.Spec.Containers {
 				c := &d.Spec.Template.Spec.Containers[it]
 				if c.Name == utils.VmOperatorComponentName {
-					var containerRegistryFound bool
-					for i, env := range cr.Spec.Victoriametrics.VmOperator.ExtraEnvs {
-						if extVarSet[env.Name] {
-							repository, tag, err := utils.SplitPathImage(env.Value)
-							if err != nil {
-								return nil, err
-							}
-
-							image := strings.Join([]string{repository, tag}, ":")
-							cr.Spec.Victoriametrics.VmOperator.ExtraEnvs[i].Value = image
-						}
-
-						if env.Name == containerRegistry {
-							containerRegistryFound = true
-						}
-
-						c.Env = append(c.Env, cr.Spec.Victoriametrics.VmOperator.ExtraEnvs[i])
-					}
-
-					if !containerRegistryFound {
-						parsed, err := docker.ParseNamed(cr.Spec.Victoriametrics.VmOperator.Image)
-						if err != nil {
-							return nil, err
-						}
-						eVar := corev1.EnvVar{
-							Name:  containerRegistry,
-							Value: docker.Domain(parsed),
-						}
-
-						c.Env = append(c.Env, eVar)
-					}
+					c.Env = append(c.Env, cr.Spec.Victoriametrics.VmOperator.ExtraEnvs...)
 				}
 			}
 		}
