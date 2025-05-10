@@ -7,6 +7,9 @@ metadata:
     app.kubernetes.io/name: v1beta1.metrics.k8s.io
     app.kubernetes.io/instance: v1beta1.metrics.k8s.io
     {{- include "prometheusAdapter.commonLabels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
 spec:
   service:
     name: prometheus-adapter
