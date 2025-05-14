@@ -98,10 +98,7 @@ func vmAuth(r *VmAuthReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAuth.IsInstall() {
 
 		// Set VmAuth image
-		vmauth.Spec.Image.Repository, vmauth.Spec.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmAuth.Image)
-		if err != nil {
-			return nil, err
-		}
+		vmauth.Spec.Image.Repository, vmauth.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAuth.Image)
 
 		if r != nil {
 			// Set security context
