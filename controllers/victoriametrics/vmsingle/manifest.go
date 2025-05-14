@@ -97,10 +97,7 @@ func vmSingle(r *VmSingleReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetrics
 		vmsingle.Spec.RetentionPeriod = cr.Spec.Victoriametrics.VmSingle.RetentionPeriod
 
 		// Set vmsingle image
-		vmsingle.Spec.Image.Repository, vmsingle.Spec.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmSingle.Image)
-		if err != nil {
-			return nil, err
-		}
+		vmsingle.Spec.Image.Repository, vmsingle.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmSingle.Image)
 
 		if r != nil {
 			// Set security context

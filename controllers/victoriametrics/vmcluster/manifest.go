@@ -114,10 +114,7 @@ func vmCluster(cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error)
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMSelect.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
-			vmcluster.Spec.VMSelect.Image.Repository, vmcluster.Spec.VMSelect.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-			if err != nil {
-				return nil, err
-			}
+			vmcluster.Spec.VMSelect.Image.Repository, vmcluster.Spec.VMSelect.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
 			if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 				vmcluster.Spec.VMSelect.Secrets = append(vmcluster.Spec.VMSelect.Secrets, victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster))
 				if vmcluster.Spec.VMSelect.ExtraArgs == nil {
@@ -146,10 +143,7 @@ func vmCluster(cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error)
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMStorage.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
-			vmcluster.Spec.VMStorage.Image.Repository, vmcluster.Spec.VMStorage.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage)
-			if err != nil {
-				return nil, err
-			}
+			vmcluster.Spec.VMStorage.Image.Repository, vmcluster.Spec.VMStorage.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage)
 			if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 				vmcluster.Spec.VMStorage.Secrets = append(vmcluster.Spec.VMStorage.Secrets, victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster))
 
@@ -179,10 +173,7 @@ func vmCluster(cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error)
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMInsert.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
-			vmcluster.Spec.VMInsert.Image.Repository, vmcluster.Spec.VMInsert.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage)
-			if err != nil {
-				return nil, err
-			}
+			vmcluster.Spec.VMInsert.Image.Repository, vmcluster.Spec.VMInsert.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage)
 			if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 				vmcluster.Spec.VMInsert.Secrets = append(vmcluster.Spec.VMInsert.Secrets, victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster))
 
