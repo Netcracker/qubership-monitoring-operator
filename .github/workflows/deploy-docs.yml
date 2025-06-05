@@ -32,7 +32,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # Only deploy from main branch, not from PRs
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/docs/add-github-pages-docs-portal'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
