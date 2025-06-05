@@ -217,7 +217,6 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 - **Documentation**: [Full Documentation](docs/)
 - **Issues**: [GitHub Issues](https://github.com/Netcracker/qubership-monitoring-operator/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Netcracker/qubership-monitoring-operator/discussions)
 
 ## Star History
 

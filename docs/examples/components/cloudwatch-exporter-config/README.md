@@ -52,10 +52,7 @@ Monitor Amazon S3 buckets for storage usage and request metrics.
 
 === "Kubernetes"
     ```bash
-    # Apply directly from URL
-    kubectl apply -f https://raw.githubusercontent.com/your-repo/main/docs/examples/components/cloudwatch-exporter-config/EBS.yaml
-    
-    # Or download and apply locally
+    # Download and apply locally
     wget EBS.yaml
     kubectl apply -f EBS.yaml
     ```
