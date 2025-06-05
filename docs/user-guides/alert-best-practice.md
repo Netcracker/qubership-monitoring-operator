@@ -7,28 +7,6 @@ This document should provide requirements and recommendations on how to write al
 * And which labels and annotations are recommended to use?
 * How Alertmanager works in Kubernetes? Or in two or more Kubernetes in DR mode?
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [What is Alert Rule?](#what-is-alert-rule)
-* [Requirements](#requirements)
-  * [Severity](#severity)
-  * [Expression](#expression)
-    * [Keep valuable labels during use aggregation](#keep-valuable-labels-during-use-aggregation)
-    * [Do not use expressions without filters](#do-not-use-expressions-without-filters)
-    * [Don not use too short `rate()` windows](#don-not-use-too-short-rate-windows)
-  * [The "for" field](#the-for-field)
-  * [Label](#label)
-  * [Annotations](#annotations)
-* [Recommendations](#recommendations)
-  * [Alert names without spaces](#alert-names-without-spaces)
-  * [Dead Man's Switch](#dead-mans-switch)
-  * [Alerts suppressions](#alerts-suppressions)
-  * [Dashboard, Handbook, Runbook information or links](#dashboard-handbook-runbook-information-or-links)
-  * [Kubernetes DR Specific](#kubernetes-dr-specific)
-* [Examples](#examples)
-* [Links](#links)
-
 # What is Alert Rule?
 
 Alert rule is the expression on PromQL query language with any threshold. When the result of the expression
@@ -48,8 +26,6 @@ rules:
   labels:
     severity: warning
 ```
-
-[Back to TOC](#table-of-content)
 
 # Requirements
 
@@ -101,8 +77,6 @@ notifications. If it stops sending notifications to an external system it means 
 | Information | `severity: information` | It indicates a normal situation without any problems. This severity means that these alerts don't require any reactions on them. Usually, alerts with such severity are used as ancillary alerts, to use in suppression or in DeadManSwitch scenarios. |
 <!-- markdownlint-enable line-length -->
 
-[Back to TOC](#table-of-content)
-
 ## Expression
 
 This section describes the best practice and how not to write expressions.
@@ -142,8 +116,6 @@ sum without(instance, type) (rate(errors_total{namespace="my-service"}[5m])) > 1
 This way, any labels on the input series that you don't explicitly aggregate away will still be available in
 Alertmanager for alert aggregation and routing, as well as for your understanding of the origin of an alert.
 
-[Back to TOC](#table-of-content)
-
 ### Do not use expressions without filters
 
 Another common problem when writing PromQL queries, you need to be careful about selecting data only from your
@@ -175,8 +147,6 @@ rate(errors_total{namespace="my-service"}[5m]) > 10
 This way you can also avoid situations where your alerting rules or dashboards start misbehaving
 at a later point once another service is scraped that produces a metric name collision.
 
-[Back to TOC](#table-of-content)
-
 ### Don not use too short `rate()` windows
 
 When you want to use for calculating aggregation such functions as `rate()`, `irate()`, `difference()` and others that
@@ -186,14 +156,10 @@ If you make the time window too small, you risk just having one or zero samples 
 the output will become empty.
 
 For example, if you take the 50s-ranged rate() of a counter metric that is scraped every 30s,
-there's a good chance that those 50s will often not cover two samples, so you get a gappy rate:
-
-![CPU Usage with 50s range window](../images/prometheus_cpu_usage_50s.png)
+there's a good chance that those 50s will often not cover two samples, so you get a gappy rate.
 
 Taken to the extreme: if you decrease the rate window to 30s, you only get an output point very occasionally,
-when two 30s-apart points happen to fall under an arbitrarily aligned 30s window:
-
-![CPU Usage with 30s range window](../images/prometheus_cpu_usage_30s.png)
+when two 30s-apart points happen to fall under an arbitrarily aligned 30s window.
 
 So you'll want to choose your input windows large enough – not just 2x the scrape interval, but you'll also want
 to be robust in the face of occasional scrape failures and unlucky window alignments.
@@ -208,8 +174,6 @@ but one scrape failed and one point is absent now.
 Also, we can advise the round the rate window time to more commonly used units of time. For example,
 if you have the scrape interval `1m/60s`, by our recommendation you need to use the rate window interval `4m`, but
 it's better to round the interval to `5m`.
-
-[Back to TOC](#table-of-content)
 
 ## The "for" field
 
@@ -263,8 +227,6 @@ for: 5m
 Similar arguments could be made about most alerting rules. So to make your alerting rules more robust, you will almost
 always want to set the `for` duration to **at least a couple of minutes**. Just keep in mind that this also leads
 to **slower reaction times** for alerts, so finding a balance `for` the for time tolerance is important.
-
-[Back to TOC](#table-of-content)
 
 ## Label
 

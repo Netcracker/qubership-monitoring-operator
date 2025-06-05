@@ -1,44 +1,6 @@
 This document provides information about various integration options with AWS monitoring tools
 and managed services.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [AWS CloudWatch](#aws-cloudwatch)
-  * [Get Metrics from AWS CloudWatch](#get-metrics-from-aws-cloudwatch)
-    * [CloudWatch Metrics](#cloudwatch-metrics)
-      * [How to Configure CloudWatch Exporter](#how-to-configure-cloudwatch-exporter)
-      * [How to Setup Monitoring in CloudWatch](#how-to-setup-monitoring-in-cloudwatch)
-      * [How to Setup Metrics Collection from CloudWatch](#how-to-setup-metrics-collection-from-cloudwatch)
-        * [Credentials and Permissions](#credentials-and-permissions)
-          * [Using an IAM Role (recommended)](#using-an-iam-role-recommended)
-          * [Using an IAM User](#using-an-iam-user)
-        * [VPC Endpoint Configuration](#vpc-endpoint-configuration)
-        * [Deploy cloudwatch-exporter in AWS](#deploy-cloudwatch-exporter-in-aws)
-      * [How to Check CloudWatch Integration](#how-to-check-cloudwatch-integration)
-  * [Send Metrics in AWS CloudWatch](#send-metrics-in-aws-cloudwatch)
-  * [Grafana Dashboards](#grafana-dashboards)
-    * [EFS](#efs)
-    * [EBS](#ebs)
-    * [S3](#s3)
-    * [Classic ELB](#classic-elb)
-    * [Application ELB](#application-elb)
-    * [Network ELB](#network-elb)
-    * [RabbitMQ](#rabbitmq)
-    * [Cassandra](#cassandra)
-* [AWS Managed Prometheus](#aws-managed-prometheus)
-  * [Send Metrics to AWS Managed Prometheus](#send-metrics-to-aws-managed-prometheus)
-    * [Create Workspace](#create-workspace)
-    * [Ingest Prometheus Metrics to the Workspace](#ingest-prometheus-metrics-to-the-workspace)
-      * [Set up IAM Roles for Service Accounts](#set-up-iam-roles-for-service-accounts)
-      * [Deploy Monitoring and Start Ingesting Metrics](#deploy-monitoring-and-start-ingesting-metrics)
-        * [Configure Ingesting Metrics in AWS VPC](#configure-ingesting-metrics-in-aws-vpc)
-    * [Send High-Availability Data](#send-high-availability-data)
-      * [Configure Monitoring Stack to Send High-Availability Data](#configure-monitoring-stack-to-send-high-availability-data)
-  * [Create Recording Rules](#create-recording-rules)
-  * [Create Alert Rules](#create-alert-rules)
-* [Links](#links)
-
 # AWS CloudWatch
 
 Supported features matrix:
@@ -173,7 +135,7 @@ also should be written as **two different list items**.
 
 This configuration in the YAML format should be placed as a value for the `.Values.cloudwatchExporter.config`
 parameter. For more information, refer to the
-[cloudwatch-exporter](../installation.md#cloudwatch-exporter) configuration section.
+[cloudwatch-exporter](../installation/components/exporters/cloudwatch-exporter.md) section.
 
 Examples of configuration files for cloudwatch-exporter by namespace (these configurations can be used as-is):
 
@@ -187,7 +149,7 @@ Examples of configuration files for cloudwatch-exporter by namespace (these conf
 
 There are no any specific steps or parameters for deploying monitoring in AWS EKS.
 
-To deploy monitoring in AWS, refer to the [Platform Monitoring Installation Procedure](../installation.md).
+To deploy monitoring in AWS, refer to the [Platform Monitoring Installation Procedure](../installation/components/exporters/cloudwatch-exporter.md)
 
 #### How to Setup Metrics Collection from CloudWatch
 
@@ -604,11 +566,11 @@ cloudwatchExporter:
 **NOTE:** You can use [those examples](../examples/components/cloudwatch-exporter-config/) with cloudwatch-exporter configuration
 which contains all metrics from AWS Cloudwatch for each service.
 
-Read installation guide [cloudwatch-exporter section](../installation.md#cloudwatch-exporter) for details.
+Read installation guide [cloudwatch-exporter section](../installation/components/exporters/cloudwatch-exporter.md) for details.
 
 ### EFS
 
-AWS [EFS dashboard](grafana-dashboards-for-amazon-aws/efs.json) required following Cloudwatch-exporter configuration:
+AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json) required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -656,7 +618,7 @@ metrics:
 
 ### EBS
 
-AWS [EBS dashboard](grafana-dashboards-for-amazon-aws/ebs.json) required following Cloudwatch-exporter configuration:
+AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json) required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -696,7 +658,7 @@ metrics:
 
 ### S3
 
-AWS [S3 dashboard](grafana-dashboards-for-amazon-aws/s3.json) required following Cloudwatch-exporter configuration:
+AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json) required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -716,7 +678,7 @@ metrics:
 
 ### Classic ELB
 
-AWS [classic ELB dashboard](grafana-dashboards-for-amazon-aws/classic-elb.json) required following Cloudwatch-exporter
+AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json) required following Cloudwatch-exporter
 configuration:
 
 ```yaml
@@ -761,7 +723,7 @@ metrics:
 
 ### Application ELB
 
-AWS [application ELB dashboard](grafana-dashboards-for-amazon-aws/application-elb.json) required following
+AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json) required following
 Cloudwatch-exporter configuration:
 
 ```yaml
@@ -826,7 +788,7 @@ metrics:
 
 ### Network ELB
 
-AWS [network ELB dashboard](grafana-dashboards-for-amazon-aws/network-elb.json) required following Cloudwatch-exporter
+AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json) required following Cloudwatch-exporter
 configuration:
 
 ```yaml
@@ -903,7 +865,7 @@ metrics:
 
 ### RabbitMQ
 
-AWS [RabbitMQ dashboard](grafana-dashboards-for-amazon-aws/rabbitmq.json) required following Cloudwatch-exporter
+AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json) required following Cloudwatch-exporter
 configuration:
 
 ```yaml
@@ -984,7 +946,7 @@ metrics:
 
 ### Cassandra
 
-AWS [Cassandra dashboard](grafana-dashboards-for-amazon-aws/cassandra.json) required following Cloudwatch-exporter
+AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json) required following Cloudwatch-exporter
 configuration:
 
 ```yaml

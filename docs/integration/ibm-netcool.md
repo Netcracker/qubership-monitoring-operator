@@ -1,16 +1,5 @@
 This document provides information about integration with IBM Netcool alerting.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [IBM Netcool Operations Insight](#ibm-netcool-operations-insight)
-* [Integration with IBM Netcool](#integration-with-ibm-netcool)
-  * [Before you begin](#before-you-begin)
-  * [Integration Alertmanager in the Cloud](#integration-alertmanager-in-the-cloud)
-    * [Configure Monitoring](#configure-monitoring)
-  * [Integration Alertmanager on the VM](#integration-alertmanager-on-the-vm)
-* [Links](#links)
-
 # IBM Netcool Operations Insight
 
 IBM Netcool Network Management helps communication service providers, enterprise data centers,

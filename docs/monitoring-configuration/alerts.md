@@ -1,18 +1,5 @@
 This document describes how to configure Prometheus alerts in Monitoring.
 
-# Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [Platform Monitoring alerts](#platform-monitoring-alerts)
-  * [Enabling and disabling alerts](#enabling-and-disabling-alerts)
-    * [Dead Man's Switch alert](#dead-mans-switch-alert)
-    * [HAmode alerts](#hamode-alerts)
-  * [Alerts overriding](#alerts-overriding)
-* [Examples](#examples)
-  * [Default configuration example](#default-configuration-example)
-  * [Configuration with enabled additional groups](#configuration-with-enabled-additional-groups)
-  * [Configuration with overridden alert](#configuration-with-overridden-alert)
-
 # Platform Monitoring alerts
 
 Out-of-box alerts delivered along with Monitoring.
@@ -20,7 +7,7 @@ Out-of-box alerts delivered along with Monitoring.
 ## Enabling and disabling alerts
 
 OOB alerts installation can be customised by changing
-[`prometheusRules` section](../installation.md#prometheus-rules).
+[`prometheusRules` section](../installation/README.md#prometheus-rules).
 
 You can enable or disable installation of all alerts by changing `prometheusRules.install` option. The default value is
 `true` which means that OOB alerts will be enabled in general by default.
@@ -100,10 +87,6 @@ for the HA mode.
 Platform Monitoring has a dashboard called [`HA services`](../defaults/dashboards/ha-services.md) for the same
 purposes as the `HAmode` alert group.
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Alerts overriding
 
 Monitoring has a mechanism that allows changing specific alert(-s) from the OOB set. If you want to override an alert,
@@ -138,10 +121,6 @@ parameter may have the following fields:
 
 You can find more information about alert configuring process in the
 [alert best practice document](../user-guides/alert-best-practice.md).
-
-
-[Back to TOC](#table-of-contents)
-
 
 # Examples
 
@@ -214,7 +193,4 @@ prometheusRules:
       expr: "min_over_time(prometheus_notifications_queue_length[20m]) > 0"
       severity: high
 ```
-
-
-[Back to TOC](#table-of-contents)
 

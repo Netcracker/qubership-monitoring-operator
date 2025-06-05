@@ -1,14 +1,5 @@
 This guide describes how to migrate from Prometheus to VictoriaMetrics.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-  * [Without keeping metrics](#without-keeping-metrics)
-  * [Save metrics](#save-metrics)
-    * [Before you begin](#before-you-begin)
-    * [Steps for data migration](#steps-for-data-migration)
-
 # Overview
 
 Monitoring can work with Prometheus or VictoriaMetrics stack. It is two different TSDB and you can choose between them.
@@ -70,7 +61,7 @@ victorimetrics:
 ....
 ```
 
-**NOTE:** Description for all parameters [see here](../installation.md#victoria-metrics)
+**NOTE:** Description for all parameters [see here](../installation/README.md#victoria-metrics)
 
 ## Save metrics
 
@@ -162,7 +153,7 @@ victorimetrics:
 
 **NOTE:** VictoriaMetrics has more components(vmOperator, vmSingle, vmAgent, vmAlertManager, vmAlert, vmAuth and
 vmUser) than Prometheus. You do not have to enable installation for all of it. Choose just what you need. Description
-for all parameters [see here](../installation.md#victoria-metrics)
+for all parameters [see here](../installation/README.md#victoria-metrics)
 
 Step 4. Run `vmctl` tool
 

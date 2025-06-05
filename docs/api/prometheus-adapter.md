@@ -5,14 +5,6 @@ This section describes the types introduced by the Prometheus Adapter Operator.
 > Note this document is generated from code comments. When contributing a change to this document please do so by changing the code comments.
 
 
-## Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [PrometheusAdapter](#prometheusadapter)
-* [PrometheusAdapterList](#prometheusadapterlist)
-* [PrometheusAdapterSpec](#prometheusadapterspec)
-* [SecurityContext](#securitycontext)
-
 ## PrometheusAdapter
 
 PrometheusAdapter is the Schema for the prometheusadapters API.
@@ -24,7 +16,6 @@ PrometheusAdapter is the Schema for the prometheusadapters API.
 | status |  | PrometheusAdapterStatus | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PrometheusAdapterList
@@ -37,7 +28,6 @@ PrometheusAdapterList contains a list of PrometheusAdapter.
 | items |  | [PrometheusAdapter](#prometheusadapter) | true |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PrometheusAdapterSpec
@@ -60,7 +50,6 @@ PrometheusAdapterSpec defines the desired state of PrometheusAdapter.
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. More info: [https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration) | []v1.Toleration | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## SecurityContext
@@ -74,4 +63,3 @@ the Kubernetes cluster and required if a Security Context Constraints is enabled
 | fsGroup | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod:\n\n1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw  | *int64 | false |
 
 
-[Back to TOC](#table-of-contents)

@@ -1,12 +1,4 @@
-This document describes the metrics list and how to collect them from Openshift cluster version operator.
-
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-  * [Metrics List](#metrics-list)
-    * [Openshift state metrics](#openshift-state-metrics)
+This document describes openshift cluster version operator metrics list and how to collect them.
 
 # Metrics
 

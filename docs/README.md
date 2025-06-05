@@ -1,46 +1,68 @@
-# Documentation
+# Qubership Monitoring Operator
 
-## Public documents
+Production-ready monitoring stack for Kubernetes in a single Custom Resource.
 
-This section contains documents of directories which may be provided to customers.
+## Why Qubership Monitoring Operator?
 
-Guides:
+* **One-Click Stack** – deploy metrics storage, dashboards and alerting with a single `PlatformMonitoring` object.
+* **Backend Choice** – pick **VictoriaMetrics** or **Prometheus** depending on scale & preferences.
+* **Open-Source Exporters Included** – 20+ exporters wired out of the box: node, kube-state, blackbox, cert, JSON, network-latency, Pushgateway, and more.
+* **Public-Cloud Ready** – native integrations with **AWS CloudWatch**, **Azure Monitor / Promitor**, **Google Cloud Operations (Stackdriver)**.
+* **Pre-built Dashboards & Alerts** – Grafana dashboards and alert rules for Kubernetes, infrastructure and common services.
+* **HA & Zero-Downtime** – supports rolling upgrades, replication and persistent storage.
+* **Operator Pattern** – automatic reconciliation, drift protection, GitOps-friendly.
 
-* [Installation](installation.md)
-* [Maintenance](maintenance.md)
-* [Troubleshooting](troubleshooting.md)
+## Core Modules
 
-Documents described custom resources:
+| Module | Purpose |
+| --- | --- |
+| Monitoring Operator | Reconciles the entire stack from the `PlatformMonitoring` CR |
+| VictoriaMetrics / Prometheus | Scalable time-series database |
+| Grafana & Grafana Operator | Visualization, dashboards, data-sources |
+| AlertManager / VMAlert | Alert routing & notifications |
+| Exporters | node-exporter, kube-state-metrics, blackbox-exporter, cert-exporter, json-exporter, network-latency-exporter, version-exporter, etc. |
+| Cloud Exporters | cloudwatch-exporter, promitor-agent, stackdriver-exporter |
+| Prometheus Adapter | Custom & external metrics for HPA/KEDA |
+| Optional Tools | promxy, graphite-remote-adapter, Pushgateway |
 
-* [PlatformMonitoring](api/platform-monitoring.md)
-* [PrometheusAdapter](api/prometheus-adapter.md)
-* [CustomScaleMetricRule](api/custom-scale-metric-rule.md)
+## Get Started in 3 Steps
 
-Documents described metrics, alerts, dashboards which deploy with monitoring out-of-box (OOB):
+```bash
+# 1. Install the operator (Helm)
+helm repo add qubership-monitoring https://<your-repo>
+helm repo update
+helm install monitoring qubership-monitoring/monitoring-operator \
+  --namespace monitoring --create-namespace
 
-* [Metrics](defaults/metrics.md )
-* [Alerts](defaults/alerts.md)
-* [Dashboards](defaults/dashboards/)
+# 2. Deploy a monitoring stack with defaults
+kubectl apply -f - <<EOF
+apiVersion: monitoring.qubership.org/v1alpha1
+kind: PlatformMonitoring
+metadata:
+  name: monitoring-stack
+  namespace: monitoring
+spec: {}
+EOF
 
-Examples:
+# 3. Access Grafana
+kubectl port-forward svc/monitoring-grafana -n monitoring 3000:3000
+```
 
-* [Custom resources](examples/custom-resources)
+## Documentation
 
-## Internal documents
+* **Install / Upgrade** – [Installation Guide](installation/README.md)
+* **Configure** – [Configuration Reference](configuration.md)
+* **Architecture** – [Architecture Overview](architecture.md)
+* **Cookbook & Examples** – [Recipes](cookbook/README.md)
+* **API** – [PlatformMonitoring CRD](api/platform-monitoring.md)
+* **Troubleshooting** – [Common Issues](troubleshooting.md)
 
-This section contains documents or directories which should not provide to customers and should use only internal in
-company.
+## Community & Support
 
-### Configuration
+* GitHub Issues – <https://github.com/Netcracker/qubership-monitoring-operator/issues>
+* GitHub Discussions – <https://github.com/Netcracker/qubership-monitoring-operator/discussions>
+* Contribute – [CONTRIBUTING.md](https://github.com/Netcracker/qubership-monitoring-operator/blob/main/CONTRIBUTING.md)
 
-* [Cookbook](cookbook/)
-* [Configuration](monitoring-configuration/)
+---
 
-## Images and them sources
-
-All images store into directory [docs/images](images).
-
-And all sources of these images store into directories:
-
-* [sources/draw.io](sources/draw.io) - for diagrams which made into [https://draw.io](https://draw.io)
-* [sources/plantuml](sources/plantuml) - for diagrams which made with using PlantUML syntax
+Start monitoring your cluster in minutes with **Qubership Monitoring Operator**! 

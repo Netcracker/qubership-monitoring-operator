@@ -1,27 +1,6 @@
 This document provides information about various integration options with Azure Monitor tools
 and managed services.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Azure Monitor](#azure-monitor)
-  * [Integration with Azure Monitor](#integration-with-azure-monitor)
-  * [Promitor Agent Scraper](#promitor-agent-scraper)
-    * [How to Install Promitor Agent Scraper](#how-to-install-promitor-agent-scraper)
-    * [How to Configure Azure Authentication](#how-to-configure-azure-authentication)
-      * [Service Principle Authentication Mode](#service-principle-authentication-mode)
-      * [Managed Identity Authentication Mode](#managed-identity-authentication-mode)
-    * [Metric Declaration for Promitor Agent Scraper](#metric-declaration-for-promitor-agent-scraper)
-      * [Azure Kubernetes Service](#azure-kubernetes-service)
-      * [Azure Event Hubs (Kafka)](#azure-event-hubs-kafka)
-      * [Azure Database for PostgreSQL](#azure-database-for-postgresql)
-      * [Azure Cache for Redis](#azure-cache-for-redis)
-      * [Azure SQL Elastic Pool](#azure-sql-elastic-pool)
-      * [Azure Cosmos DB (Cassandra/MongoDB)](#azure-cosmos-db-cassandramongodb)
-  * [Promitor Agent Resource Discovery](#promitor-agent-resource-discovery)
-    * [How to Install Promitor Agent Resource Discovery](#how-to-install-promitor-agent-resource-discovery)
-    * [How to Configure Resource Discovery Groups](#how-to-configure-resource-discovery-groups)
-
 # Azure Monitor
 
 Supported features matrix:
@@ -54,7 +33,7 @@ The Promitor Agent Scraper is used to scrape metrics from Azure managed services
 
 Configure the Promitor correctly to collect metrics from Azure Monitor.
 For the full list of installation parameters, refer to the
-[Platform Monitoring Installation Procedure](../installation.md#promitor-agent-scraper).
+[Platform Monitoring Installation Procedure](../installation/README.md#promitor-agent-scraper).
 
 Set up some parameters for Azure authentication and configure scraping of metrics
 from the right tenant.
@@ -124,7 +103,7 @@ To get information for the `azureMetadata` section from the Azure UI:
 You can set `metricDefaults.aggregation.interval` (`00:05:00` by default)
 and `metricDefaults.scraping.schedule` (`*/5 * * * *` by default - one scrape per 5 minute).
 These values are used for metrics by default and can override each metric separately.
-For more information about the parameters, refer to the [Platform Monitoring Installation Procedure](../installation.md#promitor-agent-scraper).
+For more information about the parameters, refer to the [Platform Monitoring Installation Procedure](../installation/README.md#promitor-agent-scraper).
 
 To collect metrics from Azure Monitor, set up the `metrics` parameter.
 This parameter is a list of objects. Each item in the list describe one metric that should be
@@ -311,7 +290,7 @@ resourceDiscoveryGroups:
 Promitor Agent Resource Discovery can be installed [manually](https://docs.promitor.io/v2.9/deployment/resource-discovery/)
 or as a part of Platform Monitoring.
 For the full list of installation parameters, refer to the
-[Platform Monitoring Installation Procedure](../installation.md#promitor-agent-resource-discovery).
+[Platform Monitoring Installation Procedure](../installation/README.md#promitor-agent-resource-discovery).
 It requires Azure Authentication that must be configured the same as promitor-agent-scraper, see
 [below](#how-to-configure-azure-authentication).
 

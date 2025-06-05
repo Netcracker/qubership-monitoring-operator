@@ -1,50 +1,5 @@
 This section describes the various configurations that can be performed on Monitoring.
 
-# Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [Configuration](#configuration)
-  * [Frequently used Installation Options](#frequently-used-installation-options)
-    * [Use PV as Storage](#use-pv-as-storage)
-      * [Storage with Dynamic Provisioning](#storage-with-dynamic-provisioning)
-      * [Manual Storage Provisioning](#manual-storage-provisioning)
-    * [Specify custom requests and limits](#specify-custom-requests-and-limits)
-    * [Override SecurityContext](#override-securitycontext)
-    * [Integration with external systems](#integration-with-external-systems)
-      * [Metrics Collectors and Long Term Storages](#metrics-collectors-and-long-term-storages)
-      * [Alerting Systems](#alerting-systems)
-      * [Dashboards](#dashboards)
-  * [User Extension Points](#user-extension-points)
-    * [Custom Resources in application namespaces](#custom-resources-in-application-namespaces)
-      * [Difference between ServiceMonitor and PodMonitor](#difference-between-servicemonitor-and-podmonitor)
-      * [ServiceMonitor](#servicemonitor)
-        * [ServiceMonitor and `container` label](#servicemonitor-and-container-label)
-      * [PodMonitor](#podmonitor)
-      * [Probe](#probe)
-      * [AlertmanagerConfig](#alertmanagerconfig)
-      * [CustomScaleMetricRule](#customscalemetricrule)
-      * [GrafanaDashboard](#grafanadashboard)
-        * [GrafanaDashboard Known Issues](#grafanadashboard-known-issues)
-        * [Inline JSON](#inline-json)
-        * [Dashboard in ConfigMap](#dashboard-in-configmap)
-        * [Dashboard from Grafana Official Site](#dashboard-from-grafana-official-site)
-        * [Dashboard by URL](#dashboard-by-url)
-    * [Useful examples of Users Extensions](#useful-examples-of-users-extensions)
-      * [AlertmanagerConfig for Email](#alertmanagerconfig-for-email)
-      * [AlermanagerConfig for Rocket.Chat](#alermanagerconfig-for-rocketchat)
-      * [mTLS Config](#mtls-config)
-  * [Admin Extension Points](#admin-extension-points)
-    * [Custom Resources in monitoring namespace](#custom-resources-in-monitoring-namespace)
-      * [PlatformMonitoring](#platformmonitoring)
-      * [Prometheus](#prometheus)
-      * [Alertmanager](#alertmanager)
-      * [Grafana](#grafana)
-      * [GrafanaDataSource](#grafanadatasource)
-    * [Secrets](#secrets)
-      * [Additional Scrape Config](#additional-scrape-config)
-      * [Additional Alert Relabel Config](#additional-alert-relabel-config)
-      * [Additional AlertManager Config](#additional-alertmanager-config)
-
 # Configuration
 
 This section describes all the configurations and extension points that are provided by Monitoring.
@@ -64,8 +19,6 @@ Prometheus deployment. The Prometheus Operator works with `PersistentVolumeClaim
 `PersistentVolume` to be provisioned when requested.
 
 This document assumes a basic understanding of `PersistentVolumes`, `PersistentVolumeClaims`, and their provisioning.
-
-[Back to TOC](#table-of-contents)
 
 #### Storage with Dynamic Provisioning
 
@@ -101,8 +54,6 @@ grafana:
     class: local-storage
 ```
 
-[Back to TOC](#table-of-contents)
-
 #### Manual Storage Provisioning
 
 The monitoring deploy parameters allow you to support arbitrary storage through a PersistentVolumeClaim.
@@ -135,8 +86,6 @@ prometheus:
 ```
 
 For Grafana, there is no ability to use an already created `hostPath` volume. You can use only dynamic provisioning.
-
-[Back to TOC](#table-of-contents)
 
 ### Specify custom requests and limits
 
@@ -171,8 +120,6 @@ This section contains description of all extension points that can be used by us
 Currently, Monitoring provides only Custom Resources, which can create applications in its namespace, as extension
 points. Other extension points also exist, but in places in the monitoring namespace where the application usually has no
 access.
-
-[Back to TOC](#table-of-contents)
 
 #### Difference between ServiceMonitor and PodMonitor
 
@@ -331,8 +278,6 @@ converts in the following Prometheus job.
       - monitoring
 ```
 
-[Back to TOC](#table-of-contents)
-
 #### ServiceMonitor
 
 The `ServiceMonitor` Custom Resource (CR) allows to provide how metrics should be collected from a microservice by Prometheus.
@@ -378,8 +323,6 @@ The following schema illustrates how prometheus-operator discovers ServiceMonito
 the configuration to Prometheus:
 
 ![ServiceMonitor](images/prometheus-k8s_service-monitor.png)
-
-[Back to TOC](#table-of-contents)
 
 For more information about all available fields in `ServiceMonitor`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor).
@@ -487,8 +430,6 @@ the configuration to Prometheus:
 For more information about all available fields in `PodMonitor`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor).
 
-[Back to TOC](#table-of-contents)
-
 #### Probe
 
 The `Probe` Custom Resource (CR) allows to provide a list of static endpoints, or configure ingresses discovery to the Prometheus
@@ -565,8 +506,6 @@ spec:
 For more information about all available fields in `Probe`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#probe](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#probe).
 
-[Back to TOC](#table-of-contents)
-
 #### AlertmanagerConfig
 
 **Note**: This resource is described in the user section because it is possible to add the settings by a user.
@@ -622,8 +561,6 @@ For more information about AlertmanagerConfig and its examples, refer to the fol
 * Configure Alertmanager at [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/user-guides/alerting.md](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/user-guides/alerting.md)
 * Configure VMAlertmanager at [https://docs.victoriametrics.com/operator/resources/vmalertmanager/?highlight=alertmanager](https://docs.victoriametrics.com/operator/resources/vmalertmanager/?highlight=alertmanager)
 
-[Back to TOC](#table-of-contents)
-
 #### CustomScaleMetricRule
 
 The `CustomScaleMetricRule` Custom Resource (CR) allows to provision of custom metrics that should be used in
@@ -661,8 +598,6 @@ spec:
     metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
 ```
 
-[Back to TOC](#table-of-contents)
-
 #### GrafanaDashboard
 
 The GrafanaDashboard Custom Resource (CR) allows to provide Grafana dashboards into Grafana.
@@ -682,8 +617,6 @@ You can use the following options to provide the dashboard using the GrafanaDash
 * [GrafanaDashboard refer to ConfigMap which contains JSON](#dashboard-in-configmap)
 * [GrafanaDashboard contains dashboard id from grafana.com](#dashboard-from-grafana-official-site)
 * [GrafanaDashboard contains URL for download dashboard](#dashboard-by-url)
-
-[Back to TOC](#table-of-contents)
 
 ##### GrafanaDashboard Known Issues
 
@@ -715,8 +648,6 @@ To solve this problem:
 * Upload the dashboard to any storage (for example Nexus) and refer to it by a URL in GrafanaDashboard.
 For more information, see [Dashboard by URL](#dashboard-by-url).
 
-[Back to TOC](#table-of-contents)
-
 ##### Inline JSON
 
 This option allows to provide a Grafana dashboard's JSON inline into a custom resource.
@@ -733,8 +664,6 @@ spec:
   json: |+
     { ... }
 ```
-
-[Back to TOC](#table-of-contents)
 
 ##### Dashboard in ConfigMap
 
@@ -767,8 +696,6 @@ spec:
     key: dashboard           # Need specify key in ConfigMap
 ```
 
-[Back to TOC](#table-of-contents)
-
 ##### Dashboard from Grafana Official Site
 
 This option allows to download the dashboard using the ID from official site, [https://grafana.com](https://grafana.com).
@@ -795,8 +722,6 @@ spec:
 The grafana-operator downloads the dashboard in this example,
 [https://grafana.com/grafana/dashboards/9614](https://grafana.com/grafana/dashboards/9614).
 
-[Back to TOC](#table-of-contents)
-
 ##### Dashboard by URL
 
 This option allows to download the dashboard using a URL from any server.
@@ -819,8 +744,6 @@ spec:
   # in filed 'json'. So result custom resource will contains both fields and 'url' and 'json'
   url: "http://any-host.org/any/path/to/dashboard.json"
 ```
-
-[Back to TOC](#table-of-contents)
 
 ### Useful examples of Users Extensions
 
@@ -870,8 +793,6 @@ spec:
       from: alertmanager@testmail.qubership.com
       to: <user_to_send_notifications>
 ```
-
-[Back to TOC](#table-of-contents)
 
 #### AlermanagerConfig for Rocket.Chat
 
@@ -984,10 +905,6 @@ class Script {
 ```
 
 </details>
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### mTLS Config
 
@@ -1185,37 +1102,19 @@ spec:
         insecureSkipVerify: true
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Admin Extension Points
 
 This section contains description of all extension points which can be used by an Admin user.
 For example, an Admin can use these extension points to add custom configurations to Prometheus or Alertmanager.
-
-
-[Back to TOC](#table-of-contents)
-
 
 ### Custom Resources in monitoring namespace
 
 Currently, Monitoring provide various ways for an Admin to change global Prometheus and other component
 configurations, or change the list of deployment components.
 
-
-[Back to TOC](#table-of-contents)
-
-
-
 #### PlatformMonitoring
 
 TBD
-
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### Prometheus
 
@@ -1271,10 +1170,6 @@ spec:
 For more information about all the available fields in `Prometheus`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#prometheus).
 
-
-[Back to TOC](#table-of-contents)
-
-
 #### Alertmanager
 
 **Important**: This custom resource is managed by `monitoring-operator`. All the manual changes revert in less
@@ -1321,10 +1216,6 @@ spec:
 For more information about all the available fields in `Alertmanager`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#alertmanager](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#alertmanager).
 
-
-[Back to TOC](#table-of-contents)
-
-
 #### Grafana
 
 **Important**: This custom resource is managed by `monitoring-operator`. All the manual changes revert in less
@@ -1332,10 +1223,6 @@ than 30 seconds.
 
 The Grafana Custom Resource (CR) allows to provide settings for Grafana that are applied during the start
 of the Grafana instance.
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### GrafanaDataSource
 
@@ -1390,18 +1277,10 @@ spec:
     version: 1
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 ### Secrets
 
 In addition to custom resources for monitoring, you can also specify settings for Monitoring in special Secrets.
 These secrets allow you to add raw Prometheus config parts into a common Prometheus config.
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### Additional Scrape Config
 
@@ -1458,10 +1337,6 @@ An example of config to collect metrics from Graylog deployed on VM is as follow
     insecure_skip_verify: true
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 #### Additional Alert Relabel Config
 
 This secret allows you to add raw Prometheus Alert Relabel config through prometheus-operator into total config.
@@ -1486,10 +1361,6 @@ There are other `additional_...` secrets for:
 The `additional-alertrelabel-config` secret is used when:
 
 * You need to configure relabel for Alertmanager.
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### Additional AlertManager Config
 
@@ -1519,7 +1390,3 @@ The `additional-alertmanager-config` secret is used when:
 In other cases, you should use Custom Resource:
 
 * [AlertmanagerConfig](#alertmanagerconfig)
-
-
-[Back to TOC](#table-of-contents)
-

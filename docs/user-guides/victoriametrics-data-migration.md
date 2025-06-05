@@ -1,13 +1,5 @@
 This guide describes how to migrate data between two VictoriaMetrics databases.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-  * [Using Migration Job](#using-migration-job)
-    * [Migration Possibilities](#migration-possibilities)
-    * [Job Results](#job-results)
-
 # Overview
 
 VictoriaMetrics provides a utility called `vmctl` to migrate data between two VictoriaMetrics databases.

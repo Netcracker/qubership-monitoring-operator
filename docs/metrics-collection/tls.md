@@ -1,19 +1,6 @@
 This document describes which abilities monitoring has to collect metrics from services/microservices with endpoints
 closed by TLS/mTLS (HTTPS).
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-  * [Look under the hood](#look-under-the-hood)
-* [How to use](#how-to-use)
-  * [Requirements for microservices and restrictions](#requirements-for-microservices-and-restrictions)
-  * [Configure TLS for scrape metrics](#configure-tls-for-scrape-metrics)
-  * [Configure mTLS for scrape metrics](#configure-mtls-for-scrape-metrics)
-  * [Configure skip certificate validation for scrape metrics from the TLS endpoint](#configure-skip-certificate-validation-for-scrape-metrics-from-the-tls-endpoint)
-  * [How to configure TLS for additional-scrape-config](#how-to-configure-tls-for-additional-scrape-config)
-* [Examples](#examples)
-
 # Overview
 
 Let's describe how Prometheus (and VMAgent that can replace Prometheus in some cases) supports metrics collection
@@ -38,10 +25,6 @@ only references to Secrets (or ConfigMap for CA and Cert certificates).
 
 If you specified all parameters correctly, so the `prometheus-operator` with Prometheus will automatically
 track your certificates, watch changes in them and use new (if the certificate is updated).
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Look under the hood
 
@@ -84,10 +67,6 @@ When the `prometheus-operator` discovers CRs it executes the following operation
 Of course, such automation leads to additional required permissions for `prometheus-operator`. It needs permissions
 to list, get and watch Secrets and ConfigMap in all namespaces where it should work (or in cluster scope).
 
-
-[Back to TOC](#table-of-content)
-
-
 # How to use
 
 This section describes how to configure TLS and mTLS to collect metrics from services.
@@ -102,10 +81,6 @@ There are some requirements for microservices that they must comply with:
   a reference on Secret in another namespace.
 * TLS config **must** be configured for each endpoint that uses TLS encryption
 * Other trusted storage, like Vault, are not supported now
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Configure TLS for scrape metrics
 
@@ -237,10 +212,6 @@ spec:
           name: configMap-name-with-certificate
           key: key-in-configMap-with-certificate
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Configure mTLS for scrape metrics
 
@@ -419,10 +390,6 @@ spec:
         key: key-with-key-in-secret-with-certificate
 ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ## Configure skip certificate validation for scrape metrics from the TLS endpoint
 
 **Warning!** Using TLS without certificate validation **strongly** is not recommended to use on production.
@@ -483,10 +450,6 @@ spec:
     tlsConfig:                  # <-- need to add this section
       insecureSkipVerify: true
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ## How to configure TLS for additional-scrape-config
 
@@ -581,9 +544,5 @@ To configure metrics collection without certificate validation you need to confi
   tls_config:
     insecure_skip_verify: true
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 # Examples

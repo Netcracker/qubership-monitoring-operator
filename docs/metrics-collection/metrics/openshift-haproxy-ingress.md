@@ -1,13 +1,5 @@
 This document describes the metrics list and how to collect them from Openshift HAProxy metrics.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-  * [Metrics List](#metrics-list)
-    * [Openshift HAProxy metrics](#openshift-haproxy-metrics)
-
 # Metrics
 
 Consul already can exposes its metrics in Prometheus format and doesn't require to use of specific exporters.

@@ -1,17 +1,6 @@
 This guide describes how to change passwords for Monitoring and all components in it during
 installation and during the work.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Set passwords during deployment](#set-passwords-during-deployment)
-  * [Grafana deploy](#grafana-deploy)
-  * [VMAuth deploy](#vmauth-deploy)
-* [Change passwords after deploy](#change-passwords-after-deploy)
-  * [Grafana admin password change](#grafana-admin-password-change)
-    * [Release/0.57 or less](#release057-or-less)
-  * [VMAuth password change](#vmauth-password-change)
-
 # Set passwords during deployment
 
 During deploy you can specify admin users and passwords for the next components:

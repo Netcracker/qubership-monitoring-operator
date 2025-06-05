@@ -40,3 +40,6 @@ deployments
 __pycache__/
 venv/
 *.pyc
+
+#mkdocs
+site/

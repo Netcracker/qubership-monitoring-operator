@@ -1,26 +1,6 @@
 This document provides information about various integration options with Google Cloud Operations
 tools and managed services.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Google Cloud Operations (Stackdriver)](#google-cloud-operations-stackdriver)
-  * [Get Metrics from Google Cloud Operations](#get-metrics-from-google-cloud-operations)
-    * [How to Configure Metrics Collection Using stackdriver-exporter](#how-to-configure-metrics-collection-using-stackdriver-exporter)
-      * [Workload Identity](#workload-identity)
-      * [Service Account and Key](#service-account-and-key)
-    * [How to Configure List of Collected Metrics](#how-to-configure-list-of-collected-metrics)
-  * [Send Collected Metrics to Google Cloud Operations](#send-collected-metrics-to-google-cloud-operations)
-    * [Metrics](#metrics)
-    * [Dashboards](#dashboards)
-    * [Alerting](#alerting)
-    * [Autoscaling](#autoscaling)
-    * [How to setup integration with GCO](#how-to-setup-integration-with-gco)
-      * [Preparing Parameters](#preparing-parameters)
-      * [How to Check Integration](#how-to-check-integration)
-    * [Setup External Virtual Machines Monitoring](#setup-external-virtual-machines-monitoring)
-* [Links](#links)
-
 # Google Cloud Operations (Stackdriver)
 
 Supported features matrix:
@@ -367,7 +347,7 @@ You have to collect the following parameters to set up the monitoring integratio
 
 Do not forget to replace these parameters with the values in the examples of the following parameters.
 You can see list of all possible parameters for the `monitoring-operator` in the
-[Installation document](../installation.md).
+[Installation document](../installation/README.md).
 
 #### How to Check Integration
 

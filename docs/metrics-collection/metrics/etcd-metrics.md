@@ -1,17 +1,5 @@
 This document describes the metrics list and how to collect them from Etcd.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-    * [How to find certificates for Etcd](#how-to-find-certificates-for-etcd)
-      * [For Kubernetes 1.19-?](#for-kubernetes-119-)
-      * [For Kubernetes 1.15-1.18](#for-kubernetes-115-118)
-      * [For OpenShift 4.x](#for-openshift-4x)
-      * [For OpenShift 3.11](#for-openshift-311)
-  * [Metrics List](#metrics-list)
-
 # Metrics
 
 Etcd already exposes its metrics in Prometheus format and doesn't require to use of specific exporters.

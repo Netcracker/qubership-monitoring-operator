@@ -4,44 +4,6 @@ This section describes the types introduced by the Monitoring Operator.
 
 > Note this document is generated from code comments. When contributing a change to this document please do so by changing the code comments.
 
-
-## Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [AlertManager](#alertmanager)
-* [Auth](#auth)
-* [EmbeddedObjectMetadata](#embeddedobjectmetadata)
-* [Grafana](#grafana)
-* [GrafanaDashboards](#grafanadashboards)
-* [GrafanaOperator](#grafanaoperator)
-* [Ingress](#ingress)
-* [Integration](#integration)
-* [Jaeger](#jaeger)
-* [KubeStateMetrics](#kubestatemetrics)
-* [Monitor](#monitor)
-* [NodeExporter](#nodeexporter)
-* [OAuthProxy](#oauthproxy)
-* [PlatformMonitoring](#platformmonitoring)
-* [PlatformMonitoringCondition](#platformmonitoringcondition)
-* [PlatformMonitoringList](#platformmonitoringlist)
-* [PlatformMonitoringSpec](#platformmonitoringspec)
-* [PlatformMonitoringStatus](#platformmonitoringstatus)
-* [Prometheus](#prometheus)
-* [PrometheusOperator](#prometheusoperator)
-* [PrometheusRule](#prometheusrule)
-* [PrometheusRules](#prometheusrules)
-* [Promxy](#promxy)
-* [Pushgateway](#pushgateway)
-* [SecurityContext](#securitycontext)
-* [StackDriverIntegrationConfig](#stackdriverintegrationconfig)
-* [TLSConfig](#tlsconfig)
-* [Victoriametrics](#victoriametrics)
-* [VmOperator](#vmoperator)
-* [VmAgent](#vmagent)
-* [VmSingle](#vmsingle)
-* [VmAlert](#vmalert)
-* [VmAlertManager](#vmalertmanager)
-
 ## AlertManager
 
 AlertManager defines the desired state for some part of the prometheus-operator deployment.
@@ -65,7 +27,6 @@ AlertManager defines the desired state for some part of the prometheus-operator 
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Auth
@@ -82,7 +43,6 @@ Auth handles parameters to set up Platform Monitoring auth for services. It curr
 | tlsConfig |  | *[TLSConfig](#tlsconfig) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## EmbeddedObjectMetadata
@@ -95,7 +55,6 @@ EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimac
 | labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Grafana
@@ -126,7 +85,6 @@ Grafana defines the desired state for some part of the grafana-operator deployme
 | serviceAccount             | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Grafana for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata.                                                                                                               | *[EmbeddedObjectMetadata](#embeddedobjectmetadata)                                                                           | false    |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## GrafanaDashboards
@@ -139,7 +97,6 @@ GrafanaDashboards contains parameters for specifying the dashboards to install.
 | list |  | []string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## GrafanaOperator
@@ -163,7 +120,6 @@ GrafanaOperator defines the desired state for some part of the grafana-operator 
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Ingress
@@ -181,7 +137,6 @@ to [https://github.com/kubernetes/ingress-nginx](https://github.com/kubernetes/i
 | tlsSecretName | TlsSecretName allows to set secret name which will be used for TLS setting for the Ingress for specified host. | string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Integration
@@ -195,7 +150,6 @@ Integration handles parameters to set up the Platform Monitoring integration wit
 | jaeger |  | *[Jaeger](#jaeger) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Jaeger
@@ -207,7 +161,6 @@ Jaeger holds parameters to set up Platform Monitoring integration with Jaeger.
 | createGrafanaDataSource | If true, looking for Jaeger Service in all namespaces and add Grafana DataSource for it service if it is found. | bool | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## KubeStateMetrics
@@ -232,7 +185,6 @@ KubeStateMetrics defines the desired state for some part of the kube-state-metri
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Monitor
@@ -249,7 +201,6 @@ Monitor handles parameters to set up Service or Pod Monitor.
 | Selector |  | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#labelselector-v1-meta) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## NodeExporter
@@ -275,7 +226,6 @@ NodeExporter defines the desired state for some part of the node-exporter deploy
 | extraArgs | Additional arguments for node-exporter container. For example: "--collector.systemd". | list[string] | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## OAuthProxy
@@ -290,7 +240,6 @@ OAuthProxy handles parameters to set up Platform Monitoring oauth proxy for serv
 | image |  | string | true |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PlatformMonitoring
@@ -304,7 +253,6 @@ PlatformMonitoring is the Schema for the platformmonitorings API.
 | status |  | [PlatformMonitoringStatus](#platformmonitoringstatus) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PlatformMonitoringCondition
@@ -320,7 +268,6 @@ PlatformMonitoringCondition contains the description of the status of PlatformMo
 | lastTransitionTime |  | string | true |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PlatformMonitoringList
@@ -333,7 +280,6 @@ PlatformMonitoringList contains a list of PlatformMonitoring.
 | items |  | \[\][PlatformMonitoring](#platformmonitoring) | true |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PlatformMonitoringSpec
@@ -359,7 +305,6 @@ PlatformMonitoringSpec defines the desired state of PlatformMonitoring.
 | victoriametrics |  | \*[Victoriametrics](#victoriametrics) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PlatformMonitoringStatus
@@ -371,7 +316,6 @@ PlatformMonitoringStatus defines the observed state of PlatformMonitoring.
 | conditions |  | \[\][PlatformMonitoringCondition](#platformmonitoringcondition) | true |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Prometheus
@@ -421,7 +365,6 @@ Prometheus defines the link to PrometheusSpec objects from prometheus-operator.
 | enableFeatures | Enable access to Prometheus disabled features. By default, no features are enabled. Enabling disabled features is entirely outside the scope of what the maintainers will support and by doing so, you accept that this behavior may break at any time without notice. For more information see [https://prometheus.io/docs/prometheus/latest/disabled_features/](https://prometheus.io/docs/prometheus/latest/disabled_features/) | []string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PrometheusOperator
@@ -443,7 +386,6 @@ PrometheusOperator defines the desired state for some part of the prometheus-ope
 | serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PrometheusRule
@@ -460,7 +402,6 @@ PrometheusRule handles parameters to override PrometheusRule: alerts of recordin
 | severity |  | string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## PrometheusRules
@@ -474,7 +415,6 @@ PrometheusRules help to add and override Prometheus rules.
 | override |  | \[\][PrometheusRule](#prometheusrule) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Promxy
@@ -487,7 +427,6 @@ Promxy handles parameters to set up Platform Monitoring with Prometheus proxy.
 | port |  | *int32 | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Pushgateway
@@ -515,11 +454,9 @@ Pushgateway defines the desired state for some part of pushgateway deployment
 | annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## SecurityContext
@@ -533,7 +470,6 @@ the Kubernetes cluster and required if a Security Context Constraints is enabled
 | fsGroup | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod:\n\n1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw  | *int64 | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## StackDriverIntegrationConfig
@@ -551,7 +487,6 @@ container\n as sidecar to Prometheus pod. It allows to specify filters for metri
 | metricsFilter | List of filters for metrics which will be sent to GCO. Filters use the same syntax as Prometheus instant vector selectors: [https://prometheus.io/docs/prometheus/latest/querying/basics/#instant-vector-selectors](https://prometheus.io/docs/prometheus/latest/querying/basics/#instant-vector-selectors) | []string | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## TLSConfig
@@ -566,7 +501,6 @@ TLSConfig extends the safe TLS configuration with file parameters.
 | insecureSkipVerify |  | *bool | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## Victoriametrics
@@ -580,7 +514,6 @@ TLSConfig extends the safe TLS configuration with file parameters.
 | vmAlert |  | [VmAlert](#vmalert) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## VmOperator
@@ -602,7 +535,6 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | serviceMonitor | Service monitor for pulling metrics | *[Monitor](#monitor) | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## VmAgent
@@ -637,7 +569,6 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | extraEnvs | ExtraEnvs that will be added to VMAgent pod | []v1.EnvVar | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## VmSingle
@@ -664,7 +595,6 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output deploy definition. VolumeMounts specified will be appended to other VolumeMounts in the vmsingle container, that are generated as a result of StorageSpec objects. | []v1.VolumeMount | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## VmAlert
@@ -703,7 +633,6 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output Deployment definition. VolumeMounts specified will be appended to other VolumeMounts in the VMAlert container, that are generated as a result of StorageSpec objects. | []v1.VolumeMount | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## VmAlertManager
@@ -738,5 +667,4 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | extraEnvs | ExtraEnvs that will be added to VMAlertmanager pod | []v1.EnvVar | false |
 
 
-[Back to TOC](#table-of-contents)
 

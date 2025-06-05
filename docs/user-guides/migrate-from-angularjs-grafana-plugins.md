@@ -1,23 +1,6 @@
 Grafana removes support of plugins based on AngularJS since v11, which means that some plugins will stop working from
 then on. This document describes how to migrate from the old AngularJS plugins to the new, mostly core plugins.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Compatibility of Grafana versions with new core plugins](#compatibility-of-grafana-versions-with-new-core-plugins)
-* [AngularJS plugins and their possible alternatives](#angularjs-plugins-and-their-possible-alternatives)
-  * [Core plugins with automatic migration](#core-plugins-with-automatic-migration)
-  * [Third-party plugins](#third-party-plugins)
-    * [Pie chart (old)](#pie-chart-old)
-    * [Status Panel](#status-panel)
-    * [FlowCharting](#flowcharting)
-    * [Singlestat Math](#singlestat-math)
-    * [Statusmap](#statusmap)
-    * [SVG](#svg)
-    * [Multistat](#multistat)
-    * [Discrete](#discrete)
-    * [Cal-HeatMap](#cal-heatmap)
-
 # Compatibility of Grafana versions with new core plugins
 
 If you are not using the latest major version of Grafana 10.x, you may be missing some of the core plugins
@@ -107,8 +90,6 @@ Third-party plugins require a custom approach.
 1. Open your panel in `Edit` mode
 2. Find `Options` section in panel settings and click on `Migrate to the new pie chart plugin` button
 
-[Back to TOC](#table-of-content)
-
 ### Status Panel
 
 **Plugin ID:** vonage-status-panel
@@ -135,8 +116,6 @@ into the new panel:
 * Any threshold settings -> General threshold settings in the panel options or overriding thresholds for each metric
 * `Metric URL` -> `Data links` (general or overridden)
 
-[Back to TOC](#table-of-content)
-
 ### FlowCharting
 
 **Plugin ID:** agenty-flowcharting-panel
@@ -158,8 +137,6 @@ Also, you can check the progress of the moving flowcharting features to the Canv
 ["Canvas: Request flowcharting features to be
 implemented/migrated into canvas plugin"](https://github.com/grafana/grafana/issues/79874)
 issue in the Grafana GitHub repository.
-
-[Back to TOC](#table-of-content)
 
 ### Singlestat Math
 
@@ -189,8 +166,6 @@ Setting mappings from `Singlestat Math` to `Stat` or `Gauge` that can be migrate
 `Query Math` should be copied by changing query on the new panel. Prometheus/VictoriaMetrics query languages support
 any type of math operators and functions.
 
-[Back to TOC](#table-of-content)
-
 ### Statusmap
 
 **Plugin ID:** flant-statusmap-panel
@@ -212,8 +187,6 @@ Without the last step the legend can be displayed incorrectly.
 
 Size of the cells and opacity can be configured in `Status history` section of settings. `Items` options can be replaced
 with `Data links` in some cases.
-
-[Back to TOC](#table-of-content)
 
 ### SVG
 
@@ -250,8 +223,6 @@ However, `Canvas` already offers a large set of tools, such as `Server` for a sc
 or data center, or the interactive `Button` element (Button and some other tools can be found in the list of elements
 if you enabled the `Experimental element types` option in the panel settings).
 
-[Back to TOC](#table-of-content)
-
 ### Multistat
 
 **Plugin ID:** michaeldmoore-multistat-panel
@@ -284,8 +255,6 @@ Let's take a look at the most important settings that can be moved from the old 
 Almost all settings in the new panel can be configured both in general and for each metric independently by using
 overrides.
 
-[Back to TOC](#table-of-content)
-
 ### Discrete
 
 **Plugin ID:** natel-discrete-panel
@@ -312,8 +281,6 @@ mapping. Then you can remove useless value-color mappings. Range mappings can be
 Matched values can be displayed on the panel a little bit incorrectly (e.g. text may extend beyond the colored row).
 In this case, you can increase `Line width` option or change `Align values`.
 
-[Back to TOC](#table-of-content)
-
 ### Cal-HeatMap
 
 **Plugin ID:** neocat-cal-heatmap-panel
@@ -336,5 +303,3 @@ changed in the `Cell display` section. The `Link template` feature of the old pa
 
 `Domain` and `Sub domain` will be configured automatically based on the time range in `Heatmap`, there's no other option
 to configure them manually.
-
-[Back to TOC](#table-of-content)

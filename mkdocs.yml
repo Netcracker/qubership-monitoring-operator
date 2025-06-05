@@ -1,0 +1,254 @@
+site_name: Qubership Monitoring Operator
+site_description: Comprehensive monitoring solution for Kubernetes
+site_url: https://denifilatoff.github.io/qubership-monitoring-operator
+
+# Repository
+repo_name: qubership-monitoring-operator
+repo_url: https://github.com/denifilatoff/qubership-monitoring-operator
+edit_uri: edit/main/docs/
+
+# Configuration
+theme:
+  name: material
+  language: en
+  
+  # Color scheme and palette with built-in blue grey color (closest to #4a77a1)
+  palette:
+    # Dark theme by default
+    - media: "(prefers-color-scheme)"
+      scheme: slate
+      primary: blue grey
+      accent: cyan
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    
+    # Light theme option
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    
+    # Dark theme option (default)
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+  # Advanced features
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.tabs.link
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+
+  # Icons and fonts
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Extensions with all requested features
+markdown_extensions:
+  # Basic extensions
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+      toc_depth: 6
+
+  # Enhanced code highlighting for YAML, JSON, Java, Go, Python
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      use_pygments: true
+      pygments_style: default
+      noclasses: false
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: docs
+
+  # Mermaid diagrams support
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+  # Advanced content features
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+  # Emoji support
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+  # Additional formatting
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.tilde
+  - pymdownx.caret
+  - pymdownx.betterem:
+      smart_enable: all
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+# Navigation 
+nav:
+  - Home: README.md
+  
+  # Installation - "I want to install the system"
+  - Installation:
+      - Installation Guide: installation/README.md
+      - Prerequisites: installation/prerequisites.md
+      - Components Overview: installation/basic-components.md
+      - Storage Configuration: installation/storage.md
+      - Deployment: installation/deploy.md
+      - Post-Deploy Checks: installation/post-deploy-checks.md
+      - Component Configuration:
+          - Overview: installation/components/README.md
+          - Graphite Remote Adapter: installation/components/graphite-remote-adapter.md
+          - Promxy: installation/components/promxy.md
+          - Pushgateway: installation/components/pushgateway.md
+          - Profiling: installation/components/pprof.md
+          - Exporters:
+              - Blackbox Exporter: installation/components/exporters/blackbox-exporter.md
+              - Cloudwatch Exporter: installation/components/exporters/cloudwatch-exporter.md
+              - Promitor Agent Scraper: installation/components/exporters/promitor-agent-scraper.md
+              - Stackdriver Exporter: installation/components/exporters/stackdriver-exporter.md
+              - Cert Exporter: installation/components/exporters/cert-exporter.md
+              - Network Latency Exporter: installation/components/exporters/network-latency-exporter.md
+              - Version Exporter: installation/components/exporters/version-exporter.md
+              - Kube State Metrics: installation/components/exporters/kube-state-metrics.md
+              - Node Exporter: installation/components/exporters/node-exporter.md
+          - VictoriaMetrics Stack:
+              - Overview: installation/components/victoriametrics-stack/victoriametrics.md
+              - VMAgent: installation/components/victoriametrics-stack/vmagent.md
+              - VMSingle: installation/components/victoriametrics-stack/vmsingle.md
+              - VMAlert: installation/components/victoriametrics-stack/vmalert.md
+              - VMAlertManager: installation/components/victoriametrics-stack/vmalertmanager.md
+              - VMAUTH: installation/components/victoriametrics-stack/vmauth.md
+              - VMUser: installation/components/victoriametrics-stack/vmuser.md
+              - VM Operator: installation/components/victoriametrics-stack/vm-operator.md
+          - Prometheus Stack:
+              - Prometheus: installation/components/prometheus-stack/prometheus.md
+              - Prometheus Adapter: installation/components/prometheus-stack/prometheus-adapter.md
+              - Prometheus Rules: installation/components/prometheus-stack/prometheus-rules.md
+              - AlertManager: installation/components/prometheus-stack/alertmanager.md
+          - Grafana Stack:
+              - Grafana: installation/components/grafana-stack/grafana.md
+  
+  # Architecture & Components - "I want to understand how the system works"
+  - Architecture & Components:
+    - Architecture Overview: architecture.md
+    - Basic Configuration: configuration.md
+    - API Reference:
+      - Platform Monitoring: api/platform-monitoring.md
+      - Prometheus Adapter: api/prometheus-adapter.md
+      - Custom Scale Metric Rule: api/custom-scale-metric-rule.md
+  
+  # Configuration - "I want to configure the system"
+  - Configuration:
+    - Basic Configuration: configuration.md
+    - Best Practices: user-guides/best-practices.md
+    - Alert Configuration:
+      - Alert Setup: monitoring-configuration/alerts.md
+      - Alert Best Practices: user-guides/alert-best-practice.md
+    - Metrics Collection:
+      - Overview: metrics-collection/exporters-and-metrics-index.md
+      - Limits & Collection: monitoring-configuration/limits-metric-collection.md
+    - Horizontal Autoscaling: user-guides/horizontal-autoscaling.md
+    - Default Configurations:
+      - Default Metrics: defaults/metrics.md
+      - Default Alerts: defaults/alerts.md
+    - Manual CRD Creation: user-guides/manual-create-crds.md
+    - Examples:
+      - Overview: examples/README.md
+      - Component Configurations:
+        - CloudWatch Exporter: examples/components/cloudwatch-exporter-config/README.md
+      - Custom Resources:
+        - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
+        - Grafana Dashboards: examples/custom-resources/grafana-dashboard/README.md
+        - Grafana DataSources: examples/custom-resources/grafana-datasource/README.md
+        - Pod Monitors: examples/custom-resources/pod-monitor/README.md
+        - Prometheus Rules: examples/custom-resources/prometheus-rule/README.md
+        - Service Monitors: examples/custom-resources/service-monitor/README.md
+  
+  # Cookbook - "I want recipes and examples"
+  - Cookbook:
+    - Overview: cookbook/overview.md
+    - Recipes Index: cookbook/README.md
+  
+  # Integrations - "I want to integrate with external systems"
+  - Integrations:
+    - Overview: integration/integrations.md
+    - Cloud Providers:
+      - Amazon AWS: integration/amazon-aws.md
+      - Azure Monitor: integration/azure-monitor.md
+      - Google Cloud: integration/google-cloud.md
+    - Other Systems:
+      - IBM Netcool: integration/ibm-netcool.md
+    - Integration Examples:
+      - Custom Endpoints: examples/custom-resources/custom-endpoint/README.md
+  
+  # Security - "I want to secure the system"
+  - Security:
+    - Authentication:
+      - Monitoring Auth: monitoring-configuration/authentication.md
+      - Metrics Collection Auth: metrics-collection/authentication.md
+    - TLS Configuration:
+      - Monitoring TLS: monitoring-configuration/tls.md
+      - Metrics Collection TLS: metrics-collection/tls.md
+      - Route/Ingress TLS: monitoring-configuration/route-ingress-tls.md
+    - Security Examples:
+      - Service with TLS: examples/custom-resources/service-with-tls/README.md
+  
+  # Operations - "The system is running, I want to maintain it"
+  - Operations:
+    - Troubleshooting: troubleshooting.md
+    - Maintenance: maintenance.md
+    - Resource Usage: resource-usage.md
+    - Disaster Recovery: monitoring-configuration/disaster-and-recovery.md
+    - Password Management: user-guides/password-change.md
+    - Migration:
+      - Grafana Plugins: user-guides/migrate-from-angularjs-grafana-plugins.md
+      - Prometheus to VictoriaMetrics: user-guides/migrate-from-prometheus-to-victoriametrics.md
+      - VictoriaMetrics Data: user-guides/victoriametrics-data-migration.md
+    - Operations Examples:
+      - Service with Alarms: examples/custom-resources/service-with-alarms/README.md
+      - Service with Dashboard: examples/custom-resources/service-with-dashboard/README.md

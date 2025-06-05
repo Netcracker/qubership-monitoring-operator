@@ -47,8 +47,5 @@ The Grafana Operator automatically import all found datasources _in current name
 * [Collect metrics from custom endpoints](custom-resources/custom-endpoint/README.md)
 * [Collect metrics from HTTPS endpoints](custom-resources/service-with-tls/README.md)
 
-## All in one example
 
-* [Service example](full-service/README.md)
 
-**[Back](../../README.md)**

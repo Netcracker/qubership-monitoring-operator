@@ -1,16 +1,5 @@
 This document describes the metrics list and how to collect them from the Blackbox-exporter.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-    * [Self metrics](#self-metrics)
-    * [Probe](#probe)
-  * [Metrics List](#metrics-list)
-    * [Self Metrics](#self-metrics-1)
-    * [Probe Metrics](#probe-metrics)
-
 # Metrics
 
 The Blackbox-exporter is the exporter and already exposes its metrics in Prometheus format.

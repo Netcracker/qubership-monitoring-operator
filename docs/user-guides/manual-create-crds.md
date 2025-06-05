@@ -1,15 +1,5 @@
 This document describes how to manually create, update or delete Monitoring Custom Resource Definitions (CRDs).
 
-# Table Of Contents
-
-* [Table Of Contents](#table-of-contents)
-* [When is it needed?](#when-is-it-needed)
-* [Before you begin](#before-you-begin)
-* [How to manage CRDs](#how-to-manage-crds)
-  * [Create](#create)
-  * [Upgrade](#upgrade)
-  * [Remove](#remove)
-
 # When is it needed?
 
 Almost all Qubership applications and microservices are integrated with Monitoring. This integration means
@@ -33,10 +23,6 @@ monitoring-operator-<version>-crds.zip
 ```
 
 that contains all CRDs required for Monitoring. How to use this archive and CRDs inside you can read below.
-
-
-[Back to TOC](#table-of-contents)
-
 
 # Before you begin
 
@@ -66,10 +52,6 @@ unzip -d /tmp/crds/ monitoring-operator-<version>-crds.zip
 kubectl create -f /tmp/crds/*
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Upgrade
 
 To upgrade CRDs for Monitoring you need to execute the command:
@@ -90,10 +72,6 @@ mkdir /tmp/crds/
 unzip -d /tmp/crds/ monitoring-operator-<version>-crds.zip
 kubectl replace -f /tmp/crds/*
 ```
-
-
-[Back to TOC](#table-of-contents)
-
 
 ## Remove
 
@@ -147,7 +125,3 @@ kubectl delete crd vmsingles.operator.victoriametrics.com
 kubectl delete crd vmstaticscrapes.operator.victoriametrics.com
 kubectl delete crd vmusers.operator.victoriametrics.com
 ```
-
-
-[Back to TOC](#table-of-contents)
-

@@ -1,18 +1,6 @@
 This document describes which abilities monitoring has to collect metrics from services/microservices with endpoints
 closed by various auth types.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Before you begin](#before-you-begin)
-* [General recommendation](#general-recommendation)
-* [Authentication methods](#authentication-methods)
-  * [Basic Auth](#basic-auth)
-  * [Static token](#static-token)
-  * [OAuth2](#oauth2)
-  * [Custom URL params](#custom-url-params)
-  * [RBAC auth](#rbac-auth)
-
 # Before you begin
 
 * All credentials and tokens **must** store in Kubernetes Secrets
@@ -51,10 +39,6 @@ GitHub:
 
 And install it as a sidecar to your application.
 
-
-[Back to TOC](#table-of-content)
-
-
 # Authentication methods
 
 The application can support different auth methods, like BasicAuth, OAuth2 and so on. And deploy this application and
@@ -69,10 +53,6 @@ So we can specify the following popular auth types:
 * RBAC auth
 
 So let's describe how to configure Monitoring to collect metrics from the endpoint that uses each of these auth types.
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Basic Auth
 
@@ -140,10 +120,6 @@ spec:
           name: test-service-credentials
           key: password
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Static token
 
@@ -239,10 +215,6 @@ spec:
           key: token
 ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ## OAuth2
 
 The Custom Resources `ServiceMonitor` and `PodMonitor` allow referring to the Secret using static tokens.
@@ -319,10 +291,6 @@ spec:
         scopes:
           - user
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Custom URL params
 

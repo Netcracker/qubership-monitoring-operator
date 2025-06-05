@@ -1,16 +1,5 @@
 This document describes the integration capabilities with various third party monitoring systems.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-* [Integrations](#integrations)
-  * [Public Clouds](#public-clouds)
-  * [Vendor observability solutions](#vendor-observability-solutions)
-  * [Enabling/disabling specific monitoring components](#enablingdisabling-specific-monitoring-components)
-
-**[Back](../README.md)**
-
 # Overview
 
 Platform monitoring can be integrated with other monitoring systems which allows customers use unified interface for

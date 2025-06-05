@@ -1,32 +1,6 @@
 This document provides information about the maintenance of the Monitoring deployment and the configuration of its
 services.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Ways to Make Changes](#ways-to-make-changes)
-  * [Redeploy/Update](#redeployupdate)
-    * [Manual Deploy using Helm](#manual-deploy-using-helm)
-      * [Installing the Chart](#installing-the-chart)
-      * [Upgrading the Chart](#upgrading-the-chart)
-      * [Uninstalling the Chart](#uninstalling-the-chart)
-  * [Change Parameters in Custom Resource in Runtime](#change-parameters-in-custom-resource-in-runtime)
-  * [Work with legacy CRDs](#work-with-legacy-crds)
-* [Provided Procedures](#provided-procedures)
-  * [Update Procedure](#update-procedure)
-  * [Remove Procedure](#remove-procedure)
-    * [Remove PlatformMonitoring CR](#remove-platformmonitoring-cr)
-    * [Remove PlatformMonitoring CR and Operator](#remove-platformmonitoring-cr-and-operator)
-    * [Remove all Created CRDs](#remove-all-created-crds)
-  * [Deploy/Skip/Remove based components](#deployskipremove-based-components)
-  * [Pause reconciliation for components which control by monitoring-operator](#pause-reconciliation-for-components-which-control-by-monitoring-operator)
-  * [Export Prometheus Data](#export-prometheus-data)
-    * [Export using Snapshots](#export-using-snapshots)
-    * [Copy PV Content](#copy-pv-content)
-  * [Import Prometheus Data](#import-prometheus-data)
-    * [Import from Snapshots](#import-from-snapshots)
-    * [Use early copied PV Content](#use-early-copied-pv-content)
-
 # Ways to Make Changes
 
 The following sections describe the various ways to make changes in the Monitoring deployment.
@@ -56,10 +30,6 @@ configuration section lists the parameters that can be configured during the ins
 The default installation includes Prometheus Operator, AlertManager, Exporters, and configuration for scraping the
 Kubernetes/OpenShift infrastructure.
 
-
-[Back to TOC](#table-of-content)
-
-
 #### Upgrading the Chart
 
 To upgrade the chart with the `monitoring-operator` release name, use the following command.
@@ -70,10 +40,6 @@ helm upgrade monitoring-operator charts/monitoring-operator
 
 The command upgrades monitoring-operator on the Kubernetes/OpenShift cluster in the default configuration. The
 configuration section lists the parameters that can be configured during the upgrade.
-
-
-[Back to TOC](#table-of-content)
-
 
 #### Uninstalling the Chart
 
@@ -117,10 +83,6 @@ CRDs created by this chart are not removed by default and should be manually cle
     oc delete crd grafanadashboard.integreatly.org
     oc delete crd grafanadatasource.integreatly.org
     ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Change Parameters in Custom Resource in Runtime
 
@@ -185,10 +147,6 @@ Using this procedure, you can:
 All parameters that you can specify in the `PlatformMonitoring` objects are described in the API documents. For more
 details, refer to the _Platform Monitoring_ chapter in the _Cloud Platform Monitoring Guide_.
 
-
-[Back to TOC](#table-of-content)
-
-
 ## Work with legacy CRDs
 
 If you use **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower, you must use CRDs with _v1beta1_ API version.
@@ -239,10 +197,6 @@ To remove CRDs you can use instructions from [Remove procedure](#remove-procedur
 
 * for manually Helm installation - add `--skip-crds` to `helm install` or `helm upgrade` command
 
-
-[Back to TOC](#table-of-content)
-
-
 # Provided Procedures
 
 The information about the procedures for monitoring deployment is described in the following sections.
@@ -287,10 +241,6 @@ There are some ways to uninstall or delete the `monitoring-operator` deployment:
 * Remove the `PlatformMonitoring` CR and operator.
 * Remove all created CRDs.
 
-
-[Back to TOC](#table-of-content)
-
-
 ### Remove PlatformMonitoring CR
 
 Monitoring-operator watches the state of the `PlatformMonitoring` CR and tracks all events. So when you remove this, the
@@ -321,10 +271,6 @@ objects are not removed:
 * Some cluster entities like ClusterRoles, ClusterRoleBindings, Security Context Constraints (SCC), and Pod Security
   Policy (PSP)
 
-
-[Back to TOC](#table-of-content)
-
-
 ### Remove PlatformMonitoring CR and Operator
 
 The simplest way to remove the CR and operator is by using the following helm delete command.
@@ -340,10 +286,6 @@ helm list -n <namespace>
 ```
 
 The command removes all the Kubernetes/OpenShift components associated with the chart and deletes the release.
-
-
-[Back to TOC](#table-of-content)
-
 
 ### Remove all Created CRDs
 
@@ -393,10 +335,6 @@ CRDs created by this chart are not removed by default and should be manually cle
     oc delete crd prometheusadapters.monitoring.qubership.org
     ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ## Deploy/Skip/Remove based components
 
 Monitoring-operator control (deploy/update/remove) some base components which include into monitoring deployment
@@ -438,11 +376,7 @@ grafana:
   install: false
 ```
 
-For see more information about available deploy parameters please refer to [Installation Guide](installation.md).
-
-
-[Back to TOC](#table-of-content)
-
+For see more information about available deploy parameters please refer to [Installation Guide](installation/README.md).
 
 ## Pause reconciliation for components which control by monitoring-operator
 
@@ -489,11 +423,7 @@ nodeExporter:
 
 and next make changes in DaemonSet.
 
-For see more information about available deploy parameters please refer to [Installation Guide](installation.md).
-
-
-[Back to TOC](#table-of-content)
-
+For see more information about available deploy parameters please refer to [Installation Guide](installation/README.md).
 
 ## Export Prometheus Data
 

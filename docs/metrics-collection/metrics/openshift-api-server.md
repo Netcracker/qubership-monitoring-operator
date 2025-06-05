@@ -1,14 +1,5 @@
 This document describes the metrics list and how to collect them from Openshift API server.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-  * [Metrics List](#metrics-list)
-    * [Openshift API server](#openshift-api-server)
-    * [Openshift API server operator](#openshift-api-server-operator)
-
 # Metrics
 
 Consul already can exposes its metrics in Prometheus format and doesn't require to use of specific exporters.

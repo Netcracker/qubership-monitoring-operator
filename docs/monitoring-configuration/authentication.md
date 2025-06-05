@@ -1,36 +1,6 @@
 This document describes how to configure authentication (and available options) for all UIs available
 in the Monitoring stack.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [List of supported auth methods](#list-of-supported-auth-methods)
-  * [Ingress annotations](#ingress-annotations)
-    * [Before you begin](#before-you-begin)
-    * [Restrictions](#restrictions)
-    * [Ingress BasicAuth](#ingress-basicauth)
-      * [Grafana](#grafana)
-      * [Prometheus Stack](#prometheus-stack)
-        * [Alertmanager](#alertmanager)
-        * [Prometheus](#prometheus)
-      * [VictoriaMetrics Stack](#victoriametrics-stack)
-        * [VMAgent](#vmagent)
-        * [VMAlert](#vmalert)
-        * [VMAuth](#vmauth)
-        * [VMAlertmanager](#vmalertmanager)
-        * [VMSingle](#vmsingle)
-  * [Built-in auth](#built-in-auth)
-    * [Common](#common)
-    * [Grafana](#grafana-1)
-    * [Prometheus Stack](#prometheus-stack-1)
-      * [Alertmanager](#alertmanager-1)
-      * [Prometheus](#prometheus-1)
-    * [VictoriaMetrics Stack](#victoriametrics-stack-1)
-      * [VMAgent](#vmagent-1)
-      * [VMAlert](#vmalert-1)
-      * [VMAlertmanager](#vmalertmanager-1)
-      * [VMSingle](#vmsingle-1)
-
 # List of supported auth methods
 
 Monitoring Stack contains various third-party tools with various UIs. And these UIs support different auth methods.
@@ -38,10 +8,6 @@ And not always one UIs supports the same authentication method as the other UI.
 
 * Use Ingress annotation to add auth by Basic Auth and even via the OAuth2 provider
 * Use built-in auth abilities (like auth in Grafana or auth-proxy for other components)
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Ingress annotations
 
@@ -59,10 +25,6 @@ Ingress-Nginx supporta the following auth options:
 
 In this document, we will describe how to configure only Ingress BasicAuth.
 
-
-[Back to TOC](#table-of-content)
-
-
 ### Before you begin
 
 * All Secrets that will be usied for Ingress configuration you must create manually and before deploy Monitoring
@@ -70,20 +32,12 @@ In this document, we will describe how to configure only Ingress BasicAuth.
   and running before deploy Monitoring
 * In case of using external providers (for BasicAuth or for OAuth), users must be created in these providers
 
-
-[Back to TOC](#table-of-content)
-
-
 ### Restrictions
 
 * Ingress allows adding only authentication feature
 * Authorization doesn't support using Ingress auth
 * Services and other links inside the cloud to Monitoring tools will work without auth
 * Other Ingress controllers may not support all these features
-
-
-[Back to TOC](#table-of-content)
-
 
 ### Ingress BasicAuth
 
@@ -118,10 +72,6 @@ kubectl create secret generic monitoring-basic-auth --from-file=auth --namespace
 
 Next, you need to add the following parameters in the Monitoring deploy parameters.
 
-
-[Back to TOC](#table-of-content)
-
-
 #### Grafana
 
 ```yaml
@@ -150,10 +100,6 @@ grafana:
       nginx.ingress.kubernetes.io/auth-secret: monitoring-basic-auth
       nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 #### Prometheus Stack
 
@@ -188,10 +134,6 @@ alertManager:
       nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ##### Prometheus
 
 ```yaml
@@ -220,10 +162,6 @@ prometheus:
       nginx.ingress.kubernetes.io/auth-secret: monitoring-basic-auth
       nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 #### VictoriaMetrics Stack
 
@@ -260,10 +198,6 @@ victoriametrics:
       nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ##### VMAlert
 
 ```yaml
@@ -294,10 +228,6 @@ victoriametrics:
         nginx.ingress.kubernetes.io/auth-secret: monitoring-basic-auth
         nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ##### VMAuth
 
@@ -330,10 +260,6 @@ victoriametrics:
         nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ##### VMAlertmanager
 
 ```yaml
@@ -365,10 +291,6 @@ victoriametrics:
         nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
 
-
-[Back to TOC](#table-of-content)
-
-
 ##### VMSingle
 
 ```yaml
@@ -399,10 +321,6 @@ victoriametrics:
         nginx.ingress.kubernetes.io/auth-secret: monitoring-basic-auth
         nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
 ```
-
-
-[Back to TOC](#table-of-content)
-
 
 ## Built-in auth
 
@@ -441,10 +359,6 @@ If we are talking about support authentication and authorization we have the fol
 
 Details about each component see below.
 
-
-[Back to TOC](#table-of-content)
-
-
 ### Common
 
 In Monitoring Stack include some UIs which has different auth methods. And to simplify configuration we implemented
@@ -480,11 +394,7 @@ Settings from `auth` section will provide to:
 * `Prometheus` - in the Prometheus pod will add a sidecar with `oauth2-proxy` to block access to the UI
 * `Alertmanager` - in the Alertmanager pod will add sidecar with `oauth2-proxy` to block access to the UI
 
-Details and parameters description see at [Installation Guide: Auth](../installation.md#auth).
-
-
-[Back to TOC](#table-of-content)
-
+Details and parameters description see at [Installation Guide: Auth](../installation/README.md#auth).
 
 ### Grafana
 
@@ -588,10 +498,6 @@ kubectl edit secret grafana-ldap-config -n <namespace with monitoring>
 More information about configuring LDAP in Grafana you can read in the documentation
 [Grafana: LDAP](https://grafana.com/docs/grafana/latest/auth/ldap/).
 
-
-[Back to TOC](#table-of-content)
-
-
 ### Prometheus Stack
 
 This section describes how to configure auth using built-in capabilities for components from the Prometheus stack.
@@ -617,10 +523,6 @@ How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
 
-
-[Back to TOC](#table-of-content)
-
-
 #### Prometheus
 
 Prometheus was initially designed as a cloud-native application and all authentication and authorization features it were
@@ -642,10 +544,6 @@ How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
 
-
-[Back to TOC](#table-of-content)
-
-
 ### VictoriaMetrics Stack
 
 This section describes how to configure auth using built-in capabilities for components from the VictoriaMetrics stack.
@@ -661,10 +559,6 @@ How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
 
-
-[Back to TOC](#table-of-content)
-
-
 #### VMAlert
 
 To support OAuth2 using `oauth2-proxy`. It uses configuration from the common section `auth`.
@@ -672,10 +566,6 @@ To support OAuth2 using `oauth2-proxy`. It uses configuration from the common se
 How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
-
-
-[Back to TOC](#table-of-content)
-
 
 #### VMAlertmanager
 
@@ -685,10 +575,6 @@ How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
 
-
-[Back to TOC](#table-of-content)
-
-
 #### VMSingle
 
 To support OAuth2 using `oauth2-proxy`. It uses configuration from the common section `auth`.
@@ -696,7 +582,4 @@ To support OAuth2 using `oauth2-proxy`. It uses configuration from the common se
 How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
-
-
-[Back to TOC](#table-of-content)
 

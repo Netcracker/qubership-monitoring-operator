@@ -1,19 +1,5 @@
 This document describes how to configure Monitoring work in Disaster and Recovery mode (DR).
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [Deployment assumptions](#deployment-assumptions)
-  * [Deployment schema](#deployment-schema)
-    * [Installation with Promxy](#installation-with-promxy)
-      * [Promxy configuration examples](#promxy-configuration-examples)
-      * [Blackbox-exporter configuration examples](#blackbox-exporter-configuration-examples)
-    * [Migration to non-DR schema](#migration-to-non-dr-schema)
-* [Alerting](#alerting)
-  * [Alerting assumptions](#alerting-assumptions)
-  * [How to prevent alert generation on DR site (Use inhibition)](#how-to-prevent-alert-generation-on-dr-site-use-inhibition)
-
 # Metrics
 
 ## Deployment assumptions

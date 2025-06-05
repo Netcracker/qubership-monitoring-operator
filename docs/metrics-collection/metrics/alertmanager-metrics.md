@@ -1,12 +1,5 @@
 This document describes the metrics list and how to collect them from Alertmanager.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Metrics](#metrics)
-  * [How to Collect](#how-to-collect)
-  * [Metrics list](#metrics-list)
-
 # Metrics
 
 Alertmanager already exposes its metrics in Prometheus format and doesn't require to use of specific exporters.

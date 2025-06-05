@@ -1,44 +1,6 @@
 This document provides information about troubleshooting Monitoring deployment and its configurations.
 It also provides the configurations of monitoring services.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Deploy](#deploy)
-  * [Manifests Contain a New Resource that Already Exists](#manifests-contain-a-new-resource-that-already-exists)
-  * [Set Integer Parameter Value to Zero](#set-integer-parameter-value-to-zero)
-* [Runtime Issues](#runtime-issues)
-  * [Common Issues](#common-issues)
-    * [Prometheus or Grafana Operators are Restarting](#prometheus-or-grafana-operators-are-restarting)
-    * [Metrics absent or errors during metrics collection](#metrics-absent-or-errors-during-metrics-collection)
-    * [Unable to update Etcd certificates](#unable-to-update-etcd-certificates)
-  * [Prometheus Stack](#prometheus-stack)
-    * [Prometheus Target is Down](#prometheus-target-is-down)
-  * [VictoriaMetrics Stack](#victoriametrics-stack)
-    * [VictoriaMetrics Operator Can't Remove ClusterRole/ClusterRoleBinding](#victoriametrics-operator-cant-remove-clusterroleclusterrolebinding)
-    * [EFS Persistence Volume overflow](#efs-persistence-volume-overflow)
-    * [Cannot read stream body](#cannot-read-stream-body)
-    * [VictoriaMetrics pods continuously restart](#victoriametrics-pods-continuously-restart)
-    * [VictoriaMetrics config secret does not contain inhibit rules](#victoriametrics-config-secret-does-not-contain-inhibit-rules)
-  * [Grafana](#grafana)
-    * [Grafana Data Source not found](#grafana-data-source-not-found)
-    * [Grafana-operator stop discover new dashboards or locked](#grafana-operator-stop-discover-new-dashboards-or-locked)
-  * [Exporters](#exporters)
-    * [NodeExporter](#nodeexporter)
-      * [Not all node-exporter Endpoints have UP Status in OpenShift](#not-all-node-exporter-endpoints-have-up-status-in-openshift)
-    * [Network-latency-exporter](#network-latency-exporter)
-      * [Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy](#network-latency-dashboards-do-not-contain-data-but-exporter-pods-are-healthy)
-    * [Kubelet](#kubelet)
-      * [VMSingle/Prometheus cannot handle container\_start\_time\_seconds metric with too small a timestamp](#vmsingleprometheus-cannot-handle-container_start_time_seconds-metric-with-too-small-a-timestamp)
-  * [Integrations](#integrations)
-    * [Graphite-remote-adapter](#graphite-remote-adapter)
-      * [Graphite-remote-adapter Regularly Restarts with OOM](#graphite-remote-adapter-regularly-restarts-with-oom)
-      * [Graphite-remote-adapter send metrics with delay](#graphite-remote-adapter-send-metrics-with-delay)
-  * [Prometheus-adapter](#prometheus-adapter)
-    * [ServiceNotFound for `v1.custom.metrics.k8s.io` API Service](#servicenotfound-for-v1custommetricsk8sio-api-service)
-    * [FailedDiscoveryCheck for `v1.custom.metrics.k8s.io` API Service](#faileddiscoverycheck-for-v1custommetricsk8sio-api-service)
-    * [prometheus-adapter Pod is Down or Restarting](#prometheus-adapter-pod-is-down-or-restarting)
-
 # Deploy
 
 ## Manifests Contain a New Resource that Already Exists
@@ -121,7 +83,7 @@ this solves the problem.
 There are two ways to do it:
 
 1. Redeploy and specify increased memory limits in deploy parameters. For more information, refer to
-   the [Platform Monitoring Installation Procedure](installation.md) in the _Cloud Platform Installation_ guide.
+   the [Platform Monitoring Installation Procedure](installation/README.md) in the _Cloud Platform Installation_ guide.
 2. Change memory limits directly in the Platform Monitoring CR. For more information, refer to
    the [Platform Monitoring Maintenance](maintenance.md) in the _Cloud Platform Maintenance Guide_.
 
@@ -150,8 +112,7 @@ prometheus:
 
 The parameters' descriptions can be found in the following section of the _Cloud Platform Installation_ guide:
 
-* [Platform Monitoring Installation Procedure](installation.md#grafana-operator)
-* [Installation Guide: prometheus-operator](installation.md#prometheus-operator)
+* [Platform Monitoring Installation Procedure](installation/README.md)
 
 ### Metrics absent or errors during metrics collection
 

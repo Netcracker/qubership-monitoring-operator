@@ -1,36 +1,5 @@
 This document describes the abilities and work of integration between Horizontal Pod Autoscaling and Prometheus.
 
-# Table Of Contents
-
-* [Table Of Contents](#table-of-contents)
-* [Overview](#overview)
-  * [What is HorizontalPodAutoscaler?](#what-is-horizontalpodautoscaler)
-  * [How does a HorizontalPodAutoscaler Work?](#how-does-a-horizontalpodautoscaler-work)
-  * [Support for Resource Metrics](#support-for-resource-metrics)
-    * [Container Resource Metrics](#container-resource-metrics)
-  * [Scaling on Custom Metrics](#scaling-on-custom-metrics)
-    * [Adapter to Support Custom Metrics in Monitoring](#adapter-to-support-custom-metrics-in-monitoring)
-* [Manage Prometheus-adapter for Scale by Custom Metrics](#manage-prometheus-adapter-for-scale-by-custom-metrics)
-  * [Before You Begin](#before-you-begin)
-    * [Prometheus Adapter and How it can Affect Kubernetes](#prometheus-adapter-and-how-it-can-affect-kubernetes)
-      * [Problems with Kubernetes API Server when Adapter is Unavailable](#problems-with-kubernetes-api-server-when-adapter-is-unavailable)
-      * [In-built HPA Adapter Does Not Work](#in-built-hpa-adapter-does-not-work)
-  * [Installing Prometheus Adapter for Enabling HPA by Custom Metrics](#installing-prometheus-adapter-for-enabling-hpa-by-custom-metrics)
-  * [Uninstalling Prometheus Adapter](#uninstalling-prometheus-adapter)
-    * [Removing the Object with Kind Prometheus Adapter](#removing-the-object-with-kind-prometheus-adapter)
-    * [Removing all Components using Helm](#removing-all-components-using-helm)
-* [Using prometheus-adapter](#using-prometheus-adapter)
-  * [Declaring New Custom Metrics for Scale](#declaring-new-custom-metrics-for-scale)
-    * [How to Read and Write prometheus-adapter Configurations?](#how-to-read-and-write-prometheus-adapter-configurations)
-      * [Discovery](#discovery)
-      * [Association](#association)
-      * [Naming](#naming)
-      * [Querying](#querying)
-    * [How to Check whether Metrics are Exposed in Metrics API?](#how-to-check-whether-metrics-are-exposed-in-metrics-api)
-  * [Writing HorizontalPodAutoscaler for Scale by Custom Metrics](#writing-horizontalpodautoscaler-for-scale-by-custom-metrics)
-  * [Resource Metrics](#resource-metrics)
-* [Useful Links](#useful-links)
-
 # Overview
 
 This section describes what is a `HorizontalPodAutoscaler` and provides generic details about its working.
@@ -53,10 +22,6 @@ The `HorizontalPodAutoscaler` is implemented as a Kubernetes API resource and a 
 the behavior of the controller. The horizontal pod autoscaling controller, running within the Kubernetes control plane,
 periodically adjusts the desired scale of its target (for example, a Deployment) to match observed metrics such as
 the average CPU utilization, average memory utilization, or any other custom metric specified.
-
-
-[Back to TOC](#table-of-contents)
-
 
 ## How does a HorizontalPodAutoscaler Work?
 
@@ -108,10 +73,6 @@ that allows you to dynamically set the number of replicas and examine each of th
 For general information about subresources in the Kubernetes API, see
 [https://kubernetes.io/docs/reference/using-api/api-concepts/](https://kubernetes.io/docs/reference/using-api/api-concepts/).
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Support for Resource Metrics
 
 Any `HPA` target can be scaled based on the resource usage of the pods in the scaling target.
@@ -137,10 +98,6 @@ For more information about how the utilization is calculated and averaged, see
 may not accurately represent the individual container resource usage. This could lead to situations
 where a single container might be running with high usage and the `HPA` does not scale out
 because the overall pod usage is still within acceptable limits.
-
-
-[Back to TOC](#table-of-contents)
-
 
 ### Container Resource Metrics
 
@@ -181,10 +138,6 @@ throughout the update process.
 Once you have rolled out the container name change to the workload resource, tidy up by removing the old container name
 from the `HPA` specification.
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Scaling on Custom Metrics
 
 **FEATURE STATE**: Kubernetes v1.23 [stable]
@@ -198,10 +151,6 @@ The HorizontalPodAutoscaler controller then queries for these custom metrics fro
 For information about the requirements, see
 [https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-metrics-apis](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-metrics-apis).
 
-
-[Back to TOC](#table-of-contents)
-
-
 ### Adapter to Support Custom Metrics in Monitoring
 
 A special adapter is provided to support scaling by custom metrics by using `HorizontalPodAutoscaler` in Monitoring.
@@ -210,10 +159,6 @@ This adapter is called `prometheus-adapter` and it was developed by a community.
 The adapter implements the Metric API and allows to use `HorizontalPodAutoscaler` for scale pods replicas by custom
 metrics collected by Prometheus (or any other Monitoring supported `PromQL`). For more information, see
 [https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/).
-
-
-[Back to TOC](#table-of-contents)
-
 
 # Manage Prometheus-adapter for Scale by Custom Metrics
 
@@ -229,10 +174,6 @@ Before deploying `prometheus-adapter`, note the following points:
   If the `prometheus-adapter` is unavailable and cannot handle API requests, it affects some API calls to Kubernetes.
   For more information, refer to the Prometheus Adapter section in the
   [Monitoring Operator Troubleshooting](../troubleshooting.md#prometheus-adapter) chapter.
-
-
-[Back to TOC](#table-of-contents)
-
 
 ### Prometheus Adapter and How it can Affect Kubernetes
 
@@ -269,10 +210,6 @@ Other Kubernetes features are not affected.
 
 To fix this issue, refer to the Prometheus Adapter section in the
 [Monitoring Operator Troubleshooting](../troubleshooting.md#prometheus-adapter) chapter.
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### In-built HPA Adapter Does Not Work
 
@@ -321,10 +258,6 @@ spec:
 So if you have other `CustomScaleMetricRule` CRs in the cloud, do not remove this default CR or add any other CR
 with the configuration before removing it.
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Installing Prometheus Adapter for Enabling HPA by Custom Metrics
 
 To install the Prometheus adapter, use the following parameters (minimal parameters set):
@@ -362,10 +295,6 @@ First, the Helm chart executes the deployment of `prometheus-adapter-operator` a
 (like Roles or Custom Resources).
 Then the operator deploys `prometheus-adapter`, all the necessary objects for its working, and configures it.
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Uninstalling Prometheus Adapter
 
 To uninstall `prometheus-adapter`, the following options are available. However, some manual steps are also required.
@@ -374,10 +303,6 @@ The two options to remove `prometheus-adapter` are:
 
 * Keep `prometheus-adapter-operator` and remove the object with kind PrometheusAdapter.
 * Delete all components using Helm and `helm uninstall` command.
-
-
-[Back to TOC](#table-of-contents)
-
 
 ### Removing the Object with Kind Prometheus Adapter
 
@@ -451,10 +376,6 @@ kubectl get apiservices
 
 All services in the `AVAILABLE` column must display `True`.
 
-
-[Back to TOC](#table-of-contents)
-
-
 ### Removing all Components using Helm
 
 This method allows you to remove all the parts of `prometheus-adapter`, except the registered `APIService`.
@@ -477,10 +398,6 @@ Execute the following commands to find and remove the `prometheus-adapter` Helm 
 helm list -n <monitoring_namespace>
 helm uninstall -n <monitoring_namespace> <chart_name>
 ```
-
-
-[Back to TOC](#table-of-contents)
-
 
 # Using prometheus-adapter
 
@@ -534,10 +451,6 @@ spec:
     metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 ### How to Read and Write prometheus-adapter Configurations?
 
 The adapter determines which metrics are to be exposed, and how to expose them, through a set of "discovery" rules.
@@ -578,10 +491,6 @@ rules:
   metricsQuery: "sum(rate(<<.Series>>{<<.LabelMatchers>>,container!="POD"}[2m])) by (<<.GroupBy>>)"
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 #### Discovery
 
 Discovery governs the process of finding the metrics that you want to expose in the custom metrics API.
@@ -609,10 +518,6 @@ seriesQuery: '{__name__=~"^container_.*_total",container!="POD",namespace!="",po
 seriesFilters:
   - isNot: "^container_.*_seconds_total"
 ```
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### Association
 
@@ -650,10 +555,6 @@ individual overrides.
 The resources mentioned can be any resource available in your Kubernetes
 cluster, as long as you have got a corresponding label.
 
-
-[Back to TOC](#table-of-contents)
-
-
 #### Naming
 
 Naming governs the process of converting a Prometheus metric name into a metric in the custom metrics API,
@@ -679,10 +580,6 @@ name:
   matches: "^(.*)_total$"
   as: "${1}_per_second"
 ```
-
-
-[Back to TOC](#table-of-contents)
-
 
 #### Querying
 
@@ -728,10 +625,6 @@ For example:
 metricsQuery: "sum(rate(<<.Series>>{<<.LabelMatchers>>,container!="POD"}[2m])) by (<<.GroupBy>>)"
 ```
 
-
-[Back to TOC](#table-of-contents)
-
-
 ### How to Check whether Metrics are Exposed in Metrics API?
 
 You can see the metrics showing up as associated with the resources you expect at
@@ -767,10 +660,6 @@ Or you can even get values for the specific metric in the namespace:
 ```bash
 kubectl get --raw /apis/external.metrics.k8s.io/v1beta1/namespaces/kafka/queue_consumer_lag
 ```
-
-
-[Back to TOC](#table-of-contents)
-
 
 ## Writing HorizontalPodAutoscaler for Scale by Custom Metrics
 
@@ -809,10 +698,6 @@ that the `HorizontalPodAutoscaler` controller attempts to fetch metrics from,
 ```bash
 /apis/custom.metrics.k8s.io/v1beta1/namespaces/monitoring/pods/*/prometheus_example_app_load?selector=app%3Dtest-service
 ```
-
-
-[Back to TOC](#table-of-contents)
-
 
 ## Resource Metrics
 

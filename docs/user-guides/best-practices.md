@@ -1,15 +1,6 @@
 This document provides information about best practices for working
 with components and resources that can be used in the monitoring-operator.
 
-# Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [Grafana dashboards](#grafana-dashboards)
-  * [Dashboard UID](#dashboard-uid)
-  * [Creating custom dashboard](#creating-custom-dashboard)
-    * [Tags](#tags)
-* [Recommendations for creating recording-rules](#recommendations-for-creating-recording-rules)
-  
 # Grafana dashboards
 
 Best practices for Grafana dashboards.
@@ -91,10 +82,6 @@ the operator:
 
 If the name of the namespace is too long, the whole UID of the OOB dashboard will be cut to 40 symbols.
 
-
-[Back to TOC](#table-of-contents)
-
-
 ## Creating custom dashboard
 
 Best practices for creating custom Grafana dashboards.
@@ -117,10 +104,6 @@ Also, dashboard should contain tags that describe specific information that can 
 For example, dashboard that shows information about Kubernetes namespace resources can contain
 tags `k8s` and `k8s-namespaces`, dashboard that shows information about PostgreSQL - `prometheus` and `postgres`.
 
-
-[Back to TOC](#table-of-contents)
-
-
 # Recommendations for creating recording-rules
 <!-- markdownlint-disable line-length -->
 * **Do not create** recording rules without sense, recording rules must have a reason, for example:
@@ -134,5 +117,3 @@ tags `k8s` and `k8s-namespaces`, dashboard that shows information about PostgreS
   * Right case of usage - calculate new metric that will include metrics values and labels from (kube_pod_labels)
   * Wrong case of usage - calculate any metric just because to calculate metrics need to use a big query
 <!-- markdownlint-enable line-length -->
-
-[Back to TOC](#table-of-contents)

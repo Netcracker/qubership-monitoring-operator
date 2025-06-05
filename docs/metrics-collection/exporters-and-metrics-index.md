@@ -1,21 +1,6 @@
 This document describes all exporters from which the Monitoring stack can collect metrics or juts a list of metrics
 available to collect from some tools.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Types](#types)
-  * [Applications](#applications)
-  * [Big Data](#big-data)
-  * [Databases](#databases)
-  * [Distributes Caches](#distributes-caches)
-  * [Kubernetes](#kubernetes)
-  * [Observability](#observability)
-    * [Components](#components)
-    * [Exporters](#exporters)
-    * [Public Cloud Exporters](#public-cloud-exporters)
-  * [Queues](#queues)
-
 # Types
 
 ## Applications

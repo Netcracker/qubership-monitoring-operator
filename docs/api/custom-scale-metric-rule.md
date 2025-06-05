@@ -5,18 +5,6 @@ This section describes the types introduced by the Prometheus Adapter Operator.
 > Note this document is generated from code comments. When contributing a change to this document please do so by changing the code comments.
 
 
-## Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [CustomMetricRuleConfig](#custommetricruleconfig)
-* [CustomScaleMetricRule](#customscalemetricrule)
-* [CustomScaleMetricRuleList](#customscalemetricrulelist)
-* [CustomScaleMetricRuleSpec](#customscalemetricrulespec)
-* [GroupResource](#groupresource)
-* [NameMapping](#namemapping)
-* [RegexFilter](#regexfilter)
-* [ResourceMapping](#resourcemapping)
-
 ## CustomMetricRuleConfig
 
 CustomMetricRuleConfig defines the metric exposing rule from Prometheus. This structure is similar to the DiscoveryRule
@@ -32,9 +20,6 @@ not compliant with kube-builder's CRD generator.
 | metricsQuery | MetricsQuery specifies modifications to the metrics query, such as converting cumulative metrics to rate metrics. It is a template where `.LabelMatchers` is a the comma-separated base label matchers and `.Series` is the series name, and `.GroupBy` is the comma-separated expected group-by label names. The delimeters are `<<` and `>>`. | string | false |
 
 
-[Back to TOC](#table-of-contents)
-
-
 ## CustomScaleMetricRule
 
 CustomScaleMetricRule is the Schema for the customscalemetricrules API.
@@ -46,7 +31,6 @@ CustomScaleMetricRule is the Schema for the customscalemetricrules API.
 | status |  | CustomScaleMetricRuleStatus | false |
 
 
-[Back to TOC](#table-of-contents)
 
 
 ## CustomScaleMetricRuleList
@@ -59,9 +43,6 @@ CustomScaleMetricRuleList contains a list of CustomScaleMetricRule.
 | items |  | \[\][CustomScaleMetricRule](#customscalemetricrule) | true |
 
 
-[Back to TOC](#table-of-contents)
-
-
 ## CustomScaleMetricRuleSpec
 
 CustomScaleMetricRuleSpec defines the desired state of CustomScaleMetricRule.
@@ -69,9 +50,6 @@ CustomScaleMetricRuleSpec defines the desired state of CustomScaleMetricRule.
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
 | rules |  | \[\][CustomMetricRuleConfig](#custommetricruleconfig) | false |
-
-
-[Back to TOC](#table-of-contents)
 
 
 ## GroupResource
@@ -84,9 +62,6 @@ GroupResource represents a Kubernetes group-resource.
 | resource |  | string | true |
 
 
-[Back to TOC](#table-of-contents)
-
-
 ## NameMapping
 
 NameMapping specifies how to convert Prometheus metrics to or from the custom metrics API resources.
@@ -95,9 +70,6 @@ NameMapping specifies how to convert Prometheus metrics to or from the custom me
 | ----- | ----------- | ------ | -------- |
 | matches | Matches is a regular expression that is used to match Prometheus series names.  It may be left blank, in which case it is equivalent to `.*`. | string | true |
 | as | As is the name used in the API.  Captures from Matches are available for use here.  If not specified, it defaults to $0 if no capture groups are present in Matches, or $1 if only one is present, and will error if multiple are. | string | false |
-
-
-[Back to TOC](#table-of-contents)
 
 
 ## RegexFilter
@@ -110,9 +82,6 @@ RegexFilter is a filter that matches positively or negatively against a regex. O
 | isNot |  | string | false |
 
 
-[Back to TOC](#table-of-contents)
-
-
 ## ResourceMapping
 
 ResourceMapping specifies how to map Kubernetes resources to Prometheus labels.
@@ -121,6 +90,3 @@ ResourceMapping specifies how to map Kubernetes resources to Prometheus labels.
 | ----- | ----------- | ------ | -------- |
 | template | Template specifies a golang string template for converting a Kubernetes group-resource to a Prometheus label.  The template object contains the `.Group` and `.Resource` fields.  The `.Group` field will have dots replaced with underscores, and the `.Resource` field will be singularized.  The delimiters are `<<` and `>>`. | string | false |
 | overrides | Overrides specifies exceptions to the above template, mapping label names to group-resources | map\[string\][GroupResource](#groupresource) | false |
-
-
-[Back to TOC](#table-of-contents)

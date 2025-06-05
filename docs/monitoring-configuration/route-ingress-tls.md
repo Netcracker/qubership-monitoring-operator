@@ -1,13 +1,5 @@
 This guide contains information of how to configure TLS for ingress and route in Logging components.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Ingress NGINX Controller With TLS](#ingress-nginx-controller-with-tls)
-* [Route In Openshift](#route-in-openshift)
-  * [Route Without TLS](#route-without-tls)
-  * [Route With TLS](#route-with-tls)
-
 # Ingress NGINX Controller With TLS
 
 It can work with generated secret using `cert-manager` or with custom certificates.

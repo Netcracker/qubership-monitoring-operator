@@ -1,18 +1,5 @@
 This document describes the monitoring architecture.
 
-* [Architecture](#architecture)
-  * [Monitoring-operator](#monitoring-operator)
-  * [Prometheus-operator](#prometheus-operator)
-    * [Prometheus](#prometheus)
-    * [AlertManager](#alertmanager)
-  * [Grafana-operator](#grafana-operator)
-    * [Grafana](#grafana)
-  * [Kube-state-metrics](#kube-state-metrics)
-  * [Node-exporter](#node-exporter)
-* [Custom Resources](#custom-resources)
-
-**[Back](../README.md)**
-
 The **Monitoring Operator** is an operator (Kubernetes native application) that watches and manages the following
 components:
 
@@ -32,15 +19,14 @@ Kubernetes metrics, and from deployed exporters, `kube-state-metrics` and `node-
 
 It is an operator which watches and manages (create, update, remove) such services into a current namespace as:
 
-* [Architecture](#architecture)
-  * [Monitoring-operator](#monitoring-operator)
-  * [Prometheus-operator](#prometheus-operator)
-    * [Prometheus](#prometheus)
-    * [AlertManager](#alertmanager)
-  * [Grafana-operator](#grafana-operator)
-    * [Grafana](#grafana)
-  * [Kube-state-metrics](#kube-state-metrics)
-  * [Node-exporter](#node-exporter)
+* [Monitoring-operator](#monitoring-operator)
+* [Prometheus-operator](#prometheus-operator)
+  * [Prometheus](#prometheus)
+  * [AlertManager](#alertmanager)
+* [Grafana-operator](#grafana-operator)
+  * [Grafana](#grafana)
+* [Kube-state-metrics](#kube-state-metrics)
+* [Node-exporter](#node-exporter)
 * [Custom Resources](#custom-resources)
 
 Monitoring operator executes a monitoring deploy with specified parameters. It is also possible to determine which cloud
