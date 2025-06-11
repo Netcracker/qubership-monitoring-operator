@@ -100,11 +100,7 @@ func vmAlert(r *VmAlertReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlert.IsInstall() {
 
-		//vmalert.Spec.Image.Repository, vmalert.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAlert.Image)
-		vmalert.Spec.Image.Repository, vmalert.Spec.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmAlert.Image)
-		if err != nil {
-			return nil, err
-		}
+		vmalert.Spec.Image.Repository, vmalert.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAlert.Image)
 
 		if r != nil {
 			// Set security context

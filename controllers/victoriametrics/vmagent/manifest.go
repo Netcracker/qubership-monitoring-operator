@@ -127,10 +127,7 @@ func vmAgent(r *VmAgentReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() {
 
 		// Set Vmagent image
-		vmagent.Spec.Image.Repository, vmagent.Spec.Image.Tag, err = utils.SplitPathImage(cr.Spec.Victoriametrics.VmAgent.Image)
-		if err != nil {
-			return nil, err
-		}
+		vmagent.Spec.Image.Repository, vmagent.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAgent.Image)
 
 		if r != nil {
 			// Set security context
