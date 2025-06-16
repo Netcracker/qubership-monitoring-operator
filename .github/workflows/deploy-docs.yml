@@ -4,20 +4,19 @@ on:
   push:
     branches:
       - main
-      - docs/add-github-pages-docs-portal  # temporary for testing
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'requirements_mkdocs.txt'
-      - '.github/workflows/docs.yaml'
+      - '.github/workflows/deploy-docs.yml'
   pull_request:
     branches:
-      - main
+      - **
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'requirements_mkdocs.txt'
-      - '.github/workflows/docs.yaml'
+      - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
 permissions:
@@ -34,7 +33,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # Only deploy from main branch, not from PRs
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/docs/add-github-pages-docs-portal'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

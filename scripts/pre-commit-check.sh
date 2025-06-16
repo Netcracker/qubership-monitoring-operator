@@ -1,6 +1,6 @@
 #!/bin/bash
 # Pre-commit validation script for qubership-monitoring-operator
-# Based on Task 01: Local Pre-commit Validation
+# TODO File is temporary cretaed. Content of file should be moved to Makefile. 
 
 set -e  # Exit on any error
 

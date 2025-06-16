@@ -60,6 +60,7 @@ kubectl port-forward svc/monitoring-grafana -n monitoring 3000:3000
 ## Community & Support
 
 * GitHub Issues – <https://github.com/Netcracker/qubership-monitoring-operator/issues>
+* GitHub Discussions – <https://github.com/Netcracker/qubership-monitoring-operator>
 * Contribute – [CONTRIBUTING.md](https://github.com/Netcracker/qubership-monitoring-operator/blob/main/CONTRIBUTING.md)
 
 ---

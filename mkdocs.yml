@@ -1,10 +1,10 @@
 site_name: Qubership Monitoring Operator
 site_description: Comprehensive monitoring solution for Kubernetes
-site_url: https://denifilatoff.github.io/qubership-monitoring-operator
+site_url: https://netcracker.github.io/qubership-monitoring-operator
 
 # Repository
-repo_name: qubership-monitoring-operator
-repo_url: https://github.com/denifilatoff/qubership-monitoring-operator
+repo_name: Netcracker/qubership-monitoring-operator
+repo_url: https://github.com/Netcracker/qubership-monitoring-operator
 edit_uri: edit/main/docs/
 
 # Configuration
