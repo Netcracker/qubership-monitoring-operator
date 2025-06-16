@@ -34851,6 +34851,11 @@ spec:
                           - name
                           type: object
                         type: array
+                      disableNamespaceMatcher:
+                        description: |-
+                          DisableNamespaceMatcher disables top route namespace label matcher for VMAlertmanagerConfig
+                          It may be useful if alert doesn't have namespace label for some reason
+                        type: boolean
                       extraArgs:
                         additionalProperties:
                           type: string

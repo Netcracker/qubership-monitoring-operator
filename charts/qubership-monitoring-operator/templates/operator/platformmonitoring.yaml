@@ -686,6 +686,7 @@ spec:
       configNamespaceSelector:
         {{- toYaml .Values.victoriametrics.vmAlertManager.configNamespaceSelector | nindent 8 }}
       {{- end }}
+      disableNamespaceMatcher: {{ .Values.victoriametrics.vmAlertManager.disableNamespaceMatcher | default true }}
       {{- if .Values.victoriametrics.vmAlertManager.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.victoriametrics.vmAlertManager.terminationGracePeriodSeconds }}
       {{- end }}

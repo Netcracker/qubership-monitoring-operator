@@ -27,3 +27,6 @@ spec:
       - key: openshift.io/cluster-monitoring
         operator: NotIn
         values: ["true"]
+
+  # Disable top route namespace label matcher for VMAlertmanagerConfig
+  disableNamespaceMatcher: true

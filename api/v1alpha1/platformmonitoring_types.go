@@ -848,6 +848,10 @@ type VmAlertManager struct {
 	// If both nil - behaviour controlled by selectAllByDefault
 	// +optional
 	ConfigNamespaceSelector *metav1.LabelSelector `json:"configNamespaceSelector,omitempty"`
+	// DisableNamespaceMatcher disables top route namespace label matcher for VMAlertmanagerConfig
+	// It may be useful if alert doesn't have namespace label for some reason
+	// +optional
+	DisableNamespaceMatcher *bool `json:"disableNamespaceMatcher,omitempty"`
 	// TerminationGracePeriodSeconds period for container graceful termination
 	// +optional
 	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`

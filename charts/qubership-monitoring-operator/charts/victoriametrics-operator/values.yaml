@@ -970,6 +970,13 @@ vmAlertManager:
   #
   configNamespaceSelector: {}
 
+  # DisableNamespaceMatcher disables top route namespace label matcher for VMAlertmanagerConfig
+  # It may be useful if alert doesn't have namespace label for some reason
+  # Type: boolean
+  # Mandatory: no
+  #
+  disableNamespaceMatcher: true
+
   # Additional vmAlertManager container arguments.
   # Type: map[string]string
   # Mandatory: no

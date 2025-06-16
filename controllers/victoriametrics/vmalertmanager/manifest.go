@@ -264,6 +264,11 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *v1alpha1.PlatformMonitoring
 			vmalertmgr.Spec.ConfigNamespaceSelector = cr.Spec.Victoriametrics.VmAlertManager.ConfigNamespaceSelector
 		}
 
+		// Set disableNamespaceMatcher
+		if cr.Spec.Victoriametrics.VmAlertManager.DisableNamespaceMatcher != nil {
+			vmalertmgr.Spec.DisableNamespaceMatcher = *cr.Spec.Victoriametrics.VmAlertManager.DisableNamespaceMatcher
+		}
+
 		if cr.Spec.Victoriametrics.VmAlertManager.TerminationGracePeriodSeconds != nil {
 			vmalertmgr.Spec.TerminationGracePeriodSeconds = cr.Spec.Victoriametrics.VmAlertManager.TerminationGracePeriodSeconds
 		}

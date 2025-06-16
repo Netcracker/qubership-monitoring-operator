@@ -1891,6 +1891,11 @@ func (in *VmAlertManager) DeepCopyInto(out *VmAlertManager) {
 		*out = new(metav1.LabelSelector)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.DisableNamespaceMatcher != nil {
+		in, out := &in.DisableNamespaceMatcher, &out.DisableNamespaceMatcher
+		*out = new(bool)
+		**out = **in
+	}
 	if in.TerminationGracePeriodSeconds != nil {
 		in, out := &in.TerminationGracePeriodSeconds, &out.TerminationGracePeriodSeconds
 		*out = new(int64)
