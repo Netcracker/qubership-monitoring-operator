@@ -11,7 +11,7 @@ on:
       - '.github/workflows/deploy-docs.yml'
   pull_request:
     branches:
-      - **
+      - '**'
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
