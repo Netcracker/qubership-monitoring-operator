@@ -171,13 +171,13 @@ kubectl get pods -n kube-system --no-headers --field-selector status.phase=Runni
 
 ```bash
 # etcd-client-ca.crt
-oc get configmap etcd-metric-serving-ca --namespace=openshift-config -o json | jq -r '.data."ca-bundle.crt"' | base64
+oc get configmap etcd-metric-serving-ca --namespace=openshift-etcd-operator -o json | jq -r '.data."ca-bundle.crt"' | base64
 
 # etcd-client.crt
-oc get secret etcd-metric-client --namespace=openshift-config -o json | jq -r '.data."tls.crt"'
+oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o json | jq -r '.data."tls.crt"'
 
 # etcd-client.key
-oc get secret etcd-metric-client --namespace=openshift-config -o json | jq -r '.data."tls.key"'
+oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o json | jq -r '.data."tls.key"'
 ```
 
 In additional for OpenShift 4.5 - 4.7 need to change settings into ServiceMonitor for etcd. It can be found in namespace
