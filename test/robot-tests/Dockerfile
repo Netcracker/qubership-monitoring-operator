@@ -1,6 +1,6 @@
 # Based on python:3.13.2-alpine3.21
 ARG BUILDPLATFORM
-FROM --platform=$BUILDPLATFORM ghcr.io/netcracker/qubership-docker-integration-tests:0.2.1
+FROM --platform=$BUILDPLATFORM ghcr.io/netcracker/qubership-docker-integration-tests:0.2.2
 
 ENV ROBOT_OUTPUT=/opt/robot/output \
     ROBOT_UID=1000 \
