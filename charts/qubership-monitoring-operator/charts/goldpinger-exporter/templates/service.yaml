@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "goldpinger.fullname" . }}
+  name: {{ .Values.name }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
     {{- with .Values.service.labels }}

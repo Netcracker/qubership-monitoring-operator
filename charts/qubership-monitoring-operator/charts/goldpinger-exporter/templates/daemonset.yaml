@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "goldpinger.fullname" . }}
+  name: {{ .Values.name }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
 spec:
@@ -82,7 +82,7 @@ spec:
       volumes:
         - name: zap
           configMap:
-            name: {{ include "goldpinger.fullname" . }}-zap
+            name: {{ .Values.name }}-zap
       {{- range $k := .Values.extraEnv }}
       {{- if and (eq $k.name "USE_HOST_IP") (eq $k.value "true") }}
       hostNetwork: true

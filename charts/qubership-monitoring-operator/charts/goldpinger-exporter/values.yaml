@@ -5,6 +5,9 @@
 # Install the goldpinger-exporter
 install: false
 
+# exporter name
+name: goldpinger-exporter
+
 image:
   repository: bloomberg/goldpinger
   # Overrides the image tag whose default is the chart appVersion.
@@ -24,7 +27,7 @@ rbac:
 
 serviceAccount:
   create: true
-  name: goldpinger-exporter-service-account
+  # name: goldpinger-exporter-service-account
 
 goldpinger:
   port: 8080

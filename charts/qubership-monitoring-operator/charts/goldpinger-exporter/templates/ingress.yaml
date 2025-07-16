@@ -1,5 +1,5 @@
 {{- if and .Values.install .Values.ingress.enabled -}}
-{{- $fullName := include "goldpinger.fullname" . -}}
+{{- $fullName := .Values.name -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
