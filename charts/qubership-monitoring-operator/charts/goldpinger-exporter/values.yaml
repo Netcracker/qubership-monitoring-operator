@@ -145,7 +145,7 @@ podSecurityContext:
     type: RuntimeDefault
 
 serviceMonitor:
-  enabled: false
+  enabled: true
   selector:
     prometheus: "kube-prometheus"
   # namespace: monitoring
