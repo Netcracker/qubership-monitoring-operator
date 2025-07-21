@@ -33,7 +33,7 @@ Goldpinger exposes Prometheus metrics on port `8081` by default.
 ### ServiceMonitor Example
 
 To collect metrics using Prometheus Operator, configure a
-[ServiceMonitor](../../../charts/qubership-monitoring-operator/charts/goldpinger-exporter/templates/servicemonitor.yaml)
+[ServiceMonitor](https://github.com/Netcracker/qubership-monitoring-operator/tree/main/charts/qubership-monitoring-operator/charts/goldpinger-exporter/templates/servicemonitor.yaml)
 as example:
 
 ```yaml
@@ -86,7 +86,7 @@ Goldpinger exports the following key metrics:
 
 ## Example PrometheusRule
 
-You can set up [alerts](../../../charts/qubership-monitoring-operator/charts/goldpinger-exporter/templates/prometheusrule.yaml)
+You can set up [alerts](https://github.com/Netcracker/qubership-monitoring-operator/tree/main/charts/qubership-monitoring-operator/charts/goldpinger-exporter/templates/prometheusrule.yaml)
 for unhealthy nodes, as example:
 
 ```yaml
@@ -120,5 +120,5 @@ spec:
 ---
 
 **If you need to enable or configure Goldpinger, refer to the
-[values.yaml](../../../charts/qubership-monitoring-operator/charts/goldpinger-exporter/values.yaml) in the Helm chart
+[values.yaml](https://github.com/Netcracker/qubership-monitoring-operator/tree/main/charts/qubership-monitoring-operator/charts/goldpinger-exporter/values.yaml) in the Helm chart
 for all available options.** 
