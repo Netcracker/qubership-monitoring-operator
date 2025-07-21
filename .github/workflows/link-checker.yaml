@@ -21,6 +21,7 @@ jobs:
             './**/*.md'
             --verbose
             --no-progress
+            --max-concurrency 32
             --user-agent 'Mozilla/5.0 (X11; Linux x86_64) Chrome/134.0.0.0'
             --timeout 60
             --retry-wait-time 40
