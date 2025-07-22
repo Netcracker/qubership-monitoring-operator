@@ -197,7 +197,7 @@ var (
 	EtcdServiceComponentNamespace              = "kube-system"
 	EtcdPodLabelSelector                       = "component=etcd"
 	EtcdServiceComponentNamespaceOpenshiftV4   = "openshift-etcd"
-	EtcdCertificatesSourceNamespaceOpenshiftV4 = "openshift-config"
+	EtcdCertificatesSourceNamespaceOpenshiftV4 = "openshift-etcd-operator"
 	EtcdCertificatesSourceConfigmapOpenshiftV4 = "etcd-metric-serving-ca"
 	EtcdCertificatesSourceSecretOpenshiftV4    = "etcd-metric-client"
 
