@@ -1,0 +1,222 @@
+# Default values for ssl-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Allow to enable deploy ssl-exporter
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# A name of a microservice to deploy with.
+# This name will be used as name of the microservice deployment and in labels.
+name: ssl-exporter
+
+# Allows to create PodSecurityPolicy or SecurityContextConstraints.
+# Type: boolean
+# Mandatory: no
+# Default: true
+#
+setupSecurityContext: true
+
+# Allows to create Grafana dashboard for ssl-exporter.
+# Type: boolean
+# Mandatory: no
+# Default: true
+#
+setupGrafanaDashboard: true
+
+# Allows to create Prometheus alerting rules for ssl-exporter.
+# Type: boolean
+# Mandatory: no
+# Default: true
+#
+setupAlertingRules: true
+
+# Allows to mount additional directories or files from the host file system to container.
+# You should use this option when the exporter needs to collect information from any certificates
+# from files except default ones.
+# Type: list[object]
+# Mandatory: no
+# Default: []
+#
+additionalHostPathVolumes:
+  - volumeName: host-ssl-cert
+    volumePath: /etc/ssl/cert.pem
+  - volumeName: host-ca-certs
+    volumePath: /etc/ssl/certs
+  - volumeName: host-kubeconfig
+    volumePath: /etc/rancher/k3s/k3s.yaml
+
+#additionalHostPathVolumes: []
+  # Name of volume. Name must be unique.
+  # Type: string
+  # Mandatory: yes
+  #
+  # Example:
+  # - volumeName: host-ssl-cert
+  #   volumePath: /etc/ssl/cert.pem
+  # - volumeName: host-kubeconfig
+  #   volumePath: /root/.kube/config
+
+# Container port
+# containerPort: 9219
+
+service:
+  type: ClusterIP
+  port: 9219
+  targetPort: 9219
+  protocol: TCP
+  name: http
+  labels: {}
+
+## Set properties of used image
+##
+image:
+  repository: ribbybibby/ssl-exporter
+  # Override the image tag whose default is the chart appVersion
+  tag: 2.4.3
+  pullPolicy: IfNotPresent
+  # pullSecret: []
+
+## Delete generated resources when chart is uninstalled
+##
+preDeleteHook:
+  enabled: true
+
+## Install RBAC roles and bindings
+##
+rbac:
+  create: true
+
+## Set properties of service account
+##
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+## Set podAnnotations of pods
+##
+podAnnotations: {}
+
+## Set podSecurityContext of pods
+##
+podSecurityContext: {}
+
+## Set securityContext of deployment
+##
+securityContext: {}
+
+## Set resources of pod
+##
+resources: {}
+
+## Set nodeSelector of pod
+##
+nodeSelector: {}
+
+## Set tolerations of pod
+##
+tolerations: []
+
+## Set affinity of pod
+##
+affinity: {}
+
+# SSL Exporter modules configuration
+# modules:
+#   https-selfsigned:
+#     enabled: true
+#     timeout: 30s
+#     tls_config:
+#       insecure_skip_verify: true
+#   
+#   https-external:
+#     enabled: true
+#     timeout: 30s
+#     tls_config:
+#       ca_file: /etc/ssl/certs/ca-certificates.crt
+#   
+#   https-internal:
+#     enabled: true
+#     timeout: 30s
+#     tls_config:
+#       ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+#   
+#   file:
+#     enabled: true
+#     timeout: 30s
+#   
+#   kubernetes:
+#     enabled: true
+#     timeout: 30s
+#   
+#   kubeconfig:
+#     enabled: true
+#     timeout: 30s
+
+serviceMonitor:
+  enabled: true
+  scheme: http
+  defaults:
+    additionalMetricsRelabels: {}
+    interval: 30s
+    labels: {}
+    scrapeTimeout: 30s
+  targets:
+    - name: https-external-google
+      url: google.com:443
+      module: https-external
+      interval: 60s
+
+    - name: https-self-kubernetes-apiserver
+      url: kubernetes.default.svc:443
+      module: https-selfsigned
+      interval: 60s
+
+    - name: https-internal-kubernetes-apiserver
+      url: kubernetes.default.svc:443
+      module: https-internal
+      interval: 60s
+
+    - name: secret-service-ca
+      url: kube-system/serving-ca
+      module: kubernetes
+      interval: 30s
+
+    - name: file-cert-pem
+      url: /etc/ssl/cert.pem
+      module: file
+      interval: 30s
+
+    - name: kubeconfig-cert
+      url: /etc/rancher/k3s/k3s.yaml
+      module: kubeconfig
+      interval: 300s
+
+alerts:
+  enabled: true
+
+prometheusRule:
+  enabled: false
+  # namespace: monitoring
+  # labels: {}
+  # rules:
+  #   - alert: SSLCertExpiringSoon
+  #     expr: ssl_cert_not_after - time() < 86400 * 7
+  #     for: 10m
+  #     labels:
+  #       severity: warning
+  #     annotations:
+  #       summary: "SSL certificate for {{ $labels.instance }} expires soon"
+  #       description: "The SSL certificate for {{ $labels.instance }} will expire in less than 7 days."
+  #   - alert: SSLCertExpired
+  #     expr: ssl_cert_not_after - time() < 0
+  #     for: 10m
+  #     labels:
+  #       severity: critical
+  #     annotations:
+  #       summary: "SSL certificate for {{ $labels.instance }} has expired"
+  #       description: "The SSL certificate for {{ $labels.instance }} has expired."

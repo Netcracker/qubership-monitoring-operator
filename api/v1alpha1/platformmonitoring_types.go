@@ -58,6 +58,7 @@ type PlatformMonitoringSpec struct {
 	PrometheusRules    *PrometheusRules   `json:"prometheusRules,omitempty"`
 	Promxy             *Promxy            `json:"promxy,omitempty"`
 	Pushgateway        *Pushgateway       `json:"pushgateway,omitempty"`
+	SSLExporter        *SSLExporter       `json:"sslExporter,omitempty"`
 	PublicCloudName    string             `json:"publicCloudName,omitempty"`
 	Victoriametrics    *Victoriametrics   `json:"victoriametrics,omitempty"`
 }
@@ -112,6 +113,54 @@ type AlertManager struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// ServiceAccount is a structure which allow specify annotations and labels for Service Account
 	// which will use by Alertmanager for work in Kubernetes. Cna be use by external tools to store
+	// and retrieve arbitrary metadata.
+	// +optional
+	ServiceAccount *EmbeddedObjectMetadata `json:"serviceAccount,omitempty"`
+	// PriorityClassName assigned to the Pods
+	// +optional
+	PriorityClassName string `json:"priorityClassName,omitempty"`
+}
+
+// SSLExporter defines the desired state for SSL certificate monitoring
+type SSLExporter struct {
+	// Install indicates is ssl-exporter will be installed.
+	// Can be changed for already deployed service and the service
+	// will be removed during next reconciliation iteration
+	Install *bool `json:"install,omitempty"`
+	// Image to use for a `ssl-exporter` deployment.
+	// The `ssl-exporter` is an exporter to check SSL certificates
+	// More info: https://github.com/ribbybibby/ssl_exporter
+	Image string `json:"image"`
+	// Resources defines resources requests and limits for single Pods.
+	Resources v1.ResourceRequirements `json:"resources,omitempty"`
+	// SecurityContext holds pod-level security attributes.
+	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
+	// Set paused to reconsilation
+	Paused bool `json:"paused,omitempty"`
+	// Tolerations allow the pods to schedule onto nodes with matching taints.
+	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+	// NodeSelector Define which Nodes the Pods are scheduled on.
+	// Specified just as map[string]string. For example: "type: compute"
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// If specified, the pod's scheduling constraints.
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	Affinity *v1.Affinity `json:"affinity,omitempty"`
+	// Service monitor for pulling metrics
+	ServiceMonitor *Monitor `json:"serviceMonitor,omitempty"`
+	// Map of string keys and values that can be used to organize and categorize
+	// (scope and select) objects. May match selectors of replication controllers
+	// and services.
+	// More info: https://kubernetes.io/docs/user-guide/labels
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+	// Annotations is an unstructured key value map stored with a resource that may be
+	// set by external tools to store and retrieve arbitrary metadata. They are not
+	// queryable and should be preserved when modifying objects.
+	// More info: https://kubernetes.io/docs/user-guide/annotations
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// ServiceAccount is a structure which allow specify annotations and labels for Service Account
+	// which will use by SSLExporter for work in Kubernetes. Can be use by external tools to store
 	// and retrieve arbitrary metadata.
 	// +optional
 	ServiceAccount *EmbeddedObjectMetadata `json:"serviceAccount,omitempty"`
