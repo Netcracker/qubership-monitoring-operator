@@ -28,7 +28,7 @@ rules:
       - ''
     resources:
       - pods
-  - verbs: 
+  - verbs:
       - get
       - list
       - watch
@@ -40,13 +40,13 @@ rules:
       - monitoring.coreos.com
     resources:
       - servicemonitors
-  - verbs: 
+  - verbs:
       - get
       - list
       - watch
-    apiGroups: 
+    apiGroups:
       - monitoring.qubership.org
-    resources: 
+    resources:
       - platformmonitorings
   {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
   - apiGroups:
