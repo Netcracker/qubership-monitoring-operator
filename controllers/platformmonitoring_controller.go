@@ -23,7 +23,6 @@ import (
 
 	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/alertmanager"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/etcd"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
 	grafanaoperator "github.com/Netcracker/qubership-monitoring-operator/controllers/grafana-operator"
 	kubernetesmonitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
@@ -113,12 +112,6 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		r.prepareStatusForUpdate(customResourceInstance, "Failed", "False", "ReconcilePrometheusOperatorStatus", "Prometheus operator reconcile cycle failed")
 	} else {
 		r.removeStatus(customResourceInstance, "ReconcilePrometheusOperatorStatus")
-	}
-
-	etcdReconciler := etcd.NewEtcdMonitorReconciler(r.Client, r.Scheme, r.DiscoveryClient, r.Config)
-	err = etcdReconciler.Run(context, customResourceInstance)
-	if err != nil {
-		r.Log.Error(err, "Reconciliation of etcd-monitor failed")
 	}
 
 	kubernetesMonitorsReconciler := kubernetesmonitors.NewKubernetesMonitorsReconciler(r.Client, r.Scheme, r.DiscoveryClient)

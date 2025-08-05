@@ -1695,3 +1695,18 @@ promitorAgentResourceDiscovery:
 stackdriver_exporter:
   # Disable by default
   install: false
+
+etcdCertsJob:
+  name: "etcd-certs-to-secret"
+  schedule: "0 0 1 * *"
+  ttlSecondsAfterFinished: 180
+  rbac:
+    name: "etcd-certs-to-secret-scc"
+    serviceAccountName: "etcd-certs-to-secret-sa"
+    roleName: "etcd-certs-to-secret-read"
+    roleBindingName: "etcd-certs-to-secret-rb"
+    clusterRoleName: "etcd-certs-to-secret-clusterrole"
+    clusterRoleBindingName: "etcd-certs-to-secret-clusterrb"  
+  annotations: {}
+  imagePullSecrets: []
+  priorityClassName: ""
