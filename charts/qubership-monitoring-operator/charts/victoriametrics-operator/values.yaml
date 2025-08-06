@@ -631,8 +631,8 @@ vmAgent:
   # Mandatory: no
   # Default: []
   #
-  secrets:
-    - kube-etcd-client-certs
+  # secrets:
+  #   - kube-etcd-client-certs
 
   ## A name of a microservice secret to deploy with.
   # This name will be used as name of the microservice secret deployment.

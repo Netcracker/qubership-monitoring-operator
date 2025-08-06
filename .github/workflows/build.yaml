@@ -73,6 +73,9 @@ jobs:
           description: Qubership Monitoring integration tests image
           file: test/robot-tests/Dockerfile
           context: test/robot-tests
+        - name: qubership-etcd-certs-to-secret
+          file: etcd-certs-to-secret/Dockerfile
+          context: etcd-certs-to-secret
     runs-on: ubuntu-latest
     name: ${{ matrix.component.name }}
     steps:

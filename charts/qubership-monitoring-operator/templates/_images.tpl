@@ -395,3 +395,19 @@ Image can be found from:
     {{- print "quay.io/oauth2-proxy/oauth2-proxy:7.8.1" -}}
   {{- end -}}
 {{- end -}}
+
+{{/********************************* Etcd Certificates Job *********************************/}}
+
+{{/*
+Find a etcd_certs_job image in various places.
+Image can be found from:
+* .Values.platform_monitoring_tests.image from values file
+* or default value
+*/}}
+{{- define "etcdCertsJob.image" -}}
+  {{- if .Values.etcdCertsJob.image -}}
+    {{- printf "%s" .Values.etcdCertsJob.image -}}
+  {{- else -}}
+    {{- print "ghcr.io/netcracker/qubership-etcd-certs-to-secret:main" -}}
+  {{- end -}}
+{{- end -}}

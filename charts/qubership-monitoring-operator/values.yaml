@@ -1700,3 +1700,25 @@ stackdriver_exporter:
 goldpingerExporter:
   # Disable by default
   install: false
+etcdCertsJob:
+  name: "etcd-certs-to-secret"
+  schedule: "0 0 1 * *"
+  ttlSecondsAfterFinished: 180
+  rbac:
+    name: "etcd-certs-to-secret-scc"
+    serviceAccountName: "etcd-certs-to-secret-sa"
+    roleName: "etcd-certs-to-secret-read"
+    roleBindingName: "etcd-certs-to-secret-rb"
+    clusterRoleName: "etcd-certs-to-secret-clusterrole"
+    clusterRoleBindingName: "etcd-certs-to-secret-clusterrb"
+  annotations: {}
+  imagePullSecrets: []
+  imagePullPolicy: "IfNotPresent"
+  priorityClassName: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi

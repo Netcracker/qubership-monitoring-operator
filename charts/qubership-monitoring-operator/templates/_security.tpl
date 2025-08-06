@@ -13,7 +13,30 @@ Return securityContext for monitoring-operator.
         {}
   {{- end -}}
 {{- end -}}
-
+{{/*
+Return securityContext for etcd-certs-to-secret job.
+*/}}
+{{- define "etcdCertsJob.securityContext" -}}
+{{- if .Values.etcdCertsJob.securityContext -}}
+  {{- toYaml .Values.etcdCertsJob.securityContext | nindent 12 }}
+{{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- toYaml (dict "runAsUser" 0 "runAsGroup" 0) | nindent 12 }}
+{{- else -}}
+{{- printf "{}" | nindent 12 }}
+{{- end -}}
+{{- end -}}
+{{/*
+Return securityContext for etcd-certs-to-secret job.
+*/}}
+{{- define "etcdCertsCronJob.securityContext" -}}
+{{- if .Values.etcdCertsJob.securityContext -}}
+  {{- toYaml .Values.etcdCertsJob.securityContext | nindent 16 }}
+{{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- toYaml (dict "runAsUser" 0 "runAsGroup" 0) | nindent 16 }}
+{{- else -}}
+{{- printf "{}" | nindent 16 }}
+{{- end -}}
+{{- end -}}
 {{/*
 Return securityContext for prometheus.
 */}}
