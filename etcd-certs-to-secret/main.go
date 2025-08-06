@@ -356,12 +356,11 @@ func etcdServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, namespace string,
 	}
 	sm.OwnerReferences = []metav1.OwnerReference{
 		{
-			APIVersion:         "monitoring.qubership.org/v1alpha1",
-			Kind:               "PlatformMonitoring",
-			Name:               cr.Name,
-			UID:                cr.UID,
-			Controller:         ptr.To(true),
-			BlockOwnerDeletion: ptr.To(true),
+			APIVersion: "monitoring.qubership.org/v1alpha1",
+			Kind:       "PlatformMonitoring",
+			Name:       cr.Name,
+			UID:        cr.UID,
+			Controller: ptr.To(true),
 		},
 	}
 	return &sm, nil
@@ -485,6 +484,7 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 	service.Labels["name"] = utils.TruncLabel(service.GetName())
 	service.Labels["app.kubernetes.io/name"] = utils.TruncLabel(service.GetName())
 	service.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(service.GetName(), service.GetNamespace())
+	service.Labels["app.kubernetes.io/component"] = "monitoring-etcd"
 
 	return &service, nil
 }
@@ -570,12 +570,11 @@ func etcdSecret(cr *qubershiporgv1.PlatformMonitoring, secret *corev1.Secret) (*
 	}
 	secret.OwnerReferences = []metav1.OwnerReference{
 		{
-			APIVersion:         "monitoring.qubership.org/v1alpha1",
-			Kind:               "PlatformMonitoring",
-			Name:               cr.Name,
-			UID:                cr.UID,
-			Controller:         ptr.To(true),
-			BlockOwnerDeletion: ptr.To(true),
+			APIVersion: "monitoring.qubership.org/v1alpha1",
+			Kind:       "PlatformMonitoring",
+			Name:       cr.Name,
+			UID:        cr.UID,
+			Controller: ptr.To(true),
 		},
 	}
 	return secret, nil
