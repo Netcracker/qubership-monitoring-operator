@@ -64,8 +64,8 @@ spec:
           volumeMounts:
             - name: etc
               mountPath: /etc
-      securityContext:
-        {{ include "etcdCertsJob.securityContext" . }}
+          securityContext:
+            {{ include "etcdCertsJob.securityContext" . }}
       {{- if .Values.etcdCertsJob.priorityClassName }}
       priorityClassName: {{ .Values.etcdCertsJob.priorityClassName }}
       {{- end }}

@@ -63,17 +63,12 @@ spec:
                     fieldRef:
                       fieldPath: metadata.name
               resources:
-                limits:
-                  cpu: 1000m
-                  memory: 256Mi
-                requests:
-                  cpu: 10m
-                  memory: 128Mi
+                {{- toYaml .Values.etcdCertsJob.resources | nindent 16 }}
               volumeMounts:
                 - name: etc
                   mountPath: /etc
-          securityContext:
-            {{ include "etcdCertsCronJob.securityContext" . }}
+              securityContext:
+                {{ include "etcdCertsCronJob.securityContext" . }}
           {{- if .Values.etcdCertsJob.priorityClassName }}
           priorityClassName: {{ .Values.etcdCertsJob.priorityClassName }}
           {{- end }}

@@ -419,22 +419,24 @@ func CreateOrUpdateService(cr *qubershiporgv1.PlatformMonitoring, clientset *kub
 	}
 	//Set parameters
 	e.TypeMeta = m.TypeMeta
-	e.SetLabels(m.GetLabels())
 	e.Spec.Ports = m.Spec.Ports
 	e.Spec.Selector = m.Spec.Selector
 	e.Spec.ClusterIP = m.Spec.ClusterIP
-	if cr.GetLabels() != nil {
-		maps.Copy(e.Labels, cr.GetLabels())
-	}
+
 	if e.Labels == nil {
 		e.Labels = make(map[string]string)
 	}
+	if cr.GetLabels() != nil {
+		maps.Copy(e.Labels, cr.GetLabels())
+	}
+
 	if e.Annotations == nil {
 		e.Annotations = make(map[string]string)
 	}
 	if e.Annotations == nil && cr.GetAnnotations() != nil {
 		maps.Copy(e.Annotations, cr.GetAnnotations())
 	}
+	maps.Copy(e.Labels, m.Labels)
 	if apierrors.IsNotFound(err) {
 		if _, err = clientset.CoreV1().Services(etcdServiceNamespace).Create(context.TODO(), e, metav1.CreateOptions{}); err != nil {
 			log.Error("Failed to create etcd service", "error", err, "service", m.Name)
@@ -564,9 +566,7 @@ func etcdSecret(cr *qubershiporgv1.PlatformMonitoring, secret *corev1.Secret) (*
 	if secret.Annotations == nil && cr.GetAnnotations() != nil {
 		secret.SetAnnotations(cr.GetAnnotations())
 	} else {
-		for k, v := range cr.GetAnnotations() {
-			secret.Annotations[k] = v
-		}
+		maps.Copy(secret.Annotations, cr.GetAnnotations())
 	}
 	secret.OwnerReferences = []metav1.OwnerReference{
 		{
