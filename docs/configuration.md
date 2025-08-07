@@ -121,7 +121,116 @@ Currently, Monitoring provides only Custom Resources, which can create applicati
 points. Other extension points also exist, but in places in the monitoring namespace where the application usually has no
 access.
 
-#### Difference between ServiceMonitor and PodMonitor
+#### ServiceMonitor
+
+The `ServiceMonitor` Custom Resource (CR) allows to provide how metrics should be collected from a microservice by Prometheus.
+
+`ServiceMonitor` is used when:
+
+* You have to configure metrics collection from microservices which have Service.
+* You have to configure metrics collection from some microservices under one Service.
+
+For example, the `ServiceMonitor` can look like the following.
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubelet-service-monitor
+  labels:
+    k8s-app: kubelet-service-monitor
+    app.kubernetes.io/name: kubelet-service-monitor
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 30s
+    port: https-metrics
+    scheme: https
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+      k8s-app: kubelet
+```
+
+In the above example, the metrics are collected with the following settings:
+
+* The metrics are collected with a job with a `k8s-app` label.
+* The metrics are collected from all pods with a `k8s-app: kubelet` label.
+* The metrics are collected from all discovered pods from the port with the `https-metrics` name and with interval `30s`.
+
+The following schema illustrates how prometheus-operator discovers ServiceMonitor, processes it, and applies
+the configuration to Prometheus:
+
+![ServiceMonitor](images/prometheus-k8s_service-monitor.png)
+
+For more information about all available fields in `ServiceMonitor`, refer to the official documentation at
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor).
+
+##### ServiceMonitor and `container` label
+
+If you want to see the label `container` in your metrics collected by Prometheus/VictoriaMetrics you **must** expose
+the port used for metrics not only in Service but in the Pod. Otherwise, all metrics won't contain this label.
+
+It means that you need to expose the port:
+
+* In Kubernetes Service
+
+  ```yaml
+  kind: Service
+  apiVersion: v1
+  ...
+  spec:
+    ports:
+      - name: metrics
+        protocol: TCP
+        port: 9900
+        targetPort: 9900
+  ```
+
+* In the Pod
+
+  ```yaml
+  kind: Pod
+  apiVersion: v1
+  ...
+  spec:
+    containers:
+      - name: xxx
+        ports:
+          - name: metrics
+            containerPort: 9900
+            protocol: TCP
+  ```
+
+Why it's needed?
+
+The official Prometheus documentation:
+[https://prometheus.io/docs/prometheus/latest/configuration/configuration/#endpoints](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#endpoints)
+tells us that discovery by the endpoint will add the meta label `__meta_kubernetes_pod_container_name` only in case:
+
+* If the endpoints belong to a service, all labels of the `role: service` discovery are attached
+* For all targets backed by a pod, all labels of the `role: pod` discovery are attached
+
+The official Kubernetes documentation doesn't contain anything about roles for endpoints.
+So it seems that this concept is in Prometheus Kubernetes SD.
+
+So it should work as follows:
+
+* Service allows you to expose ports independently has the pod already exposed ports or not
+* So for Prometheus Kubernetes SD exist two cases:
+  * If the port is exposed in Service but isn't exposed in Pod - it seems that in case Prometheus will use `role: service`
+  * If the port is exposed in Service and it is exposed in Pod - it seems that in case Prometheus will use `role: pod`
+
+In the case, when the port in Pod wasn't exposed, Prometheus attached to meta labels information about the Service
+that doesn't contain the container name.
+In all cases, Prometheus can collect metrics from endpoints. Discovery type affects only the list of meta labels
+and result label list.
+
+##### Difference between ServiceMonitor and PodMonitor
 
 At first sight, ServiceMonitor and PodMonitor look the same and fulfill the same role. However, they are
 different custom resources.
@@ -278,115 +387,6 @@ converts in the following Prometheus job.
       - monitoring
 ```
 
-#### ServiceMonitor
-
-The `ServiceMonitor` Custom Resource (CR) allows to provide how metrics should be collected from a microservice by Prometheus.
-
-`ServiceMonitor` is used when:
-
-* You have to configure metrics collection from microservices which have Service.
-* You have to configure metrics collection from some microservices under one Service.
-
-For example, the `ServiceMonitor` can look like the following.
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kubelet-service-monitor
-  labels:
-    k8s-app: kubelet-service-monitor
-    app.kubernetes.io/name: kubelet-service-monitor
-    app.kubernetes.io/component: monitoring  # Mandatory label
-spec:
-  endpoints:
-  - honorLabels: true
-    interval: 30s
-    port: https-metrics
-    scheme: https
-  jobLabel: k8s-app
-  namespaceSelector:
-    matchNames:
-    - monitoring
-  selector:
-    matchLabels:
-      k8s-app: kubelet
-```
-
-In the above example, the metrics are collected with the following settings:
-
-* The metrics are collected with a job with a `k8s-app` label.
-* The metrics are collected from all pods with a `k8s-app: kubelet` label.
-* The metrics are collected from all discovered pods from the port with the `https-metrics` name and with interval `30s`.
-
-The following schema illustrates how prometheus-operator discovers ServiceMonitor, processes it, and applies
-the configuration to Prometheus:
-
-![ServiceMonitor](images/prometheus-k8s_service-monitor.png)
-
-For more information about all available fields in `ServiceMonitor`, refer to the official documentation at
-[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor).
-
-##### ServiceMonitor and `container` label
-
-If you want to see the label `container` in your metrics collected by Prometheus/VictoriaMetrics you **must** expose
-the port used for metrics not only in Service but in the Pod. Otherwise, all metrics won't contain this label.
-
-It means that you need to expose the port:
-
-* In Kubernetes Service
-
-  ```yaml
-  kind: Service
-  apiVersion: v1
-  ...
-  spec:
-    ports:
-      - name: metrics
-        protocol: TCP
-        port: 9900
-        targetPort: 9900
-  ```
-
-* In the Pod
-
-  ```yaml
-  kind: Pod
-  apiVersion: v1
-  ...
-  spec:
-    containers:
-      - name: xxx
-        ports:
-          - name: metrics
-            containerPort: 9900
-            protocol: TCP
-  ```
-
-Why it's needed?
-
-The official Prometheus documentation:
-[https://prometheus.io/docs/prometheus/latest/configuration/configuration/#endpoints](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#endpoints)
-tells us that discovery by the endpoint will add the meta label `__meta_kubernetes_pod_container_name` only in case:
-
-* If the endpoints belong to a service, all labels of the `role: service` discovery are attached
-* For all targets backed by a pod, all labels of the `role: pod` discovery are attached
-
-The official Kubernetes documentation doesn't contain anything about roles for endpoints.
-So it seems that this concept is in Prometheus Kubernetes SD.
-
-So it should work as follows:
-
-* Service allows you to expose ports independently has the pod already exposed ports or not
-* So for Prometheus Kubernetes SD exist two cases:
-  * If the port is exposed in Service but isn't exposed in Pod - it seems that in case Prometheus will use `role: service`
-  * If the port is exposed in Service and it is exposed in Pod - it seems that in case Prometheus will use `role: pod`
-
-In the case, when the port in Pod wasn't exposed, Prometheus attached to meta labels information about the Service
-that doesn't contain the container name.
-In all cases, Prometheus can collect metrics from endpoints. Discovery type affects only the list of meta labels
-and result label list.
-
 #### PodMonitor
 
 The `PodMonitor` Custom Resource (CR) allows to provide how metrics should be collected from a microservice by Prometheus.
@@ -429,6 +429,156 @@ the configuration to Prometheus:
 
 For more information about all available fields in `PodMonitor`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor).
+
+#### ScrapeConfig
+
+The `ScrapeConfig` Custom Resource (CR) allows to specify scraping settings for monitoring using different scraping
+settings supported by VictoriaMetrics or Prometheus.
+
+This Custom Resource exists because other CRs like ServiceMonitor, PodMonitor, and Probe allow to provide discovery and scrape
+settings only for specific types of discovery configuration.
+
+Unlike these CRs, the `ScrapeConfig` allows to specify which discovery method should be used to discover endpoints using
+different supported ways, such as static targets, DNS service discovery, Kubernetes service discovery, or cloud-specific
+discovery.
+
+`ScrapeConfig` is used when:
+
+* You need to scrape metrics from static targets outside of Kubernetes
+* You want to use DNS service discovery for dynamic target resolution
+* You need to scrape metrics from cloud resources (AWS, Azure, GCP)
+* You need custom Kubernetes service discovery configurations
+* You want to scrape metrics from services which other CRs doesn't allow to specify
+
+For more information about all available fields in `ScrapeConfig`, refer to the official documentation at
+[https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#scrapeconfig](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#scrapeconfig).
+
+##### Static Configuration Example
+
+For scraping metrics from static targets (e.g., external services, VMs):
+
+```yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: external-services-scrape-config
+  labels:
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  jobName: external-services
+  scrapeInterval: 30s
+  scrapeTimeout: 10s
+  metricsPath: /metrics
+  scheme: http
+  staticConfigs:
+    - targets:
+        - 'example-service-1:8080'
+        - 'example-service-2:8080'
+        - 'external-vm:9100'
+      labels:
+        service: external
+        environment: production
+```
+
+##### Basic Authentication Example
+
+For targets requiring basic authentication:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: authenticated-service-scrape-config
+  labels:
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  jobName: authenticated-service
+  scrapeInterval: 30s
+  staticConfigs:
+    - targets:
+        - 'secure-service:8080'
+  basicAuth:
+    username:
+      name: service-credentials
+      key: username
+    password:
+      name: service-credentials
+      key: password
+  tlsConfig:
+    ca:
+      secret:
+        name: service-ca
+        key: ca.crt
+    cert:
+      secret:
+        name: service-cert
+        key: tls.crt
+    keySecret:
+      name: service-cert
+      key: tls.key
+```
+
+##### DNS Service Discovery Example
+
+For discovering targets using DNS SRV records:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: dns-discovery-scrape-config
+  labels:
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  jobName: dns-discovered-services
+  scrapeInterval: 30s
+  dnsSDConfigs:
+    - names:
+        - 'service.example.com'
+      type: SRV
+      port: 8080
+      refreshInterval: 30s
+  relabelConfigs:
+    - sourceLabels: [__meta_dns_name]
+      targetLabel: service_name
+    - sourceLabels: [__meta_dns_srv_record_target]
+      targetLabel: target_host
+```
+
+##### Kubernetes Service Discovery Example
+
+For custom Kubernetes service discovery configurations:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: kubernetes-discovery-scrape-config
+  labels:
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  jobName: kubernetes-custom-discovery
+  scrapeInterval: 30s
+  kubernetesSDConfigs:
+    - role: pod
+      namespaces:
+        names:
+          - monitoring
+          - kube-system
+  relabelConfigs:
+    - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      action: keep
+      regex: true
+    - sourceLabels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      action: replace
+      targetLabel: __metrics_path__
+      regex: (.+)
+    - sourceLabels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      action: replace
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $1:$2
+      targetLabel: __address__
+```
 
 #### Probe
 
