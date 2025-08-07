@@ -44,7 +44,6 @@ spec:
               effect: "NoExecute"
             - operator: "Exists"
               effect: "NoSchedule"
-          imagePullPolicy: {{ .Values.etcdCertsJob.imagePullPolicy }}
           {{- with .Values.etcdCertsJob.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
@@ -52,6 +51,7 @@ spec:
           containers:
             - name: etcd-certs-to-secret
               image: {{ include "etcdCertsJob.image" . }}
+              imagePullPolicy: {{ .Values.etcdCertsJob.imagePullPolicy }}
               args:
                 - '--secret=kube-etcd-client-certs'
               env:
