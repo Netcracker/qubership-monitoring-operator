@@ -5,6 +5,8 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.5
     qubership-prometheus-adapter-operator.monitoring.qubership.org/version: 0.6.5
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: "-5"
   labels:
     app.kubernetes.io/component: qubership-prometheus-adapter-operator
     app.kubernetes.io/part-of: monitoring

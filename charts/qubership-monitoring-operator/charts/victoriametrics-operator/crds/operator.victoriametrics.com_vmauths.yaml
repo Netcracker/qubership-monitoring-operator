@@ -4,6 +4,8 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.15.0
     operator.victoriametrics.com/version: v0.48.3
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: "-5"
   name: vmauths.operator.victoriametrics.com
 spec:
   conversion:
