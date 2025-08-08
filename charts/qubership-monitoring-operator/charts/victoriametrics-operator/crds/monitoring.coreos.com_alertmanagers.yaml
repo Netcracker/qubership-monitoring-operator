@@ -3,6 +3,8 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.15.0
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: "-5"
   name: vmalertmanagers.operator.victoriametrics.com
 spec:
   conversion:
