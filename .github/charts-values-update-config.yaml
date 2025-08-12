@@ -7,7 +7,7 @@
 
 charts:
   - name: qubership-monitoring-operator
-    chart_file: charts/helm/qubership-monitoring-operator/Chart.yaml
-    values_file: charts/helm/qubership-monitoring-operator/values.yaml
+    chart_file: charts/qubership-monitoring-operator/Chart.yaml
+    values_file: charts/qubership-monitoring-operator/values.yaml
     image:
       - ghcr.io/netcracker/qubership-monitoring-int-tests:main
