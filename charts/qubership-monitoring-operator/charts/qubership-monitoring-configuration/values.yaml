@@ -1,0 +1,625 @@
+alerts:
+  SelfMonitoring-vmcluster:
+    labels:
+      group_name: SelfMonitoring-vmcluster
+    interval: 30s
+    concurrency: 2
+    rules:
+      DiskRunsOutOfSpaceIn3Days:
+        expr: |
+            sum(vm_free_disk_space_bytes) without(path) /
+            (
+              (rate(vm_rows_added_to_storage_total[1d]) - sum(rate(vm_deduplicated_samples_total[1d])) without (type)) * (
+                sum(vm_data_size_bytes{type!~"indexdb.*"}) without(type) /
+                sum(vm_rows{type!~"indexdb.*"}) without(type)
+              )
+              +
+              rate(vm_new_timeseries_created_total[1d]) * (
+                sum(vm_data_size_bytes{type="indexdb/file"}) /
+                sum(vm_rows{type="indexdb/file"})
+              )
+            ) < 3 * 24 * 3600 > 0
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} will run out of disk space in 3 days"
+          description: "Taking into account current ingestion rate, free disk space will be enough only
+              for {{ $value | humanizeDuration }} on instance {{ $labels.instance }}.\n
+              Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
+
+      NodeBecomesReadonlyIn3Days:
+        expr: |
+          sum(vm_free_disk_space_bytes - vm_free_disk_space_limit_bytes) without(path) /
+          (
+              (rate(vm_rows_added_to_storage_total[1d]) - sum(rate(vm_deduplicated_samples_total[1d])) without (type)) * (
+                sum(vm_data_size_bytes{type!~"indexdb.*"}) without(type) /
+                sum(vm_rows{type!~"indexdb.*"}) without(type)
+              )
+              +
+              rate(vm_new_timeseries_created_total[1d]) * (
+                sum(vm_data_size_bytes{type="indexdb/file"}) /
+                sum(vm_rows{type="indexdb/file"})
+              )
+          ) < 3 * 24 * 3600 > 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} will become read-only in 3 days"
+          description: "Taking into account current ingestion rate, free disk space and -storage.minFreeDiskSpaceBytes
+              instance {{ $labels.instance }} will remain writable for {{ $value | humanizeDuration }}.\n
+              Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
+
+      DiskRunsOutOfSpace:
+        expr: |
+          sum(vm_data_size_bytes) by(job, instance) /
+          (
+           sum(vm_free_disk_space_bytes) by(job, instance) +
+           sum(vm_data_size_bytes) by(job, instance)
+          ) > 0.8
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} (job={{ $labels.job }}) will run out of disk space soon"
+          description: "Disk utilisation on instance {{ $labels.instance }} is more than 80%.\n
+            Having less than 20% of free disk space could cripple merges processes and overall performance.
+            Consider to limit the ingestion rate, decrease retention or scale the disk space if possible."
+
+      RequestErrorsToAPI:
+        expr: increase(vm_http_request_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+          show_at: dashboard
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=52&var-instance={{ $labels.instance }}"
+          summary: "Too many errors served for {{ $labels.job }} path {{ $labels.path }} (instance {{ $labels.instance }})"
+          description: "Requests to path {{ $labels.path }} are receiving errors.
+            Please verify if clients are sending correct requests."
+
+      RPCErrors:
+        expr: |
+          (
+           sum(increase(vm_rpc_connection_errors_total[5m])) by(job, instance)
+           +
+           sum(increase(vm_rpc_dial_errors_total[5m])) by(job, instance)
+           +
+           sum(increase(vm_rpc_handshake_errors_total[5m])) by(job, instance)
+          ) > 0
+        for: 15m
+        labels:
+          severity: warning
+          show_at: dashboard
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=44&var-instance={{ $labels.instance }}"
+          summary: "Too many RPC errors for {{ $labels.job }} (instance {{ $labels.instance }})"
+          description: "RPC errors are interconnection errors between cluster components.\n
+            Possible reasons for errors are misconfiguration, overload, network blips or unreachable components."
+
+      TooHighChurnRate:
+        expr: |
+          (
+             sum(rate(vm_new_timeseries_created_total[5m])) by(job)
+             /
+             sum(rate(vm_rows_inserted_total[5m])) by(job)
+           ) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
+          summary: "Churn rate is more than 10% for the last 15m"
+          description: "VM constantly creates new time series.\n
+            This effect is known as Churn Rate.\n
+            High Churn Rate tightly connected with database performance and may
+            result in unexpected OOM's or slow queries."
+
+      TooHighChurnRate24h:
+        expr: |
+          sum(increase(vm_new_timeseries_created_total[24h])) by(job)
+          >
+          (sum(vm_cache_entries{type="storage/hour_metric_ids"}) by(job) * 3)
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
+          summary: "Too high number of new series created over last 24h"
+          description: "The number of created new time series over last 24h is 3x times higher than
+            current number of active series.\n
+            This effect is known as Churn Rate.\n
+            High Churn Rate tightly connected with database performance and may
+            result in unexpected OOM's or slow queries."
+
+      TooHighSlowInsertsRate:
+        expr: |
+          (
+             sum(rate(vm_slow_row_inserts_total[5m])) by(job)
+             /
+             sum(rate(vm_rows_inserted_total[5m])) by(job)
+           ) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=108"
+          summary: "Percentage of slow inserts is more than 5% for the last 15m"
+          description: "High rate of slow inserts may be a sign of resource exhaustion
+            for the current load. It is likely more RAM is needed for optimal handling of the current number of active time series.
+            See also https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3976#issuecomment-1476883183"
+
+      VminsertVmstorageConnectionIsSaturated:
+        expr: rate(vm_rpc_send_duration_seconds_total[5m]) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+          show_at: dashboard
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=139&var-instance={{ $labels.instance }}"
+          summary: "Connection between vminsert on {{ $labels.instance }} and vmstorage on {{ $labels.addr }} is saturated"
+          description: "The connection between vminsert (instance {{ $labels.instance }}) and vmstorage (instance {{ $labels.addr }})
+            is saturated by more than 90% and vminsert won't be able to keep up.\n
+            This usually means that more vminsert or vmstorage nodes must be added to the cluster in order to increase
+            the total number of vminsert -> vmstorage links."
+
+  SelfMonitoring-vmhealth:
+    labels:
+      group_name: SelfMonitoring-vmhealth
+    rules:
+      TooManyRestarts:
+        expr: changes(process_start_time_seconds{job=~".*(victoriametrics|vmselect|vminsert|vmstorage|vmagent|vmalert|vmsingle|vmalertmanager|vmauth|victorialogs|vlstorage|vlselect|vlinsert).*"}[15m]) > 2
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} too many restarts (instance {{ $labels.instance }})"
+          description: >
+            Job {{ $labels.job }} (instance {{ $labels.instance }}) has restarted more than twice in the last 15 minutes.
+            It might be crashlooping.
+
+      ServiceDown:
+        expr: up{job=~".*(victoriametrics|vmselect|vminsert|vmstorage|vmagent|vmalert|vmsingle|vmalertmanager|vmauth|victorialogs|vlstorage|vlselect|vlinsert).*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+
+      ProcessNearFDLimits:
+        expr: (process_max_fds - process_open_fds) < 100
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Number of free file descriptors is less than 100 for \"{{ $labels.job }}\"(\"{{ $labels.instance }}\") for the last 5m"
+          description: | 
+            Exhausting OS file descriptors limit can cause severe degradation of the process.
+            Consider to increase the limit as fast as possible.
+
+      TooHighMemoryUsage:
+        expr: (min_over_time(process_resident_memory_anon_bytes[10m]) / vm_available_memory_bytes) > 0.8
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "It is more than 80% of memory used by \"{{ $labels.job }}\"(\"{{ $labels.instance }}\")"
+          description: |
+            Too high memory usage may result into multiple issues such as OOMs or degraded performance.
+            Consider to either increase available memory or decrease the load on the process.
+
+      TooHighCPUUsage:
+        expr: rate(process_cpu_seconds_total[5m]) / process_cpu_cores_available > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "More than 90% of CPU is used by \"{{ $labels.job }}\"(\"{{ $labels.instance }}\") during the last 5m"
+          description: >
+            Too high CPU usage may be a sign of insufficient resources and make process unstable.
+            Consider to either increase available CPU resources or decrease the load on the process.
+
+      TooHighGoroutineSchedulingLatency:
+        expr: histogram_quantile(0.99, sum(rate(go_sched_latencies_seconds_bucket[5m])) by (le, job, instance)) > 0.1
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "\"{{ $labels.job }}\"(\"{{ $labels.instance }}\") has insufficient CPU resources for >15m"
+          description: >
+            Go runtime is unable to schedule goroutines execution in acceptable time. This is usually a sign of
+            insufficient CPU resources or CPU throttling. Verify that service has enough CPU resources. Otherwise,
+            the service could work unreliably with delays in processing.
+
+      TooManyLogs:
+        expr: sum(increase(vm_log_messages_total{level="error"}[5m])) without (app_version, location) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many logs printed for job \"{{ $labels.job }}\" ({{ $labels.instance }})"
+          description: >
+            Logging rate for job \"{{ $labels.job }}\" ({{ $labels.instance }}) is {{ $value }} for last 15m.
+            Worth to check logs for specific error messages.
+
+      TooManyTSIDMisses:
+        expr: rate(vm_missing_tsids_for_metric_id_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Too many TSID misses for job \"{{ $labels.job }}\" ({{ $labels.instance }})"
+          description: | 
+            The rate of TSID misses during query lookups is too high for \"{{ $labels.job }}\" ({{ $labels.instance }}).
+            Make sure you're running VictoriaMetrics of v1.85.3 or higher.
+            Related issue https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3502
+
+      ConcurrentInsertsHitTheLimit:
+        expr: avg_over_time(vm_concurrent_insert_current[1m]) >= vm_concurrent_insert_capacity
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }} on instance {{ $labels.instance }} is constantly hitting concurrent inserts limit"
+          description: | 
+            The limit of concurrent inserts on instance {{ $labels.instance }} depends on the number of CPUs.
+            Usually, when component constantly hits the limit it is likely the component is overloaded and requires more CPU.
+            In some cases for components like vmagent or vminsert the alert might trigger if there are too many clients
+            making write attempts. If vmagent's or vminsert's CPU usage and network saturation are at normal level, then 
+            it might be worth adjusting `-maxConcurrentInserts` cmd-line flag.
+
+      IndexDBRecordsDrop:
+        expr: increase(vm_indexdb_items_dropped_total[5m]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "IndexDB skipped registering items during data ingestion with reason={{ $labels.reason }}."
+          description: | 
+            VictoriaMetrics could skip registering new timeseries during ingestion if they fail the validation process. 
+            For example, `reason=too_long_item` means that time series cannot exceed 64KB. Please, reduce the number 
+            of labels or label values for such series. Or enforce these limits via `-maxLabelsPerTimeseries` and 
+            `-maxLabelValueLen` command-line flags.
+
+      RowsRejectedOnIngestion:
+        expr: rate(vm_rows_ignored_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Some rows are rejected on \"{{ $labels.instance }}\" on ingestion attempt"
+          description: "Ingested rows on instance \"{{ $labels.instance }}\" are rejected due to the
+            following reason: \"{{ $labels.reason }}\""
+
+      TooHighQueryLoad:
+        expr: increase(vm_concurrent_select_limit_timeout_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Read queries fail with timeout for {{ $labels.job }} on instance {{ $labels.instance }}"
+          description: |
+            Instance {{ $labels.instance }} ({{ $labels.job }}) is failing to serve read queries during last 15m.
+            Concurrency limit `-search.maxConcurrentRequests` was reached on this instance and extra queries were
+            put into the queue for `-search.maxQueueDuration` interval. But even after waiting in the queue these queries weren't served.
+            This happens if instance is overloaded with the current workload, or datasource is too slow to respond.
+            Possible solutions are the following:
+            * reduce the query load;
+            * increase compute resources or number of replicas;
+            * adjust limits `-search.maxConcurrentRequests` and `-search.maxQueueDuration`.
+            See more at https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries.
+
+  SelfMonitoring-vmagent:
+    labels:
+      group_name: SelfMonitoring-vmagent
+    interval: 30s
+    concurrency: 2
+    rules:
+      PersistentQueueIsDroppingData:
+        expr: sum(increase(vm_persistentqueue_bytes_dropped_total[5m])) without (path) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=49&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} is dropping data from persistent queue"
+          description: "Vmagent dropped {{ $value | humanize1024 }} from persistent queue
+              on instance {{ $labels.instance }} for the last 10m."
+
+      RejectedRemoteWriteDataBlocksAreDropped:
+        expr: sum(increase(vmagent_remotewrite_packets_dropped_total[5m])) without (url) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=79&var-instance={{ $labels.instance }}"
+          summary: "Vmagent is dropping data blocks that are rejected by remote storage"
+          description: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} drops the rejected by 
+            remote-write server data blocks. Check the logs to find the reason for rejects."
+
+      TooManyScrapeErrors:
+        expr: increase(vm_promscrape_scrapes_failed_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=31&var-instance={{ $labels.instance }}"
+          summary: "Vmagent fails to scrape one or more targets"
+          description: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} fails to scrape targets for last 15m"
+
+      ScrapePoolHasNoTargets:
+        expr: sum(vm_promscrape_scrape_pool_targets) without (status, instance, pod) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Vmagent has scrape_pool with 0 configured/discovered targets"
+          description: "Vmagent \"{{ $labels.job }}\" has scrape_pool \"{{ $labels.scrape_job }}\"
+            with 0 discovered targets. It is likely a misconfiguration. Please follow https://docs.victoriametrics.com/victoriametrics/vmagent/#debugging-scrape-targets
+            to troubleshoot the scraping config."
+
+      TooManyWriteErrors:
+        expr: |
+          (sum(increase(vm_ingestserver_request_errors_total[5m])) without (name,net,type)
+          +
+          sum(increase(vmagent_http_request_errors_total[5m])) without (path,protocol)) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=77&var-instance={{ $labels.instance }}"
+          summary: "Vmagent responds with too many errors on data ingestion protocols"
+          description: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} responds with errors to write requests for last 15m."
+
+      TooManyRemoteWriteErrors:
+        expr: rate(vmagent_remotewrite_retries_count_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=61&var-instance={{ $labels.instance }}"
+          summary: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} fails to push to remote storage"
+          description: "Vmagent fails to push data via remote write protocol to destination \"{{ $labels.url }}\"\n
+            Ensure that destination is up and reachable."
+
+      RemoteWriteConnectionIsSaturated:
+        expr: |
+          (
+           rate(vmagent_remotewrite_send_duration_seconds_total[5m])
+           / 
+           vmagent_remotewrite_queues
+          ) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=84&var-instance={{ $labels.instance }}"
+          summary: "Remote write connection from \"{{ $labels.job }}\" (instance {{ $labels.instance }}) to {{ $labels.url }} is saturated"
+          description: "The remote write connection between vmagent \"{{ $labels.job }}\" (instance {{ $labels.instance }}) and destination \"{{ $labels.url }}\"
+            is saturated by more than 90% and vmagent won't be able to keep up.\n
+            There could be the following reasons for this:\n
+             * vmagent can't send data fast enough through the existing network connections. Increase `-remoteWrite.queues` cmd-line flag value to establish more connections per destination.\n
+             * remote destination can't accept data fast enough. Check if remote destination has enough resources for processing."
+
+      PersistentQueueForWritesIsSaturated:
+        expr: rate(vm_persistentqueue_write_duration_seconds_total[5m]) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=98&var-instance={{ $labels.instance }}"
+          summary: "Persistent queue writes for instance {{ $labels.instance }} are saturated"
+          description: "Persistent queue writes for vmagent \"{{ $labels.job }}\" (instance {{ $labels.instance }})
+            are saturated by more than 90% and vmagent won't be able to keep up with flushing data on disk. 
+            In this case, consider to decrease load on the vmagent or improve the disk throughput."
+
+      PersistentQueueForReadsIsSaturated:
+        expr: rate(vm_persistentqueue_read_duration_seconds_total[5m]) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=99&var-instance={{ $labels.instance }}"
+          summary: "Persistent queue reads for instance {{ $labels.instance }} are saturated"
+          description: "Persistent queue reads for vmagent \"{{ $labels.job }}\" (instance {{ $labels.instance }})
+            are saturated by more than 90% and vmagent won't be able to keep up with reading data from the disk. 
+            In this case, consider to decrease load on the vmagent or improve the disk throughput."
+
+      SeriesLimitHourReached:
+        expr: (vmagent_hourly_series_limit_current_series / vmagent_hourly_series_limit_max_series) > 0.9
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=88&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} reached 90% of the limit"
+          description: "Max series limit set via -remoteWrite.maxHourlySeries flag is close to reaching the max value. 
+            Then samples for new time series will be dropped instead of sending them to remote storage systems."
+
+      SeriesLimitDayReached:
+        expr: (vmagent_daily_series_limit_current_series / vmagent_daily_series_limit_max_series) > 0.9
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=90&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} reached 90% of the limit"
+          description: "Max series limit set via -remoteWrite.maxDailySeries flag is close to reaching the max value. 
+            Then samples for new time series will be dropped instead of sending them to remote storage systems."
+
+      ConfigurationReloadFailure:
+        expr: |
+          vm_promscrape_config_last_reload_successful != 1
+          or
+          vmagent_relabel_config_last_reload_successful != 1
+        labels:
+          severity: warning
+        annotations:
+          summary: "Configuration reload failed for vmagent instance {{ $labels.instance }}"
+          description: "Configuration hot-reload failed for vmagent on instance {{ $labels.instance }}.
+                        Check vmagent's logs for detailed error message."
+
+      StreamAggrFlushTimeout:
+        expr: |
+          increase(vm_streamaggr_flush_timeouts_total[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Streaming aggregation at \"{{ $labels.job }}\" (instance {{ $labels.instance }}) can't be finished within the configured aggregation interval."
+          description: "Stream aggregation process can't keep up with the load and might produce incorrect aggregation results. Check logs for more details.
+            Possible solutions: increase aggregation interval; aggregate smaller number of series; reduce samples' ingestion rate to stream aggregation."
+
+      StreamAggrDedupFlushTimeout:
+        expr: |
+          increase(vm_streamaggr_dedup_flush_timeouts_total[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Deduplication \"{{ $labels.job }}\" (instance {{ $labels.instance }}) can't be finished within configured deduplication interval."
+          description: "Deduplication process can't keep up with the load and might produce incorrect results. Check docs https://docs.victoriametrics.com/victoriametrics/stream-aggregation/#deduplication and logs for more details.
+            Possible solutions: increase deduplication interval; deduplicate smaller number of series; reduce samples' ingestion rate."
+
+  SelfMonitoring-vmalert:
+    labels:
+      group_name: SelfMonitoring-vmalert
+    interval: 30s
+    rules:
+      ConfigurationReloadFailure:
+        expr: vmalert_config_last_reload_successful != 1
+        labels:
+          severity: warning
+        annotations:
+          summary: "Configuration reload failed for vmalert instance {{ $labels.instance }}"
+          description: "Configuration hot-reload failed for vmalert on instance {{ $labels.instance }}.
+            Check vmalert's logs for detailed error message."
+
+      AlertingRulesError:
+        expr: sum(increase(vmalert_alerting_rules_errors_total[5m])) without(id) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=13&var-instance={{ $labels.instance }}&var-file={{ $labels.file }}&var-group={{ $labels.group }}"
+          summary: "Alerting rules are failing for vmalert instance {{ $labels.instance }}"
+          description: "Alerting rules execution is failing for \"{{ $labels.alertname }}\" from group \"{{ $labels.group }}\" in file \"{{ $labels.file }}\".
+            Check vmalert's logs for detailed error message."
+
+      RecordingRulesError:
+        expr: sum(increase(vmalert_recording_rules_errors_total[5m])) without(id) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=30&var-instance={{ $labels.instance }}&var-file={{ $labels.file }}&var-group={{ $labels.group }}"
+          summary: "Recording rules are failing for vmalert instance {{ $labels.instance }}"
+          description: "Recording rules execution is failing for \"{{ $labels.recording }}\" from group \"{{ $labels.group }}\" in file \"{{ $labels.file }}\".
+            Check vmalert's logs for detailed error message."
+
+      RecordingRulesNoData:
+        expr: sum(vmalert_recording_rules_last_evaluation_samples) without(id) < 1
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=33&var-file={{ $labels.file }}&var-group={{ $labels.group }}"
+          summary: "Recording rule {{ $labels.recording }} ({{ $labels.group }}) produces no data"
+          description: "Recording rule \"{{ $labels.recording }}\" from group \"{{ $labels.group }}\ in file \"{{ $labels.file }}\" 
+            produces 0 samples over the last 30min. It might be caused by a misconfiguration 
+            or incorrect query expression."
+
+      TooManyMissedIterations:
+        expr: increase(vmalert_iteration_missed_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is missing rules evaluations"
+          description: "vmalert instance {{ $labels.instance }} is missing rules evaluations for group \"{{ $labels.group }}\" in file \"{{ $labels.file }}\".
+            The group evaluation time takes longer than the configured evaluation interval. This may result in missed 
+            alerting notifications or recording rules samples. Try increasing evaluation interval or concurrency of
+            group \"{{ $labels.group }}\". See https://docs.victoriametrics.com/victoriametrics/vmalert/#groups. 
+            If rule expressions are taking longer than expected, please see https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
+
+      RemoteWriteErrors:
+        expr: increase(vmalert_remotewrite_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is failing to push metrics to remote write URL"
+          description: "vmalert instance {{ $labels.instance }} is failing to push metrics generated via alerting 
+            or recording rules to the configured remote write URL. Check vmalert's logs for detailed error message."
+
+      RemoteWriteDroppingData:
+        expr: increase(vmalert_remotewrite_dropped_rows_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is dropping data sent to remote write URL"
+          description: "vmalert instance {{ $labels.instance }} is failing to send results of alerting or recording rules 
+            to the configured remote write URL. This may result into gaps in recording rules or alerts state.
+            Check vmalert's logs for detailed error message."
+
+      AlertmanagerErrors:
+        expr: increase(vmalert_alerts_send_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is failing to send notifications to Alertmanager"
+          description: "vmalert instance {{ $labels.instance }} is failing to send alert notifications to \"{{ $labels.addr }}\".
+            Check vmalert's logs for detailed error message."
+
+  SelfMonitoring-vmauth:
+    labels:
+      group_name: SelfMonitoring-vmauth
+    interval: 30s
+    rules:
+      ConcurrentRequestsLimitReached:
+        expr: sum(increase(vmauth_concurrent_requests_limit_reached_total[1m])) by (instance) > 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmauth ({{ $labels.instance }}) reached concurrent requests limit"
+          description: "Possible solutions: increase the limit with flag: -maxConcurrentRequests,
+                      deploy additional vmauth replicas, check requests latency at backend service.
+                      See more details at https://docs.victoriametrics.com/victoriametrics/vmauth/#concurrency-limiting"
+      UserConcurrentRequestsLimitReached:
+        expr: sum(increase(vmauth_user_concurrent_requests_limit_reached_total[1m])) by (username) > 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmauth has reached concurrent requests limit for username {{ $labels.username }}"
+          description: "Possible solutions: increase limit with flag: -maxConcurrentPerUserRequests,
+                       deploy additional vmauth replicas, check requests latency at backend service."
+
+  SelfMonitoring-samples:
+    labels:
+      group_name: SelfMonitoring-samples
+    interval: 30s
+    rules:
+      VMDuplicatedSamples:
+        expr: vm_deduplicated_samples_total{type="select"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Victoria Metrics duplicated samples detected"
+          description: "Victoria Metrics duplicated samples detected"
+      VMDroppedSamplesWithBigTimestamp:
+        expr: vm_rows_ignored_total{reason="big_timestamp"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Victoria metrics dropped samples with too big timestamp"
+          description: "Victoria metrics dropped samples with too big timestamp"
+      VMDroppedSamplesWithSmallTimestamp:
+        expr: vm_rows_ignored_total{reason="small_timestamp"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Victoria metrics dropped samples with too small timestamp"
+          description: "Victoria metrics dropped samples with too small timestamp"
