@@ -25,7 +25,7 @@ setupSecurityContext: true
 # Mandatory: no
 # Default: true
 #
-setupGrafanaDashboard: true
+installGrafanaDashboard: true
 
 # Allows to create Prometheus alerting rules for ssl-exporter.
 # Type: boolean
