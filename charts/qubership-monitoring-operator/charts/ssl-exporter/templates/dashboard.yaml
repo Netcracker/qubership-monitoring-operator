@@ -252,7 +252,7 @@ spec:
               "expr": "(up{job=~\"$job\", instance=~\"$instance\"} == 0 or ssl_probe_success{job=~\"$job\", instance=~\"$instance\"} == 0)^0",
               "format": "time_series",
               "instant": false,
-              "legendFormat": "{{instance}}",
+              "legendFormat": "{{`{{instance}}`}}",
               "refId": "A"
             }
           ],

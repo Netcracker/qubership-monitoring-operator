@@ -132,27 +132,27 @@ affinity: {}
 #     timeout: 30s
 #     tls_config:
 #       insecure_skip_verify: true
-#   
+#
 #   https-external:
 #     enabled: true
 #     timeout: 30s
 #     tls_config:
 #       ca_file: /etc/ssl/certs/ca-certificates.crt
-#   
+#
 #   https-internal:
 #     enabled: true
 #     timeout: 30s
 #     tls_config:
 #       ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-#   
+#
 #   file:
 #     enabled: true
 #     timeout: 30s
-#   
+#
 #   kubernetes:
 #     enabled: true
 #     timeout: 30s
-#   
+#
 #   kubeconfig:
 #     enabled: true
 #     timeout: 30s
@@ -181,8 +181,9 @@ serviceMonitor:
       module: https-internal
       interval: 60s
 
-    - name: secret-service-ca
-      url: kube-system/serving-ca
+    - name: secret-tls-all-namespaces
+      # url: <namespace>/<secret_name>
+      url: "*/*"
       module: kubernetes
       interval: 30s
 

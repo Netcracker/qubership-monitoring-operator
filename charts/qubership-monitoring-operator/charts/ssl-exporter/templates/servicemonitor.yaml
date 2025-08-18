@@ -16,18 +16,18 @@ spec:
     scrapeTimeout: {{ .scrapeTimeout | default $.Values.serviceMonitor.defaults.scrapeTimeout }}
     params:
       target:
-      - {{ .url }}
+      - {{ .url | quote }}
       {{- if .module }}
       module:
-      - {{ .module }}
+      - {{ .module | quote }}
       {{- end }}
     metricRelabelings:
       - sourceLabels: [instance]
         targetLabel: instance
-        replacement: {{ .url }}
+        replacement: {{ .url | quote }}
       - sourceLabels: [target]
         targetLabel: target
-        replacement: {{ .name }}
+        replacement: {{ .name | quote }}
       {{- if .additionalMetricsRelabels }}
         {{- toYaml .additionalMetricsRelabels | nindent 6 }}
       {{- else if $.Values.serviceMonitor.defaults.additionalMetricsRelabels }}
