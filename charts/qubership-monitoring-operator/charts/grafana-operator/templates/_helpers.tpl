@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.imageRenderer.image -}}
     {{- printf "%s" .Values.imageRenderer.image -}}
   {{- else -}}
-    {{- print "docker.io/grafana/grafana-image-renderer:3.12.1" -}}
+    {{- print "docker.io/grafana/grafana-image-renderer:3.12.9" -}}
   {{- end -}}
 {{- end -}}
 
