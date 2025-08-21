@@ -45,3 +45,17 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Find a goldpinger-exporter image in various places.
+Image can be found from:
+* .Values.image from values file
+* or default value
+*/}}
+{{- define "goldpinger.image" -}}
+{{- if and .Values.image.repository .Values.image.tag -}}
+{{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
+{{- else -}}
+{{- print "bloomberg/goldpinger:3.10.2" -}}
+{{- end -}}
+{{- end -}}
