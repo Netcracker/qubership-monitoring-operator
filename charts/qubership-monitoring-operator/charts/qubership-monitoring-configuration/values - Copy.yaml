@@ -1,0 +1,1508 @@
+alerts:
+  SelfMonitoring-vmcluster:
+    labels:
+      group_name: SelfMonitoring-vmcluster
+    interval: 30s
+    concurrency: 2
+    rules:
+      DiskRunsOutOfSpaceIn3Days:
+        expr: |
+            sum(vm_free_disk_space_bytes) without(path) /
+            (
+              (rate(vm_rows_added_to_storage_total[1d]) - sum(rate(vm_deduplicated_samples_total[1d])) without (type)) * (
+                sum(vm_data_size_bytes{type!~"indexdb.*"}) without(type) /
+                sum(vm_rows{type!~"indexdb.*"}) without(type)
+              )
+              +
+              rate(vm_new_timeseries_created_total[1d]) * (
+                sum(vm_data_size_bytes{type="indexdb/file"}) /
+                sum(vm_rows{type="indexdb/file"})
+              )
+            ) < 3 * 24 * 3600 > 0
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} will run out of disk space in 3 days"
+          description: "Taking into account current ingestion rate, free disk space will be enough only
+              for {{ $value | humanizeDuration }} on instance {{ $labels.instance }}.\n
+              Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
+
+      NodeBecomesReadonlyIn3Days:
+        expr: |
+          sum(vm_free_disk_space_bytes - vm_free_disk_space_limit_bytes) without(path) /
+          (
+              (rate(vm_rows_added_to_storage_total[1d]) - sum(rate(vm_deduplicated_samples_total[1d])) without (type)) * (
+                sum(vm_data_size_bytes{type!~"indexdb.*"}) without(type) /
+                sum(vm_rows{type!~"indexdb.*"}) without(type)
+              )
+              +
+              rate(vm_new_timeseries_created_total[1d]) * (
+                sum(vm_data_size_bytes{type="indexdb/file"}) /
+                sum(vm_rows{type="indexdb/file"})
+              )
+          ) < 3 * 24 * 3600 > 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} will become read-only in 3 days"
+          description: "Taking into account current ingestion rate, free disk space and -storage.minFreeDiskSpaceBytes
+              instance {{ $labels.instance }} will remain writable for {{ $value | humanizeDuration }}.\n
+              Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
+
+      DiskRunsOutOfSpace:
+        expr: |
+          sum(vm_data_size_bytes) by(job, instance) /
+          (
+           sum(vm_free_disk_space_bytes) by(job, instance) +
+           sum(vm_data_size_bytes) by(job, instance)
+          ) > 0.8
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} (job={{ $labels.job }}) will run out of disk space soon"
+          description: "Disk utilisation on instance {{ $labels.instance }} is more than 80%.\n
+            Having less than 20% of free disk space could cripple merges processes and overall performance.
+            Consider to limit the ingestion rate, decrease retention or scale the disk space if possible."
+
+      RequestErrorsToAPI:
+        expr: increase(vm_http_request_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+          show_at: dashboard
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=52&var-instance={{ $labels.instance }}"
+          summary: "Too many errors served for {{ $labels.job }} path {{ $labels.path }} (instance {{ $labels.instance }})"
+          description: "Requests to path {{ $labels.path }} are receiving errors.
+            Please verify if clients are sending correct requests."
+
+      RPCErrors:
+        expr: |
+          (
+           sum(increase(vm_rpc_connection_errors_total[5m])) by(job, instance)
+           +
+           sum(increase(vm_rpc_dial_errors_total[5m])) by(job, instance)
+           +
+           sum(increase(vm_rpc_handshake_errors_total[5m])) by(job, instance)
+          ) > 0
+        for: 15m
+        labels:
+          severity: warning
+          show_at: dashboard
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=44&var-instance={{ $labels.instance }}"
+          summary: "Too many RPC errors for {{ $labels.job }} (instance {{ $labels.instance }})"
+          description: "RPC errors are interconnection errors between cluster components.\n
+            Possible reasons for errors are misconfiguration, overload, network blips or unreachable components."
+
+      TooHighChurnRate:
+        expr: |
+          (
+             sum(rate(vm_new_timeseries_created_total[5m])) by(job)
+             /
+             sum(rate(vm_rows_inserted_total[5m])) by(job)
+           ) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
+          summary: "Churn rate is more than 10% for the last 15m"
+          description: "VM constantly creates new time series.\n
+            This effect is known as Churn Rate.\n
+            High Churn Rate tightly connected with database performance and may
+            result in unexpected OOM's or slow queries."
+
+      TooHighChurnRate24h:
+        expr: |
+          sum(increase(vm_new_timeseries_created_total[24h])) by(job)
+          >
+          (sum(vm_cache_entries{type="storage/hour_metric_ids"}) by(job) * 3)
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
+          summary: "Too high number of new series created over last 24h"
+          description: "The number of created new time series over last 24h is 3x times higher than
+            current number of active series.\n
+            This effect is known as Churn Rate.\n
+            High Churn Rate tightly connected with database performance and may
+            result in unexpected OOM's or slow queries."
+
+      TooHighSlowInsertsRate:
+        expr: |
+          (
+             sum(rate(vm_slow_row_inserts_total[5m])) by(job)
+             /
+             sum(rate(vm_rows_inserted_total[5m])) by(job)
+           ) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=108"
+          summary: "Percentage of slow inserts is more than 5% for the last 15m"
+          description: "High rate of slow inserts may be a sign of resource exhaustion
+            for the current load. It is likely more RAM is needed for optimal handling of the current number of active time series.
+            See also https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3976#issuecomment-1476883183"
+
+      VminsertVmstorageConnectionIsSaturated:
+        expr: rate(vm_rpc_send_duration_seconds_total[5m]) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+          show_at: dashboard
+        annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=139&var-instance={{ $labels.instance }}"
+          summary: "Connection between vminsert on {{ $labels.instance }} and vmstorage on {{ $labels.addr }} is saturated"
+          description: "The connection between vminsert (instance {{ $labels.instance }}) and vmstorage (instance {{ $labels.addr }})
+            is saturated by more than 90% and vminsert won't be able to keep up.\n
+            This usually means that more vminsert or vmstorage nodes must be added to the cluster in order to increase
+            the total number of vminsert -> vmstorage links."
+
+  SelfMonitoring-vmhealth:
+    labels:
+      group_name: SelfMonitoring-vmhealth
+    rules:
+      TooManyRestarts:
+        expr: changes(process_start_time_seconds{job=~".*(victoriametrics|vmselect|vminsert|vmstorage|vmagent|vmalert|vmsingle|vmalertmanager|vmauth|victorialogs|vlstorage|vlselect|vlinsert).*"}[15m]) > 2
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} too many restarts (instance {{ $labels.instance }})"
+          description: >
+            Job {{ $labels.job }} (instance {{ $labels.instance }}) has restarted more than twice in the last 15 minutes.
+            It might be crashlooping.
+
+      ServiceDown:
+        expr: up{job=~".*(victoriametrics|vmselect|vminsert|vmstorage|vmagent|vmalert|vmsingle|vmalertmanager|vmauth|victorialogs|vlstorage|vlselect|vlinsert).*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+
+      ProcessNearFDLimits:
+        expr: (process_max_fds - process_open_fds) < 100
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Number of free file descriptors is less than 100 for \"{{ $labels.job }}\"(\"{{ $labels.instance }}\") for the last 5m"
+          description: | 
+            Exhausting OS file descriptors limit can cause severe degradation of the process.
+            Consider to increase the limit as fast as possible.
+
+      TooHighMemoryUsage:
+        expr: (min_over_time(process_resident_memory_anon_bytes[10m]) / vm_available_memory_bytes) > 0.8
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "It is more than 80% of memory used by \"{{ $labels.job }}\"(\"{{ $labels.instance }}\")"
+          description: |
+            Too high memory usage may result into multiple issues such as OOMs or degraded performance.
+            Consider to either increase available memory or decrease the load on the process.
+
+      TooHighCPUUsage:
+        expr: rate(process_cpu_seconds_total[5m]) / process_cpu_cores_available > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "More than 90% of CPU is used by \"{{ $labels.job }}\"(\"{{ $labels.instance }}\") during the last 5m"
+          description: >
+            Too high CPU usage may be a sign of insufficient resources and make process unstable.
+            Consider to either increase available CPU resources or decrease the load on the process.
+
+      TooHighGoroutineSchedulingLatency:
+        expr: histogram_quantile(0.99, sum(rate(go_sched_latencies_seconds_bucket[5m])) by (le, job, instance)) > 0.1
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "\"{{ $labels.job }}\"(\"{{ $labels.instance }}\") has insufficient CPU resources for >15m"
+          description: >
+            Go runtime is unable to schedule goroutines execution in acceptable time. This is usually a sign of
+            insufficient CPU resources or CPU throttling. Verify that service has enough CPU resources. Otherwise,
+            the service could work unreliably with delays in processing.
+
+      TooManyLogs:
+        expr: sum(increase(vm_log_messages_total{level="error"}[5m])) without (app_version, location) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many logs printed for job \"{{ $labels.job }}\" ({{ $labels.instance }})"
+          description: >
+            Logging rate for job \"{{ $labels.job }}\" ({{ $labels.instance }}) is {{ $value }} for last 15m.
+            Worth to check logs for specific error messages.
+
+      TooManyTSIDMisses:
+        expr: rate(vm_missing_tsids_for_metric_id_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Too many TSID misses for job \"{{ $labels.job }}\" ({{ $labels.instance }})"
+          description: | 
+            The rate of TSID misses during query lookups is too high for \"{{ $labels.job }}\" ({{ $labels.instance }}).
+            Make sure you're running VictoriaMetrics of v1.85.3 or higher.
+            Related issue https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3502
+
+      ConcurrentInsertsHitTheLimit:
+        expr: avg_over_time(vm_concurrent_insert_current[1m]) >= vm_concurrent_insert_capacity
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }} on instance {{ $labels.instance }} is constantly hitting concurrent inserts limit"
+          description: | 
+            The limit of concurrent inserts on instance {{ $labels.instance }} depends on the number of CPUs.
+            Usually, when component constantly hits the limit it is likely the component is overloaded and requires more CPU.
+            In some cases for components like vmagent or vminsert the alert might trigger if there are too many clients
+            making write attempts. If vmagent's or vminsert's CPU usage and network saturation are at normal level, then 
+            it might be worth adjusting `-maxConcurrentInserts` cmd-line flag.
+
+      IndexDBRecordsDrop:
+        expr: increase(vm_indexdb_items_dropped_total[5m]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "IndexDB skipped registering items during data ingestion with reason={{ $labels.reason }}."
+          description: | 
+            VictoriaMetrics could skip registering new timeseries during ingestion if they fail the validation process. 
+            For example, `reason=too_long_item` means that time series cannot exceed 64KB. Please, reduce the number 
+            of labels or label values for such series. Or enforce these limits via `-maxLabelsPerTimeseries` and 
+            `-maxLabelValueLen` command-line flags.
+
+      RowsRejectedOnIngestion:
+        expr: rate(vm_rows_ignored_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Some rows are rejected on \"{{ $labels.instance }}\" on ingestion attempt"
+          description: "Ingested rows on instance \"{{ $labels.instance }}\" are rejected due to the
+            following reason: \"{{ $labels.reason }}\""
+
+      TooHighQueryLoad:
+        expr: increase(vm_concurrent_select_limit_timeout_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Read queries fail with timeout for {{ $labels.job }} on instance {{ $labels.instance }}"
+          description: |
+            Instance {{ $labels.instance }} ({{ $labels.job }}) is failing to serve read queries during last 15m.
+            Concurrency limit `-search.maxConcurrentRequests` was reached on this instance and extra queries were
+            put into the queue for `-search.maxQueueDuration` interval. But even after waiting in the queue these queries weren't served.
+            This happens if instance is overloaded with the current workload, or datasource is too slow to respond.
+            Possible solutions are the following:
+            * reduce the query load;
+            * increase compute resources or number of replicas;
+            * adjust limits `-search.maxConcurrentRequests` and `-search.maxQueueDuration`.
+            See more at https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries.
+
+  SelfMonitoring-vmagent:
+    labels:
+      group_name: SelfMonitoring-vmagent
+    interval: 30s
+    concurrency: 2
+    rules:
+      PersistentQueueIsDroppingData:
+        expr: sum(increase(vm_persistentqueue_bytes_dropped_total[5m])) without (path) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=49&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} is dropping data from persistent queue"
+          description: "Vmagent dropped {{ $value | humanize1024 }} from persistent queue
+              on instance {{ $labels.instance }} for the last 10m."
+
+      RejectedRemoteWriteDataBlocksAreDropped:
+        expr: sum(increase(vmagent_remotewrite_packets_dropped_total[5m])) without (url) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=79&var-instance={{ $labels.instance }}"
+          summary: "Vmagent is dropping data blocks that are rejected by remote storage"
+          description: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} drops the rejected by 
+            remote-write server data blocks. Check the logs to find the reason for rejects."
+
+      TooManyScrapeErrors:
+        expr: increase(vm_promscrape_scrapes_failed_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=31&var-instance={{ $labels.instance }}"
+          summary: "Vmagent fails to scrape one or more targets"
+          description: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} fails to scrape targets for last 15m"
+
+      ScrapePoolHasNoTargets:
+        expr: sum(vm_promscrape_scrape_pool_targets) without (status, instance, pod) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Vmagent has scrape_pool with 0 configured/discovered targets"
+          description: "Vmagent \"{{ $labels.job }}\" has scrape_pool \"{{ $labels.scrape_job }}\"
+            with 0 discovered targets. It is likely a misconfiguration. Please follow https://docs.victoriametrics.com/victoriametrics/vmagent/#debugging-scrape-targets
+            to troubleshoot the scraping config."
+
+      TooManyWriteErrors:
+        expr: |
+          (sum(increase(vm_ingestserver_request_errors_total[5m])) without (name,net,type)
+          +
+          sum(increase(vmagent_http_request_errors_total[5m])) without (path,protocol)) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=77&var-instance={{ $labels.instance }}"
+          summary: "Vmagent responds with too many errors on data ingestion protocols"
+          description: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} responds with errors to write requests for last 15m."
+
+      TooManyRemoteWriteErrors:
+        expr: rate(vmagent_remotewrite_retries_count_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=61&var-instance={{ $labels.instance }}"
+          summary: "Job \"{{ $labels.job }}\" on instance {{ $labels.instance }} fails to push to remote storage"
+          description: "Vmagent fails to push data via remote write protocol to destination \"{{ $labels.url }}\"\n
+            Ensure that destination is up and reachable."
+
+      RemoteWriteConnectionIsSaturated:
+        expr: |
+          (
+           rate(vmagent_remotewrite_send_duration_seconds_total[5m])
+           / 
+           vmagent_remotewrite_queues
+          ) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=84&var-instance={{ $labels.instance }}"
+          summary: "Remote write connection from \"{{ $labels.job }}\" (instance {{ $labels.instance }}) to {{ $labels.url }} is saturated"
+          description: "The remote write connection between vmagent \"{{ $labels.job }}\" (instance {{ $labels.instance }}) and destination \"{{ $labels.url }}\"
+            is saturated by more than 90% and vmagent won't be able to keep up.\n
+            There could be the following reasons for this:\n
+             * vmagent can't send data fast enough through the existing network connections. Increase `-remoteWrite.queues` cmd-line flag value to establish more connections per destination.\n
+             * remote destination can't accept data fast enough. Check if remote destination has enough resources for processing."
+
+      PersistentQueueForWritesIsSaturated:
+        expr: rate(vm_persistentqueue_write_duration_seconds_total[5m]) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=98&var-instance={{ $labels.instance }}"
+          summary: "Persistent queue writes for instance {{ $labels.instance }} are saturated"
+          description: "Persistent queue writes for vmagent \"{{ $labels.job }}\" (instance {{ $labels.instance }})
+            are saturated by more than 90% and vmagent won't be able to keep up with flushing data on disk. 
+            In this case, consider to decrease load on the vmagent or improve the disk throughput."
+
+      PersistentQueueForReadsIsSaturated:
+        expr: rate(vm_persistentqueue_read_duration_seconds_total[5m]) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=99&var-instance={{ $labels.instance }}"
+          summary: "Persistent queue reads for instance {{ $labels.instance }} are saturated"
+          description: "Persistent queue reads for vmagent \"{{ $labels.job }}\" (instance {{ $labels.instance }})
+            are saturated by more than 90% and vmagent won't be able to keep up with reading data from the disk. 
+            In this case, consider to decrease load on the vmagent or improve the disk throughput."
+
+      SeriesLimitHourReached:
+        expr: (vmagent_hourly_series_limit_current_series / vmagent_hourly_series_limit_max_series) > 0.9
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=88&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} reached 90% of the limit"
+          description: "Max series limit set via -remoteWrite.maxHourlySeries flag is close to reaching the max value. 
+            Then samples for new time series will be dropped instead of sending them to remote storage systems."
+
+      SeriesLimitDayReached:
+        expr: (vmagent_daily_series_limit_current_series / vmagent_daily_series_limit_max_series) > 0.9
+        labels:
+          severity: critical
+        annotations:
+          dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=90&var-instance={{ $labels.instance }}"
+          summary: "Instance {{ $labels.instance }} reached 90% of the limit"
+          description: "Max series limit set via -remoteWrite.maxDailySeries flag is close to reaching the max value. 
+            Then samples for new time series will be dropped instead of sending them to remote storage systems."
+
+      ConfigurationReloadFailure:
+        expr: |
+          vm_promscrape_config_last_reload_successful != 1
+          or
+          vmagent_relabel_config_last_reload_successful != 1
+        labels:
+          severity: warning
+        annotations:
+          summary: "Configuration reload failed for vmagent instance {{ $labels.instance }}"
+          description: "Configuration hot-reload failed for vmagent on instance {{ $labels.instance }}.
+                        Check vmagent's logs for detailed error message."
+
+      StreamAggrFlushTimeout:
+        expr: |
+          increase(vm_streamaggr_flush_timeouts_total[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Streaming aggregation at \"{{ $labels.job }}\" (instance {{ $labels.instance }}) can't be finished within the configured aggregation interval."
+          description: "Stream aggregation process can't keep up with the load and might produce incorrect aggregation results. Check logs for more details.
+            Possible solutions: increase aggregation interval; aggregate smaller number of series; reduce samples' ingestion rate to stream aggregation."
+
+      StreamAggrDedupFlushTimeout:
+        expr: |
+          increase(vm_streamaggr_dedup_flush_timeouts_total[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Deduplication \"{{ $labels.job }}\" (instance {{ $labels.instance }}) can't be finished within configured deduplication interval."
+          description: "Deduplication process can't keep up with the load and might produce incorrect results. Check docs https://docs.victoriametrics.com/victoriametrics/stream-aggregation/#deduplication and logs for more details.
+            Possible solutions: increase deduplication interval; deduplicate smaller number of series; reduce samples' ingestion rate."
+
+  SelfMonitoring-vmalert:
+    labels:
+      group_name: SelfMonitoring-vmalert
+    interval: 30s
+    rules:
+      ConfigurationReloadFailure:
+        expr: vmalert_config_last_reload_successful != 1
+        labels:
+          severity: warning
+        annotations:
+          summary: "Configuration reload failed for vmalert instance {{ $labels.instance }}"
+          description: "Configuration hot-reload failed for vmalert on instance {{ $labels.instance }}.
+            Check vmalert's logs for detailed error message."
+
+      AlertingRulesError:
+        expr: sum(increase(vmalert_alerting_rules_errors_total[5m])) without(id) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=13&var-instance={{ $labels.instance }}&var-file={{ $labels.file }}&var-group={{ $labels.group }}"
+          summary: "Alerting rules are failing for vmalert instance {{ $labels.instance }}"
+          description: "Alerting rules execution is failing for \"{{ $labels.alertname }}\" from group \"{{ $labels.group }}\" in file \"{{ $labels.file }}\".
+            Check vmalert's logs for detailed error message."
+
+      RecordingRulesError:
+        expr: sum(increase(vmalert_recording_rules_errors_total[5m])) without(id) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=30&var-instance={{ $labels.instance }}&var-file={{ $labels.file }}&var-group={{ $labels.group }}"
+          summary: "Recording rules are failing for vmalert instance {{ $labels.instance }}"
+          description: "Recording rules execution is failing for \"{{ $labels.recording }}\" from group \"{{ $labels.group }}\" in file \"{{ $labels.file }}\".
+            Check vmalert's logs for detailed error message."
+
+      RecordingRulesNoData:
+        expr: sum(vmalert_recording_rules_last_evaluation_samples) without(id) < 1
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=33&var-file={{ $labels.file }}&var-group={{ $labels.group }}"
+          summary: "Recording rule {{ $labels.recording }} ({{ $labels.group }}) produces no data"
+          description: "Recording rule \"{{ $labels.recording }}\" from group \"{{ $labels.group }}\ in file \"{{ $labels.file }}\" 
+            produces 0 samples over the last 30min. It might be caused by a misconfiguration 
+            or incorrect query expression."
+
+      TooManyMissedIterations:
+        expr: increase(vmalert_iteration_missed_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is missing rules evaluations"
+          description: "vmalert instance {{ $labels.instance }} is missing rules evaluations for group \"{{ $labels.group }}\" in file \"{{ $labels.file }}\".
+            The group evaluation time takes longer than the configured evaluation interval. This may result in missed 
+            alerting notifications or recording rules samples. Try increasing evaluation interval or concurrency of
+            group \"{{ $labels.group }}\". See https://docs.victoriametrics.com/victoriametrics/vmalert/#groups. 
+            If rule expressions are taking longer than expected, please see https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
+
+      RemoteWriteErrors:
+        expr: increase(vmalert_remotewrite_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is failing to push metrics to remote write URL"
+          description: "vmalert instance {{ $labels.instance }} is failing to push metrics generated via alerting 
+            or recording rules to the configured remote write URL. Check vmalert's logs for detailed error message."
+
+      RemoteWriteDroppingData:
+        expr: increase(vmalert_remotewrite_dropped_rows_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is dropping data sent to remote write URL"
+          description: "vmalert instance {{ $labels.instance }} is failing to send results of alerting or recording rules 
+            to the configured remote write URL. This may result into gaps in recording rules or alerts state.
+            Check vmalert's logs for detailed error message."
+
+      AlertmanagerErrors:
+        expr: increase(vmalert_alerts_send_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmalert instance {{ $labels.instance }} is failing to send notifications to Alertmanager"
+          description: "vmalert instance {{ $labels.instance }} is failing to send alert notifications to \"{{ $labels.addr }}\".
+            Check vmalert's logs for detailed error message."
+
+  SelfMonitoring-vmauth:
+    labels:
+      group_name: SelfMonitoring-vmauth
+    interval: 30s
+    rules:
+      ConcurrentRequestsLimitReached:
+        expr: sum(increase(vmauth_concurrent_requests_limit_reached_total[1m])) by (instance) > 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmauth ({{ $labels.instance }}) reached concurrent requests limit"
+          description: "Possible solutions: increase the limit with flag: -maxConcurrentRequests,
+                      deploy additional vmauth replicas, check requests latency at backend service.
+                      See more details at https://docs.victoriametrics.com/victoriametrics/vmauth/#concurrency-limiting"
+      UserConcurrentRequestsLimitReached:
+        expr: sum(increase(vmauth_user_concurrent_requests_limit_reached_total[1m])) by (username) > 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "vmauth has reached concurrent requests limit for username {{ $labels.username }}"
+          description: "Possible solutions: increase limit with flag: -maxConcurrentPerUserRequests,
+                       deploy additional vmauth replicas, check requests latency at backend service."
+
+  SelfMonitoring-samples:
+    labels:
+      group_name: SelfMonitoring-samples
+    interval: 30s
+    rules:
+      VMDuplicatedSamples:
+        expr: vm_deduplicated_samples_total{type="select"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Victoria Metrics duplicated samples detected"
+          description: "Victoria Metrics duplicated samples detected"
+      VMDroppedSamplesWithBigTimestamp:
+        expr: vm_rows_ignored_total{reason="big_timestamp"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Victoria metrics dropped samples with too big timestamp"
+          description: "Victoria metrics dropped samples with too big timestamp"
+      VMDroppedSamplesWithSmallTimestamp:
+        expr: vm_rows_ignored_total{reason="small_timestamp"} > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Victoria metrics dropped samples with too small timestamp"
+          description: "Victoria metrics dropped samples with too small timestamp"
+
+  KubebernetesAlerts:
+    labels:
+      group_name: KubebernetesAlerts
+    interval: 30s
+    concurrency: 2
+    rules:
+    KubernetesNodeReady:
+      expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes Node ready (instance {{ $labels.instance }})"
+        description: "Node {{ $labels.node }} has been unready for a long time\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesMemoryPressure:
+      expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes memory pressure (instance {{ $labels.instance }})"
+        description: "{{ $labels.node }} has MemoryPressure condition\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesDiskPressure:
+      expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes disk pressure (instance {{ $labels.instance }})"
+        description: "{{ $labels.node }} has DiskPressure condition\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesOutOfDisk:
+      expr: kube_node_status_condition{condition="OutOfDisk",status="true"} == 1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes out of disk (instance {{ $labels.instance }})"
+        description: "{{ $labels.node }} has OutOfDisk condition\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesJobFailed:
+      expr: kube_job_status_failed > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes Job failed (instance {{ $labels.instance }})"
+        description: "Job {{$labels.namespace}}/{{$labels.exported_job}} failed to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesCronjobSuspended:
+      expr: kube_cronjob_spec_suspend != 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes CronJob suspended (instance {{ $labels.instance }})"
+        description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is suspended\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesPersistentvolumeclaimPending:
+      expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes PersistentVolumeClaim pending (instance {{ $labels.instance }})"
+        description: "PersistentVolumeClaim {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is pending\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesPersistentvolumeError:
+      expr: (kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"}) > 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes PersistentVolume error (instance {{ $labels.instance }})"
+        description: "Persistent volume is in bad state\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesVolumeOutOfDiskSpaceWarning:
+      expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) * 100 < 25
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: Kubernetes Volume out of disk space (instance {{ $labels.instance }})
+        description: "Volume is almost full (< 25% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesVolumeOutOfDiskSpaceHigh:
+      expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) * 100 < 10
+      for: 2m
+      labels:
+        severity: high
+      annotations:
+        summary: Kubernetes Volume out of disk space (instance {{ $labels.instance }})
+        description: "Volume is almost full (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesVolumeFullInFourDays:
+      expr: predict_linear(kubelet_volume_stats_available_bytes[6h], 345600) < 0
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: Kubernetes Volume full in four days (instance {{ $labels.instance }})
+        description: "{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is expected to fill up within four days. Currently {{ $value | humanize }}% is available.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesStatefulsetDown:
+      expr: kube_statefulset_replicas - kube_statefulset_status_replicas_ready != 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes StatefulSet down (instance {{ $labels.instance }})"
+        description: "A StatefulSet went down\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesPodNotHealthy:
+      expr: min_over_time(sum by (exported_namespace, exported_pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"})[1h:1m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes Pod not healthy (instance {{ $labels.instance }})"
+        description: "Pod has been in a non-ready state for longer than an hour.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesPodCrashLooping:
+      expr: (rate(kube_pod_container_status_restarts_total[15m]) * 60) * 5 > 5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes pod crash looping (instance {{ $labels.instance }})"
+        description: "Pod {{ $labels.pod }} is crash looping\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesReplicassetMismatch:
+      expr: kube_replicaset_spec_replicas - kube_replicaset_status_ready_replicas != 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes ReplicasSet mismatch (instance {{ $labels.instance }})"
+        description: "Deployment Replicas mismatch\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesDeploymentReplicasMismatch:
+      expr: kube_deployment_spec_replicas - kube_deployment_status_replicas_available != 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes Deployment replicas mismatch (instance {{ $labels.instance }})"
+        description: "Deployment Replicas mismatch\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesStatefulsetReplicasMismatch:
+      expr: kube_statefulset_status_replicas_ready - kube_statefulset_status_replicas != 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes StatefulSet replicas mismatch (instance {{ $labels.instance }})"
+        description: "A StatefulSet has not matched the expected number of replicas for longer than 15 minutes.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesDeploymentGenerationMismatch:
+      expr: kube_deployment_status_observed_generation - kube_deployment_metadata_generation != 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes Deployment generation mismatch (instance {{ $labels.instance }})"
+        description: "A Deployment has failed but has not been rolled back.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesStatefulsetGenerationMismatch:
+      expr: kube_statefulset_status_observed_generation - kube_statefulset_metadata_generation != 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes StatefulSet generation mismatch (instance {{ $labels.instance }})"
+        description: "A StatefulSet has failed but has not been rolled back.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesStatefulsetUpdateNotRolledOut:
+      expr: max without (revision) (kube_statefulset_status_current_revision unless kube_statefulset_status_update_revision) * (kube_statefulset_replicas != kube_statefulset_status_replicas_updated)
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes StatefulSet update not rolled out (instance {{ $labels.instance }})"
+        description: "StatefulSet update has not been rolled out.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesDaemonsetRolloutStuck:
+      expr: (((kube_daemonset_status_number_ready / kube_daemonset_status_desired_number_scheduled) * 100) < 100) or (kube_daemonset_status_desired_number_scheduled - kube_daemonset_status_current_number_scheduled > 0)
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes DaemonSet rollout stuck (instance {{ $labels.instance }})"
+        description: "Some Pods of DaemonSet are not scheduled or not ready\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesDaemonsetMisscheduled:
+      expr: kube_daemonset_status_number_misscheduled > 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes DaemonSet misscheduled (instance {{ $labels.instance }})"
+        description: "Some DaemonSet Pods are running where they are not supposed to run\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesCronjobTooLong:
+      expr: time() - kube_cronjob_next_schedule_time > 3600
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes CronJob too long (instance {{ $labels.instance }})"
+        description: "CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} is taking more than 1h to complete.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesJobCompletion:
+      expr: (kube_job_spec_completions - kube_job_status_succeeded > 0) or (kube_job_status_failed > 0)
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes job completion (instance {{ $labels.instance }})"
+        description: "Kubernetes Job failed to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesApiServerErrors:
+      expr: (sum(rate(apiserver_request_count{job="kube-apiserver",code=~"(?:5..)$"}[2m])) / sum(rate(apiserver_request_count{job="kube-apiserver"}[2m]))) * 100 > 3
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes API server errors (instance {{ $labels.instance }})"
+        description: "Kubernetes API server is experiencing high error rate\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    ApiServerRequestsSlow:
+      expr: histogram_quantile(0.99, rate(apiserver_request_duration_seconds_bucket{verb!="WATCH"}[5m])) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "API Server requests are slow(instance {{ $labels.instance }})"
+        description: "HTTP requests slowing down, 99th quantile is over 0.5s for 5 minutes\\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    ControllerWorkQueueDepth:
+      expr: sum(workqueue_depth) > 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Controller work queue depth is more than 10 (instance {{ $labels.instance }})"
+        description: "Controller work queue depth is more than 10\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesApiClientErrors:
+      expr: (sum(rate(rest_client_requests_total{code=~"(4|5).."}[2m])) by (instance, job) / sum(rate(rest_client_requests_total[2m])) by (instance, job)) * 100 > 5
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes API client errors (instance {{ $labels.instance }})"
+        description: "Kubernetes API client is experiencing high error rate\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesClientCertificateExpiresNextWeek:
+      expr: (apiserver_client_certificate_expiration_seconds_count{job="kubelet"}) > 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubelet"}[5m]))) < 604800
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Kubernetes client certificate expires next week (instance {{ $labels.instance }})"
+        description: "A client certificate used to authenticate to the apiserver is expiring next week.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    KubernetesClientCertificateExpiresSoon:
+      expr: (apiserver_client_certificate_expiration_seconds_count{job="kubelet"}) > 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubelet"}[5m]))) < 86400
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes client certificate expires soon (instance {{ $labels.instance }})"
+        description: "A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  NodeProcesses:
+    labels:
+      group_name: NodeProcesses
+    rules:
+    CountPidsAndThreadOutOfLimit:
+      expr: (sum(container_processes) by (node) +  on (node) label_replace(node_processes_threads * on(instance) group_left(nodename) (node_uname_info), "node", "$1", "nodename", "(.+)")) / on (node) label_replace(node_processes_max_processes * on(instance) group_left(nodename) (node_uname_info), "node", "$1", "nodename", "(.+)") * 100 > 80
+      for: 5m
+      labels:
+        severity: high
+      annotations:
+        summary: "Host high PIDs and Threads usage (instance {{ $labels.instance }})"
+        description: "Sum of node's pids and threads is filling up (< 20% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  NodeExporters:
+    labels:
+      group_name: NodeExporters
+    rules:
+    NodeDiskUsageIsMoreThanWarningThreshold:
+      annotations:
+        description: "Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is\n  VALUE = {{ $value }}%"
+        summary: "Disk usage on node > 70% (instance {{ $labels.node }})"
+      expr: (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"})) > 70
+      for: 5m
+      labels:
+        severity: warning
+
+    NodeDiskUsageIsMoreThanCriticalThreshold:
+      annotations:
+        description: "Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is\n VALUE = {{ $value }}%"
+        summary: "Disk usage on node > 90% (instance {{ $labels.node }})"
+      expr: (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"})) > 90
+      for: 5m
+      labels:
+        severity: high
+
+    HostOutOfMemory:
+      expr: ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100) * on(instance) group_left(nodename) node_uname_info < 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host out of memory (instance {{ $labels.instance }})"
+        description: "Node memory is filling up (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostMemoryUnderMemoryPressure:
+      expr: rate(node_vmstat_pgmajfault[2m]) * on(instance) group_left(nodename) node_uname_info > 1000
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host memory under memory pressure (instance {{ $labels.instance }})"
+        description: "The node is under heavy memory pressure. High rate of major page faults\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostUnusualNetworkThroughputIn:
+      expr: ((sum by (instance) (irate(node_network_receive_bytes_total[2m])) * on(instance) group_left(nodename) node_uname_info) / 1024) / 1024 > 100
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host unusual network throughput in (instance {{ $labels.instance }})"
+        description: "Host network interfaces are probably receiving too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostUnusualNetworkThroughputOut:
+      expr: ((sum by (instance) (irate(node_network_transmit_bytes_total[2m])) * on(instance) group_left(nodename) node_uname_info) / 1024) / 1024 > 100
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host unusual network throughput out (instance {{ $labels.instance }})"
+        description: "Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostUnusualDiskReadRate:
+      expr: (sum by (instance) (irate(node_disk_read_bytes_total[2m])) * on(instance) group_left(nodename) node_uname_info) / 1024 / 1024 > 50
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host unusual disk read rate (instance {{ $labels.instance }})"
+        description: "Disk is probably reading too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostUnusualDiskWriteRate:
+      expr: ((sum by (instance) (irate(node_disk_written_bytes_total[2m])) * on(instance) group_left(nodename) node_uname_info) / 1024) / 1024 > 50
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host unusual disk write rate (instance {{ $labels.instance }})"
+        description: "Disk is probably writing too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostOutOfDiskSpace:
+      expr: ((node_filesystem_avail_bytes{mountpoint="/"}  * 100) / node_filesystem_size_bytes{mountpoint="/"}) * on(instance) group_left(nodename) node_uname_info < 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host out of disk space (instance {{ $labels.instance }})"
+        description: "Disk is almost full (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostDiskWillFillIn4Hours:
+      expr: predict_linear(node_filesystem_free_bytes{fstype!~"tmpfs"}[1h], 14400) * on(instance) group_left(nodename) node_uname_info < 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host disk will fill in 4 hours (instance {{ $labels.instance }})"
+        description: "Disk will fill in 4 hours at current write rate\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostOutOfInodes:
+      expr: ((node_filesystem_files_free{mountpoint ="/"} / node_filesystem_files{mountpoint ="/"}) * 100) * on(instance) group_left(nodename) node_uname_info < 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host out of inodes (instance {{ $labels.instance }})"
+        description: "Disk is almost running out of available inodes (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostUnusualDiskReadLatency:
+      expr: (rate(node_disk_read_time_seconds_total[2m]) / rate(node_disk_reads_completed_total[2m])) * on(instance) group_left(nodename) node_uname_info > 100
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host unusual disk read latency (instance {{ $labels.instance }})"
+        description: "Disk latency is growing (read operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostUnusualDiskWriteLatency:
+      expr: (rate(node_disk_write_time_seconds_total[2m]) / rate(node_disk_writes_completed_total[2m])) * on(instance) group_left(nodename) node_uname_info > 100
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host unusual disk write latency (instance {{ $labels.instance }})"
+        description: "Disk latency is growing (write operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HostHighCpuLoad:
+      expr: 100 - ((avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) * on (instance) group_left (nodename) node_uname_info) > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Host high CPU load (instance {{ $labels.instance }})"
+        description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  DockerContainers:
+    labels:
+      group_name: DockerContainers
+    rules:
+    ContainerKilled:
+      expr: time() - container_last_seen > 60
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container killed (instance {{ $labels.instance }})"
+        description: "A container has disappeared\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    ContainerVolumeUsage:
+      expr: (1 - (sum(container_fs_inodes_free) BY (node) / sum(container_fs_inodes_total) BY (node))) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container Volume usage (instance {{ $labels.instance }})"
+        description: "Container Volume usage is above 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    ContainerVolumeIoUsage:
+      expr: (sum(container_fs_io_current) BY (node, name) * 100) > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container Volume IO usage (instance {{ $labels.instance }})"
+        description: "Container Volume IO usage is above 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    ContainerHighThrottleRate:
+      expr: rate(container_cpu_cfs_throttled_seconds_total[3m]) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container high throttle rate (instance {{ $labels.instance }})"
+        description: "Container is being throttled\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  HAmode:
+    labels:
+      group_name: HAmode
+    rules:
+      NotHAKubernetesDeploymentAvailableReplicas:
+        expr: kube_deployment_status_replicas_available < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Not HA mode: Deployment Available Replicas < 2 (instance {{ $labels.instance }})"
+          description: "Not HA mode: Kubernetes Deployment has less than 2 available replicas\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      NotHAKubernetesStatefulSetAvailableReplicas:
+        expr: kube_statefulset_status_replicas_available < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Not HA mode: StatefulSet Available Replicas < 2 (instance {{ $labels.instance }})"
+          description: "Not HA mode: Kubernetes StatefulSet has less than 2 available replicas\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      NotHAKubernetesDeploymentDesiredReplicas:
+        expr: kube_deployment_status_replicas < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Not HA mode: Deployment Desired Replicas < 2 (instance {{ $labels.instance }})"
+          description: "Not HA mode: Kubernetes Deployment has less than 2 desired replicas\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      NotHAKubernetesStatefulSetDesiredReplicas:
+        expr: kube_statefulset_status_replicas < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Not HA mode: StatefulSet Desired Replicas < 2 (instance {{ $labels.instance }})"
+          description: "Not HA mode: Kubernetes StatefulSet has less than 2 desired replicas\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      NotHAKubernetesDeploymentMultiplePodsPerNode:
+        expr: count(sum(kube_pod_info{node=~".+", created_by_kind="ReplicaSet"}) by (namespace, node, created_by_name) > 1) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Not HA mode: Deployment Has Multiple Pods per Node (instance {{ $labels.instance }})"
+          description: "Not HA mode: Kubernetes Deployment has 2 or more replicas on the same node\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      NotHAKubernetesStatefulSetMultiplePodsPerNode:
+        expr: count(sum(kube_pod_info{node=~".+", created_by_kind="StatefulSet"}) by (namespace, node, created_by_name) > 1) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Not HA mode: StatefulSet Has Multiple Pods per Node (instance {{ $labels.instance }})"
+          description: "Not HA mode: Kubernetes StatefulSet has 2 or more replicas on the same node\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  HAproxy:
+    labels:
+      group_name: HAproxy
+    rules:
+    HaproxyDown:
+      expr: haproxy_up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HAProxy down (instance {{ $labels.instance }})"
+        description: "HAProxy down\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyBackendConnectionErrors:
+      expr: sum by (backend) (rate(haproxy_backend_connection_errors_total[2m])) > 10
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HAProxy backend connection errors (instance {{ $labels.instance }})"
+        description: "Too many connection errors to {{ $labels.fqdn }}/{{ $labels.backend }} backend (> 10 req/s). Request throughput may be to high.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyServerResponseErrors:
+      expr: sum by (server) (rate(haproxy_server_response_errors_total[2m])) > 5
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HAProxy server response errors (instance {{ $labels.instance }})"
+        description: "Too many response errors to {{ $labels.server }} server (> 5 req/s).\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyServerConnectionErrors:
+      expr: sum by (server) (rate(haproxy_server_connection_errors_total[2m])) > 10
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HAProxy server connection errors (instance {{ $labels.instance }})"
+        description: "Too many connection errors to {{ $labels.server }} server (> 10 req/s). Request throughput may be to high.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyPendingRequests:
+      expr: sum by (backend) (haproxy_backend_current_queue) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "HAProxy pending requests (instance {{ $labels.instance }})"
+        description: "Some HAProxy requests are pending on {{ $labels.fqdn }}/{{ $labels.backend }} backend\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyHttpSlowingDown:
+      expr: avg by (backend) (haproxy_backend_http_total_time_average_seconds) > 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "HAProxy HTTP slowing down (instance {{ $labels.instance }})"
+        description: "Average request time is increasing\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyRetryHigh:
+      expr: sum by (backend) (rate(haproxy_backend_retry_warnings_total[5m])) > 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "HAProxy retry high (instance {{ $labels.instance }})"
+        description: "High rate of retry on {{ $labels.fqdn }}/{{ $labels.backend }} backend\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyBackendDown:
+      expr: haproxy_backend_up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HAProxy backend down (instance {{ $labels.instance }})"
+        description: "HAProxy backend is down\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyServerDown:
+      expr: haproxy_server_up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HAProxy server down (instance {{ $labels.instance }})"
+        description: "HAProxy server is down\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyFrontendSecurityBlockedRequests:
+      expr: sum by (frontend) (rate(haproxy_frontend_requests_denied_total[5m])) > 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "HAProxy frontend security blocked requests (instance {{ $labels.instance }})"
+        description: "HAProxy is blocking requests for security reason\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    HaproxyServerHealthcheckFailure:
+      expr: increase(haproxy_server_check_failures_total[5m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "HAProxy server healthcheck failure (instance {{ $labels.instance }})"
+        description: "Some server healthcheck are failing on {{ $labels.server }}\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  Etcd:
+    labels:
+      group_name: Etcd
+    rules:
+    EtcdInsufficientMembers:
+      expr: count(etcd_server_id{job="etcd"}) % 2 == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Etcd insufficient Members (instance {{ $labels.instance }})"
+        description: "Etcd cluster should have an odd number of members\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdNoLeader:
+      expr: etcd_server_has_leader == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Etcd no Leader (instance {{ $labels.instance }})"
+        description: "Etcd cluster have no leader\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdHighNumberOfLeaderChanges:
+      expr: increase(etcd_server_leader_changes_seen_total[1h]) > 3
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd high number of leader changes (instance {{ $labels.instance }})"
+        description: "Etcd leader changed more than 3 times during last hour\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdWarningNumberOfFailedGrpcRequests:
+      expr: sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK", grpc_method!="Watch"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) > 0.01
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd high number of failed GRPC requests (instance {{ $labels.instance }})"
+        description: "More than 1% GRPC request failure detected in Etcd for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdCriticalNumberOfFailedGrpcRequests:
+      expr: sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK", grpc_method!="Watch"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Etcd high number of failed GRPC requests (instance {{ $labels.instance }})"
+        description: "More than 5% GRPC request failure detected in Etcd for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdGrpcRequestsSlow:
+      expr: histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job="etcd",grpc_type="unary"}[5m])) by (grpc_service, grpc_method, le)) > 0.15
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd GRPC requests slow (instance {{ $labels.instance }})"
+        description: "GRPC requests slowing down, 99th percentil is over 0.15s for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdMemberCommunicationSlow:
+      expr: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{job="etcd"}[5m])) > 0.15
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd member communication slow (instance {{ $labels.instance }})"
+        description: "Etcd member communication slowing down, 99th percentil is over 0.15s for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdHighNumberOfFailedProposals:
+      expr: increase(etcd_server_proposals_failed_total[1h]) > 5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd high number of failed proposals (instance {{ $labels.instance }})"
+        description: "Etcd server got more than 5 failed proposals past hour\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdHighFsyncDurations:
+      expr: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m])) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd high fsync durations (instance {{ $labels.instance }})"
+        description: "Etcd WAL fsync duration increasing, 99th percentil is over 0.5s for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    EtcdHighCommitDurations:
+      expr: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[5m])) > 0.25
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Etcd high commit durations (instance {{ $labels.instance }})"
+        description: "Etcd commit duration increasing, 99th percentil is over 0.25s for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  NginxIngressAlerts:
+    labels:
+      group_name: NginxIngressAlerts
+    rules:
+    NginxHighHttp4xxErrorRate:
+      expr: sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests{status=~"^4.."}[2m])) / sum by (ingress, exported_namespace, node)(rate(nginx_ingress_controller_requests[2m])) * 100 > 5
+      for: 1m
+      labels:
+        severity: high
+      annotations:
+        summary: "Nginx high HTTP 4xx error rate (node: {{ $labels.node }}, namespace: {{ $labels.exported_namespace }}, ingress: {{ $labels.ingress }})"
+        description: "Too many HTTP requests with status 4xx (> 5%)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+    NginxHighHttp5xxErrorRate:
+      expr: sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests{status=~"^5.."}[2m])) / sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests[2m])) * 100 > 5
+      for: 1m
+      labels:
+        severity: high
+      annotations:
+        summary: "Nginx high HTTP 5xx error rate (node: {{ $labels.node }}, namespace: {{ $labels.exported_namespace }}, ingress: {{ $labels.ingress }})"
+        description: "Too many HTTP requests with status 5xx (> 5%)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+    NginxLatencyHigh:
+      expr: histogram_quantile(0.99, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket[2m])) by (host, node, le)) > 3
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Nginx latency high (node: {{ $labels.node }}, host: {{ $labels.host }})"
+        description: "Nginx p99 latency is higher than 3 seconds\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  CoreDnsAlerts:
+    labels:
+      group_name: CoreDnsAlerts
+    rules:
+    CorednsPanicCount:
+      expr: increase(coredns_panics_total[1m]) > 0
+      for: 0m
+      labels:
+        severity: critical
+      annotations:
+        summary: CoreDNS Panic Count (instance {{ $labels.instance }})
+        description: "Number of CoreDNS panics encountered\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+    CoreDNSLatencyHigh:
+      annotations:
+        description: CoreDNS has 99th percentile latency of {{ $value }} seconds for server {{ $labels.server }} zone {{ $labels.zone }}
+        summary: CoreDNS have High Latency
+      expr: histogram_quantile(0.99, sum(rate(coredns_dns_request_duration_seconds_bucket[2m])) by(server, zone, le)) > 3
+      for: 5m
+      labels:
+        severity: critical
+
+    CoreDNSForwardHealthcheckFailureCount:
+      annotations:
+        summary: CoreDNS health checks have failed to upstream server
+        description: CoreDNS health checks have failed to upstream server {{ $labels.to }}
+      expr: sum(rate(coredns_forward_healthcheck_broken_total[2m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+
+    CoreDNSForwardHealthcheckBrokenCount:
+      annotations:
+        summary: CoreDNS health checks have failed for all upstream servers
+        description: "CoreDNS health checks failed for all upstream servers LABELS = {{ $labels }}"
+      expr: sum(rate(coredns_forward_healthcheck_broken_total[2m])) > 0
+      for: 5m
+      labels:
+        severity: warning
+
+    CoreDNSErrorsCritical:
+      annotations:
+        description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of requests
+        summary: CoreDNS is returning SERVFAIL
+      expr: sum(rate(coredns_dns_responses_total{rcode="SERVFAIL"}[2m])) / sum(rate(coredns_dns_responses_total[2m])) > 0.03
+      for: 5m
+      labels:
+        severity: critical
+      
+    CoreDNSErrorsWarning:
+      annotations:
+        description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of requests
+        summary: CoreDNS is returning SERVFAIL
+      expr: sum(rate(coredns_dns_responses_total{rcode="SERVFAIL"}[2m])) / sum(rate(coredns_dns_responses_total[2m])) > 0.01
+      for: 5m
+      labels:
+        severity: warning
+
+    CoreDNSForwardLatencyHigh:
+      annotations:
+        description: CoreDNS has 99th percentile latency of {{ $value }} seconds forwarding requests to {{ $labels.to }}
+        summary: CoreDNS has 99th percentile latency for forwarding requests
+      expr: histogram_quantile(0.99, sum(rate(coredns_forward_request_duration_seconds_bucket[2m])) by(to, le)) > 3
+      for: 5m
+      labels:
+        severity: critical
+      
+    CoreDNSForwardErrorsCritical:
+      annotations:
+        description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of forward requests to {{ $labels.to }}
+        summary: CoreDNS is returning SERVFAIL for forward requests
+      expr: sum(rate(coredns_forward_responses_total{rcode="SERVFAIL"}[2m])) / sum(rate(coredns_forward_responses_total[2m])) > 0.03
+      for: 5m
+      labels:
+        severity: critical
+      
+    CoreDNSForwardErrorsWarning:
+      annotations:
+        description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of forward requests to {{ $labels.to }}
+        summary: CoreDNS is returning SERVFAIL for forward requests
+      expr: sum(rate(coredns_forward_responses_total{rcode="SERVFAIL"}[2m])) / sum(rate(coredns_forward_responses_total[2m])) > 0.01
+      for: 5m
+      labels:
+        severity: warning
+
+  DRAlerts:
+    labels:
+      group_name: DRAlerts
+    rules:
+      ProbeFailed:
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Probe failed (instance: {{ $labels.instance }})"
+          description: "Probe failed\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      SlowProbe:
+        expr: avg_over_time(probe_duration_seconds[1m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow probe (instance: {{ $labels.instance }})"
+          description: "Blackbox probe took more than 1s to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      HttpStatusCode:
+        expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "HTTP Status Code (instance: {{ $labels.instance }})"
+          description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+      HttpSlowRequests:
+        expr: avg_over_time(probe_http_duration_seconds[1m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP slow requests (instance: {{ $labels.instance }})"
+          description: "HTTP request took more than 1s\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  BackupAlerts:
+    labels:
+      group_name: BackupAlerts
+    rules:
+      - alert: Last Backup Failed
+        expr: backup_storage_last_failed != 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Last backup made by pod {{ $labels.pod }} in namespace {{ $labels.namespace }} failed.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+          description: "Last backup made by pod {{ $labels.pod }} in namespace {{ $labels.namespace }} failed.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
