@@ -305,7 +305,7 @@ spec:
               "expr": "sum(goldpinger_nodes_health_total{status='unhealthy'}) by (goldpinger_instance)",
               "format": "table",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 40
             }
@@ -406,7 +406,7 @@ spec:
               "format": "time_series",
               "interval": "5m",
               "intervalFactor": 1,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "metric": "goldpinger_nodes_health",
               "refId": "A",
               "step": 300
@@ -508,7 +508,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 1,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "metric": "goldpinger_nodes_health",
               "refId": "A",
               "step": 60
@@ -635,7 +635,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 120
             }
@@ -735,7 +735,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 120
             }
@@ -835,7 +835,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 120
             }
@@ -960,7 +960,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 120
             }
@@ -1059,7 +1059,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 120
             }
@@ -1158,7 +1158,7 @@ spec:
               "format": "time_series",
               "interval": "1m",
               "intervalFactor": 2,
-              "legendFormat": "{{ goldpinger_instance }}",
+              "legendFormat": "$instance",
               "refId": "A",
               "step": 120
             }
