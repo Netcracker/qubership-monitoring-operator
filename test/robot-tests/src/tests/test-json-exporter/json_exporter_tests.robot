@@ -24,7 +24,7 @@ Get Metrics From ConfigMap
     FOR  ${metric}  IN  @{raw_metrics}
         Append To List  ${metrics_with_suffix}  ${metric["name"]}${METRIC_SUFFIX}
     END
-    [Return]  ${metrics_with_suffix}
+    RETURN  ${metrics_with_suffix}
 
 Check Metrics In Prometheus Or VictoriaMetrics
     ${failed_metrics}=  Create List

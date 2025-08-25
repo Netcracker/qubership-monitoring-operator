@@ -33,12 +33,12 @@ Get Grafana Credentials From Secret
     ${password_base64}=  Set Variable  ${secret.data["GF_SECURITY_ADMIN_PASSWORD"]}
     ${username}=  Decode Base64  ${username_base64}
     ${password}=  Decode Base64  ${password_base64}
-    [Return]  ${username}  ${password}
+    RETURN  ${username}  ${password}
 
 Decode Base64
     [Arguments]  ${base64_string}
     ${decoded}=  Evaluate  base64.b64decode("""${base64_string}""").decode("utf-8")
-    [Return]  ${decoded}
+    RETURN  ${decoded}
 
 Attempt Login To Grafana
     [Arguments]  ${url}  ${username}  ${password}
@@ -54,7 +54,7 @@ Attempt Login To Grafana
     ...  ELSE
     ...  Set Variable  FAIL
     Should Be Equal  ${login_status}  SUCCESS  Login to Grafana failed!
-    [Return]  ${login_status}
+    RETURN  ${login_status}
 
 Create Test Dashboard In Namespace
     [Arguments]  ${PATH_TO_DASHBOARD}
@@ -67,14 +67,14 @@ Check That Dashboard Created Successfuly
     ...  Check Resource Status Success in Cloud  ${namespace}  grafanadashboards  ${dashboard_name}
     ${status}=   Set Variable  ${object.get("status")}
     Run Keyword If  ${status} != None  Should Be Equal As Strings  ${status.get('message')}   success
-    [Return]  ${object}
+    RETURN  ${object}
 
 Check Resource Status Success in Cloud
     [Arguments]  ${namespace}  ${accepted_names:plural}  ${object_name}
     ${object}=  Get Namespaced Custom Object Status
     ...  integreatly.org  v1alpha1  ${namespace}  ${accepted_names:plural}  ${object_name}
     Should Not Be Equal  ${object}  ${NONE}
-    [Return]  ${object}
+    RETURN  ${object}
 
 Check That Grafana CR Includes Test Dashboard
     [Arguments]   ${dashboard_name}  ${namespace}
@@ -82,7 +82,7 @@ Check That Grafana CR Includes Test Dashboard
     ...  Check Status Of Dashboards Includes Name, Namespace  ${namespace}  ${dashboard_name}
     ${status}=   Set Variable  ${object.get("status")}
     Run Keyword If  ${status} != None  Should Be Equal As Strings  ${status.get('message')}  success
-    [Return]  ${object}
+    RETURN  ${object}
 
 Check Status Of Dashboards Includes Name, Namespace
     [Arguments]  ${namespace}  ${name}
@@ -90,7 +90,7 @@ Check Status Of Dashboards Includes Name, Namespace
     ${dashboard_status}=  Get Dashboard From Status  ${grafana_CR_status}  ${namespace}  ${name}
     Run Keyword If  ${dashboard_status} == None
     ...  Fail  Error! Dashboard with following name not found in namespace
-    [Return]  ${dashboard_status}
+    RETURN  ${dashboard_status}
 
 Check Dashboard UID From Status Corresponds UID From File
     [Arguments]  ${status}  ${uid_from_file}
@@ -101,7 +101,7 @@ Get Dashboard Uid
     [Arguments]  ${dashboard_status}
     ${uid}  Set Variable  ${dashboard_status.get('uid')}
     Set Suite Variable  ${uid}
-    [Return]  ${uid}
+    RETURN  ${uid}
 
 Check Dashboard Is Appear In Grafana
     [Arguments]  ${uid}
@@ -125,7 +125,7 @@ Prepare Data For Update Dashboard
     # For update dashboard custom resource it need to update dashboard ResourceVersion from file to ResourceVersion from dashboard in cloud
     ${resourceVersion}=  Get ResourceVersion From Dashboard  ${dashboard}
     ${updated_dashboard}=  Update Dashboard Parameter  ${dashboard_from_file}  resourceVersion  ${resourceVersion}
-    [Return]  ${updated_dashboard}
+    RETURN  ${updated_dashboard}
 
 Check Existing Dashboard And Create It If Not Found
     [Arguments]  ${namespace}  ${name}
@@ -135,12 +135,12 @@ Check Existing Dashboard And Create It If Not Found
     ${dashboard}=  Run Keyword If  '${status}'=='FAIL'
     ...  Create Test Dashboard In Namespace  ${PATH_TO_DASHBOARD}
     ...  ELSE  Set Variable  ${tmp_dashboard}
-    [Return]  ${dashboard}
+    RETURN  ${dashboard}
 
 Get ResourceVersion From Dashboard
     [Arguments]  ${dashboard}
     ${resourceVersion}=  Set Variable  ${dashboard.get('metadata').get('resourceVersion')}
-    [Return]  ${resourceVersion}
+    RETURN  ${resourceVersion}
 
 Get Dashboard And Check It's Updated In Cloud
     [Arguments]  ${namespace}  ${name}  ${uid}  ${dashboard_from_file}

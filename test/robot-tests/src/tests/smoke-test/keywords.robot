@@ -92,7 +92,7 @@ Check Status Of Pods
        Should Be True  ${state}
        ...  Error! Following pod ${pod.metadata.name} has Failed status! Please, recheck pod status
     END
-    [Return]  ${state}
+    RETURN  ${state}
 
 Determine Deployment Type
     [Arguments]  ${name}
@@ -102,7 +102,7 @@ Determine Deployment Type
     ${deployment_type}=    Run Keyword If    ${deployment_exists} and not ${daemonset_exists}  
     ...    Set Variable    deployment  
     ...    ELSE    Set Variable    daemonset
-    [Return]  ${deployment_type}
+    RETURN  ${deployment_type}
     
 Check Deployment Or DaemonSet State
     [Arguments]  ${name}
@@ -114,7 +114,7 @@ Check Daemon Set State With Prerequisite
     [Arguments]  ${name}  ${name-in-cr}  ${parentservice}=${None}
     ${status_check_object}=  Check that in CR service is presented  ${name-in-cr}  ${parentservice}
     ${flag}=  Run Keyword If  ${status_check_object}==True  Check Daemon Set State  ${name}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Daemon Set State
     [Arguments]  ${name}
@@ -124,7 +124,7 @@ Check Daemon Set State
     Check Pod's List Is Equals  ${pod_in_namespace}  ${daemon_set.status.desiredNumberScheduled}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Daemon Set And Deployment State For Cert Exporter
     [Arguments]  ${name}
@@ -137,13 +137,13 @@ Check Daemon Set And Deployment State For Cert Exporter
     Check Pod's List Is Equals  ${pod_in_namespace}  ${expected_sum_pods}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Deployment State With Prerequisite
     [Arguments]  ${name}  ${name-in-cr}  ${parentservice}=${None}
     ${status_check_object}=  Check That In CR Service Is Presented  ${name-in-cr}  ${parentservice}
     ${flag}=  Run Keyword If  ${status_check_object}==True  Check Deployment State  ${name}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Deployment State
     [Arguments]  ${name}
@@ -153,13 +153,13 @@ Check Deployment State
     Check Pod's List Is Equals  ${pod_in_namespace}  ${deployment.spec.replicas}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Stateful Set State With Prerequisite
     [Arguments]  ${name}  ${name-in-cr}  ${parentservice}=${None}
     ${status_check_object}=  Check That In CR Service Is Presented  ${name-in-cr}  ${parentservice}
     ${flag}=  Run Keyword If  ${status_check_object}==True  Check Stateful Set State  ${name}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Stateful Set State
     [Arguments]  ${name}
@@ -169,7 +169,7 @@ Check Stateful Set State
     Check Pod's List Is Equals  ${pod_in_namespace}  ${stateful_set.spec.replicas}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
-    [Return]  ${flag}
+    RETURN  ${flag}
 
 Check Prometheus Config Status
     ${resp}=  GET On Session  prometheussession  url=/api/v1/status/config
@@ -190,7 +190,7 @@ Get All Metrics From Api
     [Arguments]  ${session}
     ${response}=  GET On Session  ${session}  url=/api/v1/query?query=up
     Should Be Equal As Strings  ${response.status_code}  200
-    [Return]  ${response}
+    RETURN  ${response}
 
 Check Job Metrics Are Written
     [Arguments]  ${job}  ${metrics}
@@ -217,7 +217,7 @@ Check Route/Ingress Status
     ${external_url}=  Check Route Or Ingress  ${custom_resource}  ${name-in-cr}
     ...  ${namespace}-${name}  ${namespace}  ${parentservice}
     Preparation Session For External Service  ${external_url}  ${session}
-    [Return]  True
+    RETURN  True
 
 Check Service Web UI Status Via External Url
     [Arguments]  ${url}  ${expected_string}  ${session}=external
@@ -229,7 +229,7 @@ Get All Active Targets
     [Arguments]  ${session}
     ${response}=  GET On Session  ${session}  url=/api/v1/targets?state=active
     Should Be Equal As Strings  ${response.status_code}  200
-    [Return]  ${response}
+    RETURN  ${response}
 
 Check Target Is UP
      [Arguments]  ${target_name}  ${all_active_targets}
@@ -244,4 +244,4 @@ Check That In CR service Is Presented
      ${custom_resource}=  Get Custom Resource  monitoring.qubership.org/v1alpha1  PlatformMonitoring  ${namespace}  platformmonitoring
      ${flag}=  Check CR Service Exists  ${custom_resource.get('spec')}  ${name}  ${parentservice}
      Skip If  ${flag} != True  Section ${name} is not presented in CR
-     [Return]  ${flag}
+     RETURN  ${flag}
