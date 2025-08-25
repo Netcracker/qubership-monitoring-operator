@@ -14,6 +14,7 @@ class TestAppsLib(object):
         urllib3.disable_warnings()
         self.k8s_lib = PlatformLibrary(managed_by_operator)
         self.namespace = os.environ.get("NAMESPACE")
+        self.api_client = self.k8s_lib.k8s_api_client
         self.kubernetes_version_is_new = self.check_kubernetes_version()
 
     def get_service_monitor(self, name: str):
@@ -126,7 +127,7 @@ class TestAppsLib(object):
         )
 
     def get_kubernetes_version(self):
-        api = client.VersionApi()
+        api = client.VersionApi(api_client=self.api_client)
         version_info = api.get_code().to_dict()
         git_version = version_info["git_version"]
         if git_version[0] == 'v':

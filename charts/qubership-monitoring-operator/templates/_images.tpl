@@ -44,7 +44,7 @@ Image can be found from:
   {{- if .Values.grafana.image -}}
     {{- printf "%s" .Values.grafana.image -}}
   {{- else -}}
-    {{- print "docker.io/grafana/grafana:10.4.10" -}}
+    {{- print "docker.io/grafana/grafana:11.6.5" -}}
   {{- end -}}
 {{- end -}}
 

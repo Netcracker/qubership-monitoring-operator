@@ -38,7 +38,7 @@ Get All Active Targets
     [Arguments]  ${session}
     ${response}=  GET On Session  ${session}  url=/api/v1/targets?state=active
     Should Be Equal As Strings  ${response.status_code}  200
-    [Return]  ${response}
+    RETURN  ${response}
 
 Check Target Of Test App Is Exist
     ${json_response}=  Run Keyword If  '${OPERATOR}' == 'prometheus-operator'
@@ -46,7 +46,7 @@ Check Target Of Test App Is Exist
     ...  ELSE  Get All Active Targets  vmagentsession
      ${test_target}=  Get Prometheus Target  ${json_response}  ${target_testapp_name}
      Should Not Contain  ${test_target}  False
-     [Return]  ${test_target}
+     RETURN  ${test_target}
 
 Check Metrics Of Test App Is Exist
      ${prometheus_metrics}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -67,13 +67,13 @@ Get All Metrics From Api
     ...  GET On Session  prometheussession  url=/api/v1/query?query=up
     ...  ELSE  GET On Session  vmsinglessession  url=/api/v1/query?query=up
     Should Be Equal As Strings  ${response.status_code}  200
-    [Return]  ${response}
+    RETURN  ${response}
 
 Check Metrics Of Test App Are Written
     ${all_metrics}=  Get All Metrics From Api
     ${prometheus_metrics}=  Get Metrics Of Test App  ${all_metrics}  ${job}  ${namespace}
     Should Not Be Equal As Strings  ${prometheus_metrics}  False
-    [Return]  ${prometheus_metrics}
+    RETURN  ${prometheus_metrics}
 
 Check Metrics Are Available And Not Empty
     [Arguments]  ${prometheus_metrics}
@@ -87,7 +87,7 @@ Create Body for Update ServiceMonitor Label
     ${data}=  Create Dictionary  app.kubernetes.io/component=${label}
     ${labels}=  Create Dictionary  labels=${data}
     ${metadata}=  Create Dictionary  metadata=${labels}
-    [Return]  ${metadata}
+    RETURN  ${metadata}
 
 Update Service Monitor Label To
     [Arguments]  ${label}
