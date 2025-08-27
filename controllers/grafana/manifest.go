@@ -1,6 +1,7 @@
 package grafana
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
@@ -16,9 +17,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/kubernetes"
 )
 
 //go:embed  assets/*.yaml
@@ -253,7 +256,7 @@ func grafana(cr *v1alpha1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	return &graf, nil
 }
 
-func grafanaDataSource(cr *v1alpha1.PlatformMonitoring, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDataSource, error) {
+func grafanaDataSource(cr *v1alpha1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDataSource, error) {
 	dataSource := grafv1.GrafanaDataSource{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaDataSourceAsset), 100).Decode(&dataSource); err != nil {
 		return nil, err
@@ -352,6 +355,14 @@ func grafanaDataSource(cr *v1alpha1.PlatformMonitoring, jaegerServices []corev1.
 				Type:      "vertamedia-clickhouse-datasource",
 				Version:   1,
 				Url:       fmt.Sprintf("http://%s.%s.svc.cluster.local:8123", clickHouseService.GetName(), clickHouseService.GetNamespace()),
+			}
+			secret, err := KubeClient.CoreV1().Secrets(clickHouseService.GetNamespace()).Get(context.TODO(), utils.ClickHouseSecret, metav1.GetOptions{})
+			if err == nil && len(secret.Data["username"]) != 0 && len(secret.Data["password"]) != 0 {
+				clickHouseDataSource.BasicAuth = true
+				clickHouseDataSource.BasicAuthUser = string(secret.Data["username"])
+				clickHouseDataSource.SecureJsonData = grafv1.GrafanaDataSourceSecureJsonData{
+					BasicAuthPassword: string(secret.Data["password"]),
+				}
 			}
 			dataSource.Spec.Datasources = append(dataSource.Spec.Datasources, clickHouseDataSource)
 		}

@@ -30,6 +30,9 @@ const (
 	GrafanaServicePort     = 3000
 	GrafanaExtraVarsSecret = "grafana-extra-vars-secret"
 
+	ClickHouseServiceName = "clickhouse-cluster"
+	ClickHouseSecret      = "clickhouse-operator-credentials"
+
 	VmAuthOAuthProxyServiceName = "vmauth-oauth2-proxy"
 	VmAuthServicePort           = 8427
 

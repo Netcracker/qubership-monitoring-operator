@@ -63,7 +63,7 @@ func TestGrafanaManifests(t *testing.T) {
 	//	assert.Nil(t, m.Spec.Deployment.Annotations)
 	//})
 	t.Run("Test GrafanaDataSource manifest", func(t *testing.T) {
-		m, err := grafanaDataSource(cr, nil, nil)
+		m, err := grafanaDataSource(cr, nil, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
