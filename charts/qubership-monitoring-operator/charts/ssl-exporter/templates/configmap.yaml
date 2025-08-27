@@ -1,0 +1,12 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ssl-exporter.name" . }}-config
+  labels:
+    {{- include "ssl-exporter.labels" . | nindent 4 }}
+data:
+  ssl-exporter.yaml: |
+    modules:
+{{ include "ssl-exporter.modules" . | nindent 6 }}
+{{- end }}
