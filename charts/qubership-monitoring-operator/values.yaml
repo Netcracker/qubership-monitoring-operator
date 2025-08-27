@@ -1573,7 +1573,7 @@ integrationTests:
   # Default: not set
   #
   nodeSelector: {}
-  
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
@@ -1693,5 +1693,10 @@ promitorAgentResourceDiscovery:
 
 # Exporter to request metrics from Google Cloud Operations about different Google Managed Services
 stackdriver_exporter:
+  # Disable by default
+  install: false
+
+# Exporter to check and visualize network connectivity between Kubernetes nodes and pods in the cluster
+goldpingerExporter:
   # Disable by default
   install: false
