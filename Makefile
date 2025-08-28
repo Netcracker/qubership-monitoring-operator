@@ -112,6 +112,16 @@ generate: controller-gen
 					  paths="./..." \
 					  output:crd:artifacts:config=charts/qubership-monitoring-operator/crds/
 
+	if [[ "$$OSTYPE" == "darwin"* ]]; then \
+	  SED_CMD="sed -i '' -e"; \
+	else \
+	  SED_CMD="sed -i"; \
+	fi; \
+	find charts/qubership-monitoring-operator/crds -name '*.yaml' | while read f; do \
+	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook-weight: \"-5\"" "$$f"; \
+	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook: crd-install" "$$f"; \
+	done
+
 # Find or download controller-gen
 # download controller-gen if necessary
 .PHONY: controller-gen
