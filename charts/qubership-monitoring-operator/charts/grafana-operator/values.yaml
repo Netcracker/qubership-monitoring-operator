@@ -15,7 +15,7 @@ install: true
 
 # A docker image to use for prometheus-operator deployment with prometheus pod
 #
-# image: grafana/grafana:10.4.10
+# image: grafana/grafana:11.6.5
 
 # Number of created pods.
 # Type: integer
@@ -512,7 +512,7 @@ imageRenderer:
 
   # A docker image to use for grafana-image-renderer deployment
   #
-  # image: grafana/grafana-image-renderer:3.6.2
+  # image: grafana/grafana-image-renderer:3.12.9
 
   securityContext: {}
     # The UID to run the entrypoint of the container process.

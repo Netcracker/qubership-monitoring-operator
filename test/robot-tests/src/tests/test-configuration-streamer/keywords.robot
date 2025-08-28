@@ -25,18 +25,18 @@ Get Encoded Grafana Token
     [Arguments]    ${secret_name}    ${namespace}
     ${secret}=    Get Secret    ${secret_name}    ${namespace}
     ${encoded_token}=    Set Variable    ${secret.data["requestToken"]}
-    [Return]    ${encoded_token}
+    RETURN    ${encoded_token}
 
 Decode Base64 Token
     [Arguments]    ${encoded_token}
     ${decoded_token}=    Evaluate    __import__('base64').b64decode("""${encoded_token}""").decode('utf-8')    modules=base64
-    [Return]    ${decoded_token}
+    RETURN    ${decoded_token}
 
 Get Grafana Org Token
     [Arguments]    ${secret_name}    ${namespace}
     ${encoded_token}=    Get Encoded Grafana Token    ${secret_name}    ${namespace}
     ${org_token}=    Decode Base64 Token    ${encoded_token}
-    [Return]    ${org_token}
+    RETURN    ${org_token}
 
 Retrieve And Set Grafana Org Token
     [Arguments]    ${namespace}

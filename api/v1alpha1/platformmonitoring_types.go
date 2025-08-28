@@ -37,7 +37,7 @@ var (
 	defaultGrafanaOperatorImage              = "integreatly/grafana-operator:v3.1.0"
 	defaultGrafanaOperatorInitContainerImage = "integreatly/grafana_plugins_init:0.0.2"
 
-	defaultGrafanaImage = "grafana/grafana:10.4.10"
+	defaultGrafanaImage = "grafana/grafana:11.6.5"
 )
 
 // PlatformMonitoringSpec defines the desired state of PlatformMonitoring

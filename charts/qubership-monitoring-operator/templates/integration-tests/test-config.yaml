@@ -1,3 +1,6 @@
+{{- define "monitoredImages.wrapper" -}}
+  {{- block "monitoring.monitoredImages" . }}DEFAULT{{- end -}}
+{{- end -}}
 {{- if .Values.integrationTests.install -}}
 apiVersion: v1
 kind: ConfigMap
@@ -6,8 +9,8 @@ metadata:
   labels:
     app: monitoring-tests
 data:
-  {{- if include "monitoring.monitoredImages" . }}
-  dd_images: {{ include "monitoring.monitoredImages" . }}
+  {{- if ne (include "monitoredImages.wrapper" .) "DEFAULT" }}
+    dd_images: {{ include "monitoring.monitoredImages" . | indent 2 | quote }}
   {{ else }}
   dd_images: ""
   {{ end }}
