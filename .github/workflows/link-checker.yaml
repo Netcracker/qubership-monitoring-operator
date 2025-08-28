@@ -13,6 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Restore lychee cache
+        uses: actions/cache@v4
+        id: restore-cache
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
       - name: Link Checker
         id: lychee
         uses: lycheeverse/lychee-action@v2
@@ -28,5 +36,8 @@ jobs:
             --cookie-jar cookies.json
             --exclude-all-private
             --max-concurrency 4
+            --cache
+            --cache-exclude-status '429, 500..502'
+            --max-cache-age 1d
           format: markdown
           fail: true
