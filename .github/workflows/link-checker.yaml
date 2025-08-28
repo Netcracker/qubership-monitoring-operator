@@ -27,6 +27,6 @@ jobs:
             --accept 100..=103,200..=299,429
             --cookie-jar cookies.json
             --exclude-all-private
-            --concurrency 4
+            --max-concurrency 4
           format: markdown
           fail: true
