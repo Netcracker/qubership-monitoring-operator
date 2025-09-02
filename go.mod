@@ -16,7 +16,7 @@ require (
 	github.com/openshift/api v3.9.1-0.20191105214740-21e87c8db569+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.75.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.0
 	k8s.io/api v0.30.2
 	k8s.io/apiextensions-apiserver v0.30.2
