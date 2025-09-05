@@ -22,7 +22,7 @@ Get Value Of prometheus_example_app_load In Prometheus
     ...  GET On Session  prometheussession  url=/api/v1/query?query=prometheus_example_app_load
     ...  ELSE  GET On Session  vmsinglessession  url=/api/v1/query?query=prometheus_example_app_load
     Should Be Equal As Strings  ${response.status_code}  200
-    [Return]  ${response}
+    RETURN  ${response}
 
 Check prometheus-adapter Changed Metric To
     [Arguments]  ${expected_value}

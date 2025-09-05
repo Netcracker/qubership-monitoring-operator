@@ -36,7 +36,7 @@ spec:
     security:
       admin_password: admin
       admin_user: admin
-    image: 'grafana/grafana:10.4.10'
+    image: 'grafana/grafana:11.6.5'
     ingress:
       host: grafana.k8s.test.org
       install: true
