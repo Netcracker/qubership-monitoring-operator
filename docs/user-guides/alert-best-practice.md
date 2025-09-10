@@ -51,7 +51,7 @@ Therefore, the above leads us to the following conclusions:
   able to work without it for a long time
 * Alerts should be raised only for real problems
 
-So we have the following recommendation for severity.
+So we have the following recommendation for severity. Please do not use other severity label values except mentioned below.
 
 <!-- markdownlint-disable line-length -->
 | Severity | Label                | Description                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -76,23 +76,6 @@ notifications. If it stops sending notifications to an external system it means 
 | Information | `severity: information` | It indicates a normal situation without any problems. This severity means that these alerts don't require any reactions on them. Usually, alerts with such severity are used as ancillary alerts, to use in suppression or in DeadManSwitch scenarios. |
 <!-- markdownlint-enable line-length -->
 
-## Alert targets and types
-
-Each Alerts should have a type from the list below, corresponding target and mandatory labels:
-
- - 
-
-<!-- markdownlint-disable line-length -->
-| Type | Mandatory labels                | Description                                                                                                                                                                                                                                                                                                                                                                                             |
-| -------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pod level alert | Cluster, Namespace, Pod, Container | Alerts that impacts single pod.|
-| Namespace level alert | Cluster, Namespace | Alert that impacts single namespace. Can be aggregated by Pod, Container labels |
-| Node level alert | Node | Alert that affects single node of the cluster. Aggregations by Namespace, Pod, Container labels are not applicable there in general, cause containers can run on multiple and random nodes.  |
-| Application level alert | Application | Alert that affects business application. Should have mandatory label Application in general which can be replaced by set of labels: Namespace, Pod if application uses single pod and/or namespace. Also can be aggregated by labels pod, container, namespace in such case. |
-<!-- markdownlint-enable line-length -->
-While prepating alert expression, please take care, that mandatory labels for selected alert type are not aggregated and exists in the expression output. Also need to add this labels to alert annotations if applicable. 
-
-
 ## Expression
 
 This section describes the best practice and how not to write expressions.
@@ -100,7 +83,7 @@ This section describes the best practice and how not to write expressions.
 ### Keep valuable labels during use aggregation
 
 A common problem when writing alerting expressions that aggregation making without grouping or with grouping by one or
-two labels which interesting to the person who writing this alert.
+two labels which are interesting to the person who writing this alert.
 
 For example, if you wanted to determine if your service's overall error rate (across all label dimensions) was too high,
 you might write a rule like this:
@@ -116,7 +99,7 @@ silencing of alerts in the Alertmanager.
 
 Especially the `namespace`, `pod`, and `container` labels is a common routing label since these labels are essentially
 the coordinates of the service in Kubernetes. And without such labels its very difficult to determine with which pod
-occurred the problem. Thus I'd recommend preserving this label in aggregations whenever possible:
+occurred the problem. Thus I'd recommend preserving this label in aggregations whenever applicable:
 
 ```prometheus
 sum by(namespace, pod) (rate(errors_total{namespace="my-service"}[5m])) > 10
@@ -131,10 +114,6 @@ sum without(instance, type) (rate(errors_total{namespace="my-service"}[5m])) > 1
 
 This way, any labels on the input series that you don't explicitly aggregate away will still be available in
 Alertmanager for alert aggregation and routing, as well as for your understanding of the origin of an alert.
-
-### Keep thresholds configurable
-While writing the expression try to set threshold condition as an configurable variable for all alerts, there it can be changed.
-You can keep threshold condition hard-coded only for discrete metrics, that has several fixed values like status codes and similar.
 
 ### Do not use expressions without filters
 
@@ -264,12 +243,17 @@ these will add labels:
 * The `external_labels` from Prometheus configurations will always add to each series.
 * The `labels` from Rule configuration. Any existing conflicting labels will be overwritten by these labels.
 
-So we'll want to request you try to keep or add the following labels:
+Each Alerts should have a type from the list below, corresponding target and mandatory labels:
 
-* `namespace`
-* `pod`
-* `container`
-* `node` (if exists)
+<!-- markdownlint-disable line-length -->
+| Type | Mandatory labels                | Description                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pod level alert | Cluster, Namespace, Pod, Container | Alerts that impacts single pod.|
+| Namespace level alert | Cluster, Namespace | Alert that impacts single namespace. Can be aggregated by Pod, Container labels |
+| Node level alert | Node | Alert that affects single node of the cluster. Aggregations by Namespace, Pod, Container labels are not applicable there in general, cause containers can run on multiple and random nodes.  |
+| Application level alert | Application | Alert that affects business application. Should have mandatory label Application in general which can be replaced by set of labels: Namespace, Pod if application uses single pod and/or namespace. Also can be aggregated by labels pod, container, namespace in such case. |
+<!-- markdownlint-enable line-length -->
+While prepating alert expression, please take care, that mandatory labels for selected alert type are not aggregated and exists in the expression output. Also need to add this labels to alert annotations if applicable. 
 
 **Warning!** All label keys and values must be in lowercase!
 
