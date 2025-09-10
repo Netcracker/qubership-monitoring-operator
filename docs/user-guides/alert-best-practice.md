@@ -56,8 +56,7 @@ So we have the following recommendation for severity.
 <!-- markdownlint-disable line-length -->
 | Severity | Label                | Description                                                                                                                                                                                                                                                                                                                                                                                             |
 | -------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Critical | `severity: critical` | It indicates a critical situation that requires actions to analyze and solve the problem. This level must be used if the service has failed, but the application is working normally. Other functionalities that are not related to the affected service are also working normally. The High severity level must be used only when the users are affected by not being able to work due to the problem. |
-| High     | `severity: high`     | It indicates an unusual situation that must be resolved immediately. The problem may lead to a critical situation in the future. The Average severity level must be used when the application cannot fix the problem itself. If the issue is not attended to, then it may cause a major problem.                                                                                                        |
+| Critical | `severity: critical` | It indicates a critical situation that requires immediate actions to analyze and solve the problem. This level must be used if the service has failed. Other functionalities that are not related to the affected service are expected to be working normally.|                                                                                                      |
 | Warning  | `severity: warning`  | It indicates potentially harmful situations, a potential problem, or a non-critical issue that requires attention. The Warning level must be used for issues that can wait for a day or two to be fixed or when the application still has the chance to heal itself.                                                                                                                                    |
 <!-- markdownlint-enable line-length -->
 
@@ -76,6 +75,23 @@ notifications. If it stops sending notifications to an external system it means 
 | ----------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Information | `severity: information` | It indicates a normal situation without any problems. This severity means that these alerts don't require any reactions on them. Usually, alerts with such severity are used as ancillary alerts, to use in suppression or in DeadManSwitch scenarios. |
 <!-- markdownlint-enable line-length -->
+
+## Alert targets and types
+
+Each Alerts should have a type from the list below, corresponding target and mandatory labels:
+
+ - 
+
+<!-- markdownlint-disable line-length -->
+| Type | Mandatory labels                | Description                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pod level alert | Cluster, Namespace, Pod, Container | Alerts that impacts single pod.|
+| Namespace level alert | Cluster, Namespace | Alert that impacts single namespace. Can be aggregated by Pod, Container labels |
+| Node level alert | Node | Alert that affects single node of the cluster. Aggregations by Namespace, Pod, Container labels are not applicable there in general, cause containers can run on multiple and random nodes.  |
+| Application level alert | Application | Alert that affects business application. Should have mandatory label Application in general which can be replaced by set of labels: Namespace, Pod if application uses single pod and/or namespace. Also can be aggregated by labels pod, container, namespace in such case. |
+<!-- markdownlint-enable line-length -->
+While prepating alert expression, please take care, that mandatory labels for selected alert type are not aggregated and exists in the expression output. Also need to add this labels to alert annotations if applicable. 
+
 
 ## Expression
 
@@ -99,7 +115,7 @@ but also all labels that are common across all input series and that may later p
 silencing of alerts in the Alertmanager.
 
 Especially the `namespace`, `pod`, and `container` labels is a common routing label since these labels are essentially
-the coordinates of the service in Kubernetes. And without such labels very difficult to determine with which pod
+the coordinates of the service in Kubernetes. And without such labels its very difficult to determine with which pod
 occurred the problem. Thus I'd recommend preserving this label in aggregations whenever possible:
 
 ```prometheus
@@ -115,6 +131,10 @@ sum without(instance, type) (rate(errors_total{namespace="my-service"}[5m])) > 1
 
 This way, any labels on the input series that you don't explicitly aggregate away will still be available in
 Alertmanager for alert aggregation and routing, as well as for your understanding of the origin of an alert.
+
+### Keep thresholds configurable
+While writing the expression try to set threshold condition as an configurable variable for all alerts, there it can be changed.
+You can keep threshold condition hard-coded only for discrete metrics, that has several fixed values like status codes and similar.
 
 ### Do not use expressions without filters
 
