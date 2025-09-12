@@ -73,7 +73,7 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *v1alpha1.PlatformMonitor
 	if err != nil {
 		r.Log.Error(err, "Failed getting ClickHouse services")
 	}
-	m, err := grafanaDataSource(cr, jaegerServices, clickHouseServices)
+	m, err := grafanaDataSource(cr, r.KubeClient, jaegerServices, clickHouseServices)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDataSource manifest")
 		return err
@@ -255,7 +255,7 @@ func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *v1alpha1.PlatformMonitor
 	if err != nil {
 		r.Log.Error(err, "Failed getting ClickHouse services")
 	}
-	m, err := grafanaDataSource(cr, jaegerServices, clickHouseServices)
+	m, err := grafanaDataSource(cr, r.KubeClient, jaegerServices, clickHouseServices)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDataSource manifest")
 		return err
@@ -397,7 +397,7 @@ func (r *GrafanaReconciler) getClickhouseServices(cr *v1alpha1.PlatformMonitorin
 			continue
 		}
 		for _, service := range serviceList.Items {
-			if service.GetName() == "clickhouse-cluster" {
+			if service.GetName() == utils.ClickHouseServiceName {
 				services = append(services, service)
 			}
 		}
