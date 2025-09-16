@@ -4,32 +4,37 @@ metadata:
   name: qubership-alert-rules
 spec:
   groups:
-{{- range $groupName, $group := .Values.alerts }}
-    - name: {{ $groupName }}
+
+{{- $defaultConfig := fromYaml (include "defaultAlerts" . ) -}}
+{{- $overrideConfig := .Values -}}
+{{- $finalConfig := merge $overrideConfig $defaultConfig -}}
+
+{{- range $defaultGroupName, $defaultGroup := $finalConfig }}
+    - name: {{ $defaultGroupName }}
       labels:
-{{- range $labelName, $labelValue := $group.labels }}
-        {{ $labelName }}: {{ $labelValue }}
+{{- range $defaultLabelName, $defaultLabelValue := $defaultGroup.labels }}
+        {{ $defaultLabelName }}: {{ $defaultLabelValue }}
 {{- end }}
-      {{- if $group.interval }} 
-      interval: {{ $group.interval }} 
+      {{- if $defaultGroup.interval }} 
+      interval: {{ $defaultGroup.interval }} 
       {{- end }}
-      {{- if $group.concurrency }} 
-      concurrency: {{ $group.concurrency }} 
+      {{- if $defaultGroup.concurrency }} 
+      concurrency: {{ $defaultGroup.concurrency }} 
       {{- end }}
       rules:
-{{- range $ruleName, $rule := $group.rules }}
-        - alert: {{ $ruleName }}
-          expr: {{ printf "%s" $rule.expr | trimAll "\n" | nindent 12 }}
-          {{- if $rule.for }} 
-          for: {{ $rule.for }}
+{{- range $defaultRuleName, $defaultRule := $defaultGroup.rules }}
+        - alert: {{ $defaultRuleName }}
+          expr: {{ printf "%s" $defaultRule.expr | trimAll "\n" | nindent 12 }}
+          {{- if $defaultRule.for }} 
+          for: {{ $defaultRule.for }}
           {{- end }}
           labels:
-{{- range $labelName, $labelValue := $rule.labels }}
-            {{ $labelName }}: {{ $labelValue }}
+{{- range $defaultLabelName, $defaultLabelValue := $defaultRule.labels }}
+            {{ $defaultLabelName }}: {{ $defaultLabelValue }}
 {{- end }}
           annotations:
-{{- range $annotationName, $annotationValue := $rule.annotations }}
-            {{ $annotationName }}: {{ printf "%s" $annotationValue | toJson | nindent 14 }}
+{{- range $defaultAnnotationName, $defaultAnnotationValue := $defaultRule.annotations }}
+            {{ $defaultAnnotationName }}: {{ printf "%s" $defaultAnnotationValue | toJson | nindent 14 }}
 {{- end }}
 {{- end }}
 {{- end }}

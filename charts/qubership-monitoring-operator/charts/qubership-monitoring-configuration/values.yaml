@@ -1,4 +1,3 @@
-alerts:
   KubebernetesAlerts:
     labels:
       group_name: KubebernetesAlerts
@@ -7,7 +6,7 @@ alerts:
     rules:
       KubernetesNodeReady:
         expr: kube_node_status_condition{condition="Ready",status="true"} == 0
-        for: 5m
+        for: 15m
         labels:
           severity: critical
         annotations:
