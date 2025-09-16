@@ -1664,7 +1664,7 @@ jsonExporter:
 # Exporter to check connectivity between nodes
 networkLatencyExporter:
   # Disable by default
-  install: true
+  install: false
 
 # Exporter to discover all versions for all applications from ConfigMap
 versionExporter:
