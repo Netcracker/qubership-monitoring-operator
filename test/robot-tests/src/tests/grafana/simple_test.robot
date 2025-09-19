@@ -20,6 +20,7 @@ Initialize And Prepare Test Data
 *** Test Cases ***
 Verify Login To Grafana
     [Tags]  full  grafana
+    Log to console  test123
     ${username}  ${password}=  Get Grafana Credentials From Secret
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Attempt Login To Grafana  ${grafana_host}  ${username}  ${password}
