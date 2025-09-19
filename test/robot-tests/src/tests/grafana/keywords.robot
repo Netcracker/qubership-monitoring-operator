@@ -42,6 +42,9 @@ Decode Base64
 
 Attempt Login To Grafana
     [Arguments]  ${url}  ${username}  ${password}
+    Log to console  URL:
+    Log to console  ${url}
+    ${url}=  Set Variable  https://${url}
     Create Session  grafana_session  ${url}
     ${headers}=  Create Dictionary  Content-Type=application/json
     ${body}=  Create Dictionary  user=${username}  password=${password}
