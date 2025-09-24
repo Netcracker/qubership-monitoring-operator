@@ -11,4 +11,3 @@ charts:
     values_file: charts/qubership-monitoring-operator/templates/_images.tpl
     image:
       - ghcr.io/netcracker/qubership-monitoring-int-tests:${release}
-
