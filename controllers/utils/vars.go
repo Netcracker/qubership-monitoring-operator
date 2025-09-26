@@ -33,7 +33,7 @@ const (
 	VmAuthOAuthProxyServiceName = "vmauth-oauth2-proxy"
 	VmAuthServicePort           = 8427
 
-	ScrapeResources = "configmaps,cronjobs,daemonsets,deployments,endpoints,jobs,limitranges,persistentvolumeclaims,poddisruptionbudgets,namespaces,nodes,pods,persistentvolumes,replicasets,replicationcontrollers,resourcequotas,services,statefulsets"
+	ScrapeResources = "configmaps,cronjobs,daemonsets,deployments,endpointslices,jobs,limitranges,persistentvolumeclaims,poddisruptionbudgets,namespaces,nodes,pods,persistentvolumes,replicasets,replicationcontrollers,resourcequotas,services,statefulsets"
 
 	VmComponentName       = "k8s"
 	VmSingleComponentName = "vmsingle"
