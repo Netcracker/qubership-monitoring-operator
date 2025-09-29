@@ -1,15 +1,39 @@
 name: Run Monitoring Pipeline
 
-on:
-  push
+#on:
+#  push
 #  pull_request:
 #    types: [opened, synchronize, reopened]
 #    branches: [main]
 
+on:
+  workflow_run:
+    workflows: ["Build Artifacts"]
+    types: [completed]
+    branches:
+      - '**'
 
 jobs:
+  Get-tags:
+    runs-on: ubuntu-latest
+    name: Extract SHA tag only
+    steps:
+      - name: Extract SHA tag only
+        run: |
+          echo "All tags: ${{ needs.meta.outputs.meta_tags }}"
+          # Tags are space separated. Extract tag starting with "git-sha-"
+          sha_tag=$(echo "${{ needs.meta.outputs.meta_tags }}" | tr ' ' '\n' | grep '^git-sha-')
+          echo "Extracted SHA tag: $sha_tag"
+          echo "SHA_TAG=$sha_tag" >> $GITHUB_ENV
+#  Monitoring-Pipeline:
+#    if: github.event.pull_request.user.login != 'dependabot[bot]'
+#    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring
+#    with:
+#      service_branch: '${{ github.head_ref || github.ref_name }}'
+#      versions_file: '.github/versions.yaml'
+#      pipeline_branch: 'monitoring' #this value must match the value after '@' in 'uses'
+
   Monitoring-Pipeline:
-    if: github.event.pull_request.user.login != 'dependabot[bot]'
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
