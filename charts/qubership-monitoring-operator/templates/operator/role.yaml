@@ -366,6 +366,18 @@ rules:
     apiGroups:
       - operator.victoriametrics.com
     resources:
+      - vlagents
+      - vlagents/finalizers
+      - vlagents/status
+      - vlclusters
+      - vlclusters/finalizers
+      - vlclusters/status
+      - vlogs
+      - vlogs/finalizers
+      - vlogs/status
+      - vlsingles
+      - vlsingles/finalizers
+      - vlsingles/status
       - vmagents
       - vmagents/finalizers
       - vmagents/status
@@ -378,6 +390,9 @@ rules:
       - vmalerts
       - vmalerts/finalizers
       - vmalerts/status
+      - vmanomalies
+      - vmanomalies/finalizers
+      - vmanomalies/status
       - vmauths
       - vmauths/finalizers
       - vmauths/status
@@ -414,5 +429,11 @@ rules:
       - vmusers
       - vmusers/finalizers
       - vmusers/status
+      - vtclusters
+      - vtclusters/finalizers
+      - vtclusters/status
+      - vtsingles
+      - vtsingles/finalizers
+      - vtsingles/status
 {{- end }}
 {{- end }}

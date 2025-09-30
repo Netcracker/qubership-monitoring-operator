@@ -492,6 +492,14 @@ rules:
     apiGroups:
       - operator.victoriametrics.com
     resources:
+      - vlagents
+      - vlagents/finalizers
+      - vlclusters
+      - vlclusters/finalizers
+      - vlogs
+      - vlogs/finalizers
+      - vlsingles
+      - vlsingles/finalizers
       - vmagents
       - vmagents/finalizers
       - vmalertmanagerconfigs
@@ -500,6 +508,8 @@ rules:
       - vmalertmanagers/finalizers
       - vmalerts
       - vmalerts/finalizers
+      - vmanomalies
+      - vmanomalies/finalizers
       - vmauths
       - vmauths/finalizers
       - vmclusters
@@ -524,8 +534,10 @@ rules:
       - vmstaticscrapes/finalizers
       - vmusers
       - vmusers/finalizers
-      - vlogs
-      - vlogs/finalizers
+      - vtclusters
+      - vtclusters/finalizers
+      - vtsingles
+      - vtsingles/finalizers
   - verbs:
       - create
       - delete
@@ -538,10 +550,15 @@ rules:
     apiGroups:
       - operator.victoriametrics.com
     resources:
+      - vlagents/status
+      - vlclusters/status
+      - vlogs/status
+      - vlsingles/status
       - vmagents/status
       - vmalertmanagerconfigs/status
       - vmalertmanagers/status
       - vmalerts/status
+      - vmanomalies/status
       - vmauths/status
       - vmclusters/status
       - vmnodescrapes/status
@@ -554,7 +571,8 @@ rules:
       - vmsingles/status
       - vmstaticscrapes/status
       - vmusers/status
-      - vlogs/status
+      - vtclusters/status
+      - vtsingles/status
   - verbs:
       - get
     apiGroups:
