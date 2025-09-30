@@ -951,9 +951,6 @@ spec:
       {{- if .Values.victoriametrics.vmUser.username }}
       username: {{ .Values.victoriametrics.vmUser.username }}
       {{- end }}
-      {{- if .Values.victoriametrics.vmUser.password }}
-      password: {{ .Values.victoriametrics.vmUser.password }}
-      {{- end }}
       {{- if .Values.victoriametrics.vmUser.passwordRef }}
       passwordRef:
         {{- toYaml .Values.victoriametrics.vmUser.passwordRef | nindent 8 }}

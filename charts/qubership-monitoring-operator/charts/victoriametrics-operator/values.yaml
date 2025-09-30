@@ -1522,7 +1522,9 @@ vmUser:
   # Type: object
   # Mandatory: no
   #
-  passwordRef: {}
+  passwordRef:
+    name: vmuser-secret
+    key: password
 
   # Allows fetching token from user-create secret by its name and key for accessing protected endpoint
   # Type: object

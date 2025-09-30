@@ -79,6 +79,11 @@ rules:
       - 'update'
       - 'watch'
       - 'patch'
+  
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+
   - apiGroups:
       - "apps"
     resourceNames:
