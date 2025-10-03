@@ -134,7 +134,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmOperator.image -}}
     {{- printf "%s" .Values.victoriametrics.vmOperator.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/operator:v0.53.0" -}}
+    {{- print "docker.io/victoriametrics/operator:v0.63.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -148,7 +148,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmOperator.configReloaderImage -}}
     {{- printf "%s" .Values.victoriametrics.vmOperator.configReloaderImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.53.0" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.63.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -162,7 +162,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAgent.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAgent.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmagent:v1.112.0" -}}
+    {{- print "docker.io/victoriametrics/vmagent:v1.126.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -190,7 +190,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlert.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAlert.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmalert:v1.112.0" -}}
+    {{- print "docker.io/victoriametrics/vmalert:v1.126.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -246,7 +246,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAuth.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAuth.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmauth:v1.112.0" -}}
+    {{- print "docker.io/victoriametrics/vmauth:v1.126.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -260,7 +260,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmCluster.vmSelectImage -}}
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmSelectImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmselect:v1.112.0-cluster" -}}
+    {{- print "docker.io/victoriametrics/vmselect:v1.126.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -274,7 +274,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmCluster.vmStorageImage -}}
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmStorageImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmstorage:v1.112.0-cluster" -}}
+    {{- print "docker.io/victoriametrics/vmstorage:v1.126.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -288,7 +288,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmCluster.vmInsertImage -}}
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmInsertImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vminsert:v1.112.0-cluster" -}}
+    {{- print "docker.io/victoriametrics/vminsert:v1.126.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -316,7 +316,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmSingle.image -}}
     {{- printf "%s" .Values.victoriametrics.vmSingle.image -}}
   {{- else -}}
-    {{- print  "docker.io/victoriametrics/victoria-metrics:v1.112.0" -}}
+    {{- print  "docker.io/victoriametrics/victoria-metrics:v1.126.0" -}}
   {{- end -}}
 {{- end -}}
 

@@ -63,7 +63,6 @@ rules:
       - vmstaticscrapes/status
       - vmprobscrapes/status
       - vmscrapeconfigs/status
-      - vlogs/status
   - verbs:
       - create
       - delete
@@ -84,7 +83,6 @@ rules:
       - vmstaticscrapes/finalizers
       - vmnodescrapes/finalizers
       - vmscrapeconfigs/finalizers
-      - vlogs/finalizers
   - verbs:
       - get
       - list
@@ -203,26 +201,45 @@ rules:
     apiGroups:
       - operator.victoriametrics.com
     resources:
+      - vlagents
+      - vlagents/finalizers
+      - vlagents/status
+      - vlclusters
+      - vlclusters/finalizers
+      - vlclusters/status
+      - vlogs
+      - vlogs/finalizers
+      - vlogs/status
+      - vlsingles
+      - vlsingles/finalizers
+      - vlsingles/status
       - vmagents
       - vmagents/finalizers
       - vmagents/status
       - vmalertmanagers
-      - vmalertmanagers/status
       - vmalertmanagers/finalizers
+      - vmalertmanagers/status
       - vmalerts
-      - vmalerts/status
       - vmalerts/finalizers
+      - vmalerts/status
       - vmclusters
-      - vmclusters/status
       - vmclusters/finalizers
+      - vmclusters/status
       - vmsingles
-      - vmsingles/status
       - vmsingles/finalizers
+      - vmsingles/status
+      - vmanomalies
+      - vmanomalies/finalizers
+      - vmanomalies/status
       - vmauths
-      - vmauths/status
       - vmauths/finalizers
+      - vmauths/status
       - vmusers
-      - vmusers/status
       - vmusers/finalizers
-      - vlogs
-      - vlogs/finalizers
+      - vmusers/status
+      - vtclusters
+      - vtclusters/finalizers
+      - vtclusters/status
+      - vtsingles
+      - vtsingles/finalizers
+      - vtsingles/status

@@ -7,11 +7,11 @@ type: application
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
-version: 1.4.25
+version: 1.4.26
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 0.75.0
+appVersion: 0.75.1
 
 # ~0 is equivalent to >= 0, < 1 (i.e. >=0.x.x and < 1.x.x, where x may have any number)
 # Details https://github.com/Masterminds/semver#checking-version-constraints
