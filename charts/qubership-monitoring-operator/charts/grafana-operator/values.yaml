@@ -93,7 +93,25 @@ ingress: {}
   # Mandatory: no
   # Default: ""
   #
-# tlsSecretName: ""
+  # tlsSecretName: ""
+
+  # Set of rules for Ingress
+  # Allows to customize routing rules for grafana ingress.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+  # Type: array
+  # Mandatory: no
+  #
+  # Default: []
+  # rules: []
+  #
+
+  # Set of secrets used for TLS termination per group of hostnames
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+  # Type: array
+  # Mandatory: no
+  #
+  # Default: []
+  # tls: []
 
 # Allows set configuration for grafana. The properties used to generate grafana.ini.
 # Ref: https://grafana.com/docs/grafana/latest/administration/configuration/
@@ -613,3 +631,81 @@ imageRenderer:
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
   # priorityClassName: "priorityClassName"
+
+# Enables or disables tls for grafana
+# Type: bool
+# Mandatory: no
+# Default: false
+#
+tlsEnabled: false
+
+# Configures the secret with tls certificates for grafana
+tlsConfig:
+  # The name of preliminary created secret with tls certificates for grafana.
+  # Mutually exclusive with createSecret and generateCerts
+  # Type: string
+  # Mandatory: no
+  # Default: grafana-tls-secret
+  # 
+  # existingSecret: "grafana-tls-secret"
+  
+  # Requests a new secret with tls certificates for grafana from cert-manager
+  # Mutually exclusive with existingSecret and createSecret
+  # Type: object
+  # Mandatory: no
+  #
+  generateCerts:
+    # Enables or disables tls certificates generation for grafana
+    # Type: bool
+    # Mandatory: no
+    # Default: false
+    #
+    enabled: false
+    
+    # Specifies the name of a secret with tls certificates to generate 
+    # Type: string
+    # Mandatory: no
+    # Default: "grafana-tls-secret"
+    #
+    # secretName: "grafana-tls-secret"
+    
+    # Duration of the certificate in days
+    # Type: integer
+    # Mandatory: no
+    # Default: 365
+    # duration:
+    # Number of days before certificate expiration when renewal should occur
+    # Type: integer
+    # Mandatory: no
+    # Default: 15
+    # renewBefore:
+    # Creates a secret with specified tls certificates for grafana
+    # Mutually exclusive with existingSecret and generateCerts
+    # Type: object
+    # Mandatory: no
+    #
+    # createSecret:
+    
+    # Specifies the name of a secret with tls certificates to create
+    # Type: string
+    # Mandatory: no
+    # Default: "grafana-tls-secret"
+    # secretName: "grafana-tls-secret"
+    
+    # Specifies the ca certificate for TLS connection
+    # Type: string
+    # Mandatory: no
+    #
+    # ca: |
+    
+    # Specifies the certificate for TLS connection
+    # Type: string
+    # Mandatory: no
+    #
+    # cert: |
+    
+    # Specifies the key for TLS connection
+    # Type: string
+    # Mandatory: no
+    #
+    # key: |

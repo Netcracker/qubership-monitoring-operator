@@ -6,7 +6,6 @@ import (
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -102,44 +101,6 @@ func (r *VmClusterReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMoni
 
 	//Set parameters
 	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *VmClusterReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
-	m, err := vmSelectIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &v1beta1.Ingress{ObjectMeta: metav1.ObjectMeta{
-				Name:      cr.GetNamespace() + "-" + utils.VmSelectComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -285,25 +246,6 @@ func (r *VmClusterReconciler) deleteVmCluster(cr *v1alpha1.PlatformMonitoring) e
 		return err
 	}
 	e := &vmetricsv1b1.VMCluster{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if err = r.DeleteResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *VmClusterReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
-	m, err := vmSelectIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil

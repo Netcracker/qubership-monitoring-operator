@@ -107,8 +107,10 @@ spec:
     serviceMonitorSelector:
       {{- toYaml .Values.prometheus.serviceMonitorSelector | nindent 6 }}
     {{- end }}
+    {{- if and .Values.prometheus.ingress (eq (toString .Values.prometheus.ingress.install) "true") }}
     ingress:
-      {{ include "prometheus.ingress" . }}
+      {{- include "prometheus.ingress" . | nindent 6 }}
+    {{- end }}
     {{- if .Values.prometheus.alerting }}
     alerting:
       {{- toYaml .Values.prometheus.alerting | nindent 6 }}
@@ -406,8 +408,10 @@ spec:
     vmSingle:
       install: {{ .Values.victoriametrics.vmSingle.install }}
       paused: {{ .Values.victoriametrics.vmSingle.paused | default false }}
+      {{- if and .Values.victoriametrics.vmSingle.ingress (eq (toString .Values.victoriametrics.vmSingle.ingress.install) "true") }}
       ingress:
-        {{ include "vm.single.ingress" . }}
+        {{- include "vm.single.ingress" . | nindent 8 }}
+      {{- end }}
       image: {{ template "vm.single.image" . }}
       retentionPeriod: {{ .Values.victoriametrics.vmSingle.retentionPeriod | default "14d" }}
       resources:
@@ -479,8 +483,10 @@ spec:
       install: {{ .Values.victoriametrics.vmAgent.install }}
       replicas: {{ .Values.victoriametrics.vmAgent.replicas }}
       paused: {{ .Values.victoriametrics.vmAgent.paused | default false }}
+      {{- if and .Values.victoriametrics.vmAgent.ingress (eq (toString .Values.victoriametrics.vmAgent.ingress.install) "true") }}
       ingress:
-        {{ include "vm.agent.ingress" . }}
+        {{- include "vm.agent.ingress" . | nindent 8 }}
+      {{- end }}
       image: {{ template "vm.agent.image" . }}
       resources:
         {{ include "vm.agent.resources" . }}
@@ -642,8 +648,10 @@ spec:
       paused: {{ .Values.victoriametrics.vmAlertManager.paused | default false }}
       image: {{ template "vm.alertmanager.image" . }}
       replicas: {{ .Values.victoriametrics.vmAlertManager.replicas | default 1 }}
+      {{- if and .Values.victoriametrics.vmAlertManager.ingress (eq (toString .Values.victoriametrics.vmAlertManager.ingress.install) "true") }}
       ingress:
-        {{ include "vm.alertmanager.ingress" . }}
+        {{- include "vm.alertmanager.ingress" . | nindent 8 }}
+      {{- end }}
       resources:
         {{ include "vm.alertmanager.resources" . }}
       securityContext:
@@ -744,8 +752,10 @@ spec:
       paused: {{ .Values.victoriametrics.vmAlert.paused | default false }}
       image: {{ template "vm.alert.image" . }}
       replicas: {{ .Values.victoriametrics.vmAlert.replicas | default 1 }}
+      {{- if and .Values.victoriametrics.vmAlert.ingress (eq (toString .Values.victoriametrics.vmAlert.ingress.install) "true") }}
       ingress:
-        {{ include "vm.alert.ingress" . }}
+        {{- include "vm.alert.ingress" . | nindent 8 }}
+      {{- end }}
       {{- if .Values.victoriametrics.vmAlert.port }}
       port: {{ .Values.victoriametrics.vmAlert.port }}
       {{- end }}
@@ -848,7 +858,7 @@ spec:
         secretName: {{ .Values.victoriametrics.vmAlert.tlsConfig.existingSecret | quote }}
         {{- else }}
         {{- if and .Values.victoriametrics.vmAlert.tlsConfig.generateCerts .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.enabled }}
-        secretName: {{ default "vmalert-tls-secret" .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.secretName | quote}}
+        secretName: {{ default "vmalert-tls-secret" .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.secretName | quote }}
         {{- end }}
         {{- if and .Values.victoriametrics.vmAlert.tlsConfig.createSecret (not .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.enabled) }}
         secretName: {{ default "vmalert-tls-secret" .Values.victoriametrics.vmAlert.tlsConfig.createSecret.secretName | quote }}
@@ -867,8 +877,10 @@ spec:
         {{ include "vm.auth.securityContext" . }}
       containers:
         {{- toYaml .Values.victoriametrics.vmAuth.containers | nindent 8 }}
+      {{- if and .Values.victoriametrics.vmAuth.ingress (eq (toString .Values.victoriametrics.vmAuth.ingress.install) "true") }}
       ingress:
-        {{ include "vm.auth.ingress" . }}
+        {{- include "vm.auth.ingress" . | nindent 8 }}
+      {{- end }}
       {{- if .Values.victoriametrics.vmAuth.port }}
       port: {{ .Values.victoriametrics.vmAuth.port }}
       {{- end }}
@@ -987,8 +999,10 @@ spec:
             {{include "vm.select.resources" . }}
       {{- end }}
       vmSelectImage: {{ template "vm.select.image" . }}
+      {{- if and .Values.victoriametrics.vmCluster.vmSelectIngress (eq (toString .Values.victoriametrics.vmCluster.vmSelectIngress.install) "true") }}
       vmSelectIngress:
-        {{ include "vm.select.ingress" . }}
+        {{- include "vm.select.ingress" . | nindent 8 }}
+        {{- end }}
       vmSelectTlsConfig:
         {{- if .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret }}
         secretName: {{ .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret | quote }}
@@ -1070,6 +1084,19 @@ spec:
     {{- if .Values.alertManager.priorityClassName }}
     priorityClassName: {{ .Values.alertManager.priorityClassName }}
     {{- end }}
+    {{- if and (eq (toString .Values.alertManager.tlsEnabled) "true") .Values.alertManager.tlsConfig }}
+    tlsConfig:
+      {{- if .Values.alertManager.tlsConfig.existingSecret }}
+      secretName: {{ .Values.alertManager.tlsConfig.existingSecret | quote }}
+      {{- else }}
+      {{- if and .Values.alertManager.tlsConfig.generateCerts .Values.alertManager.tlsConfig.generateCerts.enabled }}
+      secretName: {{ default "alertmanager-tls-secret" .Values.alertManager.tlsConfig.generateCerts.secretName | quote }}
+      {{- end }}
+      {{- if and .Values.alertManager.tlsConfig.createSecret (not .Values.alertManager.tlsConfig.generateCerts.enabled) }}
+      secretName: {{ default "alertmanager-tls-secret" .Values.alertManager.tlsConfig.createSecret.secretName | quote }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
     {{- if .Values.alertManager.podMonitor }}
     podMonitor:
       install: {{ .Values.alertManager.podMonitor.install }}
@@ -1080,8 +1107,10 @@ spec:
       relabelings:
         {{- toYaml .Values.alertManager.podMonitor.relabelings | nindent 8 }}
     {{- end }}
+    {{- if and .Values.alertManager.ingress (eq (toString .Values.alertManager.ingress.install) "true") }}
     ingress:
-      {{ include "alertmanager.ingress" . }}
+      {{- include "alertmanager.ingress" . | nindent 6 }}
+    {{- end }}
     containers:
       {{- toYaml .Values.alertManager.containers | nindent 6 }}
     resources:
@@ -1121,8 +1150,23 @@ spec:
     image: {{ template "grafana.image" . }}
     replicas: {{ .Values.grafana.replicas | default 1 }}
     paused: {{ .Values.grafana.paused | default false }}
+    {{- if and (eq (toString .Values.grafana.tlsEnabled) "true") .Values.grafana.tlsConfig }}
+    tlsConfig:
+      {{- if .Values.grafana.tlsConfig.existingSecret }}
+      secretName: {{ .Values.grafana.tlsConfig.existingSecret | quote }}
+      {{- else }}
+      {{- if and .Values.grafana.tlsConfig.generateCerts .Values.grafana.tlsConfig.generateCerts.enabled }}
+      secretName: {{ default "grafana-tls-secret" .Values.grafana.tlsConfig.generateCerts.secretName | quote }}
+      {{- end }}
+      {{- if and .Values.grafana.tlsConfig.createSecret (not .Values.grafana.tlsConfig.generateCerts.enabled) }}
+      secretName: {{ default "grafana-tls-secret" .Values.grafana.tlsConfig.createSecret.secretName | quote }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.grafana.ingress (eq (toString .Values.grafana.ingress.install) "true") }}
     ingress:
-      {{ include "grafana.ingress" . }}
+      {{- include "grafana.ingress" . | nindent 6 }}
+    {{- end }}
     config:
       {{- toYaml .Values.grafana.config | nindent 6 }}
     {{- if .Values.grafana.dataStorage }}
@@ -1395,8 +1439,23 @@ spec:
       {{- toYaml .Values.pushgateway.storage | nindent 6 }}
     {{- end }}
     port: {{ .Values.pushgateway.port}}
+    {{- if and (eq (toString .Values.pushgateway.tlsEnabled) "true") .Values.pushgateway.tlsConfig }}
+    tlsConfig:
+      {{- if .Values.pushgateway.tlsConfig.existingSecret }}
+      secretName: {{ .Values.pushgateway.tlsConfig.existingSecret | quote }}
+      {{- else }}
+      {{- if and .Values.pushgateway.tlsConfig.generateCerts .Values.pushgateway.tlsConfig.generateCerts.enabled }}
+      secretName: {{ default "pushgateway-tls-secret" .Values.pushgateway.tlsConfig.generateCerts.secretName | quote }}
+      {{- end }}
+      {{- if and .Values.pushgateway.tlsConfig.createSecret (not .Values.pushgateway.tlsConfig.generateCerts.enabled) }}
+      secretName: {{ default "pushgateway-tls-secret" .Values.pushgateway.tlsConfig.createSecret.secretName | quote }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.pushgateway.ingress (eq (toString .Values.pushgateway.ingress.install) "true") }}
     ingress:
-      {{ include "pushgateway.ingress" . }}
+      {{- include "pushgateway.ingress" . | nindent 6 }}
+    {{- end }}
     paused: {{ .Values.pushgateway.paused | default false }}
     {{- if .Values.pushgateway.serviceMonitor }}
     serviceMonitor:

@@ -26,7 +26,15 @@ spec:
     - localhost
     - prometheus-operated.{{ .Release.Namespace }}.svc
     {{- if .Values.ingress.install }}
+    {{- if .Values.ingress.host }}
     - {{ .Values.ingress.host }}
+    {{ else if .Values.ingress.rules }}
+    {{- range .Values.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
     {{- end }}
   ipAddresses:
     - 127.0.0.1

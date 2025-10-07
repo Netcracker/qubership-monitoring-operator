@@ -119,30 +119,50 @@ Return remoteWrite URLs for prometheus.
 
 {{/*
 Set default value for grafana ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name.
+CLOUD_PUBLIC_HOST is a parameter that can be used to provide Cloud DNS name.
 */}}
 {{- define "grafana.ingress" -}}
-  {{- if .Values.grafana.ingress -}}
-      {{- toYaml .Values.grafana.ingress | nindent 6 -}}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- $ingress := .Values.grafana.ingress -}}
+install: true
+{{ if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{ else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{ else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "grafana-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{- toYaml $ingress.tls | nindent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Set default value for vmSingle ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
+CLOUD_PUBLIC_HOST is a parameter that can be used to provide Cloud DNS name
 */}}
 {{- define "vm.single.ingress" -}}
-  {{- if .Values.victoriametrics.vmSingle.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmSingle.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmsingle-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $ingress := .Values.victoriametrics.vmSingle.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "vmsingle-%s.%s" .Release.Namespace  .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -150,13 +170,23 @@ Set default value for vmSelect ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "vm.select.ingress" -}}
-  {{- if .Values.victoriametrics.vmCluster.vmSelectIngress -}}
-        {{- toYaml .Values.victoriametrics.vmCluster.vmSelectIngress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmsingle-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $ingress := .Values.victoriametrics.vmCluster.vmSelectIngress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "vmselect-%s.%s" .Release.Namespace  .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -164,13 +194,23 @@ Set default value for vmAgent ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "vm.agent.ingress" -}}
-  {{- if .Values.victoriametrics.vmAgent.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAgent.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmagent-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $ingress := .Values.victoriametrics.vmAgent.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "vmagent-%s.%s" .Release.Namespace  .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -178,13 +218,23 @@ Set default value for vmAlertManager ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "vm.alertmanager.ingress" -}}
-  {{- if .Values.victoriametrics.vmAlertManager.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAlertManager.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmalertmanager-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $ingress := .Values.victoriametrics.vmAlertManager.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "vmalertmanager-%s.%s" .Release.Namespace  .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -192,13 +242,23 @@ Set default value for vmAlert ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "vm.alert.ingress" -}}
-  {{- if .Values.victoriametrics.vmAlert.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAlert.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmalert-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $ingress := .Values.victoriametrics.vmAlert.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "vmalert-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -206,13 +266,23 @@ Set default value for vmAuth ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "vm.auth.ingress" -}}
-  {{- if .Values.victoriametrics.vmAuth.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAuth.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmauth-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $ingress := .Values.victoriametrics.vmAuth.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "vmauth-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -220,13 +290,23 @@ Set default value for prometheus ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "prometheus.ingress" -}}
-  {{- if .Values.prometheus.ingress -}}
-      {{- toYaml .Values.prometheus.ingress | nindent 6 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "prometheus-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- $ingress := .Values.prometheus.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "prometheus-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -234,13 +314,23 @@ Set default value for alertManager ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "alertmanager.ingress" -}}
-  {{- if .Values.alertManager.ingress -}}
-      {{- toYaml .Values.alertManager.ingress | nindent 6 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "alertmanager-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- $ingress := .Values.alertManager.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "alertmanager-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end -}}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -248,13 +338,23 @@ Set default value for pushgateway ingress host if not specify in Values.
 CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
 */}}
 {{- define "pushgateway.ingress" -}}
-  {{- if .Values.pushgateway.ingress -}}
-      {{- toYaml .Values.pushgateway.ingress | nindent 6 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "pushgateway-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- $ingress := .Values.pushgateway.ingress -}}
+install: true
+{{- if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if .Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "pushgateway-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
+{{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{ toYaml $ingress.tls | indent 2 }}
+{{- end -}}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/********************************* Platform Monitoring Tests *********************************/}}

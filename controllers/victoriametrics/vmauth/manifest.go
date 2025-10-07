@@ -371,50 +371,162 @@ func vmAuthIngress(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, erro
 	ingress.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAuth.Ingress != nil && cr.Spec.Victoriametrics.VmAuth.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Victoriametrics.VmAuth.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
-		var ingressServiceBackend *networkingv1.IngressServiceBackend
-		if cr.Spec.Auth != nil && cr.Spec.OAuthProxy != nil {
-			ingressServiceBackend = &networkingv1.IngressServiceBackend{
-				Name: utils.VmAuthOAuthProxyServiceName,
-				Port: networkingv1.ServiceBackendPort{
-					Name: utils.OAuthProxyServicePortName,
-				},
-			}
-		} else {
-			ingressServiceBackend = &networkingv1.IngressServiceBackend{
-				Name: utils.VmAuthServiceName,
-				Port: networkingv1.ServiceBackendPort{
-					Number: utils.VmAuthServicePort,
-				},
-			}
-		}
-
+		var rules []networkingv1.IngressRule
 		pathType := networkingv1.PathTypePrefix
-		rule := networkingv1.IngressRule{Host: cr.Spec.Victoriametrics.VmAuth.Ingress.Host}
-		rule.HTTP = &networkingv1.HTTPIngressRuleValue{
-			Paths: []networkingv1.HTTPIngressPath{
-				{
-					Path:     "/",
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: ingressServiceBackend,
+		ing := cr.Spec.Victoriametrics.VmAuth.Ingress
+
+		switch {
+		// 1. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAuthPath(pathType)},
 					},
 				},
-			},
-		}
-		ingress.Spec.Rules = []networkingv1.IngressRule{rule}
+			})
 
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Victoriametrics.VmAuth.Ingress.Host},
-					SecretName: cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName,
+		// 2. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &v1alpha1.HTTPIngressRuleValue{
+						Paths: []v1alpha1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: v1alpha1.IngressPathBackend{
+									Service: v1alpha1.IngressPathBackendService{
+										Name: utils.VmAuthServiceName,
+										Port: v1alpha1.ServiceBackendPort{
+											Number: utils.VmAuthServicePort,
+										},
+									},
+								},
+							},
+						},
+					}
+				}
+
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 3. fallback: if no Host or no custom ingress rules provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAuthPath(pathType)},
+					},
 				},
+			})
+		}
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		pickSecret := func(ingressTLSSecret string, tlsCfg *v1alpha1.VmTLSConfig) string {
+			if ingressTLSSecret != "" {
+				return ingressTLSSecret
+			}
+			if tlsCfg != nil {
+				return tlsCfg.SecretName
+			}
+			return ""
+		}
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAuth.Ingress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Victoriametrics.VmAuth.Ingress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				secret := hostgroup.SecretName
+				// fallback: if secretName is empty - use TLSSecretName
+				if secret == "" {
+					secret = pickSecret(cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName, cr.Spec.Victoriametrics.VmAuth.TLSConfig)
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure TLS if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Victoriametrics.VmAuth.Ingress.Host != "" {
+			secret := pickSecret(cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName, cr.Spec.Victoriametrics.VmAuth.TLSConfig)
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Victoriametrics.VmAuth.Ingress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAuth.Ingress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := pickSecret(cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName, cr.Spec.Victoriametrics.VmAuth.TLSConfig)
+			for _, rule := range cr.Spec.Victoriametrics.VmAuth.Ingress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
 			}
 		}
 
@@ -443,4 +555,19 @@ func vmAuthIngress(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		ingress.SetLabels(labels.Merge(ingress.GetLabels(), cr.Spec.Victoriametrics.VmAuth.Ingress.Labels))
 	}
 	return &ingress, nil
+}
+
+func defaultVmAuthPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.VmAuthServiceName,
+				Port: networkingv1.ServiceBackendPort{
+					Number: utils.VmAuthServicePort,
+				},
+			},
+		},
+	}
 }

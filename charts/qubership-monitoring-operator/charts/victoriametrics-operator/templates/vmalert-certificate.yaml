@@ -26,7 +26,15 @@ spec:
     - vmalert-k8s
     - vmalert-k8s.{{ .Release.Namespace }}.svc
   {{- if .Values.vmAlert.ingress.install }}
+  {{- if .Values.vmAlert.ingress.host }}
     - {{ .Values.vmAlert.ingress.host }}
+  {{ else if .Values.vmAlert.ingress.rules }}
+  {{- range .Values.vmAlert.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   {{- end }}
   ipAddresses:
     - 127.0.0.1

@@ -26,7 +26,15 @@ spec:
     - vmagent-k8s
     - vmagent-k8s.{{ .Release.Namespace }}.svc
   {{- if .Values.vmAgent.ingress.install }}
+  {{- if .Values.vmAgent.ingress.host }}
     - {{ .Values.vmAgent.ingress.host }}
+  {{ else if .Values.vmAgent.ingress.rules }}
+  {{- range .Values.vmAgent.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   {{- end }}
   ipAddresses:
     - 127.0.0.1

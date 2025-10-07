@@ -74,11 +74,13 @@ spec:
             - name: GRAFANA
               value: "true"
             - name: GRAFANA_HOST
-            {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
+              {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
               value: {{ .Values.grafana.ingress.host | quote }}
-            {{- else }}
-              value: grafana-{{ .Values.NAMESPACE }}.{{ .Values.CLOUD_PUBLIC_HOST}}
-            {{- end }}
+              {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
+              value: {{ (index .Values.grafana.ingress.rules 0).host }}
+              {{- else }}
+              value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
+              {{- end }}
             {{- else }}
             - name: GRAFANA
               value: "false"

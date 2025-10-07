@@ -1,0 +1,46 @@
+{{- if .Values.alertManager.tlsEnabled }}
+{{- if and (not .Values.pushgateway.tlsConfig.existingSecret) .Values.pushgateway.tlsConfig.generateCerts .Values.pushgateway.tlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pushgateway-tls-certificate
+  labels:
+    app.kubernetes.io/name: pushgateway-tls-certificate
+    app.kubernetes.io/instance: {{ cat "pushgateway-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/component: pushgateway
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  secretName: {{ default "pushgateway-tls-secret" .Values.pushgateway.tlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.pushgateway.tlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.pushgateway.tlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: pushgateway-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - pushgateway
+    - pushgateway.{{ .Release.Namespace }}.svc
+  {{- if .Values.pushgateway.ingress.install }}
+  {{- if .Values.pushgateway.ingress.host }}
+    - {{ .Values.pushgateway.ingress.host }}
+  {{ else if .Values.pushgateway.ingress.rules }}
+  {{- range .Values.pushgateway.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

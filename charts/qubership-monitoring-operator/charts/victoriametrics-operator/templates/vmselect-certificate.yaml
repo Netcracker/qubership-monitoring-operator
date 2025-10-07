@@ -25,6 +25,17 @@ spec:
     - localhost
     - vmselect-k8s
     - vmselect-k8s.{{ .Release.Namespace }}.svc
+  {{- if .Values.vmCluster.vmSelectIngress.install }}
+  {{- if .Values.vmCluster.vmSelectIngress.host }}
+    - {{ .Values.vmCluster.vmSelectIngress.host }}
+  {{ else if .Values.vmCluster.vmSelectIngress.rules }}
+  {{- range .Values.vmCluster.vmSelectIngress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
   ipAddresses:
     - 127.0.0.1
   issuerRef:
