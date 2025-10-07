@@ -1573,7 +1573,7 @@ integrationTests:
   # Default: not set
   #
   nodeSelector: {}
-  
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object

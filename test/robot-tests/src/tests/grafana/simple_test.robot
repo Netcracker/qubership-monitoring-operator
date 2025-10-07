@@ -21,6 +21,8 @@ Initialize And Prepare Test Data
 Verify Login To Grafana
     [Tags]  full  grafana
     ${username}  ${password}=  Get Grafana Credentials From Secret
+    Log to console  username ${username}
+    Log to console  password ${password}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Attempt Login To Grafana  ${grafana_host}  ${username}  ${password}
 
@@ -56,3 +58,4 @@ Delete Dashboard And Check It Deleted In Grafana
     Delete Dashboard Via Cloud Rest  ${dashboard_name}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Dashboard is deleted in Grafana  ${uid_from_file}
+
