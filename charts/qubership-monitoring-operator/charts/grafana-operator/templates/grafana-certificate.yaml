@@ -1,0 +1,46 @@
+{{- if .Values.tlsEnabled }}
+{{- if and (not .Values.tlsConfig.existingSecret) .Values.tlsConfig.generateCerts .Values.tlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls-certificate
+  labels:
+    app.kubernetes.io/name: grafana-tls-certificate
+    app.kubernetes.io/instance: {{ cat "grafana-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  secretName: {{ default "grafana-tls-secret" .Values.tlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.tlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.tlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: grafana-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - grafana-service
+    - grafana-service.{{ .Release.Namespace }}.svc
+  {{- if .Values.ingress.install }}
+  {{- if .Values.ingress.host }}
+    - {{ .Values.ingress.host }}
+  {{ else if .Values.ingress.rules }}
+  {{- range .Values.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

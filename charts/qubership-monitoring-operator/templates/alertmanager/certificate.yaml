@@ -1,0 +1,46 @@
+{{- if .Values.alertManager.tlsEnabled }}
+{{- if and (not .Values.alertManager.tlsConfig.existingSecret) .Values.alertManager.tlsConfig.generateCerts .Values.alertManager.tlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: alertmanager-tls-certificate
+  labels:
+    app.kubernetes.io/name: alertmanager-tls-certificate
+    app.kubernetes.io/instance: {{ cat "alertmanager-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/component: alertmanager
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  secretName: {{ default "alertmanager-tls-secret" .Values.alertManager.tlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.alertManager.tlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.alertManager.tlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: alertmanager-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - alertmanager
+    - alertmanager.{{ .Release.Namespace }}.svc
+  {{- if .Values.alertManager.ingress.install }}
+  {{- if .Values.alertManager.ingress.host }}
+    - {{ .Values.alertManager.ingress.host }}
+  {{ else if .Values.alertManager.ingress.rules }}
+  {{- range .Values.alertManager.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

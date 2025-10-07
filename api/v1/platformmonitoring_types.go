@@ -118,6 +118,9 @@ type AlertManager struct {
 	// PriorityClassName assigned to the Pods
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// TLSConfig stores secret Name with certificate for TLS connection
+	// +optional
+	TLSConfig *CommonTLSConfig `json:"tlsConfig,omitempty"`
 }
 
 // EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta
@@ -196,6 +199,9 @@ type Grafana struct {
 	// PriorityClassName assigned to the Pods
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// TLSConfig stores the name of the secret with certificates for the TLS connection
+	// +optional
+	TLSConfig *CommonTLSConfig `json:"tlsConfig,omitempty"`
 }
 
 // GrafanaOperator defines the desired state for some part of grafana-operator deployment
@@ -1375,7 +1381,8 @@ type Pushgateway struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// PriorityClassName assigned to the Pods
 	// +optional
-	PriorityClassName string `json:"priorityClassName,omitempty"`
+	PriorityClassName string           `json:"priorityClassName,omitempty"`
+	TLSConfig         *CommonTLSConfig `json:"tlsConfig,omitempty"`
 }
 
 // Integration handles parameters to set up Platform Monitoring integration with other monitoring tools and public clouds.
@@ -1402,6 +1409,11 @@ type Auth struct {
 	TokenURL     string     `json:"tokenUrl"`
 	UserInfoURL  string     `json:"userInfoUrl"`
 	TLSConfig    *TLSConfig `json:"tlsConfig,omitempty"`
+}
+
+// Common TLSConfig keeps secretName used for TLS
+type CommonTLSConfig struct {
+	SecretName string `json:"secretName,omitempty"`
 }
 
 // TLSConfig extends the safe TLS configuration with file parameters.
@@ -1496,20 +1508,103 @@ type SecurityContext struct {
 // Ingress holds parameters to configure Ingress.
 // Allows to set Ingress annotation to use e.g. ingress-nginx for
 // services authentication: https://github.com/kubernetes/ingress-nginx
+// +kubebuilder:object:generate=true
 type Ingress struct {
 	// Install indicates is Ingress will be installed.
+	// +optional
 	Install *bool `json:"install,omitempty"`
 	// Host for routing.
+	// +optional
 	Host string `json:"host,omitempty"`
+	// Rules contains multiple hosts and routing rules.
+	// Each rule can define host, paths, and backend services.
+	// If defined, Host field can be empty.
+	// +optional
+	Rules []IngressRule `json:"rules,omitempty"`
 	// Labels allows to set additional labels to the Ingress.
 	// Basic labels will be saved.
+	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations allows to set annotations for the Ingress.
+	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// IngressClassName allows to set name for the IngressClass cluster resource.
+	// +optional
 	IngressClassName *string `json:"ingressClassName,omitempty"`
 	// TlsSecretName allows to set secret name which will be used for TLS setting for the Ingress for specified host.
+	// +optional
 	TLSSecretName string `json:"tlsSecretName,omitempty"`
+	// TLS allows to set TLS configuration for the Ingress.
+	// +optional
+	TLS []IngressTLS `json:"tls,omitempty"`
+}
+
+// IngressTLS holds TLS configuration for a group of hosts
+type IngressTLS struct {
+	// Hosts are a list of hosts included in the TLS
+	Hosts []string `json:"hosts,omitempty"`
+	// SecretName is the name of the secret used for TLS
+	// +optional
+	SecretName string `json:"secretName,omitempty"`
+}
+
+// IngressRule describes host, path, pathPrefix and backend service
+// Required for configuring Ingress
+type IngressRule struct {
+	// Host defines the hostname for this rule.
+	// +optional
+	Host string `json:"host,omitempty"`
+	// HTTP defines HTTP-specific routing configuration for this host.
+	// +optional
+	IngressRuleValue `json:",inline"`
+}
+
+// IngressRuleValue holds rule-specific config (currently only HTTP).
+type IngressRuleValue struct {
+	// HTTP defines HTTP-specific routing configuration for this host.
+	// +optional
+	HTTP *HTTPIngressRuleValue `json:"http,omitempty"`
+}
+
+// IngressPath defines a single path rule within an IngressRule.
+type IngressPath struct {
+	// Path specifies the HTTP path (e.g., "/", "/api").
+	Path string `json:"path"`
+	// PathType defines how the path matching is done.
+	// Valid values: "Exact", "Prefix", "ImplementationSpecific".
+	// +optional
+	PathType string `json:"pathType,omitempty"`
+	// Backend defines the service to which traffic should be routed.
+	Backend IngressPathBackend `json:"backend"`
+}
+
+// IngressPathBackend defines the backend service for a given path.
+type IngressPathBackend struct {
+	// Service specifies the Kubernetes service that handles the request.
+	Service IngressPathBackendService `json:"service"`
+}
+
+// IngressPathBackendService defines the target service and port for an Ingress path.
+type IngressPathBackendService struct {
+	// Name of the Kubernetes service to route traffic to.
+	Name string `json:"name"`
+	// Port defines the port of the service.
+	// Either Number or Name can be specified (both are optional).
+	Port ServiceBackendPort `json:"port"`
+}
+type ServiceBackendPort struct {
+	// Number is the numeric port to route to (e.g., 80, 3000).
+	// +optional
+	Number int32 `json:"number,omitempty"`
+	// Name is the named port of the service (e.g., "http", "metrics").
+	// +optional
+	Name string `json:"name,omitempty"`
+}
+
+// HTTPIngressRuleValue contains the paths and backends for HTTP routing.
+type HTTPIngressRuleValue struct {
+	// Paths is a list of paths and corresponding backends for a host.
+	Paths []IngressPath `json:"paths"`
 }
 
 // PlatformMonitoringCondition contains description of status of PlatformMonitoring
@@ -1651,14 +1746,25 @@ func (ne NodeExporter) IsInstall() bool {
 	return true
 }
 
-// IsInstall check is ingress need to be installed.
-// Returns false if parameter `install` is false or host is empty.
+// IsInstall checks if the Ingress should be installed.
+// Returns true if install is true
 func (i Ingress) IsInstall() bool {
-	if i.Install == nil || *i.Install {
-		return i.Host != ""
+	if i.Install == nil || !*i.Install {
+		return false
 	}
+	return true
+}
 
-	return false
+// SetPortNumber sets the port number to the given integer value and clears the port name
+func (s *IngressPathBackendService) SetPortNumber(n int32) {
+	s.Port.Number = n
+	s.Port.Name = ""
+}
+
+// SetPortName sets the port name to the given string value and clears the port number
+func (s *IngressPathBackendService) SetPortName(name string) {
+	s.Port.Name = name
+	s.Port.Number = 0
 }
 
 // IsInstall check if GrafanaDashboards should be installed
