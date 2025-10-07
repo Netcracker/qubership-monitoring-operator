@@ -8,7 +8,17 @@ on:
 
 
 jobs:
+  Wait-for-images:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Wait for build.yaml to complete
+      uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@main
+      with:
+        workflow: build.yaml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        pr-number: ${{ github.event.pull_request.number }}
   Monitoring-Pipeline:
+    needs: Wait-for-images
     if: github.event.pull_request.user.login != 'dependabot[bot]'
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring
     with:
