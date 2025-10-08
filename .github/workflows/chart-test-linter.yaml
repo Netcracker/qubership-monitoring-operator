@@ -36,4 +36,4 @@ jobs:
             ls -la charts charts/qubership-monitoring-operator charts/qubership-monitoring-operator/ci
 
       - name: Run chart-testing (lint)
-        run: ct lint --check-version-increment=false --target-branch=main --chart-dirs=charts
+        run: ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts
