@@ -10,6 +10,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+var isSecretUpdated = false
+
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
 	config     *rest.Config
@@ -84,6 +86,13 @@ func (r *GrafanaReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 			} else {
 				if err := r.deletePodMonitor(cr); err != nil {
 					r.Log.Error(err, "Can not delete PodMonitor")
+				}
+			}
+			// Reset Grafana Credentials
+			if isSecretUpdated {
+				if err := r.resetGrafanaCredentials(cr); err != nil {
+					r.Log.Error(err, "Can not reset Grafana Credentials")
+					return err
 				}
 			}
 			r.Log.Info("Component reconciled")
