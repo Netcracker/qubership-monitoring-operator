@@ -7,7 +7,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -96,35 +95,6 @@ func (r *PushgatewayReconciler) handleService(cr *v1alpha1.PlatformMonitoring) e
 	e.SetLabels(m.GetLabels())
 	e.Spec.Ports = m.Spec.Ports
 	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *PushgatewayReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
-	m, err := pushgatewayIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -224,25 +194,6 @@ func (r *PushgatewayReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) e
 		return err
 	}
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if err = r.DeleteResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *PushgatewayReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
-	m, err := pushgatewayIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil

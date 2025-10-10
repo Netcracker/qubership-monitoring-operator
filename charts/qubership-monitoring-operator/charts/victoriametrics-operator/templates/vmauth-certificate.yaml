@@ -26,7 +26,15 @@ spec:
     - vmauth-k8s
     - vmauth-k8s.{{ .Release.Namespace }}.svc
   {{- if .Values.vmAuth.ingress.install }}
+  {{- if .Values.vmAuth.ingress.host }}
     - {{ .Values.vmAuth.ingress.host }}
+  {{ else if .Values.vmAuth.ingress.rules }}
+  {{- range .Values.vmAuth.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   {{- end }}
   ipAddresses:
     - 127.0.0.1

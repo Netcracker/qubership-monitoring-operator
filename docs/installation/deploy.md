@@ -86,6 +86,67 @@ alertmanager:
     install: false  # Disable ingress for AlertManager
 ```
 
+### Customizing Ingress Routing and TLS Rules
+
+You can define custom ingress routing rules for individual components using the `ingress.rules` parameter.
+Refer the ingress description in 
+(official documentation)[https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules].
+For example:
+
+```yaml
+grafana:
+  ingress:
+    install: true
+    rules:
+      - host: grafana.example.com
+        http:
+          paths:
+            - path: "/"
+              pathType: Prefix
+              backend:
+                service:
+                  name: "grafana-service"
+                  port:
+                    number: 3000
+```
+
+#### Configuring an Empty Host
+It is also possible to configure an empty host value by specifying an empty string for either the `ingress.host` parameter or within `ingress.rules[].host`:
+
+**Option 1:**
+```yaml
+grafana:
+  ingress:
+    install: true
+    host: ''
+```
+
+**Option 2:**
+```yaml
+grafana:
+  ingress:
+    install: true
+    rules:
+      - host: ''
+```
+
+#### Specifying Multiple TLS Secrets
+To configure different TLS secrets for multiple hosts, use the `tls` parameter as shown below:
+
+```yaml
+grafana:
+  ingress:
+    install: true
+    tls:
+      - hosts:
+          - host1.example.com
+          - host2.example.com
+        secretName: "grafana-custom-tls-secret"
+      - hosts:
+          - host3.example.com
+        secretName: "grafana-another-custom-tls-secret"
+```
+
 ## Deployment Examples
 
 ### Production Deployment

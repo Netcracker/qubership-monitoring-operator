@@ -505,6 +505,87 @@ alertManager:
   # Type: string
   # priorityClassName: "priorityClassName"
 
+  # Enables or disables tls for alertmanager
+  # Type: bool
+  # Mandatory: no
+  # Default: false
+  #
+  tlsEnabled: false
+  
+  # Configures the secret with tls certificates for alertmanager
+  # tlsConfig:
+    # The name of preliminary created secret with tls certificates for alertmanager.
+    # Mutually exclusive with createSecret and generateCerts
+    # Type: string
+    # Mandatory: no
+    # Default: alertmanager-tls-secret
+    # 
+    # existingSecret: "alertmanager-tls-secret"
+    
+    # Requests a new secret with tls certificates for alertmanager from cert-manager
+    # Mutually exclusive with existingSecret and createSecret
+    # Type: object
+    # Mandatory: no
+    #
+    # generateCerts:
+
+      # Enables or disables tls certificates generation for alertmanager
+      # Type: bool
+      # Mandatory: no
+      # Default: false
+      #
+      # enabled: false
+      
+      # Specifies the name of a secret with tls certificates to generate 
+      # Type: string
+      # Mandatory: no
+      # Default: "alertmanager-tls-secret"
+      #
+      # secretName: "alertmanager-tls-secret"
+      
+      # Duration of the certificate in days
+      # Type: integer
+      # Mandatory: no
+      # Default: 365
+      # duration:
+
+      # Number of days before certificate expiration when renewal should occur
+      # Type: integer
+      # Mandatory: no
+      # Default: 15
+      # renewBefore:
+
+      # Creates a secret with specified tls certificates for alertmanager
+      # Mutually exclusive with existingSecret and generateCerts
+      # Type: object
+      # Mandatory: no
+      #
+      # createSecret:
+      
+      # Specifies the name of a secret with tls certificates to create
+      # Type: string
+      # Mandatory: no
+      # Default: "alertmanager-tls-secret"
+      # secretName: "alertmanager-tls-secret"
+      
+      # Specifies the ca certificate for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # ca: |
+      
+      # Specifies the certificate for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # cert: |
+      
+      # Specifies the key for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # key: |
+
 # Component scraping kube state metrics
 #
 kubeStateMetrics:
@@ -1379,6 +1460,87 @@ pushgateway:
   #
   port: 9091
 
+  # Enables or disables tls for pushgateway
+  # Type: bool
+  # Mandatory: no
+  # Default: false
+  #
+  tlsEnabled: false
+  
+  # Configures the secret with tls certificates for pushgateway
+  # tlsConfig:
+    # The name of preliminary created secret with tls certificates for pushgateway.
+    # Mutually exclusive with createSecret and generateCerts
+    # Type: string
+    # Mandatory: no
+    # Default: pushgateway-tls-secret
+    # 
+    # existingSecret: "pushgateway-tls-secret"
+    
+    # Requests a new secret with tls certificates for pushgateway from cert-manager
+    # Mutually exclusive with existingSecret and createSecret
+    # Type: object
+    # Mandatory: no
+    #
+    # generateCerts:
+
+      # Enables or disables tls certificates generation for pushgateway
+      # Type: bool
+      # Mandatory: no
+      # Default: false
+      #
+      # enabled: false
+      
+      # Specifies the name of a secret with tls certificates to generate 
+      # Type: string
+      # Mandatory: no
+      # Default: "pushgateway-tls-secret"
+      #
+      # secretName: "pushgateway-tls-secret"
+      
+      # Duration of the certificate in days
+      # Type: integer
+      # Mandatory: no
+      # Default: 365
+      # duration:
+
+      # Number of days before certificate expiration when renewal should occur
+      # Type: integer
+      # Mandatory: no
+      # Default: 15
+      # renewBefore:
+
+      # Creates a secret with specified tls certificates for pushgateway
+      # Mutually exclusive with existingSecret and generateCerts
+      # Type: object
+      # Mandatory: no
+      #
+      # createSecret:
+      
+      # Specifies the name of a secret with tls certificates to create
+      # Type: string
+      # Mandatory: no
+      # Default: "pushgateway-tls-secret"
+      # secretName: "pushgateway-tls-secret"
+      
+      # Specifies the ca certificate for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # ca: |
+      
+      # Specifies the certificate for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # cert: |
+      
+      # Specifies the key for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # key: |
+
   # Service monitor for pulling metrics.
   # Type: object
   # Mandatory: no
@@ -1520,6 +1682,86 @@ pushgateway:
   # Type: string
   # priorityClassName: "priorityClassName"
 
+  # Enables or disables tls for pushgateway
+  # Type: bool
+  # Mandatory: no
+  # Default: false
+  #
+  tlsEnabled: false
+  
+  # Configures the secret with tls certificates for pushgateway
+  # tlsConfig:
+    # The name of preliminary created secret with tls certificates for pushgateway.
+    # Mutually exclusive with createSecret and generateCerts
+    # Type: string
+    # Mandatory: no
+    # Default: pushgateway-tls-secret
+    # 
+    # existingSecret: "pushgateway-tls-secret"
+    
+    # Requests a new secret with tls certificates for pushgateway from cert-manager
+    # Mutually exclusive with existingSecret and createSecret
+    # Type: object
+    # Mandatory: no
+    #
+    # generateCerts:
+
+      # Enables or disables tls certificates generation for pushgateway
+      # Type: bool
+      # Mandatory: no
+      # Default: false
+      #
+      # enabled: false
+      
+      # Specifies the name of a secret with tls certificates to generate 
+      # Type: string
+      # Mandatory: no
+      # Default: "pushgateway-tls-secret"
+      #
+      # secretName: "pushgateway-tls-secret"
+      
+      # Duration of the certificate in days
+      # Type: integer
+      # Mandatory: no
+      # Default: 365
+      # duration:
+
+      # Number of days before certificate expiration when renewal should occur
+      # Type: integer
+      # Mandatory: no
+      # Default: 15
+      # renewBefore:
+
+      # Creates a secret with specified tls certificates for pushgateway
+      # Mutually exclusive with existingSecret and generateCerts
+      # Type: object
+      # Mandatory: no
+      #
+      # createSecret:
+      
+      # Specifies the name of a secret with tls certificates to create
+      # Type: string
+      # Mandatory: no
+      # Default: "pushgateway-tls-secret"
+      # secretName: "pushgateway-tls-secret"
+      
+      # Specifies the ca certificate for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # ca: |
+      
+      # Specifies the certificate for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # cert: |
+      
+      # Specifies the key for TLS connection
+      # Type: string
+      # Mandatory: no
+      #
+      # key: |
 integrationTests:
   ## A name of a microservice to deploy with.
   # This name will be used as name of the microservice deployment and in labels.

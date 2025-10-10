@@ -32,7 +32,15 @@ spec:
   {{- end }}
   {{- end }}
   {{- if .Values.vmAlertManager.ingress.install }}
+  {{- if .Values.vmAlertManager.ingress.host }}
     - {{ .Values.vmAlertManager.ingress.host }}
+  {{ else if .Values.vmAlertManager.ingress.rules }}
+  {{- range .Values.vmAlertManager.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   {{- end }}
   ipAddresses:
     - 127.0.0.1

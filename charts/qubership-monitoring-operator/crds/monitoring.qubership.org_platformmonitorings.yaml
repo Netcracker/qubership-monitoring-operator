@@ -4,8 +4,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.15.0
-    helm.sh/hook: crd-install
-    helm.sh/hook-weight: "-5"
   name: platformmonitorings.monitoring.qubership.org
 spec:
   group: monitoring.qubership.org
@@ -2213,6 +2211,103 @@ spec:
                           Labels allows to set additional labels to the Ingress.
                           Basic labels will be saved.
                         type: object
+                      rules:
+                        description: |-
+                          Rules contains multiple hosts and routing rules.
+                          Each rule can define host, paths, and backend services.
+                          If defined, Host field can be empty.
+                        items:
+                          description: |-
+                            IngressRule describes host, path, pathPrefix and backend service
+                            Required for configuring Ingress
+                          properties:
+                            host:
+                              description: Host defines the hostname for this rule.
+                              type: string
+                            http:
+                              description: HTTP defines HTTP-specific routing configuration
+                                for this host.
+                              properties:
+                                paths:
+                                  description: Paths is a list of paths and corresponding
+                                    backends for a host.
+                                  items:
+                                    description: IngressPath defines a single path
+                                      rule within an IngressRule.
+                                    properties:
+                                      backend:
+                                        description: Backend defines the service to
+                                          which traffic should be routed.
+                                        properties:
+                                          service:
+                                            description: Service specifies the Kubernetes
+                                              service that handles the request.
+                                            properties:
+                                              name:
+                                                description: Name of the Kubernetes
+                                                  service to route traffic to.
+                                                type: string
+                                              port:
+                                                description: |-
+                                                  Port defines the port of the service.
+                                                  Either Number or Name can be specified (both are optional).
+                                                properties:
+                                                  name:
+                                                    description: Name is the named
+                                                      port of the service (e.g., "http",
+                                                      "metrics").
+                                                    type: string
+                                                  number:
+                                                    description: Number is the numeric
+                                                      port to route to (e.g., 80,
+                                                      3000).
+                                                    format: int32
+                                                    type: integer
+                                                type: object
+                                            required:
+                                            - name
+                                            - port
+                                            type: object
+                                        required:
+                                        - service
+                                        type: object
+                                      path:
+                                        description: Path specifies the HTTP path
+                                          (e.g., "/", "/api").
+                                        type: string
+                                      pathType:
+                                        description: |-
+                                          PathType defines how the path matching is done.
+                                          Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                        type: string
+                                    required:
+                                    - backend
+                                    - path
+                                    type: object
+                                  type: array
+                              required:
+                              - paths
+                              type: object
+                          type: object
+                        type: array
+                      tls:
+                        description: TLS allows to set TLS configuration for the Ingress.
+                        items:
+                          description: IngressTLS holds TLS configuration for a group
+                            of hosts
+                          properties:
+                            hosts:
+                              description: Hosts are a list of hosts included in the
+                                TLS
+                              items:
+                                type: string
+                              type: array
+                            secretName:
+                              description: SecretName is the name of the secret used
+                                for TLS
+                              type: string
+                          type: object
+                        type: array
                       tlsSecretName:
                         description: TlsSecretName allows to set secret name which
                           will be used for TLS setting for the Ingress for specified
@@ -2608,6 +2703,13 @@ spec:
                           May match selectors of replication controllers and services.
                           More info: http://kubernetes.io/docs/user-guide/labels
                         type: object
+                    type: object
+                  tlsConfig:
+                    description: TLSConfig stores secret Name with certificate for
+                      TLS connection
+                    properties:
+                      secretName:
+                        type: string
                     type: object
                   tolerations:
                     description: Tolerations allow the pods to schedule onto nodes
@@ -4561,6 +4663,103 @@ spec:
                           Labels allows to set additional labels to the Ingress.
                           Basic labels will be saved.
                         type: object
+                      rules:
+                        description: |-
+                          Rules contains multiple hosts and routing rules.
+                          Each rule can define host, paths, and backend services.
+                          If defined, Host field can be empty.
+                        items:
+                          description: |-
+                            IngressRule describes host, path, pathPrefix and backend service
+                            Required for configuring Ingress
+                          properties:
+                            host:
+                              description: Host defines the hostname for this rule.
+                              type: string
+                            http:
+                              description: HTTP defines HTTP-specific routing configuration
+                                for this host.
+                              properties:
+                                paths:
+                                  description: Paths is a list of paths and corresponding
+                                    backends for a host.
+                                  items:
+                                    description: IngressPath defines a single path
+                                      rule within an IngressRule.
+                                    properties:
+                                      backend:
+                                        description: Backend defines the service to
+                                          which traffic should be routed.
+                                        properties:
+                                          service:
+                                            description: Service specifies the Kubernetes
+                                              service that handles the request.
+                                            properties:
+                                              name:
+                                                description: Name of the Kubernetes
+                                                  service to route traffic to.
+                                                type: string
+                                              port:
+                                                description: |-
+                                                  Port defines the port of the service.
+                                                  Either Number or Name can be specified (both are optional).
+                                                properties:
+                                                  name:
+                                                    description: Name is the named
+                                                      port of the service (e.g., "http",
+                                                      "metrics").
+                                                    type: string
+                                                  number:
+                                                    description: Number is the numeric
+                                                      port to route to (e.g., 80,
+                                                      3000).
+                                                    format: int32
+                                                    type: integer
+                                                type: object
+                                            required:
+                                            - name
+                                            - port
+                                            type: object
+                                        required:
+                                        - service
+                                        type: object
+                                      path:
+                                        description: Path specifies the HTTP path
+                                          (e.g., "/", "/api").
+                                        type: string
+                                      pathType:
+                                        description: |-
+                                          PathType defines how the path matching is done.
+                                          Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                        type: string
+                                    required:
+                                    - backend
+                                    - path
+                                    type: object
+                                  type: array
+                              required:
+                              - paths
+                              type: object
+                          type: object
+                        type: array
+                      tls:
+                        description: TLS allows to set TLS configuration for the Ingress.
+                        items:
+                          description: IngressTLS holds TLS configuration for a group
+                            of hosts
+                          properties:
+                            hosts:
+                              description: Hosts are a list of hosts included in the
+                                TLS
+                              items:
+                                type: string
+                              type: array
+                            secretName:
+                              description: SecretName is the name of the secret used
+                                for TLS
+                              type: string
+                          type: object
+                        type: array
                       tlsSecretName:
                         description: TlsSecretName allows to set secret name which
                           will be used for TLS setting for the Ingress for specified
@@ -6236,6 +6435,13 @@ spec:
                           May match selectors of replication controllers and services.
                           More info: http://kubernetes.io/docs/user-guide/labels
                         type: object
+                    type: object
+                  tlsConfig:
+                    description: TLSConfig stores the name of the secret with certificates
+                      for the TLS connection
+                    properties:
+                      secretName:
+                        type: string
                     type: object
                   tolerations:
                     description: Tolerations allow the pods to schedule onto nodes
@@ -11979,6 +12185,103 @@ spec:
                           Labels allows to set additional labels to the Ingress.
                           Basic labels will be saved.
                         type: object
+                      rules:
+                        description: |-
+                          Rules contains multiple hosts and routing rules.
+                          Each rule can define host, paths, and backend services.
+                          If defined, Host field can be empty.
+                        items:
+                          description: |-
+                            IngressRule describes host, path, pathPrefix and backend service
+                            Required for configuring Ingress
+                          properties:
+                            host:
+                              description: Host defines the hostname for this rule.
+                              type: string
+                            http:
+                              description: HTTP defines HTTP-specific routing configuration
+                                for this host.
+                              properties:
+                                paths:
+                                  description: Paths is a list of paths and corresponding
+                                    backends for a host.
+                                  items:
+                                    description: IngressPath defines a single path
+                                      rule within an IngressRule.
+                                    properties:
+                                      backend:
+                                        description: Backend defines the service to
+                                          which traffic should be routed.
+                                        properties:
+                                          service:
+                                            description: Service specifies the Kubernetes
+                                              service that handles the request.
+                                            properties:
+                                              name:
+                                                description: Name of the Kubernetes
+                                                  service to route traffic to.
+                                                type: string
+                                              port:
+                                                description: |-
+                                                  Port defines the port of the service.
+                                                  Either Number or Name can be specified (both are optional).
+                                                properties:
+                                                  name:
+                                                    description: Name is the named
+                                                      port of the service (e.g., "http",
+                                                      "metrics").
+                                                    type: string
+                                                  number:
+                                                    description: Number is the numeric
+                                                      port to route to (e.g., 80,
+                                                      3000).
+                                                    format: int32
+                                                    type: integer
+                                                type: object
+                                            required:
+                                            - name
+                                            - port
+                                            type: object
+                                        required:
+                                        - service
+                                        type: object
+                                      path:
+                                        description: Path specifies the HTTP path
+                                          (e.g., "/", "/api").
+                                        type: string
+                                      pathType:
+                                        description: |-
+                                          PathType defines how the path matching is done.
+                                          Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                        type: string
+                                    required:
+                                    - backend
+                                    - path
+                                    type: object
+                                  type: array
+                              required:
+                              - paths
+                              type: object
+                          type: object
+                        type: array
+                      tls:
+                        description: TLS allows to set TLS configuration for the Ingress.
+                        items:
+                          description: IngressTLS holds TLS configuration for a group
+                            of hosts
+                          properties:
+                            hosts:
+                              description: Hosts are a list of hosts included in the
+                                TLS
+                              items:
+                                type: string
+                              type: array
+                            secretName:
+                              description: SecretName is the name of the secret used
+                                for TLS
+                              type: string
+                          type: object
+                        type: array
                       tlsSecretName:
                         description: TlsSecretName allows to set secret name which
                           will be used for TLS setting for the Ingress for specified
@@ -18674,6 +18977,103 @@ spec:
                           Labels allows to set additional labels to the Ingress.
                           Basic labels will be saved.
                         type: object
+                      rules:
+                        description: |-
+                          Rules contains multiple hosts and routing rules.
+                          Each rule can define host, paths, and backend services.
+                          If defined, Host field can be empty.
+                        items:
+                          description: |-
+                            IngressRule describes host, path, pathPrefix and backend service
+                            Required for configuring Ingress
+                          properties:
+                            host:
+                              description: Host defines the hostname for this rule.
+                              type: string
+                            http:
+                              description: HTTP defines HTTP-specific routing configuration
+                                for this host.
+                              properties:
+                                paths:
+                                  description: Paths is a list of paths and corresponding
+                                    backends for a host.
+                                  items:
+                                    description: IngressPath defines a single path
+                                      rule within an IngressRule.
+                                    properties:
+                                      backend:
+                                        description: Backend defines the service to
+                                          which traffic should be routed.
+                                        properties:
+                                          service:
+                                            description: Service specifies the Kubernetes
+                                              service that handles the request.
+                                            properties:
+                                              name:
+                                                description: Name of the Kubernetes
+                                                  service to route traffic to.
+                                                type: string
+                                              port:
+                                                description: |-
+                                                  Port defines the port of the service.
+                                                  Either Number or Name can be specified (both are optional).
+                                                properties:
+                                                  name:
+                                                    description: Name is the named
+                                                      port of the service (e.g., "http",
+                                                      "metrics").
+                                                    type: string
+                                                  number:
+                                                    description: Number is the numeric
+                                                      port to route to (e.g., 80,
+                                                      3000).
+                                                    format: int32
+                                                    type: integer
+                                                type: object
+                                            required:
+                                            - name
+                                            - port
+                                            type: object
+                                        required:
+                                        - service
+                                        type: object
+                                      path:
+                                        description: Path specifies the HTTP path
+                                          (e.g., "/", "/api").
+                                        type: string
+                                      pathType:
+                                        description: |-
+                                          PathType defines how the path matching is done.
+                                          Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                        type: string
+                                    required:
+                                    - backend
+                                    - path
+                                    type: object
+                                  type: array
+                              required:
+                              - paths
+                              type: object
+                          type: object
+                        type: array
+                      tls:
+                        description: TLS allows to set TLS configuration for the Ingress.
+                        items:
+                          description: IngressTLS holds TLS configuration for a group
+                            of hosts
+                          properties:
+                            hosts:
+                              description: Hosts are a list of hosts included in the
+                                TLS
+                              items:
+                                type: string
+                              type: array
+                            secretName:
+                              description: SecretName is the name of the secret used
+                                for TLS
+                              type: string
+                          type: object
+                        type: array
                       tlsSecretName:
                         description: TlsSecretName allows to set secret name which
                           will be used for TLS setting for the Ingress for specified
@@ -19201,6 +19601,12 @@ spec:
                       volumeName:
                         description: volumeName is the binding reference to the PersistentVolume
                           backing this claim.
+                        type: string
+                    type: object
+                  tlsConfig:
+                    description: Common TLSConfig keeps secretName used for TLS
+                    properties:
+                      secretName:
                         type: string
                     type: object
                   tolerations:
@@ -23184,6 +23590,106 @@ spec:
                               Labels allows to set additional labels to the Ingress.
                               Basic labels will be saved.
                             type: object
+                          rules:
+                            description: |-
+                              Rules contains multiple hosts and routing rules.
+                              Each rule can define host, paths, and backend services.
+                              If defined, Host field can be empty.
+                            items:
+                              description: |-
+                                IngressRule describes host, path, pathPrefix and backend service
+                                Required for configuring Ingress
+                              properties:
+                                host:
+                                  description: Host defines the hostname for this
+                                    rule.
+                                  type: string
+                                http:
+                                  description: HTTP defines HTTP-specific routing
+                                    configuration for this host.
+                                  properties:
+                                    paths:
+                                      description: Paths is a list of paths and corresponding
+                                        backends for a host.
+                                      items:
+                                        description: IngressPath defines a single
+                                          path rule within an IngressRule.
+                                        properties:
+                                          backend:
+                                            description: Backend defines the service
+                                              to which traffic should be routed.
+                                            properties:
+                                              service:
+                                                description: Service specifies the
+                                                  Kubernetes service that handles
+                                                  the request.
+                                                properties:
+                                                  name:
+                                                    description: Name of the Kubernetes
+                                                      service to route traffic to.
+                                                    type: string
+                                                  port:
+                                                    description: |-
+                                                      Port defines the port of the service.
+                                                      Either Number or Name can be specified (both are optional).
+                                                    properties:
+                                                      name:
+                                                        description: Name is the named
+                                                          port of the service (e.g.,
+                                                          "http", "metrics").
+                                                        type: string
+                                                      number:
+                                                        description: Number is the
+                                                          numeric port to route to
+                                                          (e.g., 80, 3000).
+                                                        format: int32
+                                                        type: integer
+                                                    type: object
+                                                required:
+                                                - name
+                                                - port
+                                                type: object
+                                            required:
+                                            - service
+                                            type: object
+                                          path:
+                                            description: Path specifies the HTTP path
+                                              (e.g., "/", "/api").
+                                            type: string
+                                          pathType:
+                                            description: |-
+                                              PathType defines how the path matching is done.
+                                              Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                            type: string
+                                        required:
+                                        - backend
+                                        - path
+                                        type: object
+                                      type: array
+                                  required:
+                                  - paths
+                                  type: object
+                              type: object
+                            type: array
+                          tls:
+                            description: TLS allows to set TLS configuration for the
+                              Ingress.
+                            items:
+                              description: IngressTLS holds TLS configuration for
+                                a group of hosts
+                              properties:
+                                hosts:
+                                  description: Hosts are a list of hosts included
+                                    in the TLS
+                                  items:
+                                    type: string
+                                  type: array
+                                secretName:
+                                  description: SecretName is the name of the secret
+                                    used for TLS
+                                  type: string
+                              type: object
+                            type: array
                           tlsSecretName:
                             description: TlsSecretName allows to set secret name which
                               will be used for TLS setting for the Ingress for specified
@@ -28837,6 +29343,106 @@ spec:
                               Labels allows to set additional labels to the Ingress.
                               Basic labels will be saved.
                             type: object
+                          rules:
+                            description: |-
+                              Rules contains multiple hosts and routing rules.
+                              Each rule can define host, paths, and backend services.
+                              If defined, Host field can be empty.
+                            items:
+                              description: |-
+                                IngressRule describes host, path, pathPrefix and backend service
+                                Required for configuring Ingress
+                              properties:
+                                host:
+                                  description: Host defines the hostname for this
+                                    rule.
+                                  type: string
+                                http:
+                                  description: HTTP defines HTTP-specific routing
+                                    configuration for this host.
+                                  properties:
+                                    paths:
+                                      description: Paths is a list of paths and corresponding
+                                        backends for a host.
+                                      items:
+                                        description: IngressPath defines a single
+                                          path rule within an IngressRule.
+                                        properties:
+                                          backend:
+                                            description: Backend defines the service
+                                              to which traffic should be routed.
+                                            properties:
+                                              service:
+                                                description: Service specifies the
+                                                  Kubernetes service that handles
+                                                  the request.
+                                                properties:
+                                                  name:
+                                                    description: Name of the Kubernetes
+                                                      service to route traffic to.
+                                                    type: string
+                                                  port:
+                                                    description: |-
+                                                      Port defines the port of the service.
+                                                      Either Number or Name can be specified (both are optional).
+                                                    properties:
+                                                      name:
+                                                        description: Name is the named
+                                                          port of the service (e.g.,
+                                                          "http", "metrics").
+                                                        type: string
+                                                      number:
+                                                        description: Number is the
+                                                          numeric port to route to
+                                                          (e.g., 80, 3000).
+                                                        format: int32
+                                                        type: integer
+                                                    type: object
+                                                required:
+                                                - name
+                                                - port
+                                                type: object
+                                            required:
+                                            - service
+                                            type: object
+                                          path:
+                                            description: Path specifies the HTTP path
+                                              (e.g., "/", "/api").
+                                            type: string
+                                          pathType:
+                                            description: |-
+                                              PathType defines how the path matching is done.
+                                              Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                            type: string
+                                        required:
+                                        - backend
+                                        - path
+                                        type: object
+                                      type: array
+                                  required:
+                                  - paths
+                                  type: object
+                              type: object
+                            type: array
+                          tls:
+                            description: TLS allows to set TLS configuration for the
+                              Ingress.
+                            items:
+                              description: IngressTLS holds TLS configuration for
+                                a group of hosts
+                              properties:
+                                hosts:
+                                  description: Hosts are a list of hosts included
+                                    in the TLS
+                                  items:
+                                    type: string
+                                  type: array
+                                secretName:
+                                  description: SecretName is the name of the secret
+                                    used for TLS
+                                  type: string
+                              type: object
+                            type: array
                           tlsSecretName:
                             description: TlsSecretName allows to set secret name which
                               will be used for TLS setting for the Ingress for specified
@@ -35268,6 +35874,106 @@ spec:
                               Labels allows to set additional labels to the Ingress.
                               Basic labels will be saved.
                             type: object
+                          rules:
+                            description: |-
+                              Rules contains multiple hosts and routing rules.
+                              Each rule can define host, paths, and backend services.
+                              If defined, Host field can be empty.
+                            items:
+                              description: |-
+                                IngressRule describes host, path, pathPrefix and backend service
+                                Required for configuring Ingress
+                              properties:
+                                host:
+                                  description: Host defines the hostname for this
+                                    rule.
+                                  type: string
+                                http:
+                                  description: HTTP defines HTTP-specific routing
+                                    configuration for this host.
+                                  properties:
+                                    paths:
+                                      description: Paths is a list of paths and corresponding
+                                        backends for a host.
+                                      items:
+                                        description: IngressPath defines a single
+                                          path rule within an IngressRule.
+                                        properties:
+                                          backend:
+                                            description: Backend defines the service
+                                              to which traffic should be routed.
+                                            properties:
+                                              service:
+                                                description: Service specifies the
+                                                  Kubernetes service that handles
+                                                  the request.
+                                                properties:
+                                                  name:
+                                                    description: Name of the Kubernetes
+                                                      service to route traffic to.
+                                                    type: string
+                                                  port:
+                                                    description: |-
+                                                      Port defines the port of the service.
+                                                      Either Number or Name can be specified (both are optional).
+                                                    properties:
+                                                      name:
+                                                        description: Name is the named
+                                                          port of the service (e.g.,
+                                                          "http", "metrics").
+                                                        type: string
+                                                      number:
+                                                        description: Number is the
+                                                          numeric port to route to
+                                                          (e.g., 80, 3000).
+                                                        format: int32
+                                                        type: integer
+                                                    type: object
+                                                required:
+                                                - name
+                                                - port
+                                                type: object
+                                            required:
+                                            - service
+                                            type: object
+                                          path:
+                                            description: Path specifies the HTTP path
+                                              (e.g., "/", "/api").
+                                            type: string
+                                          pathType:
+                                            description: |-
+                                              PathType defines how the path matching is done.
+                                              Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                            type: string
+                                        required:
+                                        - backend
+                                        - path
+                                        type: object
+                                      type: array
+                                  required:
+                                  - paths
+                                  type: object
+                              type: object
+                            type: array
+                          tls:
+                            description: TLS allows to set TLS configuration for the
+                              Ingress.
+                            items:
+                              description: IngressTLS holds TLS configuration for
+                                a group of hosts
+                              properties:
+                                hosts:
+                                  description: Hosts are a list of hosts included
+                                    in the TLS
+                                  items:
+                                    type: string
+                                  type: array
+                                secretName:
+                                  description: SecretName is the name of the secret
+                                    used for TLS
+                                  type: string
+                              type: object
+                            type: array
                           tlsSecretName:
                             description: TlsSecretName allows to set secret name which
                               will be used for TLS setting for the Ingress for specified
@@ -39940,6 +40646,106 @@ spec:
                               Labels allows to set additional labels to the Ingress.
                               Basic labels will be saved.
                             type: object
+                          rules:
+                            description: |-
+                              Rules contains multiple hosts and routing rules.
+                              Each rule can define host, paths, and backend services.
+                              If defined, Host field can be empty.
+                            items:
+                              description: |-
+                                IngressRule describes host, path, pathPrefix and backend service
+                                Required for configuring Ingress
+                              properties:
+                                host:
+                                  description: Host defines the hostname for this
+                                    rule.
+                                  type: string
+                                http:
+                                  description: HTTP defines HTTP-specific routing
+                                    configuration for this host.
+                                  properties:
+                                    paths:
+                                      description: Paths is a list of paths and corresponding
+                                        backends for a host.
+                                      items:
+                                        description: IngressPath defines a single
+                                          path rule within an IngressRule.
+                                        properties:
+                                          backend:
+                                            description: Backend defines the service
+                                              to which traffic should be routed.
+                                            properties:
+                                              service:
+                                                description: Service specifies the
+                                                  Kubernetes service that handles
+                                                  the request.
+                                                properties:
+                                                  name:
+                                                    description: Name of the Kubernetes
+                                                      service to route traffic to.
+                                                    type: string
+                                                  port:
+                                                    description: |-
+                                                      Port defines the port of the service.
+                                                      Either Number or Name can be specified (both are optional).
+                                                    properties:
+                                                      name:
+                                                        description: Name is the named
+                                                          port of the service (e.g.,
+                                                          "http", "metrics").
+                                                        type: string
+                                                      number:
+                                                        description: Number is the
+                                                          numeric port to route to
+                                                          (e.g., 80, 3000).
+                                                        format: int32
+                                                        type: integer
+                                                    type: object
+                                                required:
+                                                - name
+                                                - port
+                                                type: object
+                                            required:
+                                            - service
+                                            type: object
+                                          path:
+                                            description: Path specifies the HTTP path
+                                              (e.g., "/", "/api").
+                                            type: string
+                                          pathType:
+                                            description: |-
+                                              PathType defines how the path matching is done.
+                                              Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                            type: string
+                                        required:
+                                        - backend
+                                        - path
+                                        type: object
+                                      type: array
+                                  required:
+                                  - paths
+                                  type: object
+                              type: object
+                            type: array
+                          tls:
+                            description: TLS allows to set TLS configuration for the
+                              Ingress.
+                            items:
+                              description: IngressTLS holds TLS configuration for
+                                a group of hosts
+                              properties:
+                                hosts:
+                                  description: Hosts are a list of hosts included
+                                    in the TLS
+                                  items:
+                                    type: string
+                                  type: array
+                                secretName:
+                                  description: SecretName is the name of the secret
+                                    used for TLS
+                                  type: string
+                              type: object
+                            type: array
                           tlsSecretName:
                             description: TlsSecretName allows to set secret name which
                               will be used for TLS setting for the Ingress for specified
@@ -45858,6 +46664,106 @@ spec:
                               Labels allows to set additional labels to the Ingress.
                               Basic labels will be saved.
                             type: object
+                          rules:
+                            description: |-
+                              Rules contains multiple hosts and routing rules.
+                              Each rule can define host, paths, and backend services.
+                              If defined, Host field can be empty.
+                            items:
+                              description: |-
+                                IngressRule describes host, path, pathPrefix and backend service
+                                Required for configuring Ingress
+                              properties:
+                                host:
+                                  description: Host defines the hostname for this
+                                    rule.
+                                  type: string
+                                http:
+                                  description: HTTP defines HTTP-specific routing
+                                    configuration for this host.
+                                  properties:
+                                    paths:
+                                      description: Paths is a list of paths and corresponding
+                                        backends for a host.
+                                      items:
+                                        description: IngressPath defines a single
+                                          path rule within an IngressRule.
+                                        properties:
+                                          backend:
+                                            description: Backend defines the service
+                                              to which traffic should be routed.
+                                            properties:
+                                              service:
+                                                description: Service specifies the
+                                                  Kubernetes service that handles
+                                                  the request.
+                                                properties:
+                                                  name:
+                                                    description: Name of the Kubernetes
+                                                      service to route traffic to.
+                                                    type: string
+                                                  port:
+                                                    description: |-
+                                                      Port defines the port of the service.
+                                                      Either Number or Name can be specified (both are optional).
+                                                    properties:
+                                                      name:
+                                                        description: Name is the named
+                                                          port of the service (e.g.,
+                                                          "http", "metrics").
+                                                        type: string
+                                                      number:
+                                                        description: Number is the
+                                                          numeric port to route to
+                                                          (e.g., 80, 3000).
+                                                        format: int32
+                                                        type: integer
+                                                    type: object
+                                                required:
+                                                - name
+                                                - port
+                                                type: object
+                                            required:
+                                            - service
+                                            type: object
+                                          path:
+                                            description: Path specifies the HTTP path
+                                              (e.g., "/", "/api").
+                                            type: string
+                                          pathType:
+                                            description: |-
+                                              PathType defines how the path matching is done.
+                                              Valid values: "Exact", "Prefix", "ImplementationSpecific".
+                                            type: string
+                                        required:
+                                        - backend
+                                        - path
+                                        type: object
+                                      type: array
+                                  required:
+                                  - paths
+                                  type: object
+                              type: object
+                            type: array
+                          tls:
+                            description: TLS allows to set TLS configuration for the
+                              Ingress.
+                            items:
+                              description: IngressTLS holds TLS configuration for
+                                a group of hosts
+                              properties:
+                                hosts:
+                                  description: Hosts are a list of hosts included
+                                    in the TLS
+                                  items:
+                                    type: string
+                                  type: array
+                                secretName:
+                                  description: SecretName is the name of the secret
+                                    used for TLS
+                                  type: string
+                              type: object
+                            type: array
                           tlsSecretName:
                             description: TlsSecretName allows to set secret name which
                               will be used for TLS setting for the Ingress for specified

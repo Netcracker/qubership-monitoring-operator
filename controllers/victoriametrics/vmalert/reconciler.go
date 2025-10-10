@@ -61,18 +61,18 @@ func (r *VmAlertReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMonito
 
 			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
 			// This API unavailable in k8s v1.22+
-			if r.HasIngressV1beta1Api() {
-				if cr.Spec.Victoriametrics.VmAlert.Ingress != nil &&
-					cr.Spec.Victoriametrics.VmAlert.Ingress.IsInstall() {
-					if err := r.handleIngressV1beta1(cr); err != nil {
-						return err
-					}
-				} else {
-					if err := r.deleteIngressV1beta1(cr); err != nil {
-						r.Log.Error(err, "Can not delete Ingress")
-					}
-				}
-			}
+			// if r.HasIngressV1beta1Api() {
+			// 	if cr.Spec.Victoriametrics.VmAlert.Ingress != nil &&
+			// 		cr.Spec.Victoriametrics.VmAlert.Ingress.IsInstall() {
+			// 		if err := r.handleIngressV1beta1(cr); err != nil {
+			// 			return err
+			// 		}
+			// 	} else {
+			// 		if err := r.deleteIngressV1beta1(cr); err != nil {
+			// 			r.Log.Error(err, "Can not delete Ingress")
+			// 		}
+			// 	}
+			// }
 			// Reconcile Ingress (version v1) if necessary and the cluster is has such API
 			// This API available in k8s v1.19+
 			if r.HasIngressV1Api() {
@@ -134,11 +134,11 @@ func (r *VmAlertReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
 
 	// Try to delete Ingress (version v1beta1) is there is such API
 	// This API unavailable in k8s v1.22+
-	if r.HasIngressV1beta1Api() {
-		if err = r.deleteIngressV1beta1(cr); err != nil {
-			r.Log.Error(err, "Can not delete Ingress.")
-		}
-	}
+	// if r.HasIngressV1beta1Api() {
+	// 	if err = r.deleteIngressV1beta1(cr); err != nil {
+	// 		r.Log.Error(err, "Can not delete Ingress.")
+	// 	}
+	// }
 	// Try to delete Ingress (version v1) is there is such API
 	// This API available in k8s v1.19+
 	if r.HasIngressV1Api() {

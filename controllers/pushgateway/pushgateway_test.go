@@ -30,13 +30,6 @@ func TestPushgatewayManifests(t *testing.T) {
 		}
 		assert.NotNil(t, m, "Service manifest should not be empty")
 	})
-	t.Run("Test Ingress v1beta1 manifest", func(t *testing.T) {
-		m, err := pushgatewayIngressV1beta1(cr)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.NotNil(t, m, "Ingress v1beta1 manifest should not be empty")
-	})
 	t.Run("Test Ingress v1 manifest", func(t *testing.T) {
 		m, err := pushgatewayIngressV1(cr)
 		if err != nil {

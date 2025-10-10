@@ -64,22 +64,6 @@ func (r *VmAlertManagerReconciler) Run(ctx context.Context, cr *v1alpha1.Platfor
 				return err
 			}
 
-			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
-			// This API unavailable in k8s v1.22+
-			// TODO: Return Ingress deleting if VMAuth is enabled after configuring VMAlertManager routing for it
-			if r.HasIngressV1beta1Api() {
-				if cr.Spec.Victoriametrics.VmAlertManager.Ingress != nil &&
-					cr.Spec.Victoriametrics.VmAlertManager.Ingress.IsInstall() &&
-					!cr.Spec.Victoriametrics.VmAuth.IsInstall() {
-					if err := r.handleIngressV1beta1(cr); err != nil {
-						return err
-					}
-				} else {
-					if err := r.deleteIngressV1beta1(cr); err != nil {
-						r.Log.Error(err, "Can not delete Ingress")
-					}
-				}
-			}
 			// Reconcile Ingress (version v1) if necessary and the cluster is has such API
 			// This API available in k8s v1.19+
 			// TODO: Return Ingress deleting if VMAuth is enabled after configuring VMAlertManager routing for it
@@ -144,13 +128,6 @@ func (r *VmAlertManagerReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
 		r.Log.Error(err, "Can not delete vmalertmanager config secret.")
 	}
 
-	// Try to delete Ingress (version v1beta1) is there is such API
-	// This API unavailable in k8s v1.22+
-	if r.HasIngressV1beta1Api() {
-		if err = r.deleteIngressV1beta1(cr); err != nil {
-			r.Log.Error(err, "Can not delete Ingress.")
-		}
-	}
 	// Try to delete Ingress (version v1) is there is such API
 	// This API available in k8s v1.19+
 	if r.HasIngressV1Api() {
