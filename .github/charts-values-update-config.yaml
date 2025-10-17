@@ -10,4 +10,5 @@ charts:
     chart_file: charts/qubership-monitoring-operator/Chart.yaml
     values_file: charts/qubership-monitoring-operator/templates/_images.tpl
     image:
+      - ghcr.io/netcracker/qubership-monitoring-operator:${release}
       - ghcr.io/netcracker/qubership-monitoring-int-tests:${release}
