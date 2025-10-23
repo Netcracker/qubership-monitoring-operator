@@ -26,27 +26,6 @@ jobs:
       - name: Check yq version
         run: yq --version
 
-      - name: Set up Kind
-        run: |
-          curl -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
-          chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/
-          kind delete cluster --name ${{ env.kind_name }}
-          cat <<EOF | kind create cluster --config=-
-          kind: Cluster
-          name:  ${{ env.kind_name }}
-          apiVersion: kind.x-k8s.io/v1alpha4
-          nodes:
-          - role: control-plane
-            extraPortMappings:
-            - containerPort: 80
-              hostPort: 80
-              protocol: TCP
-            - containerPort: 443
-              hostPort: 443
-              protocol: TCP
-          EOF
-
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash

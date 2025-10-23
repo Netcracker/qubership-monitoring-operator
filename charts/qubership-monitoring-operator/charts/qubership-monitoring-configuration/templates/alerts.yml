@@ -34,7 +34,7 @@ spec:
 {{- end }}
           annotations:
 {{- range $defaultAnnotationName, $defaultAnnotationValue := $defaultRule.annotations }}
-            {{ $defaultAnnotationName }}: {{ printf  $defaultAnnotationValue | trimAll "\n" | toJson | nindent 14 }}
+            {{ $defaultAnnotationName }}: {{ printf  $defaultAnnotationValue | trimAll "\n" | toJson | replace "\\u0026" "&" | replace "\\u003e" ">" | nindent 14 }}
 {{- end }}
 {{- end }}
 {{- end }}
