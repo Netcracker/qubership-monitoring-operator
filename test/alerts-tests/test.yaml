@@ -2823,12 +2823,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-samples
+    groupname: SelfMonitoring
     alertname: VMDroppedSamplesWithBigTimestamp
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-samples
+        group_name: SelfMonitoring
         reason: big_timestamp
       exp_annotations:
         summary: "Victoria metrics dropped samples with too big timestamp"
@@ -2840,7 +2840,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-samples
+    groupname: SelfMonitoring
     alertname: VMDroppedSamplesWithBigTimestamp
     exp_alerts: []
 
@@ -2850,12 +2850,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-samples
+    groupname: SelfMonitoring
     alertname: VMDroppedSamplesWithSmallTimestamp
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-samples
+        group_name: SelfMonitoring
         reason: small_timestamp
       exp_annotations:
         summary: "Victoria metrics dropped samples with too small timestamp"
@@ -2867,7 +2867,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-samples
+    groupname: SelfMonitoring
     alertname: VMDroppedSamplesWithSmallTimestamp
     exp_alerts: []
     
@@ -2877,12 +2877,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-samples
+    groupname: SelfMonitoring
     alertname: VMDuplicatedSamples
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-samples
+        group_name: SelfMonitoring
         type: select
       exp_annotations:
         summary: "Victoria Metrics duplicated samples detected"
@@ -2894,7 +2894,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-samples
+    groupname: SelfMonitoring
     alertname: VMDuplicatedSamples
     exp_alerts: []
     
@@ -2904,12 +2904,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: ConfigurationReloadFailure
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Configuration reload failed for vmagent instance "
         description: "Configuration hot-reload failed for vmagent on instance . Check vmagent's logs for detailed error message."
@@ -2920,12 +2920,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: ConfigurationReloadFailure
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Configuration reload failed for vmagent instance "
         description: "Configuration hot-reload failed for vmagent on instance . Check vmagent's logs for detailed error message."
@@ -2936,7 +2936,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: ConfigurationReloadFailure
     exp_alerts: []
 
@@ -2946,7 +2946,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: ConfigurationReloadFailure
     exp_alerts: []
     
@@ -2956,12 +2956,12 @@ tests:
     values: "0+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: PersistentQueueForReadsIsSaturated
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Persistent queue reads for instance  are saturated"
         description: "Persistent queue reads for vmagent  (instance ) are saturated by more than 90 percent and vmagent won't be able to keep up with reading data from the disk. In this case, consider to decrease load on the vmagent or improve the disk throughput."    
@@ -2973,7 +2973,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: PersistentQueueForReadsIsSaturated
     exp_alerts: []
     
@@ -2983,12 +2983,12 @@ tests:
     values: "0+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: PersistentQueueForWritesIsSaturated
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Persistent queue writes for instance  are saturated"
         description: "Persistent queue writes for vmagent  (instance ) are saturated by more than 90 percent and vmagent won't be able to keep up with flushing data on disk. In this case, consider to decrease load on the vmagent or improve the disk throughput."    
@@ -3000,7 +3000,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: PersistentQueueForWritesIsSaturated
     exp_alerts: []
     
@@ -3010,12 +3010,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 20m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: PersistentQueueIsDroppingData
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Instance  is dropping data from persistent queue"
         description: "Vmagent dropped 5 from persistent queue on instance  for the last 10m."    
@@ -3027,7 +3027,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 20m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: PersistentQueueIsDroppingData
     exp_alerts: []
 
@@ -3037,12 +3037,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: RejectedRemoteWriteDataBlocksAreDropped
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Vmagent is dropping data blocks that are rejected by remote storage"
         description: "Job  on instance  drops the rejected by remote-write server data blocks. Check the logs to find the reason for rejects."    
@@ -3054,7 +3054,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: RejectedRemoteWriteDataBlocksAreDropped
     exp_alerts: []
     
@@ -3066,12 +3066,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: RemoteWriteConnectionIsSaturated
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Remote write connection from  (instance ) to  is saturated"
         description: "The remote write connection between vmagent  (instance ) and destination  is saturated by more than 90 percent and vmagent won't be able to keep up.\n There could be the following reasons for this:\n * vmagent can't send data fast enough through the existing network connections. Increase `-remoteWrite.queues` cmd-line flag value to establish more connections per destination.\n * remote destination can't accept data fast enough. Check if remote destination has enough resources for processing."    
@@ -3085,7 +3085,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: RemoteWriteConnectionIsSaturated
     exp_alerts: []
     
@@ -3095,12 +3095,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: ScrapePoolHasNoTargets
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Vmagent has scrape_pool with 0 configured/discovered targets"
         description: "Vmagent  has scrape_pool  with 0 discovered targets. It is likely a misconfiguration. Please follow https://docs.victoriametrics.com/victoriametrics/vmagent/#debugging-scrape-targets to troubleshoot the scraping config."    
@@ -3111,7 +3111,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: ScrapePoolHasNoTargets
     exp_alerts: []
     
@@ -3123,12 +3123,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: SeriesLimitDayReached
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=90&var-instance="
         summary: "Instance  reached 90 percent of the limit"
@@ -3142,7 +3142,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: SeriesLimitDayReached
     exp_alerts: []
 
@@ -3154,12 +3154,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: SeriesLimitHourReached
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=88&var-instance="
         summary: "Instance  reached 90 percent of the limit"
@@ -3173,7 +3173,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: SeriesLimitHourReached
     exp_alerts: []
     
@@ -3183,12 +3183,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: StreamAggrDedupFlushTimeout
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Deduplication  (instance ) can't be finished within configured deduplication interval."
         description: "Deduplication process can't keep up with the load and might produce incorrect results. Check docs https://docs.victoriametrics.com/victoriametrics/stream-aggregation/#deduplication and logs for more details. Possible solutions: increase deduplication interval; deduplicate smaller number of series; reduce samples' ingestion rate."    
@@ -3199,7 +3199,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: StreamAggrDedupFlushTimeout
     exp_alerts: []
 
@@ -3209,12 +3209,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: StreamAggrFlushTimeout
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "Streaming aggregation at  (instance ) can't be finished within the configured aggregation interval."
         description: "Stream aggregation process can't keep up with the load and might produce incorrect aggregation results. Check logs for more details. Possible solutions: increase aggregation interval; aggregate smaller number of series; reduce samples' ingestion rate to stream aggregation."    
@@ -3225,7 +3225,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: StreamAggrFlushTimeout
     exp_alerts: []
 
@@ -3235,12 +3235,12 @@ tests:
     values: "0+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyRemoteWriteErrors
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=61&var-instance="
         summary: "Job  on instance  fails to push to remote storage"
@@ -3252,7 +3252,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyRemoteWriteErrors
     exp_alerts: []
 
@@ -3262,12 +3262,12 @@ tests:
     values: "0+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyScrapeErrors
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=31&var-instance="
         summary: "Vmagent fails to scrape one or more targets"
@@ -3279,7 +3279,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyScrapeErrors
     exp_alerts: []
 
@@ -3291,12 +3291,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyWriteErrors
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=77&var-instance="
         summary: "Vmagent responds with too many errors on data ingestion protocols"
@@ -3310,12 +3310,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyWriteErrors
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmagent
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=77&var-instance="
         summary: "Vmagent responds with too many errors on data ingestion protocols"
@@ -3329,7 +3329,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmagent
+    groupname: SelfMonitoring
     alertname: TooManyWriteErrors
     exp_alerts: []
     
@@ -3339,12 +3339,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: AlertingRulesError
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=13&var-instance=&var-file=&var-group="
         summary: "Alerting rules are failing for vmalert instance "
@@ -3356,7 +3356,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: AlertingRulesError
     exp_alerts: []
 
@@ -3366,12 +3366,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: AlertmanagerErrors
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmalert instance  is failing to send notifications to Alertmanager"
         description: "vmalert instance  is failing to send alert notifications to . Check vmalert's logs for detailed error message."
@@ -3382,35 +3382,9 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: AlertmanagerErrors
     exp_alerts: []
-    
-- interval: 1m
-  input_series:
-  - series: vmalert_config_last_reload_successful
-    values: "0x1440"
-  alert_rule_test:
-  - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
-    alertname: ConfigurationReloadFailure
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        group_name: SelfMonitoring-vmalert
-      exp_annotations:
-        summary: "Configuration reload failed for vmalert instance "
-        description: "Configuration hot-reload failed for vmalert on instance . Check vmalert's logs for detailed error message."
-
-- interval: 1m
-  input_series:
-  - series: vmalert_config_last_reload_successful
-    values: "1x1440"
-  alert_rule_test:
-  - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
-    alertname: ConfigurationReloadFailure
-    exp_alerts: []    
 
 - interval: 1m
   input_series:
@@ -3418,12 +3392,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RecordingRulesError
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=30&var-instance=&var-file=&var-group="
         summary: "Recording rules are failing for vmalert instance "
@@ -3435,7 +3409,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RecordingRulesError
     exp_alerts: []
 
@@ -3445,12 +3419,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RecordingRulesNoData
     exp_alerts:
     - exp_labels:
         severity: info
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=33&var-file=&var-group="
         summary: "Recording rule  () produces no data"
@@ -3462,7 +3436,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RecordingRulesNoData
     exp_alerts: []
     
@@ -3472,12 +3446,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RemoteWriteDroppingData
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmalert instance  is dropping data sent to remote write URL"
         description: "vmalert instance  is failing to send results of alerting or recording rules to the configured remote write URL. This may result into gaps in recording rules or alerts state. Check vmalert's logs for detailed error message."
@@ -3488,7 +3462,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RemoteWriteDroppingData
     exp_alerts: []    
     
@@ -3498,12 +3472,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RemoteWriteErrors
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmalert instance  is failing to push metrics to remote write URL"
         description: "vmalert instance  is failing to push metrics generated via alerting or recording rules to the configured remote write URL. Check vmalert's logs for detailed error message."
@@ -3514,7 +3488,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: RemoteWriteErrors
     exp_alerts: []      
 
@@ -3524,12 +3498,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: TooManyMissedIterations
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmalert instance  is missing rules evaluations"
         description: "vmalert instance  is missing rules evaluations for group  in file . The group evaluation time takes longer than the configured evaluation interval. This may result in missed alerting notifications or recording rules samples. Try increasing evaluation interval or concurrency of group . See https://docs.victoriametrics.com/victoriametrics/vmalert/#groups. If rule expressions are taking longer than expected, please see https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
@@ -3540,7 +3514,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: TooManyMissedIterations
     exp_alerts: []
 
@@ -3550,12 +3524,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: TooManyMissedIterations
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmalert
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmalert instance  is missing rules evaluations"
         description: "vmalert instance  is missing rules evaluations for group  in file . The group evaluation time takes longer than the configured evaluation interval. This may result in missed alerting notifications or recording rules samples. Try increasing evaluation interval or concurrency of group . See https://docs.victoriametrics.com/victoriametrics/vmalert/#groups. If rule expressions are taking longer than expected, please see https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
@@ -3566,7 +3540,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmalert
+    groupname: SelfMonitoring
     alertname: TooManyMissedIterations
     exp_alerts: []
 
@@ -3576,12 +3550,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmauth
+    groupname: SelfMonitoring
     alertname: ConcurrentRequestsLimitReached
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmauth
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmauth () reached concurrent requests limit"
         description: "Possible solutions: increase the limit with flag: -maxConcurrentRequests, deploy additional vmauth replicas, check requests latency at backend service. See more details at https://docs.victoriametrics.com/victoriametrics/vmauth/#concurrency-limiting"
@@ -3592,7 +3566,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmauth
+    groupname: SelfMonitoring
     alertname: ConcurrentRequestsLimitReached
     exp_alerts: []
     
@@ -3602,12 +3576,12 @@ tests:
     values: "0+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmauth
+    groupname: SelfMonitoring
     alertname: UserConcurrentRequestsLimitReached
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmauth
+        group_name: SelfMonitoring
       exp_annotations:
         summary: "vmauth has reached concurrent requests limit for username "
         description: "Possible solutions: increase limit with flag: -maxConcurrentPerUserRequests, deploy additional vmauth replicas, check requests latency at backend service."
@@ -3618,7 +3592,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmauth
+    groupname: SelfMonitoring
     alertname: UserConcurrentRequestsLimitReached
     exp_alerts: []
 
@@ -3630,12 +3604,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: DiskRunsOutOfSpace
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance="
             description: "Disk utilisation on instance  is more than 80 percent.\n Having less than 20 percent of free disk space could cripple merges processes and overall performance. Consider to limit the ingestion rate, decrease retention or scale the disk space if possible."
@@ -3661,12 +3635,12 @@ tests:
     values: "500000x1440"
   alert_rule_test:
   - eval_time: 90m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: DiskRunsOutOfSpaceIn3Days
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
           dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance="
           description: "Taking into account current ingestion rate, free disk space will be enough only for 10m 0s on instance .\n Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
@@ -3692,7 +3666,7 @@ tests:
     values: "500000x1440"
   alert_rule_test:
   - eval_time: 90m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: DiskRunsOutOfSpaceIn3Days
     exp_alerts: []
 
@@ -3718,12 +3692,12 @@ tests:
     values: "500000x1440"
   alert_rule_test:
   - eval_time: 90m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: NodeBecomesReadonlyIn3Days
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
           dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance="
           description: "Taking into account current ingestion rate, free disk space and -storage.minFreeDiskSpaceBytes instance  will remain writable for 1m 0s.\n Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
@@ -3751,7 +3725,7 @@ tests:
     values: "500000x1440"
   alert_rule_test:
   - eval_time: 90m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: NodeBecomesReadonlyIn3Days
     exp_alerts: []
 
@@ -3763,7 +3737,7 @@ tests:
     values: "10x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmauth
+    groupname: SelfMonitoring
     alertname: DiskRunsOutOfSpace
     exp_alerts: []
 
@@ -3775,7 +3749,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: DiskRunsOutOfSpace
     exp_alerts: []
 
@@ -3790,13 +3764,13 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: RPCErrors
     exp_alerts:
     - exp_labels:
         severity: warning
         show_at: dashboard
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=44&var-instance="
             description: "RPC errors are interconnection errors between cluster components.\n Possible reasons for errors are misconfiguration, overload, network blips or unreachable components."
@@ -3812,7 +3786,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: RPCErrors
     exp_alerts: []
     
@@ -3822,13 +3796,13 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: RequestErrorsToAPI
     exp_alerts:
     - exp_labels:
         severity: warning
         show_at: dashboard
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=52&var-instance="
             description: "Requests to path  are receiving errors. Please verify if clients are sending correct requests."
@@ -3840,7 +3814,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: RequestErrorsToAPI
     exp_alerts: []
     
@@ -3852,12 +3826,12 @@ tests:
     values: "300+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: TooHighChurnRate
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
             description: "VM constantly creates new time series.\n This effect is known as Churn Rate.\n High Churn Rate tightly connected with database performance and may result in unexpected OOM's or slow queries."
@@ -3871,7 +3845,7 @@ tests:
     values: "300+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: TooHighChurnRate
     exp_alerts: []
 
@@ -3883,12 +3857,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: TooHighChurnRate24h
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
             description: "The number of created new time series over last 24h is 3x times higher than current number of active series.\n This effect is known as Churn Rate.\n High Churn Rate tightly connected with database performance and may result in unexpected OOM's or slow queries."
@@ -3902,7 +3876,7 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: TooHighChurnRate24h
     exp_alerts: []
     
@@ -3914,12 +3888,12 @@ tests:
     values: "300+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: TooHighSlowInsertsRate
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=108"
             description: "High rate of slow inserts may be a sign of resource exhaustion for the current load. It is likely more RAM is needed for optimal handling of the current number of active time series. See also https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3976#issuecomment-1476883183"
@@ -3933,7 +3907,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: TooHighSlowInsertsRate
     exp_alerts: []    
 
@@ -3951,12 +3925,12 @@ tests:
     values: "0+110x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighGoroutineSchedulingLatency
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
           description: "Go runtime is unable to schedule goroutines execution in acceptable time. This is usually a sign of insufficient CPU resources or CPU throttling. Verify that service has enough CPU resources. Otherwise, the service could work unreliably with delays in processing."
           summary: "() has insufficient CPU resources for >15m"
@@ -3975,7 +3949,7 @@ tests:
     values: "0+110x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighGoroutineSchedulingLatency
     exp_alerts: []
 
@@ -3985,12 +3959,12 @@ tests:
     values: "300+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: VminsertVmstorageConnectionIsSaturated
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmcluster
+        group_name: SelfMonitoring
         show_at: dashboard
       exp_annotations:
             dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=139&var-instance="
@@ -4003,7 +3977,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmcluster
+    groupname: SelfMonitoring
     alertname: VminsertVmstorageConnectionIsSaturated
     exp_alerts: []
     
@@ -4015,12 +3989,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ConcurrentInsertsHitTheLimit
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "The limit of concurrent inserts on instance  depends on the number of CPUs.\nUsually, when component constantly hits the limit it is likely the component is overloaded and requires more CPU.\nIn some cases for components like vmagent or vminsert the alert might trigger if there are too many clients\nmaking write attempts. If vmagent's or vminsert's CPU usage and network saturation are at normal level, then \nit might be worth adjusting `-maxConcurrentInserts` cmd-line flag."
             summary: " on instance  is constantly hitting concurrent inserts limit"
@@ -4033,7 +4007,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ConcurrentInsertsHitTheLimit
     exp_alerts: []
     
@@ -4043,12 +4017,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: IndexDBRecordsDrop
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "VictoriaMetrics could skip registering new timeseries during ingestion if they fail the validation process. \nFor example, `reason=too_long_item` means that time series cannot exceed 64KB. Please, reduce the number \nof labels or label values for such series. Or enforce these limits via `-maxLabelsPerTimeseries` and \n`-maxLabelValueLen` command-line flags."
             summary: "IndexDB skipped registering items during data ingestion with reason=."
@@ -4059,7 +4033,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: IndexDBRecordsDrop
     exp_alerts: []
 
@@ -4071,12 +4045,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ProcessNearFDLimits
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "Exhausting OS file descriptors limit can cause severe degradation of the process.\nConsider to increase the limit as fast as possible."
             summary: "Number of free file descriptors is less than 100 for () for the last 5m"
@@ -4089,7 +4063,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ProcessNearFDLimits
     exp_alerts: []
     
@@ -4099,12 +4073,12 @@ tests:
     values: "300+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: RowsRejectedOnIngestion
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "Ingested rows on instance  are rejected due to the following reason: "
             summary: "Some rows are rejected on  on ingestion attempt"
@@ -4115,7 +4089,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: RowsRejectedOnIngestion
     exp_alerts: []
 
@@ -4125,12 +4099,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: victoriametrics
       exp_annotations:
             description: " of job victoriametrics has been down for more than 2 minutes."
@@ -4142,7 +4116,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4152,12 +4126,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmselect
       exp_annotations:
             description: " of job vmselect has been down for more than 2 minutes."
@@ -4169,7 +4143,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4179,12 +4153,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vminsert
       exp_annotations:
             description: " of job vminsert has been down for more than 2 minutes."
@@ -4196,7 +4170,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4206,12 +4180,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmstorage
       exp_annotations:
             description: " of job vmstorage has been down for more than 2 minutes."
@@ -4223,7 +4197,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4233,12 +4207,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmagent
       exp_annotations:
             description: " of job vmagent has been down for more than 2 minutes."
@@ -4250,7 +4224,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4260,12 +4234,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmalert
       exp_annotations:
             description: " of job vmalert has been down for more than 2 minutes."
@@ -4277,7 +4251,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4287,12 +4261,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmsingle
       exp_annotations:
             description: " of job vmsingle has been down for more than 2 minutes."
@@ -4304,7 +4278,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4314,12 +4288,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmalertmanager
       exp_annotations:
             description: " of job vmalertmanager has been down for more than 2 minutes."
@@ -4331,7 +4305,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4341,12 +4315,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmauth
       exp_annotations:
             description: " of job vmauth has been down for more than 2 minutes."
@@ -4358,7 +4332,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4368,12 +4342,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: victorialogs
       exp_annotations:
             description: " of job victorialogs has been down for more than 2 minutes."
@@ -4385,7 +4359,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4395,12 +4369,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vlstorage
       exp_annotations:
             description: " of job vlstorage has been down for more than 2 minutes."
@@ -4412,7 +4386,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4422,12 +4396,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vlselect
       exp_annotations:
             description: " of job vlselect has been down for more than 2 minutes."
@@ -4439,7 +4413,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4449,12 +4423,12 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vlinsert
       exp_annotations:
             description: " of job vlinsert has been down for more than 2 minutes."
@@ -4466,7 +4440,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: ServiceDown
     exp_alerts: []
     
@@ -4478,12 +4452,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighCPUUsage
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "Too high CPU usage may be a sign of insufficient resources and make process unstable. Consider to either increase available CPU resources or decrease the load on the process."
             summary: "More than 90 percent of CPU is used by () during the last 5m"
@@ -4496,7 +4470,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighCPUUsage
     exp_alerts: []
     
@@ -4508,12 +4482,12 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighMemoryUsage
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "Too high memory usage may result into multiple issues such as OOMs or degraded performance.\nConsider to either increase available memory or decrease the load on the process."
             summary: "It is more than 80 percent of memory used by ()"
@@ -4526,7 +4500,7 @@ tests:
     values: "1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighMemoryUsage
     exp_alerts: []
 
@@ -4536,12 +4510,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighQueryLoad
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "Instance  () is failing to serve read queries during last 15m.\nConcurrency limit `-search.maxConcurrentRequests` was reached on this instance and extra queries were\nput into the queue for `-search.maxQueueDuration` interval. But even after waiting in the queue these queries weren't served.\nThis happens if instance is overloaded with the current workload, or datasource is too slow to respond.\nPossible solutions are the following:\n* reduce the query load;\n* increase compute resources or number of replicas;\n* adjust limits `-search.maxConcurrentRequests` and `-search.maxQueueDuration`.\nSee more at https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
             summary: "Read queries fail with timeout for  on instance "
@@ -4552,7 +4526,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooHighQueryLoad
     exp_alerts: []
     
@@ -4562,12 +4536,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyLogs
     exp_alerts:
     - exp_labels:
         severity: warning
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         level: "error"
       exp_annotations:
             description: "Logging rate for job  () is 5 for last 15m. Worth to check logs for specific error messages."
@@ -4579,7 +4553,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyLogs
     exp_alerts: []
     
@@ -4589,12 +4563,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: victoriametrics
       exp_annotations:
             description: "Job victoriametrics (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4606,7 +4580,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
     
@@ -4616,12 +4590,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmselect
       exp_annotations:
             description: "Job vmselect (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4633,7 +4607,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
     
@@ -4643,7 +4617,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
     
@@ -4653,12 +4627,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vminsert
       exp_annotations:
             description: "Job vminsert (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4670,7 +4644,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4680,12 +4654,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmstorage
       exp_annotations:
             description: "Job vmstorage (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4697,7 +4671,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4707,12 +4681,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmagent
       exp_annotations:
             description: "Job vmagent (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4724,7 +4698,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4734,7 +4708,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4744,12 +4718,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmalert
       exp_annotations:
             description: "Job vmalert (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4761,7 +4735,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4771,12 +4745,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmsingle
       exp_annotations:
             description: "Job vmsingle (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4788,7 +4762,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4798,12 +4772,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmalertmanager
       exp_annotations:
             description: "Job vmalertmanager (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4815,7 +4789,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4825,12 +4799,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vmauth
       exp_annotations:
             description: "Job vmauth (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4842,7 +4816,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4852,12 +4826,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: victorialogs
       exp_annotations:
             description: "Job victorialogs (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4869,7 +4843,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4879,12 +4853,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vlstorage
       exp_annotations:
             description: "Job vlstorage (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4896,7 +4870,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
 
@@ -4906,12 +4880,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vlselect
       exp_annotations:
             description: "Job vlselect (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4923,7 +4897,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
     
@@ -4933,12 +4907,12 @@ tests:
     values: "1+1x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
         job: vlinsert
       exp_annotations:
             description: "Job vlinsert (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
@@ -4950,7 +4924,7 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyRestarts
     exp_alerts: []
     
@@ -4960,12 +4934,12 @@ tests:
     values: "300+300x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyTSIDMisses
     exp_alerts:
     - exp_labels:
         severity: critical
-        group_name: SelfMonitoring-vmhealth
+        group_name: SelfMonitoring
       exp_annotations:
             description: "The rate of TSID misses during query lookups is too high for  ().\nMake sure you're running VictoriaMetrics of v1.85.3 or higher.\nRelated issue https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3502"
             summary: "Too many TSID misses for job  ()"
@@ -4975,6 +4949,6 @@ tests:
     values: "0x1440"
   alert_rule_test:
   - eval_time: 30m
-    groupname: SelfMonitoring-vmhealth
+    groupname: SelfMonitoring
     alertname: TooManyTSIDMisses
     exp_alerts: []

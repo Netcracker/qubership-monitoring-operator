@@ -882,9 +882,9 @@ BackupAlerts:
         summary: "Last backup made by pod {{ "{{" }} $labels.pod {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} failed.\n  VALUE = {{ "{{" }} $value {{ "}}" }}\n  LABELS: {{ "{{" }} $labels {{ "}}" }}"
         description: "Last backup made by pod {{ "{{" }} $labels.pod {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} failed.\n  VALUE = {{ "{{" }} $value {{ "}}" }}\n  LABELS: {{ "{{" }} $labels {{ "}}" }}"
 
-SelfMonitoring-vmcluster:
+SelfMonitoring:
   labels:
-    group_name: SelfMonitoring-vmcluster
+    group_name: SelfMonitoring
   interval: 30s
   concurrency: 2
   rules:
@@ -1001,10 +1001,6 @@ SelfMonitoring-vmcluster:
           This usually means that more vminsert or vmstorage nodes must be added to the cluster in order to increase
           the total number of vminsert -> vmstorage links."
 
-SelfMonitoring-vmhealth:
-  labels:
-    group_name: SelfMonitoring-vmhealth
-  rules:
     TooManyRestarts:
       expr: changes(process_start_time_seconds{job=~".*(victoriametrics|vmselect|vminsert|vmstorage|vmagent|vmalert|vmsingle|vmalertmanager|vmauth|victorialogs|vlstorage|vlselect|vlinsert).*"}[15m]) > 2
       labels:
@@ -1146,12 +1142,6 @@ SelfMonitoring-vmhealth:
           * adjust limits `-search.maxConcurrentRequests` and `-search.maxQueueDuration`.
           See more at https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries.
 
-SelfMonitoring-vmagent:
-  labels:
-    group_name: SelfMonitoring-vmagent
-  interval: 30s
-  concurrency: 2
-  rules:
     PersistentQueueIsDroppingData:
       expr: sum(increase(vm_persistentqueue_bytes_dropped_total[5m])) without (path) > 0
       for: 10m
@@ -1275,7 +1265,7 @@ SelfMonitoring-vmagent:
           Then samples for new time series will be dropped instead of sending them to remote storage systems."
 
     ConfigurationReloadFailure:
-      expr: (vm_promscrape_config_last_reload_successful != 1) or (vmagent_relabel_config_last_reload_successful) != 1
+      expr: (vm_promscrape_config_last_reload_successful != 1) or (vmagent_relabel_config_last_reload_successful != 1)
       labels:
         severity: warning
       annotations:
@@ -1302,20 +1292,6 @@ SelfMonitoring-vmagent:
         summary: "Deduplication {{ "{{" }} $labels.job {{ "}}" }} (instance {{ "{{" }} $labels.instance {{ "}}" }}) can't be finished within configured deduplication interval."
         description: "Deduplication process can't keep up with the load and might produce incorrect results. Check docs https://docs.victoriametrics.com/victoriametrics/stream-aggregation/#deduplication and logs for more details.
           Possible solutions: increase deduplication interval; deduplicate smaller number of series; reduce samples' ingestion rate."
-
-SelfMonitoring-vmalert:
-  labels:
-    group_name: SelfMonitoring-vmalert
-  interval: 30s
-  rules:
-    ConfigurationReloadFailure:
-      expr: vmalert_config_last_reload_successful != 1
-      labels:
-        severity: warning
-      annotations:
-        summary: "Configuration reload failed for vmalert instance {{ "{{" }} $labels.instance {{ "}}" }}"
-        description: "Configuration hot-reload failed for vmalert on instance {{ "{{" }} $labels.instance {{ "}}" }}.
-          Check vmalert's logs for detailed error message."
 
     AlertingRulesError:
       expr: sum(increase(vmalert_alerting_rules_errors_total[5m])) without(id) > 0
@@ -1395,11 +1371,6 @@ SelfMonitoring-vmalert:
         description: "vmalert instance {{ "{{" }} $labels.instance {{ "}}" }} is failing to send alert notifications to {{ "{{" }} $labels.addr {{ "}}" }}.
           Check vmalert's logs for detailed error message."
 
-SelfMonitoring-vmauth:
-  labels:
-    group_name: SelfMonitoring-vmauth
-  interval: 30s
-  rules:
     ConcurrentRequestsLimitReached:
       expr: sum(increase(vmauth_concurrent_requests_limit_reached_total[1m])) by (instance) > 0
       for: 3m
@@ -1420,11 +1391,6 @@ SelfMonitoring-vmauth:
         description: "Possible solutions: increase limit with flag: -maxConcurrentPerUserRequests,
                       deploy additional vmauth replicas, check requests latency at backend service."
 
-SelfMonitoring-samples:
-  labels:
-    group_name: SelfMonitoring-samples
-  interval: 30s
-  rules:
     VMDuplicatedSamples:
       expr: vm_deduplicated_samples_total{type="select"} > 0
       labels:

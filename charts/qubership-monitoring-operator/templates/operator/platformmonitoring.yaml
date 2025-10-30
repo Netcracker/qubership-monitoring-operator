@@ -1041,8 +1041,10 @@ spec:
   {{- end }}
   {{- end }}
   {{- if and .Values.prometheusRules .Values.prometheusRules.install }}
+  
+  {{- if ne .Values.prometheusrules.alertsPackVersion "v2" }}
   prometheusRules:
-    install: {{ .Values.prometheusRules.install }}
+    install: {{ .Values.prometheusrules.install }}
     ruleGroups:
     {{- if .Values.blackboxExporter }}
       {{- if .Values.blackboxExporter.install }}
@@ -1060,6 +1062,8 @@ spec:
       {{- toYaml .Values.prometheusRules.override | nindent 6 }}
     {{- end }}
   {{- end }}
+  {{- end }}
+
   {{- if .Values.alertManager.install }}
   alertManager:
     install: {{ .Values.alertManager.install }}
