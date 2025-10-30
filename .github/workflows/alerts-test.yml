@@ -32,7 +32,7 @@ jobs:
 
       - name: Render rules file from helm chart
         run: |
-          helm template alertrules ./charts/qubership-monitoring-operator/charts/qubership-monitoring-configuration > ./test/alerts-tests/rules.yaml
+          helm template alertrules ./charts/qubership-monitoring-operator/charts/prometheus-rules -f ./test/alerts-tests/rendervalues.yaml > ./test/alerts-tests/rules.yaml
           sed '1,7d' -i ./test/alerts-tests/rules.yaml
 
       - name: Check that all necessary tests exists
