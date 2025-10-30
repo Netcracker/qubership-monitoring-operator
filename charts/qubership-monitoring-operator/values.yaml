@@ -35,6 +35,9 @@ global:
 # Type: object
 # Mandatory: no
 #
+
+
+
 role:
   # Allow to disable create Role and ClusterRole for monitoring-operator during deploy.
   # If global.privilegedRights parameter is set to false, ClusterRole will not be installed in any case.
@@ -295,7 +298,7 @@ alertManager:
   # Type: boolean
   # Mandatory: no
   #
-  install: false
+  install: true
 
   # Set paused to reconciliation for AlertManager
   # Type: boolean
@@ -1278,20 +1281,24 @@ grafanaDashboards:
 # Type: object
 # Mandatory: no
 #
-prometheusRules:
+prometheusrules:
   install: true
+  alertsPackVersion: v2
   ruleGroups:
     - SelfMonitoring
     - AlertManager
-    - KubebernetesAlerts
+    - KubernetesAlerts
     - NodeProcesses
     - NodeExporters
     - DockerContainers
+    - HAmode
+    - HAproxy
     - Etcd
     - NginxIngressAlerts
     - CoreDnsAlerts
     - DRAlerts
     - BackupAlerts
+
   # override:
   #     - group: SelfMonitoring
   #       alert: PrometheusNotificationsBacklog
