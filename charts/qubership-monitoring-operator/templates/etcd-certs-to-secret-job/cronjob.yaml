@@ -1,0 +1,82 @@
+{{- if eq .Values.publicCloudName "" }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.etcdCertsJob.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.etcdCertsJob.name }}
+    app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+spec:
+  schedule: {{ .Values.etcdCertsJob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.etcdCertsJob.concurrencyPolicy | default "Forbid" }}
+  successfulJobsHistoryLimit: {{ .Values.etcdCertsJob.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.etcdCertsJob.failedJobsHistoryLimit | default 3 }}
+  jobTemplate:
+    spec:
+      {{- if .Values.etcdCertsJob.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ .Values.etcdCertsJob.activeDeadlineSeconds | default 60 }}
+      {{- end}}
+      {{- if .Values.etcdCertsJob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.etcdCertsJob.ttlSecondsAfterFinished | default 60 }}
+      {{- end }}
+      template:
+        metadata:
+          labels:
+            name: {{ .Values.etcdCertsJob.name }}
+            app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+            app.kubernetes.io/name: {{ .Values.etcdCertsJob.name }}
+            app.kubernetes.io/part-of: monitoring
+            app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+            app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+          {{- if .Values.etcdCertsJob.annotations }}
+          annotations:
+            {{- toYaml .Values.etcdCertsJob.annotations | nindent 12 }}
+          {{- end }}
+        spec:
+          tolerations:
+            - key: node-role.kubernetes.io/master
+              operator: Exists
+              effect: NoSchedule
+            - operator: "Exists"
+              effect: "NoExecute"
+            - operator: "Exists"
+              effect: "NoSchedule"
+          {{- with .Values.etcdCertsJob.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: etcd-certs-to-secret
+              image: {{ include "etcdCertsJob.image" . }}
+              imagePullPolicy: {{ .Values.etcdCertsJob.imagePullPolicy }}
+              args:
+                - '--secret=kube-etcd-client-certs'
+              env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              resources:
+                {{- toYaml .Values.etcdCertsJob.resources | nindent 16 }}
+              volumeMounts:
+                - name: etc
+                  mountPath: /etc
+              securityContext:
+                {{ include "etcdCertsCronJob.securityContext" . }}
+          {{- if .Values.etcdCertsJob.priorityClassName }}
+          priorityClassName: {{ .Values.etcdCertsJob.priorityClassName }}
+          {{- end }}
+          restartPolicy: {{ .Values.etcdCertsJob.restartPolicy | default "Never" }}
+          serviceAccountName: {{ .Values.etcdCertsJob.rbac.serviceAccountName }}
+          volumes:
+            - name: etc
+              hostPath:
+                path: /etc
+{{- end }}
