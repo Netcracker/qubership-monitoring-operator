@@ -29,7 +29,7 @@ Example:
 grafana:
   install: true
   paused: false
-  image: grafana/grafana:10.4.10
+  image: grafana/grafana:11.6.5
   ingress:
     ...
   resources:
@@ -183,7 +183,7 @@ Example:
 grafana:
   imageRenderer:
     install: true
-    image: grafana/grafana-image-renderer:3.6.2
+    image: grafana/grafana-image-renderer:3.12.9
     name: grafana-image-renderer
     resources:
       limits:

@@ -22,6 +22,7 @@ rules:
       - persistentvolumes
       - namespaces
       - endpoints
+      - endpointslices
     verbs:
       - 'list'
       - 'watch'
@@ -117,3 +118,12 @@ rules:
     verbs:
       - 'list'
       - 'watch'
+
+  - apiGroups:
+      - "discovery.k8s.io"
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch

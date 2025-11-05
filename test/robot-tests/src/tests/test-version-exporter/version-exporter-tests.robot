@@ -39,7 +39,7 @@ Get Metrics From ConfigMap
     ${metrics}=  Create List
     Run Keyword If  '${collector_type}' == 'configmap_collector'  Get ConfigMap Metrics  ${collector}  ${metrics}
     Run Keyword If  '${collector_type}' != 'configmap_collector'  Get Standard Metrics  ${collector}  ${metrics}
-    [Return]  ${metrics}
+    RETURN  ${metrics}
 
 Get ConfigMap Metrics
     [Arguments]  ${collector}  ${metrics}

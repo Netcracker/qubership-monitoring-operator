@@ -32,7 +32,7 @@ Determine Protocol
         Log To Console  Using HTTP: ${http_url}
         ${final_url}=  Set Variable  ${http_url}
     END
-    [Return]  ${final_url}
+    RETURN  ${final_url}
 
 Check URL Accessibility
     [Arguments]  ${url}  ${auth}=None
@@ -41,24 +41,24 @@ Check URL Accessibility
     ${response}=  GET On Session  temp_session  /
     Delete All Sessions
     Should Be Equal As Integers  ${response.status_code}  200
-    [Return]  True
+    RETURN  True
 
 Get Creadentials From Secret
     ${secret}=  Get Secret  ${vmuser}  ${namespace}
     ${pass}=  Get Pass From Secret  ${secret}
     ${username}=  Get Username From Secret  ${secret}
     ${auth}=  Create List  ${username}  ${pass}
-    [Return]  ${auth}
+    RETURN  ${auth}
 
 Get App Name From File
     [Arguments]  ${FILE_PATH}
     ${body}=  Parse Yaml File  ${FILE_PATH}
-    [Return]  ${body.get('metadata').get('name')}
+    RETURN  ${body.get('metadata').get('name')}
 
 Get Test App Service Pod
     [Arguments]  ${pods}  ${app_name}
     ${test_app_pods}=  Get Object In Namespace By Mask  ${pods}  ${app_name}
-    [Return]  ${test_app_pods}
+    RETURN  ${test_app_pods}
 
 Check Pods Count Is
     [Arguments]  ${count}  ${app_name}
@@ -75,13 +75,13 @@ Check Status Of Pods
        Should Be True  ${state}
        ...  Error! Following pod ${pod.metadata.name} has Failed status! Please, recheck pod status
     END
-    [Return]  ${state}
+    RETURN  ${state}
 
 Check That VMauth Is Presented In CR
      ${custom_resource}=  Get Custom Resource  monitoring.qubership.org/v1alpha1  PlatformMonitoring  ${namespace}  platformmonitoring
      ${flag}=  Check CR Service Exists  ${custom_resource.get('spec')}  ${vmauth-in-cr}  victoriametrics
      Log to console    vmauth ${flag}
-     [Return]  ${flag}
+     RETURN  ${flag}
 
 Preparation Prometheus Session
     ${prometheus_url}=  Determine Protocol  ${prometheus_host}
