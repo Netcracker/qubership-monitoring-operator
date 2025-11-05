@@ -4,35 +4,32 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.15.0
     operator.victoriametrics.com/version: v0.63.0
-  name: vlogs.operator.victoriametrics.com
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: '-5'
+  name: vtsingles.operator.victoriametrics.com
 spec:
-  conversion:
-    strategy: Webhook
-    webhook:
-      clientConfig:
-        service:
-          name: webhook-service
-          namespace: system
-          path: /convert
-      conversionReviewVersions:
-      - v1
   group: operator.victoriametrics.com
   names:
-    kind: VLogs
-    listKind: VLogsList
-    plural: vlogs
-    singular: vlogs
+    kind: VTSingle
+    listKind: VTSingleList
+    plural: vtsingles
+    singular: vtsingle
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Current status of logs instance update process
+    - description: Current status of traces instance update process
       jsonPath: .status.status
       name: Status
       type: string
-    name: v1beta1
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
     schema:
       openAPIV3Schema:
-        description: VLogs is the Schema for the vlogs API
+        description: |-
+          VTSingle is fast, cost-effective and scalable traces database.
+          VTSingle is the Schema for the API
         properties:
           apiVersion:
             description: |-
@@ -52,7 +49,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: VLogsSpec defines the desired state of VLogs
+            description: VTSingleSpec defines the desired state of VTSingle
             properties:
               affinity:
                 description: Affinity If specified, the pod's scheduling constraints.
@@ -78,6 +75,14 @@ spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
+              disableAutomountServiceAccountToken:
+                description: |-
+                  DisableAutomountServiceAccountToken whether to disable serviceAccount auto mount by Kubernetes (available from v0.54.0).
+                  Operator will conditionally create volumes and volumeMounts for containers if it requires k8s API access.
+                  For example, vmagent and vm-config-reloader requires k8s API access.
+                  Operator creates volumes with name: "kube-api-access", which can be used as volumeMount for extraContainers if needed.
+                  And also adds VolumeMounts at /var/run/secrets/kubernetes.io/serviceaccount.
+                type: boolean
               disableSelfServiceScrape:
                 description: |-
                   DisableSelfServiceScrape controls creation of VMServiceScrape by operator
@@ -112,9 +117,12 @@ spec:
                         of a pod.
                       properties:
                         name:
-                          description: Required.
+                          description: |-
+                            Name is this DNS resolver option's name.
+                            Required.
                           type: string
                         value:
+                          description: Value is this DNS resolver option's value.
                           type: string
                       type: object
                     type: array
@@ -165,10 +173,59 @@ spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
+              extraEnvsFrom:
+                description: |-
+                  ExtraEnvsFrom defines source of env variables for the application container
+                  could either be secret or configmap
+                items:
+                  description: EnvFromSource represents the source of a set of ConfigMaps
+                  properties:
+                    configMapRef:
+                      description: The ConfigMap to select from
+                      properties:
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the ConfigMap must be defined
+                          type: boolean
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    prefix:
+                      description: An optional identifier to prepend to each key in
+                        the ConfigMap. Must be a C_IDENTIFIER.
+                      type: string
+                    secretRef:
+                      description: The Secret to select from
+                      properties:
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the Secret must be defined
+                          type: boolean
+                      type: object
+                      x-kubernetes-map-type: atomic
+                  type: object
+                type: array
               futureRetention:
                 description: |-
-                  FutureRetention for the stored logs
-                  Log entries with timestamps bigger than now+futureRetention are rejected during data ingestion; see https://docs.victoriametrics.com/victorialogs/#retention
+                  FutureRetention for the stored traces
+                  Log entries with timestamps bigger than now+futureRetention are rejected during data ingestion;
+                  see https://docs.victoriametrics.com/victoriatraces/#configure-and-run-victoriatraces
+                pattern: ^[0-9]+(h|d|y)?$
                 type: string
               host_aliases:
                 description: |-
@@ -248,15 +305,13 @@ spec:
                     referenced object inside the same namespace.
                   properties:
                     name:
-                      default: ''
+                      default: ""
                       description: |-
                         Name of the referent.
                         This field is effectively required, but due to backwards compatibility is
                         allowed to be empty. Instances of this type with an empty value here are
                         almost certainly wrong.
-                        TODO: Add other useful fields. apiVersion, kind, uid?
                         More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                        TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
@@ -279,17 +334,18 @@ spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               logFormat:
-                description: LogFormat for VLogs to be configured with.
+                description: LogFormat for VTSingle to be configured with.
                 enum:
                 - default
                 - json
                 type: string
               logIngestedRows:
-                description: Whether to log all the ingested log entries; this can
-                  be useful for debugging of data ingestion; see https://docs.victoriametrics.com/victorialogs/data-ingestion/
+                description: |-
+                  Whether to log all the ingested log entries; this can be useful for debugging of data ingestion;
+                  see https://docs.victoriametrics.com/victoriatraces/#configure-and-run-victoriatraces
                 type: boolean
               logLevel:
-                description: LogLevel for VictoriaLogs to be configured with.
+                description: LogLevel for VictoriaTraces to be configured with.
                 enum:
                 - INFO
                 - WARN
@@ -298,13 +354,36 @@ spec:
                 - PANIC
                 type: string
               logNewStreams:
-                description: LogNewStreams Whether to log creation of new streams;
-                  this can be useful for debugging of high cardinality issues with
-                  log streams; see https://docs.victoriametrics.com/victorialogs/keyconcepts/#stream-fields
+                description: |-
+                  LogNewStreams Whether to log creation of new streams; this can be useful for debugging of high cardinality issues with log streams;
+                  see https://docs.victoriametrics.com/victoriatraces/#configure-and-run-victoriatraces
                 type: boolean
+              managedMetadata:
+                description: |-
+                  ManagedMetadata defines metadata that will be added to the all objects
+                  created by operator for the given CustomResource
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Annotations is an unstructured key value map stored with a resource that may be
+                      set by external tools to store and retrieve arbitrary metadata. They are not
+                      queryable and should be preserved when modifying objects.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Labels Map of string keys and values that can be used to organize and categorize
+                      (scope and select) objects.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+                    type: object
+                type: object
               minReadySeconds:
                 description: |-
-                  MinReadySeconds defines a minim number os seconds to wait before starting update next pod
+                  MinReadySeconds defines a minimum number of seconds to wait before starting update next pod
                   if previous in healthy state
                   Has no effect for VLogs and VMSingle
                 format: int32
@@ -322,7 +401,7 @@ spec:
                 type: boolean
               podMetadata:
                 description: PodMetadata configures Labels and Annotations which are
-                  propagated to the VLogs pods.
+                  propagated to the VTSingle pods.
                 properties:
                   annotations:
                     additionalProperties:
@@ -375,12 +454,6 @@ spec:
                 description: ReadinessProbe that will be added CRD pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              removePvcAfterDelete:
-                description: |-
-                  RemovePvcAfterDelete - if true, controller adds ownership to pvc
-                  and after VLogs object deletion - pvc will be garbage collected
-                  by controller manager
-                type: boolean
               replicaCount:
                 description: ReplicaCount is the expected size of the Application.
                 format: int32
@@ -395,10 +468,8 @@ spec:
                       Claims lists the names of resources, defined in spec.resourceClaims,
                       that are used by this container.
 
-
                       This is an alpha field and requires enabling the
                       DynamicResourceAllocation feature gate.
-
 
                       This field is immutable. It can only be set for containers.
                     items:
@@ -409,6 +480,12 @@ spec:
                             Name must match the name of one entry in pod.spec.resourceClaims of
                             the Pod where this field is used. It makes that resource available
                             inside a container.
+                          type: string
+                        request:
+                          description: |-
+                            Request is the name chosen for a request in the referenced claim.
+                            If empty, everything from the claim is made available, otherwise
+                            only the result of this request.
                           type: string
                       required:
                       - name
@@ -422,8 +499,7 @@ spec:
                       anyOf:
                       - type: integer
                       - type: string
-                      pattern: 
-                        ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
                     description: |-
                       Limits describes the maximum amount of compute resources allowed.
@@ -434,8 +510,7 @@ spec:
                       anyOf:
                       - type: integer
                       - type: string
-                      pattern: 
-                        ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
                     description: |-
                       Requests describes the minimum amount of compute resources required.
@@ -444,8 +519,19 @@ spec:
                       More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                     type: object
                 type: object
+              retentionMaxDiskSpaceUsageBytes:
+                description: |-
+                  RetentionMaxDiskSpaceUsageBytes for the stored traces
+                  VictoriaTraces keeps at least two last days of data in order to guarantee that the traces for the last day can be returned in queries.
+                  This means that the total disk space usage may exceed the -retention.maxDiskSpaceUsageBytes,
+                  if the size of the last two days of data exceeds the -retention.maxDiskSpaceUsageBytes.
+                  https://docs.victoriametrics.com/victoriatraces/#configure-and-run-victoriatraces
+                type: string
               retentionPeriod:
-                description: RetentionPeriod for the stored logs
+                description: |-
+                  RetentionPeriod for the stored traces
+                  https://docs.victoriametrics.com/victoriatraces/#configure-and-run-victoriatraces
+                pattern: ^[0-9]+(h|d|w|y)?$
                 type: string
               revisionHistoryLimitCount:
                 description: |-
@@ -482,14 +568,14 @@ spec:
                   to use to run the pods
                 type: string
               serviceScrapeSpec:
-                description: ServiceScrapeSpec that will be added to vlogs VMServiceScrape
+                description: ServiceScrapeSpec that will be added to vtsingle VMServiceScrape
                   spec
                 required:
                 - endpoints
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               serviceSpec:
-                description: ServiceSpec that will be added to vlogs service spec
+                description: ServiceSpec that will be added to vtsingle service spec
                 properties:
                   metadata:
                     description: EmbeddedObjectMetadata defines objectMeta for additional
@@ -543,7 +629,7 @@ spec:
                 x-kubernetes-preserve-unknown-fields: true
               storage:
                 description: |-
-                  Storage is the definition of how storage will be used by the VLogs
+                  Storage is the definition of how storage will be used by the VTSingle
                   by default it`s empty dir
                 properties:
                   accessModes:
@@ -643,8 +729,7 @@ spec:
                           anyOf:
                           - type: integer
                           - type: string
-                          pattern: 
-                            ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                         description: |-
                           Limits describes the maximum amount of compute resources allowed.
@@ -655,8 +740,7 @@ spec:
                           anyOf:
                           - type: integer
                           - type: string
-                          pattern: 
-                            ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                         description: |-
                           Requests describes the minimum amount of compute resources required.
@@ -730,7 +814,7 @@ spec:
                       set to a Pending state, as reflected by the modifyVolumeStatus field, until such as a resource
                       exists.
                       More info: https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
-                      (Alpha) Using this field requires the VolumeAttributesClass feature gate to be enabled.
+                      (Beta) Using this field requires the VolumeAttributesClass feature gate to be enabled (off by default).
                     type: string
                   volumeMode:
                     description: |-
@@ -744,12 +828,12 @@ spec:
                 type: object
               storageDataPath:
                 description: |-
-                  StorageDataPath disables spec.storage option and overrides arg for victoria-logs binary --storageDataPath,
+                  StorageDataPath disables spec.storage option and overrides arg for victoria-traces binary --storageDataPath,
                   its users responsibility to mount proper device into given path.
                 type: string
               storageMetadata:
                 description: StorageMeta defines annotations and labels attached to
-                  PVC for given vlogs CR
+                  PVC for given vtsingle CR
                 properties:
                   annotations:
                     additionalProperties:
@@ -886,9 +970,7 @@ spec:
                         RecursiveReadOnly specifies whether read-only mounts should be handled
                         recursively.
 
-
                         If ReadOnly is false, this field has no meaning and must be unspecified.
-
 
                         If ReadOnly is true, and this field is set to Disabled, the mount is not made
                         recursively read-only.  If this field is set to IfPossible, the mount is made
@@ -897,10 +979,8 @@ spec:
                         supported by the container runtime, otherwise the pod will not be started and
                         an error will be generated to indicate the reason.
 
-
                         If this field is set to IfPossible or Enabled, MountPropagation must be set to
                         None (or be unspecified, which defaults to None).
-
 
                         If this field is not specified, it is treated as an equivalent of Disabled.
                       type: string
@@ -934,38 +1014,85 @@ spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
-            required:
-            - retentionPeriod
             type: object
           status:
-            description: VLogsStatus defines the observed state of VLogs
+            description: VTSingleStatus defines the observed state of VTSingle
             properties:
-              availableReplicas:
-                description: AvailableReplicas Total number of available pods (ready
-                  for at least minReadySeconds) targeted by this VLogs.
-                format: int32
+              conditions:
+                description: 'Known .status.conditions.type are: "Available", "Progressing",
+                  and "Degraded"'
+                items:
+                  description: Condition defines status condition of the resource
+                  properties:
+                    lastTransitionTime:
+                      description: lastTransitionTime is the last time the condition
+                        transitioned from one status to another.
+                      format: date-time
+                      type: string
+                    lastUpdateTime:
+                      description: |-
+                        LastUpdateTime is the last time of given type update.
+                        This value is used for status TTL update and removal
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: Type of condition in CamelCase or in name.namespace.resource.victoriametrics.com/CamelCase.
+                      maxLength: 316
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - lastUpdateTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: |-
+                  ObservedGeneration defines current generation picked by operator for the
+                  reconcile
+                format: int64
                 type: integer
               reason:
-                description: Reason defines a reason in case of update failure
+                description: Reason defines human readable error reason
                 type: string
-              replicas:
-                description: ReplicaCount Total number of non-terminated pods targeted
-                  by this VLogs.
-                format: int32
-                type: integer
-              status:
-                description: UpdateStatus defines a status of vlogs instance rollout
+              updateStatus:
+                description: UpdateStatus defines a status for update rollout
                 type: string
-              unavailableReplicas:
-                description: UnavailableReplicas Total number of unavailable pods
-                  targeted by this VLogs.
-                format: int32
-                type: integer
-              updatedReplicas:
-                description: UpdatedReplicas Total number of non-terminated pods targeted
-                  by this VLogs.
-                format: int32
-                type: integer
             type: object
         type: object
     served: true

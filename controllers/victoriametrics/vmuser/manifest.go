@@ -33,9 +33,6 @@ func vmUser(cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 		if cr.Spec.Victoriametrics.VmUser.UserName != nil {
 			vmuser.Spec.UserName = cr.Spec.Victoriametrics.VmUser.UserName
 		}
-		if cr.Spec.Victoriametrics.VmUser.Password != nil {
-			vmuser.Spec.Password = cr.Spec.Victoriametrics.VmUser.Password
-		}
 		if cr.Spec.Victoriametrics.VmUser.PasswordRef != nil {
 			vmuser.Spec.PasswordRef = cr.Spec.Victoriametrics.VmUser.PasswordRef
 		}

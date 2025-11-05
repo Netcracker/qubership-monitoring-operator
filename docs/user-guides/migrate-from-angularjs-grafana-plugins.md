@@ -36,7 +36,7 @@ The table above is provided to demonstrate the absence of some plugins in older 
 # AngularJS plugins and their possible alternatives
 
 You can find a list of deprecated plugins in
-[the official Grafana docs](https://grafana.com/docs/grafana/latest/developers/angular_deprecation/angular-plugins/).
+[the official Grafana docs](https://grafana.com/docs/grafana/v12.1/developers/angular_deprecation/angular-plugins/).
 
 Often panels based on new plugins look little different from old ones, so **we recommend checking the type of each panel
 on your dashboard**. You can do this by going into `Edit` mode for the panel and checking its type in
