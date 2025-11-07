@@ -308,8 +308,8 @@ kubectl delete crd podmonitors.monitoring.coreos.com
 kubectl delete crd probes.monitoring.coreos.com
 kubectl delete crd servicemonitors.monitoring.coreos.com
 kubectl delete crd thanosrulers.monitoring.coreos.com
-kubectl delete crd customscalemetricrules.monitoring.qubership.org
-kubectl delete crd platformmonitorings.monitoring.qubership.org
+kubectl delete crd customscalemetricrules.monitoring.netcracker.com
+kubectl delete crd platformmonitorings.monitoring.netcracker.com
 kubectl delete crd vmsingles.operator.victoriametrics.com
 kubectl delete crd vmagents.operator.victoriametrics.com
 kubectl delete crd vmalertmanagers.operator.victoriametrics.com
@@ -329,8 +329,8 @@ oc delete crd podmonitors.monitoring.coreos.com
 oc delete crd probes.monitoring.coreos.com
 oc delete crd servicemonitors.monitoring.coreos.com
 oc delete crd thanosrulers.monitoring.coreos.com
-oc delete crd customscalemetricrules.monitoring.qubership.org
-oc delete crd platformmonitorings.monitoring.qubership.org
+oc delete crd customscalemetricrules.monitoring.netcracker.com
+oc delete crd platformmonitorings.monitoring.netcracker.com
 oc delete crd vmsingles.operator.victoriametrics.com
 oc delete crd vmagents.operator.victoriametrics.com
 oc delete crd vmalertmanagers.operator.victoriametrics.com

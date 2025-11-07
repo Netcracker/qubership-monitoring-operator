@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -19,7 +19,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func alertmanagerServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func alertmanagerServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerServiceAccountAsset), 100).Decode(&sa)
 
@@ -53,7 +53,7 @@ func alertmanagerServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.Servic
 	return &sa, nil
 }
 
-func alertmanagerSecret(cr *v1alpha1.PlatformMonitoring) (*corev1.Secret, error) {
+func alertmanagerSecret(cr *monv1.PlatformMonitoring) (*corev1.Secret, error) {
 	secret := corev1.Secret{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerSecretAsset), 100).Decode(&secret); err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func alertmanagerSecret(cr *v1alpha1.PlatformMonitoring) (*corev1.Secret, error)
 	return &secret, nil
 }
 
-func alertmanager(cr *v1alpha1.PlatformMonitoring) (*promv1.Alertmanager, error) {
+func alertmanager(cr *monv1.PlatformMonitoring) (*promv1.Alertmanager, error) {
 	am := promv1.Alertmanager{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerAsset), 100).Decode(&am); err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func alertmanager(cr *v1alpha1.PlatformMonitoring) (*promv1.Alertmanager, error)
 	return &am, nil
 }
 
-func alertmanagerService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) {
+func alertmanagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -252,7 +252,7 @@ func alertmanagerService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, erro
 	return &service, nil
 }
 
-func alertmanagerIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+func alertmanagerIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
 	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -320,7 +320,7 @@ func alertmanagerIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingre
 	return &ingress, nil
 }
 
-func alertmanagerIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func alertmanagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -398,7 +398,7 @@ func alertmanagerIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingre
 	return &ingress, nil
 }
 
-func alertmanagerPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func alertmanagerPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err
