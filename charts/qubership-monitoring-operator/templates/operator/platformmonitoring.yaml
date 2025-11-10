@@ -400,7 +400,7 @@ spec:
       {{- if .Values.victoriametrics.vmOperator.priorityClassName }}
       priorityClassName: {{ .Values.victoriametrics.vmOperator.priorityClassName }}
       {{- end }}
-    # Replace below if condition when vmCluster is actualized 
+    # Replace below if condition when vmCluster is actualized
     # if and .Values.victoriametrics.vmSingle.install (not .Values.victoriametrics.vmCluster.install)
     {{- if .Values.victoriametrics.vmSingle.install }}
     vmSingle:
@@ -946,7 +946,7 @@ spec:
     {{- if .Values.victoriametrics.vmAuth.install }}
     {{- if or .Values.victoriametrics.vmUser.install (hasKey .Values.victoriametrics.vmUser "install") }}
     vmUser:
-      install: {{ .Values.victoriametrics.vmUser.install | default true }}
+      install: {{ if hasKey .Values.victoriametrics.vmUser "install" }}{{ .Values.victoriametrics.vmUser.install }}{{ else }}true{{ end }}
       paused: {{ .Values.victoriametrics.vmUser.paused | default false }}
       {{- if .Values.victoriametrics.vmUser.username }}
       username: {{ .Values.victoriametrics.vmUser.username }}
