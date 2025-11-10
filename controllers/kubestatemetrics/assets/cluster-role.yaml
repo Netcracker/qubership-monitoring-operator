@@ -22,7 +22,6 @@ rules:
       - persistentvolumes
       - namespaces
       - endpoints
-      - endpointslices
     verbs:
       - 'list'
       - 'watch'
