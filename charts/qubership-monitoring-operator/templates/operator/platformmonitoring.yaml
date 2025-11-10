@@ -944,9 +944,9 @@ spec:
         {{- end }}
     {{- end }}
     {{- if .Values.victoriametrics.vmAuth.install }}
-    {{- if .Values.victoriametrics.vmUser.install }}
+    {{- if or .Values.victoriametrics.vmUser.install (hasKey .Values.victoriametrics.vmUser "install") }}
     vmUser:
-      install: {{ .Values.victoriametrics.vmUser.install }}
+      install: {{ .Values.victoriametrics.vmUser.install | default true }}
       paused: {{ .Values.victoriametrics.vmUser.paused | default false }}
       {{- if .Values.victoriametrics.vmUser.username }}
       username: {{ .Values.victoriametrics.vmUser.username }}
@@ -956,7 +956,7 @@ spec:
         {{- toYaml .Values.victoriametrics.vmUser.passwordRef | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmUser.tokenRef }}
-      passwordRef:
+      tokenRef:
         {{- toYaml .Values.victoriametrics.vmUser.tokenRef | nindent 8 }}
       {{- end }}
       generatePassword: {{ .Values.victoriametrics.vmUser.generatePassword | default false }}
