@@ -108,7 +108,7 @@ clean:
 generate: controller-gen
 	echo "=> Generate CRDs and deepcopy ..."
 	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=256 \
-					  object:headerFile="hack/boilerplate.go.txt" \
+					  object:headerFile="tools/boilerplate.go.txt" \
 					  paths="./..." \
 					  output:crd:artifacts:config=charts/qubership-monitoring-operator/crds/
 
@@ -170,7 +170,7 @@ vet:
 image:
 	echo "=> Build image ..."
 	docker build --pull -t $(CONTAINER_NAME) -f $(DOCKERFILE) .
-	
+
 	# Set image tag if build inside the Jenkins
 	for id in $(DOCKER_NAMES) ; do \
 		docker tag $(CONTAINER_NAME) "$$id"; \
