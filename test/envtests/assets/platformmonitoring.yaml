@@ -44,7 +44,7 @@ spec:
     operator:
       image: 'integreatly/grafana-operator:v3.9.0'
       initContainerImage: >-
-        product/prod.platform.system.monitoring_grafana-plugins-init:latest
+        ghcr.io/netcracker/qubership-grafana-plugins-init:latest
       paused: false
       resources: {}
       securityContext:

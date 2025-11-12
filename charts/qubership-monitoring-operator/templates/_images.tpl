@@ -12,7 +12,7 @@ Image can be found from:
   {{- if .Values.monitoringOperator.image -}}
     {{- printf "%s" .Values.monitoringOperator.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-monitoring-operator:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-monitoring-operator:latest" -}}
   {{- end -}}
 {{- end -}}
 
@@ -59,7 +59,7 @@ Image can be found from:
     {{- if .Values.grafana.operator.initContainerImage -}}
       {{- printf "%s" .Values.grafana.operator.initContainerImage -}}
     {{- else -}}
-      {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:main" -}}
+      {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:latest" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -376,7 +376,7 @@ Image can be found from:
   {{- if .Values.integrationTests.image -}}
     {{- printf "%s" .Values.integrationTests.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-monitoring-int-tests:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-monitoring-int-tests:latest" -}}
   {{- end -}}
 {{- end -}}
 

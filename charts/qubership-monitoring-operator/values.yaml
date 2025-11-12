@@ -79,7 +79,7 @@ monitoringOperator:
     name: ""
 
   # A docker image to use for monitoring-operator deployment
-  # image: prod.platform.system.monitoring_monitoring-operator:latest
+  # image: ghcr.io/netcracker/qubership-monitoring-operator:latest
 
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/

@@ -14,7 +14,7 @@ install: false
 name: graphite-remote-adapter
 
 # A Docker image to deploy the graphite_remote_adapter.
-# image: product/prod.platform.system.graphite-remote-adapter:latest
+# image: ghcr.io/netcracker/qubership-graphite-remote-adapter:latest
 
 # Number of created pods.
 # Type: integer

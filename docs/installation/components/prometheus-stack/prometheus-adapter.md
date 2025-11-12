@@ -139,7 +139,7 @@ prometheusAdapter:
 ```yaml
 prometheusAdapter:
   operator:
-    image: "product/prod.platform.system.monitoring_k8s-scaling_prometheus-adapter-operator:latest"
+    image: "ghcr.io/netcracker/qubership-prometheus-adapter-operator:latest"
     securityContext:
       runAsUser: 2000
       fsGroup: 2000

@@ -235,7 +235,7 @@ operator:
   # Type: string
   # Mandatory: yes
   #
-  # image: "product/prod.platform.system.monitoring_k8s-scaling_prometheus-adapter-operator:latest"
+  # image: "ghcr.io/netcracker/qubership-prometheus-adapter-operator:latest"
 
   # SecurityContext holds pod-level security attributes.
   # The parameters are required if a Pod Security Policy is enabled
@@ -355,7 +355,7 @@ operator:
     #   keySecret:
     #     name: client-ssl-certificate
     #     key: client-key.key
-    
+
     # TLS configuration from existing secret
     # If specified, all subsequent parameters in tls section are ignored.
     #
