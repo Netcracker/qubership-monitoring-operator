@@ -1,0 +1,195 @@
+{{- if .Values.rbac.install }}
+{{- $namespace := include "monitoring-pack-one.namespace" . }}
+{{- $vmAgentSA := include "monitoring-pack-one.vmagent.serviceAccountName" . }}
+{{- $vmAgentClusterRole := include "monitoring-pack-one.vmagent.clusterRoleName" . }}
+{{- $vmAgentClusterBinding := include "monitoring-pack-one.vmagent.clusterRoleBindingName" . }}
+{{- $vmAgentRole := include "monitoring-pack-one.vmagent.roleName" . }}
+{{- $vmAgentRoleBinding := include "monitoring-pack-one.vmagent.roleBindingName" . }}
+{{- $vmAlertSA := include "monitoring-pack-one.vmalert.serviceAccountName" . }}
+{{- $vmAlertClusterRole := include "monitoring-pack-one.vmalert.clusterRoleName" . }}
+{{- $vmAlertClusterBinding := include "monitoring-pack-one.vmalert.clusterRoleBindingName" . }}
+{{- $vmAlertRole := include "monitoring-pack-one.vmalert.roleName" . }}
+{{- $vmAlertRoleBinding := include "monitoring-pack-one.vmalert.roleBindingName" . }}
+{{- $annotations := dict }}
+{{- if .Values.commonAnnotations }}
+  {{- $annotations = merge $annotations .Values.commonAnnotations }}
+{{- end }}
+{{- if .Values.rbac.annotations }}
+  {{- $annotations = merge $annotations .Values.rbac.annotations }}
+{{- end }}
+{{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.rbac.labels }}
+{{- $annotationCtx := dict "commonAnnotations" $annotations "componentAnnotations" dict }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $vmAgentSA }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $vmAlertSA }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $vmAgentClusterRole }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmagent
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+rules:
+{{- $defaultVmAgentClusterRules := list
+  (dict "apiGroups" (list "") "resources" (list "nodes" "nodes/metrics" "nodes/proxy" "services" "endpoints" "pods" "namespaces") "verbs" (list "get" "list" "watch"))
+  (dict "apiGroups" (list "discovery.k8s.io") "resources" (list "endpointslices") "verbs" (list "get" "list" "watch"))
+  (dict "apiGroups" (list "extensions" "networking.k8s.io") "resources" (list "ingresses") "verbs" (list "get" "list" "watch"))
+  (dict "apiGroups" (list "route.openshift.io" "image.openshift.io") "resources" (list "registry/metrics" "routers/metrics") "verbs" (list "get"))
+  (dict "nonResourceURLs" (list "/metrics" "/metrics/resources" "/metrics/slis") "verbs" (list "get" "list" "watch"))
+-}}
+{{- $vmAgentClusterRules := .Values.rbac.vmAgent.clusterRules }}
+{{- if or (not $vmAgentClusterRules) (eq (len $vmAgentClusterRules) 0) }}
+{{- $vmAgentClusterRules = $defaultVmAgentClusterRules }}
+{{- end }}
+{{ toYaml $vmAgentClusterRules | indent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $vmAgentClusterBinding }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmagent
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $vmAgentClusterRole }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $vmAgentSA }}
+    namespace: {{ $namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $vmAgentRole }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmagent
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+rules:
+{{- $defaultVmAgentRoleRules := list
+  (dict "apiGroups" (list "") "resources" (list "configmaps" "secrets" "services" "endpoints" "pods") "verbs" (list "get" "list" "watch"))
+  (dict "apiGroups" (list "") "resources" (list "configmaps" "secrets") "verbs" (list "create" "update" "patch" "delete"))
+  (dict "apiGroups" (list "") "resources" (list "services" "endpoints") "verbs" (list "create" "update" "patch" "delete"))
+  (dict "apiGroups" (list "apps") "resources" (list "deployments") "verbs" (list "get" "list" "watch" "create" "update" "patch" "delete"))
+-}}
+{{- $vmAgentRoleRules := .Values.rbac.vmAgent.roleRules }}
+{{- if or (not $vmAgentRoleRules) (eq (len $vmAgentRoleRules) 0) }}
+{{- $vmAgentRoleRules = $defaultVmAgentRoleRules }}
+{{- end }}
+{{ toYaml $vmAgentRoleRules | indent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $vmAgentRoleBinding }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmagent
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $vmAgentRole }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $vmAgentSA }}
+    namespace: {{ $namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $vmAlertClusterRole }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmalert
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+rules:
+{{- $defaultVmAlertClusterRules := list
+  (dict "apiGroups" (list "") "resources" (list "namespaces") "verbs" (list "get" "list" "watch"))
+-}}
+{{- $vmAlertClusterRules := .Values.rbac.vmAlert.clusterRules }}
+{{- if or (not $vmAlertClusterRules) (eq (len $vmAlertClusterRules) 0) }}
+{{- $vmAlertClusterRules = $defaultVmAlertClusterRules }}
+{{- end }}
+{{ toYaml $vmAlertClusterRules | indent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $vmAlertClusterBinding }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmalert
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $vmAlertClusterRole }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $vmAlertSA }}
+    namespace: {{ $namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $vmAlertRole }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmalert
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+rules:
+{{- $defaultVmAlertRoleRules := list
+  (dict "apiGroups" (list "") "resources" (list "configmaps" "secrets" "services" "endpoints") "verbs" (list "get" "list" "watch"))
+  (dict "apiGroups" (list "") "resources" (list "configmaps" "secrets") "verbs" (list "create" "update" "patch" "delete"))
+  (dict "apiGroups" (list "") "resources" (list "services" "endpoints") "verbs" (list "create" "update" "patch" "delete"))
+  (dict "apiGroups" (list "apps") "resources" (list "deployments") "verbs" (list "get" "list" "watch" "create" "update" "patch" "delete"))
+-}}
+{{- $vmAlertRoleRules := .Values.rbac.vmAlert.roleRules }}
+{{- if or (not $vmAlertRoleRules) (eq (len $vmAlertRoleRules) 0) }}
+{{- $vmAlertRoleRules = $defaultVmAlertRoleRules }}
+{{- end }}
+{{ toYaml $vmAlertRoleRules | indent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $vmAlertRoleBinding }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/component: vmalert
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $vmAlertRole }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $vmAlertSA }}
+    namespace: {{ $namespace }}
+{{- end }}

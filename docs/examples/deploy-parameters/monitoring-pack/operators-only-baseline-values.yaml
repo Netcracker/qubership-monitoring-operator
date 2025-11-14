@@ -1,6 +1,3 @@
-global:
-  privilegedRights: true
-
 monitoringOperator:
   podMonitor:
     install: false
@@ -13,7 +10,7 @@ alertManager:
 prometheus:
   install: false
   operator:
-    install: true
+    install: false
     podMonitor:
       install: false
 
