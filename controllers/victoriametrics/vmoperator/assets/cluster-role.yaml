@@ -141,6 +141,7 @@ rules:
       - statefulsets
       - statefulsets/finalizers
       - statefulsets/status
+      - daemonsets
   - verbs:
       - get
       - list
