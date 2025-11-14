@@ -19,10 +19,6 @@ on:
         - 'docs/**'
         - '*.md'
   workflow_dispatch: null
-  pull_request:
-    branches: [main]
-    types:
-      [opened, reopened, synchronize]
 permissions:
   contents: read
 
