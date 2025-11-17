@@ -13,6 +13,17 @@ on:
     - 'LICENSE'
     - 'README.md'
     - 'SECURITY.md'
+  push:
+    branches:
+    - '**'
+    paths-ignore:
+    # - '.github/**'
+    - 'docs/**'
+    - 'CODE-OF-CONDUCT.md'
+    - 'CONTRIBUTING.md'
+    - 'LICENSE'
+    - 'README.md'
+    - 'SECURITY.md'
 
 jobs:
   Wait-for-images:
