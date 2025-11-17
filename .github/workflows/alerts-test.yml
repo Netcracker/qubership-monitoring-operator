@@ -15,6 +15,9 @@ env:
   max_attempts: 30
   delay: 10
 
+permissions:
+  contents: read
+
 jobs:
   Run-Alerts-Test:
     runs-on: ubuntu-latest
