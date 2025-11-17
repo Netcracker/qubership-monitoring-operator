@@ -38,6 +38,8 @@ victoriametrics:
     install: false
   vmUser:
     install: false
+  vmAuth:
+    install: false
 
 # mandatory exporters
 kubeStateMetrics:

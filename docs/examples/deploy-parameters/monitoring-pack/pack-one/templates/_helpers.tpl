@@ -116,6 +116,30 @@
 {{- end -}}
 {{- end -}}
 
+{{- define "monitoring-pack-one.vmoperator.serviceAccountName" -}}
+{{- if .Values.rbac.vmOperator.serviceAccountName }}
+{{- .Values.rbac.vmOperator.serviceAccountName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+monitoring-victoriametrics-operator
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmoperator.clusterRoleName" -}}
+{{- if .Values.rbac.vmOperator.clusterRoleName }}
+{{- .Values.rbac.vmOperator.clusterRoleName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-vmoperator-clusterrole" (include "monitoring-pack-one.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmoperator.clusterRoleBindingName" -}}
+{{- if .Values.rbac.vmOperator.clusterRoleBindingName }}
+{{- .Values.rbac.vmOperator.clusterRoleBindingName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-vmoperator-clusterbinding" (include "monitoring-pack-one.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "monitoring-pack-one.metadata.labels" -}}
 {{- $labels := dict }}
 {{- if .commonLabels }}

@@ -48,6 +48,17 @@ rbac:
     clusterRules: []
     # Override default role rules (empty = use defaults from template)
     roleRules: []
+  vmOperator:
+    # Enable/disable ClusterRole/ClusterRoleBinding for victoria-metrics-operator
+    install: true
+    # ServiceAccount name that runs victoria-metrics-operator
+    serviceAccountName: ""
+    # Override ClusterRole name (empty = auto-generated)
+    clusterRoleName: ""
+    # Override ClusterRoleBinding name (empty = auto-generated)
+    clusterRoleBindingName: ""
+    # Override default cluster rules (empty = use defaults from template)
+    clusterRules: []
 
 vmAgent:
   install: true

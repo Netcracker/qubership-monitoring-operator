@@ -1,0 +1,310 @@
+{{- /*
+Ensure victoria-metrics-operator keeps the full ClusterRole even when the baseline
+installation ships only namespace-scoped RBAC. This prevents forbidden errors when
+pack-one enables vmagent/vmalert but the operator cannot list its CRDs cluster-wide.
+*/ -}}
+{{- if and .Values.rbac.install .Values.rbac.vmOperator.install }}
+{{- $namespace := include "monitoring-pack-one.namespace" . }}
+{{- $serviceAccount := include "monitoring-pack-one.vmoperator.serviceAccountName" . }}
+{{- $clusterRoleName := include "monitoring-pack-one.vmoperator.clusterRoleName" . }}
+{{- $clusterRoleBindingName := include "monitoring-pack-one.vmoperator.clusterRoleBindingName" . }}
+{{- $annotations := dict }}
+{{- if .Values.commonAnnotations }}
+  {{- $annotations = merge $annotations .Values.commonAnnotations }}
+{{- end }}
+{{- if .Values.rbac.annotations }}
+  {{- $annotations = merge $annotations .Values.rbac.annotations }}
+{{- end }}
+{{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (merge (dict "monitoring-pack-one/component" "vmoperator") (.Values.rbac.labels | default dict)) }}
+{{- $annotationCtx := dict "commonAnnotations" $annotations "componentAnnotations" dict }}
+{{- $defaultVmOperatorClusterRules := index (fromYaml `
+rules:
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - clusterroles
+      - clusterrolebindings
+      - rolebindings
+      - roles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vmprobscrapes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vmalertmanagerconfigs/status
+      - vmpodscrapes/status
+      - vmrules/status
+      - vmservicescrapes/status
+      - vmprobes/status
+      - vmnodescrapes/status
+      - vmstaticscrapes/status
+      - vmprobscrapes/status
+      - vmscrapeconfigs/status
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vmalertmanagerconfigs/finalizers
+      - vmprobscrapes/finalizers
+      - vmprobes/finalizers
+      - vmservicescrapes/finalizers
+      - vmrules/finalizers
+      - vmpodscrapes/finalizers
+      - vmstaticscrapes/finalizers
+      - vmnodescrapes/finalizers
+      - vmscrapeconfigs/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+      - poddisruptionbudgets/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+      - namespaces
+      - configmaps
+      - services
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - deployments/finalizers
+      - replicasets
+      - statefulsets
+      - statefulsets/finalizers
+      - statefulsets/status
+      - daemonsets
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - probes
+      - servicemonitors
+      - prometheusrules
+      - alertmanagerconfigs
+      - podmonitors
+      - scrapeconfigs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - podmonitors/finalizers
+      - probes/finalizers
+      - prometheusrules/finalizers
+      - servicemonitors/finalizers
+      - alertmanagerconfigs/finalizers
+      - thanosrulers/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vmservicescrapes
+      - vmrules
+      - vmpodscrapes
+      - vmstaticscrapes
+      - vmnodescrapes
+      - vmprobes
+      - vmalertmanagerconfigs
+      - vmscrapeconfigs
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vlagents
+      - vlagents/finalizers
+      - vlagents/status
+      - vlclusters
+      - vlclusters/finalizers
+      - vlclusters/status
+      - vlogs
+      - vlogs/finalizers
+      - vlogs/status
+      - vlsingles
+      - vlsingles/finalizers
+      - vlsingles/status
+      - vmagents
+      - vmagents/finalizers
+      - vmagents/status
+      - vmalertmanagers
+      - vmalertmanagers/finalizers
+      - vmalertmanagers/status
+      - vmalerts
+      - vmalerts/finalizers
+      - vmalerts/status
+      - vmclusters
+      - vmclusters/finalizers
+      - vmclusters/status
+      - vmsingles
+      - vmsingles/finalizers
+      - vmsingles/status
+      - vmanomalies
+      - vmanomalies/finalizers
+      - vmanomalies/status
+      - vmauths
+      - vmauths/finalizers
+      - vmauths/status
+      - vmusers
+      - vmusers/finalizers
+      - vmusers/status
+      - vtclusters
+      - vtclusters/finalizers
+      - vtclusters/status
+      - vtsingles
+      - vtsingles/finalizers
+      - vtsingles/status
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - route.openshift.io
+      - image.openshift.io
+    resources:
+      - routers/metrics
+      - registry/metrics
+    verbs:
+      - get
+  - nonResourceURLs:
+      - /metrics
+      - /metrics/resources
+      - /metrics/slis
+    verbs:
+      - get
+      - list
+      - watch
+`) "rules" }}
+{{- $clusterRules := .Values.rbac.vmOperator.clusterRules }}
+{{- if or (not $clusterRules) (eq (len $clusterRules) 0) }}
+  {{- $clusterRules = $defaultVmOperatorClusterRules }}
+{{- end }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $clusterRoleName }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+rules:
+{{ toYaml $clusterRules | indent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $clusterRoleBindingName }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $clusterRoleName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $serviceAccount }}
+    namespace: {{ $namespace }}
+{{- end }}
+
