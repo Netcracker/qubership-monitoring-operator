@@ -1,0 +1,61 @@
+{{- $root := . -}}
+{{- range $name, $cfg := .Values.serviceMonitors.exporters }}
+{{- if $cfg.install }}
+{{- $sanitizedName := $name | replace "_" "-" | replace "." "-" | lower }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ default (printf "%s-%s" (include "monitoring-pack-one.fullname" $root) $sanitizedName) $cfg.name }}
+  namespace: {{ default (include "monitoring-pack-one.namespace" $root) $cfg.namespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" $root | nindent 4 }}
+    monitoring-pack-one/exporter: {{ $name }}
+    {{- $labelCtx := dict "commonLabels" $root.Values.commonLabels "componentLabels" $cfg.labels }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" $root.Values.commonAnnotations "componentAnnotations" $cfg.annotations }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+{{- if $cfg.jobLabel }}
+  jobLabel: {{ $cfg.jobLabel }}
+{{- end }}
+  selector:
+{{- if $cfg.selector }}
+{{ toYaml $cfg.selector | indent 4 }}
+{{- else }}
+    matchLabels: {}
+{{- end }}
+  namespaceSelector:
+{{- $nsSelector := default $root.Values.serviceMonitors.namespaceSelector $cfg.namespaceSelector }}
+{{- if $nsSelector }}
+{{ toYaml $nsSelector | indent 4 }}
+{{- else }}
+    matchNames:
+      - {{ include "monitoring-pack-one.namespace" $root }}
+{{- end }}
+{{- if $cfg.sampleLimit }}
+  sampleLimit: {{ $cfg.sampleLimit }}
+{{- end }}
+  endpoints:
+{{- if $cfg.endpoints }}
+{{ toYaml $cfg.endpoints | indent 4 }}
+{{- else }}
+    - port: metrics
+{{- end }}
+  {{- with $cfg.endpointRelabelings }}
+  endpointRelabelings:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- with $cfg.targetLabels }}
+  targetLabels:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- with $cfg.podTargetLabels }}
+  podTargetLabels:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- with $cfg.additionalSpec }}
+{{ toYaml . | indent 2 }}
+  {{- end }}
+{{- end }}
+{{- end }}
