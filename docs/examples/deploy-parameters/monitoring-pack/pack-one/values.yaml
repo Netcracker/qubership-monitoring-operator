@@ -69,7 +69,7 @@ vmAgent:
         memory: 500Mi
     scrapeInterval: 30s
     remoteWrite:
-      - url: https://remote-write.example.com/api/v1/write
+      - url: http://vmsingle-k8s.vmsingle-standalone.svc:8429/api/v1/write
 
 vmAlert:
   install: true
