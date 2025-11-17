@@ -1,0 +1,14 @@
+---
+
+# Charts release configuration file example
+# This file is used to update the version of the helm charts and images in the values.yaml file
+# It is used in the helm-charts-release action
+# ${release} is replaced with the release version provided in the workflow
+
+charts:
+  - name: qubership-monitoring-operator
+    chart_file: charts/qubership-monitoring-operator/Chart.yaml
+    values_file: charts/qubership-monitoring-operator/templates/_images.tpl
+    image:
+      - ghcr.io/netcracker/qubership-monitoring-operator:${release}
+      - ghcr.io/netcracker/qubership-monitoring-int-tests:${release}

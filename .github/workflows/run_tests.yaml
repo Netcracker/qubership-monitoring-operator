@@ -1,0 +1,41 @@
+name: Run Monitoring Pipeline
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths-ignore:
+    # - '.github/**'
+    - 'docs/**'
+    - 'CODE-OF-CONDUCT.md'
+    - 'CONTRIBUTING.md'
+    - 'LICENSE'
+    - 'README.md'
+    - 'SECURITY.md'
+
+jobs:
+  Wait-for-images:
+    runs-on: ubuntu-latest
+    outputs:
+      conclusion: ${{ steps.wait.outputs.conclusion }}
+    steps:
+      - name: Wait for build.yaml to complete
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@main
+        id: wait
+        with:
+          workflow: build.yaml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          poll-interval: 20
+
+  Monitoring-Pipeline:
+    needs: Wait-for-images
+    if: ${{ needs.Wait-for-images.outputs.conclusion }} == 'success'
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring-ingress-tests
+    with:
+      service_branch: "${{ github.head_ref || github.ref_name }}"
+      versions_file: ".github/versions.yaml"
+      pipeline_branch: "monitoring" #this value must match the value after '@' in 'uses'
+#    secrets:
+#      AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
+#      AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}
