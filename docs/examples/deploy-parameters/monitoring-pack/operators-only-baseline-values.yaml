@@ -1,4 +1,6 @@
 monitoringOperator:
+  # Use main branch instead of latest tag
+  image: ghcr.io/netcracker/qubership-monitoring-operator:main
   podMonitor:
     install: false
 
