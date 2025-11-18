@@ -17,7 +17,7 @@ on:
     branches:
     - '**'
     paths-ignore:
-    # - '.github/**' - to uncomment if you want to ignore changes in .github folder
+    # - '.github/**'
     - 'docs/**'
     - 'CODE-OF-CONDUCT.md'
     - 'CONTRIBUTING.md'
