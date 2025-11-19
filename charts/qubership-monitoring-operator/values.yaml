@@ -36,8 +36,6 @@ global:
 # Mandatory: no
 #
 
-
-
 role:
   # Allow to disable create Role and ClusterRole for monitoring-operator during deploy.
   # If global.privilegedRights parameter is set to false, ClusterRole will not be installed in any case.
