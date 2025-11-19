@@ -39,7 +39,7 @@ global:
 role:
   # Allow to disable create Role and ClusterRole for monitoring-operator during deploy.
   # If global.privilegedRights parameter is set to false, ClusterRole will not be installed in any case.
-  install: true
+  install: false
 
 # RoleBinding and ClusterRoleBinding for monitoring-operator to use.
 # Ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
@@ -49,7 +49,7 @@ role:
 roleBinding:
   # Allow to disable create RoleBinding and ClusterRoleBinding for monitoring-operator during deploy.
   # If global.privilegedRights parameter is set to false, ClusterRoleBinding will not be installed in any case.
-  install: true
+  install: false
 
 # Allows to disable or enable specific dashboards, rules and service monitors for the specified public cloud.
 # Allowed values: aws, azure, google, ""
@@ -76,7 +76,7 @@ monitoringOperator:
   name: monitoring-operator
 
   clusterRole:
-    install: true
+    install: false
     name: ""
 
   # A docker image to use for monitoring-operator deployment
@@ -139,7 +139,7 @@ monitoringOperator:
     # Mandatory: no
     # Default: false
     #
-    install: true
+    install: false
 
     # Type: integer
     # Mandatory: no
@@ -194,7 +194,7 @@ monitoringOperator:
   serviceAccount:
 
     # Allow to disable create ServiceAccount during deploy
-    install: true
+    install: false
 
     # Provide a name in place of monitoring-operator for ServiceAccount
     name: "monitoring-operator"
@@ -248,7 +248,7 @@ monitoringOperator:
   podMonitor:
 
     # Install podMonitor to collect self-metrics from monitoring-operator
-    install: true
+    install: false
 
     # Allow change metrics scrape interval
     interval: 30s
@@ -296,7 +296,7 @@ alertManager:
   # Type: boolean
   # Mandatory: no
   #
-  install: true
+  install: false
 
   # Set paused to reconciliation for AlertManager
   # Type: boolean
@@ -321,7 +321,7 @@ alertManager:
   # Mandatory: no
   #
   podMonitor:
-    install: true
+    install: false
     interval: 30s
     # Please note that scrapeTimeout must be less the interval
     scrapeTimeout: 10s
@@ -514,7 +514,7 @@ kubeStateMetrics:
   # Type: boolean
   # Mandatory: no
   #
-  install: true
+  install: false
 
   # Image of kube-state-metrics
   # Type: string
@@ -533,7 +533,7 @@ kubeStateMetrics:
   # Mandatory: no
   #
   serviceMonitor:
-    install: true
+    install: false
     interval: 30s
     # Please note that scrapeTimeout must be less the interval
     scrapeTimeout: 10s
@@ -688,7 +688,7 @@ nodeExporter:
   # Type: boolean
   # Mandatory: no
   #
-  install: true
+  install: false
 
   # Allows to create PodSecurityPolicy or SecurityContextConstraints.
   # Type: boolean
@@ -719,7 +719,7 @@ nodeExporter:
   # Mandatory: no
   #
   serviceMonitor:
-    install: true
+    install: false
     interval: 30s
     # Please note that scrapeTimeout must be less the interval
     scrapeTimeout: 10s
@@ -986,13 +986,13 @@ oAuthProxy: {}
 #
 kubernetesMonitors:
   etcdServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings: []
     relabelings: []
   apiserverServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings:
@@ -1039,7 +1039,7 @@ kubernetesMonitors:
         sourceLabels: ['__address__']
         targetLabel: __address__
   kubeletServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     # Set up relabling for kubelet metrics to avoid different names for labels pod and container. In old kubernetes version it were called
@@ -1101,7 +1101,7 @@ kubernetesMonitors:
           - __metrics_path__
         targetLabel: metrics_path
   coreDnsServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings: []
@@ -1112,7 +1112,7 @@ kubernetesMonitors:
         sourceLabels: ['__meta_kubernetes_pod_node_name']
         targetLabel: node
   nginxIngressPodMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings:
@@ -1141,7 +1141,7 @@ kubernetesMonitors:
         sourceLabels: ['__meta_kubernetes_pod_node_name']
         targetLabel: node
   openshiftApiserverServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings:
@@ -1168,25 +1168,25 @@ kubernetesMonitors:
         replacement: openshift-apiserver
         targetLabel: apiserver
   openshiftApiserverOperatorServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings: []
     relabelings: []
   openshiftClusterVersionOperatorServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings: []
     relabelings: []
   openshiftStatemetricsServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings: []
     relabelings: []
   openshiftHAProxyServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings: []
@@ -1231,7 +1231,7 @@ kubernetesMonitors:
 # Mandatory: no
 #
 grafanaDashboards:
-  install: true
+  install: false
   list:
     - alerts-overview
     - core-dns-dashboard
@@ -1280,8 +1280,8 @@ grafanaDashboards:
 # Mandatory: no
 #
 prometheusrules:
-  install: true
-  alertsPackVersion: v2
+  install: false
+  alertsPackVersion: v1
   ruleGroups:
     - SelfMonitoring
     - AlertManager
@@ -1389,7 +1389,7 @@ pushgateway:
   # Mandatory: no
   #
   serviceMonitor:
-    install: true
+    install: false
     interval: 30s
     # Please note that scrapeTimeout must be less the interval
     scrapeTimeout: 10s
