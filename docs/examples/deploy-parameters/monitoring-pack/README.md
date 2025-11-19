@@ -77,6 +77,18 @@ Access the UIs/APIs through a browser or API client:
 - `vmagent`: [http://127.0.0.1:18428](http://127.0.0.1:18428)
 - `vmsingle`: [http://127.0.0.1:18429](http://127.0.0.1:18429)
 
+### 6. Validate the data flow
+
+1. **vmagent targets** – open [http://127.0.0.1:18428/targets](http://127.0.0.1:18428/targets) and check that all
+mandatory exporter targets are in the `UP` state.
+
+   ![vmagent targets](./images/vmagent-example.png)
+
+2. **vmsingle query** – open [http://127.0.0.1:18429/vmui/](http://127.0.0.1:18429/vmui/) → `Query`, type `up`, run the
+query, and confirm that vmagent’s scraped metrics arrive in vmsingle (results should include the exporters you enabled).
+
+   ![vmsingle query](./images/vmsingle-example.png)
+
 ---
 
 Outcome:
