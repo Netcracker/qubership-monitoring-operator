@@ -39,7 +39,7 @@ spec:
   ipAddresses:
     - 127.0.0.1
   issuerRef:
-    name: {{ .Values.clusterIssuerName }}
+    name: {{ .Values.global.clusterIssuerName }}
     kind: ClusterIssuer
     group: cert-manager.io
 {{- end }}
