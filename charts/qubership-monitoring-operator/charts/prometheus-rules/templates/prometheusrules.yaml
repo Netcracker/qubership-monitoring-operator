@@ -1,0 +1,52 @@
+{{- if and (eq .Values.alertsPackVersion "v2") (.Values.install) }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: prometheusrules
+spec:
+  groups:
+
+{{- $defaultConfig := fromYaml (include "defaultAlerts" . ) -}}
+{{- $overrideConfig := .Values.alerts -}}
+{{- $finalConfig := merge $overrideConfig $defaultConfig -}}
+{{- $alertGroups := .Values.ruleGroups -}}
+
+
+{{- range $defaultGroupName, $defaultGroup := $finalConfig }}
+{{- $found := false }}
+{{- range $alertGroups }}
+  {{- if eq $defaultGroupName . }}
+    {{- $found = true }}
+  {{- end }}
+{{- end }}
+{{- if $found }}
+    - name: {{ $defaultGroupName }}
+      labels:
+{{- range $defaultLabelName, $defaultLabelValue := $defaultGroup.labels }}
+        {{ $defaultLabelName }}: {{ $defaultLabelValue }}
+{{- end }}
+      {{- if $defaultGroup.interval }} 
+      interval: {{ $defaultGroup.interval }} 
+      {{- end }}
+      {{- if $defaultGroup.concurrency }} 
+      concurrency: {{ $defaultGroup.concurrency }} 
+      {{- end }}
+      rules:
+{{- range $defaultRuleName, $defaultRule := $defaultGroup.rules }}
+        - alert: {{ $defaultRuleName }}
+          expr: {{ $defaultRule.expr }}
+          {{- if $defaultRule.for }} 
+          for: {{ $defaultRule.for }}
+          {{- end }}
+          labels:
+{{- range $defaultLabelName, $defaultLabelValue := $defaultRule.labels }}
+            {{ $defaultLabelName }}: {{ $defaultLabelValue }}
+{{- end }}
+          annotations:
+{{- range $defaultAnnotationName, $defaultAnnotationValue := $defaultRule.annotations }}
+            {{ $defaultAnnotationName }}: {{ printf  $defaultAnnotationValue | trimAll "\n" | toJson | replace "\\u0026" "&" | replace "\\u003e" ">" | nindent 14 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
