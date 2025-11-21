@@ -249,7 +249,7 @@ KubernetesAlerts:
         description: "Controller work queue depth is more than 10\n  VALUE = {{ "{{" }} $value {{ "}}" }}\n  LABELS: {{ "{{" }} $labels {{ "}}" }}"
 
     KubernetesApiClientErrors:
-      expr: (sum(rate(rest_client_requests_total{code=~"(4|5).."}[2m])) by (instance, job) / sum(rate(rest_client_requests_total[2m])) by (instance, job)) * 100 > 5
+      expr: (sum(rate(rest_client_requests_total{code=~"(4|5)..", code!~"404"}[2m])) by (instance, job) / sum(rate(rest_client_requests_total[2m])) by (instance, job)) * 100 > 5
       for: 5m
       labels:
         severity: critical

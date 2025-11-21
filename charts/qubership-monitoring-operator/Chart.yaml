@@ -106,6 +106,6 @@ dependencies:
 
   # Qubership monitoring configuration
   - name: prometheusrules
-    condition: prometheusrules.install
+    condition: prometheusRules.install
     version: ~0
     repository: "file://charts/prometheus-rules"

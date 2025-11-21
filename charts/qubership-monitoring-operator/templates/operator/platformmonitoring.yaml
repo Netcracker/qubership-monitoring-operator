@@ -1044,7 +1044,7 @@ spec:
   
   {{- if ne .Values.prometheusrules.alertsPackVersion "v2" }}
   prometheusRules:
-    install: {{ .Values.prometheusrules.install }}
+    install: {{ .Values.prometheusRules.install }}
     ruleGroups:
     {{- if .Values.blackboxExporter }}
       {{- if .Values.blackboxExporter.install }}
