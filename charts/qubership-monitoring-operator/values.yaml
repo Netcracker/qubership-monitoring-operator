@@ -1282,6 +1282,7 @@ grafanaDashboards:
 prometheusRules:
   install: true
   alertsPackVersion: v1
+  ruleGroups:
     - SelfMonitoring
     - AlertManager
     - KubernetesAlerts
