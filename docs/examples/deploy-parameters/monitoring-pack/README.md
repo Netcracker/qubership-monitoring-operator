@@ -58,17 +58,20 @@ This step covers the pack-one add-on. The chart delivers:
 - Ingress resources for external access (optional)
 - RBAC required by VictoriaMetrics Operator
 
-Install it into the same `monitoring` namespace:
+Install it in other `monitoring-configs` namespace:
 
 ```bash
 helm upgrade --install pack-one docs/examples/deploy-parameters/monitoring-pack/pack-one \
-  --namespace monitoring \
+  --namespace monitoring-configs \
+  --create-namespace \
   -f docs/examples/deploy-parameters/monitoring-pack/pack-one/values.yaml
 ```
 
 ### 4.1. Configure VMAuth and VMUser (optional)
 
-By default, VMAuth and VMUser are installed with basic authentication (`admin/admin`). VMAuth automatically discovers VMUser resources using the label selector `app.kubernetes.io/name: vmuser`. Routing is automatically configured to route requests to installed components (vmagent, vmsingle) based on path patterns.
+By default, VMAuth and VMUser are installed with basic authentication (`admin/admin`). VMAuth automatically discovers
+VMUser resources using the label selector `app.kubernetes.io/name: vmuser`. Routing is automatically configured to route
+requests to installed components (vmagent, vmsingle) based on path patterns.
 
 To customize:
 
@@ -85,8 +88,10 @@ To customize:
        #   key: password
    ```
 
-2. **Customize routing** by specifying `targetRefs` in `vmUser.spec.targetRefs`. If not specified, targetRefs are automatically generated for installed components:
-   - **vmagent**: routes `/config.*`, `/target.*`, `/service-discovery.*`, `/static.*`, `/api/v1/write`, `/api/v1/import.*`, `/api/v1/target.*`
+2. **Customize routing** by specifying `targetRefs` in `vmUser.spec.targetRefs`. If not specified, targetRefs are
+automatically generated for installed components:
+   - **vmagent**: routes `/config.*`, `/target.*`, `/service-discovery.*`, `/static.*`, `/api/v1/write`,
+   `/api/v1/import.*`, `/api/v1/target.*`
    - **vmsingle**: routes `/` (root path for VMUI), `/vmui.*`, `/graph.*`, `/api/v1/*`, `/prometheus/*`, etc.
 
 3. **VMAuth configuration** (if needed):
@@ -179,12 +184,14 @@ query, and confirm that vmagent's scraped metrics arrive in vmsingle (results sh
 
    ![vmsingle query](./images/vmsingle-example.png)
 
-3. **VMAuth routing** (if enabled) – access vmagent or vmsingle through VMAuth using the configured credentials (`admin/admin` by default).
+3. **VMAuth routing** (if enabled) – access vmagent or vmsingle through VMAuth using the configured credentials
+(`admin/admin` by default).
    - Access VMUI: `http://vmauth.example.com/vmui/` (or via port-forward: `http://127.0.0.1:18427/vmui/`)
    - Access vmagent targets: `http://vmauth.example.com/targets`
    - Access vmsingle query: `http://vmauth.example.com/vmui/query`
    
-   The VMAuth service automatically routes requests to the appropriate backend (vmagent or vmsingle) based on the path patterns defined in VMUser's targetRefs. The root path `/` is included to support VMUI access.
+The VMAuth service automatically routes requests to the appropriate backend (vmagent or vmsingle) based on the path
+patterns defined in VMUser's targetRefs. The root path `/` is included to support VMUI access.
 
 ---
 
