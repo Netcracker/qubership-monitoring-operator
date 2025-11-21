@@ -98,6 +98,67 @@ vmAlert:
     ruleSelector: {}
     ruleNamespaceSelector: {}
 
+vmAuth:
+  install: true
+  name: vmauth
+  labels: {}
+  annotations: {}
+  spec:
+    replicaCount: 1
+    selectAllByDefault: false
+    port: "8427"
+    resources:
+      limits:
+        cpu: "500m"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    extraArgs: {}
+    extraEnvs: []
+
+vmUser:
+  install: true
+  name: vmuser
+  labels: {}
+  annotations: {}
+  spec:
+    username: admin
+    password: admin
+    # targetRefs will be auto-generated if not specified
+    # targetRefs: []
+
+vmSingle:
+  install: false
+  name: k8s
+  namespace: vmsingle-standalone
+  serviceName: vmsingle-k8s
+  servicePort: 8429
+
+ingress:
+  install: true
+  vmAuth:
+    host: vmauth.example.com
+    ingressClassName: traefik
+    servicePort: 8427
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  vmAgent:
+    host: vmagent.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  vmSingle:
+    host: vmsingle.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+
 serviceMonitors:
   namespaceSelector: {}
   exporters:
