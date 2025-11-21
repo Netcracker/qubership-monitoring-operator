@@ -42,7 +42,7 @@ cleanup:
     # Type: string
     # Mandatory: no
     #
-    timeout: 10s
+    timeout: 10
 
     # A docker image to use for cleanup job.
     # Calculate automatically from deployDescriptor section, but this parameter allow to override the value.
