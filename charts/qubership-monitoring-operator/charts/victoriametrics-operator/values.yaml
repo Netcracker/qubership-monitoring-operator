@@ -42,15 +42,15 @@ cleanup:
     # Type: string
     # Mandatory: no
     #
-    timeout: 10s
+    timeout: 10
 
     # A docker image to use for cleanup job.
     # Calculate automatically from deployDescriptor section, but this parameter allow to override the value.
     # Type: string
     # Mandatory: yes
     #
-    #image: bitnami/kubectl:1.33.4
-  
+    #image: rancher/kuberlr-kubectl:v6.0.0
+
     # If specified, the pod's scheduling constraints
     # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
     # Type: object
@@ -610,7 +610,7 @@ vmAgent:
   # Default: not set
   #
   affinity: {}
-  
+
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
   # Type: object
@@ -771,7 +771,7 @@ vmAgent:
     # Use generateCerts section if you want cert-manager to generate secret.
     # Will be ignored if existingSecret is already specified.
     generateCerts:
-      enabled: true      
+      enabled: true
       duration: 365
       renewBefore: 15
       secretName: ""
@@ -1017,7 +1017,7 @@ vmAlertManager:
     #   ca: ""
     #   key: ""
     #   cert: ""
-  
+
   # Web configuration for HTTPS settings.
   # See https://prometheus.io/docs/alerting/latest/https/
   # webConfig: {}
@@ -1188,7 +1188,7 @@ vmAlert:
   # Mandatory: no
   #
   ruleSelector: {}
- 
+
   # RuleNamespaceSelector to be selected for VMRules discovery.
   # Works in combination with Selector.
   # If both nil - behaviour controlled by selectAllByDefault
@@ -1591,7 +1591,7 @@ vmCluster:
     # Name of Priority Class
     # priorityClassName: ""
 
-    # Extra command line arguments for vmselect component    
+    # Extra command line arguments for vmselect component
     extraArgs:
       envflag.enable: "true"
       envflag.prefix: VM_
@@ -1631,7 +1631,7 @@ vmCluster:
     # Cache root folder
     cacheMountPath: /cache
 
-  # Allows to create Ingress for vmSelect UI via monitoring-operator    
+  # Allows to create Ingress for vmSelect UI via monitoring-operator
   # https://docs.victoriametrics.com/operator/api.html#embeddedingress
   # Type: object
   # Mandatory: no
@@ -1722,7 +1722,7 @@ vmCluster:
     #   ca: ""
     #   key: ""
     #   cert: ""
-    
+
   vmStorage:
     # Name of Priority Class
     priorityClassName: ""
@@ -1768,7 +1768,7 @@ vmCluster:
 
     # Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
     securityContext: {}
-    
+
     terminationGracePeriodSeconds: 60
 
   vmStorageTlsConfig:
