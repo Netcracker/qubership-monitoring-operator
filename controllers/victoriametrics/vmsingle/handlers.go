@@ -1,7 +1,7 @@
 package vmsingle
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *VmSingleReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -44,7 +44,7 @@ func (r *VmSingleReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitorin
 	}
 	return nil
 }
-func (r *VmSingleReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -79,7 +79,7 @@ func (r *VmSingleReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *VmSingleReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -112,7 +112,7 @@ func (r *VmSingleReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *VmSingleReconciler) handleVmSingle(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) handleVmSingle(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingle(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating vmsingle manifest")
@@ -148,7 +148,7 @@ func (r *VmSingleReconciler) handleVmSingle(cr *v1alpha1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *VmSingleReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) handleIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -186,7 +186,7 @@ func (r *VmSingleReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitorin
 	return nil
 }
 
-func (r *VmSingleReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -224,7 +224,7 @@ func (r *VmSingleReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) er
 	return nil
 }
 
-func (r *VmSingleReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -243,7 +243,7 @@ func (r *VmSingleReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitorin
 	return nil
 }
 
-func (r *VmSingleReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) deleteClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -262,7 +262,7 @@ func (r *VmSingleReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *VmSingleReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -281,7 +281,7 @@ func (r *VmSingleReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *VmSingleReconciler) deleteVmSingle(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) deleteVmSingle(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingle(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating vmSingle manifest")
@@ -300,7 +300,7 @@ func (r *VmSingleReconciler) deleteVmSingle(cr *v1alpha1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *VmSingleReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) deleteIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -319,7 +319,7 @@ func (r *VmSingleReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitorin
 	return nil
 }
 
-func (r *VmSingleReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmSingleReconciler) deleteIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")

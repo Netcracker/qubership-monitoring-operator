@@ -36,7 +36,7 @@ helm install monitoring qubership-monitoring/monitoring-operator \
 
 # 2. Deploy a monitoring stack with defaults
 kubectl apply -f - <<EOF
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: PlatformMonitoring
 metadata:
   name: monitoring-stack
