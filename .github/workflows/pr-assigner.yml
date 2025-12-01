@@ -22,7 +22,7 @@ jobs:
             exit 0
           fi
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6.0.0
         with:
           persist-credentials: false
 
