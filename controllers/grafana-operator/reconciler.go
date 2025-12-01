@@ -218,7 +218,11 @@ func (r *GrafanaOperatorReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 		r.Log.Info("Remove all grafana dashboards")
 		r.uninstallGrafanaDashboards(cr)
 	}
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
+	// Run operator reconciliation if:
+	// - Grafana instance is enabled (cr.Spec.Grafana.IsInstall()), or
+	// - operator is explicitly configured (Operator.Image is set).
+	// This allows deploying Grafana Operator without deploying Grafana itself.
+	if cr.Spec.Grafana != nil && (cr.Spec.Grafana.IsInstall() || cr.Spec.Grafana.Operator.Image != "") {
 		if !cr.Spec.Grafana.Operator.Paused {
 			err := r.handleServiceAccount(cr)
 			if err != nil {
