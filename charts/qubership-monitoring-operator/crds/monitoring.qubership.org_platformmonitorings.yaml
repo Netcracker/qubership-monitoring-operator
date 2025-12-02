@@ -5869,12 +5869,6 @@ spec:
                               type: string
                           type: object
                         type: array
-                      watchNamespaces:
-                        description: |-
-                          WatchNamespaces defines which namespaces Grafana Operator should watch for its CRDs.
-                          It is passed directly to the WATCH_NAMESPACE environment variable.
-                          When empty, the operator watches only its own namespace (default behaviour).
-                        type: string
                     required:
                     - image
                     - initContainerImage

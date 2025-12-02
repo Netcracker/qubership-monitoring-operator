@@ -206,11 +206,6 @@ type GrafanaOperator struct {
 	Image string `json:"image"`
 	// Image to use to initialize Grafana deployment.
 	InitContainerImage string `json:"initContainerImage"`
-	// WatchNamespaces defines which namespaces Grafana Operator should watch for its CRDs.
-	// It is passed directly to the WATCH_NAMESPACE environment variable.
-	// When empty, the operator watches only its own namespace (default behaviour).
-	// When set to a comma-separated list the operator is configured to watch multiple namespaces.
-	WatchNamespaces string `json:"watchNamespaces,omitempty"`
 	// Namespaces to scope the interaction of the Grafana operator.
 	Namespaces string `json:"namespaces,omitempty"`
 	// SecurityContext holds pod-level security attributes.
