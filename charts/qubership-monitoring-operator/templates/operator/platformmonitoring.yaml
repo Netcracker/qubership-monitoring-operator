@@ -1182,9 +1182,6 @@ spec:
     operator:
       image: {{ template "grafana.operator.image" . }}
       initContainerImage: {{ template "grafana.initContainer.image" . }}
-      {{- if .Values.grafana.operator.watchNamespaces }}
-      watchNamespaces: {{ .Values.grafana.operator.watchNamespaces | quote }}
-      {{- end }}
       {{- if .Values.grafana.operator.namespaces }}
       namespaces: {{ .Values.grafana.operator.namespaces }}
       {{- end }}
