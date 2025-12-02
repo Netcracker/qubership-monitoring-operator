@@ -1182,6 +1182,9 @@ spec:
     operator:
       image: {{ template "grafana.operator.image" . }}
       initContainerImage: {{ template "grafana.initContainer.image" . }}
+      {{- if .Values.grafana.operator.watchNamespaces }}
+      watchNamespaces: {{ .Values.grafana.operator.watchNamespaces }}
+      {{- end }}
       {{- if .Values.grafana.operator.namespaces }}
       namespaces: {{ .Values.grafana.operator.namespaces }}
       {{- end }}

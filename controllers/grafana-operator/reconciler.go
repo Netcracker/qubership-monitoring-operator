@@ -222,18 +222,7 @@ func (r *GrafanaOperatorReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 	// - Grafana instance is enabled (cr.Spec.Grafana.IsInstall()), or
 	// - operator is explicitly configured (Operator.Image is set or Operator block exists).
 	// This allows deploying Grafana Operator without deploying Grafana itself.
-	shouldInstall := false
-	if cr.Spec.Grafana != nil {
-		shouldInstall = cr.Spec.Grafana.IsInstall() || cr.Spec.Grafana.Operator.Image != "" || cr.Spec.Grafana.Operator.InitContainerImage != ""
-		r.Log.Info("Debug grafana operator condition",
-			"grafanaInstall", cr.Spec.Grafana.IsInstall(),
-			"operatorImage", cr.Spec.Grafana.Operator.Image,
-			"initContainerImage", cr.Spec.Grafana.Operator.InitContainerImage,
-			"shouldInstall", shouldInstall)
-	} else {
-		r.Log.Info("Debug grafana operator condition", "grafanaIsNil", true, "shouldInstall", false)
-	}
-	if shouldInstall {
+	if cr.Spec.Grafana != nil && (cr.Spec.Grafana.IsInstall() || cr.Spec.Grafana.Operator.Image != "" || cr.Spec.Grafana.Operator.InitContainerImage != "") {
 		if !cr.Spec.Grafana.Operator.Paused {
 			err := r.handleServiceAccount(cr)
 			if err != nil {

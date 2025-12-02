@@ -117,7 +117,7 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
 	}
-	//Set parameters
+	// Set parameters
 	d.SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"})
 	d.SetName(utils.GrafanaOperatorComponentName)
 	d.SetNamespace(cr.GetNamespace())
@@ -152,11 +152,25 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 				if initContainerTag != "" {
 					c.Args = append(c.Args, "--grafana-plugins-init-container-tag="+initContainerTag)
 				}
-				// Set flag for scan namespaces
+
+				// Set flag for scan namespaces (for Grafana dashboards/datasources discovery)
 				if cr.Spec.Grafana.Operator.Namespaces != "" {
 					c.Args = append(c.Args, "--namespaces="+cr.Spec.Grafana.Operator.Namespaces)
 				} else {
 					c.Args = append(c.Args, "--scan-all")
+				}
+
+				// Optionally override WATCH_NAMESPACE to allow the operator to watch multiple namespaces
+				// for Grafana and related CRDs. When WatchNamespaces is empty we keep the default behaviour
+				// from the asset (watch only operator's own namespace).
+				if cr.Spec.Grafana.Operator.WatchNamespaces != "" {
+					for ei := range c.Env {
+						if c.Env[ei].Name == "WATCH_NAMESPACE" {
+							// Override fieldRef-based value with an explicit list
+							c.Env[ei].Value = cr.Spec.Grafana.Operator.WatchNamespaces
+							c.Env[ei].ValueFrom = nil
+						}
+					}
 				}
 				if cr.Spec.Grafana.Operator.LogLevel != "" {
 					c.Args = append(c.Args, "--zap-log-level="+cr.Spec.Grafana.Operator.LogLevel)

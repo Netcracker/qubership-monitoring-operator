@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: k8s
+  name: vmsingle-k8s
   namespace: vmsingle-standalone
   labels:
     name: vmsingle

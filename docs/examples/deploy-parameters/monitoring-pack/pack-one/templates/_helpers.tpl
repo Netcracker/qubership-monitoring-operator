@@ -16,7 +16,11 @@
 {{- end -}}
 
 {{- define "monitoring-pack-one.namespace" -}}
-{{- default .Release.Namespace .Values.targetNamespace -}}
+{{- .Release.Namespace -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmOperatorNamespace" -}}
+{{- default "monitoring" .Values.namespace -}}
 {{- end -}}
 
 {{- define "monitoring-pack-one.standardLabels" -}}
