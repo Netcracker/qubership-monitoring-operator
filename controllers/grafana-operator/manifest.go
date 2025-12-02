@@ -161,12 +161,19 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 				}
 
 				// Optionally override WATCH_NAMESPACE to allow the operator to watch multiple namespaces
-				// for Grafana and related CRDs. When WatchNamespaces is empty we keep the default behaviour
-				// from the asset (watch only operator's own namespace).
+				// for Grafana and related CRDs.
+				// According to grafana-operator documentation, WATCH_NAMESPACE supports:
+				// - Empty string ("") for cluster-wide watching
+				// - Single namespace ("grafana") for single namespace mode
+				// - Multiple namespaces ("grafana, foo") for multiple namespaces mode
+				// Note: For multiple namespaces mode, cluster-wide permissions are still required.
+				// When WatchNamespaces is empty, we keep the default behaviour from the asset
+				// (watch only operator's own namespace).
 				if cr.Spec.Grafana.Operator.WatchNamespaces != "" {
 					for ei := range c.Env {
 						if c.Env[ei].Name == "WATCH_NAMESPACE" {
-							// Override fieldRef-based value with an explicit list
+							// Set WATCH_NAMESPACE value directly (supports single or multiple namespaces)
+							// Format for multiple namespaces: "namespace1, namespace2" (with spaces after comma)
 							c.Env[ei].Value = cr.Spec.Grafana.Operator.WatchNamespaces
 							c.Env[ei].ValueFrom = nil
 						}
