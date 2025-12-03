@@ -1,6 +1,7 @@
 monitoringOperator:
   # Use main branch instead of latest tag
-  image: ghcr.io/netcracker/qubership-monitoring-operator:main
+  # todo: change revision to :main
+  image: ghcr.io/netcracker/qubership-monitoring-operator:feature-monitoring-pack-prerequisites
   podMonitor:
     install: false
 
@@ -17,9 +18,29 @@ prometheus:
       install: false
 
 grafana:
-  install: false
+  install: true
+  replicas: 1
+  config:
+    log:
+      mode: console
+      level: warn
+    security:
+      admin_user: admin
+      admin_password: admin
+  dashboardLabelSelector:
+    - matchExpressions:
+        - key: monitoring-pack
+          operator: In
+          values:
+            - "two"
+  dashboardNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
   operator:
     install: true
+    namespaces: "monitoring,pack-two"
     podMonitor:
       install: false
 

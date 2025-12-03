@@ -6,16 +6,16 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ default (printf "%s-%s" (include "monitoring-pack-one.fullname" $root) $sanitizedName) $cfg.name }}
-  namespace: {{ default (include "monitoring-pack-one.namespace" $root) $cfg.namespace }}
+  name: {{ default (printf "%s-%s" (include "monitoring-pack-two.fullname" $root) $sanitizedName) $cfg.name }}
+  namespace: {{ default (include "monitoring-pack-two.namespace" $root) $cfg.namespace }}
   labels:
-    {{- include "monitoring-pack-one.standardLabels" $root | nindent 4 }}
-    monitoring-pack-one/exporter: {{ $name }}
-    monitoring-pack: {{ default "one" $root.Values.monitoringPackLabel | quote }}
+    {{- include "monitoring-pack-two.standardLabels" $root | nindent 4 }}
+    monitoring-pack: "two"
+    monitoring-pack-two/exporter: {{ $name }}
     {{- $labelCtx := dict "commonLabels" $root.Values.commonLabels "componentLabels" $cfg.labels }}
-    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
   {{- $annotationCtx := dict "commonAnnotations" $root.Values.commonAnnotations "componentAnnotations" $cfg.annotations }}
-  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
 spec:
 {{- if $cfg.jobLabel }}
   jobLabel: {{ $cfg.jobLabel }}
@@ -27,24 +27,12 @@ spec:
     matchLabels: {}
 {{- end }}
   namespaceSelector:
-{{- $nsSelector := dict }}
-{{- $nsSelectorConfigured := false }}
-{{- if hasKey $cfg "namespaceSelector" }}
-  {{- $nsSelector = $cfg.namespaceSelector }}
-  {{- $nsSelectorConfigured = true }}
-{{- else if hasKey $root.Values.serviceMonitors "namespaceSelector" }}
-  {{- $nsSelector = $root.Values.serviceMonitors.namespaceSelector }}
-  {{- $nsSelectorConfigured = true }}
-{{- end }}
-{{- if $nsSelectorConfigured }}
-  {{- if $nsSelector }}
+{{- $nsSelector := default $root.Values.serviceMonitors.namespaceSelector $cfg.namespaceSelector }}
+{{- if $nsSelector }}
 {{ toYaml $nsSelector | indent 4 }}
-  {{- else }}
-    {}
-  {{- end }}
 {{- else }}
     matchNames:
-      - {{ include "monitoring-pack-one.namespace" $root }}
+      - {{ include "monitoring-pack-two.namespace" $root }}
 {{- end }}
 {{- if $cfg.sampleLimit }}
   sampleLimit: {{ $cfg.sampleLimit }}

@@ -1,10 +1,17 @@
-targetNamespace: monitoring
-
 nameOverride: ""
 fullnameOverride: ""
 
+# Namespace where VictoriaMetrics Operator is installed
+# Default: monitoring
+# Can be overridden via --set namespace=your-namespace
+namespace: "monitoring"
+
 commonLabels: {}
 commonAnnotations: {}
+
+# Label that marks shared exporters so other packs (e.g. pack-two) can discover them.
+# Change only if you have a different label strategy.
+monitoringPackLabel: "one"
 
 # Standard labels that will be applied to ServiceMonitor resources
 # Default value: platform.monitoring.type: exporter

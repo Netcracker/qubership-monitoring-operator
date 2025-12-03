@@ -1,0 +1,51 @@
+{{- if .Values.vmAlert.install }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  labels:
+    name: vmalert
+    app.kubernetes.io/name: vmalert
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmAlert.labels }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  annotations:
+    operator.victoriametrics.com/vmalert-deduplicate-rules: "true"
+    {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" .Values.vmAlert.annotations }}
+    {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 4 }}
+  name: {{ default (printf "%s-vmalert" (include "monitoring-pack-two.fullname" .)) .Values.vmAlert.name }}
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+spec:
+  replicaCount: 1
+  evaluationInterval: "30s"
+  resources: {}
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 2000
+
+  # Enable discovery all CRs if labelSelectors is empty
+  selectAllByDefault: false
+
+  # Selector to discovery CRs - only pack-two rules
+  ruleSelector:
+    matchLabels:
+      monitoring-pack: "two"
+  ruleNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+
+  serviceAccountName: {{ include "monitoring-pack-two.vmalert.serviceAccountName" . }}
+{{- if .Values.vmAlert.spec }}
+{{- $vmSingleName := default (include "monitoring-pack-two.vmsingle.baseName" .) .Values.vmSingle.name }}
+{{- $namespace := include "monitoring-pack-two.namespace" . }}
+{{- $spec := .Values.vmAlert.spec | deepCopy }}
+{{- if $spec.datasource }}
+{{- $_ := set $spec.datasource "url" ($spec.datasource.url | replace "k8s-dev-vmsingle.monitoring.svc" (printf "vmsingle-%s.%s.svc" $vmSingleName $namespace)) }}
+{{- end }}
+{{ toYaml $spec | indent 2 }}
+{{- end }}
+{{- end }}
