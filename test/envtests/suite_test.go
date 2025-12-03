@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -47,7 +47,7 @@ var k8sClient client.Client
 var testEnv *envtest.Environment
 var discoveryClient *discovery.DiscoveryClient
 var err error
-var cr v1alpha1.PlatformMonitoring
+var cr monv1.PlatformMonitoring
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -74,7 +74,7 @@ var _ = BeforeSuite(func() {
 	discoveryClient, err = discovery.NewDiscoveryClientForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = v1alpha1.AddToScheme(scheme.Scheme)
+	err = monv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = promv1.AddToScheme(scheme.Scheme)
