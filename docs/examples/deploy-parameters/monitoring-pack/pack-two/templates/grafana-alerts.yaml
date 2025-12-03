@@ -1,0 +1,48 @@
+{{- if .Values.grafana.alerts.install }}
+# Example VMRule for Pack Two alerts
+# This creates alerting rules that will be evaluated by VMAlert
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: {{ include "monitoring-pack-two.fullname" . }}-dev-alerts
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" dict }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+spec:
+  groups:
+    - name: pack-two-dev-alerts
+      interval: 30s
+      rules:
+        - alert: VMAgentDown
+          expr: up{job="vmagent-dev"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            monitoring-pack: "two"
+          annotations:
+            summary: "VMAgent for pack-two is down"
+            description: "VMAgent {{`{{`}} $labels.instance {{`}}`}} has been down for more than 5 minutes."
+
+        - alert: VMSingleDown
+          expr: up{job="vmsingle-dev"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            monitoring-pack: "two"
+          annotations:
+            summary: "VMSingle for pack-two is down"
+            description: "VMSingle {{`{{`}} $labels.instance {{`}}`}} has been down for more than 5 minutes."
+
+        - alert: HighMemoryUsage
+          expr: (vm_memory_usage_bytes / vm_memory_available_bytes) > 0.9
+          for: 5m
+          labels:
+            severity: warning
+            monitoring-pack: "two"
+          annotations:
+            summary: "High memory usage in pack-two"
+            description: "Memory usage is above 90% for {{`{{`}} $labels.instance {{`}}`}}."
+{{- end }}
