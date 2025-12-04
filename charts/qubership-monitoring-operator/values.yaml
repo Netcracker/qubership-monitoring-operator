@@ -1695,3 +1695,8 @@ promitorAgentResourceDiscovery:
 stackdriver_exporter:
   # Disable by default
   install: false
+
+# Exporter to check and visualize network connectivity between Kubernetes nodes and pods in the cluster
+goldpingerExporter:
+  # Disable by default
+  install: false
