@@ -1,0 +1,16 @@
+alertsPackVersion: v2 
+install: true
+ruleGroups:
+  - SelfMonitoring
+  - AlertManager
+  - KubernetesAlerts
+  - NodeProcesses
+  - NodeExporters
+  - DockerContainers
+  - HAmode
+  - HAproxy
+  - Etcd
+  - NginxIngressAlerts
+  - CoreDnsAlerts
+  - DRAlerts
+  - BackupAlerts
