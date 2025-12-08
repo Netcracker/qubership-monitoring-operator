@@ -1,5 +1,5 @@
 {{- if .Values.install }}
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: CustomScaleMetricRule
 metadata:
   name: kubelet-custom-metric-rule

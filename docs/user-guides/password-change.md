@@ -129,13 +129,13 @@ To change Grafana's admin password you need to edit PlatformMonitoring CR. Find 
 for example using a command:
 
 ```shell
-kubectl get -n <monitoring_namespace> platformmonitorings.monitoring.qubership.org
+kubectl get -n <monitoring_namespace> platformmonitorings.monitoring.netcracker.com
 ```
 
 Usually it has a name platformmonitoring:
 
 ```shell
-kubectl get -n monitoring platformmonitorings.monitoring.qubership.org
+kubectl get -n monitoring platformmonitorings.monitoring.netcracker.com
 
 NAME                 AGE
 platformmonitoring   11d
@@ -160,13 +160,13 @@ To change VMAuth credentials in runtime you need to edit PlatformMonitoring CR o
 In case if password specified in the CR, find it in the namespace with Monitoring, for example using a command:
 
 ```bash
-kubectl get -n <monitoring_namespace> platformmonitorings.monitoring.qubership.org
+kubectl get -n <monitoring_namespace> platformmonitorings.monitoring.netcracker.com
 ```
 
 usually it have a name `platformmonitoring`:
 
 ```bash
-❯ kubectl get -n monitoring platformmonitorings.monitoring.qubership.org
+❯ kubectl get -n monitoring platformmonitorings.monitoring.netcracker.com
 NAME                 AGE
 platformmonitoring   11d
 ```

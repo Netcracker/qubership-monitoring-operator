@@ -1,7 +1,7 @@
 package prometheus_operator
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -25,7 +25,7 @@ func NewPrometheusOperatorReconciler(c client.Client, s *runtime.Scheme) *Promet
 // Creates new deployment, service, service account, cluster role and cluster role binding if its don't exists.
 // Updates deployment and service in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *PrometheusOperatorReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Prometheus != nil && cr.Spec.Prometheus.IsInstall() {
@@ -80,7 +80,7 @@ func (r *PrometheusOperatorReconciler) Run(cr *v1alpha1.PlatformMonitoring) erro
 }
 
 // uninstall deletes all resources related to the component
-func (r *PrometheusOperatorReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *PrometheusOperatorReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if err := r.deleteServiceAccount(cr); err != nil {
 		r.Log.Error(err, "Can not delete ServiceAccount")
 	}

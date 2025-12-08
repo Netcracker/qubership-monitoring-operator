@@ -212,7 +212,7 @@ Check Node Exporter Target Metrics
 
 Check Route/Ingress Status
     [Arguments]  ${name-in-cr}  ${name}  ${parentservice}=${None}  ${session}=external
-    ${custom_resource}=  Get Custom Resource  monitoring.qubership.org/v1alpha1  PlatformMonitoring
+    ${custom_resource}=  Get Custom Resource  monitoring.netcracker.com/v1  PlatformMonitoring
     ...  ${namespace}  platformmonitoring
     ${external_url}=  Check Route Or Ingress  ${custom_resource}  ${name-in-cr}
     ...  ${namespace}-${name}  ${namespace}  ${parentservice}
@@ -241,7 +241,7 @@ Check Target Is UP
 
 Check That In CR service Is Presented
      [Arguments]  ${name}  ${parentservice}
-     ${custom_resource}=  Get Custom Resource  monitoring.qubership.org/v1alpha1  PlatformMonitoring  ${namespace}  platformmonitoring
+     ${custom_resource}=  Get Custom Resource  monitoring.netcracker.com/v1  PlatformMonitoring  ${namespace}  platformmonitoring
      ${flag}=  Check CR Service Exists  ${custom_resource.get('spec')}  ${name}  ${parentservice}
      Skip If  ${flag} != True  Section ${name} is not presented in CR
      RETURN  ${flag}

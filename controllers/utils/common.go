@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	sprig "github.com/go-task/slim-sprig"
 
 	routev1 "github.com/openshift/api/route/v1"
@@ -88,7 +88,7 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 	return false, nil
 }
 
-func (r *ComponentReconciler) CreateResource(cr *v1alpha1.PlatformMonitoring, o K8sResource, setRefOptional ...bool) error {
+func (r *ComponentReconciler) CreateResource(cr *monv1.PlatformMonitoring, o K8sResource, setRefOptional ...bool) error {
 	res := o.GetObjectKind().GroupVersionKind().Kind
 	setRef := true
 	if len(setRefOptional) > 0 {

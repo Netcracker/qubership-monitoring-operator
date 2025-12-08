@@ -728,7 +728,7 @@ in prometheus-adapter:
 For example:
 
 ```yaml
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: CustomScaleMetricRule
 metadata:
   name: {{ .Values.name }}-custom-metric-rule
