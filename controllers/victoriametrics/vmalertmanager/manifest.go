@@ -81,6 +81,38 @@ func vmAlertManagerClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.
 	return &clusterRoleBinding, nil
 }
 
+func vmAlertManagerRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) {
+	role := rbacv1.Role{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerRoleAsset), 100).Decode(&role); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
+	role.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	role.SetNamespace(cr.GetNamespace())
+	return &role, nil
+}
+
+func vmAlertManagerRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+	roleBinding := rbacv1.RoleBinding{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	roleBinding.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "RoleBinding"})
+	roleBinding.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	roleBinding.SetNamespace(cr.GetNamespace())
+	roleBinding.RoleRef.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+
+	// Set namespace for all subjects
+	for it := range roleBinding.Subjects {
+		sub := &roleBinding.Subjects[it]
+		sub.Namespace = cr.GetNamespace()
+		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+	}
+	return &roleBinding, nil
+}
+
 func vmAlertManager(r *VmAlertManagerReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMAlertmanager, error) {
 	var err error
 	vmalertmgr := vmetricsv1b1.VMAlertmanager{}

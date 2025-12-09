@@ -54,6 +54,14 @@ func (r *VmAlertManagerReconciler) Run(ctx context.Context, cr *v1alpha1.Platfor
 			} else {
 				r.Log.Info("Skip ClusterRole and ClusterRoleBinding resources reconciliation because privilegedRights=false")
 			}
+			// Reconcile Role and RoleBinding
+			if err := r.handleRole(cr); err != nil {
+				return err
+			}
+			if err := r.handleRoleBinding(cr); err != nil {
+				return err
+			}
+
 			// Reconcile vmAlertManager config secret
 			if err := r.handleSecret(cr); err != nil {
 				return err
