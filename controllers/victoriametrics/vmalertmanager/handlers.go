@@ -44,6 +44,7 @@ func (r *VmAlertManagerReconciler) handleServiceAccount(cr *v1alpha1.PlatformMon
 	}
 	return nil
 }
+
 func (r *VmAlertManagerReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
 	m, err := vmAlertManagerClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
@@ -93,6 +94,74 @@ func (r *VmAlertManagerReconciler) handleClusterRoleBinding(cr *v1alpha1.Platfor
 	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	//Set parameters
+	e.SetLabels(m.GetLabels())
+
+	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *VmAlertManagerReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
+	m, err := vmAlertManagerRole(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Role manifest")
+		return err
+	}
+
+	// Set labels
+	m.Labels["name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
+	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
+
+	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	//Set parameters
+	e.SetLabels(m.GetLabels())
+	e.SetName(m.GetName())
+	e.Rules = m.Rules
+
+	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *VmAlertManagerReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+	m, err := vmAlertManagerRoleBinding(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating RoleBinding manifest")
+		return err
+	}
+
+	// Set labels
+	m.Labels["name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
+	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
+
+	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {

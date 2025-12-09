@@ -111,6 +111,74 @@ func (r *VmAuthReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
+func (r *VmAuthReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
+	m, err := vmAuthRole(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Role manifest")
+		return err
+	}
+
+	// Set labels
+	m.Labels["name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
+	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
+
+	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	//Set parameters
+	e.SetLabels(m.GetLabels())
+	e.SetName(m.GetName())
+	e.Rules = m.Rules
+
+	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *VmAuthReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+	m, err := vmAuthRoleBinding(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating RoleBinding manifest")
+		return err
+	}
+
+	// Set labels
+	m.Labels["name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
+	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
+	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
+
+	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	//Set parameters
+	e.SetLabels(m.GetLabels())
+
+	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *VmAuthReconciler) handleVmAuth(cr *v1alpha1.PlatformMonitoring) error {
 	m, err := vmAuth(r, cr)
 	if err != nil {
