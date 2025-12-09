@@ -177,9 +177,7 @@ func vmAuth(r *VmAuthReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1
 			vmauth.Spec.Port = cr.Spec.Victoriametrics.VmAuth.Port
 		}
 
-		if cr.Spec.Victoriametrics.VmAuth.SelectAllByDefault {
-			vmauth.Spec.SelectAllByDefault = true
-		}
+		vmauth.Spec.SelectAllByDefault = cr.Spec.Victoriametrics.VmAuth.SelectAllByDefault
 
 		if cr.Spec.Victoriametrics.VmAuth.UserSelector != nil {
 			vmauth.Spec.UserSelector = cr.Spec.Victoriametrics.VmAuth.UserSelector

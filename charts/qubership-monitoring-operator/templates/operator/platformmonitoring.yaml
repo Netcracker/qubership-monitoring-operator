@@ -677,7 +677,7 @@ spec:
       {{- if .Values.victoriametrics.vmAlertManager.configSecret }}
       configSecret: {{ .Values.victoriametrics.vmAlertManager.configSecret }}
       {{- end }}
-      selectAllByDefault: {{ .Values.victoriametrics.vmAlertManager.selectAllByDefault | default true }}
+      selectAllByDefault: {{ ternary .Values.victoriametrics.vmAlertManager.selectAllByDefault true (hasKey .Values.victoriametrics.vmAlertManager "selectAllByDefault") }}
       {{- if .Values.victoriametrics.vmAlertManager.configSelector }}
       configSelector:
         {{- toYaml .Values.victoriametrics.vmAlertManager.configSelector | nindent 8 }}
@@ -771,7 +771,7 @@ spec:
       containers:
         {{- toYaml .Values.victoriametrics.vmAlert.containers | nindent 8 }}
       evaluationInterval: {{ .Values.victoriametrics.vmAlert.evaluationInterval | default "30s" }}
-      selectAllByDefault: {{ .Values.victoriametrics.vmAlert.selectAllByDefault | default true }}
+      selectAllByDefault: {{ ternary .Values.victoriametrics.vmAlert.selectAllByDefault true (hasKey .Values.victoriametrics.vmAlert "selectAllByDefault") }}
       {{- if .Values.victoriametrics.vmAlert.ruleSelector }}
       ruleSelector:
         {{- toYaml .Values.victoriametrics.vmAlert.ruleSelector | nindent 8 }}
@@ -895,7 +895,7 @@ spec:
       nodeSelector:
         {{- toYaml .Values.victoriametrics.vmAuth.nodeSelector | nindent 8 }}
       {{- end }}
-      selectAllByDefault: {{ .Values.victoriametrics.vmAuth.selectAllByDefault | default true }}
+      selectAllByDefault: {{ ternary .Values.victoriametrics.vmAuth.selectAllByDefault true (hasKey .Values.victoriametrics.vmAuth "selectAllByDefault") }}
       {{- if .Values.victoriametrics.vmAuth.userSelector }}
       userSelector:
         {{- toYaml .Values.victoriametrics.vmAuth.userSelector | nindent 8 }}
@@ -903,6 +903,10 @@ spec:
       {{- if .Values.victoriametrics.vmAuth.userNamespaceSelector }}
       userNamespaceSelector:
         {{- toYaml .Values.victoriametrics.vmAuth.userNamespaceSelector | nindent 8 }}
+      {{- else }}
+      userNamespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAuth.extraArgs }}
       extraArgs:

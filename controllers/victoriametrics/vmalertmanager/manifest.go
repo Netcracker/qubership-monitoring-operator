@@ -143,9 +143,7 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *v1alpha1.PlatformMonitoring
 			vmalertmgr.Spec.Containers = cr.Spec.Victoriametrics.VmAlertManager.Containers
 		}
 
-		if cr.Spec.Victoriametrics.VmAlertManager.SelectAllByDefault {
-			vmalertmgr.Spec.SelectAllByDefault = true
-		}
+		vmalertmgr.Spec.SelectAllByDefault = cr.Spec.Victoriametrics.VmAlertManager.SelectAllByDefault
 
 		// Set storage spec to specify how storage shall be used
 		if cr.Spec.Victoriametrics.VmAlertManager.Storage != nil {
