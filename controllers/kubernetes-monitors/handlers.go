@@ -35,65 +35,6 @@ func (r *KubernetesMonitorsReconciler) handleApiServerServiceMonitor(cr *monv1.P
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleControllerManagerServiceMonitor(cr *monv1.PlatformMonitoring) error {
-	m, err := kubernetesMonitorsControllerManagerServiceMonitor(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating ControllerManagerServiceMonitor manifest")
-		return err
-	}
-	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *KubernetesMonitorsReconciler) handleSchedulerServiceMonitor(cr *monv1.PlatformMonitoring) error {
-	m, err := kubernetesMonitorsSchedulerServiceMonitor(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating SchedulerServiceMonitor manifest")
-		return err
-	}
-	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *KubernetesMonitorsReconciler) handleKubeletServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsKubeletServiceMonitor(cr)
 	if err != nil {
@@ -220,44 +161,6 @@ func (r *KubernetesMonitorsReconciler) deleteApiServerServiceMonitor(cr *monv1.P
 	m, err := kubernetesMonitorsApiServerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ApiServerServiceMonitor manifest")
-		return err
-	}
-	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if err = r.DeleteResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *KubernetesMonitorsReconciler) deleteControllerManagerServiceMonitor(cr *monv1.PlatformMonitoring) error {
-	m, err := kubernetesMonitorsControllerManagerServiceMonitor(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating ControllerManagerServiceMonitor manifest")
-		return err
-	}
-	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if err = r.DeleteResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *KubernetesMonitorsReconciler) deleteSchedulerServiceMonitor(cr *monv1.PlatformMonitoring) error {
-	m, err := kubernetesMonitorsSchedulerServiceMonitor(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating SchedulerServiceMonitor manifest")
 		return err
 	}
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
