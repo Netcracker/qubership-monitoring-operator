@@ -37,6 +37,8 @@ jobs:
       actor: ${{ github.actor }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY || '' }}
       go-module-dir: '.'
+      install-envtest: true
+      cover-packages: './controllers/...,./api/...'
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN || '' }}
  
