@@ -32,6 +32,7 @@ permissions:
 
 jobs:
   test:
+    name: Run unit tests
     uses: beauline/qubership-core-infra/.github/workflows/go-build-with-sonar.yaml@feat/envtest-in-go-build-with-sonar
     with:
       actor: ${{ github.actor }}
