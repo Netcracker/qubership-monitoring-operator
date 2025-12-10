@@ -23,158 +23,20 @@ name: Go test with Sonar
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
+  push:
+    branches:
+      - '**'
 permissions:
   contents: read
 
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        go-module-dir:
-        - name: root
-          path: '.'
-    runs-on: ubuntu-latest
-    name: Build and test with coverage
-    steps:
-      - name: Checkout code repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Prepare variables
-        id: prepare
-        shell: bash
-        env:
-          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          # Store input variables
-          ACTOR="${{ github.actor }}"
-          CONFIG_FILE=".github/config/build-config.yaml"
-
-          # Validate config file exists
-          if [ ! -f "$CONFIG_FILE" ]; then
-            echo "::error:: Configuration file not found: $CONFIG_FILE"
-            exit 1
-          fi
-
-          # Check if actor is restricted
-          if yq e '.restricted-actors[]' "$CONFIG_FILE" | grep -Fxq "$ACTOR"; then
-            IS_RESTRICTED_ACTOR=true
-            echo "::info:: Actor $ACTOR is restricted"
-          else
-            IS_RESTRICTED_ACTOR=false
-            echo "::info:: Actor $ACTOR is not restricted"
-          fi
-
-          # Set sonar run flag
-          if [[ "$SONAR_PROJECT_KEY" == "" ]] || [[ "$SONAR_TOKEN" == "" ]]; then
-            echo "::info:: Sonar configuration is missing, skipping Sonar analysis"
-            echo "run-sonar=false" >> "$GITHUB_OUTPUT"
-          elif [ "$IS_RESTRICTED_ACTOR" = true ]; then
-            echo "run-sonar=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "run-sonar=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Output build configuration
-        run: |
-          echo "::info:: Run Sonar: ${{ steps.prepare.outputs.run-sonar }}"
-
-      - name: Find go.mod files
-        id: find
-        shell: bash
-        run: |
-          echo "::info:: Processing go.mod file location..."
-
-          if [ -n "${{ matrix.go-module-dir.path }}" ]; then
-            # If go-module-dir is specified, only look in that directory
-            GO_MOD_DIR="${{ matrix.go-module-dir.path }}"
-            GO_MOD_FILE="${GO_MOD_DIR}/go.mod"
-
-            if [ ! -d "$GO_MOD_DIR" ]; then
-              echo "::error:: Directory not found: ${GO_MOD_DIR}"
-              exit 1
-            fi
-
-            if [ ! -f "$GO_MOD_FILE" ]; then
-              echo "::error:: go.mod file not found in directory: ${GO_MOD_DIR}"
-              exit 1
-            fi
-
-            echo "::info:: Using specified Go module directory: ${GO_MOD_DIR}"
-          else
-            # Search for go.mod files in the repository
-            echo "::info:: Searching for go.mod files..."
-            GO_MOD_FILES=$(find . -name go.mod)
-
-            if [ -z "$GO_MOD_FILES" ]; then
-              echo "::error:: No go.mod files found in the repository"
-              exit 1
-            fi
-
-            echo "::info:: Counting go.mod files..."
-            GO_MOD_COUNT=$(echo "$GO_MOD_FILES" | wc -l)
-            if [ "$GO_MOD_COUNT" -gt 1 ]; then
-              echo "::error:: Multiple go.mod files found. Please specify go-module-dir input parameter."
-              exit 1
-            fi
-
-            GO_MOD_FILE=$(echo "$GO_MOD_FILES" | head -n 1)
-            GO_MOD_DIR=$(dirname "${GO_MOD_FILE}")
-            echo "::info:: Using Go module at ${GO_MOD_DIR}"
-          fi
-
-          echo "GO_MOD_FILE=${GO_MOD_FILE}" >> "$GITHUB_ENV"
-          echo "GO_MOD_DIR=${GO_MOD_DIR}" >> "$GITHUB_ENV"
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          cache: true
-          cache-dependency-path: "**/*.sum"
-          go-version-file: "${{ env.GO_MOD_FILE }}"
-
-      - name: Setup envtest
-        env:
-          KUBE_VERSION: "1.32.0"
-        run: |
-          export PATH=$PATH:$HOME/go/bin
-          go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-          SETUP_OUTPUT=$(setup-envtest use ${{ env.KUBE_VERSION }} -p env)
-          echo "$SETUP_OUTPUT"
-          ASSETS=$(echo "$SETUP_OUTPUT" | grep 'export KUBEBUILDER_ASSETS' | cut -d= -f2| tr -d "'\"")
-          echo "KUBEBUILDER_ASSETS=$ASSETS" >> $GITHUB_ENV
-
-      - name: Test with coverage
-        working-directory: ${{ env.GO_MOD_DIR }}
-        run: |
-          echo "::info:: Running tests with coverage..."
-          echo "::info:: KUBEBUILDER_ASSETS=${{ env.KUBEBUILDER_ASSETS }}"
-          echo "::info:: Listing files in $KUBEBUILDER_ASSETS:"
-          ls -la "${KUBEBUILDER_ASSETS}"
-          go test -v ./... -coverpkg=./controllers/...,./api/... -coverprofile coverage.out 
-
-      - name: Upload coverage report to SonarCloud
-        if: steps.prepare.outputs.run-sonar == 'true'
-        working-directory: ${{ env.GO_MOD_DIR }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          echo "::info:: Installing sonar-scanner..."
-          npm install -g sonar-scanner@3.1.0 --ignore-scripts
-
-          echo "::info:: Validating sonar-project.properties exists"
-          if [ ! -f "sonar-project.properties" ]; then
-            echo "::error:: sonar-project.properties not found in ${GO_MOD_DIR}"
-            exit 1
-          fi
-
-          echo "::info:: Running sonar-scanner..."
-          sonar-scanner \
-            -Dproject.settings=sonar-project.properties \
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }} \
-            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }} \
-            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }} \
-            -Dsonar.go.coverage.reportPaths=coverage.out
+  test:
+    uses: beauline/qubership-core-infra/.github/workflows/go-build-with-sonar.yaml@feat/envtest-in-go-build-with-sonar
+    with:
+      actor: ${{ github.actor }}
+      sonar-project-key: ${{ vars.SONAR_PROJECT_KEY || '' }}
+      go-module-dir: '.'
+    secrets:
+      sonar-token: ${{ secrets.SONAR_TOKEN || '' }}
+ 
