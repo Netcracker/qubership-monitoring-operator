@@ -121,7 +121,7 @@ Check Daemon Set State
     ${pods_in_namespace}=  Get Pods  ${namespace}
     ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
     ${daemon_set}=  Get Daemon Set  ${name}  ${namespace}
-    Check Pod's List Is Equals  ${pod_in_namespace}  ${daemon_set.status.desiredNumberScheduled}
+    Check Pod's List Is Equals  ${pod_in_namespace}  ${daemon_set.status.desired_number_scheduled}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
     RETURN  ${flag}
@@ -133,7 +133,7 @@ Check Daemon Set And Deployment State For Cert Exporter
     ${pods_in_namespace}=  Get Pods  ${namespace}
     ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
     ${expected_sum_pods}=  Evaluate
-    ...  ${daemon_set.status.desiredNumberScheduled}+${deployment.spec.replicas}
+    ...  ${daemon_set.status.desired_number_scheduled}+${deployment.spec.replicas}
     Check Pod's List Is Equals  ${pod_in_namespace}  ${expected_sum_pods}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}

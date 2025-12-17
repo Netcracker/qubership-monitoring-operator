@@ -95,8 +95,8 @@ Check Non Mandatory Prometheus Target Metrics
     [Tags]  full  smoke-test-prometheus  smoke
     ${variables} =	Get Variables
     Check Kube State Metrics Target Metrics  ${kube_state_metrics_flag}  ${prometheus_metrics}
-    Should Be True  "\${node_exporter_flag}" in $variables
-    ...  Please check Node Exporter pods status - now the pods don't have a Running status
+    Run Keyword If  not ${node_exporter_flag}
+    ...  Fail  Please check Node Exporter pods status - now the pods don't have a Running status
     Check Node Exporter Target Metrics  ${node_exporter_flag}  ${prometheus_metrics}
 
 Check Configurations Streamer Deployment Pods Are Running
@@ -307,6 +307,6 @@ Check Non Mandatory Victoriametrics Target Metrics
     [Tags]  full  smoke-test-vm  smoke
     ${variables} =	Get Variables
     Check Kube State Metrics Target Metrics  ${kube_state_metrics_flag}  ${vmagent_metrics}
-    Should Be True  "\${node_exporter_flag}" in $variables
-    ...  Please check Node Exporter pods status - now the pods don't have a Running status
+    Run Keyword If  not ${node_exporter_flag}
+    ...  Fail  Please check Node Exporter pods status - now the pods don't have a Running status
     Check Node Exporter Target Metrics  ${node_exporter_flag}  ${vmagent_metrics}
