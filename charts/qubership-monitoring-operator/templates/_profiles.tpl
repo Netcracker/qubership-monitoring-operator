@@ -517,17 +517,17 @@ Return resources for grafana by HWE profile.
     {{- else if eq .Values.global.profile "small" -}}
       requests:
         cpu: 250m
-        memory: 200Mi
+        memory: 300Mi
       limits:
         cpu: 400m
-        memory: 300Mi
+        memory: 400Mi
     {{- else if eq .Values.global.profile "medium" -}}
       requests:
         cpu: 400m
-        memory: 350Mi
+        memory: 400Mi
       limits:
         cpu: 500m
-        memory: 450Mi
+        memory: 500Mi
     {{- else if eq .Values.global.profile "large" -}}
       requests:
         cpu: 700m
