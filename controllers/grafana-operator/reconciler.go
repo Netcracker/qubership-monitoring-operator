@@ -1,7 +1,7 @@
 package grafana_operator
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,7 +28,7 @@ func NewGrafanaOperatorReconciler(c client.Client, s *runtime.Scheme, dc discove
 // Creates new cluster role, cluster role binding and grafana custom resource if its don't exists.
 // Updates deployment and service in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *GrafanaOperatorReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	restrictedDashboards := make(map[string]bool)
@@ -270,7 +270,7 @@ func (r *GrafanaOperatorReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) uninstallGrafanaDashboards(cr *v1alpha1.PlatformMonitoring) {
+func (r *GrafanaOperatorReconciler) uninstallGrafanaDashboards(cr *v1beta1.PlatformMonitoring) {
 	for _, mResource := range utils.GrafanaKubernetesDashboardsResources {
 		if err := r.deleteGrafanaDashboard(mResource, cr); err != nil {
 			r.Log.Error(err, "Can not delete GrafanaDashboard")
@@ -279,7 +279,7 @@ func (r *GrafanaOperatorReconciler) uninstallGrafanaDashboards(cr *v1alpha1.Plat
 }
 
 // uninstall deletes all resources related to the component
-func (r *GrafanaOperatorReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *GrafanaOperatorReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
 	if err := r.deleteGrafanaOperatorDeployment(cr); err != nil {
 		r.Log.Error(err, "Can not delete Deployment")
 	}
@@ -289,7 +289,7 @@ func (r *GrafanaOperatorReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
 }
 
 // isMonitorInstall returns "true" if the monitor installed
-func isMonitorInstall(cr *v1alpha1.PlatformMonitoring, monitorName string) bool {
+func isMonitorInstall(cr *v1beta1.PlatformMonitoring, monitorName string) bool {
 	// If the monitor affected by installation in the public cloud, cr.Spec.KubernetesMonitors doesn't matter
 	affected, installed := kubernetes_monitors.IsMonitorPresentInPublicCloud(cr, monitorName)
 	if affected {

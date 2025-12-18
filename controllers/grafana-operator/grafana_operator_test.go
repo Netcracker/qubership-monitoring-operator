@@ -3,14 +3,14 @@ package grafana_operator
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *v1beta1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -18,13 +18,13 @@ var (
 )
 
 func TestGrafanaOperatorManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Grafana: &v1alpha1.Grafana{
-				Operator: v1alpha1.GrafanaOperator{
+		Spec: v1beta1.PlatformMonitoringSpec{
+			Grafana: &v1beta1.Grafana{
+				Operator: v1beta1.GrafanaOperator{
 					Annotations: map[string]string{annotationKey: annotationValue},
 					Labels:      map[string]string{labelKey: labelValue},
 				},
@@ -46,13 +46,13 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Grafana: &v1alpha1.Grafana{
-				Operator: v1alpha1.GrafanaOperator{},
+		Spec: v1beta1.PlatformMonitoringSpec{
+			Grafana: &v1beta1.Grafana{
+				Operator: v1beta1.GrafanaOperator{},
 			},
 		},
 	}

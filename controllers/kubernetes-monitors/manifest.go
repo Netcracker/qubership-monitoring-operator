@@ -5,7 +5,7 @@ import (
 
 	"maps"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -15,7 +15,7 @@ import (
 var assets embed.FS
 
 // Common K8s monitors
-func kubernetesMonitorsApiServerServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func kubernetesMonitorsApiServerServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.ApiServerServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func kubernetesMonitorsApiServerServiceMonitor(cr *v1alpha1.PlatformMonitoring) 
 	return &sm, nil
 }
 
-func kubernetesMonitorsControllerManagerServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func kubernetesMonitorsControllerManagerServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubeControllerManagerServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func kubernetesMonitorsControllerManagerServiceMonitor(cr *v1alpha1.PlatformMoni
 	return &sm, nil
 }
 
-func kubernetesMonitorsSchedulerServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func kubernetesMonitorsSchedulerServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubeSchedulerServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func kubernetesMonitorsSchedulerServiceMonitor(cr *v1alpha1.PlatformMonitoring) 
 	return &sm, nil
 }
 
-func kubernetesMonitorsKubeletServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func kubernetesMonitorsKubeletServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubeletServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func kubernetesMonitorsKubeletServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*
 	return &sm, nil
 }
 
-func kubernetesMonitorsCoreDnsServiceMonitor(cr *v1alpha1.PlatformMonitoring, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
+func kubernetesMonitorsCoreDnsServiceMonitor(cr *v1beta1.PlatformMonitoring, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 
 	CoreDnsServiceMonitorAsset := utils.CoreDnsServiceMonitorAssetK8s
@@ -233,7 +233,7 @@ func kubernetesMonitorsCoreDnsServiceMonitor(cr *v1alpha1.PlatformMonitoring, is
 	return &sm, nil
 }
 
-func kubernetesMonitorsNginxIngressPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func kubernetesMonitorsNginxIngressPodMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	pm := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NginxIngressPodMonitorAsset), 100).Decode(&pm); err != nil {
 		return nil, err
@@ -275,7 +275,7 @@ func kubernetesMonitorsNginxIngressPodMonitor(cr *v1alpha1.PlatformMonitoring) (
 }
 
 // Openshift specific monitors
-func openshiftServiceMonitor(cr *v1alpha1.PlatformMonitoring,
+func openshiftServiceMonitor(cr *v1beta1.PlatformMonitoring,
 	serviceMonitorAsset string,
 	crServiceMonitorName string,
 	metadataName string) (*promv1.ServiceMonitor, error) {

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	kubernetesmonitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/go-logr/logr"
@@ -54,7 +54,7 @@ func NewEtcdMonitorReconciler(c client.Client, s *runtime.Scheme, dc discovery.D
 // Creates new service monitor and secret with certificates if its don't exists.
 // Updates monitor and secret in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMonitoring) error {
+func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	// Try to get Route is there to check is it OpenShift or Kubernetes
@@ -127,7 +127,7 @@ func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMo
 }
 
 // uninstall deletes all resources related to the component
-func (r *EtcdMonitorReconciler) uninstall(cr *v1alpha1.PlatformMonitoring, isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) {
+func (r *EtcdMonitorReconciler) uninstall(cr *v1beta1.PlatformMonitoring, isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) {
 	if err := r.deleteServiceMonitor(cr, etcdServiceNamespace, isOpenshiftV4); err != nil {
 		r.Log.Error(err, "Can not delete ServiceMonitor")
 	}
@@ -295,7 +295,7 @@ func (r *EtcdMonitorReconciler) getCertsFromConfigmapAndSecret() (string, string
 	return caFile, certFile, keyFile, nil
 }
 
-func (r *EtcdMonitorReconciler) updateCertificates(ctx context.Context, cr *v1alpha1.PlatformMonitoring, isOpenshift bool, minorServerVersion int, isOpenshiftV4 bool) error {
+func (r *EtcdMonitorReconciler) updateCertificates(ctx context.Context, cr *v1beta1.PlatformMonitoring, isOpenshift bool, minorServerVersion int, isOpenshiftV4 bool) error {
 	var caFile, certFile, keyFile string
 	var err error
 

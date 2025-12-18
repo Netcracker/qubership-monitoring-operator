@@ -1,9 +1,9 @@
 package grafana_operator
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -43,7 +43,7 @@ func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1alpha1.PlatformMo
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -78,7 +78,7 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -110,7 +110,7 @@ func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *v1alpha1.Platfo
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -145,7 +145,7 @@ func (r *GrafanaOperatorReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -177,7 +177,7 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleDeployment(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -211,7 +211,7 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaDashboard(cr, fileName)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
@@ -238,7 +238,7 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -275,7 +275,7 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -294,7 +294,7 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *v1alpha1
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaDashboard(cr, fileName)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
@@ -313,7 +313,7 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")

@@ -4,7 +4,7 @@ import (
 	"embed"
 	"maps"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -14,7 +14,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func vmUser(cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
+func vmUser(cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 	vmuser := vmetricsv1b1.VMUser{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmUserAsset), 100).Decode(&vmuser); err != nil {
 		return nil, err

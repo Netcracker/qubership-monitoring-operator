@@ -4,7 +4,7 @@ import (
 	"embed"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	secv1 "github.com/openshift/api/security/v1"
@@ -22,7 +22,7 @@ var assets embed.FS
 
 // VmOperatorRole builds the ServiceAccount resource manifest
 // and fill it with parameters from the CR.
-func vmOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) {
+func vmOperatorRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role := rbacv1.Role{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorRoleAsset), 100).Decode(&role); err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func vmOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) {
 	return &role, nil
 }
 
-func vmOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func vmOperatorServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func vmOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceA
 	return &sa, nil
 }
 
-func vmOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func vmOperatorRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func vmOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding
 	return &roleBinding, nil
 }
 
-func vmOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func vmOperatorClusterRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func vmOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole
 	return &clusterRole, nil
 }
 
-func vmOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func vmOperatorClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func vmOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Clus
 	return &clusterRoleBinding, nil
 }
 
-func vmOperatorDeployment(r *VmOperatorReconciler, cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func vmOperatorDeployment(r *VmOperatorReconciler, cr *v1beta1.PlatformMonitoring) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -265,7 +265,7 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *v1alpha1.PlatformMonitori
 	return &d, nil
 }
 
-func vmOperatorService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) {
+func vmOperatorService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -278,7 +278,7 @@ func vmOperatorService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error)
 	return &service, nil
 }
 
-func vmKubeletService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) {
+func vmKubeletService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -291,7 +291,7 @@ func vmKubeletService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) 
 	return &service, nil
 }
 
-func vmKubeletServiceEndpoints(cr *v1alpha1.PlatformMonitoring) (*corev1.Endpoints, error) {
+func vmKubeletServiceEndpoints(cr *v1beta1.PlatformMonitoring) (*corev1.Endpoints, error) {
 	endpoints := corev1.Endpoints{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
@@ -304,7 +304,7 @@ func vmKubeletServiceEndpoints(cr *v1alpha1.PlatformMonitoring) (*corev1.Endpoin
 	return &endpoints, nil
 }
 
-func vmOperatorServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func vmOperatorServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err

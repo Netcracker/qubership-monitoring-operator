@@ -1,5 +1,5 @@
 {{- if and .Values.install .Values.grafanaDashboard }}
-apiVersion: integreatly.org/v1alpha1
+apiVersion: integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
@@ -1968,3 +1968,4 @@ spec:
       "weekStart": ""
     }
 {{- end }}
+

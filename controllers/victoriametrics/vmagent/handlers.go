@@ -1,18 +1,18 @@
 package vmagent
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *VmAgentReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -44,7 +44,7 @@ func (r *VmAgentReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring
 	}
 	return nil
 }
-func (r *VmAgentReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -79,7 +79,7 @@ func (r *VmAgentReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *VmAgentReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -112,7 +112,7 @@ func (r *VmAgentReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *VmAgentReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -147,7 +147,7 @@ func (r *VmAgentReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
 	return nil
 }
 
-func (r *VmAgentReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -180,7 +180,7 @@ func (r *VmAgentReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *VmAgentReconciler) handleVmAgent(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleVmAgent(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgent(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Vmagent manifest")
@@ -216,19 +216,21 @@ func (r *VmAgentReconciler) handleVmAgent(cr *v1alpha1.PlatformMonitoring) error
 	return nil
 }
 
-func (r *VmAgentReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
-			e = &v1beta1.Ingress{ObjectMeta: metav1.ObjectMeta{
+			e = &networkingv1beta1.Ingress{}
+			e.ObjectMeta = metav1.ObjectMeta{
 				Name:      cr.GetNamespace() + "-" + utils.VmAgentComponentName,
 				Namespace: cr.GetNamespace(),
-			}}
+			}
 			if err = r.GetResource(e); err == nil {
 				if err = r.DeleteResource(e); err != nil {
 					return err
@@ -254,7 +256,7 @@ func (r *VmAgentReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *VmAgentReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) handleIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -292,7 +294,7 @@ func (r *VmAgentReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -311,7 +313,7 @@ func (r *VmAgentReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -330,7 +332,7 @@ func (r *VmAgentReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -349,7 +351,7 @@ func (r *VmAgentReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -369,7 +371,7 @@ func (r *VmAgentReconciler) deleteRole(cr *v1alpha1.PlatformMonitoring) error {
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -389,7 +391,7 @@ func (r *VmAgentReconciler) deleteRoleBinding(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteVmAgent(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteVmAgent(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgent(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Vmagent manifest")
@@ -408,13 +410,14 @@ func (r *VmAgentReconciler) deleteVmAgent(cr *v1alpha1.PlatformMonitoring) error
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
@@ -427,7 +430,7 @@ func (r *VmAgentReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *VmAgentReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) deleteIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAgentIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")

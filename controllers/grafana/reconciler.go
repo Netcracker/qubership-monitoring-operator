@@ -1,7 +1,7 @@
 package grafana
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -34,7 +34,7 @@ func NewGrafanaReconciler(c client.Client, s *runtime.Scheme, dc discovery.Disco
 // Creates new custom resources: Grafana and GrafanaDataSource if its don't exists.
 // Updates custom resources in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *GrafanaReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
@@ -100,7 +100,7 @@ func (r *GrafanaReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 }
 
 // uninstall deletes all resources related to the component
-func (r *GrafanaReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *GrafanaReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
 	if err := r.deleteGrafana(cr); err != nil {
 		r.Log.Error(err, "Can not delete Grafana")
 	}

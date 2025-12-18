@@ -1,17 +1,17 @@
 package pushgateway
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *PushgatewayReconciler) handleDeployment(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -47,7 +47,7 @@ func (r *PushgatewayReconciler) handleDeployment(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *PushgatewayReconciler) handlePVC(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) handlePVC(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayPVC(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PVC manifest")
@@ -68,7 +68,7 @@ func (r *PushgatewayReconciler) handlePVC(cr *v1alpha1.PlatformMonitoring) error
 	return nil
 }
 
-func (r *PushgatewayReconciler) handleService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) handleService(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -103,13 +103,14 @@ func (r *PushgatewayReconciler) handleService(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *PushgatewayReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) handleIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
@@ -132,7 +133,7 @@ func (r *PushgatewayReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *PushgatewayReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) handleIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -161,7 +162,7 @@ func (r *PushgatewayReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PushgatewayReconciler) handleServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) handleServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
@@ -198,7 +199,7 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *PushgatewayReconciler) deleteDeployment(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) deleteDeployment(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -217,7 +218,7 @@ func (r *PushgatewayReconciler) deleteDeployment(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *PushgatewayReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) deleteService(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -236,13 +237,14 @@ func (r *PushgatewayReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *PushgatewayReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) deleteIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
@@ -255,7 +257,7 @@ func (r *PushgatewayReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *PushgatewayReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) deleteIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -274,7 +276,7 @@ func (r *PushgatewayReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PushgatewayReconciler) deleteServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) deleteServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := pushgatewayServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")

@@ -3,7 +3,7 @@ package vmagent
 import (
 	"context"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
@@ -35,7 +35,7 @@ func NewVmAgentReconciler(c client.Client, s *runtime.Scheme, dc discovery.Disco
 // Creates new VmAgent CR if it doesn't exist.
 // Updates VmAgent CR in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *VmAgentReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAgentReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() {
@@ -111,7 +111,7 @@ func (r *VmAgentReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMonito
 }
 
 // uninstall deletes all resources related to the component
-func (r *VmAgentReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *VmAgentReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
 	if utils.PrivilegedRights {
 		if err := r.deleteClusterRole(cr); err != nil {
 			r.Log.Error(err, "Can not delete ClusterRole")

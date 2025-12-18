@@ -1,7 +1,7 @@
 package alertmanager
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -27,7 +27,7 @@ func NewAlertManagerReconciler(c client.Client, s *runtime.Scheme, dc discovery.
 // Creates new deployment, service, service account, cluster role and cluster role binding if its don't exists.
 // Updates deployment and service in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *AlertManagerReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.AlertManager != nil && cr.Spec.AlertManager.IsInstall() {
@@ -95,7 +95,7 @@ func (r *AlertManagerReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 }
 
 // uninstall deletes all resources related to the component
-func (r *AlertManagerReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *AlertManagerReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
 	if err := r.deleteServiceAccount(cr); err != nil {
 		r.Log.Error(err, "Can not delete ServiceAccount")
 	}

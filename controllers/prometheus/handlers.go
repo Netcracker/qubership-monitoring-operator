@@ -1,17 +1,17 @@
 package prometheus
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *PrometheusReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -43,7 +43,7 @@ func (r *PrometheusReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -78,7 +78,7 @@ func (r *PrometheusReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *PrometheusReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -110,7 +110,7 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusReconciler) handlePrometheus(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handlePrometheus(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheus(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
@@ -137,13 +137,14 @@ func (r *PrometheusReconciler) handlePrometheus(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PrometheusReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
@@ -166,7 +167,7 @@ func (r *PrometheusReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -195,7 +196,7 @@ func (r *PrometheusReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *PrometheusReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handlePodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -232,7 +233,7 @@ func (r *PrometheusReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -251,7 +252,7 @@ func (r *PrometheusReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -270,7 +271,7 @@ func (r *PrometheusReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -289,7 +290,7 @@ func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusReconciler) deletePrometheus(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deletePrometheus(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheus(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
@@ -308,13 +309,14 @@ func (r *PrometheusReconciler) deletePrometheus(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
@@ -327,7 +329,7 @@ func (r *PrometheusReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -346,7 +348,7 @@ func (r *PrometheusReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *PrometheusReconciler) deletePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deletePodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := prometheusPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")

@@ -24,12 +24,11 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
-	qubershiporg1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
-	apis "github.com/grafana-operator/grafana-operator/v4/api"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	extensionsobj "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -55,7 +54,8 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(qubershiporg1.AddToScheme(scheme))
+	// Register v1beta1 API version (v1alpha1 remains as artifact for CRD backward compatibility)
+	utilruntime.Must(qubershiporgv1beta1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -103,10 +103,8 @@ func main() {
 	logger.Info("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
-		logger.Error(err, "")
-		os.Exit(1)
-	}
+	// In Grafana Operator v5, apis.AddToScheme was removed
+	// Grafana scheme is added via grafv1.AddToScheme below
 
 	// Add extention scheme
 	if err = extensionsobj.AddToScheme(mgr.GetScheme()); err != nil {
@@ -132,7 +130,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Add grafana schema
+	// Add grafana schema (Grafana Operator v5)
 	if err = grafv1.AddToScheme(mgr.GetScheme()); err != nil {
 		logger.Error(err, "")
 		os.Exit(1)

@@ -1,12 +1,12 @@
 package kubernetes_monitors
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *KubernetesMonitorsReconciler) handleApiServerServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) handleApiServerServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsApiServerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ApiServerServiceMonitor manifest")
@@ -35,7 +35,7 @@ func (r *KubernetesMonitorsReconciler) handleApiServerServiceMonitor(cr *v1alpha
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleControllerManagerServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) handleControllerManagerServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsControllerManagerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ControllerManagerServiceMonitor manifest")
@@ -64,7 +64,7 @@ func (r *KubernetesMonitorsReconciler) handleControllerManagerServiceMonitor(cr 
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleSchedulerServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) handleSchedulerServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsSchedulerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating SchedulerServiceMonitor manifest")
@@ -94,7 +94,7 @@ func (r *KubernetesMonitorsReconciler) handleSchedulerServiceMonitor(cr *v1alpha
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleKubeletServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) handleKubeletServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsKubeletServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating KubeletServiceMonitor manifest")
@@ -124,7 +124,7 @@ func (r *KubernetesMonitorsReconciler) handleKubeletServiceMonitor(cr *v1alpha1.
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleNginxIngressPodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) handleNginxIngressPodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsNginxIngressPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating NginxIngressPodMonitor manifest")
@@ -154,7 +154,7 @@ func (r *KubernetesMonitorsReconciler) handleNginxIngressPodMonitor(cr *v1alpha1
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleCoreDnsServiceMonitor(cr *v1alpha1.PlatformMonitoring, isOpenshiftV4 bool) error {
+func (r *KubernetesMonitorsReconciler) handleCoreDnsServiceMonitor(cr *v1beta1.PlatformMonitoring, isOpenshiftV4 bool) error {
 	m, err := kubernetesMonitorsCoreDnsServiceMonitor(cr, isOpenshiftV4)
 	if err != nil {
 		r.Log.Error(err, "Failed creating CoreDnsServiceMonitor manifest")
@@ -184,7 +184,7 @@ func (r *KubernetesMonitorsReconciler) handleCoreDnsServiceMonitor(cr *v1alpha1.
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) handleOpenshiftServiceMonitor(cr *v1alpha1.PlatformMonitoring,
+func (r *KubernetesMonitorsReconciler) handleOpenshiftServiceMonitor(cr *v1beta1.PlatformMonitoring,
 	serviceMonitorAsset string,
 	crServiceMonitorName string,
 	metadataName string) error {
@@ -216,7 +216,7 @@ func (r *KubernetesMonitorsReconciler) handleOpenshiftServiceMonitor(cr *v1alpha
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteApiServerServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) deleteApiServerServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsApiServerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ApiServerServiceMonitor manifest")
@@ -235,7 +235,7 @@ func (r *KubernetesMonitorsReconciler) deleteApiServerServiceMonitor(cr *v1alpha
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteControllerManagerServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) deleteControllerManagerServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsControllerManagerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ControllerManagerServiceMonitor manifest")
@@ -254,7 +254,7 @@ func (r *KubernetesMonitorsReconciler) deleteControllerManagerServiceMonitor(cr 
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteSchedulerServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) deleteSchedulerServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsSchedulerServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating SchedulerServiceMonitor manifest")
@@ -273,7 +273,7 @@ func (r *KubernetesMonitorsReconciler) deleteSchedulerServiceMonitor(cr *v1alpha
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteKubeletServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) deleteKubeletServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsKubeletServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating KubeletServiceMonitor manifest")
@@ -292,7 +292,7 @@ func (r *KubernetesMonitorsReconciler) deleteKubeletServiceMonitor(cr *v1alpha1.
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteCoreDnsServiceMonitor(cr *v1alpha1.PlatformMonitoring, isOpenshiftV4 bool) error {
+func (r *KubernetesMonitorsReconciler) deleteCoreDnsServiceMonitor(cr *v1beta1.PlatformMonitoring, isOpenshiftV4 bool) error {
 	m, err := kubernetesMonitorsCoreDnsServiceMonitor(cr, isOpenshiftV4)
 	if err != nil {
 		r.Log.Error(err, "Failed creating CoreDnsServiceMonitor manifest")
@@ -311,7 +311,7 @@ func (r *KubernetesMonitorsReconciler) deleteCoreDnsServiceMonitor(cr *v1alpha1.
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteNginxIngressPodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) deleteNginxIngressPodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := kubernetesMonitorsNginxIngressPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating NginxIngressPodMonitor manifest")
@@ -330,7 +330,7 @@ func (r *KubernetesMonitorsReconciler) deleteNginxIngressPodMonitor(cr *v1alpha1
 	return nil
 }
 
-func (r *KubernetesMonitorsReconciler) deleteOpenshiftServiceMonitor(cr *v1alpha1.PlatformMonitoring,
+func (r *KubernetesMonitorsReconciler) deleteOpenshiftServiceMonitor(cr *v1beta1.PlatformMonitoring,
 	serviceMonitorAsset string,
 	crServiceMonitorName string,
 	metadataName string) error {

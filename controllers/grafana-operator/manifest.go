@@ -2,11 +2,12 @@ package grafana_operator
 
 import (
 	"embed"
+	"fmt"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,7 +19,7 @@ import (
 //go:embed  assets/*/*.yaml
 var assets embed.FS
 
-func grafanaOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func grafanaOperatorServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func grafanaOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.Ser
 	return &sa, nil
 }
 
-func grafanaOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func grafanaOperatorClusterRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func grafanaOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Cluste
 	return &clusterRole, nil
 }
 
-func grafanaOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func grafanaOperatorClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -79,7 +80,7 @@ func grafanaOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1
 	return &clusterRoleBinding, nil
 }
 
-func grafanaOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) {
+func grafanaOperatorRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role := rbacv1.Role{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorRoleAsset), 100).Decode(&role); err != nil {
 		return nil, err
@@ -92,7 +93,7 @@ func grafanaOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) 
 	return &role, nil
 }
 
-func grafanaOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func grafanaOperatorRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -112,7 +113,7 @@ func grafanaOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBi
 	return &roleBinding, nil
 }
 
-func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func grafanaOperatorDeployment(cr *v1beta1.PlatformMonitoring) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -153,10 +154,41 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 					c.Args = append(c.Args, "--grafana-plugins-init-container-tag="+initContainerTag)
 				}
 				// Set flag for scan namespaces
-				if cr.Spec.Grafana.Operator.Namespaces != "" {
-					c.Args = append(c.Args, "--namespaces="+cr.Spec.Grafana.Operator.Namespaces)
+				// In v5, --namespaces is deprecated, use --watch-namespaces instead
+				if cr.Spec.Grafana.Operator.WatchNamespaces != "" {
+					c.Args = append(c.Args, "--watch-namespaces="+cr.Spec.Grafana.Operator.WatchNamespaces)
+				} else if cr.Spec.Grafana.Operator.Namespaces != "" {
+					// Support deprecated Namespaces field for backward compatibility
+					c.Args = append(c.Args, "--watch-namespaces="+cr.Spec.Grafana.Operator.Namespaces)
+				} else if cr.Spec.Grafana.Operator.NamespaceScope {
+					// In v5, namespace scope limits operator to its own namespace
+					c.Args = append(c.Args, "--namespace-scope")
 				} else {
 					c.Args = append(c.Args, "--scan-all")
+				}
+				// Add watch namespace selector if specified
+				if cr.Spec.Grafana.Operator.WatchNamespaceSelector != "" {
+					c.Args = append(c.Args, "--watch-namespace-selector="+cr.Spec.Grafana.Operator.WatchNamespaceSelector)
+				}
+				// Add watch label selectors if specified
+				if cr.Spec.Grafana.Operator.WatchLabelSelectors != "" {
+					c.Args = append(c.Args, "--watch-label-selectors="+cr.Spec.Grafana.Operator.WatchLabelSelectors)
+				}
+				// Add enforce cache labels if specified
+				if cr.Spec.Grafana.Operator.EnforceCacheLabels != "" {
+					c.Args = append(c.Args, "--enforce-cache-labels="+cr.Spec.Grafana.Operator.EnforceCacheLabels)
+				}
+				// Add cluster domain if specified
+				if cr.Spec.Grafana.Operator.ClusterDomain != "" {
+					c.Args = append(c.Args, "--cluster-domain="+cr.Spec.Grafana.Operator.ClusterDomain)
+				}
+				// Add max concurrent reconciles if specified
+				if cr.Spec.Grafana.Operator.MaxConcurrentReconciles != nil {
+					c.Args = append(c.Args, fmt.Sprintf("--max-concurrent-reconciles=%d", *cr.Spec.Grafana.Operator.MaxConcurrentReconciles))
+				}
+				// Add leader elect if specified
+				if cr.Spec.Grafana.Operator.LeaderElect != nil {
+					c.Args = append(c.Args, fmt.Sprintf("--leader-elect=%t", *cr.Spec.Grafana.Operator.LeaderElect))
 				}
 				if cr.Spec.Grafana.Operator.LogLevel != "" {
 					c.Args = append(c.Args, "--zap-log-level="+cr.Spec.Grafana.Operator.LogLevel)
@@ -238,7 +270,7 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 	return &d, nil
 }
 
-func grafanaDashboard(cr *v1alpha1.PlatformMonitoring, fileName string) (*grafv1.GrafanaDashboard, error) {
+func grafanaDashboard(cr *v1beta1.PlatformMonitoring, fileName string) (*grafv1.GrafanaDashboard, error) {
 	dashboard := grafv1.GrafanaDashboard{}
 	fullPath := utils.BasePath + utils.DashboardsFolder + fileName
 	crParams := cr.ToParams()
@@ -252,7 +284,7 @@ func grafanaDashboard(cr *v1alpha1.PlatformMonitoring, fileName string) (*grafv1
 		return nil, err
 	}
 	//Set parameters
-	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1alpha1", Kind: "Grafana"})
+	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
 	dashboard.SetNamespace(cr.GetNamespace())
 
 	// Set labels
@@ -268,7 +300,7 @@ func grafanaDashboard(cr *v1alpha1.PlatformMonitoring, fileName string) (*grafv1
 	return &dashboard, nil
 }
 
-func grafanaOperatorPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func grafanaOperatorPodMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err

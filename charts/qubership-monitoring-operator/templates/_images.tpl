@@ -29,7 +29,7 @@ Image can be found from:
     {{- if .Values.grafana.operator.image -}}
       {{- printf "%s" .Values.grafana.operator.image -}}
     {{- else -}}
-      {{- print "quay.io/grafana-operator/grafana-operator:v4.9.0" -}}
+      {{- print "quay.io/grafana-operator/grafana-operator:v5.20.0" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}

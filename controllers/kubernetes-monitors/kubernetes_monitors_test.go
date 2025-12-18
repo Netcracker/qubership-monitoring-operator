@@ -3,14 +3,14 @@ package kubernetes_monitors
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *v1beta1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -18,7 +18,7 @@ var (
 )
 
 func TestKubernetesMonitorsManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
@@ -32,7 +32,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 		assert.NotNil(t, m.GetLabels())
 		assert.Nil(t, m.GetAnnotations())
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   "monitoring",
 			Annotations: map[string]string{annotationKey: annotationValue},

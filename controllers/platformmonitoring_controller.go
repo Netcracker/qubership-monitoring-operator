@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"time"
 
-	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/alertmanager"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/etcd"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
@@ -80,8 +80,8 @@ type PlatformMonitoringReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, request ctrl.Request) (ctrl.Result, error) {
-	// Fetch the PlatformMonitoring instance
-	customResourceInstance := &qubershiporgv1.PlatformMonitoring{}
+	// Fetch the PlatformMonitoring instance (v1beta1)
+	customResourceInstance := &qubershiporgv1beta1.PlatformMonitoring{}
 	err := r.Client.Get(context, request.NamespacedName, customResourceInstance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -324,7 +324,7 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 // SetupWithManager sets up the controller with the Manager.
 func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&qubershiporgv1.PlatformMonitoring{}).
+		For(&qubershiporgv1beta1.PlatformMonitoring{}).
 		WithEventFilter(ignoreDeletionPredicate()).
 		Complete(r)
 }
@@ -344,7 +344,7 @@ func ignoreDeletionPredicate() predicate.Predicate {
 
 // getCondition retrieves condition of custom resource instance by given reason.
 // Returns found condition and it's index in the list of conditions.
-func (r *PlatformMonitoringReconciler) getCondition(customResourceInstance *qubershiporgv1.PlatformMonitoring, newConditionReason string) (int, *qubershiporgv1.PlatformMonitoringCondition) {
+func (r *PlatformMonitoringReconciler) getCondition(customResourceInstance *qubershiporgv1beta1.PlatformMonitoring, newConditionReason string) (int, *qubershiporgv1beta1.PlatformMonitoringCondition) {
 
 	if len(newConditionReason) == 0 || len(customResourceInstance.Status.Conditions) == 0 {
 		return -1, nil
@@ -358,7 +358,7 @@ func (r *PlatformMonitoringReconciler) getCondition(customResourceInstance *qube
 }
 
 // removeStatus removes condition of custom resource instance by given reason.
-func (r *PlatformMonitoringReconciler) removeStatus(customResourceInstance *qubershiporgv1.PlatformMonitoring, reason string) bool {
+func (r *PlatformMonitoringReconciler) removeStatus(customResourceInstance *qubershiporgv1beta1.PlatformMonitoring, reason string) bool {
 	idx, condition := r.getCondition(customResourceInstance, reason)
 	if condition != nil {
 		customResourceInstance.Status.Conditions[idx] = customResourceInstance.Status.Conditions[len(customResourceInstance.Status.Conditions)-1]
@@ -369,7 +369,7 @@ func (r *PlatformMonitoringReconciler) removeStatus(customResourceInstance *qube
 }
 
 // updateStatus updates condition of custom resource instance
-func (r *PlatformMonitoringReconciler) updateStatus(customResourceInstance *qubershiporgv1.PlatformMonitoring, statusType string, status string, reason string, message string) error {
+func (r *PlatformMonitoringReconciler) updateStatus(customResourceInstance *qubershiporgv1beta1.PlatformMonitoring, statusType string, status string, reason string, message string) error {
 	if r.prepareStatusForUpdate(customResourceInstance, statusType, status, reason, message) {
 		// Update status if not equal to the last one
 		if err := r.Client.Status().Update(context.TODO(), customResourceInstance); err != nil {
@@ -381,10 +381,10 @@ func (r *PlatformMonitoringReconciler) updateStatus(customResourceInstance *qube
 }
 
 // prepareStatusForUpdate checks if old condition with same reason exist and change it on the new condition
-func (r *PlatformMonitoringReconciler) prepareStatusForUpdate(customResourceInstance *qubershiporgv1.PlatformMonitoring, statusType string, status string, reason string, message string) bool {
+func (r *PlatformMonitoringReconciler) prepareStatusForUpdate(customResourceInstance *qubershiporgv1beta1.PlatformMonitoring, statusType string, status string, reason string, message string) bool {
 	// get status timestamp
 	transitionTime := metav1.Now()
-	newCondition := qubershiporgv1.PlatformMonitoringCondition{
+	newCondition := qubershiporgv1beta1.PlatformMonitoringCondition{
 		Type:               statusType,
 		Status:             status,
 		Reason:             reason,

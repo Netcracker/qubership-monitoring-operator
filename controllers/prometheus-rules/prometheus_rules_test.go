@@ -3,13 +3,13 @@ package prometheus_rules
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *v1beta1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,7 +17,7 @@ var (
 )
 
 func TestPrometheusRuleManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   "monitoring",
 			Annotations: map[string]string{annotationKey: annotationValue},
@@ -35,7 +35,7 @@ func TestPrometheusRuleManifests(t *testing.T) {
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},

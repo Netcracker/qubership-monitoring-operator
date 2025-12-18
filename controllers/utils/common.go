@@ -11,13 +11,13 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	"github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	sprig "github.com/go-task/slim-sprig"
 
 	routev1 "github.com/openshift/api/route/v1"
 	core "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
@@ -43,7 +43,7 @@ func MustAssetReaderToString(assets embed.FS, asset string) string {
 // It helps to identify whether the cluster is a Kubernetes cluster.
 // This API unavailable in Kubernetes v1.22+.
 func (r *ComponentReconciler) HasIngressV1beta1Api() bool {
-	return r.HasApi(v1beta1.SchemeGroupVersion, "Ingress")
+	return r.HasApi(networkingv1beta1.SchemeGroupVersion, "Ingress")
 }
 
 // HasIngressV1Api checks that the cluster API has networking.k8s.io.v1.Ingress API.
@@ -88,7 +88,7 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 	return false, nil
 }
 
-func (r *ComponentReconciler) CreateResource(cr *v1alpha1.PlatformMonitoring, o K8sResource, setRefOptional ...bool) error {
+func (r *ComponentReconciler) CreateResource(cr *v1beta1.PlatformMonitoring, o K8sResource, setRefOptional ...bool) error {
 	res := o.GetObjectKind().GroupVersionKind().Kind
 	setRef := true
 	if len(setRefOptional) > 0 {

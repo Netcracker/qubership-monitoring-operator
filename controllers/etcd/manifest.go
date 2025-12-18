@@ -3,7 +3,7 @@ package etcd
 import (
 	"embed"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,7 +14,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func etcdServiceMonitor(cr *v1alpha1.PlatformMonitoring, etcdServiceNamespace string, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
+func etcdServiceMonitor(cr *v1beta1.PlatformMonitoring, etcdServiceNamespace string, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.EtcdServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 	return &service, nil
 }
 
-func etcdSecret(cr *v1alpha1.PlatformMonitoring) (*corev1.Secret, error) {
+func etcdSecret(cr *v1beta1.PlatformMonitoring) (*corev1.Secret, error) {
 	secret := corev1.Secret{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.EtcdClientCertsSecretAsset), 100).Decode(&secret); err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func etcdSecret(cr *v1alpha1.PlatformMonitoring) (*corev1.Secret, error) {
 	return &secret, nil
 }
 
-func nodeExporterServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func nodeExporterServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.EtcdNodeExporterServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err

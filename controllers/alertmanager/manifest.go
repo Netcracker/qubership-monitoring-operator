@@ -5,12 +5,12 @@ import (
 	"errors"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -19,7 +19,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func alertmanagerServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func alertmanagerServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerServiceAccountAsset), 100).Decode(&sa)
 
@@ -53,7 +53,7 @@ func alertmanagerServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.Servic
 	return &sa, nil
 }
 
-func alertmanagerSecret(cr *v1alpha1.PlatformMonitoring) (*corev1.Secret, error) {
+func alertmanagerSecret(cr *v1beta1.PlatformMonitoring) (*corev1.Secret, error) {
 	secret := corev1.Secret{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerSecretAsset), 100).Decode(&secret); err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func alertmanagerSecret(cr *v1alpha1.PlatformMonitoring) (*corev1.Secret, error)
 	return &secret, nil
 }
 
-func alertmanager(cr *v1alpha1.PlatformMonitoring) (*promv1.Alertmanager, error) {
+func alertmanager(cr *v1beta1.PlatformMonitoring) (*promv1.Alertmanager, error) {
 	am := promv1.Alertmanager{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerAsset), 100).Decode(&am); err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func alertmanager(cr *v1alpha1.PlatformMonitoring) (*promv1.Alertmanager, error)
 	return &am, nil
 }
 
-func alertmanagerService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) {
+func alertmanagerService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -252,8 +252,8 @@ func alertmanagerService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, erro
 	return &service, nil
 }
 
-func alertmanagerIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, error) {
-	ingress := v1beta1.Ingress{}
+func alertmanagerIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.Ingress, error) {
+	ingress := networkingv1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
@@ -276,23 +276,23 @@ func alertmanagerIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingre
 			serviceName = utils.AlertmanagerOAuthProxyServiceName
 		}
 		// Add rule for alertmanager UI
-		rule := v1beta1.IngressRule{Host: cr.Spec.AlertManager.Ingress.Host}
-		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
-			Paths: []v1beta1.HTTPIngressPath{
+		rule := networkingv1beta1.IngressRule{Host: cr.Spec.AlertManager.Ingress.Host}
+		rule.HTTP = &networkingv1beta1.HTTPIngressRuleValue{
+			Paths: []networkingv1beta1.HTTPIngressPath{
 				{
 					Path: "/",
-					Backend: v1beta1.IngressBackend{
+					Backend: networkingv1beta1.IngressBackend{
 						ServiceName: serviceName,
 						ServicePort: servicePort,
 					},
 				},
 			},
 		}
-		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
+		ingress.Spec.Rules = []networkingv1beta1.IngressRule{rule}
 
 		// Configure TLS if TLS secret name is set
 		if cr.Spec.AlertManager.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []v1beta1.IngressTLS{
+			ingress.Spec.TLS = []networkingv1beta1.IngressTLS{
 				{
 					Hosts:      []string{cr.Spec.AlertManager.Ingress.Host},
 					SecretName: cr.Spec.AlertManager.Ingress.TLSSecretName,
@@ -320,7 +320,7 @@ func alertmanagerIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingre
 	return &ingress, nil
 }
 
-func alertmanagerIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func alertmanagerIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -398,7 +398,7 @@ func alertmanagerIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingre
 	return &ingress, nil
 }
 
-func alertmanagerPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func alertmanagerPodMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err

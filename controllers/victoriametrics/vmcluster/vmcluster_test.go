@@ -3,23 +3,23 @@ package vmcluster
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr *v1alpha1.PlatformMonitoring
+	cr *v1beta1.PlatformMonitoring
 )
 
 func TestVmClusterManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Victoriametrics: &v1alpha1.Victoriametrics{
-				VmCluster: v1alpha1.VmCluster{},
+		Spec: v1beta1.PlatformMonitoringSpec{
+			Victoriametrics: &v1beta1.Victoriametrics{
+				VmCluster: v1beta1.VmCluster{},
 			},
 		},
 	}
@@ -32,7 +32,7 @@ func TestVmClusterManifests(t *testing.T) {
 		assert.NotNil(t, m.GetLabels())
 		assert.Nil(t, m.GetAnnotations())
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},

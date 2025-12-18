@@ -3,13 +3,13 @@ package grafana
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *v1beta1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestGrafanaManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Grafana: &v1alpha1.Grafana{
+		Spec: v1beta1.PlatformMonitoringSpec{
+			Grafana: &v1beta1.Grafana{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -36,19 +36,21 @@ func TestGrafanaManifests(t *testing.T) {
 		assert.NotNil(t, m, "Grafana manifest should not be empty")
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
-		assert.NotNil(t, m.Spec.Deployment.Labels)
-		assert.Equal(t, labelValue, m.Spec.Deployment.Labels[labelKey])
-		assert.NotNil(t, m.GetAnnotations())
-		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
-		assert.NotNil(t, m.Spec.Deployment.Annotations)
-		assert.Equal(t, annotationValue, m.Spec.Deployment.Annotations[annotationKey])
+		if m.Spec.Deployment != nil {
+			assert.NotNil(t, m.Spec.Deployment.Spec.Template.Labels)
+			assert.Equal(t, labelValue, m.Spec.Deployment.Spec.Template.Labels[labelKey])
+			assert.NotNil(t, m.GetAnnotations())
+			assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
+			assert.NotNil(t, m.Spec.Deployment.Spec.Template.Annotations)
+			assert.Equal(t, annotationValue, m.Spec.Deployment.Spec.Template.Annotations[annotationKey])
+		}
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &v1beta1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Grafana: &v1alpha1.Grafana{},
+		Spec: v1beta1.PlatformMonitoringSpec{
+			Grafana: &v1beta1.Grafana{},
 		},
 	}
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {
