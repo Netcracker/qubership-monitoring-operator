@@ -1,0 +1,26 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+promxy:
+  install: true
+
+  config:
+    serverGroups:
+      - address: vmsingle-k8s:8429
+        label: k8s-1
+      - address: vmsingle.cloud.test.org
+        label: k8s-2
+        httpClient:
+          # Ingresses usually use HTTPS
+          scheme: https
+          # Credentials from parameters will save in the Secret
+          basicAuth:
+            username: admin
+            password: admin
+          # Need to specify at least CA certificate for HTTPS URLs
+          # that use certificates signed by internal CAs
+          tlsConfig:
+            ca: |
+              -----BEGIN CERTIFICATE-----
+              ...
+              -----END CERTIFICATE-----
