@@ -54,7 +54,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	// Register v1beta1 API version (v1alpha1 remains as artifact for CRD backward compatibility)
+	// Register v1beta1 API version
 	utilruntime.Must(qubershiporgv1beta1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }

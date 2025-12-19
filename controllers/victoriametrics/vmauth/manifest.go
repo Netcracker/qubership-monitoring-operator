@@ -97,7 +97,7 @@ func vmAuthRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
 	return &role, nil
 }
 
-func vmAuthRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func vmAuthRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -390,7 +390,7 @@ func vmAuth(r *VmAuthReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.
 	return &vmauth, nil
 }
 
-func vmAuthIngress(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func vmAuthIngress(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err

@@ -146,7 +146,7 @@ func (r *VmAuthReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
 	return nil
 }
 
-func (r *VmAuthReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAuthReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAuthRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")

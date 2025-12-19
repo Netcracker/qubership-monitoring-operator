@@ -147,7 +147,7 @@ func (r *VmAlertManagerReconciler) handleRole(cr *v1beta1.PlatformMonitoring) er
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
