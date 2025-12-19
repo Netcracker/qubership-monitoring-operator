@@ -1,7 +1,7 @@
 package grafana_operator
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"

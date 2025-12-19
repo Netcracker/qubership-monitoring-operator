@@ -3,7 +3,7 @@ package vmsingle
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

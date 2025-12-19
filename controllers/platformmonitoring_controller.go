@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"time"
 
-	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/alertmanager"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/etcd"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"

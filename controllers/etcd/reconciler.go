@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	kubernetesmonitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/go-logr/logr"

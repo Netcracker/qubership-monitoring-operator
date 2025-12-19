@@ -1,7 +1,7 @@
 package vmoperator
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	secv1 "github.com/openshift/api/security/v1"
 	"k8s.io/apimachinery/pkg/runtime"

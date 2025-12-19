@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

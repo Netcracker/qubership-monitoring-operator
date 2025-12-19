@@ -1,7 +1,7 @@
 package victoriametrics
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 )
 

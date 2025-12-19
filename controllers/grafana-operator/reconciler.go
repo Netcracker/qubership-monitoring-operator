@@ -1,7 +1,7 @@
 package grafana_operator
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"

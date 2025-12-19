@@ -24,7 +24,7 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
-	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"

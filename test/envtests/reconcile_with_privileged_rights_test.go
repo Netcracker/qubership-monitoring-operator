@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	grafana_operator "github.com/Netcracker/qubership-monitoring-operator/controllers/grafana-operator"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/kubestatemetrics"

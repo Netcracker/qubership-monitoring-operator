@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Netcracker/qubership-monitoring-operator/api/v1beta1"
+	"github.com/Netcracker/qubership-monitoring-operator/api"
 	sprig "github.com/go-task/slim-sprig"
 
 	routev1 "github.com/openshift/api/route/v1"
