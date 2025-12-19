@@ -140,6 +140,8 @@ var (
 	VmAlertManagerServiceAccountAsset     = BasePath + "service-account.yaml"
 	VmAlertManagerClusterRoleAsset        = BasePath + "cluster-role.yaml"
 	VmAlertManagerClusterRoleBindingAsset = BasePath + "cluster-role-binding.yaml"
+	VmAlertManagerRoleAsset        = BasePath + "role.yaml"
+	VmAlertManagerRoleBindingAsset = BasePath + "role-binding.yaml"
 
 	VmAlertAsset                   = BasePath + "vmalert.yaml"
 	VmAlertIngressAsset            = BasePath + "ingress.yaml"
@@ -152,6 +154,8 @@ var (
 	VmAuthServiceAccountAsset     = BasePath + "service-account.yaml"
 	VmAuthClusterRoleAsset        = BasePath + "cluster-role.yaml"
 	VmAuthClusterRoleBindingAsset = BasePath + "cluster-role-binding.yaml"
+	VmAuthRoleAsset        = BasePath + "role.yaml"
+	VmAuthRoleBindingAsset = BasePath + "role-binding.yaml"
 
 	VmClusterAsset                   = BasePath + "vmcluster.yaml"
 	VmClusterServiceAccountAsset     = BasePath + "service-account.yaml"

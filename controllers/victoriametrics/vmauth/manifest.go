@@ -85,6 +85,38 @@ func vmAuthClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRo
 	return &clusterRoleBinding, nil
 }
 
+func vmAuthRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
+	role := rbacv1.Role{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthRoleAsset), 100).Decode(&role); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
+	role.SetName(cr.GetNamespace() + "-" + utils.VmAuthComponentName)
+	role.SetNamespace(cr.GetNamespace())
+	return &role, nil
+}
+
+func vmAuthRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+	roleBinding := rbacv1.RoleBinding{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	roleBinding.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "RoleBinding"})
+	roleBinding.SetName(cr.GetNamespace() + "-" + utils.VmAuthComponentName)
+	roleBinding.SetNamespace(cr.GetNamespace())
+	roleBinding.RoleRef.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
+
+	// Set namespace for all subjects
+	for it := range roleBinding.Subjects {
+		sub := &roleBinding.Subjects[it]
+		sub.Namespace = cr.GetNamespace()
+		sub.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
+	}
+	return &roleBinding, nil
+}
+
 func vmAuth(r *VmAuthReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.VMAuth, error) {
 	var err error
 	vmauth := vmetricsv1b1.VMAuth{}
@@ -177,9 +209,7 @@ func vmAuth(r *VmAuthReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.
 			vmauth.Spec.Port = cr.Spec.Victoriametrics.VmAuth.Port
 		}
 
-		if cr.Spec.Victoriametrics.VmAuth.SelectAllByDefault {
-			vmauth.Spec.SelectAllByDefault = true
-		}
+		vmauth.Spec.SelectAllByDefault = cr.Spec.Victoriametrics.VmAuth.SelectAllByDefault
 
 		if cr.Spec.Victoriametrics.VmAuth.UserSelector != nil {
 			vmauth.Spec.UserSelector = cr.Spec.Victoriametrics.VmAuth.UserSelector
@@ -360,7 +390,7 @@ func vmAuth(r *VmAuthReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.
 	return &vmauth, nil
 }
 
-func vmAuthIngress(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func vmAuthIngress(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err

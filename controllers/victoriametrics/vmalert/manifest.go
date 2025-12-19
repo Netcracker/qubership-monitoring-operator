@@ -177,9 +177,7 @@ func vmAlert(r *VmAlertReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b
 			vmalert.Spec.EvaluationInterval = cr.Spec.Victoriametrics.VmAlert.EvaluationInterval
 		}
 
-		if cr.Spec.Victoriametrics.VmAlert.SelectAllByDefault {
-			vmalert.Spec.SelectAllByDefault = true
-		}
+		vmalert.Spec.SelectAllByDefault = cr.Spec.Victoriametrics.VmAlert.SelectAllByDefault
 
 		if cr.Spec.Victoriametrics.VmAlert.RuleSelector != nil {
 			vmalert.Spec.RuleSelector = cr.Spec.Victoriametrics.VmAlert.RuleSelector
