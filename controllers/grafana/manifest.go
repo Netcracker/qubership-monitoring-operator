@@ -128,11 +128,13 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		}
 
 		// Set labels on Grafana resource
+		// Initialize Labels map if it's nil to avoid nil pointer dereference
+		if graf.Labels == nil {
+			graf.Labels = make(map[string]string)
+		}
 		graf.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
 		graf.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		if graf.Labels == nil && cr.Spec.Grafana.Labels != nil {
-			graf.SetLabels(cr.Spec.Grafana.Labels)
-		} else if cr.Spec.Grafana.Labels != nil {
+		if cr.Spec.Grafana.Labels != nil {
 			for k, v := range cr.Spec.Grafana.Labels {
 				graf.Labels[k] = v
 			}
@@ -311,6 +313,10 @@ func grafanaIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.I
 		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
 
 		// Set labels with saving default labels
+		// Initialize Labels map if it's nil to avoid nil pointer dereference
+		if ingress.Labels == nil {
+			ingress.Labels = make(map[string]string)
+		}
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
 		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
 		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
@@ -377,6 +383,10 @@ func grafanaIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, er
 		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
 
 		// Set labels with saving default labels
+		// Initialize Labels map if it's nil to avoid nil pointer dereference
+		if ingress.Labels == nil {
+			ingress.Labels = make(map[string]string)
+		}
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
 		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
 		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
