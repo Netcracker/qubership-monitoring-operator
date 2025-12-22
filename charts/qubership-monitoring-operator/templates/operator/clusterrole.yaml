@@ -471,6 +471,22 @@ rules:
       - grafanadatasources/status
       - grafanafolders
       - grafanafolders/status
+      - grafanacontactpoints
+      - grafanacontactpoints/status
+      - grafanaalertrulegroups
+      - grafanaalertrulegroups/status
+      - grafananotificationpolicies
+      - grafananotificationpolicies/status
+      - grafananotificationtemplates
+      - grafananotificationtemplates/status
+      - grafanamutetimings
+      - grafanamutetimings/status
+      - grafananotificationpolicyroutes
+      - grafananotificationpolicyroutes/status
+      - grafanalibrarypanels
+      - grafanalibrarypanels/status
+      - grafanaserviceaccounts
+      - grafanaserviceaccounts/status
     verbs:
       - get
       - list
