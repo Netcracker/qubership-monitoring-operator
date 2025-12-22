@@ -138,54 +138,18 @@ func grafanaOperatorDeployment(cr *v1beta1.PlatformMonitoring) (*appsv1.Deployme
 				// Remove all already exist arguments from deployment asset
 				c.Args = nil
 
-				grafanaImage, grafanaTag := utils.SplitImage(cr.Spec.Grafana.Image)
-
-				// Set config reloader image
-				c.Args = append(c.Args, "--grafana-image="+grafanaImage)
-
-				// Set prometheus config reloader image
-				if grafanaTag != "" {
-					c.Args = append(c.Args, "--grafana-image-tag="+grafanaTag)
-				}
-
-				initContainerImage, initContainerTag := utils.SplitImage(cr.Spec.Grafana.Operator.InitContainerImage)
-
-				// Set prometheus config reloader image
-				c.Args = append(c.Args, "--grafana-plugins-init-container-image="+initContainerImage)
-
-				// Set prometheus config reloader image
-				if initContainerTag != "" {
-					c.Args = append(c.Args, "--grafana-plugins-init-container-tag="+initContainerTag)
-				}
-				// Set flag for scan namespaces
-				// In v5, --namespaces is deprecated, use --watch-namespaces instead
-				if cr.Spec.Grafana.Operator.WatchNamespaces != "" {
-					c.Args = append(c.Args, "--watch-namespaces="+cr.Spec.Grafana.Operator.WatchNamespaces)
-				} else if cr.Spec.Grafana.Operator.Namespaces != "" {
-					// Support deprecated Namespaces field for backward compatibility
-					c.Args = append(c.Args, "--watch-namespaces="+cr.Spec.Grafana.Operator.Namespaces)
-				} else if cr.Spec.Grafana.Operator.NamespaceScope {
-					// In v5, namespace scope limits operator to its own namespace
-					c.Args = append(c.Args, "--namespace-scope")
-				} else {
-					c.Args = append(c.Args, "--scan-all")
-				}
-				// Add watch namespace selector if specified
-				if cr.Spec.Grafana.Operator.WatchNamespaceSelector != "" {
-					c.Args = append(c.Args, "--watch-namespace-selector="+cr.Spec.Grafana.Operator.WatchNamespaceSelector)
-				}
-				// Add watch label selectors if specified
-				if cr.Spec.Grafana.Operator.WatchLabelSelectors != "" {
-					c.Args = append(c.Args, "--watch-label-selectors="+cr.Spec.Grafana.Operator.WatchLabelSelectors)
-				}
-				// Add enforce cache labels if specified
-				if cr.Spec.Grafana.Operator.EnforceCacheLabels != "" {
-					c.Args = append(c.Args, "--enforce-cache-labels="+cr.Spec.Grafana.Operator.EnforceCacheLabels)
-				}
-				// Add cluster domain if specified
-				if cr.Spec.Grafana.Operator.ClusterDomain != "" {
-					c.Args = append(c.Args, "--cluster-domain="+cr.Spec.Grafana.Operator.ClusterDomain)
-				}
+				// Note: In grafana-operator v5, many command-line flags were removed:
+				// - --grafana-image, --grafana-image-tag (removed - image is now specified in Grafana CR)
+				// - --grafana-plugins-init-container-image, --grafana-plugins-init-container-tag (removed)
+				// - --scan-all, --watch-namespaces, --namespace-scope (removed - use Grafana CR selectors instead)
+				// - --watch-namespace-selector, --watch-label-selectors (removed)
+				// - --enforce-cache-labels, --cluster-domain (removed)
+				// Only supported flags in v5:
+				// - --max-concurrent-reconciles
+				// - --leader-elect
+				// - --zap-log-level, --zap-encoder, --zap-stacktrace-level, --zap-time-encoding, --zap-devel
+				// - --health-probe-bind-address, --metrics-bind-address, --pprof-addr
+				// - --kubeconfig
 				// Add max concurrent reconciles if specified
 				if cr.Spec.Grafana.Operator.MaxConcurrentReconciles != nil {
 					c.Args = append(c.Args, fmt.Sprintf("--max-concurrent-reconciles=%d", *cr.Spec.Grafana.Operator.MaxConcurrentReconciles))
