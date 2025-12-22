@@ -30,9 +30,16 @@ ENV USER_UID=2001 \
     GROUP_NAME=monitoring-operator
 
 WORKDIR /
-COPY --from=builder --chown=${USER_UID} /workspace/manager .
 
-RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
+# Copy manager binary from builder stage
+COPY --from=builder /workspace/manager /manager
+
+# Create user and group, then change ownership of manager binary
+RUN addgroup ${GROUP_NAME} && \
+    adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME} && \
+    chown ${USER_UID}:${USER_UID} /manager && \
+    chmod +x /manager
+
 USER ${USER_UID}
 
 ENTRYPOINT ["/manager"]
