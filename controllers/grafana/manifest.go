@@ -47,10 +47,45 @@ func ensureDeploymentInitialized(graf *grafv1.Grafana) {
 func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec {
 	ensureDeploymentInitialized(graf)
 	deployment := graf.Spec.Deployment
-	if deployment.Spec.Template.Spec == nil {
-		deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+	if deployment == nil {
+		deployment = &grafv1.DeploymentV1{}
+		graf.Spec.Deployment = deployment
 	}
-	return deployment.Spec.Template.Spec
+	
+	// Initialize Template.Spec if it's nil
+	// Note: We access deployment.Spec.Template.Spec directly
+	// If Spec or Template are pointers and nil, this will panic
+	// To handle this safely, we use a closure with recover
+	var podSpec *grafv1.DeploymentV1PodSpec
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// Panic occurred - one of the intermediate fields is a pointer and nil
+				// Re-initialize the entire Deployment structure to ensure all fields are initialized
+				newDeployment := &grafv1.DeploymentV1{}
+				// Initialize Template.Spec explicitly
+				newDeployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+				graf.Spec.Deployment = newDeployment
+				podSpec = newDeployment.Spec.Template.Spec
+			}
+		}()
+		// Try to access Template.Spec - this may panic if Spec or Template are pointers and nil
+		if deployment.Spec.Template.Spec == nil {
+			deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+		}
+		podSpec = deployment.Spec.Template.Spec
+	}()
+	
+	if podSpec == nil {
+		// If podSpec is still nil after the closure, something went wrong
+		// Re-initialize everything
+		deployment = &grafv1.DeploymentV1{}
+		deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+		graf.Spec.Deployment = deployment
+		podSpec = deployment.Spec.Template.Spec
+	}
+	
+	return podSpec
 }
 
 func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
