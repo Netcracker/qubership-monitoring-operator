@@ -70,49 +70,8 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonito
 	//Set parameters
 	e.SetLabels(m.GetLabels())
 	e.SetName(m.GetName())
-
-	// Merge rules instead of replacing to preserve manually added rules
-	// Check if grafana.integreatly.org rules already exist
-	hasGrafanaIntegreatlyRules := false
-	for _, rule := range e.Rules {
-		for _, apiGroup := range rule.APIGroups {
-			if apiGroup == "grafana.integreatly.org" {
-				hasGrafanaIntegreatlyRules = true
-				break
-			}
-		}
-		if hasGrafanaIntegreatlyRules {
-			break
-		}
-	}
-
-	// Only update rules if they don't already contain grafana.integreatly.org
-	// This prevents overwriting manually added rules
-	if !hasGrafanaIntegreatlyRules {
-		e.Rules = m.Rules
-	} else {
-		// Merge rules: add new rules from m.Rules that don't exist in e.Rules
-		existingAPIGroups := make(map[string]bool)
-		for _, rule := range e.Rules {
-			for _, apiGroup := range rule.APIGroups {
-				existingAPIGroups[apiGroup] = true
-			}
-		}
-
-		// Add rules from m.Rules that don't exist in e.Rules
-		for _, newRule := range m.Rules {
-			shouldAdd := false
-			for _, apiGroup := range newRule.APIGroups {
-				if !existingAPIGroups[apiGroup] {
-					shouldAdd = true
-					break
-				}
-			}
-			if shouldAdd {
-				e.Rules = append(e.Rules, newRule)
-			}
-		}
-	}
+	// Always use rules from the manifest file - it contains all necessary rules
+	e.Rules = m.Rules
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
