@@ -10,9 +10,9 @@ metadata:
     integreatly.org/version: 5.20.0
     helm.sh/hook: crd-install
     helm.sh/hook-weight: "-5"
-  name: grafanafolders.integreatly.org
+  name: grafanafolders.grafana.integreatly.org
 spec:
-  group: integreatly.org
+  group: grafana.integreatly.org
   names:
     categories:
     - grafana-operator

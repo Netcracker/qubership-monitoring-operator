@@ -130,7 +130,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		return nil, err
 	}
 	//Set parameters
-	graf.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1beta1", Kind: "Grafana"})
+	graf.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
 	graf.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Grafana != nil {
@@ -327,7 +327,7 @@ func grafanaDataSource(cr *v1beta1.PlatformMonitoring, KubeClient kubernetes.Int
 		}
 	}
 	// Set parameters
-	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	dataSource.SetNamespace(cr.GetNamespace())
 
 	// In grafana-operator v5, one GrafanaDatasource CR contains only one datasource
