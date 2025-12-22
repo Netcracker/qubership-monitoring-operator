@@ -33,6 +33,17 @@ func getGrafanaRootURL(protocol string, host string) string {
 	return fmt.Sprintf("%v://%v/", protocol, host)
 }
 
+// ensureDeploymentInitialized ensures that Deployment and its Template.Spec are properly initialized
+// This function safely initializes the Deployment structure to avoid nil pointer dereference
+func ensureDeploymentInitialized(graf *grafv1.Grafana) {
+	if graf.Spec.Deployment == nil {
+		graf.Spec.Deployment = &grafv1.DeploymentV1{}
+	}
+	// In v5, Template is a PodTemplateSpec struct (not a pointer), so it should be initialized
+	// as a zero-value struct. However, we need to ensure SecurityContext pointer is initialized
+	// if we're going to access it. We'll initialize it lazily when needed in the calling code.
+}
+
 func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
@@ -55,9 +66,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// EnvFrom configuration moved to different structure in v5
 		// Note: EnvFrom configuration may need to be handled differently in v5
 		if cr.Spec.Grafana.Replicas != nil {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
+			ensureDeploymentInitialized(&graf)
 			// Replicas moved to Deployment.Spec.Replicas in v5
 			// Deployment.Spec is DeploymentV1Spec (not a pointer), so we work with it directly
 			graf.Spec.Deployment.Spec.Replicas = cr.Spec.Grafana.Replicas
@@ -77,13 +86,10 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		}
 		// Set security context
 		if cr.Spec.Grafana.SecurityContext != nil {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
-			// Initialize Template if needed
-			if graf.Spec.Deployment.Spec.Template.Spec.SecurityContext == nil {
-				graf.Spec.Deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			}
+			ensureDeploymentInitialized(&graf)
+			// Ensure SecurityContext is initialized before accessing it
+			// Initialize it first to avoid nil pointer dereference
+			graf.Spec.Deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
 			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
 				graf.Spec.Deployment.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
 			}
@@ -94,9 +100,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Set resources for Grafana deployment
 		// Resources moved to Deployment.Spec.Template.Spec.Containers[0].Resources in v5
 		if cr.Spec.Grafana.Resources.Size() > 0 {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
+			ensureDeploymentInitialized(&graf)
 			if len(graf.Spec.Deployment.Spec.Template.Spec.Containers) == 0 {
 				graf.Spec.Deployment.Spec.Template.Spec.Containers = []corev1.Container{{}}
 			}
@@ -104,30 +108,22 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		}
 		// Set tolerations for Grafana deployment
 		if cr.Spec.Grafana.Tolerations != nil {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
+			ensureDeploymentInitialized(&graf)
 			graf.Spec.Deployment.Spec.Template.Spec.Tolerations = cr.Spec.Grafana.Tolerations
 		}
 		// Set nodeSelector for Grafana deployment
 		if cr.Spec.Grafana.NodeSelector != nil {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
+			ensureDeploymentInitialized(&graf)
 			graf.Spec.Deployment.Spec.Template.Spec.NodeSelector = cr.Spec.Grafana.NodeSelector
 		}
 		// Set affinity for Grafana deployment
 		if cr.Spec.Grafana.Affinity != nil {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
+			ensureDeploymentInitialized(&graf)
 			graf.Spec.Deployment.Spec.Template.Spec.Affinity = cr.Spec.Grafana.Affinity
 		}
 
 		if len(strings.TrimSpace(cr.Spec.Grafana.PriorityClassName)) > 0 {
-			if graf.Spec.Deployment == nil {
-				graf.Spec.Deployment = &grafv1.DeploymentV1{}
-			}
+			ensureDeploymentInitialized(&graf)
 			graf.Spec.Deployment.Spec.Template.Spec.PriorityClassName = cr.Spec.Grafana.PriorityClassName
 		}
 
@@ -150,9 +146,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 		}
 		// Set labels on Deployment pod template - in v5, labels are in Deployment.Spec.Template.Labels
-		if graf.Spec.Deployment == nil {
-			graf.Spec.Deployment = &grafv1.DeploymentV1{}
-		}
+		ensureDeploymentInitialized(&graf)
 		// Deployment.Spec is DeploymentV1Spec (not a pointer), so we work with it directly
 		if graf.Spec.Deployment.Spec.Template.Labels == nil {
 			graf.Spec.Deployment.Spec.Template.Labels = make(map[string]string)
