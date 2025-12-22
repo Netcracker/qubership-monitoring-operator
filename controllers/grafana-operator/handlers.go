@@ -56,6 +56,21 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonito
 	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
 	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image)
 
+	// Log rules from manifest for debugging
+	hasGrafanaIntegreatly := false
+	for _, rule := range m.Rules {
+		for _, apiGroup := range rule.APIGroups {
+			if apiGroup == "grafana.integreatly.org" {
+				hasGrafanaIntegreatly = true
+				break
+			}
+		}
+		if hasGrafanaIntegreatly {
+			break
+		}
+	}
+	r.Log.Info("ClusterRole manifest rules", "totalRules", len(m.Rules), "hasGrafanaIntegreatly", hasGrafanaIntegreatly)
+
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -70,8 +85,32 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonito
 	//Set parameters
 	e.SetLabels(m.GetLabels())
 	e.SetName(m.GetName())
-	// Always use rules from the manifest file - it contains all necessary rules
-	e.Rules = m.Rules
+
+	// Check if existing ClusterRole already has grafana.integreatly.org rules
+	hasGrafanaIntegreatlyExisting := false
+	for _, rule := range e.Rules {
+		for _, apiGroup := range rule.APIGroups {
+			if apiGroup == "grafana.integreatly.org" {
+				hasGrafanaIntegreatlyExisting = true
+				break
+			}
+		}
+		if hasGrafanaIntegreatlyExisting {
+			break
+		}
+	}
+
+	// If manifest doesn't have grafana.integreatly.org but existing ClusterRole does,
+	// preserve existing rules by merging them
+	if !hasGrafanaIntegreatly && hasGrafanaIntegreatlyExisting {
+		r.Log.Info("Preserving existing grafana.integreatly.org rules in ClusterRole", "existingRules", len(e.Rules))
+		// Don't overwrite - keep existing rules
+		// Only update labels
+	} else {
+		// Use rules from manifest file
+		e.Rules = m.Rules
+		r.Log.Info("Updating ClusterRole with manifest rules", "totalRules", len(e.Rules), "hasGrafanaIntegreatly", hasGrafanaIntegreatly)
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
