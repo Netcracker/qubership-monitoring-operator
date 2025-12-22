@@ -31,14 +31,14 @@ ENV USER_UID=2001 \
 
 WORKDIR /
 
-# Copy manager binary from builder stage
-COPY --from=builder /workspace/manager /manager
+# Create user and group first
+RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
 
-# Create user and group, then change ownership of manager binary
-RUN addgroup ${GROUP_NAME} && \
-    adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME} && \
-    chown ${USER_UID}:${USER_UID} /manager && \
-    chmod +x /manager
+# Copy manager binary from builder stage with correct ownership
+COPY --from=builder --chown=${USER_UID}:${USER_UID} /workspace/manager /manager
+
+# Ensure the binary is executable
+RUN chmod +x /manager
 
 USER ${USER_UID}
 
