@@ -41,7 +41,18 @@ func ensureDeploymentInitialized(graf *grafv1.Grafana) {
 	}
 	// In v5, Template is a PodTemplateSpec struct (not a pointer), so it should be initialized
 	// as a zero-value struct. However, we need to ensure SecurityContext pointer is initialized
-	// if we're going to access it. We'll initialize it lazily when needed in the calling code.
+	// if we're going to access it. Initialize SecurityContext if it's nil
+	// Note: We access Template.Spec.SecurityContext safely - if Template or Spec are structs (not pointers),
+	// they will be zero-value initialized, so we only need to check SecurityContext pointer
+	// Double-check Deployment is not nil before accessing nested fields
+	if graf.Spec.Deployment == nil {
+		return
+	}
+	// Initialize SecurityContext if it's nil to avoid nil pointer dereference
+	// Access nested fields safely - Spec and Template are structs (not pointers), so they're zero-value initialized
+	if graf.Spec.Deployment.Spec.Template.Spec.SecurityContext == nil {
+		graf.Spec.Deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
+	}
 }
 
 func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
@@ -87,14 +98,16 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Set security context
 		if cr.Spec.Grafana.SecurityContext != nil {
 			ensureDeploymentInitialized(&graf)
-			// Ensure SecurityContext is initialized before accessing it
-			// Initialize it first to avoid nil pointer dereference
-			graf.Spec.Deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
-				graf.Spec.Deployment.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
-			}
-			if cr.Spec.Grafana.SecurityContext.FSGroup != nil {
-				graf.Spec.Deployment.Spec.Template.Spec.SecurityContext.FSGroup = cr.Spec.Grafana.SecurityContext.FSGroup
+			// SecurityContext is already initialized in ensureDeploymentInitialized
+			// Double-check that Deployment and SecurityContext are initialized before accessing nested fields
+			if graf.Spec.Deployment != nil && graf.Spec.Deployment.Spec.Template.Spec.SecurityContext != nil {
+				// Now we can safely set its fields
+				if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
+					graf.Spec.Deployment.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
+				}
+				if cr.Spec.Grafana.SecurityContext.FSGroup != nil {
+					graf.Spec.Deployment.Spec.Template.Spec.SecurityContext.FSGroup = cr.Spec.Grafana.SecurityContext.FSGroup
+				}
 			}
 		}
 		// Set resources for Grafana deployment
