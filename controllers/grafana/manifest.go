@@ -134,6 +134,10 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Grafana != nil {
+		// Disable default admin secret creation - we manage it ourselves
+		// In grafana-operator v5, disableDefaultAdminSecret is at spec level, not in deployment
+		graf.Spec.DisableDefaultAdminSecret = true
+		
 		// Config is now runtime.RawExtension in grafana-operator v5
 		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
 		configProvidedAsRawExtension := cr.Spec.Grafana.Config != nil
@@ -146,7 +150,6 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// EnvFrom configuration moved to different structure in v5
 		// Note: EnvFrom configuration may need to be handled differently in v5
 		if cr.Spec.Grafana.Replicas != nil {
-			ensureDeploymentInitialized(&graf)
 			// Replicas moved to Deployment.Spec.Replicas in v5
 			// Deployment.Spec is DeploymentV1Spec (not a pointer), so we work with it directly
 			graf.Spec.Deployment.Spec.Replicas = cr.Spec.Grafana.Replicas
