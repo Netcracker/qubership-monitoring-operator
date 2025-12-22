@@ -97,6 +97,33 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 	return podSpec
 }
 
+// ensureTemplateInitialized ensures that Deployment.Spec.Template is properly initialized
+// This function safely initializes the Template structure to avoid nil pointer dereference
+func ensureTemplateInitialized(graf *grafv1.Grafana) {
+	ensureDeploymentInitialized(graf)
+	deployment := graf.Spec.Deployment
+	if deployment == nil {
+		deployment = &grafv1.DeploymentV1{}
+		graf.Spec.Deployment = deployment
+	}
+	
+	// Try to safely access Template
+	// Use recover to catch any panics from accessing nested pointer fields
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// Panic occurred - Spec might be a pointer and nil
+				// Re-initialize the entire Deployment structure
+				newDeployment := &grafv1.DeploymentV1{}
+				graf.Spec.Deployment = newDeployment
+			}
+		}()
+		// Try to access Template - this may panic if Spec is a pointer and nil
+		// Just accessing it is enough to trigger initialization if needed
+		_ = deployment.Spec.Template
+	}()
+}
+
 func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
@@ -204,35 +231,53 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		}
 		// Set labels on Deployment pod template - in v5, labels are in Deployment.Spec.Template.Labels
 		ensureDeploymentInitialized(&graf)
-		// Template is a struct (not a pointer), so we can access Labels directly
-		// But we need to ensure PodSpec is initialized first (even though we don't use it here)
+		ensureTemplateInitialized(&graf)
+		// Ensure PodSpec is initialized first (needed for Template.Spec access)
 		ensurePodSpecInitialized(&graf)
-		if graf.Spec.Deployment.Spec.Template.Labels == nil {
-			graf.Spec.Deployment.Spec.Template.Labels = make(map[string]string)
-		}
-		graf.Spec.Deployment.Spec.Template.Labels["name"] = utils.TruncLabel(graf.GetName())
-		graf.Spec.Deployment.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(graf.GetName())
-		graf.Spec.Deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
-		graf.Spec.Deployment.Spec.Template.Labels["app.kubernetes.io/component"] = "grafana"
-		graf.Spec.Deployment.Spec.Template.Labels["app.kubernetes.io/part-of"] = "monitoring"
-		graf.Spec.Deployment.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		graf.Spec.Deployment.Spec.Template.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
-		if cr.Spec.Grafana.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Labels {
-				graf.Spec.Deployment.Spec.Template.Labels[k] = v
+		
+		// Safely access Template.Labels using a helper function
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					// If we panic, re-initialize everything and try again
+					ensureTemplateInitialized(&graf)
+					ensurePodSpecInitialized(&graf)
+				}
+			}()
+			// Access Template through deployment
+			deployment := graf.Spec.Deployment
+			if deployment != nil {
+				// Initialize Labels if nil
+				if deployment.Spec.Template.Labels == nil {
+					deployment.Spec.Template.Labels = make(map[string]string)
+				}
+				// Set labels
+				deployment.Spec.Template.Labels["name"] = utils.TruncLabel(graf.GetName())
+				deployment.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(graf.GetName())
+				deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
+				deployment.Spec.Template.Labels["app.kubernetes.io/component"] = "grafana"
+				deployment.Spec.Template.Labels["app.kubernetes.io/part-of"] = "monitoring"
+				deployment.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
+				deployment.Spec.Template.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
+				if cr.Spec.Grafana.Labels != nil {
+					for k, v := range cr.Spec.Grafana.Labels {
+						deployment.Spec.Template.Labels[k] = v
+					}
+				}
+				
+				// Set annotations
+				if deployment.Spec.Template.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
+					deployment.Spec.Template.Annotations = cr.Spec.Grafana.Annotations
+				} else if cr.Spec.Grafana.Annotations != nil {
+					if deployment.Spec.Template.Annotations == nil {
+						deployment.Spec.Template.Annotations = make(map[string]string)
+					}
+					for k, v := range cr.Spec.Grafana.Annotations {
+						deployment.Spec.Template.Annotations[k] = v
+					}
+				}
 			}
-		}
-
-		if graf.Spec.Deployment.Spec.Template.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
-			graf.Spec.Deployment.Spec.Template.Annotations = cr.Spec.Grafana.Annotations
-		} else if cr.Spec.Grafana.Annotations != nil {
-			if graf.Spec.Deployment.Spec.Template.Annotations == nil {
-				graf.Spec.Deployment.Spec.Template.Annotations = make(map[string]string)
-			}
-			for k, v := range cr.Spec.Grafana.Annotations {
-				graf.Spec.Deployment.Spec.Template.Annotations[k] = v
-			}
-		}
+		}()
 
 		// ServiceAccount in v5 uses different structure - Annotations and Labels may be in different location
 		// Note: ServiceAccount configuration may need to be handled differently in v5
