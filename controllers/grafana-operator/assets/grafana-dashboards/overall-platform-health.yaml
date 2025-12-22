@@ -5,6 +5,10 @@ metadata:
   labels:
     app.kubernetes.io/component: monitoring
 spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
   json: >
     {
       "annotations": {

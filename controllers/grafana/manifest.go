@@ -80,7 +80,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			if graf.Spec.Deployment == nil {
 				graf.Spec.Deployment = &grafv1.DeploymentV1{}
 			}
-			// Deployment.Spec is DeploymentV1Spec (not a pointer), so we work with it directly
+			// Initialize Template if needed
 			if graf.Spec.Deployment.Spec.Template.Spec.SecurityContext == nil {
 				graf.Spec.Deployment.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
 			}

@@ -341,8 +341,17 @@ rules:
   - apiGroups:
       - grafana.integreatly.org
     resources:
+      - grafanas
+      - grafanas/status
+      - grafanas/finalizers
+      - grafananotificationchannels
+      - grafananotificationchannels/status
       - grafanadashboards
       - grafanadashboards/status
+      - grafanadatasources
+      - grafanadatasources/status
+      - grafanafolders
+      - grafanafolders/status
     verbs:
       - get
       - list
