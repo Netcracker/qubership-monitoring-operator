@@ -284,7 +284,7 @@ func grafanaDashboard(cr *v1beta1.PlatformMonitoring, fileName string) (*grafv1.
 		return nil, err
 	}
 	//Set parameters
-	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
 	dashboard.SetNamespace(cr.GetNamespace())
 
 	// Set labels

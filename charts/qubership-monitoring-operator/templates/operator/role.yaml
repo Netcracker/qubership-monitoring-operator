@@ -338,6 +338,20 @@ rules:
       - deletecollection
       - watch
       - patch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+      - grafanadashboards/status
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+      - patch
   # Permissions to handle Ingresses
   - apiGroups:
       - networking.k8s.io

@@ -1,5 +1,5 @@
 {{- if .Values.kafkaJavaClientsDashboard.install }}
-apiVersion: integreatly.org/v1beta1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: kafka-java-clients
@@ -10,6 +10,9 @@ metadata:
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
 spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
   name: kafka-java-clients-dashboard.json
   json: >
     {

@@ -1,5 +1,5 @@
 {{- if and .Values.install .Values.grafanaDashboard }}
-apiVersion: integreatly.org/v1beta1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
@@ -11,6 +11,9 @@ metadata:
     {{- $image := include "promxy.image" . }}
     app.kubernetes.io/version: {{ splitList ":" $image | last }}
 spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
   json: >
     {
       "annotations": {
