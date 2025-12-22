@@ -131,6 +131,10 @@ func grafanaOperatorDeployment(cr *v1beta1.PlatformMonitoring) (*appsv1.Deployme
 				// Set grafana-operator image
 				c.Image = cr.Spec.Grafana.Operator.Image
 
+				// Remove command if present - grafana-operator v5 image has its own entrypoint
+				// Setting command to /manager causes "stat /manager: no such file or directory" error
+				c.Command = nil
+
 				// Remove all already exist arguments from deployment asset
 				c.Args = nil
 

@@ -25,9 +25,7 @@ spec:
         app.kubernetes.io/managed-by: monitoring-operator
     spec:
       containers:
-        - command:
-            - /manager
-          env:
+        - env:
             - name: TEMPLATE_PATH
               value: /usr/local/bin/templates
             - name: WATCH_NAMESPACE
