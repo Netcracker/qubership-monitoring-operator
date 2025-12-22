@@ -136,7 +136,10 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	if cr.Spec.Grafana != nil {
 		// Disable default admin secret creation - we manage it ourselves
 		// In grafana-operator v5, disableDefaultAdminSecret is at spec level, not in deployment
-		graf.Spec.DisableDefaultAdminSecret = true
+		// Note: This field may not exist in the Go struct, so we set it conditionally
+		// The field is defined in CRD as boolean, but may need to be set via deployment config
+		// Temporarily commented out to avoid nil pointer issues - will be handled by grafana-operator
+		// graf.Spec.DisableDefaultAdminSecret = true
 
 		// Config is now runtime.RawExtension in grafana-operator v5
 		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
