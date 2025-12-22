@@ -51,12 +51,12 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 		deployment = &grafv1.DeploymentV1{}
 		graf.Spec.Deployment = deployment
 	}
-	
+
 	// Try to safely access and initialize Template.Spec
 	// We'll use a recover to catch any panics from accessing nested pointer fields
 	var podSpec *grafv1.DeploymentV1PodSpec
 	panicked := false
-	
+
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -69,12 +69,12 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 		}
 		podSpec = deployment.Spec.Template.Spec
 	}()
-	
+
 	if panicked || podSpec == nil {
 		// We panicked trying to access Template.Spec, which means Spec or Template is a pointer and nil
 		// Create a fresh PodSpec
 		podSpec = &grafv1.DeploymentV1PodSpec{}
-		
+
 		// Try to set it back into the deployment structure using a safe method
 		// We'll try multiple approaches to ensure it gets set
 		func() {
@@ -82,7 +82,7 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 			// Approach 1: Try to set it directly (may panic if Spec or Template are nil pointers)
 			deployment.Spec.Template.Spec = podSpec
 		}()
-		
+
 		// If that didn't work, try recreating the deployment
 		func() {
 			defer func() { recover() }()
@@ -93,7 +93,7 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 			graf.Spec.Deployment = newDeployment
 		}()
 	}
-	
+
 	return podSpec
 }
 
@@ -106,7 +106,7 @@ func ensureTemplateInitialized(graf *grafv1.Grafana) {
 		deployment = &grafv1.DeploymentV1{}
 		graf.Spec.Deployment = deployment
 	}
-	
+
 	// Try to safely access Template
 	// Use recover to catch any panics from accessing nested pointer fields
 	func() {
@@ -137,7 +137,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Disable default admin secret creation - we manage it ourselves
 		// In grafana-operator v5, disableDefaultAdminSecret is at spec level, not in deployment
 		graf.Spec.DisableDefaultAdminSecret = true
-		
+
 		// Config is now runtime.RawExtension in grafana-operator v5
 		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
 		configProvidedAsRawExtension := cr.Spec.Grafana.Config != nil
@@ -152,7 +152,12 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		if cr.Spec.Grafana.Replicas != nil {
 			// Replicas moved to Deployment.Spec.Replicas in v5
 			// Deployment.Spec is DeploymentV1Spec (not a pointer), so we work with it directly
-			graf.Spec.Deployment.Spec.Replicas = cr.Spec.Grafana.Replicas
+			// But first ensure Deployment is initialized
+			ensureDeploymentInitialized(&graf)
+			// Ensure Deployment.Spec is initialized (it's a struct, not a pointer, but we need to make sure Deployment itself is not nil)
+			if graf.Spec.Deployment != nil {
+				graf.Spec.Deployment.Spec.Replicas = cr.Spec.Grafana.Replicas
+			}
 		}
 		// ConfigMaps removed in grafana-operator v5 - use different approach if needed
 		// Note: GrafanaHomeDashboard functionality may need alternative implementation
@@ -237,7 +242,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		ensureTemplateInitialized(&graf)
 		// Ensure PodSpec is initialized first (needed for Template.Spec access)
 		ensurePodSpecInitialized(&graf)
-		
+
 		// Safely access Template.Labels using a helper function
 		func() {
 			defer func() {
@@ -267,7 +272,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 						deployment.Spec.Template.Labels[k] = v
 					}
 				}
-				
+
 				// Set annotations
 				if deployment.Spec.Template.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
 					deployment.Spec.Template.Annotations = cr.Spec.Grafana.Annotations
