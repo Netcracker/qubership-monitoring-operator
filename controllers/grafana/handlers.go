@@ -41,7 +41,7 @@ func (r *GrafanaReconciler) handleGrafana(cr *v1beta1.PlatformMonitoring) error 
 	}
 
 	//Set parameters
-	// Only update if something actually changed to avoid conflicts with grafana-operator status updates
+	// Only update if something actually changed to avoid unnecessary updates
 	needsUpdate := false
 	if !reflect.DeepEqual(e.Spec, m.Spec) {
 		e.Spec = m.Spec
@@ -54,20 +54,7 @@ func (r *GrafanaReconciler) handleGrafana(cr *v1beta1.PlatformMonitoring) error 
 
 	if needsUpdate {
 		if err = r.UpdateResource(e); err != nil {
-			// If conflict error, retry once after getting latest version
-			if errors.IsConflict(err) {
-				// Get latest version and retry
-				if err = r.GetResource(e); err != nil {
-					return err
-				}
-				e.Spec = m.Spec
-				e.SetLabels(m.GetLabels())
-				if err = r.UpdateResource(e); err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+			return err
 		}
 	}
 	// WA for https://github.com/grafana-operator/grafana-operator/issues/652
@@ -107,7 +94,7 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *v1beta1.PlatformMonitori
 	}
 
 	//Set parameters
-	// Only update if something actually changed to avoid conflicts with grafana-operator status updates
+	// Only update if something actually changed to avoid unnecessary updates
 	needsUpdate := false
 	if !reflect.DeepEqual(e.Spec, m.Spec) {
 		e.Spec = m.Spec
@@ -120,20 +107,7 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *v1beta1.PlatformMonitori
 
 	if needsUpdate {
 		if err = r.UpdateResource(e); err != nil {
-			// If conflict error, retry once after getting latest version
-			if errors.IsConflict(err) {
-				// Get latest version and retry
-				if err = r.GetResource(e); err != nil {
-					return err
-				}
-				e.Spec = m.Spec
-				e.SetLabels(m.GetLabels())
-				if err = r.UpdateResource(e); err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+			return err
 		}
 	}
 	return nil
