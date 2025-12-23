@@ -41,11 +41,34 @@ func (r *GrafanaReconciler) handleGrafana(cr *v1beta1.PlatformMonitoring) error 
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	// Only update if something actually changed to avoid conflicts with grafana-operator status updates
+	needsUpdate := false
+	if !reflect.DeepEqual(e.Spec, m.Spec) {
+		e.Spec = m.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(e.GetLabels(), m.GetLabels()) {
+		e.SetLabels(m.GetLabels())
+		needsUpdate = true
+	}
 
-	if err = r.UpdateResource(e); err != nil {
-		return err
+	if needsUpdate {
+		if err = r.UpdateResource(e); err != nil {
+			// If conflict error, retry once after getting latest version
+			if errors.IsConflict(err) {
+				// Get latest version and retry
+				if err = r.GetResource(e); err != nil {
+					return err
+				}
+				e.Spec = m.Spec
+				e.SetLabels(m.GetLabels())
+				if err = r.UpdateResource(e); err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
 	}
 	// WA for https://github.com/grafana-operator/grafana-operator/issues/652
 	r.Log.Info("Waiting grafana-deployment")
@@ -84,11 +107,34 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *v1beta1.PlatformMonitori
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	// Only update if something actually changed to avoid conflicts with grafana-operator status updates
+	needsUpdate := false
+	if !reflect.DeepEqual(e.Spec, m.Spec) {
+		e.Spec = m.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(e.GetLabels(), m.GetLabels()) {
+		e.SetLabels(m.GetLabels())
+		needsUpdate = true
+	}
 
-	if err = r.UpdateResource(e); err != nil {
-		return err
+	if needsUpdate {
+		if err = r.UpdateResource(e); err != nil {
+			// If conflict error, retry once after getting latest version
+			if errors.IsConflict(err) {
+				// Get latest version and retry
+				if err = r.GetResource(e); err != nil {
+					return err
+				}
+				e.Spec = m.Spec
+				e.SetLabels(m.GetLabels())
+				if err = r.UpdateResource(e); err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
 	}
 	return nil
 }
