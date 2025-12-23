@@ -135,11 +135,8 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 
 	if cr.Spec.Grafana != nil {
 		// Disable default admin secret creation - we manage it ourselves
-		// In grafana-operator v5, disableDefaultAdminSecret is at spec level, not in deployment
-		// Note: This field may not exist in the Go struct, so we set it conditionally
-		// The field is defined in CRD as boolean, but may need to be set via deployment config
-		// Temporarily commented out to avoid nil pointer issues - will be handled by grafana-operator
-		// graf.Spec.DisableDefaultAdminSecret = true
+		// In grafana-operator v5, disableDefaultAdminSecret is at spec level
+		graf.Spec.DisableDefaultAdminSecret = true
 
 		// Config is now runtime.RawExtension in grafana-operator v5
 		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
@@ -222,15 +219,27 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 
 		// Set labels on Grafana resource
 		// Initialize Labels map if it's nil to avoid nil pointer dereference
+		// Labels from asset file (app.kubernetes.io/component, app.kubernetes.io/part-of) are preserved
 		if graf.Labels == nil {
 			graf.Labels = make(map[string]string)
 		}
+		// Set dynamic labels that are always computed
 		graf.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
 		graf.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
+		// Allow overriding any labels (including component and part-of) via cr.Spec.Grafana.Labels
+		// This allows different Grafana instances to have different labels for different dashboards
 		if cr.Spec.Grafana.Labels != nil {
 			for k, v := range cr.Spec.Grafana.Labels {
 				graf.Labels[k] = v
 			}
+		}
+		// Set default labels only if they weren't set in asset file and weren't overridden
+		// These labels are needed for GrafanaDashboard instanceSelector matching
+		if graf.Labels["app.kubernetes.io/component"] == "" {
+			graf.Labels["app.kubernetes.io/component"] = "grafana"
+		}
+		if graf.Labels["app.kubernetes.io/part-of"] == "" {
+			graf.Labels["app.kubernetes.io/part-of"] = "monitoring"
 		}
 
 		if graf.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
