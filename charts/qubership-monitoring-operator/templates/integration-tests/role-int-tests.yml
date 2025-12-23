@@ -119,4 +119,10 @@ rules:
       - horizontalpodautoscalers
     verbs:
       - create
+  - apiGroups:
+      - ''
+    resources:
+      - pods/log
+    verbs:
+      - get
 {{- end }}
