@@ -15,6 +15,9 @@ on:
     - 'SECURITY.md'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   Wait-for-images:
     if: |
