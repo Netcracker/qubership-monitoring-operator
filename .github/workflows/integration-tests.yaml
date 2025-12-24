@@ -33,7 +33,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@release/v2.0.5
         id: wait
         with:
-          workflow: docker-dev.yml
+          workflow: build.yaml
           token: ${{ secrets.GITHUB_TOKEN }}
 
   Monitoring-Pipeline:
