@@ -1,18 +1,18 @@
 package vmalertmanager
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *VmAlertManagerReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -44,8 +44,7 @@ func (r *VmAlertManagerReconciler) handleServiceAccount(cr *v1alpha1.PlatformMon
 	}
 	return nil
 }
-
-func (r *VmAlertManagerReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -80,7 +79,7 @@ func (r *VmAlertManagerReconciler) handleClusterRole(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -113,7 +112,7 @@ func (r *VmAlertManagerReconciler) handleClusterRoleBinding(cr *v1alpha1.Platfor
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -148,7 +147,7 @@ func (r *VmAlertManagerReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -181,7 +180,7 @@ func (r *VmAlertManagerReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleVmAlertManager(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleVmAlertManager(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManager(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating vmalertmanager manifest")
@@ -217,7 +216,7 @@ func (r *VmAlertManagerReconciler) handleVmAlertManager(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleSecret(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleSecret(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertmanagerSecret(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
@@ -259,19 +258,21 @@ func (r *VmAlertManagerReconciler) handleSecret(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
-			e = &v1beta1.Ingress{ObjectMeta: metav1.ObjectMeta{
+			e = &networkingv1beta1.Ingress{}
+			e.ObjectMeta = metav1.ObjectMeta{
 				Name:      cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName,
 				Namespace: cr.GetNamespace(),
-			}}
+			}
 			if err = r.GetResource(e); err == nil {
 				if err = r.DeleteResource(e); err != nil {
 					return err
@@ -297,7 +298,7 @@ func (r *VmAlertManagerReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) handleIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -335,7 +336,7 @@ func (r *VmAlertManagerReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitori
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -354,7 +355,7 @@ func (r *VmAlertManagerReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -373,7 +374,7 @@ func (r *VmAlertManagerReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -392,7 +393,7 @@ func (r *VmAlertManagerReconciler) deleteClusterRoleBinding(cr *v1alpha1.Platfor
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteVmAlertManager(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteVmAlertManager(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManager(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Vmalertmanager manifest")
@@ -411,7 +412,7 @@ func (r *VmAlertManagerReconciler) deleteVmAlertManager(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteSecret(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteSecret(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertmanagerSecret(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
@@ -430,13 +431,14 @@ func (r *VmAlertManagerReconciler) deleteSecret(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
+	e := &networkingv1beta1.Ingress{}
+	e.ObjectMeta = m.ObjectMeta
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
@@ -449,7 +451,7 @@ func (r *VmAlertManagerReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *VmAlertManagerReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) deleteIngressV1(cr *v1beta1.PlatformMonitoring) error {
 	m, err := vmAlertManagerIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")

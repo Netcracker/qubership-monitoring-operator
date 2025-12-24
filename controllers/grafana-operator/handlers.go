@@ -1,9 +1,9 @@
 package grafana_operator
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -43,7 +43,7 @@ func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1alpha1.PlatformMo
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -55,6 +55,21 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1alpha1.PlatformMonit
 	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
 	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
 	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image)
+
+	// Log rules from manifest for debugging
+	hasGrafanaIntegreatly := false
+	for _, rule := range m.Rules {
+		for _, apiGroup := range rule.APIGroups {
+			if apiGroup == "grafana.integreatly.org" {
+				hasGrafanaIntegreatly = true
+				break
+			}
+		}
+		if hasGrafanaIntegreatly {
+			break
+		}
+	}
+	r.Log.Info("ClusterRole manifest rules", "totalRules", len(m.Rules), "hasGrafanaIntegreatly", hasGrafanaIntegreatly)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -70,7 +85,32 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1alpha1.PlatformMonit
 	//Set parameters
 	e.SetLabels(m.GetLabels())
 	e.SetName(m.GetName())
-	e.Rules = m.Rules
+
+	// Check if existing ClusterRole already has grafana.integreatly.org rules
+	hasGrafanaIntegreatlyExisting := false
+	for _, rule := range e.Rules {
+		for _, apiGroup := range rule.APIGroups {
+			if apiGroup == "grafana.integreatly.org" {
+				hasGrafanaIntegreatlyExisting = true
+				break
+			}
+		}
+		if hasGrafanaIntegreatlyExisting {
+			break
+		}
+	}
+
+	// If manifest doesn't have grafana.integreatly.org but existing ClusterRole does,
+	// preserve existing rules by merging them
+	if !hasGrafanaIntegreatly && hasGrafanaIntegreatlyExisting {
+		r.Log.Info("Preserving existing grafana.integreatly.org rules in ClusterRole", "existingRules", len(e.Rules))
+		// Don't overwrite - keep existing rules
+		// Only update labels
+	} else {
+		// Use rules from manifest file
+		e.Rules = m.Rules
+		r.Log.Info("Updating ClusterRole with manifest rules", "totalRules", len(e.Rules), "hasGrafanaIntegreatly", hasGrafanaIntegreatly)
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -78,7 +118,7 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -110,7 +150,7 @@ func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *v1alpha1.Platfo
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -145,7 +185,7 @@ func (r *GrafanaOperatorReconciler) handleRole(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -177,7 +217,7 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleDeployment(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -211,7 +251,7 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaDashboard(cr, fileName)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
@@ -238,7 +278,7 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -275,7 +315,7 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonito
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -294,7 +334,7 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *v1alpha1
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaDashboard(cr, fileName)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
@@ -313,7 +353,7 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 	return nil
 }
 
-func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *v1beta1.PlatformMonitoring) error {
 	m, err := grafanaOperatorPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
