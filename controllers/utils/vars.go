@@ -273,6 +273,7 @@ var (
 	GrafanaDataSourceAsset = BasePath + "grafana-datasource.yaml"
 	GrafanaIngressAsset    = BasePath + "ingress.yaml"
 	GrafanaPodMonitorAsset = BasePath + "pod-monitor.yaml"
+	GrafanaDeploymentName  = "grafana-deployment"
 
 	// JaegerServiceLabels contains labels for Jaeger Service label selector
 	JaegerServiceLabels = map[string]string{

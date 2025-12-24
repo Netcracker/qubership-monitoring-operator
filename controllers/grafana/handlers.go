@@ -1,6 +1,7 @@
 package grafana
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"reflect"
@@ -10,6 +11,7 @@ import (
 
 	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	appsv1 "k8s.io/api/apps/v1"
 	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,6 +20,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/remotecommand"
 )
 
 func (r *GrafanaReconciler) handleGrafana(cr *v1alpha1.PlatformMonitoring) error {
@@ -218,6 +224,9 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *v1alpha1.Platform
 			if !reflect.DeepEqual(e.Data, tmpSecret.Data) {
 				e.Data = tmpSecret.Data
 				err = r.UpdateResource(e)
+				if err == nil {
+					isSecretUpdated = true
+				}
 			}
 		}
 	}
@@ -225,6 +234,95 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *v1alpha1.Platform
 		return nil
 	}
 	return
+}
+
+func (r *GrafanaReconciler) resetGrafanaCredentials(cr *v1alpha1.PlatformMonitoring) (err error) {
+	// Waiting Grafana Pods readiness
+	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
+	if err := r.WaitForPodsReadiness(
+		&appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      utils.GrafanaDeploymentName,
+				Namespace: cr.GetNamespace(),
+			}}); err != nil {
+		return err
+	}
+	r.Log.Info("Grafana Pods are ready", "kind", "Deployment", "name", utils.GrafanaDeploymentName)		
+	// Getting Temp Secret
+	r.Log.Info("Getting Temp Secret")
+	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
+	if err = r.GetResource(tmpSecret); err == nil {
+		// Get Grafana Pod
+		r.Log.Info("Getting Grafana Pod")
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			return fmt.Errorf("cannot load in-cluster config: %w", err)
+		}
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			return fmt.Errorf("cannot create clientset: %w", err)
+		}
+		pods, err := clientset.CoreV1().Pods(cr.GetNamespace()).List(context.TODO(), metav1.ListOptions{
+			LabelSelector: "app=grafana",
+		})
+		if err != nil || len(pods.Items) == 0 {
+			return fmt.Errorf("grafana deployment pod wasn't found: %w", err)
+		}
+		var podName *string = nil
+		for _, p := range pods.Items {
+			if p.DeletionTimestamp == nil {
+				podName = &p.Name
+				break
+			}
+		}
+		if podName == nil {
+			return fmt.Errorf("no suitable grafana deployment pod was found: %w", err)
+		}
+		r.Log.Info("Grafana Pod was found: " + *podName)
+
+		// Prepare Grafana CLI request
+		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(tmpSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
+		req := r.KubeClient.CoreV1().RESTClient().
+			Post().
+			Resource("pods").
+			Name(*podName).
+			Namespace(cr.GetNamespace()).
+			SubResource("exec").
+			VersionedParams(&corev1.PodExecOptions{
+				Container: "grafana",
+				Command:   command,
+				Stdin:     false,
+				Stdout:    true,
+				Stderr:    true,
+				TTY:       false,
+			}, scheme.ParameterCodec)
+
+		// Set up a connection
+		r.Log.Info("Setting Up a Connection with Grafana Pod")
+		exec, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
+		if err != nil {
+			return fmt.Errorf("grafana pod connection wasn't set up: %w", err)
+		}
+
+		// Execute Grafana CLI request
+		r.Log.Info("Executing Grafana CLI command")
+		var stdout, stderr bytes.Buffer
+		err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
+			Stdout: &stdout,
+			Stderr: &stderr,
+		})
+		if err != nil {
+			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
+		}
+
+		isSecretUpdated = false
+		r.Log.Info("Grafana Credentials Reset was finished")
+	}
+	if errors.IsNotFound(err) {
+		r.Log.Info("Temp Secret wasn't found")
+		return nil
+	}
+	return err
 }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *v1alpha1.PlatformMonitoring) error {

@@ -15,8 +15,10 @@ import (
 	sprig "github.com/go-task/slim-sprig"
 
 	routev1 "github.com/openshift/api/route/v1"
+	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/version"
@@ -238,4 +240,40 @@ func TruncLabel(label string) string {
 		return strings.Trim(label[:63], "-")
 	}
 	return strings.Trim(label, "-")
+}
+
+const defaultPodsPendingTimeout = time.Minute * 5
+
+func (r *ComponentReconciler) WaitForPodsReadiness(o K8sResource) error {
+	start := time.Now()
+	for {
+		if time.Since(start) >= defaultPodsPendingTimeout {
+			return errors.New(fmt.Sprintf("Timeout %s waiting for pods readiness", defaultPodsPendingTimeout.Round(time.Second).String()))
+		}
+		if err := r.GetResource(o); err != nil {
+			return err
+		}
+
+		switch o.GetObjectKind().GroupVersionKind() {
+		case appsv1.SchemeGroupVersion.WithKind("Deployment"):
+			depl, ok := o.(*appsv1.Deployment)
+			if !ok {
+				return errors.New("Could not convert resource to deployment")
+			}
+			if depl.Status.Replicas == *depl.Spec.Replicas && depl.Status.ReadyReplicas == *depl.Spec.Replicas && depl.Status.AvailableReplicas == *depl.Spec.Replicas && depl.Status.UpdatedReplicas == *depl.Spec.Replicas {
+				return nil
+			}
+		case appsv1.SchemeGroupVersion.WithKind("StatefulSet"):
+			ss, ok := o.(*appsv1.StatefulSet)
+			if !ok {
+				return errors.New("Could not convert resource to statefulset")
+			}
+			if ss.Status.Replicas == *ss.Spec.Replicas && ss.Status.ReadyReplicas == *ss.Spec.Replicas {
+				return nil
+			}
+		default:
+			return errors.New("Could not get status of pods")
+		}
+		time.Sleep(time.Second * 5)
+	}
 }
