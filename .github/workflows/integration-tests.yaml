@@ -6,7 +6,7 @@ on:
     types: [opened, synchronize, reopened]
     branches: [main]
     paths-ignore:
-    - '.github/**'
+    # - '.github/**'
     - 'docs/**'
     - 'CODE-OF-CONDUCT.md'
     - 'CONTRIBUTING.md'
@@ -20,6 +20,7 @@ permissions:
 
 jobs:
   Check-PR:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.check.outputs.should_skip }}
