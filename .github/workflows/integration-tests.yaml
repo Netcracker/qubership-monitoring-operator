@@ -56,7 +56,7 @@ jobs:
         )
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring
     with:
-      service_branch: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      service_branch: ${{ github.sha }}
       versions_file: '.github/versions.yaml'
       pipeline_branch: 'monitoring' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
