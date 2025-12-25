@@ -1,58 +1,39 @@
 name: Run Monitoring Pipeline
 
 on:
-  push: {}
+  push:
+    branches: [main]
+    paths:
+    - '.github/workflows/integration-tests.yaml'
+    - '!.github/**'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
-    paths-ignore:
-    # - '.github/**'
-    - 'docs/**'
-    - 'CODE-OF-CONDUCT.md'
-    - 'CONTRIBUTING.md'
-    - 'LICENSE'
-    - 'README.md'
-    - 'SECURITY.md'
+    paths:
+    - '.github/workflows/integration-tests.yaml'
+    - '!.github/**'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
   workflow_dispatch: {}
 
 permissions:
   contents: read
 
 jobs:
-  Check-PR:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.check.outputs.should_skip }}
-    steps:
-      - name: Check if PR exists for branch
-        id: check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const branch = context.ref.replace('refs/heads/', '')
-            const prs = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              head: `${context.repo.owner}:${branch}`
-            })
-            const hasPR = prs.data.length > 0
-            core.setOutput('should_skip', github.event_name == 'push' && hasPR)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   Wait-for-images:
-    needs: Check-PR
     if: |
-      needs.Check-PR.outputs.should_skip != 'true' &&
-      (
-        github.event_name != 'pull_request' ||
-        (
-          github.event.pull_request.user.login != 'dependabot[bot]' &&
-          github.event.pull_request.user.login != 'renovate[bot]'
-        )
-      )
+        github.event.pull_request.user.login != 'dependabot[bot]' &&
+        github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: ubuntu-latest
     outputs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
@@ -65,17 +46,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   Monitoring-Pipeline:
-    needs: [Check-PR, Wait-for-images]
+    needs: [Wait-for-images]
     if: |
-      needs.Check-PR.outputs.should_skip != 'true' &&
       needs.Wait-for-images.outputs.conclusion == 'success' &&
-      (
-        github.event_name != 'pull_request' ||
         (
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-      )
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring
     with:
       service_branch: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
