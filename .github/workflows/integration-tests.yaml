@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
+    - '**'
     - '!.github/**'
     - '.github/workflows/integration-tests.yaml'
-    - '!.github/**'
     - '!docs/**'
     - '!CODE-OF-CONDUCT.md'
     - '!CONTRIBUTING.md'
@@ -17,6 +17,7 @@ on:
     types: [opened, synchronize, reopened]
     branches: [main]
     paths:
+    - '**'
     - '!.github/**'
     - '.github/workflows/integration-tests.yaml'
     - '!docs/**'
