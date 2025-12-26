@@ -22,7 +22,7 @@ jobs:
   Monitoring-Pipeline:
     needs: Wait-for-images
     if: ${{ needs.Wait-for-images.outputs.conclusion }} == 'success'
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring_old.yaml@monitoring
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@monitoring
     with:
       service_branch: "${{ github.head_ref || github.ref_name }}"
       versions_file: ".github/versions.yaml"
