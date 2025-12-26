@@ -1,0 +1,55 @@
+[
+  {
+    "component": "grafana",
+    "kind": "grafanas.integreatly.org",
+    "name": "grafana",
+    "jsonPath": ".status.message",
+    "expected": "success"
+  },
+  {
+    "component": "vmAgent",
+    "kind": "vmagents.operator.victoriametrics.com",
+    "name": "k8s",
+    "jsonPath": ".status.updateStatus",
+    "expected": "operational"
+  },
+  {
+    "component": "vmAlertManager",
+    "kind": "vmalertmanagers.operator.victoriametrics.com",
+    "name": "k8s",
+    "jsonPath": ".status.updateStatus",
+    "expected": "operational"
+  },
+  {
+    "component": "vmAlert",
+    "kind": "vmalerts.operator.victoriametrics.com",
+    "name": "k8s",
+    "jsonPath": ".status.updateStatus",
+    "expected": "operational"
+  },
+  {
+    "component": "vmAuth",
+    "kind": "vmauths.operator.victoriametrics.com",
+    "name": "k8s",
+    "jsonPath": ".status.updateStatus",
+    "expected": "operational"
+  },
+  {
+    "component": "vmSingle",
+    "kind": "vmsingles.operator.victoriametrics.com",
+    "name": "k8s",
+    "jsonPath": ".status.updateStatus",
+    "expected": "operational"
+  },
+  {
+    "component": "platformmonitoring",
+    "kind": "platformmonitorings.monitoring.qubership.org",
+    "name": "platformmonitoring",
+    "check": "conditionsMatch",
+    "expectedConditions": {
+      "type": "Successful",
+      "status": "True",
+      "reason": "IntegrationTestsExecutionStatus"
+    }
+  }
+]

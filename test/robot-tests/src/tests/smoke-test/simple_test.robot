@@ -290,23 +290,25 @@ Check Status Of Victoriametrics Api
 
 Check Apiserver Vmagent Target Metrics
     [Tags]  full  smoke-test-vm  smoke
-    Check Target Is UP  ${apiserver}  ${all_active_targets}
-    Check Job Metrics Are Written  ${apiserver}  ${vmagent_metrics}
+    Check Vmagent Target Metrics With Retry
+    ...  ${apiserver}  ${all_active_targets}  ${vmagent_metrics}
 
 Check Etcd Vmagent Target Metrics
     [Tags]  full  smoke-test-vm  smoke  etcd
-    Check Target Is UP  ${etcd}  ${all_active_targets}
-    Check Job Metrics Are Written  ${etcd}  ${vmagent_metrics}
+    Check Vmagent Target Metrics With Retry
+    ...  ${etcd}  ${all_active_targets}  ${vmagent_metrics}
 
 Check Kubelet Vmagent Target Metrics
     [Tags]  full  smoke-test-vm  smoke
-    Check Target is UP  ${kubelet}  ${all_active_targets}
-    Check Job Metrics Are Written  ${kubelet}  ${vmagent_metrics}
+    Check Vmagent Target Metrics With Retry
+    ...  ${kubelet}  ${all_active_targets}  ${vmagent_metrics}
 
 Check Non Mandatory Victoriametrics Target Metrics
     [Tags]  full  smoke-test-vm  smoke
     ${variables} =	Get Variables
-    Check Kube State Metrics Target Metrics  ${kube_state_metrics_flag}  ${vmagent_metrics}
+    Check Kube State Metrics With Retry
+    ...  ${kube_state_metrics_flag}  ${vmagent_metrics}
     Run Keyword If  not ${node_exporter_flag}
     ...  Fail  Please check Node Exporter pods status - now the pods don't have a Running status
-    Check Node Exporter Target Metrics  ${node_exporter_flag}  ${vmagent_metrics}
+    Check Vmagent Target Metrics With Retry
+    ...  ${node-exporter}  ${all_active_targets}  ${vmagent_metrics}
