@@ -1,0 +1,131 @@
+{{- if and .Values.vmAuth.install .Values.ingress.install }}
+{{- if .Values.ingress.vmAuth }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default (printf "%s-vmauth" (include "monitoring-pack-two.fullname" .)) .Values.vmAuth.name }}-ingress
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    name: vmauth-ingress
+    app.kubernetes.io/name: vmauth
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.ingress.vmAuth.labels | default dict) }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  annotations:
+    {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.ingress.vmAuth.annotations | default dict) }}
+    {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 4 }}
+spec:
+  {{- if .Values.ingress.vmAuth.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.vmAuth.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.vmAuth.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-two.fullname" .)) .Values.vmAuth.name }}-vmauth
+                port:
+                  number: {{ .Values.ingress.vmAuth.servicePort | default 8427 }}
+  {{- if .Values.ingress.vmAuth.tlsSecretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.vmAuth.host }}
+      secretName: {{ .Values.ingress.vmAuth.tlsSecretName }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- if and .Values.vmAgent.install .Values.ingress.install }}
+{{- if .Values.ingress.vmAgent }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default (printf "%s-vmagent" (include "monitoring-pack-two.fullname" .)) .Values.vmAgent.name }}-ingress
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    name: vmagent-ingress
+    app.kubernetes.io/name: vmagent
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.ingress.vmAgent.labels | default dict) }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  annotations:
+    {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.ingress.vmAgent.annotations | default dict) }}
+    {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 4 }}
+spec:
+  {{- if .Values.ingress.vmAgent.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.vmAgent.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.vmAgent.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ default (printf "%s-vmagent" (include "monitoring-pack-two.fullname" .)) .Values.vmAgent.name }}-vmagent
+                port:
+                  number: {{ .Values.ingress.vmAgent.servicePort | default 8429 }}
+  {{- if .Values.ingress.vmAgent.tlsSecretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.vmAgent.host }}
+      secretName: {{ .Values.ingress.vmAgent.tlsSecretName }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- if and .Values.vmSingle.install .Values.ingress.install }}
+{{- if .Values.ingress.vmSingle }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.vmSingle.name }}-ingress
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    name: vmsingle-ingress
+    app.kubernetes.io/name: vmsingle
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.ingress.vmSingle.labels | default dict) }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  annotations:
+    {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.ingress.vmSingle.annotations | default dict) }}
+    {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 4 }}
+spec:
+  {{- if .Values.ingress.vmSingle.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.vmSingle.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.vmSingle.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.vmSingle.name }}-vmsingle
+                port:
+                  number: {{ .Values.ingress.vmSingle.servicePort | default 8429 }}
+  {{- if .Values.ingress.vmSingle.tlsSecretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.vmSingle.host }}
+      secretName: {{ .Values.ingress.vmSingle.tlsSecretName }}
+  {{- end }}
+{{- end }}
+{{- end }}
