@@ -38,7 +38,7 @@ rules:
       - 'get'
 
   - apiGroups:
-      - "monitoring.qubership.org"
+      - "monitoring.netcracker.com"
     resources:
       - platformmonitorings
       - platformmonitorings/finalizers
