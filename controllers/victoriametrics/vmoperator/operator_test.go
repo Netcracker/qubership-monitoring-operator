@@ -3,14 +3,14 @@ package vmoperator
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -18,13 +18,13 @@ var (
 )
 
 func TestVmOperatorManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Victoriametrics: &v1alpha1.Victoriametrics{
-				VmOperator: v1alpha1.VmOperator{
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmOperator: monv1.VmOperator{
 					Annotations: map[string]string{annotationKey: annotationValue},
 					Labels:      map[string]string{labelKey: labelValue},
 					Replicas:    ptr.To[int32](1),
@@ -47,13 +47,13 @@ func TestVmOperatorManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Victoriametrics: &v1alpha1.Victoriametrics{
-				VmOperator: v1alpha1.VmOperator{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmOperator: monv1.VmOperator{},
 			},
 		},
 	}

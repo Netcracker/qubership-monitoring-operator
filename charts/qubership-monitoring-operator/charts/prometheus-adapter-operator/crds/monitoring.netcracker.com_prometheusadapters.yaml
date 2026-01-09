@@ -2,17 +2,17 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.16.5
-    qubership-prometheus-adapter-operator.monitoring.qubership.org/version: 0.6.5
-    helm.sh/hook: crd-install
-    helm.sh/hook-weight: "-5"
   labels:
     app.kubernetes.io/component: qubership-prometheus-adapter-operator
     app.kubernetes.io/part-of: monitoring
-  name: prometheusadapters.monitoring.qubership.org
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.0
+    qubership-prometheus-adapter-operator.monitoring.netcracker.com/version: 0.11.3
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: "-5"
+  name: prometheusadapters.monitoring.netcracker.com
 spec:
-  group: monitoring.qubership.org
+  group: monitoring.netcracker.com
   names:
     kind: PrometheusAdapter
     listKind: PrometheusAdapterList
@@ -20,7 +20,7 @@ spec:
     singular: prometheusadapter
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: PrometheusAdapter is the Schema for the prometheusadapters API
@@ -331,7 +331,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                     Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -346,7 +345,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                     Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -512,7 +510,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                 Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -527,7 +524,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                 Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -620,8 +616,8 @@ spec:
                           most preferred is the one with the greatest sum of weights, i.e.
                           for each node that meets all of the scheduling requirements (resource
                           request, requiredDuringScheduling anti-affinity expressions, etc.),
-                          compute a sum by iterating through the elements of this field and adding
-                          "weight" to the sum if the node has pods which matches the corresponding podAffinityTerm; the
+                          compute a sum by iterating through the elements of this field and subtracting
+                          "weight" from the sum if the node has pods which matches the corresponding podAffinityTerm; the
                           node(s) with the highest sum are the most preferred.
                         items:
                           description: The weights of all of the matched WeightedPodAffinityTerm
@@ -690,7 +686,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                     Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -705,7 +700,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                     Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -871,7 +865,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                 Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -886,7 +879,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                 Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -974,7 +966,7 @@ spec:
                   Annotations is an unstructured key value map stored with a resource that may be
                   set by external tools to store and retrieve arbitrary metadata. They are not
                   queryable and should be preserved when modifying objects.
-                  More info: https://kubernetes.io/docs/user-guide/annotations
+                  More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
                 type: object
               auth:
                 properties:
@@ -983,7 +975,7 @@ spec:
                     properties:
                       password:
                         description: |-
-                          `password` specifies a key of a Secret containing the password for
+                          password defines a key of a Secret containing the password for
                           authentication.
                         properties:
                           key:
@@ -1009,7 +1001,7 @@ spec:
                         x-kubernetes-map-type: atomic
                       username:
                         description: |-
-                          `username` specifies a key of a Secret containing the username for
+                          username defines a key of a Secret containing the username for
                           authentication.
                         properties:
                           key:
@@ -1107,7 +1099,7 @@ spec:
                   Map of string keys and values that can be used to organize and categorize
                   (scope and select) objects. May match selectors of replication controllers
                   and services.
-                  More info: https://kubernetes.io/docs/user-guide/labels
+                  More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
                 type: object
               metricsRelistInterval:
                 description: MetricsRelistInterval is the interval at which to update
@@ -1143,7 +1135,7 @@ spec:
                       Claims lists the names of resources, defined in spec.resourceClaims,
                       that are used by this container.
 
-                      This is an alpha field and requires enabling the
+                      This field depends on the
                       DynamicResourceAllocation feature gate.
 
                       This field is immutable. It can only be set for containers.
@@ -1293,6 +1285,8 @@ spec:
                     type: object
                     x-kubernetes-map-type: atomic
                 type: object
+              tlsEnabled:
+                type: boolean
               tolerations:
                 description: |-
                   Tolerations allow the pods to schedule onto nodes with matching taints.
@@ -1315,9 +1309,10 @@ spec:
                     operator:
                       description: |-
                         Operator represents a key's relationship to the value.
-                        Valid operators are Exists and Equal. Defaults to Equal.
+                        Valid operators are Exists, Equal, Lt, and Gt. Defaults to Equal.
                         Exists is equivalent to wildcard for value, so that a pod can
                         tolerate all taints of a particular category.
+                        Lt and Gt perform numeric comparisons (requires feature gate TaintTolerationComparisonOperators).
                       type: string
                     tolerationSeconds:
                       description: |-

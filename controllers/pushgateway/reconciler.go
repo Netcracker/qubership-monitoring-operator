@@ -1,7 +1,7 @@
 package pushgateway
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -27,7 +27,7 @@ func NewPushgatewayReconciler(c client.Client, s *runtime.Scheme, dc discovery.D
 // Creates new deployment, service and service monitor if its don't exists.
 // Updates deployment, service and service monitor in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *PushgatewayReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PushgatewayReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Pushgateway != nil && cr.Spec.Pushgateway.IsInstall() {
@@ -95,7 +95,7 @@ func (r *PushgatewayReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
 }
 
 // uninstall deletes all resources related to the component
-func (r *PushgatewayReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *PushgatewayReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if err := r.deleteDeployment(cr); err != nil {
 		r.Log.Error(err, "Can not delete Deployment")
 	}

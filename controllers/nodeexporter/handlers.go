@@ -1,7 +1,7 @@
 package nodeexporter
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *NodeExporterReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -42,7 +42,7 @@ func (r *NodeExporterReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *NodeExporterReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -77,7 +77,7 @@ func (r *NodeExporterReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitori
 	return nil
 }
 
-func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -109,7 +109,7 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformM
 	return nil
 }
 
-func (r *NodeExporterReconciler) handleDaemonSet(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterDaemonSet(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
@@ -136,7 +136,7 @@ func (r *NodeExporterReconciler) handleDaemonSet(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *NodeExporterReconciler) handleService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) handleService(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -171,7 +171,7 @@ func (r *NodeExporterReconciler) handleService(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *NodeExporterReconciler) handleServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
@@ -208,7 +208,7 @@ func (r *NodeExporterReconciler) handleServiceMonitor(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *NodeExporterReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -227,7 +227,7 @@ func (r *NodeExporterReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *NodeExporterReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) deleteClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -246,7 +246,7 @@ func (r *NodeExporterReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitori
 	return nil
 }
 
-func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -265,7 +265,7 @@ func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformM
 	return nil
 }
 
-func (r *NodeExporterReconciler) deleteDaemonSet(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) deleteDaemonSet(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterDaemonSet(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
@@ -284,7 +284,7 @@ func (r *NodeExporterReconciler) deleteDaemonSet(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *NodeExporterReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) deleteService(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -303,7 +303,7 @@ func (r *NodeExporterReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *NodeExporterReconciler) deleteServiceMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) deleteServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")

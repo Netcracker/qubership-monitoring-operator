@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -20,7 +20,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func pushgatewayDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func pushgatewayDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment,
 	return &d, nil
 }
 
-func pushgatewayPVC(cr *v1alpha1.PlatformMonitoring) (*corev1.PersistentVolumeClaim, error) {
+func pushgatewayPVC(cr *monv1.PlatformMonitoring) (*corev1.PersistentVolumeClaim, error) {
 	pvc := corev1.PersistentVolumeClaim{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayPVCAsset), 100).Decode(&pvc); err != nil {
 		return nil, err
@@ -227,7 +227,7 @@ func pushgatewayPVC(cr *v1alpha1.PlatformMonitoring) (*corev1.PersistentVolumeCl
 	return &pvc, nil
 }
 
-func pushgatewayService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) {
+func pushgatewayService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -250,7 +250,7 @@ func pushgatewayService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error
 	return &service, nil
 }
 
-func pushgatewayIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+func pushgatewayIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
 	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -314,7 +314,7 @@ func pushgatewayIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingres
 	return &ingress, nil
 }
 
-func pushgatewayIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -381,7 +381,7 @@ func pushgatewayIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingres
 	return &ingress, nil
 }
 
-func pushgatewayServiceMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func pushgatewayServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err

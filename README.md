@@ -124,7 +124,7 @@ The operator comes with sensible defaults. You can deploy with zero configuratio
 ```bash
 # Create PlatformMonitoring resource with defaults
 kubectl apply -f - <<EOF
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: PlatformMonitoring
 metadata:
   name: monitoring-stack

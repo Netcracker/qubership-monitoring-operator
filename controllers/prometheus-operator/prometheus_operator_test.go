@@ -3,13 +3,13 @@ package prometheus_operator
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,13 +17,13 @@ var (
 )
 
 func TestPrometheusOperatorManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Prometheus: &v1alpha1.Prometheus{
-				Operator: v1alpha1.PrometheusOperator{
+		Spec: monv1.PlatformMonitoringSpec{
+			Prometheus: &monv1.Prometheus{
+				Operator: monv1.PrometheusOperator{
 					Annotations: map[string]string{annotationKey: annotationValue},
 					Labels:      map[string]string{labelKey: labelValue},
 				},
@@ -45,13 +45,13 @@ func TestPrometheusOperatorManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Prometheus: &v1alpha1.Prometheus{
-				Operator: v1alpha1.PrometheusOperator{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Prometheus: &monv1.Prometheus{
+				Operator: monv1.PrometheusOperator{},
 			},
 		},
 	}

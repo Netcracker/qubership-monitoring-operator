@@ -47,7 +47,7 @@ rules:
       - delete
 
   - apiGroups:
-      - monitoring.qubership.org
+      - monitoring.netcracker.com
     resources:
       - customscalemetricrules
       - customscalemetricrules/status
