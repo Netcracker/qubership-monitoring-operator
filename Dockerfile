@@ -37,8 +37,9 @@ RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_
 # Copy manager binary from builder stage with correct ownership
 COPY --from=builder --chown=${USER_UID}:${USER_UID} /workspace/manager /manager
 
-# Ensure the binary is executable
-RUN chmod +x /manager
+# Ensure the binary is executable but not writable (security best practice)
+# Set permissions to read and execute only (555 = r-xr-xr-x)
+RUN chmod 555 /manager
 
 USER ${USER_UID}
 
