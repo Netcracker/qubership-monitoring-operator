@@ -11,15 +11,16 @@ import (
 
 	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	appsv1 "k8s.io/api/apps/v1"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -341,16 +342,23 @@ func (r *GrafanaReconciler) deleteGrafana(cr *v1beta1.PlatformMonitoring) error 
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
 	}
-	e := &grafv1.Grafana{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	checkObj := &grafv1.Grafana{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "Grafana", "name", m.GetName())
 	return nil
 }
 
@@ -368,16 +376,23 @@ func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *v1beta1.PlatformMonitori
 		r.Log.Error(err, "Failed creating GrafanaDataSource manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDatasource{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	checkObj := &grafv1.GrafanaDatasource{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "GrafanaDatasource", "name", m.GetName())
 	return nil
 }
 
