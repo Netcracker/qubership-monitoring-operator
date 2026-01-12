@@ -12,8 +12,8 @@ require (
 	github.com/go-task/slim-sprig v2.20.0+incompatible
 	github.com/grafana-operator/grafana-operator/v4 v4.10.1 // Required for v1alpha1 API
 	github.com/grafana/grafana-operator/v5 v5.20.0 // Required for v1beta1 API
-	github.com/onsi/ginkgo/v2 v2.27.2
-	github.com/onsi/gomega v1.38.2
+	github.com/onsi/ginkgo/v2 v2.27.3
+	github.com/onsi/gomega v1.38.3
 	github.com/openshift/api v3.9.1-0.20191105214740-21e87c8db569+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.75.0

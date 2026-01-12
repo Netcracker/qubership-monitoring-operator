@@ -61,11 +61,11 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "charts", "qubership-monitoring-operator", "crds"),
-			filepath.Join("..", "charts", "qubership-monitoring-operator", "charts", "grafana-operator", "crds"),
-			filepath.Join("..", "charts", "qubership-monitoring-operator", "charts", "prometheus-adapter-operator", "crds"),
-			filepath.Join("..", "charts", "qubership-monitoring-operator", "charts", "prometheus-operator", "crds"),
-			filepath.Join("..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds")},
+		CRDDirectoryPaths: []string{filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "grafana-operator", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-adapter-operator", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-operator", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds")},
 	}
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())

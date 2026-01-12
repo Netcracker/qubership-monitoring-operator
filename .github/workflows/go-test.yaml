@@ -1,0 +1,43 @@
+# This workflow handles Go builds with optional Sonar analysis.
+# It can be called from other workflows and supports different build modes based on:
+# - Actor type (bot or user)
+#
+# Build steps:
+#  - Automatically detects Go module location using go.mod file
+#  - Runs tests with coverage
+#  - Sonar analysis (if not skipped for restricted actors)
+#
+# Sonar analysis:
+# - Only runs if both sonar-project-key and sonar-token are provided
+# - Always skipped for restricted actors
+# - Requires proper Sonar configuration (organization, host URL, etc.)
+#
+# Restricted actors:
+# - Defined in .github/config/build-config.yaml
+# - Cannot run Sonar analysis
+#
+# Working directory:
+# - Automatically detected based on go.mod file location
+# - All Go commands are executed in the directory containing go.modname: Go unit tests
+name: Go test with Sonar
+on:
+  push: {}
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+permissions:
+  contents: read
+jobs:
+  test:
+    name: Build and test with coverage        
+    uses: Netcracker/qubership-core-infra/.github/workflows/go-build-with-sonar.yaml@b048feff5eac475631ab893eb58f7ef3f3f6ad49 #v1.3.0
+    with:
+      go-module-dir: '.'
+      actor: ${{ github.actor }}
+      sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
+      kube-version: '1.30.0'
+      envtest-version: 'release-0.18'
+      cover-packages: './controllers/...,./api/...'
+      install-envtest: true
+    secrets:
+      sonar-token: ${{ secrets.SONAR_TOKEN }}

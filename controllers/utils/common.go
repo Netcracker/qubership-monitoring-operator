@@ -15,8 +15,11 @@ import (
 	sprig "github.com/go-task/slim-sprig"
 
 	routev1 "github.com/openshift/api/route/v1"
+	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/api/networking/v1beta1"
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/version"

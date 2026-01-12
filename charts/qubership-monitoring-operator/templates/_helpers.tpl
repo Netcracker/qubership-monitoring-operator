@@ -277,5 +277,5 @@ Get Custom Resource apiGroup from path in Values
 Build Custom Resource Path using the Helm in-built namespace parameter
 */}}
 {{- define "integrationTests.customResourcePath" -}}
-  {{- printf "monitoring.qubership.org/v1/%v/platformmonitorings/platformmonitoring" .Release.Namespace }}
+  {{- printf "monitoring.qubership.org/v1alpha1/%v/platformmonitorings/platformmonitoring" .Release.Namespace }}
 {{- end -}}
