@@ -1,0 +1,46 @@
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.install (empty .Values.publicCloudName) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ printf "%s-%s" .Release.Namespace "kube-scheduler-service-monitor" | nospace | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/name: {{ printf "%s-%s" .Release.Namespace "kube-scheduler-service-monitor" | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/component: service-monitor
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/instance: {{ printf "%s-%s" .Release.Namespace "kube-scheduler-service-monitor" | nospace | trunc 63 | trimSuffix "-" }}
+    {{- if .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.labels }}
+    {{- toYaml .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.labels | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - interval: {{ .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.interval }}
+    scrapeTimeout: {{ .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.scrapeTimeout }}
+    scheme: https
+    port: https-metrics
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    {{- if .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.relabelings }}
+    relabelings:
+    {{- toYaml .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.relabelings | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.metricRelabelings }}
+    metricRelabelings:
+    {{- toYaml .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.metricRelabelings | nindent 6 }}
+    {{- end }}
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: {{ .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.jobLabel | default "k8s-app" }}
+  namespaceSelector:
+    matchNames:
+    {{- if .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.namespaceSelector }}
+    {{- toYaml .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.namespaceSelector.matchNames | nindent 6 }}
+    {{- else }}
+      - {{ .Release.Namespace }}
+    {{- end }}
+  selector:
+    matchLabels:
+    {{- if .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.selector }}
+    {{- toYaml .Values.kubernetesMonitors.kubeSchedulerServiceMonitor.selector | nindent 6 }}
+    {{- else }}
+      k8s-app: kube-scheduler
+    {{- end }}
+{{- end }}
