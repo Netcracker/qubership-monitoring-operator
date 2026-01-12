@@ -9,6 +9,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
@@ -258,6 +259,7 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 		return err
 	}
 	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
+	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
@@ -341,6 +343,7 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 		return err
 	}
 	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
+	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
