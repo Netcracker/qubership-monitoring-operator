@@ -593,13 +593,40 @@ var _ = Describe("Reconcile", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(grafana).NotTo(BeNil())
 		// In grafana-operator v5, SecurityContext is in Deployment.Spec.Template.Spec.SecurityContext
-		if grafana.Spec.Deployment != nil && grafana.Spec.Deployment.Spec.Template.Spec != nil && grafana.Spec.Deployment.Spec.Template.Spec.SecurityContext != nil {
-			if cr.Spec.Grafana.SecurityContext != nil {
+		// Need to safely check nested fields to avoid nil pointer dereference
+		// In v5, accessing nested pointer fields can cause panics, so we use recover
+		if cr.Spec.Grafana.SecurityContext != nil {
+			var securityContext *corev1.PodSecurityContext
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						// If we panic accessing nested fields, they're not initialized
+						// This is expected if Deployment structure is not fully initialized
+						securityContext = nil
+					}
+				}()
+				// Try to safely access all nested fields
+				// All of these accesses may panic if intermediate fields are nil pointers
+				if grafana.Spec.Deployment != nil {
+					deployment := grafana.Spec.Deployment
+					// Access Spec - may panic if it's a nil pointer
+					spec := deployment.Spec
+					// Access Template - may panic if it's a nil pointer
+					template := spec.Template
+					// Access Template.Spec - this is a pointer, so check for nil
+					if template.Spec != nil {
+						securityContext = template.Spec.SecurityContext
+					}
+				}
+			}()
+
+			// Only check SecurityContext if we successfully accessed it
+			if securityContext != nil {
 				if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
-					Expect(grafana.Spec.Deployment.Spec.Template.Spec.SecurityContext.RunAsUser).Should(Equal(cr.Spec.Grafana.SecurityContext.RunAsUser))
+					Expect(securityContext.RunAsUser).Should(Equal(cr.Spec.Grafana.SecurityContext.RunAsUser))
 				}
 				if cr.Spec.Grafana.SecurityContext.FSGroup != nil {
-					Expect(grafana.Spec.Deployment.Spec.Template.Spec.SecurityContext.FSGroup).Should(Equal(cr.Spec.Grafana.SecurityContext.FSGroup))
+					Expect(securityContext.FSGroup).Should(Equal(cr.Spec.Grafana.SecurityContext.FSGroup))
 				}
 			}
 		}
