@@ -1,6 +1,8 @@
 package grafana_operator
 
 import (
+	"context"
+
 	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
@@ -342,17 +344,23 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	// Use the full object from manifest which already has GVK set
-	e := m
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	checkObj := &grafv1.GrafanaDashboard{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "GrafanaDashboard", "name", m.GetName())
 	return nil
 }
 
