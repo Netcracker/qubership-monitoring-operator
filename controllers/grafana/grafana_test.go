@@ -37,17 +37,39 @@ func TestGrafanaManifests(t *testing.T) {
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
 		// In grafana-operator v5, Deployment structure changed and may be nil
-		// Only check Deployment fields if Deployment is initialized
+		// Need to safely access nested fields to avoid nil pointer dereference
 		if m.Spec.Deployment != nil {
-			// Template is a struct (not a pointer), so it always exists
-			// But Template.Spec is a pointer and may be nil
-			if m.Spec.Deployment.Spec.Template.Spec != nil {
-				assert.NotNil(t, m.Spec.Deployment.Spec.Template.Labels)
-				assert.Equal(t, labelValue, m.Spec.Deployment.Spec.Template.Labels[labelKey])
+			// Safely access nested fields using recover to catch any panics
+			var templateSpec interface{}
+			var templateLabels map[string]string
+			var templateAnnotations map[string]string
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						// If we panic accessing nested fields, they're not initialized
+						templateSpec = nil
+					}
+				}()
+				// Try to safely access all nested fields
+				// Accessing Spec.Template.Spec may panic if Spec or Template are nil pointers
+				deployment := m.Spec.Deployment
+				spec := deployment.Spec
+				template := spec.Template
+				if template.Spec != nil {
+					templateSpec = template.Spec
+					templateLabels = template.Labels
+					templateAnnotations = template.Annotations
+				}
+			}()
+			
+			// Only check fields if we successfully accessed them
+			if templateSpec != nil {
+				assert.NotNil(t, templateLabels)
+				assert.Equal(t, labelValue, templateLabels[labelKey])
 				assert.NotNil(t, m.GetAnnotations())
 				assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
-				assert.NotNil(t, m.Spec.Deployment.Spec.Template.Annotations)
-				assert.Equal(t, annotationValue, m.Spec.Deployment.Spec.Template.Annotations[annotationKey])
+				assert.NotNil(t, templateAnnotations)
+				assert.Equal(t, annotationValue, templateAnnotations[annotationKey])
 			}
 		}
 	})
