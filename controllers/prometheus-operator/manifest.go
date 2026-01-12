@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -20,7 +20,7 @@ var assets embed.FS
 
 // PrometheusOperatorRole builds the ServiceAccount resource manifest
 // and fill it with parameters from the CR.
-func prometheusOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) {
+func prometheusOperatorRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role := rbacv1.Role{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorRoleAsset), 100).Decode(&role); err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func prometheusOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, erro
 	return &role, nil
 }
 
-func prometheusOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func prometheusOperatorServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func prometheusOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.
 	return &sa, nil
 }
 
-func prometheusOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func prometheusOperatorRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func prometheusOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Rol
 	return &roleBinding, nil
 }
 
-func prometheusOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func prometheusOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func prometheusOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Clu
 	return &clusterRole, nil
 }
 
-func prometheusOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func prometheusOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func prometheusOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rba
 	return &clusterRoleBinding, nil
 }
 
-func prometheusOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -230,7 +230,7 @@ func prometheusOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Depl
 	return &d, nil
 }
 
-func prometheusOperatorService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service, error) {
+func prometheusOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ func prometheusOperatorService(cr *v1alpha1.PlatformMonitoring) (*corev1.Service
 	return &service, nil
 }
 
-func prometheusOperatorPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func prometheusOperatorPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err

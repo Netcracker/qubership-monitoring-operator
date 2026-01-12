@@ -3,13 +3,13 @@ package alertmanager
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestAlertmanagerManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			AlertManager: &v1alpha1.AlertManager{
+		Spec: monv1.PlatformMonitoringSpec{
+			AlertManager: &monv1.AlertManager{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -39,12 +39,12 @@ func TestAlertmanagerManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.PodMetadata.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.PodMetadata.Annotations[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			AlertManager: &v1alpha1.AlertManager{},
+		Spec: monv1.PlatformMonitoringSpec{
+			AlertManager: &monv1.AlertManager{},
 		},
 	}
 	t.Run("Test Alert Manager manifest with nil labels and annotation", func(t *testing.T) {

@@ -24,7 +24,7 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
-	qubershiporg1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	qubershiporg1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -90,7 +90,7 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		PprofBindAddress:       pprofAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "b0cb59fe.qubership.org",
+		LeaderElectionID:       "b0cb59fe.netcracker.com",
 		NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
 			opts.DefaultNamespaces = map[string]cache.Config{namespace: {}}
 			return cache.New(config, opts)

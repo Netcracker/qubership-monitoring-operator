@@ -5,21 +5,21 @@ monitoringOperator:
   install: true
   serviceAccount:
     annotations:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 
 # Grafana
 grafana:
   install: true
   serviceAccount:
     annotations:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
   operator:
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
 
 # VictoriaMetrics stack
 victoriametrics:
@@ -27,63 +27,63 @@ victoriametrics:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
   vmAgent:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
   vmSingle:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
   vmAlertManager:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
   vmAlert:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
   vmAuth:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
   vmUser:
     install: true
     serviceAccount:
       annotations:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
 
 # Exporters
 kubeStateMetrics:
   install: true
   serviceAccount:
     annotations:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 nodeExporter:
   install: true
   serviceAccount:
     annotations:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 
 # Integrations tests
 integrationTests:
   install: true
   serviceAccount:
     annotations:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
