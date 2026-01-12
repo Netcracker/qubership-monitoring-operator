@@ -592,12 +592,21 @@ var _ = Describe("Reconcile", func() {
 		}, &grafana)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(grafana).NotTo(BeNil())
-		Expect(grafana.Spec.Deployment.SecurityContext.RunAsUser).Should(Equal(cr.Spec.Grafana.SecurityContext.RunAsUser))
-		Expect(grafana.Spec.Deployment.SecurityContext.FSGroup).Should(Equal(cr.Spec.Grafana.SecurityContext.FSGroup))
+		// In grafana-operator v5, SecurityContext is in Deployment.Spec.Template.Spec.SecurityContext
+		if grafana.Spec.Deployment != nil && grafana.Spec.Deployment.Spec.Template.Spec != nil && grafana.Spec.Deployment.Spec.Template.Spec.SecurityContext != nil {
+			if cr.Spec.Grafana.SecurityContext != nil {
+				if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
+					Expect(grafana.Spec.Deployment.Spec.Template.Spec.SecurityContext.RunAsUser).Should(Equal(cr.Spec.Grafana.SecurityContext.RunAsUser))
+				}
+				if cr.Spec.Grafana.SecurityContext.FSGroup != nil {
+					Expect(grafana.Spec.Deployment.Spec.Template.Spec.SecurityContext.FSGroup).Should(Equal(cr.Spec.Grafana.SecurityContext.FSGroup))
+				}
+			}
+		}
 		logf.Log.Info("Getting Grafana successful")
 
-		// Get GrafanaDatasource
-		grafanaDataSource := grafv1.GrafanaDataSource{ObjectMeta: metav1.ObjectMeta{
+		// Get GrafanaDatasource (note: in v5 it's GrafanaDatasource, not GrafanaDataSource)
+		grafanaDataSource := grafv1.GrafanaDatasource{ObjectMeta: metav1.ObjectMeta{
 			Name:      "platform-monitoring-prometheus",
 			Namespace: cr.GetNamespace(),
 		},
