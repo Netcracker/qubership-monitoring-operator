@@ -10,28 +10,64 @@ import (
 	"testing"
 )
 
-var (
-	// Root folder of the project
-	_, b, _, _ = runtime.Caller(0)
-	RootDir    = filepath.Join(filepath.Dir(b), "../../..")
-)
+// findProjectRoot finds the project root by looking for go.mod file
+func findProjectRoot() string {
+	// Start from the directory of this test file
+	_, b, _, _ := runtime.Caller(0)
+	currentDir := filepath.Dir(b)
+	
+	// Walk up the directory tree looking for go.mod
+	for {
+		goModPath := filepath.Join(currentDir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
+			return currentDir
+		}
+		
+		parent := filepath.Dir(currentDir)
+		if parent == currentDir {
+			// Reached filesystem root, fallback to relative path
+			break
+		}
+		currentDir = parent
+	}
+	
+	// Fallback: use relative path from test file location
+	return filepath.Join(filepath.Dir(b), "../../..")
+}
 
 func getPlatformMonitoringCRDPath() string {
+	projectRoot := findProjectRoot()
+	relativePath := filepath.Join("charts", "qubership-monitoring-operator", "crds", "monitoring.qubership.org_platformmonitorings.yaml")
+	
+	// Get current working directory
+	wd, _ := os.Getwd()
+	
 	// Try multiple possible paths
 	possiblePaths := []string{
-		filepath.Join(RootDir, "charts", "qubership-monitoring-operator", "crds", "monitoring.qubership.org_platformmonitorings.yaml"),
-		filepath.Join(RootDir, "qubership-monitoring-operator", "charts", "qubership-monitoring-operator", "crds", "monitoring.qubership.org_platformmonitorings.yaml"),
+		// From project root (found via go.mod)
+		filepath.Join(projectRoot, relativePath),
+		// From current working directory
+		filepath.Join(wd, relativePath),
+		// Relative to current directory
+		filepath.Join(".", relativePath),
+		// Try if projectRoot has extra qubership-monitoring-operator subdirectory
+		filepath.Join(projectRoot, "qubership-monitoring-operator", relativePath),
+		// Try if wd has extra qubership-monitoring-operator subdirectory
+		filepath.Join(wd, "qubership-monitoring-operator", relativePath),
 	}
 	
 	// Check which path exists
 	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			return path
+		if absPath, err := filepath.Abs(path); err == nil {
+			if _, err := os.Stat(absPath); err == nil {
+				return absPath
+			}
 		}
 	}
 	
 	// Return the first path as default (will fail with clear error message)
-	return possiblePaths[0]
+	absPath, _ := filepath.Abs(possiblePaths[0])
+	return absPath
 }
 
 func TestPlatformMonitoringCRDManifest(t *testing.T) {
