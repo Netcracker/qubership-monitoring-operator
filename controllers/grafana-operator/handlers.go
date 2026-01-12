@@ -342,8 +342,8 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
-	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	// Use the full object from manifest which already has GVK set
+	e := m
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
