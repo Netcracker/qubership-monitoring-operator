@@ -15,7 +15,7 @@ import (
 	prometheus_operator "github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus-operator"
 	prometheus_rules "github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus-rules"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"

@@ -14,7 +14,7 @@ var (
 	// Root folder of the project
 	_, b, _, _                               = runtime.Caller(0)
 	RootDir                                  = filepath.Join(filepath.Dir(b), "../../..")
-	PlatformMonitoringCustomResourceManifest = filepath.Join(RootDir, "qubership-monitoring-operator",
+	PlatformMonitoringCustomResourceManifest = filepath.Join(RootDir,
 		"charts", "qubership-monitoring-operator", "crds", "monitoring.qubership.org_platformmonitorings.yaml")
 )
 
