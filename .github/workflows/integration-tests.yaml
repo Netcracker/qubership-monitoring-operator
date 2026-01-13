@@ -26,7 +26,6 @@ on:
     - '!LICENSE'
     - '!README.md'
     - '!SECURITY.md'
-  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -34,8 +33,13 @@ permissions:
 jobs:
   Wait-for-images:
     if: |
-        github.event.pull_request.user.login != 'dependabot[bot]' &&
-        github.event.pull_request.user.login != 'renovate[bot]'
+      (
+        github.event_name != 'pull_request' || (
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'renovate[bot]' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        )
+      )
     runs-on: ubuntu-latest
     outputs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
@@ -50,11 +54,7 @@ jobs:
   Monitoring-Pipeline:
     needs: [Wait-for-images]
     if: |
-      needs.Wait-for-images.outputs.conclusion == 'success' &&
-        (
-          github.event.pull_request.user.login != 'dependabot[bot]' &&
-          github.event.pull_request.user.login != 'renovate[bot]'
-        )
+      needs.Wait-for-images.outputs.conclusion == 'success'
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@81a445840dde346a27ce09955779af4894bb0a14 # v1.2.0
     with:
       service_branch: ${{ github.sha }}
