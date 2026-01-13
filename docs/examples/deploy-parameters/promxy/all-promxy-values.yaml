@@ -1,0 +1,45 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+promxy:
+  install: true
+
+  image: test
+
+  configmapReload:
+    image: test
+
+  grafanaDashboard: false
+
+  config:
+    serverGroups:
+      - address: "victoriametrics.cloud.com"
+        targets: []
+        scheme: http
+        # label: k8s-1
+        labels:
+          cluster: k8s-1
+          project: test
+        httpClient:
+          # Custom promxy parameter
+          dialTimeout: 1s
+          # Prometheus parameters
+          basicAuth:
+            username: admin
+            password: admin
+          # authorization:
+          #  type: Bearer
+          #  credentials: 123132123123
+          followRedirects: true
+          enableHttp2: true
+          tlsConfig:
+            ca: |
+              content
+            cert: |
+              content
+            key: |
+              content
+            serverName: <server_name>
+          httpHeaders:
+            content-type:
+              value: xml

@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- print "quay.io/jacksontj/promxy:v0.0.92" -}}
+    {{- print "quay.io/jacksontj/promxy:v0.0.93" -}}
   {{- end -}}
 {{- end -}}
 
@@ -39,5 +39,59 @@ Return securityContext for promxy.
         fsGroup: 2000
   {{- else -}}
         {}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Set URL for scraping metrics
+*/}}
+{{- define "promxy.serverGroup.targets" -}}
+  {{- if .address -}}
+    {{- printf "- %s\n" .address -}}
+  {{- end -}}
+  {{- range $target := .targets -}}
+    {{- printf "- %s\n" $target -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Set Auth
+*/}}
+{{- define "promxy.serverGroup.auth" -}}
+{{ include "promxy.serverGroup.basicAuth" . }}
+{{ include "promxy.serverGroup.staticAuth" . }}
+{{- end -}}
+
+{{/*
+Set Basic Auth
+*/}}
+{{- define "promxy.serverGroup.basicAuth" -}}
+  {{- if .basicAuth -}}
+basic_auth:
+  username: {{ .basicAuth.username }}
+  password: {{ .basicAuth.password }}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Set StatiC Auth
+*/}}
+{{- define "promxy.serverGroup.staticAuth" -}}
+{{- if .authorization -}}
+authorization:
+  type: {{ .authorization.type | default "Bearer" }}
+  credentials: {{ .authorization.credentials }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Set Labels
+*/}}
+{{- define "promxy.serverGroup.labels" -}}
+  {{- if .label -}}
+    {{- printf "cluster: %s\n" .label -}}
+  {{- end -}}
+  {{- range $key, $value := .labels -}}
+    {{- printf "%s: %s\n" $key $value -}}
   {{- end -}}
 {{- end -}}
