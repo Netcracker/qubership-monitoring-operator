@@ -1,6 +1,6 @@
 name: Security Scan Docker Packages
 run-name: >
-  Security Scan #${{ github.run_number }} for ${{ inputs.image != '' && inputs.image != null && inputs.image || 'all repository docker images' }}
+  Security Scan #${{ github.run_number }} for ${{ inputs.image || 'all repository docker images' }}
 on:
   workflow_dispatch:
     inputs:
@@ -47,10 +47,11 @@ on:
         default: true
         type: boolean
   schedule:
-    - cron: "0 1 * * 0" # every Sunday at 03:00 UTC
+    - cron: "0 1 * * 0" # every Sunday at 01:00 UTC
 
 jobs:
-  debug-packages:
+  load-config:
+    if: ${{ github.event_name != 'workflow_dispatch'}}
     runs-on: ubuntu-latest
     permissions:
       packages: read
@@ -88,28 +89,32 @@ jobs:
           fi
 
   security-scan-matrix:
+    if: ${{ github.event_name != 'workflow_dispatch'}}
     permissions:
       contents: read
       security-events: write
       packages: read
-    needs: debug-packages
-    if: ${{ inputs.image == '' || inputs.image == null }}
+    needs: load-config
     strategy:
       matrix:
-        package: ${{ fromJson(needs.debug-packages.outputs.packages) }}
+        package: ${{ fromJson(needs.load-config.outputs.packages) }}
 
     name: "Run Security Scan (matrix)"
     uses: netcracker/qubership-workflow-hub/.github/workflows/re-security-scan.yml@9538833017019ab6bbc2138d3034778dfe3a5d1f #v2.0.6
     with:
       target: ${{ inputs.target || 'docker' }}
       image: ${{ format('{0}:{1}', matrix.package.image, inputs.tag || matrix.package.security_tag || 'latest') }}
+      only-high-critical: ${{ matrix.package.only_high_critical }}
+      trivy-scan: ${{ matrix.package.trivy_scan }}
+      grype-scan: ${{ matrix.package.grype_scan }}
+      only-fixed: ${{ matrix.package.only_fixed }}
+      continue-on-error: ${{ matrix.package.continue_on_error }}
 
   security-scan-single:
     permissions:
       contents: read
       security-events: write
       packages: read
-    needs: debug-packages
     if: ${{ inputs.image != '' && inputs.image != null }}
     name: "Run Security Scan (single image)"
     uses: netcracker/qubership-workflow-hub/.github/workflows/re-security-scan.yml@9538833017019ab6bbc2138d3034778dfe3a5d1f #v2.0.6
