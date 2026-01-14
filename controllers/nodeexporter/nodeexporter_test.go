@@ -3,13 +3,13 @@ package nodeexporter
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1beta1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestNodeExporterManifests(t *testing.T) {
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			NodeExporter: &v1beta1.NodeExporter{
+		Spec: monv1.PlatformMonitoringSpec{
+			NodeExporter: &monv1.NodeExporter{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -43,12 +43,12 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
 	})
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			NodeExporter: &v1beta1.NodeExporter{},
+		Spec: monv1.PlatformMonitoringSpec{
+			NodeExporter: &monv1.NodeExporter{},
 		},
 	}
 	t.Run("Test DaemonSet manifest with nil labels and annotation", func(t *testing.T) {

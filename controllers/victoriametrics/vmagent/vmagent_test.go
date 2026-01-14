@@ -3,13 +3,13 @@ package vmagent
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr *v1beta1.PlatformMonitoring
+	cr *monv1.PlatformMonitoring
 	// labelKey        = "label.key"
 	// labelValue      = "label-value"
 	// annotationKey   = "annotation.key"
@@ -17,11 +17,11 @@ var (
 )
 
 func TestVmAgentManifests(t *testing.T) {
-	// cr = &v1beta1.PlatformMonitoring{
+	// cr = &monv1.PlatformMonitoring{
 	// 	ObjectMeta: metav1.ObjectMeta{
 	// 		Namespace: "monitoring",
 	// 	},
-	// 	Spec: v1beta1.PlatformMonitoringSpec{
+	// 	Spec: monv1.PlatformMonitoringSpec{
 	// 		Victoriametrics: &v1.Victoriametrics{
 	// 			VmAgent: v1.VmAgent{
 	// 				Annotations: map[string]string{annotationKey: annotationValue},
@@ -41,13 +41,13 @@ func TestVmAgentManifests(t *testing.T) {
 	// 	assert.NotNil(t, m.Spec.PodMetadata.Annotations)
 	// 	assert.Equal(t, annotationValue, m.Spec.PodMetadata.Annotations[annotationKey])
 	// })
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			Victoriametrics: &v1beta1.Victoriametrics{
-				VmAgent: v1beta1.VmAgent{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmAgent: monv1.VmAgent{},
 			},
 		},
 	}
@@ -69,7 +69,7 @@ func TestVmAgentManifests(t *testing.T) {
 		assert.Nil(t, m.Spec.MaxScrapeInterval)
 		assert.Nil(t, m.Spec.MinScrapeInterval)
 	})
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},

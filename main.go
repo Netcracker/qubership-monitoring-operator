@@ -24,7 +24,7 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
-	qubershiporgv1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	qubershiporg1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -54,8 +54,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	// Register v1beta1 API version
-	utilruntime.Must(qubershiporgv1beta1.AddToScheme(scheme))
+	utilruntime.Must(qubershiporg1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -90,7 +89,7 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		PprofBindAddress:       pprofAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "b0cb59fe.qubership.org",
+		LeaderElectionID:       "b0cb59fe.netcracker.com",
 		NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
 			opts.DefaultNamespaces = map[string]cache.Config{namespace: {}}
 			return cache.New(config, opts)
@@ -130,7 +129,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Add grafana schema (Grafana Operator v5)
+	// Add grafana schema
 	if err = grafv1.AddToScheme(mgr.GetScheme()); err != nil {
 		logger.Error(err, "")
 		os.Exit(1)

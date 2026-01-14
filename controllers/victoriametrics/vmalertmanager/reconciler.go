@@ -3,7 +3,7 @@ package vmalertmanager
 import (
 	"context"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
@@ -35,7 +35,7 @@ func NewVmAlertManagerReconciler(c client.Client, s *runtime.Scheme, dc discover
 // Creates new vmAlertManager CR if it doesn't exist.
 // Updates vmAlertManager CR in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *VmAlertManagerReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonitoring) error {
+func (r *VmAlertManagerReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlertManager.IsInstall() {
@@ -118,7 +118,7 @@ func (r *VmAlertManagerReconciler) Run(ctx context.Context, cr *v1beta1.Platform
 }
 
 // uninstall deletes all resources related to the component
-func (r *VmAlertManagerReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
+func (r *VmAlertManagerReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if utils.PrivilegedRights {
 		if err := r.deleteClusterRole(cr); err != nil {
 			r.Log.Error(err, "Can not delete ClusterRole")

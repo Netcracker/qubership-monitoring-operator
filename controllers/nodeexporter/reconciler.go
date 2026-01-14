@@ -1,7 +1,7 @@
 package nodeexporter
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	secv1 "github.com/openshift/api/security/v1"
 	pspApi "k8s.io/api/policy/v1beta1"
@@ -29,7 +29,7 @@ func NewNodeExporterReconciler(c client.Client, s *runtime.Scheme, dc discovery.
 // Creates new daemonset, service, service account, cluster role and cluster role binding if its don't exists.
 // Updates deployment and service in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *NodeExporterReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
+func (r *NodeExporterReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.NodeExporter != nil && cr.Spec.NodeExporter.IsInstall() {
@@ -81,7 +81,7 @@ func (r *NodeExporterReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
 }
 
 // uninstall deletes all resources related to the component
-func (r *NodeExporterReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
+func (r *NodeExporterReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if utils.PrivilegedRights {
 		if err := r.deleteClusterRole(cr); err != nil {
 			r.Log.Error(err, "Can not delete ClusterRole")

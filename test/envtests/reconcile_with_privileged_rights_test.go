@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	grafana_operator "github.com/Netcracker/qubership-monitoring-operator/controllers/grafana-operator"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/kubestatemetrics"
@@ -26,7 +26,7 @@ import (
 var _ = Describe("Reconcile with privilegedRights", func() {
 	It("Create PlatformMonitoring CR", func() {
 		//Create test CR
-		cr = v1beta1.PlatformMonitoring{}
+		cr = monv1.PlatformMonitoring{}
 		err = yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, "assets/platformmonitoring.yaml"), 100).Decode(&cr)
 		cr.SetUID(uuid.NewUUID())
 		Expect(err).NotTo(HaveOccurred())

@@ -4,7 +4,7 @@ import (
 	"embed"
 	"strings"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -17,7 +17,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func kubeStateMetricsServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func kubeStateMetricsServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func kubeStateMetricsServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.Ser
 	return &sa, nil
 }
 
-func kubeStateMetricsClusterRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func kubeStateMetricsClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func kubeStateMetricsClusterRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Cluste
 	return &clusterRole, nil
 }
 
-func kubeStateMetricsClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func kubeStateMetricsClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func kubeStateMetricsClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1
 	return &clusterRoleBinding, nil
 }
 
-func kubeStateMetricsDeployment(cr *v1beta1.PlatformMonitoring, hasIngress bool) (*appsv1.Deployment, error) {
+func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress bool) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func kubeStateMetricsDeployment(cr *v1beta1.PlatformMonitoring, hasIngress bool)
 	return &d, nil
 }
 
-func kubeStateMetricsService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, error) {
+func kubeStateMetricsService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -219,7 +219,7 @@ func kubeStateMetricsService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, e
 	return &service, nil
 }
 
-func kubeStateMetricsServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func kubeStateMetricsServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err

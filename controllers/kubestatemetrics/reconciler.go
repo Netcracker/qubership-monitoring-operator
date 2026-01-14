@@ -1,7 +1,7 @@
 package kubestatemetrics
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -27,7 +27,7 @@ func NewKubeStateMetricsReconciler(c client.Client, s *runtime.Scheme, dc discov
 // Creates new deployment, service, service account, cluster role and cluster role binding if its don't exists.
 // Updates deployment and service in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *KubeStateMetricsReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("reconciling component")
 
 	if cr.Spec.KubeStateMetrics != nil && cr.Spec.KubeStateMetrics.IsInstall() {
@@ -79,7 +79,7 @@ func (r *KubeStateMetricsReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
 }
 
 // uninstall deletes all resources related to the component
-func (r *KubeStateMetricsReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
+func (r *KubeStateMetricsReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if utils.PrivilegedRights {
 		if err := r.deleteClusterRole(cr); err != nil {
 			r.Log.Error(err, "can not delete ClusterRole")

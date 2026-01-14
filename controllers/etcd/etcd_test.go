@@ -3,14 +3,14 @@ package etcd
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1beta1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -18,7 +18,7 @@ var (
 )
 
 func TestEtcdManifests(t *testing.T) {
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   "monitoring",
 			Annotations: map[string]string{annotationKey: annotationValue},
@@ -36,7 +36,7 @@ func TestEtcdManifests(t *testing.T) {
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},

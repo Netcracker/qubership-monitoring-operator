@@ -8,7 +8,7 @@ import (
 	"maps"
 	"strings"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -16,7 +16,8 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	"k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -124,7 +125,7 @@ func ensureTemplateInitialized(graf *grafv1.Grafana) {
 	}()
 }
 
-func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
+func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -309,7 +310,7 @@ func grafana(cr *v1beta1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	return &graf, nil
 }
 
-func grafanaDataSource(cr *v1beta1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDatasource, error) {
+func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDataSource, error) {
 	dataSource := grafv1.GrafanaDatasource{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaDataSourceAsset), 100).Decode(&dataSource); err != nil {
 		return nil, err
@@ -387,8 +388,8 @@ func grafanaDataSource(cr *v1beta1.PlatformMonitoring, KubeClient kubernetes.Int
 	return &dataSource, nil
 }
 
-func grafanaIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.Ingress, error) {
-	ingress := networkingv1beta1.Ingress{}
+func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
@@ -419,7 +420,7 @@ func grafanaIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.I
 
 		// Configure TLS if TLS secret name is set
 		if cr.Spec.Grafana.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1beta1.IngressTLS{
+			ingress.Spec.TLS = []v1beta1.IngressTLS{
 				{
 					Hosts:      []string{cr.Spec.Grafana.Ingress.Host},
 					SecretName: cr.Spec.Grafana.Ingress.TLSSecretName,
@@ -450,7 +451,7 @@ func grafanaIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.I
 	return &ingress, nil
 }
 
-func grafanaIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -520,7 +521,7 @@ func grafanaIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, er
 	return &ingress, nil
 }
 
-func grafanaPodMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err

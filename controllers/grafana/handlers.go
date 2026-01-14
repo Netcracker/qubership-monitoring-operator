@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	"k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -27,7 +27,7 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func (r *GrafanaReconciler) handleGrafana(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 	m, err := grafana(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
@@ -70,7 +70,7 @@ func (r *GrafanaReconciler) handleGrafana(cr *v1beta1.PlatformMonitoring) error 
 	return nil
 }
 
-func (r *GrafanaReconciler) handleGrafanaDataSource(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
 	jaegerServices, err := r.getJaegerServices(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed getting Jaeger services")
@@ -120,14 +120,13 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *GrafanaReconciler) handleIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) handleIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := grafanaIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &networkingv1beta1.Ingress{}
-	e.ObjectMeta = m.ObjectMeta
+	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
@@ -150,7 +149,7 @@ func (r *GrafanaReconciler) handleIngressV1beta1(cr *v1beta1.PlatformMonitoring)
 	return nil
 }
 
-func (r *GrafanaReconciler) handleIngressV1(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := grafanaIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -179,7 +178,7 @@ func (r *GrafanaReconciler) handleIngressV1(cr *v1beta1.PlatformMonitoring) erro
 	return nil
 }
 
-func (r *GrafanaReconciler) handlePodMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := grafanaPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -216,7 +215,7 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *v1beta1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *v1beta1.PlatformMonitoring) (err error) {
+func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
 	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
 	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
 
@@ -247,7 +246,7 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *v1beta1.PlatformM
 	return
 }
 
-func (r *GrafanaReconciler) resetGrafanaCredentials(cr *v1beta1.PlatformMonitoring) (err error) {
+func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
 	// Waiting Grafana Pods readiness
 	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
 	if err := r.WaitForPodsReadiness(
@@ -336,7 +335,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *v1beta1.PlatformMonitori
 	return err
 }
 
-func (r *GrafanaReconciler) deleteGrafana(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
 	m, err := grafana(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
@@ -362,7 +361,7 @@ func (r *GrafanaReconciler) deleteGrafana(cr *v1beta1.PlatformMonitoring) error 
 	return nil
 }
 
-func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
 	jaegerServices, err := r.getJaegerServices(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed getting Jaeger services")
@@ -396,14 +395,13 @@ func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *GrafanaReconciler) deleteIngressV1beta1(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) deleteIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := grafanaIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
 		return err
 	}
-	e := &networkingv1beta1.Ingress{}
-	e.ObjectMeta = m.ObjectMeta
+	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
@@ -416,7 +414,7 @@ func (r *GrafanaReconciler) deleteIngressV1beta1(cr *v1beta1.PlatformMonitoring)
 	return nil
 }
 
-func (r *GrafanaReconciler) deleteIngressV1(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) deleteIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := grafanaIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -435,7 +433,7 @@ func (r *GrafanaReconciler) deleteIngressV1(cr *v1beta1.PlatformMonitoring) erro
 	return nil
 }
 
-func (r *GrafanaReconciler) deletePodMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *GrafanaReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := grafanaPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -455,7 +453,7 @@ func (r *GrafanaReconciler) deletePodMonitor(cr *v1beta1.PlatformMonitoring) err
 }
 
 // Looking for Jaeger Services in all namespaces except current using a label selector and return list of them or nil
-func (r *GrafanaReconciler) getJaegerServices(cr *v1beta1.PlatformMonitoring) ([]corev1.Service, error) {
+func (r *GrafanaReconciler) getJaegerServices(cr *monv1.PlatformMonitoring) ([]corev1.Service, error) {
 	if !utils.PrivilegedRights || cr.Spec.Integration == nil || cr.Spec.Integration.Jaeger == nil || !cr.Spec.Integration.Jaeger.CreateGrafanaDataSource {
 		return nil, nil
 	}
@@ -500,7 +498,7 @@ func (r *GrafanaReconciler) getJaegerServices(cr *v1beta1.PlatformMonitoring) ([
 }
 
 // Looking for Clickhouse Services in all namespaces except current using a label selector and return list of them or nil
-func (r *GrafanaReconciler) getClickhouseServices(cr *v1beta1.PlatformMonitoring) ([]corev1.Service, error) {
+func (r *GrafanaReconciler) getClickhouseServices(cr *monv1.PlatformMonitoring) ([]corev1.Service, error) {
 	if !utils.PrivilegedRights || cr.Spec.Integration == nil || cr.Spec.Integration.ClickHouse == nil || !cr.Spec.Integration.ClickHouse.CreateGrafanaDataSource {
 		r.Log.Info(fmt.Sprintf("neto, utils.PrivilegedRights: %+v, cr.Spec.Integration: %+v", utils.PrivilegedRights, cr.Spec.Integration))
 		return nil, nil

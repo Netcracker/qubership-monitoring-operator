@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"strings"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	"k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -34,7 +34,7 @@ func getPrometheusexternalURL(tls bool, host string) string {
 	return fmt.Sprintf("http://%s", host)
 }
 
-func prometheusServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func prometheusServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusServiceAccountAsset), 100).Decode(&sa)
 
@@ -68,7 +68,7 @@ func prometheusServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAc
 	return &sa, nil
 }
 
-func prometheusClusterRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func prometheusClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func prometheusClusterRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRole,
 	return &clusterRole, nil
 }
 
-func prometheusClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func prometheusClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func prometheusClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.Clust
 	return &clusterRoleBinding, nil
 }
 
-func prometheus(cr *v1beta1.PlatformMonitoring) (*promv1.Prometheus, error) {
+func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 	prom := promv1.Prometheus{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusAsset), 100).Decode(&prom); err != nil {
 		return nil, err
@@ -459,8 +459,8 @@ func prometheus(cr *v1beta1.PlatformMonitoring) (*promv1.Prometheus, error) {
 	return &prom, nil
 }
 
-func prometheusIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.Ingress, error) {
-	ingress := networkingv1beta1.Ingress{}
+func prometheusIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
@@ -476,7 +476,7 @@ func prometheusIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta
 		}
 
 		// Add rule for prometheus UI
-		rule := networkingv1beta1.IngressRule{Host: cr.Spec.Prometheus.Ingress.Host}
+		rule := v1beta1.IngressRule{Host: cr.Spec.Prometheus.Ingress.Host}
 		serviceName := utils.PrometheusServiceName
 		servicePort := intstr.FromInt(utils.PrometheusServicePort)
 
@@ -484,18 +484,18 @@ func prometheusIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta
 			serviceName = utils.PrometheusOAuthProxyServiceName
 			servicePort = intstr.FromString(utils.OAuthProxyServicePortName)
 		}
-		rule.HTTP = &networkingv1beta1.HTTPIngressRuleValue{
-			Paths: []networkingv1beta1.HTTPIngressPath{
+		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
+			Paths: []v1beta1.HTTPIngressPath{
 				{
 					Path: "/",
-					Backend: networkingv1beta1.IngressBackend{
+					Backend: v1beta1.IngressBackend{
 						ServiceName: serviceName,
 						ServicePort: servicePort,
 					},
 				},
 			},
 		}
-		ingress.Spec.Rules = []networkingv1beta1.IngressRule{rule}
+		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
 
 		if cr.Spec.Prometheus.Ingress.IngressClassName != nil {
 			ingress.Spec.IngressClassName = cr.Spec.Prometheus.Ingress.IngressClassName
@@ -511,7 +511,7 @@ func prometheusIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta
 			} else {
 				ingress.Annotations["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
 			}
-			ingress.Spec.TLS = []networkingv1beta1.IngressTLS{
+			ingress.Spec.TLS = []v1beta1.IngressTLS{
 				{
 					Hosts:      []string{cr.Spec.Prometheus.Ingress.Host},
 					SecretName: cr.Spec.Prometheus.Ingress.TLSSecretName,
@@ -530,7 +530,7 @@ func prometheusIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta
 				if cr.Spec.Prometheus.TLSConfig.GenerateCerts.SecretName != "" {
 					generatedSecretName = cr.Spec.Prometheus.TLSConfig.GenerateCerts.SecretName
 				}
-				ingress.Spec.TLS = []networkingv1beta1.IngressTLS{
+				ingress.Spec.TLS = []v1beta1.IngressTLS{
 					{
 						Hosts:      []string{cr.Spec.Prometheus.Ingress.Host},
 						SecretName: generatedSecretName,
@@ -552,7 +552,7 @@ func prometheusIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta
 	return &ingress, nil
 }
 
-func prometheusIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -655,7 +655,7 @@ func prometheusIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress,
 	return &ingress, nil
 }
 
-func prometheusPodMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func prometheusPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err
@@ -685,7 +685,7 @@ func prometheusPodMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.PodMonitor, e
 	return &podMonitor, nil
 }
 
-func IsPrometheusTLSEnabled(cr *v1beta1.PlatformMonitoring) bool {
+func IsPrometheusTLSEnabled(cr *monv1.PlatformMonitoring) bool {
 	return cr.Spec.Prometheus != nil && cr.Spec.Prometheus.TLSConfig != nil &&
 		(cr.Spec.Prometheus.TLSConfig.WebTLSConfig != nil ||
 			cr.Spec.Prometheus.TLSConfig.GenerateCerts != nil && cr.Spec.Prometheus.TLSConfig.GenerateCerts.Enabled)

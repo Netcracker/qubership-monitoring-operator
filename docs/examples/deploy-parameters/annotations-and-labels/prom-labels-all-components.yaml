@@ -5,49 +5,49 @@ monitoringOperator:
   install: true
   serviceAccount:
     labels:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 
 # Grafana
 grafana:
   install: true
   serviceAccount:
     labels:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
   operator:
     serviceAccount:
       labels:
-        app.qubership.org/name: grafana
-        app.qubership.org/version: 1.2.3
+        app.netcracker.com/name: grafana
+        app.netcracker.com/version: 1.2.3
 
 # Prometheus stack
 prometheus:
   install: true
   serviceAccount:
     labels:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 alertManager:
   install: true
   serviceAccount:
     labels:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 
 # Exporters
 kubeStateMetrics:
   install: true
   serviceAccount:
     labels:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 nodeExporter:
   install: true
   serviceAccount:
     labels:
-      app.qubership.org/name: grafana
-      app.qubership.org/version: 1.2.3
+      app.netcracker.com/name: grafana
+      app.netcracker.com/version: 1.2.3
 
 # Integrations tests
 integrationTests:

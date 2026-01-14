@@ -1,7 +1,7 @@
 package prometheus_operator
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *PrometheusOperatorReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -45,7 +45,7 @@ func (r *PrometheusOperatorReconciler) handleRole(cr *v1beta1.PlatformMonitoring
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -78,7 +78,7 @@ func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *v1beta1.Platform
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -111,7 +111,7 @@ func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *v1beta1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -146,7 +146,7 @@ func (r *PrometheusOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -179,7 +179,7 @@ func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *v1beta1.Plat
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -214,7 +214,7 @@ func (r *PrometheusOperatorReconciler) handleDeployment(cr *v1beta1.PlatformMoni
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handleService(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -249,7 +249,7 @@ func (r *PrometheusOperatorReconciler) handleService(cr *v1beta1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -286,7 +286,7 @@ func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *v1beta1.PlatformMoni
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -305,7 +305,7 @@ func (r *PrometheusOperatorReconciler) deleteServiceAccount(cr *v1beta1.Platform
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deleteRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deleteRole(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -325,7 +325,7 @@ func (r *PrometheusOperatorReconciler) deleteRole(cr *v1beta1.PlatformMonitoring
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deleteRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deleteRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -345,7 +345,7 @@ func (r *PrometheusOperatorReconciler) deleteRoleBinding(cr *v1beta1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deleteClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -364,7 +364,7 @@ func (r *PrometheusOperatorReconciler) deleteClusterRole(cr *v1beta1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -383,7 +383,7 @@ func (r *PrometheusOperatorReconciler) deleteClusterRoleBinding(cr *v1beta1.Plat
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deletePrometheusOperatorDeployment(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deletePrometheusOperatorDeployment(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -402,7 +402,7 @@ func (r *PrometheusOperatorReconciler) deletePrometheusOperatorDeployment(cr *v1
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deleteService(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deleteService(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -421,7 +421,7 @@ func (r *PrometheusOperatorReconciler) deleteService(cr *v1beta1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusOperatorReconciler) deletePodMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *PrometheusOperatorReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusOperatorPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")

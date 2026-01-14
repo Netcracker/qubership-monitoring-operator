@@ -3,13 +3,13 @@ package kubestatemetrics
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1beta1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestKubeStateMetricsManifests(t *testing.T) {
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			KubeStateMetrics: &v1beta1.KubeStateMetrics{
+		Spec: monv1.PlatformMonitoringSpec{
+			KubeStateMetrics: &monv1.KubeStateMetrics{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -43,12 +43,12 @@ func TestKubeStateMetricsManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
 	})
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			KubeStateMetrics: &v1beta1.KubeStateMetrics{},
+		Spec: monv1.PlatformMonitoringSpec{
+			KubeStateMetrics: &monv1.KubeStateMetrics{},
 		},
 	}
 	t.Run("Test Deployment manifest with nil labels and annotation", func(t *testing.T) {

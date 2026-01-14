@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"reflect"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
+
+	"github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	errs "github.com/pkg/errors"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -19,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *VmOperatorReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -54,7 +55,7 @@ func (r *VmOperatorReconciler) handleRole(cr *v1beta1.PlatformMonitoring) error 
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -87,7 +88,7 @@ func (r *VmOperatorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -120,7 +121,7 @@ func (r *VmOperatorReconciler) handleRoleBinding(cr *v1beta1.PlatformMonitoring)
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -155,7 +156,7 @@ func (r *VmOperatorReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring)
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -188,7 +189,7 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMoni
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorDeployment(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -223,7 +224,7 @@ func (r *VmOperatorReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleService(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -258,7 +259,7 @@ func (r *VmOperatorReconciler) handleService(cr *v1beta1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleKubeletService(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleKubeletService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmKubeletService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -293,7 +294,7 @@ func (r *VmOperatorReconciler) handleKubeletService(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) error {
 	eps, err := vmKubeletServiceEndpoints(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -381,7 +382,7 @@ func getNodeAddresses(nodes *corev1.NodeList) ([]corev1.EndpointAddress, []error
 	return addresses, ers
 }
 
-func (r *VmOperatorReconciler) handleServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
@@ -417,7 +418,7 @@ func (r *VmOperatorReconciler) handleServiceMonitor(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorSecurityContextConstraints()
 	if err != nil {
 		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
@@ -449,7 +450,7 @@ func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *v1beta1.Plat
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -468,7 +469,7 @@ func (r *VmOperatorReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Role manifest")
@@ -488,7 +489,7 @@ func (r *VmOperatorReconciler) deleteRole(cr *v1beta1.PlatformMonitoring) error 
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
@@ -508,7 +509,7 @@ func (r *VmOperatorReconciler) deleteRoleBinding(cr *v1beta1.PlatformMonitoring)
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -527,7 +528,7 @@ func (r *VmOperatorReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring)
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -546,7 +547,7 @@ func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMoni
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorDeployment(r, cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -565,7 +566,7 @@ func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *v1beta1.PlatformMo
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteService(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -584,7 +585,7 @@ func (r *VmOperatorReconciler) deleteService(cr *v1beta1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := vmOperatorServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
@@ -603,7 +604,7 @@ func (r *VmOperatorReconciler) deleteServiceMonitor(cr *v1beta1.PlatformMonitori
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteVmOperatorConfigMap(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteVmOperatorConfigMap(cr *monv1.PlatformMonitoring) error {
 	e := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "57410f0d.victoriametrics.com",
 		Namespace: cr.GetNamespace()}}
 
@@ -619,23 +620,23 @@ func (r *VmOperatorReconciler) deleteVmOperatorConfigMap(cr *v1beta1.PlatformMon
 	return nil
 }
 
-func (r *VmOperatorReconciler) deleteAllCRDObjects(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) deleteAllCRDObjects(cr *monv1.PlatformMonitoring) error {
 
 	objectList := []client.ObjectList{
-		&vmetricsv1b1.VMAgentList{},
-		&vmetricsv1b1.VMAlertList{},
-		&vmetricsv1b1.VMAlertmanagerList{},
-		&vmetricsv1b1.VMAlertmanagerConfigList{},
-		&vmetricsv1b1.VMAuthList{},
-		&vmetricsv1b1.VMClusterList{},
-		&vmetricsv1b1.VMNodeScrapeList{},
-		&vmetricsv1b1.VMPodScrapeList{},
-		&vmetricsv1b1.VMProbeList{},
-		&vmetricsv1b1.VMRuleList{},
-		&vmetricsv1b1.VMServiceScrapeList{},
-		&vmetricsv1b1.VMSingleList{},
-		&vmetricsv1b1.VMStaticScrapeList{},
-		&vmetricsv1b1.VMUserList{},
+		&v1beta1.VMAgentList{},
+		&v1beta1.VMAlertList{},
+		&v1beta1.VMAlertmanagerList{},
+		&v1beta1.VMAlertmanagerConfigList{},
+		&v1beta1.VMAuthList{},
+		&v1beta1.VMClusterList{},
+		&v1beta1.VMNodeScrapeList{},
+		&v1beta1.VMPodScrapeList{},
+		&v1beta1.VMProbeList{},
+		&v1beta1.VMRuleList{},
+		&v1beta1.VMServiceScrapeList{},
+		&v1beta1.VMSingleList{},
+		&v1beta1.VMStaticScrapeList{},
+		&v1beta1.VMUserList{},
 	}
 
 	var foundObjectList []client.ObjectList

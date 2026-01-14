@@ -2,8 +2,8 @@
 
 // Package v1beta1 contains API Schema definitions for the monitoring v1beta1 API group
 // +k8s:deepcopy-gen=package,register
-// +groupName=monitoring.qubership.org
-package v1beta1
+// +groupName=monitoring.netcracker.com
+package v1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -12,7 +12,7 @@ import (
 
 var (
 	// SchemeGroupVersion is group version used to register these objects
-	SchemeGroupVersion = schema.GroupVersion{Group: "monitoring.qubership.org", Version: "v1beta1"}
+	SchemeGroupVersion = schema.GroupVersion{Group: "monitoring.netcracker.com", Version: "v1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}

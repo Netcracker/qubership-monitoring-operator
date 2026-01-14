@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -19,7 +19,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func nodeExporterClusterRole(cr *v1beta1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
+func nodeExporterClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func nodeExporterClusterRole(cr *v1beta1.PlatformMonitoring, hasPsp, hasScc bool
 	return &clusterRole, nil
 }
 
-func nodeExporterClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func nodeExporterClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func nodeExporterClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.Clu
 	return &clusterRoleBinding, nil
 }
 
-func nodeExporterDaemonSet(cr *v1beta1.PlatformMonitoring) (*appsv1.DaemonSet, error) {
+func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring) (*appsv1.DaemonSet, error) {
 	daemonSet := appsv1.DaemonSet{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterDaemonSetAsset), 100).Decode(&daemonSet); err != nil {
 		return nil, err
@@ -183,7 +183,7 @@ func nodeExporterDaemonSet(cr *v1beta1.PlatformMonitoring) (*appsv1.DaemonSet, e
 	return &daemonSet, nil
 }
 
-func nodeExporterService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, error) {
+func nodeExporterService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterServiceAsset), 100).Decode(&service); err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func nodeExporterService(cr *v1beta1.PlatformMonitoring) (*corev1.Service, error
 	return &service, nil
 }
 
-func nodeExporterServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+func nodeExporterServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -224,7 +224,7 @@ func nodeExporterServiceMonitor(cr *v1beta1.PlatformMonitoring) (*promv1.Service
 	return &sm, nil
 }
 
-func nodeExporterServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func nodeExporterServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err

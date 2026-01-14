@@ -1,4 +1,4 @@
-apiVersion: monitoring.qubership.org/v1beta1
+apiVersion: monitoring.netcracker.com/v1
 kind: PlatformMonitoring
 metadata:
   name: platformmonitoring

@@ -6,13 +6,13 @@ import (
 	"maps"
 	"strings"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	"k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -22,7 +22,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func vmAgentServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func vmAgentServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func vmAgentServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccou
 	return &sa, nil
 }
 
-func vmAgentClusterRole(cr *v1beta1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
+func vmAgentClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func vmAgentClusterRole(cr *v1beta1.PlatformMonitoring, hasPsp, hasScc bool) (*r
 	return &clusterRole, nil
 }
 
-func vmAgentClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func vmAgentClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func vmAgentClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterR
 	return &clusterRoleBinding, nil
 }
 
-func vmAgentRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
+func vmAgentRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role := rbacv1.Role{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentRoleAsset), 100).Decode(&role); err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func vmAgentRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
 	return &role, nil
 }
 
-func vmAgentRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func vmAgentRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func vmAgentRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, er
 	return &roleBinding, nil
 }
 
-func vmAgent(r *VmAgentReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.VMAgent, error) {
+func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMAgent, error) {
 	var err error
 	vmagent := vmetricsv1b1.VMAgent{}
 	if err = yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentAsset), 100).Decode(&vmagent); err != nil {
@@ -377,8 +377,8 @@ func vmAgent(r *VmAgentReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b
 	return &vmagent, nil
 }
 
-func vmAgentIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.Ingress, error) {
-	ingress := networkingv1beta1.Ingress{}
+func vmAgentIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
@@ -394,26 +394,26 @@ func vmAgentIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.I
 		}
 
 		// Add rule for vmagent UI
-		rule := networkingv1beta1.IngressRule{Host: cr.Spec.Victoriametrics.VmAgent.Ingress.Host}
+		rule := v1beta1.IngressRule{Host: cr.Spec.Victoriametrics.VmAgent.Ingress.Host}
 		serviceName := utils.VmAgentServiceName
 		servicePort := intstr.FromInt(utils.VmAgentServicePort)
 
-		rule.HTTP = &networkingv1beta1.HTTPIngressRuleValue{
-			Paths: []networkingv1beta1.HTTPIngressPath{
+		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
+			Paths: []v1beta1.HTTPIngressPath{
 				{
 					Path: "/",
-					Backend: networkingv1beta1.IngressBackend{
+					Backend: v1beta1.IngressBackend{
 						ServiceName: serviceName,
 						ServicePort: servicePort,
 					},
 				},
 			},
 		}
-		ingress.Spec.Rules = []networkingv1beta1.IngressRule{rule}
+		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
 
 		// Configure TLS if TLS secret name is set
 		if cr.Spec.Victoriametrics.VmAgent.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1beta1.IngressTLS{
+			ingress.Spec.TLS = []v1beta1.IngressTLS{
 				{
 					Hosts:      []string{cr.Spec.Victoriametrics.VmAgent.Ingress.Host},
 					SecretName: cr.Spec.Victoriametrics.VmAgent.Ingress.TLSSecretName,
@@ -450,7 +450,7 @@ func vmAgentIngressV1beta1(cr *v1beta1.PlatformMonitoring) (*networkingv1beta1.I
 	return &ingress, nil
 }
 
-func vmAgentIngressV1(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func vmAgentIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAgentIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err

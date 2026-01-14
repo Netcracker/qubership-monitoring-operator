@@ -3,15 +3,15 @@ package pushgateway
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var cr *v1beta1.PlatformMonitoring
+var cr *monv1.PlatformMonitoring
 
 func TestPushgatewayManifests(t *testing.T) {
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},

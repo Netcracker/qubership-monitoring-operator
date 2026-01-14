@@ -232,7 +232,7 @@ the configuration is added in `CustomScaleMetricRule` CR and ConfigMap.
 The default `CustomScaleMetricRule` CR contains the following configuration:
 
 ```yaml
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: CustomScaleMetricRule
 metadata:
   name: kubelet-custom-metric-rule
@@ -311,13 +311,13 @@ This method allows you to keep the operator which can recreate `prometheus-adapt
 To find the `PrometheusAdapter` Custom Resource (CR), use the following command:
 
 ```bash
-kubectl get -n <monitoring_namespace> prometheusadapters.monitoring.qubership.org
+kubectl get -n <monitoring_namespace> prometheusadapters.monitoring.netcracker.com
 ```
 
 You can print it to backup using the command:
 
 ```bash
-kubectl get -n <monitoring_namespace> prometheusadapters.monitoring.qubership.org <object_name> -o yaml
+kubectl get -n <monitoring_namespace> prometheusadapters.monitoring.netcracker.com <object_name> -o yaml
 ```
 
 Also, to register `prometheus-adapter` during the deployment, create an `APIService` object. To find already created
@@ -364,8 +364,8 @@ kubectl delete v1beta1.custom.metrics.k8s.io
 Execute the following commands to find and remove the `PrometheusAdapter` CR:
 
 ```bash
-kubectl get -n <monitoring_namespace> prometheusadapters.monitoring.qubership.org
-kubectl delete -n <monitoring_namespace> prometheusadapters.monitoring.qubership.org <object_name>
+kubectl get -n <monitoring_namespace> prometheusadapters.monitoring.netcracker.com
+kubectl delete -n <monitoring_namespace> prometheusadapters.monitoring.netcracker.com <object_name>
 ```
 
 To check that the Kubernetes API Server works fine after removing `prometheus-adapter`, use the following command:
@@ -431,7 +431,7 @@ To declare the metrics in the Kubernetes Metrics API, create the `CustomScaleMet
 For example:
 
 ```yaml
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: CustomScaleMetricRule
 metadata:
   name: test-service-custom-metric-rule

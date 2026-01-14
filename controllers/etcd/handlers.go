@@ -3,7 +3,7 @@ package etcd
 import (
 	"context"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *EtcdMonitorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *EtcdMonitorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := nodeExporterServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -37,7 +37,7 @@ func (r *EtcdMonitorReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitor
 	return nil
 }
 
-func (r *EtcdMonitorReconciler) handleServiceMonitor(cr *v1beta1.PlatformMonitoring, etcdServiceNamespace string, isOpenshiftV4 bool) error {
+func (r *EtcdMonitorReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring, etcdServiceNamespace string, isOpenshiftV4 bool) error {
 	m, err := etcdServiceMonitor(cr, etcdServiceNamespace, isOpenshiftV4)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
@@ -66,7 +66,7 @@ func (r *EtcdMonitorReconciler) handleServiceMonitor(cr *v1beta1.PlatformMonitor
 	return nil
 }
 
-func (r *EtcdMonitorReconciler) handleService(cr *v1beta1.PlatformMonitoring, isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) error {
+func (r *EtcdMonitorReconciler) handleService(cr *monv1.PlatformMonitoring, isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) error {
 	m, err := etcdService(isOpenshift, etcdServiceNamespace, isOpenshiftV4)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -95,7 +95,7 @@ func (r *EtcdMonitorReconciler) handleService(cr *v1beta1.PlatformMonitoring, is
 	return nil
 }
 
-func (r *EtcdMonitorReconciler) handleSecret(cr *v1beta1.PlatformMonitoring) error {
+func (r *EtcdMonitorReconciler) handleSecret(cr *monv1.PlatformMonitoring) error {
 	m, err := etcdSecret(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
@@ -127,7 +127,7 @@ func (r *EtcdMonitorReconciler) handleSecret(cr *v1beta1.PlatformMonitoring) err
 	return nil
 }
 
-func (r *EtcdMonitorReconciler) deleteServiceMonitor(cr *v1beta1.PlatformMonitoring, etcdServiceNamespace string, isOpenshiftV4 bool) error {
+func (r *EtcdMonitorReconciler) deleteServiceMonitor(cr *monv1.PlatformMonitoring, etcdServiceNamespace string, isOpenshiftV4 bool) error {
 	m, err := etcdServiceMonitor(cr, etcdServiceNamespace, isOpenshiftV4)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")

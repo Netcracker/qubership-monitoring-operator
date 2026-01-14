@@ -3,7 +3,7 @@ package vmuser
 import (
 	"context"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -33,7 +33,7 @@ func NewVmUserReconciler(c client.Client, s *runtime.Scheme, dc discovery.Discov
 // Creates vmUser CR if it doesn't exist.
 // Updates vmUser CR in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *VmUserReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonitoring) error {
+func (r *VmUserReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmUser.IsInstall() && cr.Spec.Victoriametrics.VmAuth.IsInstall() {
@@ -58,7 +58,7 @@ func (r *VmUserReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonitori
 }
 
 // uninstall deletes all resources related to the component
-func (r *VmUserReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
+func (r *VmUserReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	// Fetch the VMSingle instance
 	m, err := vmUser(cr)
 	if err != nil {

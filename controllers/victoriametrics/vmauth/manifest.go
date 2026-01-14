@@ -9,7 +9,7 @@ import (
 
 	"maps"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -25,7 +25,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func vmAuthServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func vmAuthServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func vmAuthServiceAccount(cr *v1beta1.PlatformMonitoring) (*corev1.ServiceAccoun
 	return &sa, nil
 }
 
-func vmAuthClusterRole(cr *v1beta1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
+func vmAuthClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func vmAuthClusterRole(cr *v1beta1.PlatformMonitoring, hasPsp, hasScc bool) (*rb
 	return &clusterRole, nil
 }
 
-func vmAuthClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func vmAuthClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func vmAuthClusterRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.ClusterRo
 	return &clusterRoleBinding, nil
 }
 
-func vmAuthRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
+func vmAuthRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role := rbacv1.Role{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthRoleAsset), 100).Decode(&role); err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func vmAuthRole(cr *v1beta1.PlatformMonitoring) (*rbacv1.Role, error) {
 	return &role, nil
 }
 
-func vmAuthRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func vmAuthRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func vmAuthRoleBinding(cr *v1beta1.PlatformMonitoring) (*rbacv1.RoleBinding, err
 	return &roleBinding, nil
 }
 
-func vmAuth(r *VmAuthReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.VMAuth, error) {
+func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMAuth, error) {
 	var err error
 	vmauth := vmetricsv1b1.VMAuth{}
 	if err = yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthAsset), 100).Decode(&vmauth); err != nil {
@@ -390,7 +390,7 @@ func vmAuth(r *VmAuthReconciler, cr *v1beta1.PlatformMonitoring) (*vmetricsv1b1.
 	return &vmauth, nil
 }
 
-func vmAuthIngress(cr *v1beta1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func vmAuthIngress(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAuthIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err

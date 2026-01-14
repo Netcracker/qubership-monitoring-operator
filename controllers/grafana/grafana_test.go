@@ -3,13 +3,13 @@ package grafana
 import (
 	"testing"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1beta1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestGrafanaManifests(t *testing.T) {
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			Grafana: &v1beta1.Grafana{
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -36,49 +36,19 @@ func TestGrafanaManifests(t *testing.T) {
 		assert.NotNil(t, m, "Grafana manifest should not be empty")
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
-		// In grafana-operator v5, Deployment structure changed and may be nil
-		// Need to safely access nested fields to avoid nil pointer dereference
-		if m.Spec.Deployment != nil {
-			// Safely access nested fields using recover to catch any panics
-			var templateSpec interface{}
-			var templateLabels map[string]string
-			var templateAnnotations map[string]string
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						// If we panic accessing nested fields, they're not initialized
-						templateSpec = nil
-					}
-				}()
-				// Try to safely access all nested fields
-				// Accessing Spec.Template.Spec may panic if Spec or Template are nil pointers
-				deployment := m.Spec.Deployment
-				spec := deployment.Spec
-				template := spec.Template
-				if template.Spec != nil {
-					templateSpec = template.Spec
-					templateLabels = template.Labels
-					templateAnnotations = template.Annotations
-				}
-			}()
-			
-			// Only check fields if we successfully accessed them
-			if templateSpec != nil {
-				assert.NotNil(t, templateLabels)
-				assert.Equal(t, labelValue, templateLabels[labelKey])
-				assert.NotNil(t, m.GetAnnotations())
-				assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
-				assert.NotNil(t, templateAnnotations)
-				assert.Equal(t, annotationValue, templateAnnotations[annotationKey])
-			}
-		}
+		assert.NotNil(t, m.Spec.Deployment.Labels)
+		assert.Equal(t, labelValue, m.Spec.Deployment.Labels[labelKey])
+		assert.NotNil(t, m.GetAnnotations())
+		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
+		assert.NotNil(t, m.Spec.Deployment.Annotations)
+		assert.Equal(t, annotationValue, m.Spec.Deployment.Annotations[annotationKey])
 	})
-	cr = &v1beta1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1beta1.PlatformMonitoringSpec{
-			Grafana: &v1beta1.Grafana{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{},
 		},
 	}
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {

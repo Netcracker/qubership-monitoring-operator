@@ -157,7 +157,7 @@ The monitoring system uses various custom resources to configure its components:
 This is the main custom resource that defines the overall monitoring setup. It's watched by the Monitoring Operator.
 
 ```yaml
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: PlatformMonitoring
 metadata:
   name: monitoring-stack

@@ -1,7 +1,7 @@
 package vmoperator
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	secv1 "github.com/openshift/api/security/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,7 +33,7 @@ func NewVmOperatorReconciler(c client.Client, s *runtime.Scheme, r *rest.Config,
 // Creates new deployment, service, service account, cluster role and cluster role binding if they don't exist.
 // Updates deployment and service in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *VmOperatorReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmOperator.IsInstall() {
@@ -107,7 +107,7 @@ func (r *VmOperatorReconciler) Run(cr *v1beta1.PlatformMonitoring) error {
 }
 
 // uninstall deletes all resources related to the component
-func (r *VmOperatorReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
+func (r *VmOperatorReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if err := r.deleteAllCRDObjects(cr); err != nil {
 		r.Log.Error(err, "Can not delete CRD Objects")
 	}

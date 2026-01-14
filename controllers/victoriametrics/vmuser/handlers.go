@@ -1,12 +1,12 @@
 package vmuser
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *VmUserReconciler) handleVmUser(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmUserReconciler) handleVmUser(cr *monv1.PlatformMonitoring) error {
 	m, err := vmUser(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating vmuser manifest")
@@ -33,7 +33,7 @@ func (r *VmUserReconciler) handleVmUser(cr *v1beta1.PlatformMonitoring) error {
 	return nil
 }
 
-func (r *VmUserReconciler) deleteVmUser(cr *v1beta1.PlatformMonitoring) error {
+func (r *VmUserReconciler) deleteVmUser(cr *monv1.PlatformMonitoring) error {
 	m, err := vmUser(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating vmUser manifest")

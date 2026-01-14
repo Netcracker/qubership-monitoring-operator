@@ -1,7 +1,7 @@
 package kubestatemetrics
 
 import (
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *KubeStateMetricsReconciler) handleServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -42,7 +42,7 @@ func (r *KubeStateMetricsReconciler) handleServiceAccount(cr *v1beta1.PlatformMo
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) handleClusterRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -77,7 +77,7 @@ func (r *KubeStateMetricsReconciler) handleClusterRole(cr *v1beta1.PlatformMonit
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -109,7 +109,7 @@ func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *v1beta1.Platfo
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) handleDeployment(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -142,7 +142,7 @@ func (r *KubeStateMetricsReconciler) handleDeployment(cr *v1beta1.PlatformMonito
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) handleService(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) handleService(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -177,7 +177,7 @@ func (r *KubeStateMetricsReconciler) handleService(cr *v1beta1.PlatformMonitorin
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) handleServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
@@ -214,7 +214,7 @@ func (r *KubeStateMetricsReconciler) handleServiceMonitor(cr *v1beta1.PlatformMo
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) deleteServiceAccount(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -233,7 +233,7 @@ func (r *KubeStateMetricsReconciler) deleteServiceAccount(cr *v1beta1.PlatformMo
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) deleteClusterRole(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) deleteClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -252,7 +252,7 @@ func (r *KubeStateMetricsReconciler) deleteClusterRole(cr *v1beta1.PlatformMonit
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) deleteClusterRoleBinding(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -271,7 +271,7 @@ func (r *KubeStateMetricsReconciler) deleteClusterRoleBinding(cr *v1beta1.Platfo
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) deleteDeployment(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
@@ -290,7 +290,7 @@ func (r *KubeStateMetricsReconciler) deleteDeployment(cr *v1beta1.PlatformMonito
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) deleteService(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) deleteService(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -309,7 +309,7 @@ func (r *KubeStateMetricsReconciler) deleteService(cr *v1beta1.PlatformMonitorin
 	return nil
 }
 
-func (r *KubeStateMetricsReconciler) deleteServiceMonitor(cr *v1beta1.PlatformMonitoring) error {
+func (r *KubeStateMetricsReconciler) deleteServiceMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := kubeStateMetricsServiceMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")

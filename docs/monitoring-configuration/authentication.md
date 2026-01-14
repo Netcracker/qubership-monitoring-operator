@@ -444,7 +444,7 @@ auth:
 Add settings in PlatformMonitoring CR:
 
 ```yaml
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: PlatformMonitoring
 metadata:
   name: platformmonitoring

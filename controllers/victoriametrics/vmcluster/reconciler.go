@@ -3,7 +3,7 @@ package vmcluster
 import (
 	"context"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
@@ -35,7 +35,7 @@ func NewVmClusterReconciler(c client.Client, s *runtime.Scheme, dc discovery.Dis
 // Creates vmCluster CR if it doesn't exist.
 // Updates vmCluster CR in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *VmClusterReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonitoring) error {
+func (r *VmClusterReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmCluster.IsInstall() && !cr.Spec.Victoriametrics.VmSingle.IsInstall() {
@@ -101,7 +101,7 @@ func (r *VmClusterReconciler) Run(ctx context.Context, cr *v1beta1.PlatformMonit
 }
 
 // uninstall deletes all resources related to the component
-func (r *VmClusterReconciler) uninstall(cr *v1beta1.PlatformMonitoring) {
+func (r *VmClusterReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if utils.PrivilegedRights {
 		if err := r.deleteClusterRole(cr); err != nil {
 			r.Log.Error(err, "Can not delete ClusterRole")

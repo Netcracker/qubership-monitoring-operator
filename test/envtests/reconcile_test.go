@@ -4,7 +4,7 @@ import (
 	"context"
 	"embed"
 
-	v1beta1 "github.com/Netcracker/qubership-monitoring-operator/api"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/alertmanager"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
 	grafana_operator "github.com/Netcracker/qubership-monitoring-operator/controllers/grafana-operator"
@@ -37,7 +37,7 @@ var assets embed.FS
 var _ = Describe("Reconcile", func() {
 	It("Create PlatformMonitoring CR", func() {
 		//Create test CR
-		cr = v1beta1.PlatformMonitoring{}
+		cr = monv1.PlatformMonitoring{}
 		err = yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, "assets/platformmonitoring.yaml"), 100).Decode(&cr)
 		cr.SetUID(uuid.NewUUID())
 		Expect(err).NotTo(HaveOccurred())
