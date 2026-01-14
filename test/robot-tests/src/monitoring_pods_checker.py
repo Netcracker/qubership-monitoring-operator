@@ -1,5 +1,6 @@
 import time
 from os import environ
+import re
 
 from PlatformLibrary import PlatformLibrary
 
@@ -27,10 +28,27 @@ def check_statefulsets_are_ready(service, label):
     else:
         return 0
 
+def check_vmagent_targets():
+    try:
+        pods = k8s_lib.get_pod_names_by_selector(namespace, selector={'app.kubernetes.io/name': 'vmagent'})
+    except Exception as e:
+        print(f'Failed to get vmagent pods: {e}')
+        return 0
+    if not pods:
+        return 0
+    pod_name = pods[0]
+    try:
+        last_log = k8s_lib.get_pod_logs(pod_name=pod_name, namespace=namespace, container_name='vmagent', tail_lines=200)
+    except Exception as e:
+        print(f'Failed to get {pod_name} pod logs: {e}')
+        return 0
+    matches = re.findall(r'total targets: (\d+)', last_log)
+    if matches:
+        return int(matches[-1])
+    return 0
+
 
 if __name__ == '__main__':
-    print(f'Waiting for {timeout_before_start} seconds')
-    time.sleep(timeout_before_start)
     try:
         k8s_lib = PlatformLibrary(managed_by_operator='true')
     except Exception as e:
@@ -56,7 +74,8 @@ if __name__ == '__main__':
         enabled_services['grafana'] = dict(ready=0, label='app', kind='deployment')
 
     timeout_start = time.time()
-
+    
+    all_ready = False
     while time.time() < timeout_start + timeout:
         try:
             for service in enabled_services:
@@ -73,9 +92,28 @@ if __name__ == '__main__':
                     print(f'{service} deployment/statefulset is not ready')
                     raise Exception
             print('Deployments/statefulsets are ready')
-            exit(0)
+            all_ready = True
+            break
         except Exception:
             time.sleep(15)
 
-    print(f'Deployments are not ready at least {timeout} seconds')
-    exit(1)
+    if not all_ready:
+        print(f'Deployments are not ready at least {timeout} seconds')
+        exit(1)
+    if operator == 'victoriametrics-operator':
+        timeout_start = time.time()
+        vmagent_check_interval = 10
+        vmagent_targets_installed = False
+        while time.time() < timeout_start + timeout:
+            targets = check_vmagent_targets()
+            print(f'VmAgent total targets: {targets}')
+            if targets >= 10:
+                print('VmAgent has required amount of targets.')
+                print('Sleeping 30s before starting robot tests...')
+                time.sleep(30)
+                print('Starting robot tests...')
+                exit(0)
+            print(f'VmAgent does not have required amount of targets yet, retrying in {vmagent_check_interval} seconds...')
+            time.sleep(vmagent_check_interval)
+        print(f'VmAgent does not have required amount of targets after {timeout} seconds')
+        exit(1)

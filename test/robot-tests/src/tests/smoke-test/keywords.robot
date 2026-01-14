@@ -245,3 +245,30 @@ Check That In CR service Is Presented
      ${flag}=  Check CR Service Exists  ${custom_resource.get('spec')}  ${name}  ${parentservice}
      Skip If  ${flag} != True  Section ${name} is not presented in CR
      RETURN  ${flag}
+
+Check Target And Metrics Are Ready
+    [Arguments]  ${target}  ${all_active_targets}  ${metrics}
+    Check Target Is UP  ${target}  ${all_active_targets}
+    Check Job Metrics Are Written  ${target}  ${metrics}
+
+Check Vmagent Target Metrics With Retry
+    [Arguments]  ${target}  ${all_active_targets}  ${metrics}
+    ${flag}=  Wait Until Keyword Succeeds
+    ...  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Target And Metrics Are Ready
+    ...  ${target}  ${all_active_targets}  ${metrics}
+    RETURN  ${flag}
+
+Check Kube State Metrics Are Ready
+    [Arguments]  ${metrics}
+    Check Target Is UP  ${kube-state-metrics}  ${all_active_targets}
+    Check Job Metrics Are Written  ${kube-state-metrics}  ${metrics}
+
+Check Kube State Metrics With Retry
+    [Arguments]  ${kube_state_metrics_flag}  ${metrics}
+    ${flag}=  Run Keyword If  ${kube_state_metrics_flag}==True
+    ...  Wait Until Keyword Succeeds
+    ...  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Kube State Metrics Are Ready
+    ...  ${metrics}
+    RETURN  ${flag}
