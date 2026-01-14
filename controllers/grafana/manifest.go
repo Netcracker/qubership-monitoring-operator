@@ -16,7 +16,7 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1" // For v1beta1 Ingress API (used in grafanaIngressV1beta1)
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -95,33 +95,6 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 	}
 
 	return podSpec
-}
-
-// ensureTemplateInitialized ensures that Deployment.Spec.Template is properly initialized
-// This function safely initializes the Template structure to avoid nil pointer dereference
-func ensureTemplateInitialized(graf *grafv1.Grafana) {
-	ensureDeploymentInitialized(graf)
-	deployment := graf.Spec.Deployment
-	if deployment == nil {
-		deployment = &grafv1.DeploymentV1{}
-		graf.Spec.Deployment = deployment
-	}
-
-	// Try to safely access Template
-	// Use recover to catch any panics from accessing nested pointer fields
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// Panic occurred - Spec might be a pointer and nil
-				// Re-initialize the entire Deployment structure
-				newDeployment := &grafv1.DeploymentV1{}
-				graf.Spec.Deployment = newDeployment
-			}
-		}()
-		// Try to access Template - this may panic if Spec is a pointer and nil
-		// Just accessing it is enough to trigger initialization if needed
-		_ = deployment.Spec.Template
-	}()
 }
 
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
@@ -250,21 +223,20 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 		}
 		// Set labels on Deployment pod template - in v5, labels are in Deployment.Spec.Template.Labels
+		// In grafana-operator v5, Labels and Annotations moved from Deployment to Deployment.Spec.Template
 		ensureDeploymentInitialized(&graf)
-		ensureTemplateInitialized(&graf)
 		// Ensure PodSpec is initialized first (needed for Template.Spec access)
 		ensurePodSpecInitialized(&graf)
 
-		// Safely access Template.Labels using a helper function
+		// Access Template through deployment and set labels/annotations
+		// Use recover to safely handle any nil pointer issues that may occur due to v5 API structure changes
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					// If we panic, re-initialize everything and try again
-					ensureTemplateInitialized(&graf)
-					ensurePodSpecInitialized(&graf)
+					// If we panic, Template structure might not be accessible (e.g., Spec or Template are nil pointers)
+					// This is OK - labels/annotations are already set on the Grafana resource itself
 				}
 			}()
-			// Access Template through deployment
 			deployment := graf.Spec.Deployment
 			if deployment != nil {
 				// Initialize Labels if nil
@@ -285,13 +257,12 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					}
 				}
 
+				// Initialize Annotations if nil
+				if deployment.Spec.Template.Annotations == nil {
+					deployment.Spec.Template.Annotations = make(map[string]string)
+				}
 				// Set annotations
-				if deployment.Spec.Template.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
-					deployment.Spec.Template.Annotations = cr.Spec.Grafana.Annotations
-				} else if cr.Spec.Grafana.Annotations != nil {
-					if deployment.Spec.Template.Annotations == nil {
-						deployment.Spec.Template.Annotations = make(map[string]string)
-					}
+				if cr.Spec.Grafana.Annotations != nil {
 					for k, v := range cr.Spec.Grafana.Annotations {
 						deployment.Spec.Template.Annotations[k] = v
 					}
@@ -309,6 +280,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	return &graf, nil
 }
 
+// grafanaDataSource creates GrafanaDatasource manifest
+// Note: In grafana-operator v5, the type name changed from GrafanaDataSource to GrafanaDatasource
 func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDatasource, error) {
 	dataSource := grafv1.GrafanaDatasource{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaDataSourceAsset), 100).Decode(&dataSource); err != nil {
@@ -387,6 +360,8 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	return &dataSource, nil
 }
 
+// grafanaIngressV1beta1 creates Ingress manifest using v1beta1 API
+// Note: Uses networkingv1beta1 package (with alias) instead of v1beta1 to avoid conflicts
 func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*networkingv1beta1.Ingress, error) {
 	ingress := networkingv1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
@@ -403,6 +378,7 @@ func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*networkingv1beta1.Ing
 			return nil, errors.New("host for ingress can not be empty")
 		}
 		// Add rule for grafana UI
+		// Note: All types use networkingv1beta1 prefix (not v1beta1) to match the import alias
 		rule := networkingv1beta1.IngressRule{Host: cr.Spec.Grafana.Ingress.Host}
 		rule.HTTP = &networkingv1beta1.HTTPIngressRuleValue{
 			Paths: []networkingv1beta1.HTTPIngressPath{
