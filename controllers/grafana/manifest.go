@@ -199,20 +199,25 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Set dynamic labels that are always computed
 		graf.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
 		graf.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		// Allow overriding any labels (including component and part-of) via cr.Spec.Grafana.Labels
-		// This allows different Grafana instances to have different labels for different dashboards
-		if cr.Spec.Grafana.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Labels {
-				graf.Labels[k] = v
-			}
-		}
-		// Set default labels only if they weren't set in asset file and weren't overridden
-		// These labels are needed for GrafanaDashboard instanceSelector matching
+		
+		// Set default labels for GrafanaDashboard instanceSelector matching
+		// These labels are used by GrafanaDashboard instanceSelector to find matching Grafana instances
+		// In grafana-operator v5, GrafanaDashboard uses instanceSelector.matchLabels to find Grafana instances
+		// If not set in asset file, use defaults
 		if graf.Labels["app.kubernetes.io/component"] == "" {
 			graf.Labels["app.kubernetes.io/component"] = "grafana"
 		}
 		if graf.Labels["app.kubernetes.io/part-of"] == "" {
 			graf.Labels["app.kubernetes.io/part-of"] = "monitoring"
+		}
+		
+		// Allow overriding any labels (including component and part-of) via cr.Spec.Grafana.Labels
+		// This allows different Grafana instances to have different labels for different dashboards
+		// Users can set custom labels like "dashboards: custom" and use them in GrafanaDashboard instanceSelector
+		if cr.Spec.Grafana.Labels != nil {
+			for k, v := range cr.Spec.Grafana.Labels {
+				graf.Labels[k] = v
+			}
 		}
 
 		if graf.Annotations == nil && cr.Spec.Grafana.Annotations != nil {

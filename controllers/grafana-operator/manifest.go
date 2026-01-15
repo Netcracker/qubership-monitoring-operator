@@ -265,6 +265,55 @@ func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.Gr
 		dashboard.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image)
 	}
 
+	// Configure instanceSelector dynamically based on Grafana labels
+	// In grafana-operator v5, instanceSelector is optional - if not specified, dashboard applies to all Grafana instances in namespace
+	// If instanceSelector is already set in dashboard YAML, we can override it with labels from Grafana resource
+	// This allows using custom labels set via cr.Spec.Grafana.Labels for instanceSelector matching
+	if cr.Spec.Grafana != nil {
+		// Build instanceSelector matchLabels from Grafana labels
+		// Use default labels if custom labels are not set
+		instanceLabels := make(map[string]string)
+
+		// Get component label - use custom if set, otherwise default
+		if cr.Spec.Grafana.Labels != nil && cr.Spec.Grafana.Labels["app.kubernetes.io/component"] != "" {
+			instanceLabels["app.kubernetes.io/component"] = cr.Spec.Grafana.Labels["app.kubernetes.io/component"]
+		} else {
+			instanceLabels["app.kubernetes.io/component"] = "grafana"
+		}
+
+		// Get part-of label - use custom if set, otherwise default
+		if cr.Spec.Grafana.Labels != nil && cr.Spec.Grafana.Labels["app.kubernetes.io/part-of"] != "" {
+			instanceLabels["app.kubernetes.io/part-of"] = cr.Spec.Grafana.Labels["app.kubernetes.io/part-of"]
+		} else {
+			instanceLabels["app.kubernetes.io/part-of"] = "monitoring"
+		}
+
+		// Add any other custom labels that might be useful for instanceSelector
+		// Users can set custom labels like "dashboards: custom" and use them in instanceSelector
+		if cr.Spec.Grafana.Labels != nil {
+			for k, v := range cr.Spec.Grafana.Labels {
+				// Skip standard labels that are already set above
+				if k != "app.kubernetes.io/component" && k != "app.kubernetes.io/part-of" &&
+					k != "app.kubernetes.io/instance" && k != "app.kubernetes.io/version" &&
+					k != "app.kubernetes.io/name" && k != "app.kubernetes.io/managed-by" {
+					instanceLabels[k] = v
+				}
+			}
+		}
+
+		// Set instanceSelector if it exists in dashboard spec
+		// Note: If instanceSelector is not set in dashboard YAML, it will apply to all Grafana instances in namespace
+		if dashboard.Spec.InstanceSelector != nil {
+			if dashboard.Spec.InstanceSelector.MatchLabels == nil {
+				dashboard.Spec.InstanceSelector.MatchLabels = make(map[string]string)
+			}
+			// Override with labels from Grafana resource
+			for k, v := range instanceLabels {
+				dashboard.Spec.InstanceSelector.MatchLabels[k] = v
+			}
+		}
+	}
+
 	return &dashboard, nil
 }
 
