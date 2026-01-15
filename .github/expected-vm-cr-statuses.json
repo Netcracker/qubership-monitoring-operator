@@ -43,7 +43,7 @@
   },
   {
     "component": "platformmonitoring",
-    "kind": "platformmonitorings.monitoring.netcracker.com",
+    "kind": "platformmonitorings",
     "name": "platformmonitoring",
     "check": "conditionsMatch",
     "expectedConditions": {
