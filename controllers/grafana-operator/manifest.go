@@ -304,10 +304,10 @@ func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.Gr
 		// Set instanceSelector if it exists in dashboard spec
 		// Note: If instanceSelector is not set in dashboard YAML, it will apply to all Grafana instances in namespace
 		if dashboard.Spec.InstanceSelector != nil {
-			if dashboard.Spec.InstanceSelector.MatchLabels == nil {
-				dashboard.Spec.InstanceSelector.MatchLabels = make(map[string]string)
-			}
-			// Override with labels from Grafana resource
+			// Clear existing matchLabels and set new ones from Grafana resource
+			// This ensures that only labels from Grafana resource are used, removing any hardcoded labels from YAML
+			dashboard.Spec.InstanceSelector.MatchLabels = make(map[string]string)
+			// Set labels from Grafana resource
 			for k, v := range instanceLabels {
 				dashboard.Spec.InstanceSelector.MatchLabels[k] = v
 			}
