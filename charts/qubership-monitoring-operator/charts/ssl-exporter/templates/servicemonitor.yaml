@@ -1,0 +1,41 @@
+{{- if and .Values.install .Values.serviceMonitor.enabled }}
+{{- range .Values.serviceMonitor.targets }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $.Values.name }}-{{ .name }}
+  labels:
+    {{- include "ssl-exporter.labels" $ | nindent 4 }}
+spec:
+  endpoints:
+  - port: http
+    scheme: {{ $.Values.serviceMonitor.scheme }}
+    path: "/probe"
+    interval: {{ .interval | default $.Values.serviceMonitor.defaults.interval }}
+    scrapeTimeout: {{ .scrapeTimeout | default $.Values.serviceMonitor.defaults.scrapeTimeout }}
+    params:
+      target:
+      - {{ .url | quote }}
+      {{- if .module }}
+      module:
+      - {{ .module | quote }}
+      {{- end }}
+    metricRelabelings:
+      - sourceLabels: [instance]
+        targetLabel: instance
+        replacement: {{ .url | quote }}
+      - sourceLabels: [target]
+        targetLabel: target
+        replacement: {{ .name | quote }}
+      {{- if .additionalMetricsRelabels }}
+        {{- toYaml .additionalMetricsRelabels | nindent 6 }}
+      {{- else if $.Values.serviceMonitor.defaults.additionalMetricsRelabels }}
+        {{- toYaml $.Values.serviceMonitor.defaults.additionalMetricsRelabels | nindent 6 }}
+      {{- end }}
+  jobLabel: {{ $.Release.Name }}
+  selector:
+    matchLabels:
+      {{- include "ssl-exporter.selectorLabels" $ | nindent 6 }}
+{{- end }}
+{{- end }}

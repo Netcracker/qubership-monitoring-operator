@@ -83,6 +83,10 @@ dependencies:
     condition: cloudEventsExporter.install
     version: ~0
     repository: "file://charts/cloud-events-exporter"
+  - name: sslExporter
+    condition: sslExporter.install
+    version: ~0
+    repository: "file://charts/ssl-exporter"
 
   # AWS CloudWatch exporter
   - name: cloudwatchExporter
