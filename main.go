@@ -75,8 +75,10 @@ func main() {
 	ctrl.SetLogger(utils.Logger(""))
 
 	namespace, found := os.LookupEnv("WATCH_NAMESPACE")
-	if !found {
-		namespace = "monitoring"
+	if !found || namespace == "" {
+		// If WATCH_NAMESPACE is not set or empty, scan all namespaces
+		// This enables cross-namespace scanning for allowCrossNamespaceImport feature
+		namespace = ""
 	}
 
 	if !pprofEnabled {
@@ -91,7 +93,12 @@ func main() {
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "b0cb59fe.netcracker.com",
 		NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
-			opts.DefaultNamespaces = map[string]cache.Config{namespace: {}}
+			// If WATCH_NAMESPACE is empty, don't set DefaultNamespaces to scan all namespaces
+			// This enables cross-namespace scanning for allowCrossNamespaceImport feature
+			if namespace != "" {
+				opts.DefaultNamespaces = map[string]cache.Config{namespace: {}}
+			}
+			// If namespace is empty, DefaultNamespaces remains nil, which means scan all namespaces
 			return cache.New(config, opts)
 		},
 	})
