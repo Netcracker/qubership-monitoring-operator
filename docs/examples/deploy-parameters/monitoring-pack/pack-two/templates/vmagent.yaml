@@ -1,0 +1,83 @@
+{{- if .Values.vmAgent.install }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  labels:
+    name: vmagent
+    app.kubernetes.io/name: vmagent
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmAgent.labels }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  name: {{ default (printf "%s-vmagent" (include "monitoring-pack-two.fullname" .)) .Values.vmAgent.name }}
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" .Values.vmAgent.annotations }}
+  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  # Set the default users for Pod Security Context
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 2000
+
+  # Disable selectAllByDefault to use explicit selectors
+  selectAllByDefault: false
+
+  # Selector to discovery ServiceMonitors from both pack=one and pack=two
+  # This allows pack-two's vmagent to collect metrics from shared exporters
+  serviceScrapeSelector:
+    matchExpressions:
+      - key: monitoring-pack
+        operator: In
+        values:
+          - "one"
+          - "two"
+  serviceScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+
+  # Other scrape selectors (can be configured if needed)
+  podScrapeSelector: {}
+  podScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  probeSelector: {}
+  probeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  nodeScrapeSelector: {}
+  nodeScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  staticScrapeSelector: {}
+  staticScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+
+  serviceAccountName: {{ include "monitoring-pack-two.vmagent.serviceAccountName" . }}
+{{- if .Values.vmAgent.spec }}
+{{- $vmSingleName := default (include "monitoring-pack-two.vmsingle.baseName" .) .Values.vmSingle.name }}
+{{- $namespace := include "monitoring-pack-two.namespace" . }}
+{{- $spec := .Values.vmAgent.spec | deepCopy }}
+{{- if $spec.remoteWrite }}
+{{- $newServiceName := printf "vmsingle-%s.%s.svc" $vmSingleName $namespace }}
+{{- range $spec.remoteWrite }}
+{{- $oldUrl := .url }}
+{{- $newUrl := $oldUrl | replace "k8s-dev-vmsingle.monitoring.svc" $newServiceName }}
+{{- $_ := set . "url" $newUrl }}
+{{- end }}
+{{- end }}
+{{ toYaml $spec | indent 2 }}
+{{- end }}
+{{- end }}
