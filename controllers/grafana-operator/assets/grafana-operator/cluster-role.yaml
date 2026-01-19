@@ -67,6 +67,7 @@ rules:
       - configmaps
       - namespaces
       - secrets
+      - serviceaccounts
     verbs:
       - get
       - list
