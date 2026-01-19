@@ -16,7 +16,10 @@ data:
         "list": [
           {
             "builtIn": 1,
-            "datasource": "-- Grafana --",
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
             "enable": true,
             "hide": true,
             "iconColor": "rgba(0, 211, 255, 1)",
@@ -26,215 +29,90 @@ data:
         ]
       },
       "editable": true,
-      "gnetId": null,
+      "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 23,
-      "iteration": 1622199056616,
+      "id": 76,
       "links": [],
       "panels": [
         {
-          "datasource": null,
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
+          "collapsed": false,
           "gridPos": {
-            "h": 8,
+            "h": 1,
             "w": 24,
             "x": 0,
             "y": 0
           },
+          "id": 51,
+          "panels": [],
+          "title": "General info",
+          "type": "row"
+        },
+        {
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 9,
+            "x": 0,
+            "y": 1
+          },
           "id": 23,
           "options": {
-            "content": "&nbsp;\n\n\n### This page displayed [Prometheus](https://$prometheus_UI) and [Alertmanager](https://$alertmanager_UI) status, Ready pods and the Total number of pods in the Monitoring namespace. \n\n### Dashboards are grouped by tags on next panels:\n#### - Self-Monitoring Dashboard\n#### - Favorites Dashboards (your favorites dashboards)\n#### - Kubernetes Dashboards (dashboards with tag: \"k8s\")\n#### - Services Dashboards (kafka, postgresql, mongodb, etc; tag: \"prometheus\")\n#### - Standalone Hosts Dashboards (Graylog, balancers, etc; tag: \"standalone\")\n\n### [Link to Kubernetes Dashboard](https://$kuber_dashboard)\n\n\n",
+            "code": {
+              "language": "plaintext",
+              "showLineNumbers": false,
+              "showMiniMap": false
+            },
+            "content": "This is the homepage for monitoring.\n\nLink to grafana user docs: https://grafana.com/docs/grafana/latest/visualizations/\n\nTo quick check monitoring health please use \"Monitoring health\" section. If panels show \"green\" status - monitoring is OK, else - need to create ticket for monitoring issue.\nFor deeper analysis you can use more detailed dashboards for monitoring components, mentioned in \"Dashboards links\" section.\n\nTo analyze cloud platform or applications issues please use dashdoards from \"Dashboards links section\". Recomended order to check:\n1) Check cloud platform dashboards (pods, namespaces, nodes, ingress, DNS, TLS) for issues with pod restarts and lack of resources.\n2) Check middleware and DB dashboards (postgre, kafka)\n3) Check process dashboards (Go, JVM)\n\n\n\n\n",
             "mode": "markdown"
           },
-          "pluginVersion": "7.4.5",
-          "timeFrom": null,
-          "timeShift": null,
+          "pluginVersion": "11.6.5",
           "title": "",
           "type": "text"
         },
         {
-          "datasource": "$datasource",
-          "description": "Show the prometheus instance uptime",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "decimals": 1,
-              "mappings": [
-                {
-                  "from": "",
-                  "id": 1,
-                  "text": "Down",
-                  "to": "",
-                  "type": 1,
-                  "value": "null"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "red",
-                    "value": null
-                  },
-                  {
-                    "color": "green",
-                    "value": 10
-                  }
-                ]
+              "color": {
+                "mode": "thresholds"
               },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 0,
-            "y": 8
-          },
-          "id": 12,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "last"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "7.4.5",
-          "targets": [
-            {
-              "expr": "max(time() - process_start_time_seconds{instance=~\"$prometheus_instance\"}) by(instance)",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            },
-            {
-              "expr": "max(time() - process_start_time_seconds{instance=~\"$vm_instance\"}) by(instance)",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "B"
-            }
-          ],
-          "title": "Monitoring Uptime",
-          "type": "stat"
-        },
-        {
-          "datasource": "$datasource",
-          "description": "Show the alertmanager instance uptime",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "decimals": 1,
               "mappings": [
                 {
-                  "from": "",
-                  "id": 1,
-                  "text": "Down",
-                  "to": "",
-                  "type": 1,
-                  "value": "null"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "red",
-                    "value": null
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
                   },
-                  {
-                    "color": "green",
-                    "value": 10
-                  }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 3,
-            "y": 8
-          },
-          "id": 21,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "last"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "7.4.5",
-          "targets": [
-            {
-              "expr": "max(time() - process_start_time_seconds{instance=\"$alertmanager_instance\"}) by(instance)",
-              "instant": false,
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Uptime Alertmanager",
-          "type": "stat"
-        },
-        {
-          "datasource": "$datasource",
-          "description": "Show Ready pods and all pods in the monitoring namespace",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "mappings": [
-                {
-                  "from": "",
-                  "id": 1,
-                  "text": "Down",
-                  "to": "",
-                  "type": 1,
-                  "value": "null"
+                  "type": "range"
                 },
                 {
-                  "from": "",
-                  "id": 2,
-                  "text": "",
-                  "to": "",
-                  "type": 1
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
                 }
               ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red",
-                    "value": null
-                  },
-                  {
-                    "color": "green",
-                    "value": 1
+                    "color": "green"
                   }
                 ]
               }
@@ -244,15 +122,1059 @@ data:
           "gridPos": {
             "h": 3,
             "w": 3,
-            "x": 6,
-            "y": 8
+            "x": 9,
+            "y": 1
           },
-          "id": 25,
+          "id": 44,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value_and_name",
+            "wideLayout": false
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{container=\"victoriametrics-operator\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "{{ "{{" }} namespace {{ "}}" }}",
+              "range": true,
+              "refId": "Containers count",
+              "useBackend": false
+            }
+          ],
+          "title": "VMOperator",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 12,
+            "y": 1
+          },
+          "id": 41,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value_and_name",
+            "wideLayout": false
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{container=\"cloud-events-exporter\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "{{ "{{" }} namespace {{ "}}" }}",
+              "range": true,
+              "refId": "Containers errors",
+              "useBackend": false
+            }
+          ],
+          "title": "Cloud-events-exporter",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 15,
+            "y": 1
+          },
+          "id": 43,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value_and_name",
+            "wideLayout": false
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{container=\"node-exporter\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "{{ "{{" }} namespace {{ "}}" }}",
+              "range": true,
+              "refId": "Containers errors",
+              "useBackend": false
+            }
+          ],
+          "title": "Node-exporter",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 18,
+            "y": 1
+          },
+          "id": 59,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value_and_name",
+            "wideLayout": false
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "kube_pod_status_ready{namespace=\"logging\", condition=\"true\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "legendFormat": "{{ "{{" }} pod {{ "}}" }}",
+              "range": true,
+              "refId": "Containers errors"
+            }
+          ],
+          "title": "Logging",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 21,
+            "y": 1
+          },
+          "id": 48,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value_and_name",
+            "wideLayout": false
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "kube_pod_status_ready{namespace=\"$jaeger_namespace\", condition=\"true\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "legendFormat": "{{ "{{" }} pod {{ "}}" }}",
+              "range": true,
+              "refId": "Containers errors"
+            }
+          ],
+          "title": "Jaeger",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "fieldMinMax": false,
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 9,
+            "y": 4
+          },
+          "id": 47,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "value",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "vm_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{namespace=\"$vm_namespace\", container=\"vmsingle\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "VMSingle count",
+              "useBackend": false
+            }
+          ],
+          "title": "VMSingle ($vm_namespace)",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 12,
+            "y": 4
+          },
+          "id": 45,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "vm_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{namespace=\"$vm_namespace\", container=\"vmagent\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "Containers errors",
+              "useBackend": false
+            }
+          ],
+          "title": "VMAgent ($vm_namespace)",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "VMAlert_url",
+                  "url": "http://${__field.labels[\"host\"]}"
+                }
+              ],
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 15,
+            "y": 4
+          },
+          "id": 46,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "vm_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{namespace=~\"$vm_namespace\", container=\"vmalert\"} * on(namespace) group_left(namespace, host) kube_ingress_path{namespace=~\"$vm_namespace\",kube_namespace=~\"$vm_namespace\", service_name=\"vmauth-k8s\", ingress=~\".*vmalert.*\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "Containers errors",
+              "useBackend": false
+            }
+          ],
+          "title": "VMAlert ($vm_namespace)",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "AlertManager_url",
+                  "url": "http://${__field.labels[\"host\"]}"
+                }
+              ],
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 18,
+            "y": 4
+          },
+          "id": 40,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "alertmanager_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "up{namespace=~\"$alertmanager_namespace\", container=\"alertmanager\"} * on(namespace) group_left(namespace, host) kube_ingress_path{namespace=~\"$alertmanager_namespace\",kube_namespace=~\"$alertmanager_namespace\", ingress=~\".*vmalertmanager-k8s.*\"}",
+              "hide": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "Containers errors"
+            }
+          ],
+          "title": "Alertmanager ($alertmanager_namespace)",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "Grafana_url",
+                  "url": "http://${__field.labels[\"host\"]}"
+                }
+              ],
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "#808080",
+                      "index": 2,
+                      "text": "No data"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 21,
+            "y": 4
+          },
+          "id": 42,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "grafana_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "up{namespace=~\"$grafana_namespace\", container=\"grafana\"} * on(namespace) group_left(namespace, host) kube_ingress_path{namespace=~\"$grafana_namespace\",kube_namespace=~\"$grafana_namespace\", ingress=~\".*grafana*\"}",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "Containers errors",
+              "useBackend": false
+            }
+          ],
+          "title": "Grafana ($grafana_namespace) heath",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the alertmanager instance uptime",
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Down"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "green",
+                    "value": 10
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 21,
+            "y": 7
+          },
+          "id": 58,
           "options": {
             "colorMode": "value",
             "graphMode": "none",
             "justifyMode": "auto",
             "orientation": "auto",
+            "percentChangeColorMode": "standard",
             "reduceOptions": {
               "calcs": [
                 "last"
@@ -260,276 +1182,414 @@ data:
               "fields": "",
               "values": false
             },
+            "showPercentChange": false,
             "text": {},
-            "textMode": "value"
+            "textMode": "auto",
+            "wideLayout": true
           },
-          "pluginVersion": "7.4.5",
+          "pluginVersion": "11.6.5",
+          "repeat": "grafana_namespace",
+          "repeatDirection": "v",
           "targets": [
             {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$prometheus_namespace\", condition=\"true\"})",
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "max(time() - process_start_time_seconds{namespace=\"$grafana_namespace\", container=\"grafana\"}) by(instance)",
+              "instant": false,
               "interval": "",
               "legendFormat": "",
               "refId": "A"
-            },
-            {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$prometheus_namespace\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "B"
-            },
-            {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$vm_namespace\", condition=\"true\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "C"
-            },
-            {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$vm_namespace\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "D"
             }
           ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Ready pods / All pods",
+          "title": "Grafana ($grafana_namespace) uptime",
           "type": "stat"
         },
         {
-          "datasource": null,
-          "description": "Show dashboards with \"prometheus\" tag",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the prometheus instance uptime",
           "fieldConfig": {
             "defaults": {
-              "custom": {}
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Down"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "green",
+                    "value": 10
+                  }
+                ]
+              },
+              "unit": "s"
             },
             "overrides": []
           },
-          "folderId": null,
           "gridPos": {
-            "h": 9,
-            "w": 7,
+            "h": 3,
+            "w": 3,
             "x": 9,
-            "y": 8
+            "y": 10
           },
-          "headings": false,
-          "id": 8,
-          "limit": null,
+          "id": 12,
           "options": {
-            "folderId": null,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": true,
-            "showStarred": false,
-            "tags": [
-              "prometheus"
-            ]
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "text": {},
+            "textMode": "auto",
+            "wideLayout": true
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "prometheus"
+          "pluginVersion": "11.6.5",
+          "repeat": "vm_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "max(time() - process_start_time_seconds{namespace=\"$vm_namespace\",container=\"vmsingle\"}) by(instance)",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "range": true,
+              "refId": "B"
+            }
           ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Services",
-          "type": "dashlist"
+          "title": "VMSingle ($vm_namespace) uptime",
+          "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the prometheus instance uptime",
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Down"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "green",
+                    "value": 10
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 12,
+            "y": 10
+          },
+          "id": 56,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "text": {},
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "vm_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "max(time() - process_start_time_seconds{namespace=\"$vm_namespace\",container=\"vmagent\"}) by(instance)",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "VMAgent ($vm_namespace) uptime",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the prometheus instance uptime",
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Down"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "green",
+                    "value": 10
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 15,
+            "y": 10
+          },
+          "id": 57,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "text": {},
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "vm_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "max(time() - process_start_time_seconds{namespace=\"$vm_namespace\",container=\"vmalert\"}) by(instance)",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "VMAlert ($vm_namespace) uptime",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the alertmanager instance uptime",
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Down"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "green",
+                    "value": 10
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 18,
+            "y": 10
+          },
+          "id": 21,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "text": {},
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "repeat": "alertmanager_namespace",
+          "repeatDirection": "v",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "max(time() - process_start_time_seconds{namespace=\"$alertmanager_namespace\", container=\"alertmanager\"}) by(instance)",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Alertmanager ($alertmanager_namespace) uptime",
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 16
+          },
+          "id": 52,
+          "panels": [],
+          "title": "Dashboards links",
+          "type": "row"
+        },
+        {
           "description": "Show all dashboards",
           "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
+            "defaults": {},
             "overrides": []
           },
-          "folderId": null,
           "gridPos": {
-            "h": 17,
-            "w": 8,
-            "x": 16,
-            "y": 8
-          },
-          "headings": false,
-          "id": 20,
-          "limit": null,
-          "options": {
-            "folderId": null,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": true,
-            "showStarred": false,
-            "tags": []
-          },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "All dashboards",
-          "type": "dashlist"
-        },
-        {
-          "datasource": null,
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "folderId": null,
-          "gridPos": {
-            "h": 2,
-            "w": 9,
+            "h": 15,
+            "w": 5,
             "x": 0,
-            "y": 11
-          },
-          "headings": false,
-          "id": 27,
-          "limit": null,
-          "options": {
-            "folderId": null,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": true,
-            "showStarred": false,
-            "tags": [
-              "self-monitor",
-              "k8s",
-              "prometheus"
-            ]
-          },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "self-monitor"
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "",
-          "type": "dashlist"
-        },
-        {
-          "datasource": null,
-          "description": "Show your favorite dashboards",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "folderId": 0,
-          "gridPos": {
-            "h": 6,
-            "w": 9,
-            "x": 0,
-            "y": 13
-          },
-          "headings": false,
-          "id": 10,
-          "limit": null,
-          "options": {
-            "folderId": 0,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": false,
-            "showStarred": true,
-            "tags": []
-          },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": false,
-          "starred": true,
-          "tags": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Favorite",
-          "type": "dashlist"
-        },
-        {
-          "datasource": null,
-          "description": "Show dashboard with \"standalone\" tag",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 7,
-            "x": 9,
             "y": 17
           },
-          "headings": false,
-          "id": 6,
-          "limit": null,
+          "id": 20,
           "options": {
-            "folderId": null,
+            "folder": "{{ .Release.Namespace }}",
+            "includeVars": false,
+            "keepTime": false,
             "maxItems": 0,
             "query": "",
+            "showFolderNames": true,
             "showHeadings": false,
             "showRecentlyViewed": false,
             "showSearch": true,
             "showStarred": false,
             "tags": [
-              "standalone"
+              "self-monitor"
             ]
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "standalone"
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Standalone hosts",
+          "pluginVersion": "11.6.5",
+          "title": "Self-monitoring dashboards",
           "type": "dashlist"
         },
         {
-          "datasource": null,
-          "description": "Show dashboards with \"k8s\" tag",
+          "description": "Show all dashboards",
           "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
+            "defaults": {},
             "overrides": []
           },
-          "folderId": null,
           "gridPos": {
-            "h": 6,
-            "w": 9,
-            "x": 0,
-            "y": 19
+            "h": 15,
+            "w": 5,
+            "x": 5,
+            "y": 17
           },
-          "headings": false,
-          "id": 2,
-          "limit": null,
+          "id": 53,
           "options": {
-            "folderId": null,
+            "folder": "{{ .Release.Namespace }}",
+            "includeVars": false,
+            "keepTime": false,
             "maxItems": 0,
             "query": "",
+            "showFolderNames": true,
             "showHeadings": false,
             "showRecentlyViewed": false,
             "showSearch": true,
@@ -538,62 +1598,136 @@ data:
               "k8s"
             ]
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "k8s"
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Kubernetes",
+          "pluginVersion": "11.6.5",
+          "title": "Platform dashboards",
+          "type": "dashlist"
+        },
+        {
+          "description": "Show all dashboards",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 5,
+            "x": 10,
+            "y": 17
+          },
+          "id": 54,
+          "options": {
+            "folder": "{{ .Release.Namespace }}",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "",
+            "showFolderNames": true,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": [
+              "Kafka"
+            ]
+          },
+          "pluginVersion": "11.6.5",
+          "title": "Middleware and DB dashboards",
+          "type": "dashlist"
+        },
+        {
+          "description": "Show all dashboards",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 5,
+            "x": 15,
+            "y": 17
+          },
+          "id": 55,
+          "options": {
+            "folder": "{{ .Release.Namespace }}",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "",
+            "showFolderNames": true,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": [
+              "process"
+            ]
+          },
+          "pluginVersion": "11.6.5",
+          "title": "Process dashboards",
+          "type": "dashlist"
+        },
+        {
+          "description": "Show dashboard with \"standalone\" tag",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 4,
+            "x": 20,
+            "y": 17
+          },
+          "id": 6,
+          "options": {
+            "folder": "{{ .Release.Namespace }}",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "",
+            "showFolderNames": true,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": [
+              "standalone"
+            ]
+          },
+          "pluginVersion": "11.6.5",
+          "title": "Standalone hosts",
           "type": "dashlist"
         }
       ],
-      "refresh": false,
-      "schemaVersion": 27,
-      "style": "dark",
+      "preload": false,
+      "refresh": "",
+      "schemaVersion": 41,
       "tags": [],
       "templating": {
         "list": [
           {
             "current": {
-              "selected": false,
               "text": "Platform Monitoring Prometheus",
-              "value": "Platform Monitoring Prometheus"
+              "value": "PC3E95692D54ABCC0"
             },
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "datasource",
             "options": [],
             "query": "prometheus",
-            "queryValue": "",
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
             "type": "datasource"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "None",
+              "text": "",
               "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(prometheus_build_info, instance)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "prometheus_instance",
             "options": [],
             "query": {
@@ -602,30 +1736,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
+              "text": "10.42.0.15:9093",
+              "value": "10.42.0.15:9093"
             },
             "datasource": "$datasource",
             "definition": "label_values(alertmanager_build_info, instance)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "alertmanager_instance",
             "options": [],
             "query": {
@@ -634,27 +1755,17 @@ data:
             },
             "refresh": 2,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
             "auto": false,
             "auto_count": 30,
             "auto_min": "10s",
             "current": {
-              "selected": false,
               "text": "5m",
               "value": "5m"
             },
-            "description": null,
-            "error": null,
             "hide": 2,
-            "label": null,
             "name": "interval",
             "options": [
               {
@@ -665,24 +1776,17 @@ data:
             ],
             "query": "5m",
             "refresh": 2,
-            "skipUrlSync": false,
             "type": "interval"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "monitoring-test",
-              "value": "monitoring-test"
+              "text": "",
+              "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(prometheus_build_info, namespace)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "prometheus_namespace",
             "options": [],
             "query": {
@@ -691,29 +1795,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "k8s.test.org",
-              "value": "k8s.test.org"
+              "text": "",
+              "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(kube_ingress_path{ingress=~\"kubernetes-dashboard\"}, host)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "kuber_dashboard",
             "options": [],
             "query": {
@@ -722,29 +1814,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "prometheus.k8s.test.org",
-              "value": "prometheus.k8s.test.org"
+              "text": "",
+              "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(kube_ingress_path{exported_namespace=\"$prometheus_namespace\",service_port=\"9090\"}, host)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "prometheus_UI",
             "options": [],
             "query": {
@@ -753,30 +1833,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
+              "text": "",
               "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(kube_ingress_path{exported_namespace=\"$prometheus_namespace\",service_port=\"9093\"}, host)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "alertmanager_UI",
             "options": [],
             "query": {
@@ -785,26 +1852,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
+              "text": "10.42.0.17:8429",
+              "value": "10.42.0.17:8429"
             },
             "datasource": "$datasource",
             "definition": "label_values(vm_app_version{container=\"vmagent\"}, instance)",
             "hide": 2,
             "includeAll": false,
-            "multi": false,
             "name": "vm_instance",
             "options": [],
             "query": {
@@ -813,38 +1871,142 @@ data:
             },
             "refresh": 2,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
+            "type": "query"
+          },
+          {
+            "allowCustomValue": false,
+            "current": {
+              "text": "All",
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(alertmanager_build_info,namespace)",
+            "hide": 2,
+            "includeAll": true,
+            "multi": true,
+            "name": "alertmanager_namespace",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(alertmanager_build_info,namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "type": "query"
+          },
+          {
+            "allowCustomValue": false,
+            "current": {
+              "text": [
+                "monitoring"
+              ],
+              "value": [
+                "monitoring"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(grafana_build_info,namespace)",
+            "hide": 2,
+            "includeAll": true,
+            "multi": true,
+            "name": "grafana_namespace",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(grafana_build_info,namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "type": "query"
+          },
+          {
+            "allowCustomValue": false,
+            "current": {
+              "text": "All",
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(vm_app_version,namespace)",
+            "hide": 2,
+            "includeAll": true,
+            "multi": true,
+            "name": "vm_namespace",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(vm_app_version,namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "type": "query"
+          },
+          {
+            "allowCustomValue": false,
+            "current": {
+              "text": "monitoring",
+              "value": "monitoring"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(vm_app_version, namespace)",
+            "hide": 2,
+            "includeAll": false,
+            "name": "vm_namespace_query",
+            "options": [],
+            "query": {
+              "qryType": 5,
+              "query": "label_values(vm_app_version, namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "sort": 2,
             "type": "query"
           },
           {
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
+              "text": "jaeger",
+              "value": "jaeger"
             },
-            "datasource": "$datasource",
-            "definition": "label_values(vm_app_version, namespace)",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_status_ready{pod=~\"jaeger.*\"},namespace)",
             "hide": 2,
-            "includeAll": false,
-            "multi": false,
-            "name": "vm_namespace",
+            "name": "jaeger_namespace",
             "options": [],
             "query": {
-              "query": "label_values(vm_app_version, namespace)",
-              "refId": "StandardVariableQuery"
+              "qryType": 1,
+              "query": "label_values(kube_pod_status_ready{pod=~\"jaeger.*\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
             "type": "query"
           }
         ]
       },
       "time": {
-        "from": "now-15m",
+        "from": "now-1m",
         "to": "now"
       },
       "timepicker": {
@@ -862,7 +2024,6 @@ data:
       },
       "timezone": "",
       "title": "Home Dashboard",
-      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `home-dashboard` ) }}",
       "version": 2
     }
 {{- end }}
