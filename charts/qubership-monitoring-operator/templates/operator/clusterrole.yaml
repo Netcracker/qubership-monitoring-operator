@@ -508,6 +508,7 @@ rules:
       - create
       - update
       - delete
+      - patch
       - watch
   - apiGroups:
       - "admissionregistration.k8s.io"
