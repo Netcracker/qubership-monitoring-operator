@@ -164,6 +164,25 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 				if cr.Spec.Grafana.Operator.Resources.Size() > 0 {
 					c.Resources = cr.Spec.Grafana.Operator.Resources
 				}
+				// Configure WATCH_NAMESPACE environment variable
+				// If WatchNamespaces is set, use it; otherwise default to empty string (scan all namespaces)
+				// If NamespaceScope is true, limit to operator's namespace
+				watchNamespace := ""
+				if cr.Spec.Grafana.Operator.NamespaceScope {
+					watchNamespace = cr.GetNamespace()
+				} else if cr.Spec.Grafana.Operator.WatchNamespaces != "" {
+					watchNamespace = cr.Spec.Grafana.Operator.WatchNamespaces
+				} else if cr.Spec.Grafana.Operator.Namespaces != "" {
+					// Support deprecated Namespaces field for backward compatibility
+					watchNamespace = cr.Spec.Grafana.Operator.Namespaces
+				}
+				// Update WATCH_NAMESPACE environment variable
+				for i := range c.Env {
+					if c.Env[i].Name == "WATCH_NAMESPACE" {
+						c.Env[i].Value = watchNamespace
+						break
+					}
+				}
 				break
 			}
 		}
