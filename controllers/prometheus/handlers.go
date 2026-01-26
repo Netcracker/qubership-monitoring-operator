@@ -1,7 +1,7 @@
 package prometheus
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *PrometheusReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -43,7 +43,7 @@ func (r *PrometheusReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -78,7 +78,7 @@ func (r *PrometheusReconciler) handleClusterRole(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *PrometheusReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -110,7 +110,7 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusReconciler) handlePrometheus(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheus(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
@@ -137,7 +137,7 @@ func (r *PrometheusReconciler) handlePrometheus(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PrometheusReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -166,7 +166,7 @@ func (r *PrometheusReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -195,7 +195,7 @@ func (r *PrometheusReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *PrometheusReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -232,7 +232,7 @@ func (r *PrometheusReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -251,7 +251,7 @@ func (r *PrometheusReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusClusterRole(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
@@ -270,7 +270,7 @@ func (r *PrometheusReconciler) deleteClusterRole(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusClusterRoleBinding(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
@@ -289,7 +289,7 @@ func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *v1alpha1.PlatformMon
 	return nil
 }
 
-func (r *PrometheusReconciler) deletePrometheus(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deletePrometheus(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheus(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
@@ -308,7 +308,7 @@ func (r *PrometheusReconciler) deletePrometheus(cr *v1alpha1.PlatformMonitoring)
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -327,7 +327,7 @@ func (r *PrometheusReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *PrometheusReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deleteIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -346,7 +346,7 @@ func (r *PrometheusReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *PrometheusReconciler) deletePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
