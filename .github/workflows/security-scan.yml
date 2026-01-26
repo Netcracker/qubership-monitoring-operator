@@ -104,11 +104,11 @@ jobs:
     with:
       target: ${{ inputs.target || 'docker' }}
       image: ${{ format('{0}:{1}', matrix.package.image, inputs.tag || matrix.package.security_tag || 'latest') }}
-      only-high-critical: ${{ matrix.package.only_high_critical }}
-      trivy-scan: ${{ matrix.package.trivy_scan }}
-      grype-scan: ${{ matrix.package.grype_scan }}
-      only-fixed: ${{ matrix.package.only_fixed }}
-      continue-on-error: ${{ matrix.package.continue_on_error }}
+      only-high-critical: ${{ matrix.package.security_only_high_critical }}
+      trivy-scan: ${{ matrix.package.security_trivy_scan }}
+      grype-scan: ${{ matrix.package.security_grype_scan }}
+      only-fixed: ${{ matrix.package.security_only_fixed }}
+      continue-on-error: ${{ matrix.package.security_continue_on_error }}
 
   security-scan-single:
     permissions:
