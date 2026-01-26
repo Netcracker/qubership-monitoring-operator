@@ -6,25 +6,46 @@ on:
   push:
     branches:
     - '**'
-    paths-ignore:
-    - '.github/**'
-    - 'docs/**'
-    - 'CODE-OF-CONDUCT.md'
-    - 'CONTRIBUTING.md'
-    - 'LICENSE'
-    - 'README.md'
-    - 'SECURITY.md'
+    paths:
+    - '**'
+    - '!.github/**'
+    - '.github/workflows/integration-tests.yaml'
+    - '.github/workflows/build.yaml'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
   pull_request:
     branches:
     - '**'
-    paths-ignore:
-    - '.github/**'
-    - 'docs/**'
-    - 'CODE-OF-CONDUCT.md'
-    - 'CONTRIBUTING.md'
-    - 'LICENSE'
-    - 'README.md'
-    - 'SECURITY.md'
+    paths:
+    - '**'
+    - '!.github/**'
+    - '.github/workflows/integration-tests.yaml'
+    - '.github/workflows/build.yaml'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
+  workflow_dispatch:
+    inputs:
+      tags:
+        required: false
+        type: string
+        default: ''
+        description: 'Tags'
+      dry-run:
+        required: true
+        type: boolean
+        default: false
+        description: 'Dry run'
+  workflow_run:
+    workflows: [Run Monitoring Pipeline]
+    types: [requested]
 
 concurrency:
   # On main/release, we don't want any jobs cancelled so the sha is used to name the group
@@ -53,16 +74,31 @@ jobs:
     name: ${{ matrix.component.name }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v6.0.1
+      uses: actions/checkout@v6.0.0
+    - name: Set image name
+      run: |
+        OWNER="${{ github.repository_owner }}"
+        OWNER=$(echo "${OWNER,,}" | sed -E 's/[^a-z0-9._-]+/-/g')
+        echo "FULL_IMAGE_NAME=ghcr.io/${OWNER}/${{ matrix.component.name }}" >>${GITHUB_ENV}
+      env:
+        IMAGE_NAME: '${{ github.repository }}'
     - name: Docker meta
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
       with:
-        images: |
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.component.name }}
+        images: "${{ env.FULL_IMAGE_NAME }}"
         tags: |
           type=ref,event=branch
           type=ref,event=tag
+          type=sha,prefix=git-
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+        flavor: |
+          latest=${{ github.ref == 'refs/heads/main' }}
+        labels: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
+        annotations: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
@@ -81,7 +117,7 @@ jobs:
         file: ${{ matrix.component.file }}
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
-        push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
+        push: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

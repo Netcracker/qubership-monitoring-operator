@@ -1,0 +1,64 @@
+name: Run Monitoring Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - '**'
+    - '!.github/**'
+    - '.github/workflows/integration-tests.yaml'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+    - '**'
+    - '!.github/**'
+    - '.github/workflows/integration-tests.yaml'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  Wait-for-images:
+    if: |
+        github.event.pull_request.user.login != 'dependabot[bot]' &&
+        github.event.pull_request.user.login != 'renovate[bot]'
+    runs-on: ubuntu-latest
+    outputs:
+      conclusion: ${{ steps.wait.outputs.conclusion }}
+    steps:
+      - name: Wait for build.yaml to complete
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@396774180000abdb825cbf150b56cc59c6913db8 # v2.0.5
+        id: wait
+        with:
+          workflow: build.yaml
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  Monitoring-Pipeline:
+    needs: [Wait-for-images]
+    if: |
+      needs.Wait-for-images.outputs.conclusion == 'success' &&
+        (
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'renovate[bot]'
+        )
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@81a445840dde346a27ce09955779af4894bb0a14 # v1.2.0
+    with:
+      service_branch: ${{ github.sha }}
+      versions_file: '.github/versions.yaml'
+      pipeline_branch: '81a445840dde346a27ce09955779af4894bb0a14' #this value must match the value after '@' in 'uses'
+      repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
+      kind-layout: 'single-node'
