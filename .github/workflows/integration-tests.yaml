@@ -1,32 +1,33 @@
 name: Run Monitoring Pipeline
 
 on:
-  push:
-    branches: [main]
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
-  workflow_dispatch: {}
+  push
+#  push:
+#    branches: [main]
+#    paths:
+#    - '**'
+#    - '!.github/**'
+#    - '.github/workflows/integration-tests.yaml'
+#    - '!docs/**'
+#    - '!CODE-OF-CONDUCT.md'
+#    - '!CONTRIBUTING.md'
+#    - '!LICENSE'
+#    - '!README.md'
+#    - '!SECURITY.md'
+#  pull_request:
+#    types: [opened, synchronize, reopened]
+#    branches: [main]
+#    paths:
+#    - '**'
+#    - '!.github/**'
+#    - '.github/workflows/integration-tests.yaml'
+#    - '!docs/**'
+#    - '!CODE-OF-CONDUCT.md'
+#    - '!CONTRIBUTING.md'
+#    - '!LICENSE'
+#    - '!README.md'
+#    - '!SECURITY.md'
+#  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -55,10 +56,12 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@81a445840dde346a27ce09955779af4894bb0a14 # v1.2.0
+    #uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@81a445840dde346a27ce09955779af4894bb0a14 # v1.2.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@feat/final_status_job
     with:
       service_branch: ${{ github.sha }}
       versions_file: '.github/versions.yaml'
-      pipeline_branch: '81a445840dde346a27ce09955779af4894bb0a14' #this value must match the value after '@' in 'uses'
+      #pipeline_branch: '81a445840dde346a27ce09955779af4894bb0a14' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'feat/final_status_job' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
