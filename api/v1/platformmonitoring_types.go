@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1
 
 import (
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
-	grafv1alpha1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 )
@@ -153,7 +153,8 @@ type Grafana struct {
 	// Ingress allows to create Ingress for Grafana UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
 	// Config allows to override Config for Grafana.
-	Config grafv1alpha1.GrafanaConfig `json:"config,omitempty"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Config *runtime.RawExtension `json:"config,omitempty"`
 	// Custom grafana home dashboard
 	GrafanaHomeDashboard bool `json:"grafanaHomeDashboard,omitempty"`
 	// DashboardLabelSelector allows to query over a set of resources according to labels
@@ -173,7 +174,8 @@ type Grafana struct {
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
 	// DataStorage provides a means to configure the grafana data storage
-	DataStorage *grafv1alpha1.GrafanaDataStorage `json:"dataStorage,omitempty"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	DataStorage *runtime.RawExtension `json:"dataStorage,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
 	// and services.
@@ -206,8 +208,24 @@ type GrafanaOperator struct {
 	Image string `json:"image"`
 	// Image to use to initialize Grafana deployment.
 	InitContainerImage string `json:"initContainerImage"`
-	// Namespaces to scope the interaction of the Grafana operator.
+	// Namespaces is deprecated. Use WatchNamespaces for comma-separated list or enable namespaceScope.
 	Namespaces string `json:"namespaces,omitempty"`
+	// NamespaceScope limits the operator to its own namespace when set true.
+	NamespaceScope bool `json:"namespaceScope,omitempty"`
+	// LeaderElect enables leader election.
+	LeaderElect *bool `json:"leaderElect,omitempty"`
+	// WatchNamespaces defines comma separated namespaces to watch.
+	WatchNamespaces string `json:"watchNamespaces,omitempty"`
+	// WatchNamespaceSelector defines label selector for namespaces to watch.
+	WatchNamespaceSelector string `json:"watchNamespaceSelector,omitempty"`
+	// WatchLabelSelectors defines CR label selectors to watch.
+	WatchLabelSelectors string `json:"watchLabelSelectors,omitempty"`
+	// EnforceCacheLabels configures operator cache behaviour (off|safe|all).
+	EnforceCacheLabels string `json:"enforceCacheLabels,omitempty"`
+	// ClusterDomain configures cluster domain for generated services.
+	ClusterDomain string `json:"clusterDomain,omitempty"`
+	// MaxConcurrentReconciles overrides concurrency per CR type.
+	MaxConcurrentReconciles *int32 `json:"maxConcurrentReconciles,omitempty"`
 	// SecurityContext holds pod-level security attributes.
 	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
 	// Resources defines resources requests and limits for single Pods.

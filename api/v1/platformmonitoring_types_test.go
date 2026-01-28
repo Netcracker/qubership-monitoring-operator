@@ -1,4 +1,4 @@
-package v1alpha1
+package v1
 
 import (
 	"bufio"
@@ -15,7 +15,7 @@ var (
 	_, b, _, _                               = runtime.Caller(0)
 	RootDir                                  = filepath.Join(filepath.Dir(b), "../../..")
 	PlatformMonitoringCustomResourceManifest = filepath.Join(RootDir, "qubership-monitoring-operator",
-		"charts", "qubership-monitoring-operator", "crds", "monitoring.qubership.org_platformmonitorings.yaml")
+		"charts", "qubership-monitoring-operator", "crds", "monitoring.netcracker.com_platformmonitorings.yaml")
 )
 
 func TestPlatformMonitoringCRDManifest(t *testing.T) {

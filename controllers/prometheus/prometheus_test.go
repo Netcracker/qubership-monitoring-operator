@@ -3,13 +3,13 @@ package prometheus
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestPrometheusManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Prometheus: &v1alpha1.Prometheus{
+		Spec: monv1.PlatformMonitoringSpec{
+			Prometheus: &monv1.Prometheus{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -39,12 +39,12 @@ func TestPrometheusManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.PodMetadata.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.PodMetadata.Annotations[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Prometheus: &v1alpha1.Prometheus{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Prometheus: &monv1.Prometheus{},
 		},
 	}
 	t.Run("Test Prometheus manifest with nil labels and annotation", func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestPrometheusManifests(t *testing.T) {
 		assert.NotNil(t, m.GetLabels())
 		assert.Nil(t, m.GetAnnotations())
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
