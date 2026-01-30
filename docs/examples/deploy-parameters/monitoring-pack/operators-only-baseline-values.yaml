@@ -1,7 +1,6 @@
 monitoringOperator:
   # Use main branch instead of latest tag
-  # todo: change revision to :main
-  image: ghcr.io/netcracker/qubership-monitoring-operator:feature-monitoring-pack-prerequisites
+  image: ghcr.io/netcracker/qubership-monitoring-operator:main
   podMonitor:
     install: false
 
@@ -27,20 +26,13 @@ grafana:
     security:
       admin_user: admin
       admin_password: admin
-  dashboardLabelSelector:
-    - matchExpressions:
-        - key: monitoring-pack
-          operator: In
-          values:
-            - "two"
-  dashboardNamespaceSelector:
-    matchExpressions:
-      - key: openshift.io/cluster-monitoring
-        operator: NotIn
-        values: ["true"]
   operator:
     install: true
-    namespaces: "monitoring,pack-two"
+    # watchNamespaces: "monitoring,pack-two"  # TEMPORARILY COMMENTED FOR TESTING matchExpressions approach
+    watchNamespaces: ""  # Empty = operator watches all namespaces (WATCH_NAMESPACE="")
+    # When watchNamespaces is empty, filtering should be done via instanceSelector.matchExpressions on dashboards/datasources
+    # watchNamespaceSelector: "monitoring.enabled=true"  # Optional: Use label selector to match namespaces (e.g., "monitoring.enabled=true" matches all namespaces with this label)
+    # Priority: watchNamespaceSelector > watchNamespaces
     podMonitor:
       install: false
 

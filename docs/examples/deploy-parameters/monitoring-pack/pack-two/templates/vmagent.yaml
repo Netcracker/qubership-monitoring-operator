@@ -74,7 +74,7 @@ spec:
 {{- $newServiceName := printf "vmsingle-%s.%s.svc" $vmSingleName $namespace }}
 {{- range $spec.remoteWrite }}
 {{- $oldUrl := .url }}
-{{- $newUrl := $oldUrl | replace "k8s-dev-vmsingle.monitoring.svc" $newServiceName }}
+{{- $newUrl := $oldUrl | replace "k8s-dev-vmsingle.monitoring.svc" $newServiceName | replace "k8s-dev-vmsingle.pack-two.svc" $newServiceName }}
 {{- $_ := set . "url" $newUrl }}
 {{- end }}
 {{- end }}

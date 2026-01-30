@@ -1,0 +1,193 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: monitoring-test-dashboard
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: monitoring-test-dashboard
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  folder: monitoring
+  json: >
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "monitoring-vmsingle"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "tooltip": false,
+                  "viz": false,
+                  "legend": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "monitoring-vmsingle"
+              },
+              "editorMode": "code",
+              "expr": "count({__name__=~\".+\"})",
+              "format": "time_series",
+              "instant": false,
+              "legendFormat": "Total Metrics",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "monitoring-vmsingle"
+              },
+              "editorMode": "code",
+              "expr": "count({__name__=~\"vm_.+\"})",
+              "format": "time_series",
+              "instant": false,
+              "legendFormat": "VMSingle Metrics",
+              "range": true,
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "monitoring-vmsingle"
+              },
+              "editorMode": "code",
+              "expr": "count({__name__=~\"node_.+\"})",
+              "format": "time_series",
+              "instant": false,
+              "legendFormat": "Node Exporter Metrics",
+              "range": true,
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "monitoring-vmsingle"
+              },
+              "editorMode": "code",
+              "expr": "count({__name__=~\"kube_.+\"})",
+              "format": "time_series",
+              "instant": false,
+              "legendFormat": "Kube State Metrics",
+              "range": true,
+              "refId": "D"
+            }
+          ],
+          "title": "Available Metrics Count - Shows what data sources are active",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": [
+        "test",
+        "monitoring"
+      ],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-15m",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Monitoring Test Dashboard - VMSingle Activity",
+      "uid": "monitoring-test-dashboard",
+      "version": 1
+    }

@@ -1,5 +1,5 @@
 {{- if and .Values.grafana.dashboards.install .Values.grafana.dashboards.mandatoryExporters.kubeStateMetrics.enabled }}
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: {{ include "monitoring-pack-two.fullname" . }}-kubernetes-cluster-overview
@@ -10,11 +10,15 @@ metadata:
     {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" dict }}
     {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
 spec:
+  allowCrossNamespaceImport: true
   instanceSelector:
+{{- if .Values.grafana.dashboards.instanceSelector }}
+{{ toYaml .Values.grafana.dashboards.instanceSelector | indent 4 }}
+{{- else }}
     matchLabels:
       app.kubernetes.io/name: grafana
-  name: {{ include "monitoring-pack-two.fullname" . }}-kubernetes-cluster-overview.json
-  customFolderName: pack-two
+{{- end }}
+  folder: pack-two
   json: >
     {
       "annotations": {
@@ -1342,7 +1346,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to namespace",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}"
                       }
                     ]
                   }
@@ -1360,7 +1364,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to pods",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}&var-pod=${__data.fields.exported_pod}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-pod-resources`) }}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}&var-pod=${__data.fields.exported_pod}"
                       }
                     ]
                   }
@@ -1585,7 +1589,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to namespace",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}"
                       }
                     ]
                   }
@@ -1603,7 +1607,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to pod",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}&var-pod=${__data.fields.exported_pod}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-pod-resources`) }}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.exported_namespace}&var-pod=${__data.fields.exported_pod}"
                       }
                     ]
                   }
@@ -3486,7 +3490,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to pods",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-pod-resources`) }}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
                           }
                         ]
                       },
@@ -3663,7 +3667,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
                           }
                         ]
                       },
@@ -4036,7 +4040,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to pods",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-pod-resources`) }}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
                           }
                         ]
                       },
@@ -4184,7 +4188,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
                           }
                         ]
                       },
@@ -4396,7 +4400,7 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to namespace",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-namespace=${__field.labels.namespace}"
+                      "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/kubernetes-namespace-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-namespace=${__field.labels.namespace}"
                     }
                   ],
                   "mappings": [],
@@ -4527,7 +4531,7 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to namespace",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-namespace=${__field.labels.namespace}"
+                      "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/kubernetes-namespace-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-namespace=${__field.labels.namespace}"
                     }
                   ],
                   "mappings": [],
@@ -4658,7 +4662,7 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to node",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-node=${__field.labels.node}"
+                      "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-nodes-resources`) }}/kubernetes-nodes-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-node=${__field.labels.node}"
                     }
                   ],
                   "mappings": [],
@@ -4789,7 +4793,7 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to node",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-node=${__field.labels.node}"
+                      "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-nodes-resources`) }}/kubernetes-nodes-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-node=${__field.labels.node}"
                     }
                   ],
                   "mappings": [],
@@ -5699,7 +5703,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/k8s-resources-namespace?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell"
+                            "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-namespace-resources`) }}/k8s-resources-namespace?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell"
                           }
                         ]
                       },
@@ -6457,8 +6461,8 @@ spec:
           {
             "current": {
               "selected": true,
-              "text": "default",
-              "value": "default"
+              "text": "Pack Two VictoriaMetrics",
+              "value": "Pack Two VictoriaMetrics"
             },
             "hide": 0,
             "includeAll": false,
@@ -6608,7 +6612,7 @@ spec:
       },
       "timezone": "browser",
       "title": "Kubernetes / Cluster Overview",
-      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-cluster-overview`) ) %}",
+      "uid": "{{ printf `%.40s` (printf `%s-%s` .Release.Namespace `k8s-cluster-overview`) }}",
       "version": 1,
       "weekStart": ""
     }

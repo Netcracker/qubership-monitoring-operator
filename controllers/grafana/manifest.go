@@ -41,7 +41,19 @@ func grafana(cr *v1alpha1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	}
 	//Set parameters
 	graf.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1alpha1", Kind: "Grafana"})
-	graf.SetNamespace(cr.GetNamespace())
+
+	// Add way to move Grafana to a different namespace and set a custom name for the Grafana instance.
+	// Set custom namespace if specified, otherwise use PlatformMonitoring namespace
+	grafanaNamespace := cr.GetNamespace()
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		grafanaNamespace = cr.Spec.Grafana.Namespace
+	}
+	graf.SetNamespace(grafanaNamespace)
+
+	// Set custom name if specified, otherwise use default from asset file
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		graf.SetName(cr.Spec.Grafana.Name)
+	}
 
 	if cr.Spec.Grafana != nil {
 		if (cr.Spec.Grafana.Config != grafv1.GrafanaConfig{}) {

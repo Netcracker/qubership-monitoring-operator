@@ -53,6 +53,8 @@ rules:
   (dict "apiGroups" (list "discovery.k8s.io") "resources" (list "endpointslices") "verbs" (list "get" "list" "watch"))
   (dict "apiGroups" (list "extensions" "networking.k8s.io") "resources" (list "ingresses") "verbs" (list "get" "list" "watch"))
   (dict "apiGroups" (list "route.openshift.io" "image.openshift.io") "resources" (list "registry/metrics" "routers/metrics") "verbs" (list "get"))
+  (dict "apiGroups" (list "monitoring.coreos.com") "resources" (list "servicemonitors" "podmonitors" "probes") "verbs" (list "get" "list" "watch"))
+  (dict "apiGroups" (list "operator.victoriametrics.com") "resources" (list "vmservicescrapes" "vmpodscrapes" "vmprobes" "vmnodescrapes" "vmstaticscrapes") "verbs" (list "get" "list" "watch"))
   (dict "nonResourceURLs" (list "/metrics" "/metrics/resources" "/metrics/slis") "verbs" (list "get" "list" "watch"))
 -}}
 {{- $vmAgentClusterRules := .Values.rbac.vmAgent.clusterRules }}

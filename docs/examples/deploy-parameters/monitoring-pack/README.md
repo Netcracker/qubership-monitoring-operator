@@ -1,13 +1,27 @@
 # Monitoring Pack Quickstart
 
-This quickstart covers three deliverables:
+## Why Monitoring Pack?
+
+Monitoring Pack is a modular monitoring deployment architecture that allows you to install monitoring components
+incrementally based on team needs. This solution is particularly useful for:
+
+- **Separation of responsibilities**: OPS teams can deploy a basic monitoring set (pack-one), while DEV teams can add
+their own dashboards and alerts (pack-two) without interfering with the shared infrastructure
+- **Data isolation**: Each team can have its own VictoriaMetrics instance for storing metrics while reusing shared
+exporters
+- **Configuration flexibility**: Ability to configure different Grafana instances with different dashboards and
+datasources
+- **Gradual deployment**: Start with a minimal baseline (operators only), then add the OPS set, and finally the DEV set
+as needed
+
+This quickstart covers three components:
 
 1. **Operators-only baseline** – install Monitoring Operator, VictoriaMetrics Operator, and Grafana Operator with
 nothing except the mandatory exporters.
 2. **Pack-one** – extend that baseline with the minimal OPS bundle (vmagent, vmalert, ServiceMonitors, remote write)
-   plus shared exporter configuration.
+plus shared exporter configuration.
 3. **Pack-two** – provision a DEV-focused monitoring bundle (dedicated VMSingle/VMAgent/VMAlert, Grafana objects, and
-   ingress) that reuses the exporters from pack-one via label selectors.
+ingress) that reuses the exporters from pack-one via label selectors.
 
 Follow the sections below in order. The steps assume you already cloned this repository and have `kubectl` and `helm`
 configured against your target cluster.
@@ -19,15 +33,7 @@ configured against your target cluster.
 > - `pack-two` – pack-two components (DEV VMSingle/VMAgent/VMAlert/VMAuth, Grafana resources);
 > - `vmsingle-standalone` – a standalone VictoriaMetrics `vmsingle` instance for functional checks;
 
-## 1. Install Grafana Operator CRDs
-
-Grafana Operator CRDs must exist before Helm installs any resources that refer to them:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/grafana/grafana-operator/v4.10.0/deploy/manifests/v4.10.0/crds.yaml
-```
-
-## 2. Deploy the baseline Monitoring Operator
+## 1. Deploy the baseline Monitoring Operator
 
 Install the Monitoring Operator with only the mandatory exporters enabled (baseline scenario):
 
@@ -42,7 +48,15 @@ helm upgrade --install qubership-monitoring-operator \
 This chart deploys Monitoring Operator, VictoriaMetrics Operator, and Grafana Operator without any dashboards,
 datasources, or VictoriaMetrics clusters.
 
-## 3. Deploy a standalone vmsingle (optional test target)
+**Mandatory exporters** installed in the baseline:
+- **nodeExporter** – collects node-level metrics (CPU, memory, disk, network)
+- **kubeStateMetrics** – collects Kubernetes object state metrics (pods, nodes, services, etc.)
+- **cloudEventsExporter** – exports cloud infrastructure events
+- **versionExporter** – exports component version information
+
+These exporters provide basic infrastructure and Kubernetes metrics necessary for cluster monitoring.
+
+## 2. Deploy a standalone vmsingle (optional test target)
 
 Create an isolated namespace and apply the provided manifest to run a minimal VictoriaMetrics `vmsingle`. This instance
 is useful for validating remote write from `vmagent`:
@@ -50,6 +64,18 @@ is useful for validating remote write from `vmagent`:
 ```bash
 kubectl create namespace vmsingle-standalone
 kubectl apply -f docs/examples/deploy-parameters/monitoring-pack/tests/vmsingle-direct.yaml
+```
+
+## 3. Deploy test resources for checking separate grafana deployment (optional test target)
+
+This step together with the previous one aims to create a test example of a separately running grafana deployment (while
+being controlled by the operator) + grafanadashboard + grafanadatasource. This allows you to verify that Grafana
+Operator correctly manages Grafana resources even when they are in different namespaces and use cross-namespace import.
+
+```bash
+kubectl apply -f docs/examples/deploy-parameters/monitoring-pack/monitoring-folder.yaml
+kubectl apply -f docs/examples/deploy-parameters/monitoring-pack/monitoring-vmsingle-datasource.yaml
+kubectl apply -f docs/examples/deploy-parameters/monitoring-pack/monitoring-test-dashboard.yaml
 ```
 
 ## 4. Install pack-one (OPS monitoring bundle)
@@ -84,9 +110,9 @@ By default, VMAuth and VMUser are installed with basic authentication (`admin/ad
 VMUser resources using the label selector `app.kubernetes.io/name: vmuser`. Routing is automatically configured to route
 requests to installed components (vmagent, vmsingle) based on path patterns.
 
-To customize:
+**For pack-one** (`pack-one/values.yaml`):
 
-1. **Update credentials** in `values.yaml`:
+1. **Update credentials**:
    ```yaml
    vmUser:
      install: true
@@ -99,13 +125,7 @@ To customize:
        #   key: password
    ```
 
-2. **Customize routing** by specifying `targetRefs` in `vmUser.spec.targetRefs`. If not specified, targetRefs are
-automatically generated for installed components:
-   - **vmagent**: routes `/config.*`, `/target.*`, `/service-discovery.*`, `/static.*`, `/api/v1/write`,
-   `/api/v1/import.*`, `/api/v1/target.*`
-   - **vmsingle**: routes `/` (root path for VMUI), `/vmui.*`, `/graph.*`, `/api/v1/*`, `/prometheus/*`, etc.
-
-3. **VMAuth configuration** (if needed):
+2. **VMAuth configuration** (if needed):
    ```yaml
    vmAuth:
      install: true
@@ -115,74 +135,10 @@ automatically generated for installed components:
        # userNamespaceSelector: {}  # Default: empty (searches in all namespaces)
    ```
 
-### 4.2. Configure Ingress (optional)
+**For pack-two** (`pack-two/values.yaml`):
 
-To enable Ingress resources instead of port-forwarding:
-
-1. **Control Ingress installation** via `ingress.install` (default `true`). Sample configuration:
-   ```yaml
-   ingress:
-     install: true
-     vmAuth:
-       host: vmauth.example.com
-       ingressClassName: traefik # default controller in the quickstart cluster
-       servicePort: 8427
-       # Optional: TLS configuration
-       # tlsSecretName: vmauth-tls
-     vmAgent:
-       host: vmagent.example.com
-       ingressClassName: traefik
-       servicePort: 8429
-     vmSingle:
-       host: vmsingle.example.com
-       ingressClassName: traefik
-       servicePort: 8429
-   ```
-
-3. **Access services**:
-   - `vmauth`: `http://vmauth.example.com` (or `https://` if TLS is configured)
-   - `vmagent`: `http://vmagent.example.com` (or `https://` if TLS is configured)
-   - `vmsingle`: `http://vmsingle.example.com` (or `https://` if TLS is configured)
-
-   > **Note**: If VMAuth is enabled, access vmagent and vmsingle through VMAuth using the configured credentials.
-
-## 5. Install pack-two (DEV monitoring bundle)
-
-Pack-two targets development teams that need their own VictoriaMetrics + Grafana stack while still scraping the shared
-exporters delivered by pack-one. The chart installs:
-
-1. **VMSingle** – a DEV-only VictoriaMetrics cluster (`vmSingle`)
-2. **VMAgent** – collects metrics from both `monitoring-pack=one` and `monitoring-pack=two` ServiceMonitors
-3. **VMAlert** – rules and alert delivery scoped to DEV workloads
-4. **VMAuth / VMUser** (optional) – authentication and routing facade for DEV access
-5. **ServiceMonitors** – pack-two specific exporters (each labeled `monitoring-pack: "two"`)
-6. **Grafana objects** – datasource, example dashboards, and alerting rules bound to the DEV VMSingle
-
-### 5.1 Reusing pack-one exporters
-
-1. Ensure pack-one ServiceMonitors carry `monitoring-pack: "one"` (this is automatic unless you override
-   `monitoringPackLabel`).
-2. Pack-two’s VMAgent is rendered with `serviceScrapeSelector.matchExpressions` that includes both `"one"` and `"two"`,
-   so it automatically discovers the shared exporters alongside its own.
-3. Each pack still keeps an isolated storage/alerting stack—only the scrape configuration is shared.
-
-### 5.2 Install pack-two
-
-> **Note**: Pack-two assumes VictoriaMetrics Operator is already running (from baseline/pack-one) in the `monitoring`
-> namespace. If your operator lives elsewhere, update `vmOperatorNamespace` in
-> `docs/examples/deploy-parameters/monitoring-pack/pack-two/values.yaml` before installing.
-
-```bash
-helm upgrade --install pack-two docs/examples/deploy-parameters/monitoring-pack/pack-two \
-  --namespace pack-two \
-  --create-namespace \
-  -f docs/examples/deploy-parameters/monitoring-pack/pack-two/values.yaml
-```
-
-### 5.3 Configure VMAuth and VMUser (optional)
-
-By default pack-two deploys `vmuser-dev` with `admin/admin` credentials and labels that limit VMAuth discovery to pack-two
-users only. Override these credentials (or switch to secrets/tokens) before going to production:
+By default pack-two deploys `vmuser-dev` with `admin/admin` credentials and labels that limit VMAuth discovery to
+pack-two users only:
 
 ```yaml
 vmUser:
@@ -201,7 +157,32 @@ vmAuth:
         app.kubernetes.io/name: vmuser
 ```
 
-### 5.4 Configure Ingress for pack-two (optional)
+### 4.2. Configure Ingress (optional)
+
+To enable Ingress resources instead of port-forwarding:
+
+**For pack-one** (`pack-one/values.yaml`):
+
+```yaml
+ingress:
+  install: true
+  vmAuth:
+    host: vmauth.example.com
+    ingressClassName: traefik # default controller in the quickstart cluster
+    servicePort: 8427
+    # Optional: TLS configuration
+    # tlsSecretName: vmauth-tls
+  vmAgent:
+    host: vmagent.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+  vmSingle:
+    host: vmsingle.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+```
+
+**For pack-two** (`pack-two/values.yaml`):
 
 ```yaml
 ingress:
@@ -220,128 +201,150 @@ ingress:
     servicePort: 8429
 ```
 
-### 5.5 Validate pack-two
+**Access services**:
+- **pack-one**: `http://vmauth.example.com`, `http://vmagent.example.com`, `http://vmsingle.example.com`
+- **pack-two**: `http://vmauth-dev.example.com`, `http://vmagent-dev.example.com`, `http://vmsingle-dev.example.com`
+- If TLS is configured, use `https://` instead of `http://`
 
-1. `kubectl get vmsingle,vmagent,vmalert -n pack-two`
-2. Open the pack-two VMAgent UI (`http://vmagent-dev.example.com/targets`) and ensure exporter targets from both packs
-   are in the `UP` state.
-3. Open the pack-two VMSingle UI (`http://vmsingle-dev.example.com/vmui/`) and run `up{monitoring-pack="two"}`.
+> **Note**: If VMAuth is enabled, access vmagent and vmsingle through VMAuth using the configured credentials.
 
-### 5.6 Grafana Architecture and Dashboards
+## 5. Install pack-two (DEV monitoring bundle)
 
-#### How Grafana Works
+Pack-two targets development teams that need their own VictoriaMetrics + Grafana stack while still scraping the shared
+exporters delivered by pack-one. The chart installs:
 
-The Grafana deployment follows a specific architecture pattern:
+1. **VMSingle** – a DEV-only VictoriaMetrics cluster (`vmSingle`)
+2. **VMAgent** – collects metrics from both `monitoring-pack=one` and `monitoring-pack=two` ServiceMonitors
+3. **VMAlert** – rules and alert delivery scoped to DEV workloads
+4. **VMAuth / VMUser** (optional) – authentication and routing facade for DEV access
+5. **ServiceMonitors** – pack-two specific exporters (each labeled `monitoring-pack: "two"`)
+6. **Grafana objects** – datasource, example dashboards, and alerting rules bound to the DEV VMSingle
 
-1. **Baseline deploys Grafana CR** – The Grafana CR is created in the `monitoring` namespace through PlatformMonitoring CR. This is required because Grafana Operator watches for Grafana CRs only in the namespace where it runs (`monitoring`).
+### 5.1 Reusing pack-one exporters
 
-2. **Grafana Operator scans multiple namespaces** – The operator is configured with `--namespaces="monitoring,pack-two"` to scan for dashboards and datasources in both namespaces.
+1. Ensure pack-one ServiceMonitors carry `monitoring-pack: "one"` (this is automatic unless you override
+`monitoringPackLabel`).
+2. Pack-two's VMAgent is rendered with `serviceScrapeSelector.matchExpressions` that includes both `"one"` and `"two"`,
+so it automatically discovers the shared exporters alongside its own.
+3. Each pack still keeps an isolated storage/alerting stack—only the scrape configuration is shared.
 
-3. **Pack-two creates dashboards** – Dashboards are created in the `pack-two` namespace with the label `monitoring-pack: "two"`.
+### 5.2 Install pack-two
 
-4. **Grafana finds dashboards via selectors** – The Grafana CR from baseline uses `dashboardLabelSelector` and `dashboardNamespaceSelector` to discover dashboards in `pack-two` namespace.
+> **Note**: Pack-two assumes VictoriaMetrics Operator is already running (from baseline/pack-one) in the `monitoring`
+> namespace. If your operator lives elsewhere, update `vmOperatorNamespace` in
+> `docs/examples/deploy-parameters/monitoring-pack/pack-two/values.yaml` before installing.
 
-5. **Dashboards connect to Grafana** – Each dashboard uses `instanceSelector` with `app.kubernetes.io/name: grafana` to connect to the Grafana instance from baseline.
-
-6. **Datasource in pack-two** – The GrafanaDataSource is created in `pack-two` namespace because it connects to the VMSingle instance that exists in `pack-two`. Baseline doesn't have VMSingle, so the datasource must be where the metrics storage is located.
-
-   > **⚠️ Warning: Datasource separation limitation**
-   >
-   > Currently, separating datasources between baseline and pack-two is not fully supported due to limitations in the Grafana Operator version. The Grafana Operator may not discover GrafanaDataSource resources in namespaces other than where it's deployed (`monitoring`), even with `instanceSelector` configured. This is a known limitation documented in [grafana-operator issue #304](https://github.com/grafana/grafana-operator/issues/304).
-   >
-   > For more details, see [GrafanaDataSource documentation](https://github.com/Netcracker/qubership-monitoring-operator/blob/main/docs/configuration.md?plain=1#L1385).
-   >
-   > **TBD:** Upgrade Grafana Operator to a newer version that fully supports cross-namespace datasource discovery with `instanceSelector`.
-
-#### Mandatory Exporter Dashboards
-
-Pack-two includes dashboards for all mandatory exporters:
-
-- **nodeExporter** → `kubernetes-nodes-resources` dashboard (uses `node_*` metrics)
-- **kubeStateMetrics** → `kubernetes-cluster-overview` dashboard (uses `kube_*` metrics)
-- **cloudEventsExporter** → `cloud-events-exporter` dashboard
-- **versionExporter** → `version-exporter` dashboard
-
-These dashboards are located in `pack-two/templates/dashboards/` and can be enabled/disabled via `values.yaml`:
-
-```yaml
-grafana:
-  dashboards:
-    install: true
-    mandatoryExporters:
-      nodeExporter:
-        enabled: true
-      kubeStateMetrics:
-        enabled: true
-      cloudEventsExporter:
-        enabled: true
-      versionExporter:
-        enabled: true
+```bash
+helm upgrade --install pack-two docs/examples/deploy-parameters/monitoring-pack/pack-two \
+  --namespace pack-two \
+  --create-namespace \
+  -f docs/examples/deploy-parameters/monitoring-pack/pack-two/values.yaml
 ```
 
-#### Adding Custom Dashboards
+### 5.3 Grafana and Dashboards
 
-To add custom dashboards to pack-two:
+#### 5.3.1 Brief explanation of how Grafana Operator works
 
-1. **Create a dashboard template file** in `pack-two/templates/dashboards/`:
+Grafana Operator manages the lifecycle of Grafana instances and related resources (dashboards, datasources, folders,
+alerting rules) through Custom Resources (CR). The operator monitors changes in these resources and synchronizes them
+with actual Grafana instances.
 
-```yaml
-{{- if and .Values.grafana.dashboards.install .Values.grafana.dashboards.custom.myDashboard.enabled }}
-apiVersion: integreatly.org/v1alpha1
-kind: GrafanaDashboard
-metadata:
-  name: {{ include "monitoring-pack-two.fullname" . }}-my-dashboard
-  namespace: {{ include "monitoring-pack-two.namespace" . }}
-  labels:
-    app.kubernetes.io/component: monitoring
-    monitoring-pack: "two"
-    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" dict }}
-    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
-spec:
-  instanceSelector:
-    matchLabels:
-      app.kubernetes.io/name: grafana
-  json: >
-    {
-      "title": "My Custom Dashboard",
-      "panels": [...],
-      ...
-    }
-{{- end }}
-```
+**Main components:**
+- **Grafana Operator Deployment** – deployed in the `monitoring` namespace, manages all Grafana resources
+- **Grafana CR** – defines a Grafana instance (Deployment, Service, ConfigMap, etc.)
+- **GrafanaDashboard CR** – defines a dashboard that will be imported into Grafana
+- **GrafanaDatasource CR** – defines a datasource for connecting to metrics storage (e.g., VMSingle)
 
-2. **Add configuration to values.yaml**:
+#### 5.3.2 Cross-namespace configuration
 
-```yaml
-grafana:
-  dashboards:
-    install: true
-    custom:
-      - name: my-dashboard
-        enabled: true
-```
+Grafana configuration resources (dashboards, datasources, folders, alerting rules) can be located in different
+namespaces than where the Grafana instance is deployed. This allows teams to manage their dashboards independently while
+using a shared Grafana instance.
 
-   Or if you prefer object-based structure, you can modify `values.yaml` to use an object instead of an array:
+**To connect resources from another namespace:**
 
-```yaml
-grafana:
-  dashboards:
-    install: true
-    custom:
-      myDashboard:
-        enabled: true
-```
+1. **Set `allowCrossNamespaceImport: true`** in the resource's `spec` (GrafanaDashboard, GrafanaDatasource,
+GrafanaFolder, or GrafanaAlertRuleGroup):
 
-   Then update your template condition to match: `{{- if .Values.grafana.dashboards.custom.myDashboard.enabled }}`
+   ```yaml
+   spec:
+     allowCrossNamespaceImport: true
+     instanceSelector:
+       matchLabels:
+         app.kubernetes.io/name: grafana
+   ```
 
-3. **Important points**:
-   - Dashboard must be in `pack-two` namespace
-   - Must have label `monitoring-pack: "two"`
-   - Must use `instanceSelector` with `app.kubernetes.io/name: grafana`
-   - Use `${datasource}` variable in JSON for datasource references (will be resolved to pack-two datasource)
+2. **Configure `instanceSelector`** to specify which Grafana instance to connect to (see section 5.3.3)
+
+3. **Ensure Grafana Operator tracks the namespace** where resources are located (see section 5.3.3)
+
+#### 5.3.3 Configuring resource filtering
+
+Filtering which dashboards and other resources will be connected to a Grafana instance happens at two levels:
+
+**Recommended approach (simple and efficient):**
+
+1. **At the operator level**: Specify `watchNamespaces` in Grafana Operator configuration to limit tracked namespaces:
+   ```yaml
+   # In operators-only-baseline-values.yaml
+   grafana:
+     operator:
+       watchNamespaces: "monitoring,pack-two"  # Operator tracks only these namespaces
+   ```
+
+2. **At the resource level**: Use a simple label in `instanceSelector.matchLabels` for binding:
+   ```yaml
+   # In dashboard/datasource
+   spec:
+     allowCrossNamespaceImport: true
+     instanceSelector:
+       matchLabels:
+         app.kubernetes.io/name: grafana  # Simple label for binding
+   ```
+
+   And ensure the Grafana CR has the corresponding label:
+   ```yaml
+   # In Grafana CR
+   metadata:
+     labels:
+       app.kubernetes.io/name: grafana
+   ```
+
+> **Important**: If `watchNamespaces` is left empty (`""`), the operator will track all namespaces in the cluster. In
+this case, resource selection will occur only by `instanceSelector`. This may impact performance in loaded systems as
+the operator will process more resources.
+
+**Additional capabilities (for advanced scenarios):**
+
+If the recommended approach is insufficient, additional filtering mechanisms are available that can be combined:
+
+- **At the operator level**: Three operator parameters:
+  - `watchNamespaces` – comma-separated list of namespaces (e.g., `"monitoring,pack-two"`)
+  - `watchNamespaceSelector` – label selector for dynamic namespace discovery (e.g., `"monitoring.enabled=true"`)
+  - `watchLabelSelectors` – label selector for filtering CRs by their labels (e.g., `"environment=production"`)
+  
+  For more details, see the [Grafana Operator Helm chart documentation](https://grafana.github.io/grafana-operator/docs/installation/helm/).
+
+- **At the Grafana instance level**: The `instanceSelector` parameter in resources (GrafanaDashboard, GrafanaDatasource, etc.):
+  - `matchLabels` – exact label matching
+  - `matchExpressions` – flexible expressions for label matching (In, NotIn, Exists, DoesNotExist)
+  
+  For more details, see the [Grafana Operator v5 documentation](https://grafana.github.io/grafana-operator/docs/api/#grafanadashboardspec).
+
+#### 5.3.4 Separate Deployment for Grafana instances
+
+Monitoring Pack implements the ability to create separate Grafana instances for different teams or environments. Each
+Grafana instance has its own Deployment and operates independently, while all instances are managed by a single Grafana
+Operator.
+
+**Example:**
+- **Baseline Grafana** (namespace `monitoring`): used by the OPS team, has label `app.kubernetes.io/name: grafana`
+- **Pack-two Grafana** (namespace `pack-two`): used by the DEV team, has label `app.kubernetes.io/name: pack-two-monitoring-pack-two-grafana`
+
+Each instance can have its own dashboards, datasources, and settings, while they are isolated from each other at the
+Deployment level.
 
 ## 6. Access services
-
 ### Option A: Using Ingress (recommended)
 
 If Ingress is enabled, access services through the configured hosts:
@@ -373,12 +376,15 @@ Access the UIs/APIs through a browser or API client:
   - VMUI through VMAuth: [http://127.0.0.1:18427/vmui/](http://127.0.0.1:18427/vmui/)
   - vmagent targets through VMAuth: [http://127.0.0.1:18427/targets](http://127.0.0.1:18427/targets)
 - `vmagent`: [http://127.0.0.1:18428](http://127.0.0.1:18428)
+  - **Important**: VMAgent UI shows targets (`/targets` endpoint). VMSingle does NOT show targets when receiving data
+via `remoteWrite` from VMAgent.
 - `vmsingle`: [http://127.0.0.1:18429](http://127.0.0.1:18429)
+  - **Note**: VMSingle UI shows metrics queries, but NOT targets. To view targets, use VMAgent UI instead.
 
 ## 7. Validate the data flow
 
-1. **vmagent targets** – open the vmagent UI (via Ingress or port-forward) → `/targets` and check that all
-mandatory exporter targets are in the `UP` state.
+1. **vmagent targets** – open the vmagent UI (via Ingress or port-forward) → `/targets` and check that all mandatory
+exporter targets are in the `UP` state.
 
    ![vmagent targets](./images/vmagent-example.png)
 
@@ -395,15 +401,3 @@ query, and confirm that vmagent's scraped metrics arrive in vmsingle (results sh
    
 The VMAuth service automatically routes requests to the appropriate backend (vmagent or vmsingle) based on the path
 patterns defined in VMUser's targetRefs. The root path `/` is included to support VMUI access.
-
-## TODO
-
-> **Note:** Current development is paused pending Grafana Operator upgrade. The following items need to be addressed:
-
-- [ ] Check for redundant RBAC resources in pack-one/pack-two (pack-two RBAC was auto-generated)
-- [ ] Reconfigure Ingress so that VMAgent and VMSingle route through VMAuth
-- [ ] ServiceMonitors are deployed in the wrong namespace (`monitoring` instead of `pack-one`)
-- [ ] Add dashboard examples and ability to override them
-- [ ] Add recording rules examples and ability to override them
-- [ ] Add alert examples and ability to override them
-- [ ] **Q:** When creating pack-two, it also monitors pack-one. Is this correct? Why does this happen? Similar remote-write? (Need to remove selector "one" or "two" in agent)

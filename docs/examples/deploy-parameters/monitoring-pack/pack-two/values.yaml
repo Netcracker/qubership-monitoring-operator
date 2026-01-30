@@ -107,8 +107,9 @@ vmAgent:
     # Remote write to pack-two's VMSingle
     # Note: This will be resolved in the template using the actual VMSingle name
     # VictoriaMetrics Operator creates service as vmsingle-{name}, not {name}-vmsingle
+    # Template will replace this placeholder with the correct service name
     remoteWrite:
-      - url: http://k8s-dev-vmsingle.monitoring.svc:8429/api/v1/write
+      - url: http://k8s-dev-vmsingle.pack-two.svc:8429/api/v1/write
     # Configure selectors to collect metrics from both pack=one and pack=two ServiceMonitors
     # This allows sharing exporters between packs
     serviceScrapeSelector:
@@ -127,7 +128,7 @@ vmAlert:
   annotations: {}
   spec:
     datasource:
-      url: http://k8s-dev-vmsingle.monitoring.svc:8429
+      url: http://k8s-dev-vmsingle.pack-two.svc:8429
     evaluationInterval: 30s
     notifier:
       url: https://alertmanager.example.com
@@ -227,8 +228,75 @@ serviceMonitors:
     #       interval: 30s
 
 # Grafana configuration
-# Note: Grafana CR is created in baseline, pack-two only creates datasources and dashboards
+# Pack-two can create its own Grafana instance or reuse the one from baseline
 grafana:
+  # Set to true to create Grafana CR in pack-two namespace
+  # Set to false to reuse Grafana from baseline (monitoring namespace)
+  install: true
+  # Custom name for Grafana CR (default: pack-two-monitoring-pack-two-grafana)
+  name: ""
+  # Custom namespace for Grafana CR (default: pack-two)
+  namespace: ""
+  # Labels for Grafana CR
+  # These labels are used by instanceSelector.matchExpressions to match dashboards/datasources
+  # Default labels set by template: app.kubernetes.io/name, app.kubernetes.io/component, monitoring-pack
+  # You can add custom labels here for more flexible filtering:
+  labels:
+    # monitoring.enabled: "true"  # Example: Add this label to enable filtering by monitoring.enabled in matchExpressions
+    # environment: "dev"  # Example: Add environment label for filtering
+  # Annotations for Grafana CR
+  annotations: {}
+  # Grafana CR spec (grafana-operator v5 format)
+  # See: https://github.com/grafana/grafana-operator/blob/master/docs/api.md#grafanav1beta1
+  spec:
+    deployment:
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: grafana
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+    config:
+      log:
+        mode: console
+        level: warn
+      security:
+        admin_user: admin
+        admin_password: admin
+    # Ingress configuration (v5 format uses spec.ingress.spec)
+    ingress:
+      spec:
+        ingressClassName: traefik
+        rules:
+          - host: grafana-dev.example.com
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: grafana-service
+                      port:
+                        number: 3000
+    livenessProbeSpec:
+      initialDelaySeconds: 60
+      timeoutSeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 10
+    readinessProbeSpec:
+      initialDelaySeconds: 10
+      timeoutSeconds: 10
+      periodSeconds: 30
+      successThreshold: 1
+      failureThreshold: 10
   datasource:
     install: true
     name: pack-two-victoriametrics
@@ -243,6 +311,7 @@ grafana:
           access: proxy
           editable: true
           isDefault: true
+          uid: pack-two-victoriametrics
           jsonData:
             timeInterval: 30s
             tlsSkipVerify: true
@@ -250,6 +319,28 @@ grafana:
           version: 1
   dashboards:
     install: true
+    # Grafana instance selector for dashboards
+    # If grafana.install=true, dashboards will connect to pack-two Grafana
+    # If grafana.install=false, dashboards will connect to baseline Grafana in monitoring namespace
+    instanceSelector:
+      # Option 1: Use matchLabels (simpler, for exact matches) - TEMPORARILY COMMENTED FOR TESTING
+      # Connect to pack-two Grafana (when grafana.install=true)
+      # To connect to baseline Grafana instead, use:
+      # matchLabels:
+      #   app.kubernetes.io/name: grafana
+      # matchLabels:
+      #   app.kubernetes.io/name: pack-two-monitoring-pack-two-grafana
+      #   monitoring-pack: "two"
+      
+      # Option 2: Use matchExpressions (more flexible, supports In, Exists, etc.) - ACTIVE FOR TESTING
+      # Use this when WATCH_NAMESPACE is empty (operator watches all namespaces)
+      # Match Grafana instances with app.kubernetes.io/name="grafana" (baseline) OR "pack-two-monitoring-pack-two-grafana" (pack-two)
+      matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+            - grafana  # baseline Grafana in monitoring namespace
+            - pack-two-monitoring-pack-two-grafana  # pack-two Grafana (when grafana.install=true)
     # Mandatory exporter dashboards
     mandatoryExporters:
       # Dashboard for nodeExporter
