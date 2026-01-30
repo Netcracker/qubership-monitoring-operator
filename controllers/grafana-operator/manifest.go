@@ -164,23 +164,47 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 				if cr.Spec.Grafana.Operator.Resources.Size() > 0 {
 					c.Resources = cr.Spec.Grafana.Operator.Resources
 				}
-				// Configure WATCH_NAMESPACE environment variable
-				// If WatchNamespaces is set, use it; otherwise default to empty string (scan all namespaces)
+				// Configure WATCH_NAMESPACE and WATCH_NAMESPACE_SELECTOR environment variables
+				// Priority: NamespaceScope > WatchNamespaceSelector > WatchNamespaces > Namespaces (deprecated)
+				// If none are set, WATCH_NAMESPACE will be empty (watch all namespaces) - filtering should be done via instanceSelector.matchExpressions
 				// If NamespaceScope is true, limit to operator's namespace
 				watchNamespace := ""
+				watchNamespaceSelector := ""
 				if cr.Spec.Grafana.Operator.NamespaceScope {
 					watchNamespace = cr.GetNamespace()
+				} else if cr.Spec.Grafana.Operator.WatchNamespaceSelector != "" {
+					// Use label selector to dynamically discover namespaces
+					watchNamespaceSelector = cr.Spec.Grafana.Operator.WatchNamespaceSelector
 				} else if cr.Spec.Grafana.Operator.WatchNamespaces != "" {
 					watchNamespace = cr.Spec.Grafana.Operator.WatchNamespaces
 				} else if cr.Spec.Grafana.Operator.Namespaces != "" {
 					// Support deprecated Namespaces field for backward compatibility
 					watchNamespace = cr.Spec.Grafana.Operator.Namespaces
 				}
+				// If watchNamespace is still empty, operator will watch all namespaces (WATCH_NAMESPACE="")
+				// In this case, filtering should be done via instanceSelector.matchExpressions on dashboards/datasources
 				// Update WATCH_NAMESPACE environment variable
 				for i := range c.Env {
 					if c.Env[i].Name == "WATCH_NAMESPACE" {
 						c.Env[i].Value = watchNamespace
 						break
+					}
+				}
+				// Update WATCH_NAMESPACE_SELECTOR environment variable if set
+				if watchNamespaceSelector != "" {
+					found := false
+					for i := range c.Env {
+						if c.Env[i].Name == "WATCH_NAMESPACE_SELECTOR" {
+							c.Env[i].Value = watchNamespaceSelector
+							found = true
+							break
+						}
+					}
+					if !found {
+						c.Env = append(c.Env, corev1.EnvVar{
+							Name:  "WATCH_NAMESPACE_SELECTOR",
+							Value: watchNamespaceSelector,
+						})
 					}
 				}
 				break

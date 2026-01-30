@@ -30,7 +30,6 @@ spec:
               value: /usr/local/bin/templates
             # WATCH_NAMESPACE set to empty string to allow cross-namespace scanning
             # When WATCH_NAMESPACE is empty, Grafana Operator v5 scans all namespaces
-            # This enables allowCrossNamespaceImport to work for dashboards and datasources
             - name: WATCH_NAMESPACE
               value: ""
             - name: POD_NAME
