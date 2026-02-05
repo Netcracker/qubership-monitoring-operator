@@ -25,10 +25,58 @@ rules:
       - "update"
       - "patch"
   - apiGroups:
+      - "grafana.integreatly.org"
+    resources:
+      - grafanadashboards
+      - grafanadashboards/status
+      - grafanadatasources
+      - grafanadatasources/status
+      - grafanas
+      - grafanas/status
+      - grafanafolders
+      - grafanafolders/status
+      - grafananotificationchannels
+      - grafananotificationchannels/status
+      - grafanacontactpoints
+      - grafanacontactpoints/status
+      - grafanaalertrulegroups
+      - grafanaalertrulegroups/status
+      - grafananotificationpolicies
+      - grafananotificationpolicies/status
+      - grafananotificationtemplates
+      - grafananotificationtemplates/status
+      - grafanamutetimings
+      - grafanamutetimings/status
+      - grafananotificationpolicyroutes
+      - grafananotificationpolicyroutes/status
+      - grafanalibrarypanels
+      - grafanalibrarypanels/status
+      - grafanaserviceaccounts
+      - grafanaserviceaccounts/status
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "create"
+      - "update"
+      - "patch"
+      - "delete"
+  - apiGroups:
       - ""
     resources:
       - configmaps
       - namespaces
+      - secrets
+      - serviceaccounts
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "apps"
+    resources:
+      - deployments
     verbs:
       - get
       - list
@@ -45,3 +93,15 @@ rules:
       - list
       - watch
       - patch
+  - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete

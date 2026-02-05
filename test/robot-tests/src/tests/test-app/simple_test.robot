@@ -49,7 +49,7 @@ Update Service Monitor Label To 'monitoring-test'
 Target Of Test App Has Been Deleted And No Metrics Are Written
     [Tags]  full  test-app
     Add Selector To Cr  platformmonitoring  ${namespace}
-    ${cr}=  Get Namespaced Custom Object Status  monitoring.qubership.org  v1alpha1  ${namespace}  platformmonitorings  platformmonitoring
+    ${cr}=  Get Namespaced Custom Object Status  monitoring.netcracker.com  v1  ${namespace}  platformmonitorings  platformmonitoring
     Should Contain  str(${cr})  serviceMonitorSelector
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Target Of Test App Doesn't Exist

@@ -3,23 +3,23 @@ package vmalert
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr *v1alpha1.PlatformMonitoring
+	cr *monv1.PlatformMonitoring
 )
 
 func TestVmAlertManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Victoriametrics: &v1alpha1.Victoriametrics{
-				VmAlert: v1alpha1.VmAlert{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmAlert: monv1.VmAlert{},
 			},
 		},
 	}
@@ -32,7 +32,7 @@ func TestVmAlertManifests(t *testing.T) {
 		assert.NotNil(t, m.GetLabels())
 		assert.NotNil(t, m.GetAnnotations())
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},

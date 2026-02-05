@@ -1,4 +1,4 @@
-apiVersion: monitoring.qubership.org/v1alpha1
+apiVersion: monitoring.netcracker.com/v1
 kind: PlatformMonitoring
 metadata:
   name: platformmonitoring
@@ -1116,7 +1116,7 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .Values.grafana }}
-  {{- if .Values.grafana.install }}
+  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
   grafana:
     install: {{ .Values.grafana.install }}
     image: {{ template "grafana.image" . }}
@@ -1186,7 +1186,11 @@ spec:
     operator:
       image: {{ template "grafana.operator.image" . }}
       initContainerImage: {{ template "grafana.initContainer.image" . }}
-      {{- if .Values.grafana.operator.namespaces }}
+      {{- if .Values.grafana.operator.watchNamespaceSelector }}
+      watchNamespaceSelector: {{ .Values.grafana.operator.watchNamespaceSelector }}
+      {{- else if .Values.grafana.operator.watchNamespaces }}
+      watchNamespaces: {{ .Values.grafana.operator.watchNamespaces }}
+      {{- else if .Values.grafana.operator.namespaces }}
       namespaces: {{ .Values.grafana.operator.namespaces }}
       {{- end }}
       paused: {{ .Values.grafana.operator.paused | default false }}

@@ -10,7 +10,7 @@ metadata:
 rules:
   # Need to discover CRs in all namespaces
   - apiGroups:
-      - monitoring.qubership.org
+      - monitoring.netcracker.com
     resources:
       - customscalemetricrules
       - prometheusadapters
@@ -21,7 +21,7 @@ rules:
 
   # Need to update statuses and finalizers for all found CRs
   - apiGroups:
-      - monitoring.qubership.org
+      - monitoring.netcracker.com
     resources:
       - customscalemetricrules/status
       - customscalemetricrules/finalizers
