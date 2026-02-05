@@ -10,8 +10,9 @@ metadata:
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
 spec:
-  ingress:
-    enabled: false
+  # Ingress: do not set spec.ingress here. In grafana-operator v5, there's no "enabled" field.
+  # If spec.ingress is present (even with empty spec), Grafana Operator creates a catch-all (*) Ingress.
+  # We manage Ingress via monitoring-operator (grafana.ingress) only.
   livenessProbeSpec:
     initialDelaySeconds: 60
     timeoutSeconds: 30

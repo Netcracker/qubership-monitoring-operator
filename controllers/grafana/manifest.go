@@ -104,12 +104,30 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	}
 	//Set parameters
 	graf.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
-	graf.SetNamespace(cr.GetNamespace())
+
+	// Add way to move Grafana to a different namespace and set a custom name for the Grafana instance.
+	// Set custom namespace if specified, otherwise use PlatformMonitoring namespace
+	grafanaNamespace := cr.GetNamespace()
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		grafanaNamespace = cr.Spec.Grafana.Namespace
+	}
+	graf.SetNamespace(grafanaNamespace)
+
+	// Set custom name if specified, otherwise use default from asset file
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		graf.SetName(cr.Spec.Grafana.Name)
+	}
 
 	if cr.Spec.Grafana != nil {
 		// Disable default admin secret creation - we manage it ourselves
 		// In grafana-operator v5, disableDefaultAdminSecret is at spec level
 		graf.Spec.DisableDefaultAdminSecret = true
+
+		// Do not set spec.ingress on the Grafana CR: Grafana Operator would then create its own Ingress.
+		// In grafana-operator v5, there's no "enabled" field - if spec.ingress is present (even with empty spec),
+		// Grafana Operator creates a catch-all (*) Ingress. Asset no longer contains spec.ingress to avoid this.
+		// We explicitly set it to nil for safety (though it should already be nil after decoding the asset).
+		graf.Spec.Ingress = nil
 
 		// Config is now runtime.RawExtension in grafana-operator v5
 		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
@@ -199,7 +217,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Set dynamic labels that are always computed
 		graf.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
 		graf.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		
+
 		// Set default labels for GrafanaDashboard instanceSelector matching
 		// These labels are used by GrafanaDashboard instanceSelector to find matching Grafana instances
 		// In grafana-operator v5, GrafanaDashboard uses instanceSelector.matchLabels to find Grafana instances
@@ -210,7 +228,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		if graf.Labels["app.kubernetes.io/part-of"] == "" {
 			graf.Labels["app.kubernetes.io/part-of"] = "monitoring"
 		}
-		
+
 		// Allow overriding any labels (including component and part-of) via cr.Spec.Grafana.Labels
 		// This allows different Grafana instances to have different labels for different dashboards
 		// Users can set custom labels like "dashboards: custom" and use them in GrafanaDashboard instanceSelector
@@ -427,6 +445,9 @@ func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*networkingv1beta1.Ing
 		for lKey, lValue := range cr.Spec.Grafana.Ingress.Labels {
 			ingress.GetLabels()[lKey] = lValue
 		}
+	} else {
+		// Ingress not configured (empty host or install=false): do not leave the asset rule with host: "" (catch-all).
+		ingress.Spec.Rules = nil
 	}
 	return &ingress, nil
 }
@@ -497,6 +518,9 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		for lKey, lValue := range cr.Spec.Grafana.Ingress.Labels {
 			ingress.GetLabels()[lKey] = lValue
 		}
+	} else {
+		// Ingress not configured: do not leave the asset rule with host: "" (catch-all).
+		ingress.Spec.Rules = nil
 	}
 	return &ingress, nil
 }
