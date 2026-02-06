@@ -202,3 +202,10 @@ extraArgs: []
 #
 extraEnvs: {}
 #  ENV_NAME: ENV_VALUE
+
+# Allows creating Grafana dashboard for cloud-events-exporter
+# Type: boolean
+# Mandatory: no
+# Default: true
+#
+grafanaDashboard: true

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmsingle-k8s
+  namespace: vmsingle-standalone
+  labels:
+    name: vmsingle
+    app.kubernetes.io/name: vmsingle
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmsingle
+  template:
+    metadata:
+      labels:
+        app: vmsingle
+    spec:
+      containers:
+        - name: vmsingle
+          image: victoriametrics/victoria-metrics:v1.125.0
+          args:
+            - -storageDataPath=/victoria-metrics-data
+            - -retentionPeriod=30d
+            - -httpListenAddr=:8428
+          ports:
+            - containerPort: 8428
+              name: http
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 500Mi
+          volumeMounts:
+            - name: data
+              mountPath: /victoria-metrics-data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmsingle-k8s
+  namespace: vmsingle-standalone
+spec:
+  selector:
+    app: vmsingle
+  ports:
+    - port: 8429
+      targetPort: 8428
+      name: http

@@ -74,6 +74,14 @@ type AlertManager struct {
 	// Can be changed for already deployed service and the service
 	// will be removed during next reconciliation iteration
 	Install *bool `json:"install,omitempty"`
+	// Name specifies the name of the Grafana CR (default: "grafana")
+	// This allows creating multiple Grafana instances in the same cluster
+	// +optional
+	Name string `json:"name,omitempty"`
+	// Namespace specifies the namespace for Grafana CR (default: PlatformMonitoring namespace)
+	// This allows creating Grafana instances in different namespaces
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 	// SecurityContext holds pod-level security attributes.
 	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
 	// Resources defines resources requests and limits for single Pods.
@@ -146,6 +154,14 @@ type Grafana struct {
 	// Can be changed for already deployed service and the service
 	// will be removed during next reconciliation iteration
 	Install *bool `json:"install,omitempty"`
+	// Name specifies the name of the Grafana CR (default: "grafana").
+	// This allows creating multiple Grafana instances in the same cluster.
+	// +optional
+	Name string `json:"name,omitempty"`
+	// Namespace specifies the namespace for Grafana CR (default: PlatformMonitoring namespace).
+	// This allows creating Grafana instances in different namespaces.
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 	// SecurityContext holds pod-level security attributes.
 	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
 	// Resources defines resources requests and limits for single Pods.

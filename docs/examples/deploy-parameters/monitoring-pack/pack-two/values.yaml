@@ -1,0 +1,346 @@
+namespace: pack-two
+
+# Namespace where shared VictoriaMetrics Operator runs (from pack-one/baseline)
+# Change if operator installed elsewhere
+vmOperatorNamespace: monitoring
+
+nameOverride: ""
+fullnameOverride: ""
+
+commonLabels:
+  monitoring-pack: "two"
+commonAnnotations: {}
+
+# Standard labels that will be applied to ServiceMonitor resources
+# Default value: platform.monitoring.type: exporter
+# Can be overridden by setting this value
+standardLabels: {}
+
+rbac:
+  # Enable RBAC resources creation
+  install: true
+  # Additional labels for RBAC resources
+  labels: {}
+  # Additional annotations for RBAC resources
+  annotations: {}
+  vmAgent:
+    # Override default service account name (empty = auto-generated)
+    serviceAccountName: ""
+    # Override default cluster role name (empty = auto-generated)
+    clusterRoleName: ""
+    # Override default cluster role binding name (empty = auto-generated)
+    clusterRoleBindingName: ""
+    # Override default role name (empty = auto-generated)
+    roleName: ""
+    # Override default role binding name (empty = auto-generated)
+    roleBindingName: ""
+    # Override default cluster rules (empty = use defaults from template)
+    clusterRules: []
+    # Override default role rules (empty = use defaults from template)
+    roleRules: []
+  vmAlert:
+    # Override default service account name (empty = auto-generated)
+    serviceAccountName: ""
+    # Override default cluster role name (empty = auto-generated)
+    clusterRoleName: ""
+    # Override default cluster role binding name (empty = auto-generated)
+    clusterRoleBindingName: ""
+    # Override default role name (empty = auto-generated)
+    roleName: ""
+    # Override default role binding name (empty = auto-generated)
+    roleBindingName: ""
+    # Override default cluster rules (empty = use defaults from template)
+    clusterRules: []
+    # Override default role rules (empty = use defaults from template)
+    roleRules: []
+  vmOperator:
+    # Enable/disable Role/RoleBinding for victoria-metrics-operator in namespace
+    # Note: Operator already has ClusterRole from baseline/pack-one installation
+    # This only adds namespace-scoped permissions for creating resources in namespace
+    install: true
+    # ServiceAccount name that runs victoria-metrics-operator (default: monitoring-victoriametrics-operator)
+    serviceAccountName: ""
+    # Override default role rules for namespace-scoped permissions (empty = use defaults from template)
+    roleRules: []
+
+vmSingle:
+  install: true
+  name: k8s-dev
+  labels:
+    monitoring-pack: "two"
+  annotations: {}
+  spec:
+    replicaCount: 1
+    retentionPeriod: "30d"
+    resources:
+      limits:
+        cpu: "2"
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 2Gi
+    extraArgs:
+      search.maxPointsPerTimeseries: "150000"
+    removePvcAfterDelete: true
+
+vmAgent:
+  install: true
+  name: vmagent-dev
+  labels:
+    monitoring-pack: "two"
+  annotations: {}
+  spec:
+    arbitraryFSAccessThroughSMs: {}
+    externalLabels:
+      cluster: example-cluster
+      monitoring-pack: "two"
+    extraArgs:
+      promscrape.streamParse: "true"
+    resources:
+      limits:
+        cpu: "1"
+        memory: 2000Mi
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    scrapeInterval: 30s
+    # Remote write to pack-two's VMSingle
+    # Note: This will be resolved in the template using the actual VMSingle name
+    # VictoriaMetrics Operator creates service as vmsingle-{name}, not {name}-vmsingle
+    # Template will replace this placeholder with the correct service name
+    remoteWrite:
+      - url: http://k8s-dev-vmsingle.pack-two.svc:8429/api/v1/write
+    # Configure selectors to collect metrics from both pack=one and pack=two ServiceMonitors
+    # This allows sharing exporters between packs
+    serviceScrapeSelector:
+      matchExpressions:
+        - key: monitoring-pack
+          operator: In
+          values:
+            - "one"
+            - "two"
+
+vmAlert:
+  install: true
+  name: vmalert-dev
+  labels:
+    monitoring-pack: "two"
+  annotations: {}
+  spec:
+    datasource:
+      url: http://k8s-dev-vmsingle.pack-two.svc:8429
+    evaluationInterval: 30s
+    notifier:
+      url: https://alertmanager.example.com
+    remoteWrite:
+      url: https://alertmanager.example.com/api/v1/alerts
+    ruleSelector:
+      matchLabels:
+        monitoring-pack: "two"
+    ruleNamespaceSelector: {}
+
+vmAuth:
+  install: true
+  name: vmauth-dev
+  labels:
+    monitoring-pack: "two"
+  annotations: {}
+  spec:
+    replicaCount: 1
+    selectAllByDefault: false
+    port: "8427"
+    resources:
+      limits:
+        cpu: "500m"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    extraArgs: {}
+    extraEnvs: []
+
+vmUser:
+  install: true
+  name: vmuser-dev
+  labels:
+    monitoring-pack: "two"
+  annotations: {}
+  spec:
+    # Default credentials (override before production)
+    username: admin
+    password: admin
+    # targetRefs will be auto-generated if not specified
+    # targetRefs: []
+
+ingress:
+  install: true
+  vmAuth:
+    host: vmauth-dev.example.com
+    ingressClassName: traefik
+    servicePort: 8427
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  vmAgent:
+    host: vmagent-dev.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  vmSingle:
+    host: vmsingle-dev.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  # Grafana: Ingress created by this chart (Grafana Operator's Ingress disabled in grafana.spec)
+  grafana:
+    host: grafana-dev.example.com
+    ingressClassName: traefik
+    servicePort: 3000
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+
+# ServiceMonitors configuration
+# This includes both shared exporters from pack-one and pack-two specific exporters
+serviceMonitors:
+  namespaceSelector: {}
+  # Shared exporters from pack-one (these should have label monitoring-pack: "one")
+  # Pack-two's vmagent will collect them via serviceScrapeSelector
+  sharedExporters:
+    # These are references to ServiceMonitors that should be created by pack-one
+    # with label monitoring-pack: "one"
+    # Pack-two's vmagent will discover them automatically via label selector
+    enabled: true
+    # List of exporter names that should be shared (optional, for documentation)
+    exporters:
+      - kubeStateMetrics
+      - nodeExporter
+      - cloudEventsExporter
+      - versionExporter
+  # Pack-two specific exporters
+  exporters:
+    # Add pack-two specific exporters here
+    # Example:
+    # customDevExporter:
+    #   install: true
+    #   selector:
+    #     matchLabels:
+    #       app: custom-dev-exporter
+    #   namespace: monitoring
+    #   endpoints:
+    #     - port: metrics
+    #       interval: 30s
+
+# Grafana configuration
+# Pack-two can create its own Grafana instance or reuse the one from baseline
+grafana:
+  # Set to true to create Grafana CR in pack-two namespace
+  # Set to false to reuse Grafana from baseline (monitoring namespace)
+  install: true
+  # Custom name for Grafana CR (default: pack-two-monitoring-pack-two-grafana)
+  name: ""
+  # Custom namespace for Grafana CR (default: pack-two)
+  namespace: ""
+  # Labels for Grafana CR
+  # These labels are used by instanceSelector.matchExpressions to match dashboards/datasources
+  # Default labels set by template: app.kubernetes.io/name, app.kubernetes.io/component, monitoring-pack
+  # You can add custom labels here for more flexible filtering:
+  labels:
+    # monitoring.enabled: "true"  # Example: Add this label to enable filtering by monitoring.enabled in matchExpressions
+    # environment: "dev"  # Example: Add environment label for filtering
+  # Annotations for Grafana CR
+  annotations: {}
+  # Grafana CR spec (grafana-operator v5 format)
+  # See: https://github.com/grafana/grafana-operator/blob/master/docs/api.md#grafanav1beta1
+  spec:
+    deployment:
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: grafana
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+    config:
+      log:
+        mode: console
+        level: warn
+      security:
+        admin_user: admin
+        admin_password: admin
+    # Ingress: do not set spec.ingress here — Grafana Operator would create its own Ingress.
+    # We use a single Ingress from this chart (see ingress.grafana and templates/ingress.yaml).
+    livenessProbeSpec:
+      initialDelaySeconds: 60
+      timeoutSeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 10
+    readinessProbeSpec:
+      initialDelaySeconds: 10
+      timeoutSeconds: 10
+      periodSeconds: 30
+      successThreshold: 1
+      failureThreshold: 10
+  datasource:
+    install: true
+    name: pack-two-victoriametrics
+    labels:
+      app.kubernetes.io/component: monitoring
+      monitoring-pack: "two"
+    spec:
+      name: pack-two-victoriametrics.yaml
+      datasources:
+        - name: Pack Two VictoriaMetrics
+          type: prometheus
+          access: proxy
+          editable: true
+          isDefault: true
+          uid: pack-two-victoriametrics
+          jsonData:
+            timeInterval: 30s
+            tlsSkipVerify: true
+          url: http://k8s-dev-vmsingle.pack-two.svc:8429
+          version: 1
+  dashboards:
+    install: true
+    # Grafana instance selector. This ensures dashboards are only attached to pack-two Grafana instance.
+    # Uses monitoring-pack label to distinguish pack-two Grafana from monitoring namespace Grafana.
+    instanceSelector:
+      matchLabels:
+        monitoring-pack: "two"
+    # Mandatory exporter dashboards
+    mandatoryExporters:
+      # Dashboard for nodeExporter
+      nodeExporter:
+        enabled: true
+        name: kubernetes-nodes-resources
+      # Dashboard for kubeStateMetrics  
+      kubeStateMetrics:
+        enabled: true
+        name: kubernetes-cluster-overview
+      # Dashboard for cloudEventsExporter
+      cloudEventsExporter:
+        enabled: true
+        name: cloud-events-exporter
+      # Dashboard for versionExporter
+      versionExporter:
+        enabled: true
+        name: version-exporter
+    # Custom dashboards can be added here
+    custom: []
+  alerts:
+    install: true
+    # Alert examples will be created as separate files
+    # You can add custom alerts here
+

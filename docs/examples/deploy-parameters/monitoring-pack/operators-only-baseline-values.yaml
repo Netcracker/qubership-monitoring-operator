@@ -1,0 +1,166 @@
+monitoringOperator:
+  # Use main branch instead of latest tag
+  image: ghcr.io/netcracker/qubership-monitoring-operator:main
+  podMonitor:
+    install: false
+
+alertManager:
+  install: false
+  podMonitor:
+    install: false
+
+prometheus:
+  install: false
+  operator:
+    install: false
+    podMonitor:
+      install: false
+
+grafana:
+  install: true
+  replicas: 1
+  ingress:
+    install: true
+    host: grafana.example.com
+    ingressClassName: traefik
+  config:
+    log:
+      mode: console
+      level: warn
+    security:
+      admin_user: admin
+      admin_password: admin
+  operator:
+    install: true
+    # watchNamespaces: "monitoring,pack-two"  # TEMPORARILY COMMENTED FOR TESTING matchExpressions approach
+    watchNamespaces: ""  # Empty = operator watches all namespaces (WATCH_NAMESPACE="")
+    # When watchNamespaces is empty, filtering should be done via instanceSelector.matchExpressions on dashboards/datasources
+    # watchNamespaceSelector: "monitoring.enabled=true"  # Optional: Use label selector to match namespaces (e.g.,
+    # "monitoring.enabled=true" matches all namespaces with this label)
+    # Priority: watchNamespaceSelector > watchNamespaces
+    podMonitor:
+      install: false
+
+victoriametrics:
+  vmOperator:
+    install: true
+    serviceMonitor:
+      install: false
+  vmSingle:
+    install: false
+  vmCluster:
+    install: false
+  vmAgent:
+    install: false
+  vmAlert:
+    install: false
+  vmAlertManager:
+    install: false
+  vmUser:
+    install: false
+  vmAuth:
+    install: false
+
+# mandatory exporters
+kubeStateMetrics:
+  install: true
+  serviceMonitor:
+    install: false
+
+# mandatory exporters
+nodeExporter:
+  install: true
+  serviceMonitor:
+    install: false
+
+# mandatory exporters
+cloudEventsExporter:
+  install: true
+  serviceMonitor:
+    install: false
+  grafanaDashboard: false
+
+# mandatory exporters
+versionExporter:
+  install: true
+  serviceMonitor:
+    enabled: false
+  grafanaDashboard: false
+
+# future mandatory exporters (enable when charts become available)
+# sslExporter:
+#   install: true
+# goldPingerExporter:
+#   install: true
+
+# optional components explicitly disabled
+pushgateway:
+  install: false
+  serviceMonitor:
+    install: false
+
+commonDashboards:
+  install: false
+
+prometheusAdapter:
+  install: false
+
+promxy:
+  install: false
+
+graphite_remote_adapter:
+  install: false
+
+blackboxExporter:
+  install: false
+
+jsonExporter:
+  install: false
+
+networkLatencyExporter:
+  install: false
+
+cloudwatchExporter:
+  install: false
+
+promitorAgentScraper:
+  install: false
+
+promitorAgentResourceDiscovery:
+  install: false
+
+stackdriver_exporter:
+  install: false
+
+# disable monitoring resources managed by controllers
+prometheusRules:
+  install: false
+
+grafanaDashboards:
+  install: false
+
+kubernetesMonitors:
+  etcdServiceMonitor:
+    install: false
+  apiserverServiceMonitor:
+    install: false
+  kubeControllerManagerServiceMonitor:
+    install: false
+  kubeSchedulerServiceMonitor:
+    install: false
+  kubeletServiceMonitor:
+    install: false
+  coreDnsServiceMonitor:
+    install: false
+  nginxIngressPodMonitor:
+    install: false
+  openshiftApiserverServiceMonitor:
+    install: false
+  openshiftApiserverOperatorServiceMonitor:
+    install: false
+  openshiftClusterVersionOperatorServiceMonitor:
+    install: false
+  openshiftStatemetricsServiceMonitor:
+    install: false
+  openshiftHAProxyServiceMonitor:
+    install: false
