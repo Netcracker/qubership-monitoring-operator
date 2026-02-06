@@ -91,12 +91,14 @@ jobs:
           type=ref,event=branch
           type=ref,event=tag
           type=sha,prefix=git-
-          # branch-based tag: <branch>-<short-sha> for branch pushes
-          type=sha,format=short,prefix={{branch}}-,enable=${{ github.ref_type == 'branch' }}
-          # base-branch-based tag: <base_ref>-<short-sha> for tags, releases and PRs
-          type=sha,format=short,prefix={{base_ref}}-,enable=${{ github.event_name == 'pull_request' }}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
+          flavor: |
+          latest=${{ github.ref == 'refs/heads/main' }}
+          labels: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
+          annotations: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
         flavor: |
           latest=${{ github.ref == 'refs/heads/main' }}
         labels: |
