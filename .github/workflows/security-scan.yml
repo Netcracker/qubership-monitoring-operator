@@ -64,7 +64,7 @@ jobs:
           persist-credentials: false
 
       - name: Get Configuration File
-        uses: netcracker/qubership-workflow-hub/actions/docker-config-resolver@9538833017019ab6bbc2138d3034778dfe3a5d1f #v2.0.6
+        uses: netcracker/qubership-workflow-hub/actions/docker-config-resolver@ac0b35120b940eaa644cdcfee7d4957038998ec2 #v2.0.9
         id: config
         with:
           file-path: ".qubership/docker.cfg"
