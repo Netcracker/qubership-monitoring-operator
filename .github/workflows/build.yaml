@@ -91,7 +91,10 @@ jobs:
           type=ref,event=branch
           type=ref,event=tag
           type=sha,prefix=git-
-          type=sha,format=short,prefix={{branch}}-
+          # branch-based tag: <branch>-<short-sha> for branch pushes
+          type=sha,format=short,prefix={{branch}}-,enable={{branch}}
+          # base-branch-based tag: <base_ref>-<short-sha> for tags, releases and PRs
+          type=sha,format=short,prefix={{base_ref}}-,enable={{base_ref}}
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
         flavor: |
