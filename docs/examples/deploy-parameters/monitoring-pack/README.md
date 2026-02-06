@@ -314,6 +314,19 @@ Filtering which dashboards and other resources will be connected to a Grafana in
 this case, resource selection will occur only by `instanceSelector`. This may impact performance in loaded systems as
 the operator will process more resources.
 
+**Interaction of `instanceSelector` and `allowCrossNamespaceImport`:**
+
+- **Empty `instanceSelector: {}`** (without cross-namespace): the resource is applied only to Grafana instances in the
+  **same namespace** as the dashboard/datasource (per Grafana Operator behaviour).
+- **Empty `instanceSelector: {}` with `allowCrossNamespaceImport: true`**: the operator applies the resource to **all**
+  Grafana instances in the namespaces specified in `watchNamespaces` (WATCH_NAMESPACE). So a pack-two dashboard with
+  `instanceSelector: {}` and `allowCrossNamespaceImport: true` will appear in both baseline Grafana (monitoring) and
+  pack-two Grafana. To limit dashboards to a single instance, use an explicit `instanceSelector` (e.g.
+  `matchLabels: app.kubernetes.io/name: pack-two-monitoring-pack-two-grafana`).
+- **`allowCrossNamespaceImport: false`**: the resource is not applied to any Grafana instance and the operator reports
+  *No Matching Instance* (the resource is no longer considered for cross-namespace binding). Use `allowCrossNamespaceImport: true`
+  when the dashboard/datasource and the Grafana instance are in different namespaces.
+
 **Additional capabilities (for advanced scenarios):**
 
 If the recommended approach is insufficient, additional filtering mechanisms are available that can be combined:

@@ -195,6 +195,14 @@ ingress:
     tlsSecretName: ""
     labels: {}
     annotations: {}
+  # Grafana: Ingress created by this chart (Grafana Operator's Ingress disabled in grafana.spec)
+  grafana:
+    host: grafana-dev.example.com
+    ingressClassName: traefik
+    servicePort: 3000
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
 
 # ServiceMonitors configuration
 # This includes both shared exporters from pack-one and pack-two specific exporters
@@ -270,21 +278,8 @@ grafana:
       security:
         admin_user: admin
         admin_password: admin
-    # Ingress configuration (v5 format uses spec.ingress.spec)
-    ingress:
-      spec:
-        ingressClassName: traefik
-        rules:
-          - host: grafana-dev.example.com
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: grafana-service
-                      port:
-                        number: 3000
+    # Ingress: do not set spec.ingress here — Grafana Operator would create its own Ingress.
+    # We use a single Ingress from this chart (see ingress.grafana and templates/ingress.yaml).
     livenessProbeSpec:
       initialDelaySeconds: 60
       timeoutSeconds: 30
@@ -319,28 +314,11 @@ grafana:
           version: 1
   dashboards:
     install: true
-    # Grafana instance selector for dashboards
-    # If grafana.install=true, dashboards will connect to pack-two Grafana
-    # If grafana.install=false, dashboards will connect to baseline Grafana in monitoring namespace
+    # Grafana instance selector. This ensures dashboards are only attached to pack-two Grafana instance.
+    # Uses monitoring-pack label to distinguish pack-two Grafana from monitoring namespace Grafana.
     instanceSelector:
-      # Option 1: Use matchLabels (simpler, for exact matches) - TEMPORARILY COMMENTED FOR TESTING
-      # Connect to pack-two Grafana (when grafana.install=true)
-      # To connect to baseline Grafana instead, use:
-      # matchLabels:
-      #   app.kubernetes.io/name: grafana
-      # matchLabels:
-      #   app.kubernetes.io/name: pack-two-monitoring-pack-two-grafana
-      #   monitoring-pack: "two"
-      
-      # Option 2: Use matchExpressions (more flexible, supports In, Exists, etc.) - ACTIVE FOR TESTING
-      # Use this when WATCH_NAMESPACE is empty (operator watches all namespaces)
-      # Match Grafana instances with app.kubernetes.io/name="grafana" (baseline) OR "pack-two-monitoring-pack-two-grafana" (pack-two)
-      matchExpressions:
-        - key: app.kubernetes.io/name
-          operator: In
-          values:
-            - grafana  # baseline Grafana in monitoring namespace
-            - pack-two-monitoring-pack-two-grafana  # pack-two Grafana (when grafana.install=true)
+      matchLabels:
+        monitoring-pack: "two"
     # Mandatory exporter dashboards
     mandatoryExporters:
       # Dashboard for nodeExporter

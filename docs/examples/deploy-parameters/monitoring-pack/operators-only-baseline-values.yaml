@@ -19,6 +19,10 @@ prometheus:
 grafana:
   install: true
   replicas: 1
+  ingress:
+    install: true
+    host: grafana.example.com
+    ingressClassName: traefik
   config:
     log:
       mode: console
@@ -31,7 +35,8 @@ grafana:
     # watchNamespaces: "monitoring,pack-two"  # TEMPORARILY COMMENTED FOR TESTING matchExpressions approach
     watchNamespaces: ""  # Empty = operator watches all namespaces (WATCH_NAMESPACE="")
     # When watchNamespaces is empty, filtering should be done via instanceSelector.matchExpressions on dashboards/datasources
-    # watchNamespaceSelector: "monitoring.enabled=true"  # Optional: Use label selector to match namespaces (e.g., "monitoring.enabled=true" matches all namespaces with this label)
+    # watchNamespaceSelector: "monitoring.enabled=true"  # Optional: Use label selector to match namespaces (e.g.,
+    # "monitoring.enabled=true" matches all namespaces with this label)
     # Priority: watchNamespaceSelector > watchNamespaces
     podMonitor:
       install: false

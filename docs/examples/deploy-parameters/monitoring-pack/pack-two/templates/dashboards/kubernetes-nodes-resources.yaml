@@ -12,7 +12,7 @@ metadata:
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
-{{- if .Values.grafana.dashboards.instanceSelector }}
+{{- if hasKey .Values.grafana.dashboards "instanceSelector" }}
 {{ toYaml .Values.grafana.dashboards.instanceSelector | indent 4 }}
 {{- else }}
     matchLabels:

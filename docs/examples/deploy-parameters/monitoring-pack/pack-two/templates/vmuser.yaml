@@ -38,21 +38,27 @@ spec:
   {{- if $vmUserSpec.targetRefs }}
   targetRefs: {{ toYaml $vmUserSpec.targetRefs | nindent 4 }}
   {{- else }}
-  # Auto-generated targetRefs - simple routing like in controller
-  # Paths define which endpoints are accessible through VMAuth UI.
-  # VMAuth will route requests matching these path patterns to the corresponding backend services (VMAgent, VMSingle, etc.)
+  # Auto-generated targetRefs with host-based routing
+  # Each targetRef can specify hosts to route requests from specific Ingress hosts
+  # to the corresponding backend services (VMAgent, VMSingle, etc.)
   targetRefs:
     {{- $vmAgentValues := .Values.vmAgent | default dict }}
     {{- $vmSingleValues := .Values.vmSingle | default dict }}
     {{- $namespace := include "monitoring-pack-two.namespace" . }}
+    {{- $ingressValues := .Values.ingress | default dict }}
     {{- if and $vmSingleValues $vmSingleValues.install }}
-    # VMSingle CRD
+    # VMSingle CRD - route requests from vmsingle host through VMAuth
     - crd:
         kind: VMSingle
         name: {{ default (include "monitoring-pack-two.vmsingle.baseName" .) $vmSingleValues.name }}
         namespace: {{ $vmSingleValues.namespace | default $namespace }}
+      {{- if and $ingressValues.vmSingle $ingressValues.vmSingle.host }}
+      hosts:
+        - {{ $ingressValues.vmSingle.host }}
+      {{- end }}
       paths:
         - ""
+        - "/"
         - "/vmui.*"
         - "/graph.*"
         - "/api/v1/label.*"
@@ -80,12 +86,18 @@ spec:
         - "/prometheus/api/v1/admin/tsdb.*"
     {{- end }}
     {{- if $vmAgentValues.install }}
-    # VMAgent - always add if installed (can coexist with VMSingle)
+    # VMAgent - route requests from vmagent host through VMAuth
     - crd:
         kind: VMAgent
         name: {{ default (printf "%s-vmagent" (include "monitoring-pack-two.fullname" .)) $vmAgentValues.name }}
         namespace: {{ $namespace }}
+      {{- if and $ingressValues.vmAgent $ingressValues.vmAgent.host }}
+      hosts:
+        - {{ $ingressValues.vmAgent.host }}
+      {{- end }}
       paths:
+        - ""
+        - "/"
         - "/config.*"
         - "/target.*"
         - "/service-discovery.*"

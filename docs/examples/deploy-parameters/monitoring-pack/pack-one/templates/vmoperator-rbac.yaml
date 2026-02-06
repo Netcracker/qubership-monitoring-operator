@@ -1,7 +1,7 @@
 {{- /*
 Ensure victoria-metrics-operator keeps the full ClusterRole even when the baseline
 installation ships only namespace-scoped RBAC. This prevents forbidden errors when
-pack-one enables vmagent/vmalert but the operator cannot list its CRDs cluster-wide.
+pack-one enables vmagent but the operator cannot list its CRDs cluster-wide.
 */ -}}
 {{- if and .Values.rbac.install .Values.rbac.vmOperator.install }}
 {{- $namespace := include "monitoring-pack-one.namespace" . }}

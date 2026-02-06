@@ -40,21 +40,6 @@ rbac:
     clusterRules: []
     # Override default role rules (empty = use defaults from template)
     roleRules: []
-  vmAlert:
-    # Override default service account name (empty = auto-generated)
-    serviceAccountName: ""
-    # Override default cluster role name (empty = auto-generated)
-    clusterRoleName: ""
-    # Override default cluster role binding name (empty = auto-generated)
-    clusterRoleBindingName: ""
-    # Override default role name (empty = auto-generated)
-    roleName: ""
-    # Override default role binding name (empty = auto-generated)
-    roleBindingName: ""
-    # Override default cluster rules (empty = use defaults from template)
-    clusterRules: []
-    # Override default role rules (empty = use defaults from template)
-    roleRules: []
   vmOperator:
     # Enable/disable ClusterRole/ClusterRoleBinding for victoria-metrics-operator
     install: true
@@ -88,22 +73,6 @@ vmAgent:
     scrapeInterval: 30s
     remoteWrite:
       - url: http://vmsingle-k8s.vmsingle-standalone.svc:8429/api/v1/write
-
-vmAlert:
-  install: true
-  name: vmalert
-  labels: {}
-  annotations: {}
-  spec:
-    datasource:
-      url: https://remote-write.example.com
-    evaluationInterval: 30s
-    notifier:
-      url: https://alertmanager.example.com
-    remoteWrite:
-      url: https://alertmanager.example.com/api/v1/alerts
-    ruleSelector: {}
-    ruleNamespaceSelector: {}
 
 vmAuth:
   install: true
@@ -174,7 +143,6 @@ serviceMonitors:
       selector:
         matchLabels:
           platform.monitoring.app: kube-state-metrics
-      namespace: monitoring
       endpoints:
         - port: http-metrics
           interval: 30s
@@ -183,7 +151,6 @@ serviceMonitors:
       selector:
         matchLabels:
           platform.monitoring.app: node-exporter
-      namespace: monitoring
       endpoints:
         - port: metrics
           interval: 30s
@@ -196,7 +163,6 @@ serviceMonitors:
             operator: In
             values:
               - monitoring-cloud-events-exporter
-      namespace: monitoring
       endpoints:
         - port: metrics
           interval: 30s
@@ -206,7 +172,6 @@ serviceMonitors:
       selector:
         matchLabels:
           app.kubernetes.io/name: version-exporter
-      namespace: monitoring
       # Note: version-exporter ServiceMonitor in original chart doesn't have namespaceSelector
       # If Service is in different namespace, set namespaceSelector to empty {} to search in all namespaces
       namespaceSelector: {}
