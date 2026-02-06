@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Restore lychee cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b # v4.3.0
         id: restore-cache
         with:
           path: .lycheecache
