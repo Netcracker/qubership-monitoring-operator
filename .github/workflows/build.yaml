@@ -62,12 +62,15 @@ jobs:
       matrix:
         component:
         - name: qubership-monitoring-operator
+          description: Qubership Monitoring Operator image
           file: Dockerfile
           context: .
         - name: qubership-monitoring-transfer
+          description: Qubership Monitoring documentation and helm charts image
           file: docker-transfer/Dockerfile
           context: .
         - name: qubership-monitoring-int-tests
+          description: Qubership Monitoring integration tests image
           file: test/robot-tests/Dockerfile
           context: test/robot-tests
     runs-on: ubuntu-latest
@@ -95,6 +98,12 @@ jobs:
           type=sha,prefix=git-
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
+        flavor: |
+          latest=${{ github.ref == 'refs/heads/main' }}
+        labels: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
+        annotations: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
