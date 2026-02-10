@@ -59,6 +59,6 @@ jobs:
     with:
       service_branch: ${{ github.sha }}
       versions_file: '.github/versions.yaml'
-      pipeline_branch: '81a445840dde346a27ce09955779af4894bb0a14' #this value must match the value after '@' in 'uses'
+      pipeline_branch: '81a445840dde346a27ce09955779af4894bb0a14' #this value must match the value after '@' in 'uses' (test)
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
