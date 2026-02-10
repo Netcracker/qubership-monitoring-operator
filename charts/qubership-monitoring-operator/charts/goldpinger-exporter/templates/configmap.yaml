@@ -1,0 +1,10 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-zap
+  labels:
+    {{- include "goldpinger.labels" . | nindent 4 }}
+data:
+  zap.json: {{ .Values.goldpinger.zapConfig | toJson }}
+{{- end }}
