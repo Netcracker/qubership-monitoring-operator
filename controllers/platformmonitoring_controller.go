@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"time"
 
-	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/alertmanager"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/etcd"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
@@ -66,9 +66,9 @@ type PlatformMonitoringReconciler struct {
 	DiscoveryClient discovery.DiscoveryInterface
 }
 
-// +kubebuilder:rbac:groups=monitoring.qubership.org,resources=platformmonitorings,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=monitoring.qubership.org,resources=platformmonitorings/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=monitoring.qubership.org,resources=platformmonitorings/finalizers,verbs=update
+// +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

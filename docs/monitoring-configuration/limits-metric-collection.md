@@ -89,16 +89,16 @@ victoriametrics:
   vmAgent:
     serviceMonitorLabelSelector:
       matchLabels:
-        monitoring.qubership.org/enable: true
+        monitoring.netcracker.com/enable: true
     podMonitorLabelSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/enable
+        - key: monitoring.netcracker.com/enable
           operator: In
           values:
             - true
     probeLabelSelector:
       matchLabels:
-        monitoring.qubership.org/enable: true
+        monitoring.netcracker.com/enable: true
 ```
 
 **Warning!** Here you may want to use multiple selectors, to select CRs using two or more different labels.
@@ -109,7 +109,7 @@ victoriametrics:
   vmAgent:
     serviceMonitorLabelSelector:
       matchLabels:
-        monitoring.qubership.org/enable: true
+        monitoring.netcracker.com/enable: true
         app.kubernetes.io/component: monitoring
 ```
 
@@ -117,7 +117,7 @@ But these conditions work using **AND** logic (not OR logic). The conditions fro
 
 * Need to discover all CRs with a type of `ServiceMonitor`
 * Filter and keep only CRs that have labels
-  `monitoring.qubership.org/enable: true` AND `app.kubernetes.io/component: monitoring`
+  `monitoring.netcracker.com/enable: true` AND `app.kubernetes.io/component: monitoring`
 
 How to use matchLabels and `matchExpressions` you can read:
 
@@ -173,16 +173,16 @@ victoriametrics:
   vmAgent:
     serviceMonitorNamespaceSelector:
       matchLabels:
-        monitoring.qubership.org/enable: true
+        monitoring.netcracker.com/enable: true
     podMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/enable
+        - key: monitoring.netcracker.com/enable
           operator: In
           values:
             - true
     probeNamespaceSelector:
       matchLabels:
-        monitoring.qubership.org/enable: true
+        monitoring.netcracker.com/enable: true
 ```
 
 **Warning!** Here you may want to use multiple selectors, to select CRs using two or more different labels.
@@ -193,7 +193,7 @@ victoriametrics:
   vmAgent:
     serviceMonitorNamespaceSelector:
       matchLabels:
-        monitoring.qubership.org/enable: true
+        monitoring.netcracker.com/enable: true
         app.kubernetes.io/component: monitoring
 ```
 
@@ -201,7 +201,7 @@ But these conditions work using AND logic (not OR logic). The conditions from th
 
 * Need to all namespaces to discover CRs with a type of `ServiceMonitor`
 * Filter and keep only CRs from namespaces that have labels
-  `monitoring.qubership.org/enable: true` AND `app.kubernetes.io/component: monitoring`
+  `monitoring.netcracker.com/enable: true` AND `app.kubernetes.io/component: monitoring`
 
 How to use matchLabels and `matchExpressions` you can read:
 
@@ -401,7 +401,7 @@ Let's assume that you want to configure Monitoring to collect metrics from all n
 labels. For example with the label:
 
 ```yaml
-monitoring.qubership.org/enable: true
+monitoring.netcracker.com/enable: true
 ```
 
 **Note:** You can any label key and value or even some label combinations that you want. But do not use any common
@@ -414,13 +414,13 @@ victoriametrics:
   vmAgent:
     serviceMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/enable
+        - key: monitoring.netcracker.com/enable
           operator: In
           values:
             - true
     podMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/enable
+        - key: monitoring.netcracker.com/enable
           operator: In
           values:
             - true
@@ -433,11 +433,11 @@ victoriametrics:
   vmAgent:
     serviceMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/enable
+        - key: monitoring.netcracker.com/enable
           operator: Exists
     podMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/enable
+        - key: monitoring.netcracker.com/enable
           operator: Exists
 ```
 
@@ -454,7 +454,7 @@ metadata:
   name: opensearch
   labels:
     kubernetes.io/metadata.name: opensearch
-    monitoring.qubership.org/enable: true
+    monitoring.netcracker.com/enable: true
 ```
 
 and
@@ -466,7 +466,7 @@ metadata:
   name: monitoring
   labels:
     kubernetes.io/metadata.name: monitoring
-    monitoring.qubership.org/enable: true
+    monitoring.netcracker.com/enable: true
 ```
 
 ### Blacklist by the special label
@@ -475,7 +475,7 @@ Let's assume that you want to configure Monitoring to collect metrics from all n
 labels. For example with the label:
 
 ```yaml
-monitoring.qubership.org/disable: true
+monitoring.netcracker.com/disable: true
 ```
 
 **Note:** You can any label key and value or even some label combinations that you want. But do not use any common
@@ -488,13 +488,13 @@ victoriametrics:
   vmAgent:
     serviceMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/disable
+        - key: monitoring.netcracker.com/disable
           operator: NotIn
           values:
             - true
     podMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/disable
+        - key: monitoring.netcracker.com/disable
           operator: NotIn
           values:
             - true
@@ -507,11 +507,11 @@ victoriametrics:
   vmAgent:
     serviceMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/disable
+        - key: monitoring.netcracker.com/disable
           operator: DoesNotExist
     podMonitorNamespaceSelector:
       matchExpressions:
-        - key: monitoring.qubership.org/disable
+        - key: monitoring.netcracker.com/disable
           operator: DoesNotExist
 ```
 
@@ -524,5 +524,5 @@ metadata:
   name: opensearch
   labels:
     kubernetes.io/metadata.name: opensearch
-    monitoring.qubership.org/disable: true
+    monitoring.netcracker.com/disable: true
 ```

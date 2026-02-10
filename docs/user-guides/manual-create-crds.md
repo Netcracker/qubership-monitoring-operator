@@ -84,11 +84,11 @@ for Monitoring you need to execute the command:
 
 ```bash
 # monitoring-operator CRDs
-kubectl delete crd platformmonitorings.monitoring.qubership.org
+kubectl delete crd platformmonitorings.monitoring.netcracker.com
 
 # prometheus-adapter-operator CRDs
-kubectl delete crd customscalemetricrules.monitoring.qubership.org
-kubectl delete crd prometheusadapters.monitoring.qubership.org
+kubectl delete crd customscalemetricrules.monitoring.netcracker.com
+kubectl delete crd prometheusadapters.monitoring.netcracker.com
 
 # grafana-operator CRDs
 kubectl delete crd grafanas.integreatly.org

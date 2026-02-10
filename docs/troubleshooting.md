@@ -940,7 +940,7 @@ To fix the first issue you have two options:
   * in this case, you have to add label `app.kubernetes.io/component: monitoring` to CR:
 
     ```yaml
-    apiVersion: monitoring.qubership.org/v1alpha1
+    apiVersion: monitoring.netcracker.com/v1
     kind: CustomScaleMetricRule
     metadata:
       name: you-custom-rules

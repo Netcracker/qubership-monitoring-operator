@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -34,7 +34,7 @@ func getPrometheusexternalURL(tls bool, host string) string {
 	return fmt.Sprintf("http://%s", host)
 }
 
-func prometheusServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func prometheusServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusServiceAccountAsset), 100).Decode(&sa)
 
@@ -68,7 +68,7 @@ func prometheusServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceA
 	return &sa, nil
 }
 
-func prometheusClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func prometheusClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func prometheusClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole
 	return &clusterRole, nil
 }
 
-func prometheusClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func prometheusClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func prometheusClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Clus
 	return &clusterRoleBinding, nil
 }
 
-func prometheus(cr *v1alpha1.PlatformMonitoring) (*promv1.Prometheus, error) {
+func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 	prom := promv1.Prometheus{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusAsset), 100).Decode(&prom); err != nil {
 		return nil, err
@@ -459,7 +459,7 @@ func prometheus(cr *v1alpha1.PlatformMonitoring) (*promv1.Prometheus, error) {
 	return &prom, nil
 }
 
-func prometheusIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+func prometheusIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
 	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -552,7 +552,7 @@ func prometheusIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress
 	return &ingress, nil
 }
 
-func prometheusIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -655,7 +655,7 @@ func prometheusIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress
 	return &ingress, nil
 }
 
-func prometheusPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func prometheusPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err
@@ -685,7 +685,7 @@ func prometheusPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, 
 	return &podMonitor, nil
 }
 
-func IsPrometheusTLSEnabled(cr *v1alpha1.PlatformMonitoring) bool {
+func IsPrometheusTLSEnabled(cr *monv1.PlatformMonitoring) bool {
 	return cr.Spec.Prometheus != nil && cr.Spec.Prometheus.TLSConfig != nil &&
 		(cr.Spec.Prometheus.TLSConfig.WebTLSConfig != nil ||
 			cr.Spec.Prometheus.TLSConfig.GenerateCerts != nil && cr.Spec.Prometheus.TLSConfig.GenerateCerts.Enabled)

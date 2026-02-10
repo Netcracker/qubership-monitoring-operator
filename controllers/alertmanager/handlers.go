@@ -1,7 +1,7 @@
 package alertmanager
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *AlertManagerReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerServiceAccount(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
@@ -42,7 +42,7 @@ func (r *AlertManagerReconciler) handleServiceAccount(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *AlertManagerReconciler) handleSecret(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerSecret(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
@@ -72,7 +72,7 @@ func (r *AlertManagerReconciler) handleSecret(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *AlertManagerReconciler) handleAlertmanager(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handleAlertmanager(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanager(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Alertmanager manifest")
@@ -99,7 +99,7 @@ func (r *AlertManagerReconciler) handleAlertmanager(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *AlertManagerReconciler) handleService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handleService(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -133,7 +133,7 @@ func (r *AlertManagerReconciler) handleService(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *AlertManagerReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handleIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -160,7 +160,7 @@ func (r *AlertManagerReconciler) handleIngressV1beta1(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *AlertManagerReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -189,7 +189,7 @@ func (r *AlertManagerReconciler) handleIngressV1(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *AlertManagerReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
@@ -225,7 +225,7 @@ func (r *AlertManagerReconciler) handlePodMonitor(cr *v1alpha1.PlatformMonitorin
 	return nil
 }
 
-func (r *AlertManagerReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
 
 	m, err := alertmanagerServiceAccount(cr)
 	if err != nil {
@@ -245,7 +245,7 @@ func (r *AlertManagerReconciler) deleteServiceAccount(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *AlertManagerReconciler) deleteSecret(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deleteSecret(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerSecret(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
@@ -264,7 +264,7 @@ func (r *AlertManagerReconciler) deleteSecret(cr *v1alpha1.PlatformMonitoring) e
 	return nil
 }
 
-func (r *AlertManagerReconciler) deleteAlertmanager(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deleteAlertmanager(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanager(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Alertmanager manifest")
@@ -283,7 +283,7 @@ func (r *AlertManagerReconciler) deleteAlertmanager(cr *v1alpha1.PlatformMonitor
 	return nil
 }
 
-func (r *AlertManagerReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deleteService(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -302,7 +302,7 @@ func (r *AlertManagerReconciler) deleteService(cr *v1alpha1.PlatformMonitoring) 
 	return nil
 }
 
-func (r *AlertManagerReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deleteIngressV1beta1(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerIngressV1beta1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -321,7 +321,7 @@ func (r *AlertManagerReconciler) deleteIngressV1beta1(cr *v1alpha1.PlatformMonit
 	return nil
 }
 
-func (r *AlertManagerReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deleteIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerIngressV1(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Ingress manifest")
@@ -340,7 +340,7 @@ func (r *AlertManagerReconciler) deleteIngressV1(cr *v1alpha1.PlatformMonitoring
 	return nil
 }
 
-func (r *AlertManagerReconciler) deletePodMonitor(cr *v1alpha1.PlatformMonitoring) error {
+func (r *AlertManagerReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {
 	m, err := alertmanagerPodMonitor(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PodMonitor manifest")

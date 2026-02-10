@@ -1,7 +1,7 @@
 package prometheus_rules
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -25,7 +25,7 @@ func NewPrometheusRulesReconciler(c client.Client, s *runtime.Scheme) *Prometheu
 
 // Run reconciles k8s prometheus rules
 // Creates, updates and deletes prometheus rules depending of configuration
-func (r *PrometheusRulesReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusRulesReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if cr.Spec.PrometheusRules != nil && cr.Spec.PrometheusRules.IsInstall() && len(cr.Spec.PrometheusRules.RuleGroups) > 0 {
