@@ -115,10 +115,13 @@ jobs:
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
         push: >-
-          ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          github.event_name == 'workflow_dispatch' || github.event_name == 'release' || (github.event_name == 'pull_request' && 
-          github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'renovate[bot]' &&
-          github.event.pull_request.head.repo.full_name == github.repository) }}
+          ${{ 
+            (github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]') &&
+            (
+            (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+            github.ref == 'refs/heads/main' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+            )
+          }}
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
