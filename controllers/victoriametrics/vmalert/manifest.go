@@ -6,7 +6,7 @@ import (
 	"maps"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -28,7 +28,7 @@ const (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func vmAlertServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func vmAlertServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func vmAlertServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAcco
 	return &sa, nil
 }
 
-func vmAlertClusterRole(cr *v1alpha1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
+func vmAlertClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func vmAlertClusterRole(cr *v1alpha1.PlatformMonitoring, hasPsp, hasScc bool) (*
 	return &clusterRole, nil
 }
 
-func vmAlertClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func vmAlertClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func vmAlertClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Cluster
 	return &clusterRoleBinding, nil
 }
 
-func vmAlert(r *VmAlertReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1b1.VMAlert, error) {
+func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMAlert, error) {
 	var err error
 	vmalert := vmetricsv1b1.VMAlert{}
 	if err = yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertAsset), 100).Decode(&vmalert); err != nil {
@@ -481,7 +481,7 @@ func vmAlert(r *VmAlertReconciler, cr *v1alpha1.PlatformMonitoring) (*vmetricsv1
 	return &vmalert, nil
 }
 
-func vmAlertIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+func vmAlertIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
 	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -569,7 +569,7 @@ func vmAlertIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, e
 	return &ingress, nil
 }
 
-func vmAlertIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func vmAlertIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err

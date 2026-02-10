@@ -45,7 +45,7 @@ jobs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
       - name: Wait for build.yaml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@396774180000abdb825cbf150b56cc59c6913db8 # v2.0.5
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@ac0b35120b940eaa644cdcfee7d4957038998ec2 # v2.0.9
         id: wait
         with:
           workflow: build.yaml

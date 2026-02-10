@@ -1,7 +1,7 @@
 package kubernetes_monitors
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -27,7 +27,7 @@ func NewKubernetesMonitorsReconciler(c client.Client, s *runtime.Scheme, dc disc
 
 // Run reconciles k8s service monitors
 // Creates, updates and deletes service monitors for k8s monitoring depending of configurtion
-func (r *KubernetesMonitorsReconciler) Run(cr *v1alpha1.PlatformMonitoring) error {
+func (r *KubernetesMonitorsReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
 	if len(cr.Spec.KubernetesMonitors) > 0 {
@@ -172,7 +172,7 @@ func (r *KubernetesMonitorsReconciler) Run(cr *v1alpha1.PlatformMonitoring) erro
 }
 
 // uninstall deletes all resources related to the component
-func (r *KubernetesMonitorsReconciler) uninstall(cr *v1alpha1.PlatformMonitoring) {
+func (r *KubernetesMonitorsReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 
 	isOpenshiftV4, err := r.IsOpenShiftV4()
 	if err != nil {
@@ -228,7 +228,7 @@ func (r *KubernetesMonitorsReconciler) uninstall(cr *v1alpha1.PlatformMonitoring
 }
 
 // IsMonitorPresentInPublicCloud gets an answer in format (does the public cloud affect the monitor?, should the monitor be installed?)
-func IsMonitorPresentInPublicCloud(cr *v1alpha1.PlatformMonitoring, monitorName string) (bool, bool) {
+func IsMonitorPresentInPublicCloud(cr *monv1.PlatformMonitoring, monitorName string) (bool, bool) {
 	if cr.Spec.PublicCloudName != "" {
 		if pcMap, ok := utils.PublicCloudMonitorsEnabled[cr.Spec.PublicCloudName]; ok {
 			if installed, included := pcMap[monitorName]; included {
@@ -240,7 +240,7 @@ func IsMonitorPresentInPublicCloud(cr *v1alpha1.PlatformMonitoring, monitorName 
 }
 
 // IsMonitorInstall returns "true" if monitor should be installed
-func IsMonitorInstall(cr *v1alpha1.PlatformMonitoring, monitorName string) bool {
+func IsMonitorInstall(cr *monv1.PlatformMonitoring, monitorName string) bool {
 	// If the monitor affected by installation in the public cloud, cr.Spec.KubernetesMonitors doesn't matter
 	affected, installed := IsMonitorPresentInPublicCloud(cr, monitorName)
 	if affected {

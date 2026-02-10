@@ -3,7 +3,7 @@ package prometheus_rules
 import (
 	"embed"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -13,9 +13,9 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func prepareOverrideConfigMap(cr *v1alpha1.PlatformMonitoring) map[string]map[string]*v1alpha1.PrometheusRule {
+func prepareOverrideConfigMap(cr *monv1.PlatformMonitoring) map[string]map[string]*monv1.PrometheusRule {
 	// Init map with info about chosen groups and overridden rules from CR
-	overrideConfigMap := make(map[string]map[string]*v1alpha1.PrometheusRule)
+	overrideConfigMap := make(map[string]map[string]*monv1.PrometheusRule)
 	restrictedGroups := make(map[string]bool)
 	if cr.Spec.PublicCloudName != "" {
 		if pcMap, ok := utils.PublicCloudRulesEnabled[cr.Spec.PublicCloudName]; ok {
@@ -34,7 +34,7 @@ func prepareOverrideConfigMap(cr *v1alpha1.PlatformMonitoring) map[string]map[st
 			continue
 		}
 		if overrideConfigMap[group] == nil {
-			overrideConfigMap[group] = make(map[string]*v1alpha1.PrometheusRule)
+			overrideConfigMap[group] = make(map[string]*monv1.PrometheusRule)
 		}
 		for i := range cr.Spec.PrometheusRules.Override {
 			rule := cr.Spec.PrometheusRules.Override[i]
@@ -53,7 +53,7 @@ func prepareOverrideConfigMap(cr *v1alpha1.PlatformMonitoring) map[string]map[st
 	return overrideConfigMap
 }
 
-func prometheusRules(cr *v1alpha1.PlatformMonitoring) (*promv1.PrometheusRule, error) {
+func prometheusRules(cr *monv1.PlatformMonitoring) (*promv1.PrometheusRule, error) {
 	rules := promv1.PrometheusRule{}
 
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusRulesAsset), 100).Decode(&rules); err != nil {

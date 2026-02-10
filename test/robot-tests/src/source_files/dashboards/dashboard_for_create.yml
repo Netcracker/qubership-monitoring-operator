@@ -3,7 +3,7 @@ kind: GrafanaDashboard
 metadata:
   name: robotframework-dashboard
   labels:
-    app.qubership.org/component: monitoring
+    app.netcracker.com/component: monitoring
 spec:
   name: robotframework-dashboard.json
   json: >
