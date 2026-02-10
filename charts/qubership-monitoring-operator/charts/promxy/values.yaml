@@ -15,13 +15,13 @@ install: false
 # Mandatory: no
 # Default: "promxy"
 #
-name: "promxy"
+name: promxy
 
 # A docker image to use for promxy deployment.
 # Type: string
 # Mandatory: yes
 #
-# image: quay.io/jacksontj/promxy:v0.0.92
+# image: quay.io/jacksontj/promxy:v0.0.93
 
 # Additional arguments for promxy container.
 # Type: list[string]
@@ -52,6 +52,15 @@ config:
   #  - address: "victoriametrics.cloud.com"
   #    scheme: http
   #    label: "k8s-itdpl"
+  #  - address: "victoriametrics.cloud.com"
+  #    scheme: http
+  #    labels:
+  #      cluster: k8s-1
+  #      project: test
+  #    httpClient:
+  #      basicAuth:
+  #        username: admin
+  #        password: admin
 
   # Detailed configuration for promxy in the YAML format.
   # If this parameter is specified, the rest of parameters from the config section will not be used.

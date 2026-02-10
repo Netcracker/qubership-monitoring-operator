@@ -30,8 +30,7 @@ delivery/helm
 
 # binary packages in target
 target/
-build/_output
-build/_crds
+build/
 manager
 deployments
 
