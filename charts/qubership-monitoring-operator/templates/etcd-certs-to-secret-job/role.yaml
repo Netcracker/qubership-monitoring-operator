@@ -45,7 +45,7 @@ rules:
       - list
       - watch
     apiGroups:
-      - monitoring.qubership.org
+      - monitoring.netcracker.com
     resources:
       - platformmonitorings
   {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}

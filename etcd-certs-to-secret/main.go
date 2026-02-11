@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -356,7 +356,7 @@ func etcdServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, namespace string,
 	}
 	sm.OwnerReferences = []metav1.OwnerReference{
 		{
-			APIVersion: "monitoring.qubership.org/v1alpha1",
+			APIVersion: "monitoring.netcracker.com/v1",
 			Kind:       "PlatformMonitoring",
 			Name:       cr.Name,
 			UID:        cr.UID,
@@ -570,7 +570,7 @@ func etcdSecret(cr *qubershiporgv1.PlatformMonitoring, secret *corev1.Secret) (*
 	}
 	secret.OwnerReferences = []metav1.OwnerReference{
 		{
-			APIVersion: "monitoring.qubership.org/v1alpha1",
+			APIVersion: "monitoring.netcracker.com/v1",
 			Kind:       "PlatformMonitoring",
 			Name:       cr.Name,
 			UID:        cr.UID,
