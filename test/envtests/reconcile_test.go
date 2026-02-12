@@ -141,34 +141,6 @@ var _ = Describe("Reconcile", func() {
 		Expect(sm).NotTo(BeNil())
 		logf.Log.Info("Getting ApiServerServiceMonitor successful")
 
-		// Get ControllerManagerServiceMonitor
-		sm = promv1.ServiceMonitor{ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.GetNamespace() + "-" + "kube-controller-manager-service-monitor",
-			Namespace: cr.GetNamespace(),
-		},
-		}
-		err = k8sClient.Get(context.TODO(), client.ObjectKey{
-			Namespace: sm.Namespace,
-			Name:      sm.Name,
-		}, &sm)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(sm).NotTo(BeNil())
-		logf.Log.Info("Getting ControllerManagerServiceMonitor successful")
-
-		// Get SchedulerServiceMonitor
-		sm = promv1.ServiceMonitor{ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.GetNamespace() + "-" + "kube-scheduler-service-monitor",
-			Namespace: cr.GetNamespace(),
-		},
-		}
-		err = k8sClient.Get(context.TODO(), client.ObjectKey{
-			Namespace: sm.Namespace,
-			Name:      sm.Name,
-		}, &sm)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(sm).NotTo(BeNil())
-		logf.Log.Info("Getting SchedulerServiceMonitor successful")
-
 		// Get KubeletServiceMonitor
 		sm = promv1.ServiceMonitor{ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.GetNamespace() + "-" + "kubelet-service-monitor",
