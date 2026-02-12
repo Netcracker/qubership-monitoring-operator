@@ -1,0 +1,4954 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: kube_node_status_condition{condition="Ready", status="true"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: KubernetesNodeReady
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        condition: Ready
+        status: true
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Node ready (instance )"
+        description: "Node  has been unready for a long time\n  VALUE = 0\n  LABELS: map[__name__:kube_node_status_condition alertgroup:KubernetesAlerts alertname:KubernetesNodeReady condition:Ready group_name:KubernetesAlerts severity:critical status:true]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="Ready", status="true"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesNodeReady
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="MemoryPressure", status="true"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesMemoryPressure
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        condition: MemoryPressure
+        status: true
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes memory pressure (instance )"
+        description: " has MemoryPressure condition\n  VALUE = 1\n  LABELS: map[__name__:kube_node_status_condition alertgroup:KubernetesAlerts alertname:KubernetesMemoryPressure condition:MemoryPressure group_name:KubernetesAlerts severity:critical status:true]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="MemoryPressure", status="true"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesMemoryPressure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="DiskPressure", status="true"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDiskPressure
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        condition: DiskPressure
+        status: true
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes disk pressure (instance )"
+        description: " has DiskPressure condition\n  VALUE = 1\n  LABELS: map[__name__:kube_node_status_condition alertgroup:KubernetesAlerts alertname:KubernetesDiskPressure condition:DiskPressure group_name:KubernetesAlerts severity:critical status:true]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="DiskPressure", status="true"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDiskPressure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="OutOfDisk", status="true"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesOutOfDisk
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        condition: OutOfDisk
+        status: true
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes out of disk (instance )"
+        description: " has OutOfDisk condition\n  VALUE = 1\n  LABELS: map[__name__:kube_node_status_condition alertgroup:KubernetesAlerts alertname:KubernetesOutOfDisk condition:OutOfDisk group_name:KubernetesAlerts severity:critical status:true]"
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_node_status_condition{condition="OutOfDisk", status="true"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesOutOfDisk
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_job_status_failed'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesJobFailed
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Job failed (instance )"
+        description: "Job / failed to complete\n  VALUE = 1\n  LABELS: map[__name__:kube_job_status_failed alertgroup:KubernetesAlerts alertname:KubernetesJobFailed group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_job_status_failed'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesJobFailed
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_cronjob_spec_suspend'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesCronjobSuspended
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes CronJob suspended (instance )"
+        description: "CronJob / is suspended\n  VALUE = 1\n  LABELS: map[__name__:kube_cronjob_spec_suspend alertgroup:KubernetesAlerts alertname:KubernetesCronjobSuspended group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_cronjob_spec_suspend'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesCronjobSuspended
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_persistentvolumeclaim_status_phase{phase="Pending"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPersistentvolumeclaimPending
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+        phase: Pending
+      exp_annotations:
+        summary: "Kubernetes PersistentVolumeClaim pending (instance )"
+        description: "PersistentVolumeClaim / is pending\n  VALUE = 1\n  LABELS: map[__name__:kube_persistentvolumeclaim_status_phase alertgroup:KubernetesAlerts alertname:KubernetesPersistentvolumeclaimPending group_name:KubernetesAlerts phase:Pending severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_persistentvolumeclaim_status_phase{phase="Pending"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPersistentvolumeclaimPending
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_persistentvolume_status_phase{phase="Pending",job="kube-state-metrics"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPersistentvolumeError
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+        phase: Pending
+        job: kube-state-metrics
+      exp_annotations:
+        summary: "Kubernetes PersistentVolume error (instance )"
+        description: "Persistent volume is in bad state\n  VALUE = 1\n  LABELS: map[__name__:kube_persistentvolume_status_phase alertgroup:KubernetesAlerts alertname:KubernetesPersistentvolumeError group_name:KubernetesAlerts job:kube-state-metrics phase:Pending severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_persistentvolume_status_phase{phase="Pending",job="kube-state-metrics"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPersistentvolumeError
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kubelet_volume_stats_available_bytes'
+    values: "24x1440"
+  - series: 'kubelet_volume_stats_capacity_bytes'
+    values: "100x1440"  
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesVolumeOutOfDiskSpaceWarning
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Volume out of disk space (instance )"
+        description: "Volume is almost full (< 25 percent left)\n  VALUE = 24\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesVolumeOutOfDiskSpaceWarning group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kubelet_volume_stats_available_bytes'
+    values: "50x1440"
+  - series: 'kubelet_volume_stats_capacity_bytes'
+    values: "100x1440"  
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesVolumeOutOfDiskSpaceWarning
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kubelet_volume_stats_available_bytes'
+    values: "9x1440"
+  - series: 'kubelet_volume_stats_capacity_bytes'
+    values: "100x1440"  
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesVolumeOutOfDiskSpaceHigh
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Volume out of disk space (instance )"
+        description: "Volume is almost full (< 10 percent left)\n  VALUE = 9\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesVolumeOutOfDiskSpaceHigh group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kubelet_volume_stats_available_bytes'
+    values: "50x1440"
+  - series: 'kubelet_volume_stats_capacity_bytes'
+    values: "100x1440"  
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesVolumeOutOfDiskSpaceHigh
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kubelet_volume_stats_available_bytes'
+    values: "-1x420"
+  alert_rule_test:
+  - eval_time: 7h
+    groupname: KubernetesAlerts
+    alertname: KubernetesVolumeFullInFourDays
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Volume full in four days (instance )"
+        description: "/ is expected to fill up within four days. Currently -1 percent is available.\n  VALUE = -1\n  LABELS: map[__name__:kubelet_volume_stats_available_bytes alertgroup:KubernetesAlerts alertname:KubernetesVolumeFullInFourDays group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kubelet_volume_stats_available_bytes'
+    values: "50x420"
+  alert_rule_test:
+  - eval_time: 7h
+    groupname: KubernetesAlerts
+    alertname: KubernetesVolumeFullInFourDays
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_replicas'
+    values: "2x1440"
+  - series: 'kube_statefulset_status_replicas_ready'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes StatefulSet down (instance )"
+        description: "A StatefulSet went down\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesStatefulsetDown group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_replicas'
+    values: "2x1440"
+  - series: 'kube_statefulset_status_replicas_ready'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_status_phase{phase="Pending"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPodNotHealthy
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Pod not healthy (instance )"
+        description: "Pod has been in a non-ready state for longer than an hour.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesPodNotHealthy group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_status_phase{phase="Pending"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPodNotHealthy
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_container_status_restarts_total'
+    values: "1+2x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPodCrashLooping
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes pod crash looping (instance )"
+        description: "Pod  is crash looping\n  VALUE = 10\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesPodCrashLooping group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_container_status_restarts_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: KubernetesPodCrashLooping
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_replicaset_spec_replicas'
+    values: "2x1440"
+  - series: 'kube_replicaset_status_ready_replicas'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesReplicassetMismatch
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes ReplicasSet mismatch (instance )"
+        description: "Deployment Replicas mismatch\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesReplicassetMismatch group_name:KubernetesAlerts severity:warning]"        
+
+- interval: 1m
+  input_series:
+  - series: 'kube_replicaset_spec_replicas'
+    values: "2x1440"
+  - series: 'kube_replicaset_status_ready_replicas'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesReplicassetMismatch
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_spec_replicas'
+    values: "2x1440"
+  - series: 'kube_deployment_status_replicas_available'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDeploymentReplicasMismatch
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Deployment replicas mismatch (instance )"
+        description: "Deployment Replicas mismatch\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDeploymentReplicasMismatch group_name:KubernetesAlerts severity:warning]"      
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_spec_replicas'
+    values: "2x1440"
+  - series: 'kube_deployment_status_replicas_available'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDeploymentReplicasMismatch
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas_ready'
+    values: "2x1440"
+  - series: 'kube_statefulset_status_replicas'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetReplicasMismatch
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes StatefulSet replicas mismatch (instance )"
+        description: "A StatefulSet has not matched the expected number of replicas for longer than 15 minutes.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesStatefulsetReplicasMismatch group_name:KubernetesAlerts severity:warning]" 
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas_ready'
+    values: "2x1440"
+  - series: 'kube_statefulset_status_replicas'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetReplicasMismatch
+    exp_alerts: [] 
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_observed_generation'
+    values: "2x1440"
+  - series: 'kube_deployment_metadata_generation'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDeploymentGenerationMismatch
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes Deployment generation mismatch (instance )"
+        description: "A Deployment has failed but has not been rolled back.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDeploymentGenerationMismatch group_name:KubernetesAlerts severity:critical]" 
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_observed_generation'
+    values: "2x1440"
+  - series: 'kube_deployment_metadata_generation'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDeploymentGenerationMismatch
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_observed_generation'
+    values: "2x1440"
+  - series: 'kube_statefulset_metadata_generation'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetGenerationMismatch
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes StatefulSet generation mismatch (instance )"
+        description: "A StatefulSet has failed but has not been rolled back.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesStatefulsetGenerationMismatch group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_observed_generation'
+    values: "2x1440"
+  - series: 'kube_statefulset_metadata_generation'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetGenerationMismatch
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_current_revision'
+    values: "1x1440"
+  - series: 'kube_statefulset_replicas'
+    values: "1x1440"
+  - series: 'kube_statefulset_status_replicas_updated'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetUpdateNotRolledOut
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes StatefulSet update not rolled out (instance )"
+        description: "StatefulSet update has not been rolled out.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesStatefulsetUpdateNotRolledOut group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_current_revision'
+    values: "1x1440"
+  - series: 'kube_statefulset_status_update_revision'
+    values: "1x1440"  
+  - series: 'kube_statefulset_replicas'
+    values: "1x1440"
+  - series: 'kube_statefulset_status_replicas_updated'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesStatefulsetUpdateNotRolledOut
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_daemonset_status_number_ready'
+    values: "1x1440"
+  - series: 'kube_daemonset_status_desired_number_scheduled'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDaemonsetRolloutStuck
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes DaemonSet rollout stuck (instance )"
+        description: "Some Pods of DaemonSet are not scheduled or not ready\n  VALUE = 50\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDaemonsetRolloutStuck group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_daemonset_status_number_ready'
+    values: "2x1440"
+  - series: 'kube_daemonset_status_desired_number_scheduled'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDaemonsetRolloutStuck
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_daemonset_status_number_misscheduled'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDaemonsetMisscheduled
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes DaemonSet misscheduled (instance )"
+        description: "Some DaemonSet Pods are running where they are not supposed to run\n  VALUE = 1\n  LABELS: map[__name__:kube_daemonset_status_number_misscheduled alertgroup:KubernetesAlerts alertname:KubernetesDaemonsetMisscheduled group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_daemonset_status_number_misscheduled'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesDaemonsetMisscheduled
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_cronjob_next_schedule_time'
+    values: "-3700x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesCronjobTooLong
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes CronJob too long (instance )"
+        description: "CronJob / is taking more than 1h to complete.\n  VALUE = 4000\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesCronjobTooLong group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_cronjob_next_schedule_time'
+    values: "3700x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesCronjobTooLong
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_cronjob_next_schedule_time'
+    values: "-3700x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesCronjobTooLong
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes CronJob too long (instance )"
+        description: "CronJob / is taking more than 1h to complete.\n  VALUE = 4000\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesCronjobTooLong group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_cronjob_next_schedule_time'
+    values: "3700x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesCronjobTooLong
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_job_status_failed'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesJobCompletion
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes job completion (instance )"
+        description: "Kubernetes Job failed to complete\n  VALUE = 1\n  LABELS: map[__name__:kube_job_status_failed alertgroup:KubernetesAlerts alertname:KubernetesJobCompletion group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_job_status_failed'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: KubernetesAlerts
+    alertname: KubernetesJobCompletion
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_request_count{job="kube-apiserver",code="500"}'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: KubernetesApiServerErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes API server errors (instance )"
+        description: "Kubernetes API server is experiencing high error rate\n  VALUE = 100\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesApiServerErrors group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_request_count{job="kube-apiserver",code="500"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: KubernetesApiServerErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+10x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+20x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.5"}'
+    values: "0+30x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{le="1"}'
+    values: "0+100x1440"    
+  - series: 'apiserver_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+110x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: ApiServerRequestsSlow
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "API Server requests are slow(instance )"
+        description: "HTTP requests slowing down, 99th quantile is over 0.5s for 5 minutes\\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:ApiServerRequestsSlow group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+100x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.2"}'
+    values: "0+101x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+102x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{le="0.4"}'
+    values: "0+103x1440"    
+  - series: 'apiserver_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+104x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: ApiServerRequestsSlow
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'workqueue_depth'
+    values: "11x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: ControllerWorkQueueDepth
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Controller work queue depth is more than 10 (instance )"
+        description: "Controller work queue depth is more than 10\n  VALUE = 11\n  LABELS: map[alertgroup:KubernetesAlerts alertname:ControllerWorkQueueDepth group_name:KubernetesAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'workqueue_depth'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: ControllerWorkQueueDepth
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'rest_client_requests_total{code="400"}'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: KubernetesApiClientErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+      exp_annotations:
+        summary: "Kubernetes API client errors (instance )"
+        description: "Kubernetes API client is experiencing high error rate\n  VALUE = 100\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesApiClientErrors group_name:KubernetesAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'rest_client_requests_total{code="400"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: KubernetesAlerts
+    alertname: KubernetesApiClientErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_client_certificate_expiration_seconds_bucket {job="kubelet", le="0.1"}'
+    values: "0+10x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="0.3"}'
+    values: "0+20x1440"
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
+    values: "0+30x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
+    values: "0+100x1440"    
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
+    values: "0+110x1440"
+  - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: KubernetesClientCertificateExpiresNextWeek
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: KubernetesAlerts
+        job: kubelet
+      exp_annotations:
+        summary: "Kubernetes client certificate expires next week (instance )"
+        description: "A client certificate used to authenticate to the apiserver is expiring next week.\n  VALUE = 1\n  LABELS: map[__name__:apiserver_client_certificate_expiration_seconds_count alertgroup:KubernetesAlerts alertname:KubernetesClientCertificateExpiresNextWeek group_name:KubernetesAlerts job:kubelet severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_client_certificate_expiration_seconds_bucket {job="kubelet", le="0.1"}'
+    values: "0+10x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="0.3"}'
+    values: "0+20x1440"
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
+    values: "0+30x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
+    values: "0+100x1440"    
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
+    values: "0+110x1440"
+  - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: KubernetesClientCertificateExpiresNextWeek
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_client_certificate_expiration_seconds_bucket {job="kubelet", le="0.1"}'
+    values: "0+10x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="0.3"}'
+    values: "0+20x1440"
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
+    values: "0+30x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
+    values: "0+100x1440"    
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
+    values: "0+110x1440"
+  - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: KubernetesClientCertificateExpiresSoon
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: KubernetesAlerts
+        job: kubelet
+      exp_annotations:
+        summary: "Kubernetes client certificate expires soon (instance )"
+        description: "A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.\n  VALUE = 1\n  LABELS: map[__name__:apiserver_client_certificate_expiration_seconds_count alertgroup:KubernetesAlerts alertname:KubernetesClientCertificateExpiresSoon group_name:KubernetesAlerts job:kubelet severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'apiserver_client_certificate_expiration_seconds_bucket {job="kubelet", le="0.1"}'
+    values: "0+10x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="0.3"}'
+    values: "0+20x1440"
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
+    values: "0+30x1440"
+  - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
+    values: "0+100x1440"    
+  - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
+    values: "0+110x1440"
+  - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: KubernetesAlerts
+    alertname: KubernetesClientCertificateExpiresSoon
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'container_processes'
+    values: "9x1440"
+  - series: 'node_processes_max_processes'
+    values: "10x1440"
+  - series: 'node_processes_threads'
+    values: "1x1440"    
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeProcesses
+    alertname: CountPidsAndThreadOutOfLimit
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeProcesses
+      exp_annotations:
+        summary: "Host high PIDs and Threads usage (instance )"
+        description: "Sum of node's pids and threads is filling up (< 20 percent left)\n  VALUE = 100\n  LABELS: map[alertgroup:NodeProcesses alertname:CountPidsAndThreadOutOfLimit group_name:NodeProcesses severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_processes'
+    values: "1x1440"
+  - series: 'node_processes_max_processes'
+    values: "100x1440"
+  - series: 'node_processes_threads'
+    values: "10x1440"    
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeProcesses
+    alertname: CountPidsAndThreadOutOfLimit
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="ext"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="ext"}'
+    values: "0x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="ext"}'
+    values: "25x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanWarningThreshold
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+        fstype: ext
+      exp_annotations:
+        summary: "Disk usage on node > 70 percent (instance )"
+        description: "Node  disk usage of  is\n  VALUE = 80 percent"
+        
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="ext"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="ext"}'
+    values: "100x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="ext"}'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanWarningThreshold
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="ext"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="ext"}'
+    values: "1x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="ext"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanCriticalThreshold
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: NodeExporters
+        fstype: ext
+      exp_annotations:
+        summary: "Disk usage on node > 90 percent (instance )"
+        description: "Node  disk usage of  is\n VALUE = 99 percent"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="ext"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="ext"}'
+    values: "100x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="ext"}'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanCriticalThreshold
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_memory_MemAvailable_bytes'
+    values: "1x1440"
+  - series: 'node_memory_MemTotal_bytes'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostOutOfMemory
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host out of memory (instance )"
+        description: "Node memory is filling up (< 10 percent left)\n  VALUE = 1\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfMemory group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_memory_MemAvailable_bytes'
+    values: "100x1440"
+  - series: 'node_memory_MemTotal_bytes'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostOutOfMemory
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_vmstat_pgmajfault'
+    values: "120000+120000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostMemoryUnderMemoryPressure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host memory under memory pressure (instance )"
+        description: "The node is under heavy memory pressure. High rate of major page faults\n  VALUE = 2000\n  LABELS: map[alertgroup:NodeExporters alertname:HostMemoryUnderMemoryPressure group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_vmstat_pgmajfault'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostMemoryUnderMemoryPressure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_receive_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputIn
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host unusual network throughput in (instance )"
+        description: "Host network interfaces are probably receiving too much data (> 100 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualNetworkThroughputIn group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_receive_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputIn
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_transmit_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputOut
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host unusual network throughput out (instance )"
+        description: "Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualNetworkThroughputOut group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_transmit_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputOut
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host unusual disk read rate (instance )"
+        description: "Disk is probably reading too much data (> 50 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskReadRate group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_written_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host unusual disk write rate (instance )"
+        description: "Disk is probably writing too much data (> 50 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskWriteRate group_name:NodeExporters severity:warning]"
+        
+- interval: 1m
+  input_series:
+  - series: 'node_disk_written_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"   
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_avail_bytes{mountpoint="/"}'
+    values: "5x1440"   
+  - series: 'node_filesystem_size_bytes{mountpoint="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"    
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostOutOfDiskSpace
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+        mountpoint: /
+      exp_annotations:
+        summary: "Host out of disk space (instance )"
+        description: "Disk is almost full (< 10 percent left)\n  VALUE = 5\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfDiskSpace group_name:NodeExporters mountpoint:/ severity:warning]"
+        
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_avail_bytes{mountpoint="/"}'
+    values: "100x1440"   
+  - series: 'node_filesystem_size_bytes{mountpoint="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"    
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostOutOfDiskSpace
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_free_bytes'
+    values: "-1x300"   
+  - series: 'node_uname_info'
+    values: "1x300"   
+  alert_rule_test:
+  - eval_time: 5h
+    groupname: NodeExporters
+    alertname: HostDiskWillFillIn4Hours
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host disk will fill in 4 hours (instance )"
+        description: "Disk will fill in 4 hours at current write rate\n  VALUE = -1\n  LABELS: map[alertgroup:NodeExporters alertname:HostDiskWillFillIn4Hours group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_free_bytes'
+    values: "1x300"   
+  - series: 'node_uname_info'
+    values: "1x300"   
+  alert_rule_test:
+  - eval_time: 5h
+    groupname: NodeExporters
+    alertname: HostDiskWillFillIn4Hours
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_files_free{mountpoint ="/"}'
+    values: "1x1440"
+  - series: 'node_filesystem_files{mountpoint ="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: HostOutOfInodes
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+        mountpoint: /
+      exp_annotations:
+        summary: "Host out of inodes (instance )"
+        description: "Disk is almost running out of available inodes (< 10 percent left)\n  VALUE = 1\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfInodes group_name:NodeExporters mountpoint:/ severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_files_free{mountpoint ="/"}'
+    values: "100x1440"
+  - series: 'node_filesystem_files{mountpoint ="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: HostOutOfInodes
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_time_seconds_total'
+    values: "24000+24000x1440"   
+  - series: 'node_disk_reads_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadLatency
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host unusual disk read latency (instance )"
+        description: "Disk latency is growing (read operations > 100ms)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskReadLatency group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_time_seconds_total'
+    values: "240+240x1440"   
+  - series: 'node_disk_reads_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadLatency
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_write_time_seconds_total'
+    values: "24000+24000x1440"   
+  - series: 'node_disk_writes_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteLatency
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host unusual disk write latency (instance )"
+        description: "Disk latency is growing (write operations > 100ms)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskWriteLatency group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_write_time_seconds_total'
+    values: "240+240x1440"   
+  - series: 'node_disk_writes_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteLatency
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_cpu_seconds_total{mode="idle"}'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 1h
+    groupname: NodeExporters
+    alertname: HostHighCpuLoad
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NodeExporters
+      exp_annotations:
+        summary: "Host high CPU load (instance )"
+        description: "CPU load is > 80 percent\n  VALUE = 100\n  LABELS: map[alertgroup:NodeExporters alertname:HostHighCpuLoad group_name:NodeExporters severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_cpu_seconds_total{mode="idle"}'
+    values: "300+300x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 1h
+    groupname: NodeExporters
+    alertname: HostHighCpuLoad
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'container_last_seen'
+    values: "-61x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerKilled
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: DockerContainers
+      exp_annotations:
+        summary: "Container killed (instance )"
+        description: "A container has disappeared\n  VALUE = 361\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerKilled group_name:DockerContainers severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_last_seen'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerKilled
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_inodes_free'
+    values: "15x1440"
+  - series: 'container_fs_inodes_total'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeUsage
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: DockerContainers
+      exp_annotations:
+        summary: "Container Volume usage (instance )"
+        description: "Container Volume usage is above 80 percent\n  VALUE = 85\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerVolumeUsage group_name:DockerContainers severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_inodes_free'
+    values: "100x1440"
+  - series: 'container_fs_inodes_total'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeUsage
+    exp_alerts: []
+
+        
+- interval: 1m
+  input_series:
+  - series: 'container_fs_io_current'
+    values: "0.85x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeIoUsage
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: DockerContainers
+      exp_annotations:
+        summary: "Container Volume IO usage (instance )"
+        description: "Container Volume IO usage is above 80 percent\n  VALUE = 85\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerVolumeIoUsage group_name:DockerContainers severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_io_current'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeIoUsage
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'container_cpu_cfs_throttled_seconds_total'
+    values: "120+120x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: DockerContainers
+    alertname: ContainerHighThrottleRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: DockerContainers
+      exp_annotations:
+        summary: "Container high throttle rate (instance )"
+        description: "Container is being throttled\n  VALUE = 2\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerHighThrottleRate group_name:DockerContainers severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_cpu_cfs_throttled_seconds_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: DockerContainers
+    alertname: ContainerHighThrottleRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas_available'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentAvailableReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAmode
+      exp_annotations:
+        summary: "Not HA mode: Deployment Available Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes Deployment has less than 2 available replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_deployment_status_replicas_available alertgroup:HAmode alertname:NotHAKubernetesDeploymentAvailableReplicas group_name:HAmode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas_available'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentAvailableReplicas
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas_available'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetAvailableReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAmode
+      exp_annotations:
+        summary: "Not HA mode: StatefulSet Available Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes StatefulSet has less than 2 available replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_statefulset_status_replicas_available alertgroup:HAmode alertname:NotHAKubernetesStatefulSetAvailableReplicas group_name:HAmode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas_available'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetAvailableReplicas
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentDesiredReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAmode
+      exp_annotations:
+        summary: "Not HA mode: Deployment Desired Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes Deployment has less than 2 desired replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_deployment_status_replicas alertgroup:HAmode alertname:NotHAKubernetesDeploymentDesiredReplicas group_name:HAmode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentDesiredReplicas
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetDesiredReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAmode
+      exp_annotations:
+        summary: "Not HA mode: StatefulSet Desired Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes StatefulSet has less than 2 desired replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_statefulset_status_replicas alertgroup:HAmode alertname:NotHAKubernetesStatefulSetDesiredReplicas group_name:HAmode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetDesiredReplicas
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="ReplicaSet", created_by_name="test"}'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentMultiplePodsPerNode
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAmode
+      exp_annotations:
+        summary: "Not HA mode: Deployment Has Multiple Pods per Node (instance )"
+        description: "Not HA mode: Kubernetes Deployment has 2 or more replicas on the same node\n  VALUE = 1\n  LABELS: map[alertgroup:HAmode alertname:NotHAKubernetesDeploymentMultiplePodsPerNode group_name:HAmode severity:warning]"   
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="ReplicaSet", created_by_name="test"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentMultiplePodsPerNode
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="StatefulSet", created_by_name="test"}'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetMultiplePodsPerNode
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAmode
+      exp_annotations:
+        summary: "Not HA mode: StatefulSet Has Multiple Pods per Node (instance )"
+        description: "Not HA mode: Kubernetes StatefulSet has 2 or more replicas on the same node\n  VALUE = 1\n  LABELS: map[alertgroup:HAmode alertname:NotHAKubernetesStatefulSetMultiplePodsPerNode group_name:HAmode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="StatefulSet", created_by_name="test"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetMultiplePodsPerNode
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy down (instance )"
+        description: "HAProxy down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_up alertgroup:HAproxy alertname:HaproxyDown group_name:HAproxy severity:critical]"
+        
+- interval: 1m
+  input_series:
+  - series: 'haproxy_up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_connection_errors_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyBackendConnectionErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy backend connection errors (instance )"
+        description: "Too many connection errors to / backend (> 10 req/s). Request throughput may be to high.\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyBackendConnectionErrors group_name:HAproxy severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_connection_errors_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyBackendConnectionErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_response_errors_total'
+    values: "600+600x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerResponseErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy server response errors (instance )"
+        description: "Too many response errors to  server (> 5 req/s).\n  VALUE = 10\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyServerResponseErrors group_name:HAproxy severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_response_errors_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerResponseErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_connection_errors_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerConnectionErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy server connection errors (instance )"
+        description: "Too many connection errors to  server (> 10 req/s). Request throughput may be to high.\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyServerConnectionErrors group_name:HAproxy severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_connection_errors_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerConnectionErrors
+    exp_alerts: []
+     
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_current_queue'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyPendingRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy pending requests (instance )"
+        description: "Some HAProxy requests are pending on / backend\n  VALUE = 1\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyPendingRequests group_name:HAproxy severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_current_queue'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyPendingRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_http_total_time_average_seconds'
+    values: "3x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyHttpSlowingDown
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy HTTP slowing down (instance )"
+        description: "Average request time is increasing\n  VALUE = 3\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyHttpSlowingDown group_name:HAproxy severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_http_total_time_average_seconds'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyHttpSlowingDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_retry_warnings_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyRetryHigh
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy retry high (instance )"
+        description: "High rate of retry on / backend\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyRetryHigh group_name:HAproxy severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_retry_warnings_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyRetryHigh
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_frontend_requests_denied_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyFrontendSecurityBlockedRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy frontend security blocked requests (instance )"
+        description: "HAProxy is blocking requests for security reason\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyFrontendSecurityBlockedRequests group_name:HAproxy severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_frontend_requests_denied_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyFrontendSecurityBlockedRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyBackendDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy backend down (instance )"
+        description: "HAProxy backend is down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_backend_up alertgroup:HAproxy alertname:HaproxyBackendDown group_name:HAproxy severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyBackendDown
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy server down (instance )"
+        description: "HAProxy server is down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_server_up alertgroup:HAproxy alertname:HaproxyServerDown group_name:HAproxy severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_check_failures_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerHealthcheckFailure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: HAproxy
+      exp_annotations:
+        summary: "HAProxy server healthcheck failure (instance )"
+        description: "Some server healthcheck are failing on \n  VALUE = 5\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyServerHealthcheckFailure group_name:HAproxy severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_check_failures_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerHealthcheckFailure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="NotOK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+2x1440"
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="OK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+100x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: Etcd
+    alertname: EtcdWarningNumberOfFailedGrpcRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+        grpc_method: NotWatch
+        grpc_service: test
+      exp_annotations:
+        summary: "Etcd high number of failed GRPC requests (instance )"
+        description: "More than 1 percent GRPC request failure detected in Etcd for 5 minutes\n  VALUE = 0.019607843137254898\n  LABELS: map[alertgroup:Etcd alertname:EtcdWarningNumberOfFailedGrpcRequests group_name:Etcd grpc_method:NotWatch grpc_service:test severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="NotOK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+0x1440"
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="OK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+100x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: Etcd
+    alertname: EtcdWarningNumberOfFailedGrpcRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="NotOK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+6x1440"
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="OK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+100x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: Etcd
+    alertname: EtcdCriticalNumberOfFailedGrpcRequests
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: Etcd
+        grpc_method: NotWatch
+        grpc_service: test
+      exp_annotations:
+        summary: "Etcd high number of failed GRPC requests (instance )"
+        description: "More than 5 percent GRPC request failure detected in Etcd for 5 minutes\n  VALUE = 0.05660377358490566\n  LABELS: map[alertgroup:Etcd alertname:EtcdCriticalNumberOfFailedGrpcRequests group_name:Etcd grpc_method:NotWatch grpc_service:test severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="NotOK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+0x1440"
+  - series: 'grpc_server_handled_total{job="etcd",grpc_code="OK", grpc_method="NotWatch", grpc_service="test"}'
+    values: "0+100x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: Etcd
+    alertname: EtcdCriticalNumberOfFailedGrpcRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.05"}'
+    values: "0+1x1440"
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.1"}'
+    values: "0+2x1440"
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.15"}'
+    values: "0+3x1440"
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.2"}'
+    values: "0+1000x1440"    
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="+Inf"}'
+    values: "0+2000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdGrpcRequestsSlow
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd GRPC requests slow (instance )"
+        description: "GRPC requests slowing down, 99th percentil is over 0.15s for 5 minutes\n  VALUE = 0.2\n  LABELS: map[alertgroup:Etcd alertname:EtcdGrpcRequestsSlow group_name:Etcd severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.005"}'
+    values: "0+1x1440"
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.01"}'
+    values: "0+2x1440"
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.015"}'
+    values: "0+3x1440"
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.02"}'
+    values: "0+1000x1440"    
+  - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="+Inf"}'
+    values: "0+1001x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdGrpcRequestsSlow
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_server_has_leader'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: Etcd
+    alertname: EtcdNoLeader
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd no Leader (instance )"
+        description: "Etcd cluster have no leader\n  VALUE = 0\n  LABELS: map[__name__:etcd_server_has_leader alertgroup:Etcd alertname:EtcdNoLeader group_name:Etcd severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_server_has_leader'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: Etcd
+    alertname: EtcdNoLeader
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_server_leader_changes_seen_total'
+    values: "1+1x120"
+  alert_rule_test:
+  - eval_time: 2h
+    groupname: Etcd
+    alertname: EtcdHighNumberOfLeaderChanges
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd high number of leader changes (instance )"
+        description: "Etcd leader changed more than 3 times during last hour\n  VALUE = 60\n  LABELS: map[alertgroup:Etcd alertname:EtcdHighNumberOfLeaderChanges group_name:Etcd severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_server_leader_changes_seen_total'
+    values: "0x120"
+  alert_rule_test:
+  - eval_time: 2h
+    groupname: Etcd
+    alertname: EtcdHighNumberOfLeaderChanges
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_server_proposals_failed_total'
+    values: "1+1x120"
+  alert_rule_test:
+  - eval_time: 2h
+    groupname: Etcd
+    alertname: EtcdHighNumberOfFailedProposals
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd high number of failed proposals (instance )"
+        description: "Etcd server got more than 5 failed proposals past hour\n  VALUE = 60\n  LABELS: map[alertgroup:Etcd alertname:EtcdHighNumberOfFailedProposals group_name:Etcd severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_server_proposals_failed_total'
+    values: "0x120"
+  alert_rule_test:
+  - eval_time: 2h
+    groupname: Etcd
+    alertname: EtcdHighNumberOfFailedProposals
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.3"}'
+    values: "0+2x1440"
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.5"}'
+    values: "0+3x1440"
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="1"}'
+    values: "0+1000x1440"    
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="+Inf"}'
+    values: "0+2000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdHighFsyncDurations
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd high fsync durations (instance )"
+        description: "Etcd WAL fsync duration increasing, 99th percentil is over 0.5s for 5 minutes\n  VALUE = 1\n  LABELS: map[alertgroup:Etcd alertname:EtcdHighFsyncDurations group_name:Etcd severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.01"}'
+    values: "0+1x1440"
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.03"}'
+    values: "0+2x1440"
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.05"}'
+    values: "0+3x1440"
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.1"}'
+    values: "0+1000x1440"    
+  - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1001x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdHighFsyncDurations
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.3"}'
+    values: "0+2x1440"
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.5"}'
+    values: "0+3x1440"
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="1"}'
+    values: "0+1000x1440"    
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="+Inf"}'
+    values: "0+2000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdHighCommitDurations
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd high commit durations (instance )"
+        description: "Etcd commit duration increasing, 99th percentil is over 0.25s for 5 minutes\n  VALUE = 1\n  LABELS: map[alertgroup:Etcd alertname:EtcdHighCommitDurations group_name:Etcd severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.01"}'
+    values: "0+1x1440"
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.03"}'
+    values: "0+2x1440"
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.05"}'
+    values: "0+3x1440"
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.1"}'
+    values: "0+1000x1440"    
+  - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1001x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdHighCommitDurations
+    exp_alerts: []
+
+- interval: 5m
+  input_series:
+  - series: etcd_server_id {job="etcd", label1="test1"}
+    values: "1x1440"
+  - series: etcd_server_id {job="etcd", label2="test2"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: Etcd
+    alertname: EtcdInsufficientMembers
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: Etcd
+      exp_annotations:
+        summary: "Etcd insufficient Members (instance )"
+        description: "Etcd cluster should have an odd number of members\n  VALUE = 0\n  LABELS: map[alertgroup:Etcd alertname:EtcdInsufficientMembers group_name:Etcd severity:critical]"
+
+- interval: 5m
+  input_series:
+  - series: etcd_server_id {job="etcd"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: Etcd
+    alertname: EtcdInsufficientMembers
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="1"}'
+    values: "0+1x1440"
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="2"}'
+    values: "0+2x1440"
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="3"}'
+    values: "0+3x1440"
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="5"}'
+    values: "0+100x1440"    
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="+Inf"}'
+    values: "0+1000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdMemberCommunicationSlow
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: Etcd
+        job: etcd
+      exp_annotations:
+        summary: "Etcd member communication slow (instance )"
+        description: "Etcd member communication slowing down, 99th percentil is over 0.15s for 5 minutes\n  VALUE = 5\n  LABELS: map[alertgroup:Etcd alertname:EtcdMemberCommunicationSlow group_name:Etcd job:etcd severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="0.01"}'
+    values: "0+100x1440"
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="0.02"}'
+    values: "0+200x1440"
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="0.03"}'
+    values: "0+300x1440"
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="0.05"}'
+    values: "0+400x1440"    
+  - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="+Inf"}'
+    values: "0+401x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: Etcd
+    alertname: EtcdMemberCommunicationSlow
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'nginx_ingress_controller_requests{status="400"}'
+    values: "130+130x1440"
+  - series: 'nginx_ingress_controller_requests'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NginxIngressAlerts
+    alertname: NginxHighHttp4xxErrorRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NginxIngressAlerts
+      exp_annotations:
+        summary: "Nginx high HTTP 4xx error rate (node: , namespace: , ingress: )"
+        description: "Too many HTTP requests with status 4xx (> 5 percent)\n  VALUE = 9.774436090225564\n  LABELS = map[alertgroup:NginxIngressAlerts alertname:NginxHighHttp4xxErrorRate group_name:NginxIngressAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'nginx_ingress_controller_requests{status="400"}'
+    values: "0x1440"
+  - series: 'nginx_ingress_controller_requests'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NginxIngressAlerts
+    alertname: NginxHighHttp4xxErrorRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'nginx_ingress_controller_requests{status="500"}'
+    values: "130+130x1440"
+  - series: 'nginx_ingress_controller_requests'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NginxIngressAlerts
+    alertname: NginxHighHttp5xxErrorRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NginxIngressAlerts
+      exp_annotations:
+        summary: "Nginx high HTTP 5xx error rate (node: , namespace: , ingress: )"
+        description: "Too many HTTP requests with status 5xx (> 5 percent)\n  VALUE = 9.774436090225564\n  LABELS = map[alertgroup:NginxIngressAlerts alertname:NginxHighHttp5xxErrorRate group_name:NginxIngressAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'nginx_ingress_controller_requests{status="500"}'
+    values: "0x1440"
+  - series: 'nginx_ingress_controller_requests'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NginxIngressAlerts
+    alertname: NginxHighHttp5xxErrorRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="1"}'
+    values: "0+1x1440"
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="2"}'
+    values: "0+2x1440"
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="3"}'
+    values: "0+3x1440"
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="5"}'
+    values: "0+100x1440"    
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: NginxIngressAlerts
+    alertname: NginxLatencyHigh
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: NginxIngressAlerts
+      exp_annotations:
+        summary: "Nginx latency high (node: , host: )"
+        description: "Nginx p99 latency is higher than 3 seconds\n  VALUE = 5\n  LABELS = map[alertgroup:NginxIngressAlerts alertname:NginxLatencyHigh group_name:NginxIngressAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="0.2"}'
+    values: "0+2x1440"
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+3x1440"
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="0.5"}'
+    values: "0+100x1440"    
+  - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+101x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: NginxIngressAlerts
+    alertname: NginxLatencyHigh
+    exp_alerts: []
+       
+- interval: 1m
+  input_series:
+  - series: 'coredns_panics_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: CoreDnsAlerts
+    alertname: CorednsPanicCount
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS Panic Count (instance )"
+        description: "Number of CoreDNS panics encountered\n  VALUE = 1\n  LABELS = map[alertgroup:CoreDnsAlerts alertname:CorednsPanicCount group_name:CoreDnsAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_panics_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: CoreDnsAlerts
+    alertname: CorednsPanicCount
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="1"}'
+    values: "0+1x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="2"}'
+    values: "0+2x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="3"}'
+    values: "0+3x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="5"}'
+    values: "0+100x1440"    
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSLatencyHigh
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS have High Latency"
+        description: "CoreDNS has 99th percentile latency of 5 seconds for server  zone "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.2"}'
+    values: "0+2x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+3x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.5"}'
+    values: "0+100x1440"    
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+101x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSLatencyHigh
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "1+240x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckFailureCount
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS health checks have failed to upstream server"
+        description: "CoreDNS health checks have failed to upstream server "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckFailureCount
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "1+240x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckBrokenCount
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS health checks have failed for all upstream servers"
+        description: "CoreDNS health checks failed for all upstream servers LABELS = map[alertgroup:CoreDnsAlerts alertname:CoreDNSForwardHealthcheckBrokenCount group_name:CoreDnsAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckBrokenCount
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "1+23x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsCritical
+    exp_alerts:
+    - exp_labels:
+        severity: critical 
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL"
+        description: "CoreDNS is returning SERVFAIL for 8.745% of requests"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsCritical
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "1+3x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsWarning
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL"
+        description: "CoreDNS is returning SERVFAIL for 1.235% of requests"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsWarning
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="1"}'
+    values: "0+1x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="2"}'
+    values: "0+2x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="3"}'
+    values: "0+3x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="5"}'
+    values: "0+100x1440"    
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardLatencyHigh
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS has 99th percentile latency for forwarding requests"
+        description: "CoreDNS has 99th percentile latency of 5 seconds forwarding requests to "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.2"}'
+    values: "0+2x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+3x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.5"}'
+    values: "0+100x1440"    
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+101x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardLatencyHigh
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_responses_total{rcode="SERVFAIL"}'
+    values: "1+23x1440"
+  - series: 'coredns_forward_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsCritical
+    exp_alerts:
+    - exp_labels:
+        severity: critical 
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL for forward requests"
+        description: "CoreDNS is returning SERVFAIL for 8.745% of forward requests to "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_forward_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsCritical
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_responses_total{rcode="SERVFAIL"}'
+    values: "1+3x1440"
+  - series: 'coredns_forward_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsWarning
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: CoreDnsAlerts
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL for forward requests"
+        description: "CoreDNS is returning SERVFAIL for 1.235% of forward requests to "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_forward_responses_total'
+    values: "1+240x1440"    
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsWarning
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'probe_success'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: ProbeFailed
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: DRAlerts
+      exp_annotations:
+        summary: "Probe failed (instance: )"
+        description: "Probe failed\n  VALUE = 0\n  LABELS: map[__name__:probe_success alertgroup:DRAlerts alertname:ProbeFailed group_name:DRAlerts severity:critical]"
+        
+- interval: 1m
+  input_series:
+  - series: 'probe_success'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: ProbeFailed
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'probe_duration_seconds'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: SlowProbe
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: DRAlerts
+      exp_annotations:
+        summary: "Slow probe (instance: )"
+        description: "Blackbox probe took more than 1s to complete\n  VALUE = 2\n  LABELS: map[__name__:probe_duration_seconds alertgroup:DRAlerts alertname:SlowProbe group_name:DRAlerts severity:warning]"       
+
+- interval: 1m
+  input_series:
+  - series: 'probe_duration_seconds'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: SlowProbe
+    exp_alerts: []
+        
+- interval: 1m
+  input_series:
+  - series: 'probe_http_status_code'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpStatusCode
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: DRAlerts
+      exp_annotations:
+        summary: "HTTP Status Code (instance: )"
+        description: "HTTP status code is not 200-399\n  VALUE = 0\n  LABELS: map[__name__:probe_http_status_code alertgroup:DRAlerts alertname:HttpStatusCode group_name:DRAlerts severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_status_code'
+    values: "200x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpStatusCode
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_duration_seconds'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpSlowRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: DRAlerts
+      exp_annotations:
+        summary: "HTTP slow requests (instance: )"
+        description: "HTTP request took more than 1s\n  VALUE = 2\n  LABELS: map[__name__:probe_http_duration_seconds alertgroup:DRAlerts alertname:HttpSlowRequests group_name:DRAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_duration_seconds'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpSlowRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'backup_storage_last_failed'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: BackupAlerts
+    alertname: Last Backup Failed
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: BackupAlerts
+      exp_annotations:
+        summary: "Last backup made by pod  in namespace  failed.\n  VALUE = 1\n  LABELS: map[__name__:backup_storage_last_failed alertgroup:BackupAlerts alertname:Last Backup Failed group_name:BackupAlerts severity:warning]"
+        description: "Last backup made by pod  in namespace  failed.\n  VALUE = 1\n  LABELS: map[__name__:backup_storage_last_failed alertgroup:BackupAlerts alertname:Last Backup Failed group_name:BackupAlerts severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'backup_storage_last_failed'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: BackupAlerts
+    alertname: Last Backup Failed
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total{reason="big_timestamp"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: VMDroppedSamplesWithBigTimestamp
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+        reason: big_timestamp
+      exp_annotations:
+        summary: "Victoria metrics dropped samples with too big timestamp"
+        description: "Victoria metrics dropped samples with too big timestamp"
+        
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total{reason="big_timestamp"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: VMDroppedSamplesWithBigTimestamp
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total{reason="small_timestamp"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: VMDroppedSamplesWithSmallTimestamp
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+        reason: small_timestamp
+      exp_annotations:
+        summary: "Victoria metrics dropped samples with too small timestamp"
+        description: "Victoria metrics dropped samples with too small timestamp"
+        
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total{reason="small_timestamp"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: VMDroppedSamplesWithSmallTimestamp
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_deduplicated_samples_total{type="select"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: VMDuplicatedSamples
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+        type: select
+      exp_annotations:
+        summary: "Victoria Metrics duplicated samples detected"
+        description: "Victoria Metrics duplicated samples detected"
+        
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total{reason="small_timestamp"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: VMDuplicatedSamples
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_promscrape_config_last_reload_successful
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: ConfigurationReloadFailure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Configuration reload failed for vmagent instance "
+        description: "Configuration hot-reload failed for vmagent on instance . Check vmagent's logs for detailed error message."
+
+- interval: 1m
+  input_series:
+  - series: vmagent_relabel_config_last_reload_successful
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: ConfigurationReloadFailure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Configuration reload failed for vmagent instance "
+        description: "Configuration hot-reload failed for vmagent on instance . Check vmagent's logs for detailed error message."
+        
+- interval: 1m
+  input_series:
+  - series: vm_promscrape_config_last_reload_successful
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: ConfigurationReloadFailure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmagent_relabel_config_last_reload_successful
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: ConfigurationReloadFailure
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_persistentqueue_read_duration_seconds_total
+    values: "0+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: PersistentQueueForReadsIsSaturated
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Persistent queue reads for instance  are saturated"
+        description: "Persistent queue reads for vmagent  (instance ) are saturated by more than 90 percent and vmagent won't be able to keep up with reading data from the disk. In this case, consider to decrease load on the vmagent or improve the disk throughput."    
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=99&var-instance="
+        
+- interval: 1m
+  input_series:
+  - series: vm_persistentqueue_read_duration_seconds_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: PersistentQueueForReadsIsSaturated
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_persistentqueue_write_duration_seconds_total
+    values: "0+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: PersistentQueueForWritesIsSaturated
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Persistent queue writes for instance  are saturated"
+        description: "Persistent queue writes for vmagent  (instance ) are saturated by more than 90 percent and vmagent won't be able to keep up with flushing data on disk. In this case, consider to decrease load on the vmagent or improve the disk throughput."    
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=98&var-instance="
+        
+- interval: 1m
+  input_series:
+  - series: vm_persistentqueue_write_duration_seconds_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: PersistentQueueForWritesIsSaturated
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_persistentqueue_bytes_dropped_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 20m
+    groupname: SelfMonitoring
+    alertname: PersistentQueueIsDroppingData
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Instance  is dropping data from persistent queue"
+        description: "Vmagent dropped 5 from persistent queue on instance  for the last 10m."    
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=49&var-instance="
+
+- interval: 1m
+  input_series:
+  - series: vm_persistentqueue_bytes_dropped_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 20m
+    groupname: SelfMonitoring
+    alertname: PersistentQueueIsDroppingData
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmagent_remotewrite_packets_dropped_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RejectedRemoteWriteDataBlocksAreDropped
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Vmagent is dropping data blocks that are rejected by remote storage"
+        description: "Job  on instance  drops the rejected by remote-write server data blocks. Check the logs to find the reason for rejects."    
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=79&var-instance="
+
+- interval: 1m
+  input_series:
+  - series: vmagent_remotewrite_packets_dropped_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RejectedRemoteWriteDataBlocksAreDropped
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vmagent_remotewrite_send_duration_seconds_total
+    values: "0+300x1440"
+  - series: vmagent_remotewrite_queues
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RemoteWriteConnectionIsSaturated
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Remote write connection from  (instance ) to  is saturated"
+        description: "The remote write connection between vmagent  (instance ) and destination  is saturated by more than 90 percent and vmagent won't be able to keep up.\n There could be the following reasons for this:\n * vmagent can't send data fast enough through the existing network connections. Increase `-remoteWrite.queues` cmd-line flag value to establish more connections per destination.\n * remote destination can't accept data fast enough. Check if remote destination has enough resources for processing."    
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=84&var-instance="
+
+- interval: 1m
+  input_series:
+  - series: vmagent_remotewrite_send_duration_seconds_total
+    values: "0x1440"
+  - series: vmagent_remotewrite_queues
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RemoteWriteConnectionIsSaturated
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_promscrape_scrape_pool_targets
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ScrapePoolHasNoTargets
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Vmagent has scrape_pool with 0 configured/discovered targets"
+        description: "Vmagent  has scrape_pool  with 0 discovered targets. It is likely a misconfiguration. Please follow https://docs.victoriametrics.com/victoriametrics/vmagent/#debugging-scrape-targets to troubleshoot the scraping config."    
+
+- interval: 1m
+  input_series:
+  - series: vm_promscrape_scrape_pool_targets
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ScrapePoolHasNoTargets
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vmagent_daily_series_limit_current_series
+    values: "1x1440"
+  - series: vmagent_daily_series_limit_max_series
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: SeriesLimitDayReached
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=90&var-instance="
+        summary: "Instance  reached 90 percent of the limit"
+        description: "Max series limit set via -remoteWrite.maxDailySeries flag is close to reaching the max value. Then samples for new time series will be dropped instead of sending them to remote storage systems."    
+
+- interval: 1m
+  input_series:
+  - series: vmagent_daily_series_limit_current_series
+    values: "0x1440"
+  - series: vmagent_daily_series_limit_max_series
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: SeriesLimitDayReached
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmagent_hourly_series_limit_current_series
+    values: "1x1440"
+  - series: vmagent_hourly_series_limit_max_series
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: SeriesLimitHourReached
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=88&var-instance="
+        summary: "Instance  reached 90 percent of the limit"
+        description: "Max series limit set via -remoteWrite.maxHourlySeries flag is close to reaching the max value. Then samples for new time series will be dropped instead of sending them to remote storage systems."    
+
+- interval: 1m
+  input_series:
+  - series: vmagent_hourly_series_limit_current_series
+    values: "0x1440"
+  - series: vmagent_hourly_series_limit_max_series
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: SeriesLimitHourReached
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_streamaggr_dedup_flush_timeouts_total
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: StreamAggrDedupFlushTimeout
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Deduplication  (instance ) can't be finished within configured deduplication interval."
+        description: "Deduplication process can't keep up with the load and might produce incorrect results. Check docs https://docs.victoriametrics.com/victoriametrics/stream-aggregation/#deduplication and logs for more details. Possible solutions: increase deduplication interval; deduplicate smaller number of series; reduce samples' ingestion rate."    
+
+- interval: 1m
+  input_series:
+  - series: vm_streamaggr_dedup_flush_timeouts_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: StreamAggrDedupFlushTimeout
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_streamaggr_flush_timeouts_total
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: StreamAggrFlushTimeout
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "Streaming aggregation at  (instance ) can't be finished within the configured aggregation interval."
+        description: "Stream aggregation process can't keep up with the load and might produce incorrect aggregation results. Check logs for more details. Possible solutions: increase aggregation interval; aggregate smaller number of series; reduce samples' ingestion rate to stream aggregation."    
+
+- interval: 1m
+  input_series:
+  - series: vm_streamaggr_flush_timeouts_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: StreamAggrFlushTimeout
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmagent_remotewrite_retries_count_total
+    values: "0+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRemoteWriteErrors
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=61&var-instance="
+        summary: "Job  on instance  fails to push to remote storage"
+        description: "Vmagent fails to push data via remote write protocol to destination \n Ensure that destination is up and reachable."
+
+- interval: 1m
+  input_series:
+  - series: vmagent_remotewrite_retries_count_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRemoteWriteErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_promscrape_scrapes_failed_total
+    values: "0+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyScrapeErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=31&var-instance="
+        summary: "Vmagent fails to scrape one or more targets"
+        description: "Job  on instance  fails to scrape targets for last 15m"
+
+- interval: 1m
+  input_series:
+  - series: vm_promscrape_scrapes_failed_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyScrapeErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_ingestserver_request_errors_total
+    values: "0+1x1440"
+  - series: vmagent_http_request_errors_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyWriteErrors
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=77&var-instance="
+        summary: "Vmagent responds with too many errors on data ingestion protocols"
+        description: "Job  on instance  responds with errors to write requests for last 15m."
+
+- interval: 1m
+  input_series:
+  - series: vm_ingestserver_request_errors_total
+    values: "0x1440"
+  - series: vmagent_http_request_errors_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyWriteErrors
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/G7Z9GzMGz?viewPanel=77&var-instance="
+        summary: "Vmagent responds with too many errors on data ingestion protocols"
+        description: "Job  on instance  responds with errors to write requests for last 15m."
+
+- interval: 1m
+  input_series:
+  - series: vm_ingestserver_request_errors_total
+    values: "0x1440"
+  - series: vmagent_http_request_errors_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyWriteErrors
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vmalert_alerting_rules_errors_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: AlertingRulesError
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=13&var-instance=&var-file=&var-group="
+        summary: "Alerting rules are failing for vmalert instance "
+        description: "Alerting rules execution is failing for AlertingRulesError from group  in file . Check vmalert's logs for detailed error message."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_alerting_rules_errors_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: AlertingRulesError
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmalert_alerts_send_errors_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: AlertmanagerErrors
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmalert instance  is failing to send notifications to Alertmanager"
+        description: "vmalert instance  is failing to send alert notifications to . Check vmalert's logs for detailed error message."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_alerts_send_errors_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: AlertmanagerErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmalert_recording_rules_errors_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RecordingRulesError
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=30&var-instance=&var-file=&var-group="
+        summary: "Recording rules are failing for vmalert instance "
+        description: "Recording rules execution is failing for  from group  in file . Check vmalert's logs for detailed error message."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_recording_rules_errors_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RecordingRulesError
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmalert_recording_rules_last_evaluation_samples
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RecordingRulesNoData
+    exp_alerts:
+    - exp_labels:
+        severity: info
+        group_name: SelfMonitoring
+      exp_annotations:
+        dashboard: "http://localhost:3000/d/LzldHAVnz?viewPanel=33&var-file=&var-group="
+        summary: "Recording rule  () produces no data"
+        description: "Recording rule  from group  in file  produces 0 samples over the last 30min. It might be caused by a misconfiguration or incorrect query expression."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_recording_rules_last_evaluation_samples
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RecordingRulesNoData
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vmalert_remotewrite_dropped_rows_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RemoteWriteDroppingData
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmalert instance  is dropping data sent to remote write URL"
+        description: "vmalert instance  is failing to send results of alerting or recording rules to the configured remote write URL. This may result into gaps in recording rules or alerts state. Check vmalert's logs for detailed error message."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_remotewrite_dropped_rows_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RemoteWriteDroppingData
+    exp_alerts: []    
+    
+- interval: 1m
+  input_series:
+  - series: vmalert_remotewrite_errors_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RemoteWriteErrors
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmalert instance  is failing to push metrics to remote write URL"
+        description: "vmalert instance  is failing to push metrics generated via alerting or recording rules to the configured remote write URL. Check vmalert's logs for detailed error message."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_remotewrite_errors_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RemoteWriteErrors
+    exp_alerts: []      
+
+- interval: 1m
+  input_series:
+  - series: vmalert_iteration_missed_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyMissedIterations
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmalert instance  is missing rules evaluations"
+        description: "vmalert instance  is missing rules evaluations for group  in file . The group evaluation time takes longer than the configured evaluation interval. This may result in missed alerting notifications or recording rules samples. Try increasing evaluation interval or concurrency of group . See https://docs.victoriametrics.com/victoriametrics/vmalert/#groups. If rule expressions are taking longer than expected, please see https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_iteration_missed_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyMissedIterations
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmalert_iteration_missed_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyMissedIterations
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmalert instance  is missing rules evaluations"
+        description: "vmalert instance  is missing rules evaluations for group  in file . The group evaluation time takes longer than the configured evaluation interval. This may result in missed alerting notifications or recording rules samples. Try increasing evaluation interval or concurrency of group . See https://docs.victoriametrics.com/victoriametrics/vmalert/#groups. If rule expressions are taking longer than expected, please see https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
+
+- interval: 1m
+  input_series:
+  - series: vmalert_iteration_missed_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyMissedIterations
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vmauth_concurrent_requests_limit_reached_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ConcurrentRequestsLimitReached
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmauth () reached concurrent requests limit"
+        description: "Possible solutions: increase the limit with flag: -maxConcurrentRequests, deploy additional vmauth replicas, check requests latency at backend service. See more details at https://docs.victoriametrics.com/victoriametrics/vmauth/#concurrency-limiting"
+
+- interval: 1m
+  input_series:
+  - series: vmauth_concurrent_requests_limit_reached_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ConcurrentRequestsLimitReached
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vmauth_user_concurrent_requests_limit_reached_total
+    values: "0+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: UserConcurrentRequestsLimitReached
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+        summary: "vmauth has reached concurrent requests limit for username "
+        description: "Possible solutions: increase limit with flag: -maxConcurrentPerUserRequests, deploy additional vmauth replicas, check requests latency at backend service."
+
+- interval: 1m
+  input_series:
+  - series: vmauth_user_concurrent_requests_limit_reached_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: UserConcurrentRequestsLimitReached
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_data_size_bytes
+    values: "9x1440"
+  - series: vm_free_disk_space_bytes
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpace
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance="
+            description: "Disk utilisation on instance  is more than 80 percent.\n Having less than 20 percent of free disk space could cripple merges processes and overall performance. Consider to limit the ingestion rate, decrease retention or scale the disk space if possible."
+            summary: "Instance  (job=) will run out of disk space soon"
+
+- interval: 1m
+  input_series:
+  - series: vm_free_disk_space_bytes
+    values: "10000000x1440"
+  - series: vm_rows_added_to_storage_total
+    values: "0.1+0.1x1440"
+  - series: vm_deduplicated_samples_total
+    values: "0.5+0.5x1440"
+  - series: vm_data_size_bytes
+    values: "1000000000x1440"
+  - series: vm_rows
+    values: "1000000x1440"
+  - series: vm_new_timeseries_created_total
+    values: "1000+1000x1440"
+  - series: vm_data_size_bytes{type="indexdb/file"}
+    values: "500000000x1440"
+  - series: vm_rows{type="indexdb/file"}
+    values: "500000x1440"
+  alert_rule_test:
+  - eval_time: 90m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpaceIn3Days
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance="
+          description: "Taking into account current ingestion rate, free disk space will be enough only for 10m 0s on instance .\n Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
+          summary: "Instance  will run out of disk space in 3 days"
+            
+- interval: 1m
+  input_series:
+  - series: vm_free_disk_space_bytes
+    values: "10000000000000x1440"
+  - series: vm_rows_added_to_storage_total
+    values: "0.1+0.1x1440"
+  - series: vm_deduplicated_samples_total
+    values: "0.5+0.5x1440"
+  - series: vm_data_size_bytes
+    values: "1000000000x1440"
+  - series: vm_rows
+    values: "1000000x1440"
+  - series: vm_new_timeseries_created_total
+    values: "1000+1000x1440"
+  - series: vm_data_size_bytes{type="indexdb/file"}
+    values: "500000000x1440"
+  - series: vm_rows{type="indexdb/file"}
+    values: "500000x1440"
+  alert_rule_test:
+  - eval_time: 90m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpaceIn3Days
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_free_disk_space_bytes
+    values: "1000000x1440"
+  - series: vm_free_disk_space_limit_bytes
+    values: "100x1440"
+  - series: vm_rows_added_to_storage_total
+    values: "0.1+0.1x1440"
+  - series: vm_deduplicated_samples_total
+    values: "0.5+0.5x1440"
+  - series: vm_data_size_bytes
+    values: "1000000000x1440"
+  - series: vm_rows
+    values: "1000000x1440"
+  - series: vm_new_timeseries_created_total
+    values: "1000+1000x1440"
+  - series: vm_data_size_bytes{type="indexdb/file"}
+    values: "500000000x1440"
+  - series: vm_rows{type="indexdb/file"}
+    values: "500000x1440"
+  alert_rule_test:
+  - eval_time: 90m
+    groupname: SelfMonitoring
+    alertname: NodeBecomesReadonlyIn3Days
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+          dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=20&var-instance="
+          description: "Taking into account current ingestion rate, free disk space and -storage.minFreeDiskSpaceBytes instance  will remain writable for 1m 0s.\n Consider to limit the ingestion rate, decrease retention or scale the disk space up if possible."
+          summary: "Instance  will become read-only in 3 days"
+            
+- interval: 1m
+  input_series:
+  - series: vm_free_disk_space_bytes
+    values: "1000x1440"
+  - series: vm_free_disk_space_limit_bytes
+    values: "1000x1440"
+  - series: vm_rows_added_to_storage_total
+    values: "0.1+0.1x1440"
+  - series: vm_deduplicated_samples_total
+    values: "0.5+0.5x1440"
+  - series: vm_data_size_bytes
+    values: "1000000000x1440"
+  - series: vm_rows
+    values: "1000000x1440"
+  - series: vm_new_timeseries_created_total
+    values: "1000+1000x1440"
+  - series: vm_data_size_bytes{type="indexdb/file"}
+    values: "500000000x1440"
+  - series: vm_rows{type="indexdb/file"}
+    values: "500000x1440"
+  alert_rule_test:
+  - eval_time: 90m
+    groupname: SelfMonitoring
+    alertname: NodeBecomesReadonlyIn3Days
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_data_size_bytes
+    values: "0x1440"
+  - series: vm_free_disk_space_bytes
+    values: "10x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpace
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_data_size_bytes
+    values: "0x1440"
+  - series: vm_free_disk_space_bytes
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpace
+    exp_alerts: []
+
+
+- interval: 1m
+  input_series:
+  - series: vm_rpc_connection_errors_total
+    values: "1+1x1440"
+  - series: vm_rpc_dial_errors_total
+    values: "1+1x1440"
+  - series: vm_rpc_handshake_errors_total
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RPCErrors
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        show_at: dashboard
+        group_name: SelfMonitoring
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=44&var-instance="
+            description: "RPC errors are interconnection errors between cluster components.\n Possible reasons for errors are misconfiguration, overload, network blips or unreachable components."
+            summary: "Too many RPC errors for  (instance )"
+
+- interval: 1m
+  input_series:
+  - series: vm_rpc_connection_errors_total
+    values: "1x1440"
+  - series: vm_rpc_dial_errors_total
+    values: "1x1440"
+  - series: vm_rpc_handshake_errors_total
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RPCErrors
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_http_request_errors_total
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RequestErrorsToAPI
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        show_at: dashboard
+        group_name: SelfMonitoring
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=52&var-instance="
+            description: "Requests to path  are receiving errors. Please verify if clients are sending correct requests."
+            summary: "Too many errors served for  path  (instance )"
+
+- interval: 1m
+  input_series:
+  - series: vm_http_request_errors_total
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RequestErrorsToAPI
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_new_timeseries_created_total
+    values: "60+60x1440"
+  - series: vm_rows_inserted_total
+    values: "300+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighChurnRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
+            description: "VM constantly creates new time series.\n This effect is known as Churn Rate.\n High Churn Rate tightly connected with database performance and may result in unexpected OOM's or slow queries."
+            summary: "Churn rate is more than 10 percent for the last 15m"
+
+- interval: 1m
+  input_series:
+  - series: vm_new_timeseries_created_total
+    values: "0x1440"
+  - series: vm_rows_inserted_total
+    values: "300+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighChurnRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_new_timeseries_created_total
+    values: "4+4x1440"
+  - series: vm_cache_entries{type="storage/hour_metric_ids"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighChurnRate24h
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=102"
+            description: "The number of created new time series over last 24h is 3x times higher than current number of active series.\n This effect is known as Churn Rate.\n High Churn Rate tightly connected with database performance and may result in unexpected OOM's or slow queries."
+            summary: "Too high number of new series created over last 24h"
+
+- interval: 1m
+  input_series:
+  - series: vm_new_timeseries_created_total
+    values: "1+1x1440"
+  - series: vm_cache_entries{type="storage/hour_metric_ids"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighChurnRate24h
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_slow_row_inserts_total
+    values: "300+300x1440"
+  - series: vm_rows_inserted_total
+    values: "300+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighSlowInsertsRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=108"
+            description: "High rate of slow inserts may be a sign of resource exhaustion for the current load. It is likely more RAM is needed for optimal handling of the current number of active time series. See also https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3976#issuecomment-1476883183"
+            summary: "Percentage of slow inserts is more than 5 percent for the last 15m"
+
+- interval: 1m
+  input_series:
+  - series: vm_slow_row_inserts_total
+    values: "0x1440"
+  - series: vm_rows_inserted_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighSlowInsertsRate
+    exp_alerts: []    
+
+- interval: 1m
+  input_series:
+  - series: 'go_sched_latencies_seconds_bucket{le="0.1"}'
+    values: "0+10x1440"
+  - series: 'go_sched_latencies_seconds_bucket{le="0.3"}'
+    values: "0+20x1440"
+  - series: 'go_sched_latencies_seconds_bucket{le="0.5"}'
+    values: "0+30x1440"
+  - series: 'go_sched_latencies_seconds_bucket{le="1"}'
+    values: "0+100x1440"    
+  - series: 'go_sched_latencies_seconds_bucket{le="+Inf"}'
+    values: "0+110x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighGoroutineSchedulingLatency
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+          description: "Go runtime is unable to schedule goroutines execution in acceptable time. This is usually a sign of insufficient CPU resources or CPU throttling. Verify that service has enough CPU resources. Otherwise, the service could work unreliably with delays in processing."
+          summary: "() has insufficient CPU resources for >15m"
+
+- interval: 1m
+  input_series:
+  - series: 'go_sched_latencies_seconds_bucket{le="0.01"}'
+    values: "0+10x1440"
+  - series: 'go_sched_latencies_seconds_bucket{le="0.03"}'
+    values: "0+20x1440"
+  - series: 'go_sched_latencies_seconds_bucket{le="0.05"}'
+    values: "0+30x1440"
+  - series: 'go_sched_latencies_seconds_bucket{le="0.1"}'
+    values: "0+100x1440"    
+  - series: 'go_sched_latencies_seconds_bucket{le="+Inf"}'
+    values: "0+110x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighGoroutineSchedulingLatency
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_rpc_send_duration_seconds_total
+    values: "300+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: VminsertVmstorageConnectionIsSaturated
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+        show_at: dashboard
+      exp_annotations:
+            dashboard: "http://localhost:3000/d/oS7Bi_0Wz?viewPanel=139&var-instance="
+            description: "The connection between vminsert (instance ) and vmstorage (instance ) is saturated by more than 90 percent and vminsert won't be able to keep up.\n This usually means that more vminsert or vmstorage nodes must be added to the cluster in order to increase the total number of vminsert -\u003e vmstorage links."
+            summary: "Connection between vminsert on  and vmstorage on  is saturated"
+
+- interval: 1m
+  input_series:
+  - series: vm_rpc_send_duration_seconds_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: VminsertVmstorageConnectionIsSaturated
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_concurrent_insert_current
+    values: "1x1440"
+  - series: vm_concurrent_insert_capacity
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ConcurrentInsertsHitTheLimit
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "The limit of concurrent inserts on instance  depends on the number of CPUs.\nUsually, when component constantly hits the limit it is likely the component is overloaded and requires more CPU.\nIn some cases for components like vmagent or vminsert the alert might trigger if there are too many clients\nmaking write attempts. If vmagent's or vminsert's CPU usage and network saturation are at normal level, then \nit might be worth adjusting `-maxConcurrentInserts` cmd-line flag."
+            summary: " on instance  is constantly hitting concurrent inserts limit"
+
+- interval: 1m
+  input_series:
+  - series: vm_concurrent_insert_current
+    values: "0x1440"
+  - series: vm_concurrent_insert_capacity
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ConcurrentInsertsHitTheLimit
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_indexdb_items_dropped_total
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: IndexDBRecordsDrop
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "VictoriaMetrics could skip registering new timeseries during ingestion if they fail the validation process. \nFor example, `reason=too_long_item` means that time series cannot exceed 64KB. Please, reduce the number \nof labels or label values for such series. Or enforce these limits via `-maxLabelsPerTimeseries` and \n`-maxLabelValueLen` command-line flags."
+            summary: "IndexDB skipped registering items during data ingestion with reason=."
+
+- interval: 1m
+  input_series:
+  - series: vm_indexdb_items_dropped_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: IndexDBRecordsDrop
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_max_fds
+    values: "100x1440"
+  - series: process_open_fds
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ProcessNearFDLimits
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "Exhausting OS file descriptors limit can cause severe degradation of the process.\nConsider to increase the limit as fast as possible."
+            summary: "Number of free file descriptors is less than 100 for () for the last 5m"
+
+- interval: 1m
+  input_series:
+  - series: process_max_fds
+    values: "100x1440"
+  - series: process_open_fds
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ProcessNearFDLimits
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total
+    values: "300+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RowsRejectedOnIngestion
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "Ingested rows on instance  are rejected due to the following reason: "
+            summary: "Some rows are rejected on  on ingestion attempt"
+
+- interval: 1m
+  input_series:
+  - series: vm_rows_ignored_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: RowsRejectedOnIngestion
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: up{job="victoriametrics"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: victoriametrics
+      exp_annotations:
+            description: " of job victoriametrics has been down for more than 2 minutes."
+            summary: "Service victoriametrics is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="victoriametrics"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmselect"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmselect
+      exp_annotations:
+            description: " of job vmselect has been down for more than 2 minutes."
+            summary: "Service vmselect is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmselect"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vminsert"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vminsert
+      exp_annotations:
+            description: " of job vminsert has been down for more than 2 minutes."
+            summary: "Service vminsert is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vminsert"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmstorage"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmstorage
+      exp_annotations:
+            description: " of job vmstorage has been down for more than 2 minutes."
+            summary: "Service vmstorage is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmstorage"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmagent"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmagent
+      exp_annotations:
+            description: " of job vmagent has been down for more than 2 minutes."
+            summary: "Service vmagent is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmagent"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmalert"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmalert
+      exp_annotations:
+            description: " of job vmalert has been down for more than 2 minutes."
+            summary: "Service vmalert is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmalert"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmsingle"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmsingle
+      exp_annotations:
+            description: " of job vmsingle has been down for more than 2 minutes."
+            summary: "Service vmsingle is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmsingle"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmalertmanager"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmalertmanager
+      exp_annotations:
+            description: " of job vmalertmanager has been down for more than 2 minutes."
+            summary: "Service vmalertmanager is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmalertmanager"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vmauth"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmauth
+      exp_annotations:
+            description: " of job vmauth has been down for more than 2 minutes."
+            summary: "Service vmauth is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vmauth"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="victorialogs"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: victorialogs
+      exp_annotations:
+            description: " of job victorialogs has been down for more than 2 minutes."
+            summary: "Service victorialogs is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="victorialogs"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vlstorage"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vlstorage
+      exp_annotations:
+            description: " of job vlstorage has been down for more than 2 minutes."
+            summary: "Service vlstorage is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vlstorage"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vlselect"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vlselect
+      exp_annotations:
+            description: " of job vlselect has been down for more than 2 minutes."
+            summary: "Service vlselect is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vlselect"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: up{job="vlinsert"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vlinsert
+      exp_annotations:
+            description: " of job vlinsert has been down for more than 2 minutes."
+            summary: "Service vlinsert is down on "
+
+- interval: 1m
+  input_series:
+  - series: up{job="vlinsert"}
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: ServiceDown
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_cpu_seconds_total
+    values: "300+300x1440"
+  - series: process_cpu_cores_available
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighCPUUsage
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "Too high CPU usage may be a sign of insufficient resources and make process unstable. Consider to either increase available CPU resources or decrease the load on the process."
+            summary: "More than 90 percent of CPU is used by () during the last 5m"
+
+- interval: 1m
+  input_series:
+  - series: process_cpu_seconds_total
+    values: "0x1440"
+  - series: process_cpu_cores_available
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighCPUUsage
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_resident_memory_anon_bytes
+    values: "1x1440"
+  - series: vm_available_memory_bytes
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighMemoryUsage
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "Too high memory usage may result into multiple issues such as OOMs or degraded performance.\nConsider to either increase available memory or decrease the load on the process."
+            summary: "It is more than 80 percent of memory used by ()"
+
+- interval: 1m
+  input_series:
+  - series: process_resident_memory_anon_bytes
+    values: "0x1440"
+  - series: vm_available_memory_bytes
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighMemoryUsage
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_concurrent_select_limit_timeout_total
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighQueryLoad
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "Instance  () is failing to serve read queries during last 15m.\nConcurrency limit `-search.maxConcurrentRequests` was reached on this instance and extra queries were\nput into the queue for `-search.maxQueueDuration` interval. But even after waiting in the queue these queries weren't served.\nThis happens if instance is overloaded with the current workload, or datasource is too slow to respond.\nPossible solutions are the following:\n* reduce the query load;\n* increase compute resources or number of replicas;\n* adjust limits `-search.maxConcurrentRequests` and `-search.maxQueueDuration`.\nSee more at https://docs.victoriametrics.com/victoriametrics/troubleshooting/#slow-queries."
+            summary: "Read queries fail with timeout for  on instance "
+
+- interval: 1m
+  input_series:
+  - series: vm_concurrent_select_limit_timeout_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooHighQueryLoad
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_log_messages_total{level="error"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyLogs
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        group_name: SelfMonitoring
+        level: "error"
+      exp_annotations:
+            description: "Logging rate for job  () is 5 for last 15m. Worth to check logs for specific error messages."
+            summary: "Too many logs printed for job  ()"
+
+- interval: 1m
+  input_series:
+  - series: vm_log_messages_total{level="error"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyLogs
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="victoriametrics"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: victoriametrics
+      exp_annotations:
+            description: "Job victoriametrics (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "victoriametrics too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="victoriametrics"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmselect"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmselect
+      exp_annotations:
+            description: "Job vmselect (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmselect too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmselect"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="victoriametrics"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vminsert"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vminsert
+      exp_annotations:
+            description: "Job vminsert (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vminsert too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vminsert"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmstorage"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmstorage
+      exp_annotations:
+            description: "Job vmstorage (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmstorage too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmstorage"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmagent"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmagent
+      exp_annotations:
+            description: "Job vmagent (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmagent too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmagent"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmstorage"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmalert"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmalert
+      exp_annotations:
+            description: "Job vmalert (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmalert too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmalert"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmsingle"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmsingle
+      exp_annotations:
+            description: "Job vmsingle (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmsingle too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmsingle"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmalertmanager"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmalertmanager
+      exp_annotations:
+            description: "Job vmalertmanager (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmalertmanager too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmalertmanager"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmauth"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vmauth
+      exp_annotations:
+            description: "Job vmauth (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vmauth too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vmauth"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="victorialogs"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: victorialogs
+      exp_annotations:
+            description: "Job victorialogs (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "victorialogs too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="victorialogs"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vlstorage"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vlstorage
+      exp_annotations:
+            description: "Job vlstorage (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vlstorage too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vlstorage"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vlselect"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vlselect
+      exp_annotations:
+            description: "Job vlselect (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vlselect too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vlselect"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vlinsert"}
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+        job: vlinsert
+      exp_annotations:
+            description: "Job vlinsert (instance ) has restarted more than twice in the last 15 minutes. It might be crashlooping."
+            summary: "vlinsert too many restarts (instance )"
+
+- interval: 1m
+  input_series:
+  - series: process_start_time_seconds{job="vlinsert"}
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyRestarts
+    exp_alerts: []
+    
+- interval: 1m
+  input_series:
+  - series: vm_missing_tsids_for_metric_id_total
+    values: "300+300x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyTSIDMisses
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        group_name: SelfMonitoring
+      exp_annotations:
+            description: "The rate of TSID misses during query lookups is too high for  ().\nMake sure you're running VictoriaMetrics of v1.85.3 or higher.\nRelated issue https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3502"
+            summary: "Too many TSID misses for job  ()"
+- interval: 1m
+  input_series:
+  - series: vm_missing_tsids_for_metric_id_total
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: TooManyTSIDMisses
+    exp_alerts: []

@@ -46,6 +46,17 @@ parameter.
 
 You can find examples of configuration [in the appropriate section](#examples).
 
+### Deep alerts tuning using subchart
+
+If you want to make deep customizations on alerts (add new ones, override any alert fields, disable alerts etd) you can use v2 alerts functionality.
+To use it you need:
+
+1) Set alertsPackVersion: v2 value in prometheusRules section in values yaml.
+2) Use subchart`s values yaml (/charts/prometheus-rules) to set overrides for alerts. Overrides will be merged with default alerts, described in subchart helpers.tpl with higher priority.
+
+If you will set any other value for alertsPackVersion except "v2" or wont set this value at all - installation will happen on old flavour.
+Alert groups in subchart are supported in same manner as described above.
+
 ### Dead Man's Switch alert
 
 [Dead Man's Switch](https://en.wikipedia.org/wiki/Dead_man%27s_switch) alert is a special always-firing alert that meant

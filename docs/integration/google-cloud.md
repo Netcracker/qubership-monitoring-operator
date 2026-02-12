@@ -368,7 +368,6 @@ To monitor external VM-s, use a Google Cloud monitoring agent:
 
 * Cloud Monitoring agent overview - [https://cloud.google.com/monitoring/agent](https://cloud.google.com/monitoring/agent)
 * Installing the Cloud Monitoring agent on a single VM - [https://cloud.google.com/monitoring/agent/installation](https://cloud.google.com/monitoring/agent/installation)
-* Virtual Machine monitoring quick start - [https://cloud.google.com/monitoring/quickstart-lamp](https://cloud.google.com/monitoring/quickstart-lamp)
 
 # Links
 
