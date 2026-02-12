@@ -37,7 +37,6 @@ func main() {
 	var secretName string
 	//var etcdPodLabel string
 	var keyData, caData, crtData string
-	// 0. Parsing flags
 	flag.StringVar(&secretName, "secret", "kube-etcd-client-certs", "Name of the secret to create/update")
 	//flag.StringVar(&etcdPodLabel, "label", "component=etcd", "Label selector for etcd pod")
 	flag.Parse()
@@ -142,7 +141,6 @@ func main() {
 	certData["etcd-client.crt"] = []byte(crtData)
 	certData["etcd-client.key"] = []byte(keyData)
 
-	// Creating / updating etcd Secret
 	secret := &corev1.Secret{}
 	if secret, err = etcdSecret(customResourceInstance, &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -220,7 +218,7 @@ func extractEtcdCertPaths(ctx context.Context, clientset *kubernetes.Clientset, 
 }
 
 func hasRouteApi(clientset *kubernetes.Clientset) (bool, error) {
-	// get all available API resources
+
 	resources, err := clientset.Discovery().ServerPreferredResources()
 	if err != nil {
 		return false, fmt.Errorf("failed to get server api resources: %v", err)
@@ -343,7 +341,7 @@ func etcdServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, namespace string,
 	if cr.GetLabels() != nil {
 		maps.Copy(sm.Labels, cr.GetLabels())
 	}
-	// Set labels
+
 	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
 	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
 	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
@@ -371,12 +369,12 @@ func createOrUpdateServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, cl clie
 	if err != nil {
 		log.Error("Failed creating ServiceMonitor manifest", "error", err)
 	}
-	// Creating / updating etcd ServiceMonitor
+
 	existingSM := &promv1.ServiceMonitor{}
 	err = cl.Get(context.TODO(), client.ObjectKey{Name: sm.Name, Namespace: sm.Namespace}, existingSM)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			// Create new ServiceMonitor
+
 			if err := cl.Create(context.TODO(), sm); err != nil {
 				return fmt.Errorf("failed to create etcd ServiceMonitor: %w", err)
 			}
@@ -385,7 +383,7 @@ func createOrUpdateServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, cl clie
 			return fmt.Errorf("failed to check etcd servicemonitor existence: %w", err)
 		}
 	} else {
-		// Update existing ServiceMonitor
+
 		sm.SetResourceVersion(existingSM.GetResourceVersion())
 		if err := cl.Update(context.TODO(), sm); err != nil {
 			return fmt.Errorf("failed to update etcd ServiceMonitor: %w", err)
@@ -417,7 +415,7 @@ func CreateOrUpdateService(cr *qubershiporgv1.PlatformMonitoring, clientset *kub
 			return fmt.Errorf("failed to get check if etcd service exists: %w", err)
 		}
 	}
-	//Set parameters
+
 	e.TypeMeta = m.TypeMeta
 	e.Spec.Ports = m.Spec.Ports
 	e.Spec.Selector = m.Spec.Selector
@@ -463,7 +461,7 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.EtcdServiceComponentAsset), 100).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Set parameters
+
 	service.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Service"})
 	service.SetName(utils.EtcdServiceComponentName)
 	service.SetNamespace(etcdServiceNamespace)
@@ -482,7 +480,6 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 		service.Spec.Ports = service.Spec.Ports[:1]
 	}
 	service.Spec.ClusterIP = ""
-	// Set labels
 	service.Labels["name"] = utils.TruncLabel(service.GetName())
 	service.Labels["app.kubernetes.io/name"] = utils.TruncLabel(service.GetName())
 	service.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(service.GetName(), service.GetNamespace())
@@ -499,7 +496,6 @@ func createOrUpdateSecret(clientset *kubernetes.Clientset, secret *corev1.Secret
 		}
 		if apierrors.IsNotFound(err) {
 
-			// Create
 			_, err = clientset.CoreV1().Secrets(secret.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
 			if err != nil {
 				return fmt.Errorf("failed to create secret: %w", err)
@@ -510,7 +506,6 @@ func createOrUpdateSecret(clientset *kubernetes.Clientset, secret *corev1.Secret
 		return fmt.Errorf("failed to check secret existence: %w", err)
 	}
 
-	// Update
 	_, err = clientset.CoreV1().Secrets(secret.Namespace).Update(context.TODO(), secret, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update secret: %w", err)
