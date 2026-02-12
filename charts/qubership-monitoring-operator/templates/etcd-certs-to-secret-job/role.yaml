@@ -1,0 +1,62 @@
+{{- if eq .Values.publicCloudName "" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.etcdCertsJob.rbac.roleName }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.roleName }}
+    app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+rules:
+  - verbs:
+      - create
+      - update
+      - patch
+      - get
+      - list
+      - watch
+    apiGroups:
+      - ''
+    resources:
+      - secrets
+  - verbs:
+      - get
+      - list
+    apiGroups:
+      - ''
+    resources:
+      - pods
+  - verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+    apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+  - verbs:
+      - get
+      - list
+      - watch
+    apiGroups:
+      - monitoring.netcracker.com
+    resources:
+      - platformmonitorings
+  {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+  - apiGroups:
+      - "security.openshift.io"
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - {{ .Values.etcdCertsJob.rbac.name }}
+    verbs:
+      - 'use'
+      - 'update'
+  {{- end }}
+{{- end }}

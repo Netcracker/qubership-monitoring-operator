@@ -1,0 +1,33 @@
+{{- if eq .Values.publicCloudName "" }}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: {{ .Values.etcdCertsJob.rbac.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.name }}
+    app.kubernetes.io/component: cert-exporter
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version:  {{ template "monitoring.operator.version" . }}
+priority: 0
+users: []
+groups: []
+readOnlyRootFilesystem: true
+requiredDropCapabilities: []
+defaultAddCapabilities: []
+allowedCapabilities: []
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+allowPrivilegedContainer: false
+allowHostDirVolumePlugin: true
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowHostIPC: false
+volumes:
+- '*'
+{{- end }}
+{{- end }}
