@@ -36,7 +36,7 @@ jobs:
       actor: ${{ github.actor }}
       sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
       kube-version: '1.30.0'
-      envtest-version: 'release-0.18'
+      envtest-version: 'release-0.19'
       cover-packages: './controllers/...,./api/...'
       install-envtest: true
     secrets:
