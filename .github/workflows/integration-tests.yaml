@@ -55,7 +55,7 @@ jobs:
     needs: [Wait-for-images]
     if: |
       needs.Wait-for-images.outputs.conclusion == 'success'
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@81a445840dde346a27ce09955779af4894bb0a14 # v1.2.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@4cb7d7c09d0205268066b130c8c6205d9232507b # v1.4.1
     with:
       service_branch: ${{ github.sha }}
       pipeline_branch: '4cb7d7c09d0205268066b130c8c6205d9232507b' #this value must match the value after '@' in 'uses'
