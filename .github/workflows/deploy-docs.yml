@@ -54,7 +54,7 @@ jobs:
         run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
       - name: Cache MkDocs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: mkdocs-material-${{ env.cache_id }}
           path: .cache
