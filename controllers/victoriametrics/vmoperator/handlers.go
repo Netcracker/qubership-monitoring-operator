@@ -343,7 +343,7 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmKubeSchedulerService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -378,7 +378,7 @@ func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *v1alpha1.PlatformM
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) error {
 	eps, err := vmKubeSchedulerServiceEndpoints(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -427,7 +427,7 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *v1alpha1.
 	}
 	return nil
 }
-func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmKubeControllerManagerService(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
@@ -462,7 +462,7 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *v1alpha1.P
 	return nil
 }
 
-func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *v1alpha1.PlatformMonitoring) error {
+func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) error {
 	eps, err := vmKubeControllerManagerServiceEndpoints(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Service manifest")
