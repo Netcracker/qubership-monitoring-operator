@@ -124,6 +124,34 @@ func TestVmOperatorManifests(t *testing.T) {
 		}
 		assert.NotNil(t, m, "Kubelet service manifest should not be empty")
 	})
+	t.Run("Test KubeScheduler service manifest", func(t *testing.T) {
+		m, err := vmKubeSchedulerService(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "KubeScheduler service manifest should not be empty")
+	})
+	t.Run("Test KubeScheduler service endpoints manifest", func(t *testing.T) {
+		m, err := vmKubeSchedulerServiceEndpoints(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "KubeScheduler service manifest should not be empty")
+	})
+	t.Run("Test KubeControllerManager service manifest", func(t *testing.T) {
+		m, err := vmKubeControllerManagerService(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "KubeScheduler service manifest should not be empty")
+	})
+	t.Run("Test KubeControllerManager service endpoints manifest", func(t *testing.T) {
+		m, err := vmKubeControllerManagerServiceEndpoints(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "KubeControllerManager service manifest should not be empty")
+	})
 	// t.Run("Test PodMonitor manifest", func(t *testing.T) {
 	// 	m, err := vmOperatorPodMonitor(cr)
 	// 	if err != nil {

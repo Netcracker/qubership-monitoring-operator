@@ -304,6 +304,57 @@ func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints,
 	return &endpoints, nil
 }
 
+func vmKubeSchedulerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
+	service := corev1.Service{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceAsset), 100).Decode(&service); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	service.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Service"})
+	service.SetName(utils.VmKubeSchedulerName)
+	service.SetNamespace(cr.GetNamespace())
+
+	return &service, nil
+}
+
+func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
+	endpoints := corev1.Endpoints{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeSchedulerName)
+	endpoints.SetNamespace(cr.GetNamespace())
+
+	return &endpoints, nil
+}
+func vmKubeControllerManagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
+	service := corev1.Service{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceAsset), 100).Decode(&service); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	service.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Service"})
+	service.SetName(utils.VmKubeControllerManagerName)
+	service.SetNamespace(cr.GetNamespace())
+
+	return &service, nil
+}
+
+func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
+	endpoints := corev1.Endpoints{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeControllerManagerName)
+	endpoints.SetNamespace(cr.GetNamespace())
+
+	return &endpoints, nil
+}
+
 func vmOperatorServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorServiceMonitorAsset), 100).Decode(&sm); err != nil {
