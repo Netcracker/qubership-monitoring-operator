@@ -1,0 +1,20 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+promxy:
+  install: true
+
+  config:
+    serverGroups:
+      - address: vmsingle-k8s:8429
+        label: k8s-1
+      - address: vmsingle-k8s.monitoring.svc.cluster-2.local:8429
+        label: k8s-2
+
+# And the config for the another DR side should looks as:
+# config:
+#   serverGroups:
+#     - address: vmsingle-k8s.monitoring.svc.cluster-1.local:8429
+#       label: k8s-1
+#     - address: vmsingle-k8s:8429
+#       label: k8s-2
