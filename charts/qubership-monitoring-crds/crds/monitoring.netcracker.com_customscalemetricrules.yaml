@@ -1,0 +1,152 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    app.kubernetes.io/component: qubership-prometheus-adapter-operator
+    app.kubernetes.io/part-of: monitoring
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.0
+    qubership-prometheus-adapter-operator.monitoring.netcracker.com/version: 0.11.3
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: "-5"
+  name: customscalemetricrules.monitoring.netcracker.com
+spec:
+  group: monitoring.netcracker.com
+  names:
+    kind: CustomScaleMetricRule
+    listKind: CustomScaleMetricRuleList
+    plural: customscalemetricrules
+    singular: customscalemetricrule
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: CustomScaleMetricRule is the Schema for the customscalemetricrules
+          API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CustomScaleMetricRuleSpec defines the desired state of CustomScaleMetricRule
+            properties:
+              rules:
+                items:
+                  description: |-
+                    CustomMetricRuleConfig defines the metric exposing rule from Prometheus.
+                    This structure is similar to the DiscoveryRule from github.com/directxman12/k8s-prometheus-adapter/pkg/config
+                    but we can not use the original structure because it is not compliant with kube-builder's CRD generator.
+                  properties:
+                    metricsQuery:
+                      description: |-
+                        MetricsQuery specifies modifications to the metrics query, such as converting
+                        cumulative metrics to rate metrics. It is a template where `.LabelMatchers` is
+                        a the comma-separated base label matchers and `.Series` is the series name, and
+                        `.GroupBy` is the comma-separated expected group-by label names. The delimeters
+                        are `<<` and `>>`.
+                      type: string
+                    name:
+                      description: |-
+                        Name specifies how the metric name should be transformed between custom metric
+                        API resources, and Prometheus metric names.
+                      properties:
+                        as:
+                          description: |-
+                            As is the name used in the API.  Captures from Matches
+                            are available for use here.  If not specified, it defaults
+                            to $0 if no capture groups are present in Matches, or $1
+                            if only one is present, and will error if multiple are.
+                          type: string
+                        matches:
+                          description: |-
+                            Matches is a regular expression that is used to match
+                            Prometheus series names.  It may be left blank, in which
+                            case it is equivalent to `.*`.
+                          type: string
+                      required:
+                      - matches
+                      type: object
+                    resources:
+                      description: |-
+                        Resources specifies how associated Kubernetes resources should be discovered for
+                        the given metrics.
+                      properties:
+                        overrides:
+                          additionalProperties:
+                            description: GroupResource represents a Kubernetes group-resource.
+                            properties:
+                              group:
+                                type: string
+                              resource:
+                                type: string
+                            required:
+                            - resource
+                            type: object
+                          description: |-
+                            Overrides specifies exceptions to the above template, mapping label names
+                            to group-resources
+                          type: object
+                        template:
+                          description: |-
+                            Template specifies a golang string template for converting a Kubernetes
+                            group-resource to a Prometheus label.  The template object contains
+                            the `.Group` and `.Resource` fields.  The `.Group` field will have
+                            dots replaced with underscores, and the `.Resource` field will be
+                            singularized.  The delimiters are `<<` and `>>`.
+                          type: string
+                      type: object
+                    seriesFilters:
+                      description: |-
+                        SeriesFilters specifies additional regular expressions to be applied on
+                        the series names returned from the query. This is useful for constraints
+                        that can't be represented in the SeriesQuery (e.g. series matching `container_.+`
+                        not matching `container_.+_total`. A filter will be automatically appended to
+                        match the form specified in Name.
+                      items:
+                        description: |-
+                          RegexFilter is a filter that matches positively or negatively against a regex.
+                          Only one field may be set at a time.
+                        properties:
+                          is:
+                            type: string
+                          isNot:
+                            type: string
+                        type: object
+                      type: array
+                    seriesQuery:
+                      description: |-
+                        SeriesQuery specifies which metrics this rule should consider via a Prometheus query
+                        series selector query.
+                      type: string
+                  required:
+                  - name
+                  - resources
+                  - seriesQuery
+                  type: object
+                type: array
+            type: object
+          status:
+            description: CustomScaleMetricRuleStatus defines the observed state of
+              CustomScaleMetricRule
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

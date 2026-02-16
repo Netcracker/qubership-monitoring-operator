@@ -13,6 +13,7 @@ endif
 
 # Helm charts directory
 HELM_FOLDER := charts/qubership-monitoring-operator
+CRDS_HELM_CRDS_FOLDER := charts/qubership-monitoring-crds
 
 # Directories and files
 BUILD_DIR=build
@@ -132,7 +133,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0 ;\
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -195,7 +196,7 @@ unit-test:
 
 # Run document generation
 .PHONY: docs
-docs: docs/crd/v1
+docs: docs/crd/v1 update-crds
 
 .PHONY: docs/crd/v1
 docs/crd/v1:
@@ -206,6 +207,16 @@ docs/crd/v1:
 	cp $(PROM_OPER_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
 	cp $(PROM_ADAPTER_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
 	cp $(VM_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
+
+##########################
+# Update CRDs Helm chart #
+##########################
+
+# Copy CRDs from documentation to the qubership-monitoring-crds Helm chart
+.PHONY: update-crds
+update-crds:
+	echo "=> Update CRDs in dedicated Helm chart ..."
+	find $(CRD_DOC_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
 
 ###################
 # Running locally #
