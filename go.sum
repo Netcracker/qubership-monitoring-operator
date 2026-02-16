@@ -66,8 +66,6 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdnnjpJbkM4JQ=
-github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/bmatcuk/doublestar/v4 v4.6.1 h1:FH9SifrbvJhnlQpztAx++wlkk70QBf0iBWDwNy7PA4I=
@@ -238,8 +236,6 @@ github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
 github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 h1:JeSE6pjso5THxAzdVpqr6/geYxZytqFMBCOtn/ujyeo=
 github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674/go.mod h1:r4w70xmWCQKmi1ONH4KIaBptdivuRPyosB9RmPlGEwA=
-github.com/grafana-operator/grafana-operator/v4 v4.10.1 h1:9TSZhuMh6b64frhTa8eb+jBEw0oZp076Bh990Ts2WqU=
-github.com/grafana-operator/grafana-operator/v4 v4.10.1/go.mod h1:k69wJcXVrqAcZBoGuh5LSqz0ak8LlVOxxqp0W3f/4V8=
 github.com/grafana/grafana-openapi-client-go v0.0.0-20250828163705-969607f81baa h1:tvPhlrPcD7/e+oWrIQeORR3lrI3bpyzmXM1/5+cs9Xg=
 github.com/grafana/grafana-openapi-client-go v0.0.0-20250828163705-969607f81baa/go.mod h1:kPvro06l0pxBDKftPQ9611gaoSNi6IJrcDgiXdN2Nng=
 github.com/grafana/grafana-operator/v5 v5.20.0 h1:za6eNfrHL4E/BtAPMbyH/SWtRYhkkxRwbv7DeC3tsrc=
