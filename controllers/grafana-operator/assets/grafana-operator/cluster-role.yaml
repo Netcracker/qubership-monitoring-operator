@@ -10,8 +10,6 @@ rules:
   - apiGroups:
       - "integreatly.org"
     resources:
-      - grafananotificationchannels
-      - grafananotificationchannels/status
       - grafanadashboards
       - grafanadashboards/status
       - grafanadatasources
@@ -35,8 +33,6 @@ rules:
       - grafanas/status
       - grafanafolders
       - grafanafolders/status
-      - grafananotificationchannels
-      - grafananotificationchannels/status
       - grafanacontactpoints
       - grafanacontactpoints/status
       - grafanaalertrulegroups

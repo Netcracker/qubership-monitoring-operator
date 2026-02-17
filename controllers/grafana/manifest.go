@@ -163,16 +163,17 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			// OAuth configuration needs to be handled via runtime.RawExtension or removed
 			// Note: This functionality may need to be reimplemented for v5 API
 		}
-		// Set security context
+		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
-			// Initialize SecurityContext if it's nil
 			if podSpec.SecurityContext == nil {
 				podSpec.SecurityContext = &corev1.PodSecurityContext{}
 			}
-			// Now we can safely set its fields
 			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
 				podSpec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
+			}
+			if cr.Spec.Grafana.SecurityContext.RunAsGroup != nil {
+				podSpec.SecurityContext.RunAsGroup = cr.Spec.Grafana.SecurityContext.RunAsGroup
 			}
 			if cr.Spec.Grafana.SecurityContext.FSGroup != nil {
 				podSpec.SecurityContext.FSGroup = cr.Spec.Grafana.SecurityContext.FSGroup
@@ -346,9 +347,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	dataSource.SetNamespace(cr.GetNamespace())
 
-	// In grafana-operator v5, one GrafanaDatasource CR contains only one datasource
-	// Promxy datasource would need to be a separate CR if needed
-	// Note: Promxy datasource functionality may need to be reimplemented as separate CR
+	// In v5, one GrafanaDatasource CR = one datasource. Promxy is a separate CR (grafanaPromxyDataSource).
 
 	// Set Jaeger datasource if Jaeger services is found
 	// Note: In v5, each datasource needs to be a separate GrafanaDatasource CR
@@ -363,6 +362,52 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	}
 
 	// Set JSONData for timeInterval - in v5, JSONData is json.RawMessage
+	if dataSource.Spec.Datasource != nil {
+		jsonDataMap := make(map[string]interface{})
+		if len(dataSource.Spec.Datasource.JSONData) > 0 {
+			if err := json.Unmarshal(dataSource.Spec.Datasource.JSONData, &jsonDataMap); err == nil {
+				jsonDataMap["timeInterval"] = grafanaDatasourceInterval
+				if jsonBytes, err := json.Marshal(jsonDataMap); err == nil {
+					dataSource.Spec.Datasource.JSONData = jsonBytes
+				}
+			}
+		} else {
+			jsonDataMap["timeInterval"] = grafanaDatasourceInterval
+			if jsonBytes, err := json.Marshal(jsonDataMap); err == nil {
+				dataSource.Spec.Datasource.JSONData = jsonBytes
+			}
+		}
+	}
+
+	return &dataSource, nil
+}
+
+// grafanaPromxyDataSource creates GrafanaDatasource manifest for Promxy
+// In v5, each datasource must be a separate GrafanaDatasource CR (not an array like in v4)
+func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatasource, error) {
+	dataSource := grafv1.GrafanaDatasource{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaPromxyDataSourceAsset), 100).Decode(&dataSource); err != nil {
+		return nil, err
+	}
+	// Set parameters
+	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	dataSource.SetNamespace(cr.GetNamespace())
+
+	// Set Promxy URL with port from CR (default: 9090)
+	promxyPort := int32(9090)
+	if cr.Spec.Promxy != nil && cr.Spec.Promxy.Port != nil {
+		promxyPort = *cr.Spec.Promxy.Port
+	}
+	if dataSource.Spec.Datasource != nil {
+		dataSource.Spec.Datasource.URL = fmt.Sprintf("http://promxy:%d", promxyPort)
+	}
+
+	// Set JSONData for timeInterval - in v5, JSONData is json.RawMessage
+	var grafanaDatasourceInterval string = "30s"
+	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
+		grafanaDatasourceInterval = cr.Spec.Victoriametrics.VmAgent.ScrapeInterval
+	}
+
 	if dataSource.Spec.Datasource != nil {
 		jsonDataMap := make(map[string]interface{})
 		if len(dataSource.Spec.Datasource.JSONData) > 0 {

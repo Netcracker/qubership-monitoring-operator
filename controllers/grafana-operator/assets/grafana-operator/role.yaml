@@ -102,8 +102,6 @@ rules:
       - grafanadatasources/status
       - grafanafolders
       - grafanafolders/status
-      - grafananotificationchannels
-      - grafananotificationchannels/status
       - grafanacontactpoints
       - grafanacontactpoints/status
       - grafanaalertrulegroups

@@ -66,23 +66,28 @@ func TestGrafanaManifests(t *testing.T) {
 			Grafana: &monv1.Grafana{},
 		},
 	}
+	// Disabled for v5: in v5 labels/annotations live in Deployment.Spec.Template, not Deployment
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {
 	//	m, err := grafana(cr)
-	//	if err != nil {
-	//		t.Fatal(err)
-	//	}
-	//	assert.NotNil(t, m, "Grafana manifest should not be empty")
-	//	assert.NotNil(t, m.GetLabels())
-	//	assert.Nil(t, m.Spec.Deployment.Labels)
-	//	assert.Nil(t, m.GetAnnotations())
-	//	assert.Nil(t, m.Spec.Deployment.Annotations)
+	//	...
 	//})
-	t.Run("Test GrafanaDataSource manifest", func(t *testing.T) {
+	t.Run("Test GrafanaDatasource manifest", func(t *testing.T) {
 		m, err := grafanaDataSource(cr, nil, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.NotNil(t, m, "GrafanaDataSource manifest should not be empty")
+		assert.NotNil(t, m, "GrafanaDatasource manifest should not be empty")
+	})
+	t.Run("Test GrafanaPromxyDatasource manifest", func(t *testing.T) {
+		m, err := grafanaPromxyDataSource(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "GrafanaPromxyDatasource manifest should not be empty")
+		assert.Equal(t, "platform-monitoring-promxy", m.GetName())
+		if m.Spec.Datasource != nil {
+			assert.Contains(t, m.Spec.Datasource.URL, "promxy")
+		}
 	})
 	t.Run("Test Ingress v1beta1 manifest", func(t *testing.T) {
 		m, err := grafanaIngressV1beta1(cr)

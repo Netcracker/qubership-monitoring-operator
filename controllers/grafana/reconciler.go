@@ -51,6 +51,17 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if err := r.handleGrafanaDataSource(cr); err != nil {
 				return err
 			}
+			// Reconcile Promxy datasource if Promxy is installed
+			if cr.Spec.Promxy != nil && cr.Spec.Promxy.IsInstall() {
+				if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
+					return err
+				}
+			} else {
+				// Delete Promxy datasource if Promxy is not installed
+				if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
+					r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
+				}
+			}
 
 			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
 			// This API unavailable in k8s v1.22+
@@ -115,6 +126,9 @@ func (r *GrafanaReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	}
 	if err := r.deleteGrafanaDataSource(cr); err != nil {
 		r.Log.Error(err, "Can not delete GrafanaDataSource")
+	}
+	if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
+		r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
 	}
 	if err := r.deletePodMonitor(cr); err != nil {
 		r.Log.Error(err, "Can not delete PodMonitor")

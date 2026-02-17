@@ -1,6 +1,6 @@
 // NOTE: Boilerplate only.  Ignore this file.
 
-// Package v1beta1 contains API Schema definitions for the monitoring v1beta1 API group
+// Package v1 contains API Schema definitions for the monitoring v1 API group
 // +k8s:deepcopy-gen=package,register
 // +groupName=monitoring.netcracker.com
 package v1

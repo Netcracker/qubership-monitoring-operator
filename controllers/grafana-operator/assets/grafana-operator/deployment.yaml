@@ -25,6 +25,8 @@ spec:
         app.kubernetes.io/managed-by: monitoring-operator
     spec:
       containers:
+        # Note: Grafana Operator v5 image has its own entrypoint
+        # Setting command to /manager causes "stat /manager: no such file or directory" error
         - env:
             - name: TEMPLATE_PATH
               value: /usr/local/bin/templates
@@ -39,7 +41,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: grafana-operator
-          image: quay.io/grafana-operator/grafana-operator:v5.20.0
+          image: quay.io/grafana-operator/grafana-operator:v5.21.4
           imagePullPolicy: IfNotPresent
           name: grafana-operator
           ports:

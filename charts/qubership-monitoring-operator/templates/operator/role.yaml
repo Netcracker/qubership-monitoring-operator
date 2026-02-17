@@ -316,42 +316,33 @@ rules:
       - deletecollection
       - watch
   - apiGroups:
-      - integreatly.org
-    resources:
-      - grafanas
-      - grafanas/status
-      - grafanas/finalizers
-      - grafananotificationchannels
-      - grafananotificationchannels/status
-      - grafanadashboards
-      - grafanadashboards/status
-      - grafanadatasources
-      - grafanadatasources/status
-      - grafanafolders
-      - grafanafolders/status
-    verbs:
-      - get
-      - list
-      - create
-      - update
-      - delete
-      - deletecollection
-      - watch
-      - patch
-  - apiGroups:
       - grafana.integreatly.org
     resources:
       - grafanas
       - grafanas/status
       - grafanas/finalizers
-      - grafananotificationchannels
-      - grafananotificationchannels/status
       - grafanadashboards
       - grafanadashboards/status
       - grafanadatasources
       - grafanadatasources/status
       - grafanafolders
       - grafanafolders/status
+      - grafanacontactpoints
+      - grafanacontactpoints/status
+      - grafanaalertrulegroups
+      - grafanaalertrulegroups/status
+      - grafananotificationpolicies
+      - grafananotificationpolicies/status
+      - grafananotificationtemplates
+      - grafananotificationtemplates/status
+      - grafanamutetimings
+      - grafanamutetimings/status
+      - grafananotificationpolicyroutes
+      - grafananotificationpolicyroutes/status
+      - grafanalibrarypanels
+      - grafanalibrarypanels/status
+      - grafanaserviceaccounts
+      - grafanaserviceaccounts/status
     verbs:
       - get
       - list

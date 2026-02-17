@@ -24,3 +24,6 @@ spec:
     type: prometheus
     url: 'http://prometheus-operated:9090'
     version: 1
+# Note: In Grafana Operator v4, Promxy datasource was included in the same CR as spec.datasources[1]
+# In v5, each datasource must be a separate GrafanaDatasource CR (spec.datasource, not spec.datasources array)
+# Promxy datasource is now created as a separate CR via grafanaPromxyDataSource() function when promxy.install=true
