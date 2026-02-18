@@ -50,10 +50,15 @@ rules:
       - secrets
       - serviceaccounts
       - services
+      - persistentvolumeclaims
     verbs:
       - get
       - list
       - watch
+      - create
+      - update
+      - patch
+      - delete
   - apiGroups:
       - "apps"
     resources:
