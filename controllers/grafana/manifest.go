@@ -52,49 +52,12 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 		graf.Spec.Deployment = deployment
 	}
 
-	// Try to safely access and initialize Template.Spec
-	// We'll use a recover to catch any panics from accessing nested pointer fields
-	var podSpec *grafv1.DeploymentV1PodSpec
-	panicked := false
-
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				panicked = true
-			}
-		}()
-		// Try to access Template.Spec - this may panic if Spec or Template are pointers and nil
-		if deployment.Spec.Template.Spec == nil {
-			deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
-		}
-		podSpec = deployment.Spec.Template.Spec
-	}()
-
-	if panicked || podSpec == nil {
-		// We panicked trying to access Template.Spec, which means Spec or Template is a pointer and nil
-		// Create a fresh PodSpec
-		podSpec = &grafv1.DeploymentV1PodSpec{}
-
-		// Try to set it back into the deployment structure using a safe method
-		// We'll try multiple approaches to ensure it gets set
-		func() {
-			defer func() { recover() }()
-			// Approach 1: Try to set it directly (may panic if Spec or Template are nil pointers)
-			deployment.Spec.Template.Spec = podSpec
-		}()
-
-		// If that didn't work, try recreating the deployment
-		func() {
-			defer func() { recover() }()
-			newDeployment := &grafv1.DeploymentV1{}
-			// Try to initialize Template.Spec in the new deployment
-			// This may still panic if Spec or Template are pointers
-			newDeployment.Spec.Template.Spec = podSpec
-			graf.Spec.Deployment = newDeployment
-		}()
+	// Initialize Template if nil
+	if deployment.Spec.Template.Spec == nil {
+		deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
 	}
 
-	return podSpec
+	return deployment.Spec.Template.Spec
 }
 
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
