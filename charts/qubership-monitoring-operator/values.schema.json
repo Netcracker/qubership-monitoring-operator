@@ -1863,11 +1863,17 @@
                     "description": "Tolerations allow the pods to schedule onto nodes with matching taints."
                 },
                 "volumeMounts": {
-                    "type": "object",
+                    "type": "array",
+                    "items": {
+                        "type":"object"
+                    },
                     "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core"
                 },
                 "volumes": {
-                    "type": "object",
+                    "type": "array",
+                    "items": {
+                        "type":"object"
+                    },
                     "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core"
                 }
             }
