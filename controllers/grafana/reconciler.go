@@ -13,13 +13,12 @@ import (
 var isSecretUpdated = false
 
 // isManageAdminSecret returns true when monitoring-operator manages grafana-admin-credentials
-// (DisableDefaultAdminSecret is nil or true).
+// (DisableDefaultAdminSecret is true).
 func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
 	if cr.Spec.Grafana == nil {
 		return false
 	}
-	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil ||
-		(cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret)
+	return cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret
 }
 
 type GrafanaReconciler struct {

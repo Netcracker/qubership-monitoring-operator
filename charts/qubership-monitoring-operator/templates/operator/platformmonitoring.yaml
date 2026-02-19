@@ -1122,7 +1122,7 @@ spec:
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
     disableDefaultAdminSecret: {{ .Values.grafana.disableDefaultAdminSecret }}
     {{- else }}
-    disableDefaultAdminSecret: true
+    disableDefaultAdminSecret: false
     {{- end }}
     image: {{ template "grafana.image" . }}
     replicas: {{ .Values.grafana.replicas | default 1 }}

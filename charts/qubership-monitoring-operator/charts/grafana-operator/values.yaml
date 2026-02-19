@@ -119,14 +119,13 @@ security:
   admin_user: admin
   admin_password: admin
 
-# When true (default), grafana-operator does not create default admin-credentials secret;
-# monitoring-operator manages grafana-admin-credentials (creates from grafana-admin-credentials-temp if missing).
-# When false, grafana-operator creates the secret.
+# When false (default), grafana-operator creates the secret with random password.
+# When true, monitoring-operator manages grafana-admin-credentials (creates from Config.Security if missing).
 # Type: boolean
 # Mandatory: no
-# Default: true
+# Default: false
 #
-disableDefaultAdminSecret: true
+disableDefaultAdminSecret: false
 
 # Provides a means to configure the grafana data storage
 # Type: object

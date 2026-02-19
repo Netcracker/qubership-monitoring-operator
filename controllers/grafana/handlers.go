@@ -3,6 +3,7 @@ package grafana
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"slices"
@@ -274,7 +275,15 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 
 func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
 	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
-	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
+
+	// Extract admin_user and admin_password from Config.Security
+	adminUser, adminPassword, err := r.extractAdminCredentials(cr)
+	if err != nil {
+		return fmt.Errorf("failed to extract admin credentials from Config: %w", err)
+	}
+	if adminUser == "" || adminPassword == "" {
+		return fmt.Errorf("admin_user and admin_password must be set in Config.Security when disableDefaultAdminSecret is true")
+	}
 
 	// Set labels used for both create and update
 	labels := map[string]string{
@@ -287,16 +296,22 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	}
 	e.SetLabels(labels)
 
+	// Prepare secret data
+	secretData := map[string][]byte{
+		"GF_SECURITY_ADMIN_USER":     []byte(adminUser),
+		"GF_SECURITY_ADMIN_PASSWORD": []byte(adminPassword),
+	}
+
 	err = r.GetResource(e)
 	if err == nil {
-		// Secret exists: sync from temp if present
-		if err = r.GetResource(tmpSecret); err == nil {
-			if !reflect.DeepEqual(e.Data, tmpSecret.Data) {
-				e.Data = tmpSecret.Data
-				err = r.UpdateResource(e)
-				if err == nil {
-					isSecretUpdated = true
-				}
+		// Secret exists: check if password changed and update if needed
+		currentUser := string(e.Data["GF_SECURITY_ADMIN_USER"])
+		currentPassword := string(e.Data["GF_SECURITY_ADMIN_PASSWORD"])
+		if currentUser != adminUser || currentPassword != adminPassword {
+			e.Data = secretData
+			err = r.UpdateResource(e)
+			if err == nil {
+				isSecretUpdated = true
 			}
 		}
 		return err
@@ -304,26 +319,52 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	if !errors.IsNotFound(err) {
 		return err
 	}
-	// grafana-admin-credentials not found: create from temp if it exists
-	if err = r.GetResource(tmpSecret); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
+	// grafana-admin-credentials not found: create it
 	newSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "grafana-admin-credentials",
 			Namespace: cr.GetNamespace(),
 			Labels:    labels,
 		},
-		Data: tmpSecret.Data,
-		Type: tmpSecret.Type,
-	}
-	if newSecret.Type == "" {
-		newSecret.Type = corev1.SecretTypeOpaque
+		Data: secretData,
+		Type: corev1.SecretTypeOpaque,
 	}
 	return r.CreateResource(cr, newSecret)
+}
+
+// extractAdminCredentials extracts admin_user and admin_password from Grafana Config
+func (r *GrafanaReconciler) extractAdminCredentials(cr *monv1.PlatformMonitoring) (adminUser, adminPassword string, err error) {
+	if cr.Spec.Grafana == nil || cr.Spec.Grafana.Config == nil {
+		return "", "", fmt.Errorf("Grafana Config is not set")
+	}
+
+	// Parse Config as JSON to extract security.admin_user and security.admin_password
+	var configMap map[string]interface{}
+	if err := json.Unmarshal(cr.Spec.Grafana.Config.Raw, &configMap); err != nil {
+		return "", "", fmt.Errorf("failed to unmarshal Config: %w", err)
+	}
+
+	// Extract security section
+	security, ok := configMap["security"].(map[string]interface{})
+	if !ok {
+		return "", "", fmt.Errorf("security section not found in Config")
+	}
+
+	// Extract admin_user
+	if userVal, ok := security["admin_user"].(string); ok {
+		adminUser = userVal
+	} else {
+		return "", "", fmt.Errorf("admin_user not found in Config.Security")
+	}
+
+	// Extract admin_password
+	if passVal, ok := security["admin_password"].(string); ok {
+		adminPassword = passVal
+	} else {
+		return "", "", fmt.Errorf("admin_password not found in Config.Security")
+	}
+
+	return adminUser, adminPassword, nil
 }
 
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
@@ -338,10 +379,10 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		return err
 	}
 	r.Log.Info("Grafana Pods are ready", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
-	// Getting Temp Secret
-	r.Log.Info("Getting Temp Secret")
-	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
-	if err = r.GetResource(tmpSecret); err == nil {
+	// Getting Admin Credentials Secret
+	r.Log.Info("Getting Admin Credentials Secret")
+	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
+	if err = r.GetResource(adminSecret); err == nil {
 		// Get Grafana Pod
 		r.Log.Info("Getting Grafana Pod")
 		config, err := rest.InClusterConfig()
@@ -371,7 +412,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		r.Log.Info("Grafana Pod was found: " + *podName)
 
 		// Prepare Grafana CLI request
-		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(tmpSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
+		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(adminSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
 		req := r.KubeClient.CoreV1().RESTClient().
 			Post().
 			Resource("pods").
@@ -409,7 +450,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		r.Log.Info("Grafana Credentials Reset was finished")
 	}
 	if errors.IsNotFound(err) {
-		r.Log.Info("Temp Secret wasn't found")
+		r.Log.Info("Admin Credentials Secret wasn't found")
 		return nil
 	}
 	return err

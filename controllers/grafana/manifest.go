@@ -106,8 +106,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 
 	if cr.Spec.Grafana != nil {
 		// In grafana-operator v5, disableDefaultAdminSecret is at spec level.
-		// Default (nil) = we manage the secret (same as true).
-		graf.Spec.DisableDefaultAdminSecret = true
+		// Default (nil) = grafana-operator manages the secret (same as false).
+		graf.Spec.DisableDefaultAdminSecret = false
 		if cr.Spec.Grafana.DisableDefaultAdminSecret != nil {
 			graf.Spec.DisableDefaultAdminSecret = *cr.Spec.Grafana.DisableDefaultAdminSecret
 		}
