@@ -119,9 +119,12 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	}
 
 	if cr.Spec.Grafana != nil {
-		// Disable default admin secret creation - we manage it ourselves
-		// In grafana-operator v5, disableDefaultAdminSecret is at spec level
+		// In grafana-operator v5, disableDefaultAdminSecret is at spec level.
+		// Default (nil) = we manage the secret (same as true).
 		graf.Spec.DisableDefaultAdminSecret = true
+		if cr.Spec.Grafana.DisableDefaultAdminSecret != nil {
+			graf.Spec.DisableDefaultAdminSecret = *cr.Spec.Grafana.DisableDefaultAdminSecret
+		}
 
 		// Do not set spec.ingress on the Grafana CR: Grafana Operator would then create its own Ingress.
 		// In grafana-operator v5, there's no "enabled" field - if spec.ingress is present (even with empty spec),
@@ -207,6 +210,62 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		if len(strings.TrimSpace(cr.Spec.Grafana.PriorityClassName)) > 0 {
 			podSpec := ensurePodSpecInitialized(&graf)
 			podSpec.PriorityClassName = cr.Spec.Grafana.PriorityClassName
+		}
+
+		// When disableDefaultAdminSecret is true, we need to explicitly set environment variables
+		// to reference the admin credentials secret so the operator can authenticate with Grafana
+		// In grafana-operator v5, the operator needs these env vars to authenticate and check readiness
+		if graf.Spec.DisableDefaultAdminSecret {
+			podSpec := ensurePodSpecInitialized(&graf)
+			if len(podSpec.Containers) == 0 {
+				podSpec.Containers = []corev1.Container{{}}
+			}
+			// Ensure container has a name
+			if podSpec.Containers[0].Name == "" {
+				podSpec.Containers[0].Name = "grafana"
+			}
+			// Add environment variables for admin credentials from secret
+			// Secret name pattern: {grafana-name}-admin-credentials
+			adminSecretName := fmt.Sprintf("%s-admin-credentials", graf.GetName())
+			envVars := []corev1.EnvVar{
+				{
+					Name: "GF_SECURITY_ADMIN_USER",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: adminSecretName,
+							},
+							Key: "GF_SECURITY_ADMIN_USER",
+						},
+					},
+				},
+				{
+					Name: "GF_SECURITY_ADMIN_PASSWORD",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: adminSecretName,
+							},
+							Key: "GF_SECURITY_ADMIN_PASSWORD",
+						},
+					},
+				},
+			}
+			// Append to existing env vars if any, otherwise set new
+			if podSpec.Containers[0].Env == nil {
+				podSpec.Containers[0].Env = envVars
+			} else {
+				// Check if env vars already exist to avoid duplicates
+				envMap := make(map[string]bool)
+				for _, env := range podSpec.Containers[0].Env {
+					envMap[env.Name] = true
+				}
+				for _, env := range envVars {
+					if !envMap[env.Name] {
+						podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, env)
+					}
+				}
+			}
 		}
 
 		// Set labels on Grafana resource

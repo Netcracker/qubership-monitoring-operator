@@ -206,6 +206,10 @@ type Grafana struct {
 	// PriorityClassName assigned to the Pods
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// DisableDefaultAdminSecret prevents grafana-operator from creating default admin-credentials secret.
+	// When true (default), monitoring-operator manages the secret; when false, grafana-operator creates it.
+	// +optional
+	DisableDefaultAdminSecret *bool `json:"disableDefaultAdminSecret,omitempty"`
 }
 
 // GrafanaOperator defines the desired state for some part of grafana-operator deployment

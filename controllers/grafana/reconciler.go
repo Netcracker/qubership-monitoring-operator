@@ -12,6 +12,16 @@ import (
 
 var isSecretUpdated = false
 
+// isManageAdminSecret returns true when monitoring-operator manages grafana-admin-credentials
+// (DisableDefaultAdminSecret is nil or true).
+func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
+	if cr.Spec.Grafana == nil {
+		return false
+	}
+	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil ||
+		(cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret)
+}
+
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
 	config     *rest.Config
@@ -41,8 +51,10 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
-				return err
+			if isManageAdminSecret(cr) {
+				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
+					return err
+				}
 			}
 			// Reconcile resources with creation and update
 			if err := r.handleGrafana(cr); err != nil {
@@ -51,16 +63,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if err := r.handleGrafanaDataSource(cr); err != nil {
 				return err
 			}
-			// Reconcile Promxy datasource if Promxy is installed
-			if cr.Spec.Promxy != nil && cr.Spec.Promxy.IsInstall() {
-				if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
-					return err
-				}
-			} else {
-				// Delete Promxy datasource if Promxy is not installed
-				if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
-					r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
-				}
+			// Reconcile Promxy datasource - always create it regardless of Promxy installation status
+			if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
+				return err
 			}
 
 			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
@@ -99,8 +104,8 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// Reset Grafana Credentials
-			if isSecretUpdated {
+			// Reset Grafana Credentials when we manage the secret and it was updated
+			if isManageAdminSecret(cr) && isSecretUpdated {
 				if err := r.resetGrafanaCredentials(cr); err != nil {
 					r.Log.Error(err, "Can not reset Grafana Credentials")
 					return err

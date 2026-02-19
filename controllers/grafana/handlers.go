@@ -276,17 +276,20 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
 	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
 
-	// Set labels
-	e.SetLabels(map[string]string{
+	// Set labels used for both create and update
+	labels := map[string]string{
 		"name":                         utils.TruncLabel(e.GetName()),
 		"app.kubernetes.io/name":       utils.TruncLabel(e.GetName()),
 		"app.kubernetes.io/managed-by": "monitoring-operator",
 		"app.kubernetes.io/part-of":    "monitoring",
 		"app.kubernetes.io/instance":   utils.GetInstanceLabel(e.GetName(), e.GetNamespace()),
 		"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Grafana.Image),
-	})
+	}
+	e.SetLabels(labels)
 
-	if err = r.GetResource(e); err == nil {
+	err = r.GetResource(e)
+	if err == nil {
+		// Secret exists: sync from temp if present
 		if err = r.GetResource(tmpSecret); err == nil {
 			if !reflect.DeepEqual(e.Data, tmpSecret.Data) {
 				e.Data = tmpSecret.Data
@@ -296,11 +299,31 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 				}
 			}
 		}
+		return err
 	}
-	if errors.IsNotFound(err) {
-		return nil
+	if !errors.IsNotFound(err) {
+		return err
 	}
-	return
+	// grafana-admin-credentials not found: create from temp if it exists
+	if err = r.GetResource(tmpSecret); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	newSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "grafana-admin-credentials",
+			Namespace: cr.GetNamespace(),
+			Labels:    labels,
+		},
+		Data: tmpSecret.Data,
+		Type: tmpSecret.Type,
+	}
+	if newSecret.Type == "" {
+		newSecret.Type = corev1.SecretTypeOpaque
+	}
+	return r.CreateResource(cr, newSecret)
 }
 
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
