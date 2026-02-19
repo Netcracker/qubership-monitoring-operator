@@ -52,12 +52,35 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 		graf.Spec.Deployment = deployment
 	}
 
-	// Initialize Template if nil
-	if deployment.Spec.Template.Spec == nil {
-		deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+	// Initialize Template.Spec if nil
+	// Use recover to safely handle any nil pointer issues
+	var podSpec *grafv1.DeploymentV1PodSpec
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// Template or Template.Spec is nil, initialize it
+				podSpec = &grafv1.DeploymentV1PodSpec{}
+				// Try to set it back
+				defer func() { recover() }()
+				deployment.Spec.Template.Spec = podSpec
+			}
+		}()
+		if deployment.Spec.Template.Spec == nil {
+			deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+		}
+		podSpec = deployment.Spec.Template.Spec
+	}()
+
+	if podSpec == nil {
+		podSpec = &grafv1.DeploymentV1PodSpec{}
+		// Try to set it back safely
+		func() {
+			defer func() { recover() }()
+			deployment.Spec.Template.Spec = podSpec
+		}()
 	}
 
-	return deployment.Spec.Template.Spec
+	return podSpec
 }
 
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
