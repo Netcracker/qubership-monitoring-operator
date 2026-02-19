@@ -1,0 +1,1917 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "alertManager": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object"
+                },
+                "annotations": {
+                    "type": "object"
+                },
+                "containers": {
+                    "type": "array"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "ingress": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "host": {
+                            "type": "string"
+                        },
+                        "annotations": {
+                            "type": "object"
+                        },
+                        "labels": {
+                            "type": "object"
+                        },
+                        "tlsSecretName": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "install": {
+                    "type": "boolean"
+                },
+                "labels": {
+                    "type": "object"
+                },
+                "nodeSelector": {
+                    "type": "object"
+                },
+                "paused": {
+                    "type": "boolean"
+                },
+                "podMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string"
+                        },
+                        "metricRelabelings": {
+                            "type": "array"
+                        },
+                        "relabelings": {
+                            "type": "array"
+                        },
+                        "scrapeTimeout": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "priorityClassName": {
+                    "type": "string"
+                },
+                "replicas": {
+                    "type": "integer"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "Resource requests and limits for the container",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Hard resource limits",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "Maximum CPU the container is allowed to use (e.g. 200m)"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Maximum memory the container is allowed to use (e.g. 200Mi)"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Guaranteed resources reserved for the container",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU requested for scheduling (e.g. 100m)"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory requested for scheduling (e.g. 100Mi)"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer"
+                        },
+                        "fsGroup": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        },
+                        "labels": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array"
+                }
+            }
+        },
+        "auth": {
+            "type": "object",
+            "description": "Auth configuration for integrating Platform Monitoring services via OAuth (currently supports IDP)",
+            "properties": {
+                "clientId": {
+                    "type": "string",
+                    "description": "OAuth Client ID used to identify the client application"
+                },
+                "clientSecret": {
+                    "type": "string",
+                    "description": "OAuth Client Secret used to authenticate the client application"
+                },
+                "loginUrl": {
+                    "type": "string",
+                    "description": "Authentication (authorization) endpoint URL of the IDP"
+                },
+                "tokenUrl": {
+                    "type": "string",
+                    "description": "Token redemption endpoint URL where authorization codes are exchanged for tokens"
+                },
+                "userInfoUrl": {
+                    "type": "string",
+                    "description": "Access token validation or user info endpoint URL of the IDP"
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "description": "TLS settings for secure communication with the IDP endpoints",
+                    "properties": {
+                        "caSecret": {
+                            "type": "object",
+                            "description": "Kubernetes Secret containing the trusted CA certificate",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name of the Secret containing the CA certificate"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "Key in the Secret data that holds the CA certificate (e.g. trusted-ca.crt)"
+                                }
+                            }
+                        },
+                        "certSecret": {
+                            "type": "object",
+                            "description": "Kubernetes Secret containing the client certificate",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name of the Secret containing the client certificate"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "Key in the Secret data that holds the client certificate (e.g. client-cert.crt)"
+                                }
+                            }
+                        },
+                        "keySecret": {
+                            "type": "object",
+                            "description": "Kubernetes Secret containing the client private key",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name of the Secret containing the client private key"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "Key in the Secret data that holds the client private key (e.g. client-key.key)"
+                                }
+                            }
+                        },
+                        "insecureSkipVerify": {
+                            "type": "boolean",
+                            "description": "Disable TLS certificate verification when set to true (not recommended for production)"
+                        }
+                    }
+                },
+                "basicAuthPwd": {
+                    "type": "string",
+                    "description": "Password used for basic authentication (e.g. vmAuth) derived from the OAuth configuration"
+                }
+            }
+        },
+        "blackboxExporter": {
+            "type": "object",
+            "description": "Exporter to probe URLs",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "cloudEventsExporter": {
+            "type": "object",
+            "description": "Exporter to fetch all Events and convert them to metrics",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "cloudwatchExporter": {
+            "type": "object",
+            "description": "Exporter to request metrics from AWS CloudWatch about different AWS Managed Services",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "commonDashboards": {
+            "type": "object",
+            "description": "Common dashboards that stored in Monitoring",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "fullnameOverride": {
+            "type": "string",
+            "description": "Name to substitute for the full names of resources"
+        },
+        "global": {
+            "type": "object",
+            "properties": {
+                "privilegedRights": {
+                    "type": "boolean",
+                    "description": "Indicates if monitoring-operator has permissions to deploy ClusterRole and ClusterRoleBinding resources."
+                },
+                "profile": {
+                    "type": "string",
+                    "description": "HWE profile name determining the scale of the deployment",
+                    "enum": ["small", "medium", "large"]
+                }
+            }
+        },
+        "goldpingerExporter": {
+            "type": "object",
+            "description": "Exporter to check and visualize network connectivity between Kubernetes nodes and pods in the cluster",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "grafanaDashboards": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                },
+                "list": {
+                    "type": "array",
+                    "description": "A list of Grafana dashboards to install",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "graphite_remote_adapter": {
+            "type": "object",
+            "description": "Adapter to receive metrics using RemoteWrite from VictoriaMetrics or Prometheus convert them in Graphite format and send to Graphite/carbon/etc",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "integration": {
+            "type": "object",
+            "description": "Platform Monitoring integration with external monitoring tools and public clouds (GCP Stackdriver, Jaeger)",
+            "properties": {
+                "stackdriver": {
+                    "type": "object",
+                    "description": "Google Cloud Operations (GCO) integration via stackdriver-prometheus-sidecar deployed as Prometheus sidecar",
+                    "properties": {
+                        "image": {
+                            "type": "string",
+                            "description": "Docker image for stackdriver-prometheus-sidecar container (deployed as sidecar to Prometheus pod)"
+                        },
+                        "projectId": {
+                            "type": "string",
+                            "description": "Google Cloud project identifier where metrics will be sent"
+                        },
+                        "location": {
+                            "type": "string",
+                            "description": "Google Cloud location/region where the project is deployed"
+                        },
+                        "cluster": {
+                            "type": "string",
+                            "description": "Name of Kubernetes cluster in Google Cloud that will be monitored"
+                        },
+                        "metricsFilter": {
+                            "type": "array",
+                            "description": "List of Prometheus instant vector selector filters for metrics to send to GCO. Uses Prometheus query syntax. https://prometheus.io/docs/prometheus/latest/querying/basics/#instant-vector-selectors",
+                            "items": {
+                                "type": "string"
+                            },
+                            "examples": [["{__name__=~'prometheus_example_app_metric'}"]]
+                        }
+                    },
+                    "required": ["image", "projectId", "location", "cluster"],
+                    "additionalProperties": false
+                },
+                "jaeger": {
+                    "type": "object",
+                    "description": "Jaeger distributed tracing integration",
+                    "properties": {
+                        "createGrafanaDataSource": {
+                            "type": "boolean",
+                            "description": "Automatically discover Jaeger service across all namespaces and create Grafana datasource if found"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "clickHouse": {
+                    "type": "object",
+                    "description": "ClickHouse Performance Dashboard Grafana datasource configuration",
+                    "properties": {
+                        "createGrafanaDataSource": {
+                            "type": "boolean",
+                            "description": "Create Grafana datasource for ClickHouse Performance Dashboard"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        "integrationTests": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "The pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core"
+                },
+                "annotations": {
+                    "type": "object"
+                },
+                "install": {
+                    "type": "boolean"
+                },
+                "labels": {
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "A name of a integration-tests microservice to deploy with."
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Defines nodes the pod is allowed to be scheduled to."
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName to be assigned to the pod to prevent it from eviction."
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "Compute resources requests and limits. More info:https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "Pod-level security attributes."
+                },
+                "statusWriting": {
+                    "type": "object",
+                    "properties": {
+                        "customResourcePath": {
+                            "type": "string",
+                            "description": "The parameter (optional) specifies the path to Custom Resource that should be used for the write status of auto-tests execution."
+                        },
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "The parameter specifies enable/disable writing status of Integration tests' execution to the specified Custom Resource."
+                        },
+                        "isShortStatusMessage": {
+                            "type": "boolean",
+                            "description": "The parameter specifies the size of the integration test status message."
+                        },
+                        "onlyIntegrationTests": {
+                            "type": "boolean",
+                            "description": "The parameter specifies whether to deploy only integration tests without any component (component was installed before)."
+                        }
+                    }
+                },
+                "tags": {
+                    "type": "string",
+                    "description": "Defines a set of test cases to run. Default: grafanaORtest-appORprometheus-adapterORsmoke"
+                },
+                "timeoutBeforeStart": {
+                    "type": "integer",
+                    "description": "Delay before starting integration tests"
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to be scheduled onto nodes with matching taints."
+                }
+            }
+        },
+        "jsonExporter": {
+            "type": "object",
+            "description": "Exporter to request JSON from any URL, parse the response and expose it as metrics",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "kubeStateMetrics": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "Pod's scheduling constraints"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata."
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Image of kube-state-metrics"
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": " Allows to disable creation of KubeStateMetrics during deploy."
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services."
+                },
+                "metricLabelsAllowlist": {
+                    "type": "string",
+                    "description": "Comma-separated list of additional Kubernetes label keys that will be used in the resource labels metric. More info: https://github.com/kubernetes/kube-state-metrics/blob/v2.3.0/docs/cli-arguments.md",
+                    "examples": ["nodes=[*],pods=[*],namespaces=[*],deployments=[*],statefulsets=[*],daemonsets=[*],cronjobs=[*],jobs=[*],ingresses=[*],services=[*]"]
+                },
+                "namespaces": {
+                    "type": "string",
+                    "description": "Comma separated list of namespaces to monitor in non-privileged mode. This parameter is unnecessary if the kube-state-metrics has ClusterRole on all namespaces."
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Defines nodes the kube-state-merics are scheduled to."
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Pauses / resumes reconciliation of kube-state-metrics"
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the Pods to prevent them from eviction."
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "Compute resources requests and limits. More info:https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod."
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services."
+                        }
+                    }
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "description": "ServiceMonitor configuration for Prometheus Operator",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Enable ServiceMonitor resource creation"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Scrape timeout (must be less than interval)"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "items": {
+                                "type": "object",
+                                "description": "Prometheus relabel_config rule",
+                                "properties": {
+                                    "action": {
+                                        "type": "string",
+                                        "description": "Relabel action (keep, drop, replace, labelmap, labeldrop, labelkeep, hashmod, labelreplace)",
+                                        "enum": ["keep", "drop", "replace", "labelmap", "labeldrop", "labelkeep", "hashmod", "labelreplace"]
+                                    },
+                                    "regex": {
+                                        "type": "string",
+                                        "description": "Regular expression to match"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "description": "Labels to read from",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string",
+                                        "description": "Label to write to"
+                                    },
+                                    "replacement": {
+                                        "type": "string",
+                                        "description": "Replacement value"
+                                    },
+                                    "separator": {
+                                        "type": "string",
+                                        "description": "Separator for sourceLabels"
+                                    }
+                                },
+                                "additionalProperties": true
+                            },
+                            "examples": [[{
+                                        "action": "keep",
+                                        "regex": "kube_(daemonset|deployment|pod|namespace|node|statefulset).+",
+                                        "sourceLabels": ["__name__"]
+                                    }]]
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Target relabeling rules for service discovery",
+                            "default": [],
+                            "items": {
+                                "type": "object",
+                                "description": "Prometheus relabel_config rule for service discovery",
+                                "properties": {
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "description": "Labels to read from",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "separator": {
+                                        "type": "string",
+                                        "default": ";"
+                                    },
+                                    "regex": {
+                                        "type": "string",
+                                        "default": "(.*)"
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string",
+                                        "default": "$1"
+                                    },
+                                    "action": {
+                                        "type": "string",
+                                        "enum": ["keep", "drop", "replace", "labelmap", "labeldrop", "labelkeep", "hashmod", "labelreplace"]
+                                    }
+                                },
+                                "additionalProperties": true
+                            },
+                            "examples": [[{
+                                        "sourceLabels": ["__meta_kubernetes_pod_node_name"],
+                                        "separator": ";",
+                                        "regex": "^(.*)$",
+                                        "targetLabel": "nodename",
+                                        "replacement": "$1",
+                                        "action": "replace"
+                                    }]]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "scrapeResources": {
+                    "type": "string",
+                    "description": "Comma-separated list of Resources to be enabled."
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints."
+                }
+            }
+        },
+        "kubernetesMonitors": {
+            "type": "object",
+            "properties": {
+                "apiserverServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "examples": [{
+                                        "action": "keep",
+                                        "sourceLabels": ["__name__"],
+                                        "regex": "apiserver_request_(.*)|apiserver_storage_(.*)|workqueue_(.*)|etcd_(.*)|process_(.*)|go_(.*)"
+                                    }]
+                            }
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "sourceLabels": ["job"],
+                                        "targetLabel": "job",
+                                        "replacement": "kube-apiserver"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "coreDnsServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "regex": "(.*)",
+                                        "replacement": "$1",
+                                        "sourceLabels": ["__meta_kubernetes_pod_node_name"],
+                                        "targetLabel": "node"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "etcdServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job)."
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "kubeControllerManagerServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "examples": [[{
+                                        "action": "drop",
+                                        "sourceLabels": ["__name__"],
+                                        "regex": "etcd_(debugging|disk|request|server).*"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "regex": "(.+)(?::\\d+)",
+                                        "replacement": "$1:10259",
+                                        "sourceLabels": ["__address__"],
+                                        "targetLabel": "__address__"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "kubeSchedulerServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "regex": "(.+)(?::\\d+)",
+                                        "replacement": "$1:10257",
+                                        "sourceLabels": ["__address__"],
+                                        "targetLabel": "__address__"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "kubeletServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "examples": [[{
+                                        "action": "drop",
+                                        "regex": "container_start_time_seconds;\\/metrics\\/resource",
+                                        "separator": ";",
+                                        "sourceLabels": ["__name__", "metrics_path"]
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "separator": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "regex": "(\\/metrics\\/resource)",
+                                        "replacement": "$1",
+                                        "sourceLabels": ["__metrics_path__"],
+                                        "targetLabel": "metrics_path"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "nginxIngressPodMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "examples": [[{
+                                        "action": "drop",
+                                        "regex": "nginx_ingress_controller_response_size_bucket",
+                                        "sourceLabels": ["__name__"]
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "regex": "(.*)",
+                                        "replacement": "$1",
+                                        "sourceLabels": ["__meta_kubernetes_pod_node_name"],
+                                        "targetLabel": "node"
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "openshiftApiserverOperatorServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "examples": [[{
+                                        "action": "drop",
+                                        "regex": "etcd_(debugging|disk|server).*",
+                                        "sourceLabels": ["__name__"]
+                                    }]]
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "examples": [[{
+                                        "action": "replace",
+                                        "replacement": "openshift-apiserver",
+                                        "targetLabel": "apiserver"
+                                    }]]
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "openshiftApiserverServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job).",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    },
+                                    "targetLabel": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "openshiftClusterVersionOperatorServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job)."
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "openshiftHAProxyServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job)."
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                },
+                "openshiftStatemetricsServiceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scrape interval for metrics collection"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling rules for filtering/processing scraped metrics"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Applied to targets before scraping. It alters metadata about the target itself (e.g., changing the address or labels attached to the job)."
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Timeout for metrics scraping"
+                        }
+                    }
+                }
+            }
+        },
+        "monitoringOperator": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations"
+                },
+                "clusterRole": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "image": {
+                    "type": "string",
+                    "description": "A docker image to use for monitoring-operator deployment."
+                },
+                "imagePullSecrets": {
+                    "type": "array",
+                    "description": "Kubernetes secret name storing a secret to pull images from private registry",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/user-guide/labels"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "A name that will be used in monitoring-operator related objects (deployment, service, role, etc.)"
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Defines nodes the pod will be scheduled on."
+                },
+                "podMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Metrics scraping interval"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling is applied to samples as the last step before ingestion.",
+                            "examples": [[{
+                                        "action": "drop",
+                                        "regex": "controller_runtime_reconcile_time_seconds_bucket;(0.005|0.01|0.025|0.05|0.15|0.2|0.25|0.3|0.35|0.4|0.45|0.6|0.7|0.8|0.9|1.25|1.5|1.75|2.5|3|3.5|4|4.5|6|7|8|9|15|20|25|40|50)",
+                                        "sourceLabels": ["__name__", "le"]
+                                    }]],
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string"
+                                    },
+                                    "regex": {
+                                        "type": "string"
+                                    },
+                                    "sourceLabels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Allows to dynamically rewrite the label set of a target before it gets scraped. Ref: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config",
+                            "examples": [[{
+                                        "sourceLabels": ["__meta_kubernetes_pod_node_name"],
+                                        "separator": ";",
+                                        "regex": "^(.*)$",
+                                        "targetLabel": "nodename",
+                                        "replacement": "$1",
+                                        "action": "replace"
+                                    }]]
+                        },
+                        "scrapeTimeout": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "pprof": {
+                    "type": "object",
+                    "properties": {
+                        "containerPort": {
+                            "type": "integer"
+                        },
+                        "install": {
+                            "type": "boolean",
+                            "description": "Indicates if monitoring-operator has pprof enabled."
+                        },
+                        "service": {
+                            "type": "object",
+                            "properties": {
+                                "annotations": {
+                                    "type": "object",
+                                    "description": "Set of annotations to assign to pprof service"
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "description": "Set of labels to assign to pprof service"
+                                },
+                                "port": {
+                                    "type": "integer",
+                                    "description": "A pprof dedicated service port number"
+                                },
+                                "portName": {
+                                    "type": "string",
+                                    "description": "A pprof dedicated service port name."
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "description": "Type of pprof dedicated service.",
+                                    "default": "ClusterIP"
+                                }
+                            }
+                        }
+                    }
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the pod to prevent them from eviction."
+                },
+                "resources": {
+                    "type": "object"
+                },
+                "securityContext": {
+                    "type": "object",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod."
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Allows the pod to be scheduled onto nodes with matching taints."
+                }
+            }
+        },
+        "nameOverride": {
+            "type": "string",
+            "description": "Provide a name in place of monitoring-operator for `app:` labels"
+        },
+        "networkLatencyExporter": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "nodeExporter": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations"
+                },
+                "collectorTextfileDirectory": {
+                    "type": "string",
+                    "description": "Directory for textfile collector. More info: https://github.com/prometheus/node_exporter#textfile-collector",
+                    "default": "/var/spool/monitoring"
+                },
+                "extraArgs": {
+                    "type": "array",
+                    "description": "Additional node-exporter container arguments.",
+                    "examples": [["--collector.systemd"]]
+                },
+                "install": {
+                    "type": "boolean"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/user-guide/labels"
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Defines nodes the pod is scheduled on."
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Pauses node-exporter reconciliation"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port for node-exporter daemonset and service"
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the Pods to prevent them from eviction."
+                },
+                "resources": {
+                    "type": "object",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "Maximum amount of cpu resource that is allowed to be used by the container process per 1 scheduling period (100ms). Can be integer cores or milicores, e.g. 500m",
+                                    "examples": ["500m"]
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Maximum amount of memory that can be allocated to a container process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. You can also use the power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki."
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "Initial and guaranteed amount of cpu resource that is allowed to be used by the container process per 1 scheduling period (100ms). Can be integer cores or milicores, e.g. 500m",
+                                    "examples": ["500m"]
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Initial and guaranteed amount of memory that can be allocated to a container process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. You can also use the power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki."
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod."
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        },
+                        "labels": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string"
+                        },
+                        "metricRelabelings": {
+                            "type": "array"
+                        },
+                        "relabelings": {
+                            "type": "array"
+                        },
+                        "scrapeTimeout": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "setupSecurityContext": {
+                    "type": "boolean",
+                    "description": "Allows to create PodSecurityPolicy or SecurityContextConstraints."
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints."
+                }
+            }
+        },
+        "oAuthProxy": {
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "string",
+                    "description": "An image of OAuthProxy sidecar."
+                }
+            }
+        },
+        "prometheusAdapter": {
+            "type": "object",
+            "description": "Adapter to support HPA scaling by custom metrics from VictoriaMetrics or Prometheus",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "prometheusRules": {
+            "type": "object",
+            "description": "Basic PrometheusRules added alert rules.",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                },
+                "ruleGroups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "override": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "examples": [[{
+                                "group": "SelfMonitoring",
+                                "alert": "PrometheusNotificationsBacklog",
+                                "for": "0m",
+                                "expr": "min_over_time(prometheus_notifications_queue_length[20m]) > 0",
+                                "severity": "high"
+                            }]]
+                }
+            }
+        },
+        "promitorAgentResourceDiscovery": {
+            "type": "object",
+            "description": "Resource discovery part of Promitor to discover hosts and other objects in Azure",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "promitorAgentScraper": {
+            "type": "object",
+            "description": "Exporter to request metrics from Azure Monitor about different Azure Managed Services",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "promxy": {
+            "type": "object",
+            "description": "Proxy to VictoriaMetrics or Prometheus datasources, use in DR deployments.",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "publicCloudName": {
+            "type": "string",
+            "description": "Allows to disable or enable specific dashboards, rules and service monitors for the specified public cloud.",
+            "enum": ["aws", "azure", "google", ""]
+        },
+        "pushgateway": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "Pod's scheduling constraints"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations"
+                },
+                "extraArgs": {
+                    "type": "array",
+                    "description": "Additional pushgateway container arguments. Type: list[string]",
+                    "examples": [["--log.level=info"]]
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Image of pushgateway"
+                },
+                "ingress": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "FQDN of ingress host"
+                        },
+                        "annotations": {
+                            "type": "object",
+                            "description": "Set of annotations for Ingress. Allows to set up authorization e.g. via ingress-nginx."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Set of labels for Ingress. Default monitoring-operator labels can be overwritten."
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist"
+                        }
+                    }
+                },
+                "install": {
+                    "type": "boolean"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/user-guide/labels"
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Defines nodes the pod is scheduled on."
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Pauses pushgateway reconciliation"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port for pushgateway deployment and service.",
+                    "default": 9091
+                },
+                "replicas": {
+                    "type": "integer",
+                    "description": "Number of created pods."
+                },
+                "resources": {
+                    "type": "object",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "Maximum amount of cpu resource that is allowed to be used by the container process per 1 scheduling period (100ms). Can be integer cores or milicores, e.g. 500m",
+                                    "examples": ["500m"]
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Maximum amount of memory that can be allocated to a container process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. You can also use the power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki."
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "Initial and guaranteed amount of cpu resource that is allowed to be used by the container process per 1 scheduling period (100ms). Can be integer cores or milicores, e.g. 500m",
+                                    "examples": ["500m"]
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Initial and guaranteed amount of memory that can be allocated to a container process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. You can also use the power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki."
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod."
+                        }
+                    }
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "type": "string"
+                        },
+                        "metricRelabelings": {
+                            "type": "array"
+                        },
+                        "relabelings": {
+                            "type": "array"
+                        },
+                        "scrapeTimeout": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "storage": {
+                    "type": "object",
+                    "description": "PVC spec for Pushgateway. If specified, also adds flags --persistence.file=/data/pushgateway.data and --persistence.interval=5m, creates volume and volumeMount with name \"storage-volume\" in the deployment.",
+                    "properties": {
+                        "accessModes": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "resources": {
+                            "type": "object"
+                        },
+                        "volumeName": {
+                            "type": "string"
+                        },
+                        "storageClassName": {
+                            "type": "string"
+                        }
+                    },
+                    "examples": [{
+                            "accessModes": ["ReadWriteOnce"],
+                            "resources": {
+                                "requests": {
+                                    "storage": "2Gi"
+                                }
+                            },
+                            "volumeName": "pushgateway-pv",
+                            "storageClassName": "pushgateway"
+                        }]
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints."
+                },
+                "volumeMounts": {
+                    "type": "array",
+                    "items": {
+                        "type":"object"
+                    },
+                    "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core"
+                },
+                "volumes": {
+                    "type": "array",
+                    "items": {
+                        "type":"object"
+                    },
+                    "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core"
+                }
+            }
+        },
+        "role": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "roleBinding": {
+            "type": "object",
+            "description": "Role and ClusterRole for monitoring-operator to use. Ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "stackdriver_exporter": {
+            "type": "object",
+            "description": "Exporter to request metrics from Google Cloud Operations about different Google Managed Services.",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "versionExporter": {
+            "type": "object",
+            "description": "Exporter to discover all versions for all applications from ConfigMap",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}
