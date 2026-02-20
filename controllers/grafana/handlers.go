@@ -272,22 +272,49 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 	return nil
 }
 
+// getGrafanaAdminSecretName returns the name of the admin credentials secret for Grafana.
+// The secret name pattern is: {grafana-name}-admin-credentials
+func getGrafanaAdminSecretName(cr *monv1.PlatformMonitoring) string {
+	grafanaName := utils.GrafanaComponentName // default name from asset
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		grafanaName = cr.Spec.Grafana.Name
+	}
+	return fmt.Sprintf("%s-admin-credentials", grafanaName)
+}
+
 // handleGrafanaCredentialsSecret runs when disableDefaultAdminSecret=true.
 // Per grafana-operator semantics, the flag disables automatic secret creation — the user must
-// pre-create the secret "grafana-admin-credentials" with keys GF_SECURITY_ADMIN_USER and
-// GF_SECURITY_ADMIN_PASSWORD. We only ensure env vars are set on the Grafana CR (in manifest.go);
-// we do not create or update the secret here.
+// pre-create the secret with keys GF_SECURITY_ADMIN_USER and GF_SECURITY_ADMIN_PASSWORD.
+// We validate that the secret exists and contains the required keys.
+// The secret is created by Helm template (grafana-admin-credentials-secret.yaml).
 func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
-	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
+	secretName := getGrafanaAdminSecretName(cr)
+	secretNamespace := cr.GetNamespace()
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		secretNamespace = cr.Spec.Grafana.Namespace
+	}
+
+	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
 	err = r.GetResource(e)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			r.Log.Info("grafana-admin-credentials secret not found; create it manually when using disableDefaultAdminSecret=true",
-				"namespace", cr.GetNamespace())
-			return nil
+			return fmt.Errorf("secret %s/%s not found: when disableDefaultAdminSecret=true, the secret must be created by Helm template with grafana.adminCredentialsSecret.adminPassword set", secretNamespace, secretName)
 		}
 		return err
 	}
+
+	// Validate that secret contains required keys
+	if e.Data == nil {
+		return fmt.Errorf("secret %s/%s has no data", secretNamespace, secretName)
+	}
+	if _, ok := e.Data["GF_SECURITY_ADMIN_USER"]; !ok {
+		return fmt.Errorf("secret %s/%s missing required key GF_SECURITY_ADMIN_USER", secretNamespace, secretName)
+	}
+	if _, ok := e.Data["GF_SECURITY_ADMIN_PASSWORD"]; !ok {
+		return fmt.Errorf("secret %s/%s missing required key GF_SECURITY_ADMIN_PASSWORD", secretNamespace, secretName)
+	}
+
+	r.Log.Info("Grafana admin credentials secret validated", "secret", secretName, "namespace", secretNamespace)
 	return nil
 }
 
@@ -305,7 +332,12 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 	r.Log.Info("Grafana Pods are ready", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
 	// Getting Admin Credentials Secret
 	r.Log.Info("Getting Admin Credentials Secret")
-	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
+	secretName := getGrafanaAdminSecretName(cr)
+	secretNamespace := cr.GetNamespace()
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		secretNamespace = cr.Spec.Grafana.Namespace
+	}
+	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
 	if err = r.GetResource(adminSecret); err == nil {
 		// Get Grafana Pod
 		r.Log.Info("Getting Grafana Pod")
