@@ -62,9 +62,15 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if err := r.handleGrafanaDataSource(cr); err != nil {
 				return err
 			}
-			// Reconcile Promxy datasource - always create it regardless of Promxy installation status
-			if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
-				return err
+			// Reconcile Promxy datasource only when Promxy is installed (otherwise Grafana hangs on missing service)
+			if cr.Spec.Promxy != nil && cr.Spec.Promxy.IsInstall() {
+				if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
+					return err
+				}
+			} else {
+				if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
+					r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
+				}
 			}
 
 			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
