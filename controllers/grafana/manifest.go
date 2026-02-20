@@ -199,8 +199,10 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		}
 
 		// When disableDefaultAdminSecret is true, we need to explicitly set environment variables
-		// to reference the admin credentials secret so the operator can authenticate with Grafana
-		// In grafana-operator v5, the operator needs these env vars to authenticate and check readiness
+		// to reference the admin credentials secret. The secret is created by Helm template
+		// (grafana-admin-credentials-secret.yaml) when disableDefaultAdminSecret=true.
+		// grafana-operator uses the same secret for API auth.
+		// Secret name pattern: {grafana-name}-admin-credentials; keys: GF_SECURITY_ADMIN_USER, GF_SECURITY_ADMIN_PASSWORD.
 		if graf.Spec.DisableDefaultAdminSecret {
 			podSpec := ensurePodSpecInitialized(&graf)
 			if len(podSpec.Containers) == 0 {
@@ -210,18 +212,14 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			if podSpec.Containers[0].Name == "" {
 				podSpec.Containers[0].Name = "grafana"
 			}
-			// Add environment variables for admin credentials from secret
-			// Secret name pattern: {grafana-name}-admin-credentials
 			adminSecretName := fmt.Sprintf("%s-admin-credentials", graf.GetName())
 			envVars := []corev1.EnvVar{
 				{
 					Name: "GF_SECURITY_ADMIN_USER",
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: adminSecretName,
-							},
-							Key: "GF_SECURITY_ADMIN_USER",
+							LocalObjectReference: corev1.LocalObjectReference{Name: adminSecretName},
+							Key:                  "GF_SECURITY_ADMIN_USER",
 						},
 					},
 				},
@@ -229,10 +227,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					Name: "GF_SECURITY_ADMIN_PASSWORD",
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: adminSecretName,
-							},
-							Key: "GF_SECURITY_ADMIN_PASSWORD",
+							LocalObjectReference: corev1.LocalObjectReference{Name: adminSecretName},
+							Key:                  "GF_SECURITY_ADMIN_PASSWORD",
 						},
 					},
 				},
