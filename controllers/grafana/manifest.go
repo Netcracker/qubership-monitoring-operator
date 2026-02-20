@@ -43,7 +43,7 @@ func ensureDeploymentInitialized(graf *grafv1.Grafana) {
 
 // ensurePodSpecInitialized ensures that Deployment.Spec.Template.Spec is properly initialized
 // This function safely initializes the PodSpec structure to avoid nil pointer dereference
-// In v5, Template.Spec is a pointer (*DeploymentV1PodSpec), so it needs to be initialized
+// In v5, Template is a pointer (*DeploymentV1PodTemplateSpec), and Template.Spec is also a pointer (*DeploymentV1PodSpec)
 func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec {
 	ensureDeploymentInitialized(graf)
 	deployment := graf.Spec.Deployment
@@ -52,47 +52,17 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 		graf.Spec.Deployment = deployment
 	}
 
-	// Initialize Template.Spec if nil
-	// Use recover to safely handle any nil pointer issues when accessing Template
-	// The issue is that deployment.Spec might not be initialized, or Template might be a pointer
-	var podSpec *grafv1.DeploymentV1PodSpec
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// Template or Template.Spec is nil, initialize it
-				podSpec = &grafv1.DeploymentV1PodSpec{}
-			}
-		}()
-		// Try to access Template.Spec - this may panic if Template is not initialized
-		// First check if we can access deployment.Spec safely
-		_ = deployment.Spec
-		// Then try to access Template - this might panic if Template is nil pointer
-		_ = deployment.Spec.Template
-		// If we got here, Template exists, now check Spec
-		if deployment.Spec.Template.Spec == nil {
-			deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
-		}
-		podSpec = deployment.Spec.Template.Spec
-	}()
-
-	// If we got nil from recover, create a new PodSpec and try to set it
-	if podSpec == nil {
-		podSpec = &grafv1.DeploymentV1PodSpec{}
-		// Try to set it back safely with recover
-		func() {
-			defer func() { recover() }()
-			// Only set if Template is accessible
-			_ = deployment.Spec
-			_ = deployment.Spec.Template
-			if deployment.Spec.Template.Spec == nil {
-				deployment.Spec.Template.Spec = podSpec
-			} else {
-				podSpec = deployment.Spec.Template.Spec
-			}
-		}()
+	// Initialize Template if nil (Template is a pointer)
+	if deployment.Spec.Template == nil {
+		deployment.Spec.Template = &grafv1.DeploymentV1PodTemplateSpec{}
 	}
 
-	return podSpec
+	// Initialize Template.Spec if nil (Spec is a pointer)
+	if deployment.Spec.Template.Spec == nil {
+		deployment.Spec.Template.Spec = &grafv1.DeploymentV1PodSpec{}
+	}
+
+	return deployment.Spec.Template.Spec
 }
 
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
