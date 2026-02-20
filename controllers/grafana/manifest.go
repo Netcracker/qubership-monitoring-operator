@@ -152,12 +152,16 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		}
 		// Set resources for Grafana deployment
 		// Resources moved to Deployment.Spec.Template.Spec.Containers[0].Resources in v5
+		// Note: We only set resources if containers already exist. We don't create containers here
+		// because grafana-operator should manage container creation. If we create an empty container,
+		// it will be missing required fields (name, image) and deployment will fail.
 		if cr.Spec.Grafana.Resources.Size() > 0 {
 			podSpec := ensurePodSpecInitialized(&graf)
-			if len(podSpec.Containers) == 0 {
-				podSpec.Containers = []corev1.Container{{}}
+			// Only set resources if container already exists (created by grafana-operator)
+			// Don't create empty container - let grafana-operator handle container creation
+			if len(podSpec.Containers) > 0 && podSpec.Containers[0].Name != "" {
+				podSpec.Containers[0].Resources = cr.Spec.Grafana.Resources
 			}
-			podSpec.Containers[0].Resources = cr.Spec.Grafana.Resources
 		}
 		// Set tolerations for Grafana deployment
 		if cr.Spec.Grafana.Tolerations != nil {
