@@ -270,7 +270,7 @@ var (
 	// GrafanaComponentName contains name of alertmanager pod
 	GrafanaComponentName         = "grafana"
 	GrafanaAsset                 = BasePath + "grafana.yaml"
-	GrafanaDataSourceAsset       = BasePath + "grafana-datasource.yaml"
+	GrafanaDataSourceAsset       = BasePath + "grafana-datasource-prometheus.yaml"
 	GrafanaPromxyDataSourceAsset = BasePath + "grafana-datasource-promxy.yaml"
 	GrafanaIngressAsset          = BasePath + "ingress.yaml"
 	GrafanaPodMonitorAsset       = BasePath + "pod-monitor.yaml"
