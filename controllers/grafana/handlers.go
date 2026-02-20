@@ -3,7 +3,6 @@ package grafana
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"slices"
@@ -273,98 +272,23 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 	return nil
 }
 
+// handleGrafanaCredentialsSecret runs when disableDefaultAdminSecret=true.
+// Per grafana-operator semantics, the flag disables automatic secret creation — the user must
+// pre-create the secret "grafana-admin-credentials" with keys GF_SECURITY_ADMIN_USER and
+// GF_SECURITY_ADMIN_PASSWORD. We only ensure env vars are set on the Grafana CR (in manifest.go);
+// we do not create or update the secret here.
 func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
 	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
-
-	// Extract admin_user and admin_password from Config.Security
-	adminUser, adminPassword, err := r.extractAdminCredentials(cr)
-	if err != nil {
-		return fmt.Errorf("failed to extract admin credentials from Config: %w", err)
-	}
-	if adminUser == "" || adminPassword == "" {
-		return fmt.Errorf("admin_user and admin_password must be set in Config.Security when disableDefaultAdminSecret is true")
-	}
-
-	// Set labels used for both create and update
-	labels := map[string]string{
-		"name":                         utils.TruncLabel(e.GetName()),
-		"app.kubernetes.io/name":       utils.TruncLabel(e.GetName()),
-		"app.kubernetes.io/managed-by": "monitoring-operator",
-		"app.kubernetes.io/part-of":    "monitoring",
-		"app.kubernetes.io/instance":   utils.GetInstanceLabel(e.GetName(), e.GetNamespace()),
-		"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Grafana.Image),
-	}
-	e.SetLabels(labels)
-
-	// Prepare secret data
-	secretData := map[string][]byte{
-		"GF_SECURITY_ADMIN_USER":     []byte(adminUser),
-		"GF_SECURITY_ADMIN_PASSWORD": []byte(adminPassword),
-	}
-
 	err = r.GetResource(e)
-	if err == nil {
-		// Secret exists: check if password changed and update if needed
-		currentUser := string(e.Data["GF_SECURITY_ADMIN_USER"])
-		currentPassword := string(e.Data["GF_SECURITY_ADMIN_PASSWORD"])
-		if currentUser != adminUser || currentPassword != adminPassword {
-			e.Data = secretData
-			err = r.UpdateResource(e)
-			if err == nil {
-				isSecretUpdated = true
-			}
+	if err != nil {
+		if errors.IsNotFound(err) {
+			r.Log.Info("grafana-admin-credentials secret not found; create it manually when using disableDefaultAdminSecret=true",
+				"namespace", cr.GetNamespace())
+			return nil
 		}
 		return err
 	}
-	if !errors.IsNotFound(err) {
-		return err
-	}
-	// grafana-admin-credentials not found: create it
-	newSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "grafana-admin-credentials",
-			Namespace: cr.GetNamespace(),
-			Labels:    labels,
-		},
-		Data: secretData,
-		Type: corev1.SecretTypeOpaque,
-	}
-	return r.CreateResource(cr, newSecret)
-}
-
-// extractAdminCredentials extracts admin_user and admin_password from Grafana Config
-func (r *GrafanaReconciler) extractAdminCredentials(cr *monv1.PlatformMonitoring) (adminUser, adminPassword string, err error) {
-	if cr.Spec.Grafana == nil || cr.Spec.Grafana.Config == nil {
-		return "", "", fmt.Errorf("Grafana Config is not set")
-	}
-
-	// Parse Config as JSON to extract security.admin_user and security.admin_password
-	var configMap map[string]interface{}
-	if err := json.Unmarshal(cr.Spec.Grafana.Config.Raw, &configMap); err != nil {
-		return "", "", fmt.Errorf("failed to unmarshal Config: %w", err)
-	}
-
-	// Extract security section
-	security, ok := configMap["security"].(map[string]interface{})
-	if !ok {
-		return "", "", fmt.Errorf("security section not found in Config")
-	}
-
-	// Extract admin_user
-	if userVal, ok := security["admin_user"].(string); ok {
-		adminUser = userVal
-	} else {
-		return "", "", fmt.Errorf("admin_user not found in Config.Security")
-	}
-
-	// Extract admin_password
-	if passVal, ok := security["admin_password"].(string); ok {
-		adminPassword = passVal
-	} else {
-		return "", "", fmt.Errorf("admin_password not found in Config.Security")
-	}
-
-	return adminUser, adminPassword, nil
+	return nil
 }
 
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {

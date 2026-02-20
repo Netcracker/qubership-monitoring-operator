@@ -1131,11 +1131,6 @@ spec:
       {{ include "grafana.ingress" . }}
     config:
       {{- toYaml .Values.grafana.config | nindent 6 }}
-      {{- if .Values.grafana.security }}
-      security:
-        admin_user: {{ .Values.grafana.security.admin_user | quote }}
-        admin_password: {{ .Values.grafana.security.admin_password | quote }}
-      {{- end }}
     {{- if .Values.grafana.dataStorage }}
     dataStorage:
       {{- toYaml .Values.grafana.dataStorage | nindent 6 }}

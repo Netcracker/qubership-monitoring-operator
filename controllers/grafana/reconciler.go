@@ -109,13 +109,8 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// Reset Grafana Credentials when we manage the secret and it was updated
-			if isManageAdminSecret(cr) && isSecretUpdated {
-				if err := r.resetGrafanaCredentials(cr); err != nil {
-					r.Log.Error(err, "Can not reset Grafana Credentials")
-					return err
-				}
-			}
+			// resetGrafanaCredentials is not used when disableDefaultAdminSecret=true:
+			// we do not create/update the secret; user manages it and restarts the Grafana pod if needed.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
