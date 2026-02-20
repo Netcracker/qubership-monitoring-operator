@@ -1,14 +1,17 @@
 package grafana_operator
 
 import (
+	"context"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -217,8 +220,14 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used
+	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
+	checkObj := &grafv1.GrafanaDashboard{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
@@ -228,11 +237,11 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 		return err
 	}
 
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	// Set parameters
+	checkObj.SetLabels(m.GetLabels())
+	checkObj.Spec = m.Spec
 
-	if err = r.UpdateResource(e); err != nil {
+	if err = r.UpdateResource(checkObj); err != nil {
 		return err
 	}
 	return nil
@@ -300,16 +309,25 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used
+	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
+	checkObj := &grafv1.GrafanaDashboard{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "GrafanaDashboard", "name", m.GetName())
 	return nil
 }
 

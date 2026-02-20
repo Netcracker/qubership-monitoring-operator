@@ -1,0 +1,26 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: platform-monitoring-promxy
+  labels:
+    name: platform-monitoring-promxy
+    app.kubernetes.io/name: platform-monitoring-promxy
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  datasource:
+    access: proxy
+    editable: true
+    isDefault: false
+    jsonData:
+      timeInterval: 30s
+      tlsSkipVerify: true
+    name: Platform Monitoring Promxy
+    type: prometheus
+    url: 'http://promxy:9090'
+    version: 1

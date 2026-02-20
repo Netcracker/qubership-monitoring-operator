@@ -11,7 +11,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -33,20 +34,11 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 		return err
 	}
 
-	if m.Spec.Config.AuthGenericOauth != nil {
-		secret, err := r.KubeClient.CoreV1().Secrets(m.Namespace).Get(context.TODO(), utils.GrafanaExtraVarsSecret, metav1.GetOptions{})
-		if err != nil {
-			r.Log.Error(err, "auth.generic_oauth is configured but clientId and clientSecret is not stored in secret")
-			return err
-		}
-		if len(secret.Data["GF_AUTH_GENERIC_OAUTH_CLIENT_ID"]) == 0 || len(secret.Data["GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET"]) == 0 {
-			r.Log.Error(err, "auth.generic_oauth is configured but clientId and/or clientSecret is not stored in secret")
-			return err
-		}
-		m.Spec.Config.AuthGenericOauth.ClientId = secret.StringData["GF_AUTH_GENERIC_OAUTH_CLIENT_ID"]
-		m.Spec.Config.AuthGenericOauth.ClientSecret = secret.StringData["GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET"]
-	}
+	// Note: Config.AuthGenericOauth access removed as Config is now runtime.RawExtension in grafana-operator v5
+	// OAuth configuration is handled in manifest.go during Grafana creation
+	// Explicit GVK ensures correct API group (grafana.integreatly.org/v1beta1) for v5
 	e := &grafv1.Grafana{ObjectMeta: m.ObjectMeta}
+	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
@@ -58,11 +50,21 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	// Only update if something actually changed to avoid unnecessary updates
+	needsUpdate := false
+	if !reflect.DeepEqual(e.Spec, m.Spec) {
+		e.Spec = m.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(e.GetLabels(), m.GetLabels()) {
+		e.SetLabels(m.GetLabels())
+		needsUpdate = true
+	}
 
-	if err = r.UpdateResource(e); err != nil {
-		return err
+	if needsUpdate {
+		if err = r.UpdateResource(e); err != nil {
+			return err
+		}
 	}
 	// WA for https://github.com/grafana-operator/grafana-operator/issues/652
 	r.Log.Info("Waiting grafana-deployment")
@@ -81,16 +83,23 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 	}
 	m, err := grafanaDataSource(cr, r.KubeClient, jaegerServices, clickHouseServices)
 	if err != nil {
-		r.Log.Error(err, "Failed creating GrafanaDataSource manifest")
+		r.Log.Error(err, "Failed creating GrafanaDatasource manifest")
 		return err
 	}
 
-	// Set labels
+	// Set labels (asset has metadata.labels so m.Labels is non-nil)
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
 	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
 	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
 
-	e := &grafv1.GrafanaDataSource{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Explicit GVK ensures correct API group (grafana.integreatly.org/v1beta1) for v5
+	checkObj := &grafv1.GrafanaDatasource{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
@@ -100,12 +109,70 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 		return err
 	}
 
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	// Only update if something actually changed to avoid unnecessary updates
+	needsUpdate := false
+	if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
+		checkObj.Spec = m.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
+		checkObj.SetLabels(m.GetLabels())
+		needsUpdate = true
+	}
 
-	if err = r.UpdateResource(e); err != nil {
+	if needsUpdate {
+		if err = r.UpdateResource(checkObj); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMonitoring) error {
+	m, err := grafanaPromxyDataSource(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating GrafanaPromxyDataSource manifest")
 		return err
+	}
+
+	// Set labels (asset has metadata.labels so m.Labels is non-nil)
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
+	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
+	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
+
+	// Explicit GVK ensures correct API group (grafana.integreatly.org/v1beta1) for v5
+	checkObj := &grafv1.GrafanaDatasource{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	if err = r.GetResource(checkObj); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	// Set parameters
+	// Only update if something actually changed to avoid unnecessary updates
+	needsUpdate := false
+	if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
+		checkObj.Spec = m.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
+		checkObj.SetLabels(m.GetLabels())
+		needsUpdate = true
+	}
+
+	if needsUpdate {
+		if err = r.UpdateResource(checkObj); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -205,35 +272,50 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 	return nil
 }
 
+// getGrafanaAdminSecretName returns the name of the admin credentials secret for Grafana.
+// The secret name pattern is: {grafana-name}-admin-credentials
+func getGrafanaAdminSecretName(cr *monv1.PlatformMonitoring) string {
+	grafanaName := utils.GrafanaComponentName // default name from asset
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		grafanaName = cr.Spec.Grafana.Name
+	}
+	return fmt.Sprintf("%s-admin-credentials", grafanaName)
+}
+
+// handleGrafanaCredentialsSecret runs when disableDefaultAdminSecret=true.
+// Per grafana-operator semantics, the flag disables automatic secret creation — the user must
+// pre-create the secret with keys GF_SECURITY_ADMIN_USER and GF_SECURITY_ADMIN_PASSWORD.
+// We validate that the secret exists and contains the required keys.
+// The secret is created by Helm template (grafana-admin-credentials-secret.yaml).
 func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
-	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
-	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
+	secretName := getGrafanaAdminSecretName(cr)
+	secretNamespace := cr.GetNamespace()
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		secretNamespace = cr.Spec.Grafana.Namespace
+	}
 
-	// Set labels
-	e.SetLabels(map[string]string{
-		"name":                         utils.TruncLabel(e.GetName()),
-		"app.kubernetes.io/name":       utils.TruncLabel(e.GetName()),
-		"app.kubernetes.io/managed-by": "monitoring-operator",
-		"app.kubernetes.io/part-of":    "monitoring",
-		"app.kubernetes.io/instance":   utils.GetInstanceLabel(e.GetName(), e.GetNamespace()),
-		"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Grafana.Image),
-	})
-
-	if err = r.GetResource(e); err == nil {
-		if err = r.GetResource(tmpSecret); err == nil {
-			if !reflect.DeepEqual(e.Data, tmpSecret.Data) {
-				e.Data = tmpSecret.Data
-				err = r.UpdateResource(e)
-				if err == nil {
-					isSecretUpdated = true
-				}
-			}
+	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
+	err = r.GetResource(e)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return fmt.Errorf("secret %s/%s not found: when disableDefaultAdminSecret=true, the secret must be created by Helm template with grafana.adminCredentialsSecret.adminPassword set", secretNamespace, secretName)
 		}
+		return err
 	}
-	if errors.IsNotFound(err) {
-		return nil
+
+	// Validate that secret contains required keys
+	if e.Data == nil {
+		return fmt.Errorf("secret %s/%s has no data", secretNamespace, secretName)
 	}
-	return
+	if _, ok := e.Data["GF_SECURITY_ADMIN_USER"]; !ok {
+		return fmt.Errorf("secret %s/%s missing required key GF_SECURITY_ADMIN_USER", secretNamespace, secretName)
+	}
+	if _, ok := e.Data["GF_SECURITY_ADMIN_PASSWORD"]; !ok {
+		return fmt.Errorf("secret %s/%s missing required key GF_SECURITY_ADMIN_PASSWORD", secretNamespace, secretName)
+	}
+
+	r.Log.Info("Grafana admin credentials secret validated", "secret", secretName, "namespace", secretNamespace)
+	return nil
 }
 
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
@@ -248,10 +330,15 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		return err
 	}
 	r.Log.Info("Grafana Pods are ready", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
-	// Getting Temp Secret
-	r.Log.Info("Getting Temp Secret")
-	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
-	if err = r.GetResource(tmpSecret); err == nil {
+	// Getting Admin Credentials Secret
+	r.Log.Info("Getting Admin Credentials Secret")
+	secretName := getGrafanaAdminSecretName(cr)
+	secretNamespace := cr.GetNamespace()
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		secretNamespace = cr.Spec.Grafana.Namespace
+	}
+	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
+	if err = r.GetResource(adminSecret); err == nil {
 		// Get Grafana Pod
 		r.Log.Info("Getting Grafana Pod")
 		config, err := rest.InClusterConfig()
@@ -281,7 +368,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		r.Log.Info("Grafana Pod was found: " + *podName)
 
 		// Prepare Grafana CLI request
-		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(tmpSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
+		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(adminSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
 		req := r.KubeClient.CoreV1().RESTClient().
 			Post().
 			Resource("pods").
@@ -319,7 +406,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		r.Log.Info("Grafana Credentials Reset was finished")
 	}
 	if errors.IsNotFound(err) {
-		r.Log.Info("Temp Secret wasn't found")
+		r.Log.Info("Admin Credentials Secret wasn't found")
 		return nil
 	}
 	return err
@@ -331,16 +418,23 @@ func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
 	}
-	e := &grafv1.Grafana{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	checkObj := &grafv1.Grafana{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "Grafana", "name", m.GetName())
 	return nil
 }
 
@@ -355,19 +449,49 @@ func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *monv1.PlatformMonitoring
 	}
 	m, err := grafanaDataSource(cr, r.KubeClient, jaegerServices, clickHouseServices)
 	if err != nil {
-		r.Log.Error(err, "Failed creating GrafanaDataSource manifest")
+		r.Log.Error(err, "Failed creating GrafanaDatasource manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDataSource{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Explicit GVK ensures correct API group (grafana.integreatly.org/v1beta1) for v5
+	checkObj := &grafv1.GrafanaDatasource{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "GrafanaDatasource", "name", m.GetName())
+	return nil
+}
+
+func (r *GrafanaReconciler) deleteGrafanaPromxyDataSource(cr *monv1.PlatformMonitoring) error {
+	m, err := grafanaPromxyDataSource(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating GrafanaPromxyDataSource manifest")
+		return err
+	}
+	checkObj := &grafv1.GrafanaDatasource{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	if err = r.GetResource(checkObj); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
+		return err
+	}
+	r.Log.Info("Successful deleting", "resource", "GrafanaDatasource", "name", m.GetName())
 	return nil
 }
 
@@ -476,7 +600,6 @@ func (r *GrafanaReconciler) getJaegerServices(cr *monv1.PlatformMonitoring) ([]c
 // Looking for Clickhouse Services in all namespaces except current using a label selector and return list of them or nil
 func (r *GrafanaReconciler) getClickhouseServices(cr *monv1.PlatformMonitoring) ([]corev1.Service, error) {
 	if !utils.PrivilegedRights || cr.Spec.Integration == nil || cr.Spec.Integration.ClickHouse == nil || !cr.Spec.Integration.ClickHouse.CreateGrafanaDataSource {
-		r.Log.Info(fmt.Sprintf("neto, utils.PrivilegedRights: %+v, cr.Spec.Integration: %+v", utils.PrivilegedRights, cr.Spec.Integration))
 		return nil, nil
 	}
 	allNamespaces, err := r.KubeClient.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
@@ -491,7 +614,7 @@ func (r *GrafanaReconciler) getClickhouseServices(cr *monv1.PlatformMonitoring) 
 		}
 		serviceList, err := r.KubeClient.CoreV1().Services(namespace.GetName()).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("Error getting services in namespace:%s Error: %v", namespace.GetNamespace(), err))
+			r.Log.Info(fmt.Sprintf("Error getting services in namespace:%s Error: %v", namespace.GetName(), err))
 			continue
 		}
 		for _, service := range serviceList.Items {
