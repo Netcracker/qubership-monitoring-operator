@@ -1,7 +1,7 @@
 [
   {
     "component": "grafana",
-    "kind": "grafanas.integreatly.org",
+    "kind": "grafanas.grafana.integreatly.org",
     "name": "grafana",
     "jsonPath": ".status.message",
     "expected": "success"
