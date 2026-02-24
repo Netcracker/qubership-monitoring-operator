@@ -3,8 +3,11 @@
     "component": "grafana",
     "kind": "grafanas.grafana.integreatly.org",
     "name": "grafana",
-    "jsonPath": ".status.message",
-    "expected": "success"
+    "check": "conditionsMatch",
+    "expectedConditions": {
+      "reason": "GrafanaReady",
+      "status": "True"
+    }
   },
   {
     "component": "vmAgent",
