@@ -1,4 +1,4 @@
-apiVersion: integreatly.org/v1alpha1
+apiVersion: integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: simple-dashboard
@@ -6,7 +6,10 @@ metadata:
     app.kubernetes.io/component: monitoring
     app: grafana
 spec:
-  name: simple-dashboard.json
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
   json: >
     {
       "id": null,
