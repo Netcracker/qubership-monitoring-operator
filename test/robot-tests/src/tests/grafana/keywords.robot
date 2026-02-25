@@ -1,7 +1,6 @@
 *** Settings ***
 Library            String
 Library            json
-Library            OperatingSystem
 Library            RequestsLibrary
 Library            BuiltIn
 Library            Collections
@@ -9,6 +8,7 @@ Library            PlatformLibrary                   managed_by_operator=true
 Library            MonitoringLibrary
 Resource           %{ROBOT_HOME}/tests/smoke-test/keywords.robot
 Library            %{ROBOT_HOME}/lib/CheckJsonObject.py
+Library            %{ROBOT_HOME}/lib/GrafanaDashboardLib.py
 
 *** Variables ***
 ${namespace}                %{NAMESPACE}
@@ -59,9 +59,8 @@ Attempt Login To Grafana
 
 Create Test Dashboard In Namespace
     [Arguments]  ${PATH_TO_DASHBOARD}
-    # Use kubectl apply so apiVersion from file (grafana.integreatly.org/v1beta1) is used; pipeline library uses old API
-    ${rc}=  Run And Return Rc  kubectl apply -f ${PATH_TO_DASHBOARD} -n ${namespace}
-    Should Be Equal As Integers  ${rc}  0  msg=Failed to create GrafanaDashboard with kubectl apply
+    ${body}=  Parse Yaml File  ${PATH_TO_DASHBOARD}
+    GrafanaDashboardLib.Create Dashboard  ${namespace}  ${body}
 
 Get Dashboard In Namespace
     [Arguments]  ${namespace}  ${name}
@@ -118,9 +117,7 @@ Check Dashboard Is Appear In Grafana
 
 Delete Dashboard Via Cloud Rest
     [Arguments]  ${dashboard_name}
-    # Use kubectl delete with v5 API (grafana.integreatly.org); pipeline library uses old API
-    ${rc}=  Run And Return Rc  kubectl delete grafanadashboards.grafana.integreatly.org ${dashboard_name} -n ${namespace} --ignore-not-found=true --timeout=30s
-    Should Be Equal As Integers  ${rc}  0  msg=Failed to delete GrafanaDashboard
+    GrafanaDashboardLib.Delete Dashboard  ${namespace}  ${dashboard_name}
 
 Check Dashboard Is Deleted In Grafana
     [Arguments]  ${uid}
@@ -129,9 +126,7 @@ Check Dashboard Is Deleted In Grafana
 
 Replace Dashboard In Namespace
     [Arguments]  ${namespace}  ${dashboard_name}  ${updated_dashboard}
-    # Use kubectl apply so apiVersion from file (grafana.integreatly.org/v1beta1) is used
-    ${rc}=  Run And Return Rc  kubectl apply -f ${PATH_TO_UPD_DASHBOARD} -n ${namespace}
-    Should Be Equal As Integers  ${rc}  0  msg=Failed to update GrafanaDashboard with kubectl apply
+    GrafanaDashboardLib.Replace Dashboard  ${namespace}  ${updated_dashboard}
 
 Prepare Data For Update Dashboard
     [Arguments]  ${PATH_TO_UPD_DASHBOARD}  ${namespace}  ${dashboard_name}
