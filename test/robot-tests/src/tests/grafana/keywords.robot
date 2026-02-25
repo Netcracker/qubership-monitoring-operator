@@ -1,6 +1,7 @@
 *** Settings ***
 Library            String
 Library            json
+Library            Process
 Library            RequestsLibrary
 Library            BuiltIn
 Library            Collections
@@ -58,8 +59,15 @@ Attempt Login To Grafana
 
 Create Test Dashboard In Namespace
     [Arguments]  ${PATH_TO_DASHBOARD}
-    ${body}=  Parse Yaml File  ${PATH_TO_DASHBOARD}
-    ${created_dashboard}=  Create Dashboard In Namespace  ${namespace}  ${body}
+    # Use kubectl apply so apiVersion from file (grafana.integreatly.org/v1beta1) is used; pipeline library uses old API
+    ${rc}=  Run And Return Rc  kubectl apply -f ${PATH_TO_DASHBOARD} -n ${namespace}
+    Should Be Equal As Integers  ${rc}  0  msg=Failed to create GrafanaDashboard with kubectl apply
+
+Get Dashboard In Namespace
+    [Arguments]  ${namespace}  ${name}
+    ${object}=  Get Namespaced Custom Object Status
+    ...  grafana.integreatly.org  v1beta1  ${namespace}  grafanadashboards  ${name}
+    RETURN  ${object}
 
 Check That Dashboard Created Successfuly
     [Arguments]   ${dashboard_name}  ${namespace}
@@ -72,7 +80,7 @@ Check That Dashboard Created Successfuly
 Check Resource Status Success in Cloud
     [Arguments]  ${namespace}  ${accepted_names:plural}  ${object_name}
     ${object}=  Get Namespaced Custom Object Status
-    ...  integreatly.org  v1alpha1  ${namespace}  ${accepted_names:plural}  ${object_name}
+    ...  grafana.integreatly.org  v1beta1  ${namespace}  ${accepted_names:plural}  ${object_name}
     Should Not Be Equal  ${object}  ${NONE}
     RETURN  ${object}
 
@@ -110,13 +118,20 @@ Check Dashboard Is Appear In Grafana
 
 Delete Dashboard Via Cloud Rest
     [Arguments]  ${dashboard_name}
-    ${delete_status}=  Delete Dashboard In Namespace  ${namespace}  ${dashboard_name}
-    Should Be Equal As Strings  ${delete_status.get('status')}  Success
+    # Use kubectl delete with v5 API (grafana.integreatly.org); pipeline library uses old API
+    ${rc}=  Run And Return Rc  kubectl delete grafanadashboards.grafana.integreatly.org ${dashboard_name} -n ${namespace} --ignore-not-found=true --timeout=30s
+    Should Be Equal As Integers  ${rc}  0  msg=Failed to delete GrafanaDashboard
 
 Check Dashboard Is Deleted In Grafana
     [Arguments]  ${uid}
     ${state}=  Run Keyword And Return Status  Find Dashboard  ${uid}
     Should Be Equal As Strings  ${state}  False
+
+Replace Dashboard In Namespace
+    [Arguments]  ${namespace}  ${dashboard_name}  ${updated_dashboard}
+    # Use kubectl apply so apiVersion from file (grafana.integreatly.org/v1beta1) is used
+    ${rc}=  Run And Return Rc  kubectl apply -f ${PATH_TO_UPD_DASHBOARD} -n ${namespace}
+    Should Be Equal As Integers  ${rc}  0  msg=Failed to update GrafanaDashboard with kubectl apply
 
 Prepare Data For Update Dashboard
     [Arguments]  ${PATH_TO_UPD_DASHBOARD}  ${namespace}  ${dashboard_name}
