@@ -81,7 +81,7 @@ rules:
     verbs:
       - get
   - apiGroups:
-      - monitoring.qubership.org
+      - monitoring.netcracker.com
     resources:
       - platformmonitorings
     verbs:
@@ -91,7 +91,7 @@ rules:
       - patch
       - update
   - apiGroups:
-      - monitoring.qubership.org
+      - monitoring.netcracker.com
       - autoscaling
       - pods/prometheus_example_app_load
     resources:
@@ -119,4 +119,10 @@ rules:
       - horizontalpodautoscalers
     verbs:
       - create
+  - apiGroups:
+      - ''
+    resources:
+      - pods/log
+    verbs:
+      - get
 {{- end }}

@@ -16,39 +16,39 @@ prometheus:
   operator:
     image: prometheus-operator/prometheus-operator:latest
 monitoringOperator:
-  image: product/prod.platform.system.monitoring_monitoring-operator:latest
+  image: ghcr.io/netcracker/qubership-monitoring-operator:latest
 kubeStateMetrics:
   image: kube-state-metrics/kube-state-metrics:latest
 nodeExporter:
   image: prom/node-exporter:latest
 graphite_remote_adapter:
   install: true
-  image: product/prod.platform.system.monitoring_graphite-remote-adapter:latest
+  image: ghcr.io/netcracker/qubership-graphite-remote-adapter:latest
 certExporter:
   install: true
   image: joeelliott/cert-exporter:latest
 networkLatencyExporter:
   install: true
-  image: product/prod.platform.system.monitoring_exporters_network-latency-exporter:latest
+  image: ghcr.io/netcracker/qubership-network-latency-exporter:latest
 blackboxExporter:
   install: true
   image: prom/blackbox-exporter:latest
 cloudEventsExporter:
   install: true
-  image: product/prod.platform.logging_cloud-events-reader:latest
+  image: ghcr.io/netcracker/qubership-kube-events-reader:latest
 pushgateway:
   install: true
   image: prom/pushgateway:latest
 prometheusAdapter:
-  image: product/prod.platform.system.monitoring_k8s-scaling_prometheus-adapter:latest
+  image: ghcr.io/netcracker/qubership-prometheus-adapter:latest
   operator:
-    image: product/prod.platform.system.monitoring_k8s-scaling_prometheus-adapter-operator:latest
+    image: ghcr.io/netcracker/qubership-prometheus-adapter-operator:latest
 promxy:
   install: true
   image: jacksontj/promxy:latest
 versionExporter:
   install: true
-  image: ghcr.io/netcracker/version-exporter:main
+  image: ghcr.io/netcracker/version-exporter:latest
 stackdriverExporter:
   install: true
   image: prometheuscommunity/stackdriver-exporter:latest

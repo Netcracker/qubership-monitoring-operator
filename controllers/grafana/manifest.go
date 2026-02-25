@@ -1,13 +1,14 @@
 package grafana
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
 	"maps"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -16,9 +17,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/kubernetes"
 )
 
 //go:embed  assets/*.yaml
@@ -31,7 +34,7 @@ func getGrafanaRootURL(protocol string, host string) string {
 	return fmt.Sprintf("%v://%v/", protocol, host)
 }
 
-func grafana(cr *v1alpha1.PlatformMonitoring) (*grafv1.Grafana, error) {
+func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -253,7 +256,7 @@ func grafana(cr *v1alpha1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	return &graf, nil
 }
 
-func grafanaDataSource(cr *v1alpha1.PlatformMonitoring, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDataSource, error) {
+func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDataSource, error) {
 	dataSource := grafv1.GrafanaDataSource{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaDataSourceAsset), 100).Decode(&dataSource); err != nil {
 		return nil, err
@@ -353,6 +356,14 @@ func grafanaDataSource(cr *v1alpha1.PlatformMonitoring, jaegerServices []corev1.
 				Version:   1,
 				Url:       fmt.Sprintf("http://%s.%s.svc.cluster.local:8123", clickHouseService.GetName(), clickHouseService.GetNamespace()),
 			}
+			secret, err := KubeClient.CoreV1().Secrets(clickHouseService.GetNamespace()).Get(context.TODO(), utils.ClickHouseSecret, metav1.GetOptions{})
+			if err == nil && len(secret.Data["username"]) != 0 && len(secret.Data["password"]) != 0 {
+				clickHouseDataSource.BasicAuth = true
+				clickHouseDataSource.BasicAuthUser = string(secret.Data["username"])
+				clickHouseDataSource.SecureJsonData = grafv1.GrafanaDataSourceSecureJsonData{
+					BasicAuthPassword: string(secret.Data["password"]),
+				}
+			}
 			dataSource.Spec.Datasources = append(dataSource.Spec.Datasources, clickHouseDataSource)
 		}
 	}
@@ -366,7 +377,7 @@ func grafanaDataSource(cr *v1alpha1.PlatformMonitoring, jaegerServices []corev1.
 	return &dataSource, nil
 }
 
-func grafanaIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, error) {
+func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
 	ingress := v1beta1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -425,7 +436,7 @@ func grafanaIngressV1beta1(cr *v1alpha1.PlatformMonitoring) (*v1beta1.Ingress, e
 	return &ingress, nil
 }
 
-func grafanaIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
@@ -491,7 +502,7 @@ func grafanaIngressV1(cr *v1alpha1.PlatformMonitoring) (*networkingv1.Ingress, e
 	return &ingress, nil
 }
 
-func grafanaPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err

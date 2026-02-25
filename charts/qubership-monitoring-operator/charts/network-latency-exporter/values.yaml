@@ -79,7 +79,7 @@ serviceAccount:
 # Type: string
 # Mandatory: yes
 #
-# image: product/prod.platform.system.network-latency-exporter:latest
+# image: ghcr.io/netcracker/qubership-network-latency-exporter:latest
 
 # The resources describes the compute resource requests and limits for single Pods.
 # Ref: https://kubernetes.io/docs/user-guide/compute-resources/

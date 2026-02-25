@@ -1,8 +1,5 @@
-PyYAML>=5.1
 allure-python-commons>=2.5.1
 allure-robotframework>=2.5.1
-robotframework-requests>=0.6.2
-urllib3>=1.21.1
 jinja2>=2.10
 grafana-api>=1.0.2
 robotframework-sshlibrary==3.8.0

@@ -112,30 +112,20 @@ git clone https://github.com/Netcracker/qubership-monitoring-operator.git
 cd qubership-monitoring-operator
 
 # Install the operator from local charts
+# This will automatically create a PlatformMonitoring resource with default configuration
 helm install monitoring-operator charts/qubership-monitoring-operator \
   --namespace monitoring \
   --create-namespace
 ```
 
-### 2. Deploy Basic Monitoring Stack
-
-The operator comes with sensible defaults. You can deploy with zero configuration:
-
-```bash
-# Create PlatformMonitoring resource with defaults
-kubectl apply -f - <<EOF
-apiVersion: monitoring.qubership.org/v1alpha1
-kind: PlatformMonitoring
-metadata:
-  name: monitoring-stack
-  namespace: monitoring
-spec: {}
-EOF
-```
-
-**What gets installed by default:**
+**What gets installed automatically:**
+- **Monitoring Operator** - manages monitoring stack lifecycle
 - **VictoriaMetrics Operator** - enabled
-- **VictoriaMetrics Single** - time series database with 24h retention
+- **VictoriaMetrics Single** - time series database with 14d retention
+- **VictoriaMetrics Agent** - metrics collector
+- **VictoriaMetrics Alert** - alerting component
+- **VictoriaMetrics AlertManager** - alert manager
+- **VictoriaMetrics Auth** - authentication proxy
 - **Grafana** - visualization with pre-built dashboards
 - **Grafana Operator** - manages Grafana instances
 - **kube-state-metrics** - Kubernetes metrics collector
@@ -144,11 +134,23 @@ EOF
 - **Prometheus Rules** - basic alerting rules
 
 **What's disabled by default:**
-- AlertManager (use VMAlert instead)
 - All cloud exporters (AWS, Azure, GCP)
 - All optional exporters (blackbox, cert, json, etc.)
 - Prometheus Adapter for HPA
 - Integrations (Graphite, Promxy)
+
+### 2. Verify Installation
+
+```bash
+# Check that monitoring operator is running
+kubectl get pods -n monitoring -l "app.kubernetes.io/part-of=monitoring"
+
+# Check PlatformMonitoring resource (created automatically by Helm)
+kubectl get platformmonitoring -n monitoring
+
+# Wait for all components to be ready
+kubectl get pods -n monitoring
+```
 
 ### 3. Access Your Monitoring
 

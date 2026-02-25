@@ -1,0 +1,22 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+promxy:
+  install: true
+
+  config:
+    serverGroups:
+      - address: vmsingle-k8s:8429
+        label: k8s-1
+        httpClient:
+          # Credentials from parameters will save in the Secret
+          basicAuth:
+            username: admin
+            password: admin
+      - address: vmsingle-k8s.monitoring.svc.cluster-2.local:8429
+        label: k8s-2
+        httpClient:
+          # Credentials from parameters will save in the Secret
+          basicAuth:
+            username: admin
+            password: admin

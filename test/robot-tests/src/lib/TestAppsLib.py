@@ -14,6 +14,7 @@ class TestAppsLib(object):
         urllib3.disable_warnings()
         self.k8s_lib = PlatformLibrary(managed_by_operator)
         self.namespace = os.environ.get("NAMESPACE")
+        self.api_client = self.k8s_lib.k8s_api_client
         self.kubernetes_version_is_new = self.check_kubernetes_version()
 
     def get_service_monitor(self, name: str):
@@ -64,8 +65,8 @@ class TestAppsLib(object):
         body = self.k8s_lib._parse_yaml_from_file(file_path)
 
         return self.k8s_lib.create_namespaced_custom_object(
-            group='monitoring.qubership.org',
-            version='v1alpha1',
+            group='monitoring.netcracker.com',
+            version='v1',
             namespace=self.namespace,
             plural='customscalemetricrules',
             body=body
@@ -74,8 +75,8 @@ class TestAppsLib(object):
     def delete_custom_metric_rule(self, name: str):
 
         return self.k8s_lib.delete_namespaced_custom_object(
-            group='monitoring.qubership.org',
-            version='v1alpha1',
+            group='monitoring.netcracker.com',
+            version='v1',
             namespace=self.namespace,
             plural='customscalemetricrules',
             name=name
@@ -126,7 +127,7 @@ class TestAppsLib(object):
         )
 
     def get_kubernetes_version(self):
-        api = client.VersionApi()
+        api = client.VersionApi(api_client=self.api_client)
         version_info = api.get_code().to_dict()
         git_version = version_info["git_version"]
         if git_version[0] == 'v':
@@ -148,8 +149,8 @@ class TestAppsLib(object):
     def add_selector_to_cr(self, cr_name, namespace):
         plural = cr_name + 's'
         custom_resource = self.k8s_lib.get_namespaced_custom_object_status(
-            group='monitoring.qubership.org',
-            version='v1alpha1',
+            group='monitoring.netcracker.com',
+            version='v1',
             namespace=namespace,
             plural=plural,
             name=cr_name
@@ -174,8 +175,8 @@ class TestAppsLib(object):
             BuiltIn().run_keyword('log to console',
                                   "Prometheus or victoriametrics operator is not found!")
         self.k8s_lib.patch_namespaced_custom_object(
-            group='monitoring.qubership.org',
-            version='v1alpha1',
+            group='monitoring.netcracker.com',
+            version='v1',
             namespace=namespace,
             plural=plural,
             name=cr_name,
@@ -185,8 +186,8 @@ class TestAppsLib(object):
     def delete_selector_from_cr(self, cr_name, namespace):
         plural = cr_name + 's'
         custom_resource = self.k8s_lib.get_namespaced_custom_object_status(
-            group='monitoring.qubership.org',
-            version='v1alpha1',
+            group='monitoring.netcracker.com',
+            version='v1',
             namespace=namespace,
             plural=plural,
             name=cr_name
@@ -202,8 +203,8 @@ class TestAppsLib(object):
             BuiltIn().run_keyword('log to console',
                                   "Prometheus or victoriametrics operator is not found!")
         self.k8s_lib.replace_namespaced_custom_object(
-            group='monitoring.qubership.org',
-            version='v1alpha1',
+            group='monitoring.netcracker.com',
+            version='v1',
             namespace=namespace,
             plural=plural,
             name=cr_name,

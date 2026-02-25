@@ -1,13 +1,13 @@
 package prometheus_rules
 
 import (
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (r *PrometheusRulesReconciler) handlePrometheusRules(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusRulesReconciler) handlePrometheusRules(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusRules(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PrometheusRules manifest")
@@ -41,7 +41,7 @@ func (r *PrometheusRulesReconciler) handlePrometheusRules(cr *v1alpha1.PlatformM
 	return nil
 }
 
-func (r *PrometheusRulesReconciler) deletePrometheusRules(cr *v1alpha1.PlatformMonitoring) error {
+func (r *PrometheusRulesReconciler) deletePrometheusRules(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusRules(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating PrometheusRules manifest")

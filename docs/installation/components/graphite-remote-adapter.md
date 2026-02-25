@@ -43,7 +43,7 @@ Example:
 graphite_remote_adapter:
   install: true
   name: graphite-remote-adapter
-  image: product/prod.platform.system.graphite-remote-adapter:latest
+  image: ghcr.io/netcracker/qubership-graphite-remote-adapter:latest
   replicas: 1
   
     limits:

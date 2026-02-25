@@ -15,7 +15,7 @@ install: true
 
 # A docker image to use for prometheus-operator deployment with prometheus pod
 #
-# image: grafana/grafana:10.4.10
+# image: grafana/grafana:11.6.5
 
 # Number of created pods.
 # Type: integer
@@ -347,7 +347,7 @@ operator:
   # Type: string
   # Mandatory: yes
   #
-  # initContainerImage: product/prod.platform.system.monitoring_grafana-plugins-init:latest
+  # initContainerImage: ghcr.io/netcracker/qubership-grafana-plugins-init:latest
 
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -433,7 +433,7 @@ operator:
   # Default: not set
   #
   affinity: {}
-  
+
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
   # They are not queryable and should be preserved when modifying objects.
@@ -512,7 +512,7 @@ imageRenderer:
 
   # A docker image to use for grafana-image-renderer deployment
   #
-  # image: grafana/grafana-image-renderer:3.6.2
+  # image: grafana/grafana-image-renderer:3.12.9
 
   securityContext: {}
     # The UID to run the entrypoint of the container process.
@@ -546,7 +546,7 @@ imageRenderer:
   # Default: not set
   #
   nodeSelector: {}
-  
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
