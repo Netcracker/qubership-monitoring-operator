@@ -1619,10 +1619,10 @@ integrationTests:
     # The parameter (optional) specifies the path to Custom Resource that should be used for the write status of auto-tests execution.
     # Type: string
     # Mandatory: no
-    # Default: "monitoring.qubership.org/v1alpha1/prometheus-operator/platformmonitorings/platformmonitoring"
+    # Default: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
     # If namespace is not "prometheus-operator" change nc in custom resource path
     #
-    customResourcePath: "monitoring.qubership.org/v1alpha1/prometheus-operator/platformmonitorings/platformmonitoring"
+    customResourcePath: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
 
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
@@ -1693,5 +1693,10 @@ promitorAgentResourceDiscovery:
 
 # Exporter to request metrics from Google Cloud Operations about different Google Managed Services
 stackdriver_exporter:
+  # Disable by default
+  install: false
+
+# Exporter to check and visualize network connectivity between Kubernetes nodes and pods in the cluster
+goldpingerExporter:
   # Disable by default
   install: false

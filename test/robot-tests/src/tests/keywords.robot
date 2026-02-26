@@ -78,7 +78,7 @@ Check Status Of Pods
     RETURN  ${state}
 
 Check That VMauth Is Presented In CR
-     ${custom_resource}=  Get Custom Resource  monitoring.qubership.org/v1alpha1  PlatformMonitoring  ${namespace}  platformmonitoring
+     ${custom_resource}=  Get Custom Resource  monitoring.netcracker.com/v1  PlatformMonitoring  ${namespace}  platformmonitoring
      ${flag}=  Check CR Service Exists  ${custom_resource.get('spec')}  ${vmauth-in-cr}  victoriametrics
      Log to console    vmauth ${flag}
      RETURN  ${flag}

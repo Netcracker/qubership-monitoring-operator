@@ -19,10 +19,6 @@ on:
         - 'docs/**'
         - '*.md'
   workflow_dispatch: null
-  pull_request:
-    branches: [main]
-    types:
-      [opened, reopened, synchronize]
 permissions:
   contents: read
 
@@ -30,10 +26,10 @@ jobs:
   linkChecker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Restore lychee cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@b7e8d49f17405cc70c1c120101943203c98d3a4b # v4.3.0
         id: restore-cache
         with:
           path: .lycheecache
@@ -49,6 +45,7 @@ jobs:
             --verbose
             --no-progress
             --user-agent 'Mozilla/5.0 (X11; Linux x86_64) Chrome/134.0.0.0'
+            --header 'dnt: 1'
             --retry-wait-time 60
             --max-retries 8
             --accept 100..=103,200..=299,429

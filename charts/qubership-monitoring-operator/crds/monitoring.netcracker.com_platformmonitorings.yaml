@@ -6,9 +6,9 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.15.0
     helm.sh/hook: crd-install
     helm.sh/hook-weight: "-5"
-  name: platformmonitorings.monitoring.qubership.org
+  name: platformmonitorings.monitoring.netcracker.com
 spec:
-  group: monitoring.qubership.org
+  group: monitoring.netcracker.com
   names:
     kind: PlatformMonitoring
     listKind: PlatformMonitoringList
@@ -16,7 +16,7 @@ spec:
     singular: platformmonitoring
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: PlatformMonitoring is the Schema for the platformmonitorings

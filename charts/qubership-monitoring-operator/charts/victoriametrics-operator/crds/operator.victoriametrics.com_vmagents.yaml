@@ -2,22 +2,12 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.15.0
-    operator.victoriametrics.com/version: v0.63.0
+    controller-gen.kubebuilder.io/version: v0.18.0
+    operator.victoriametrics.com/version: v0.65.0
     helm.sh/hook: crd-install
-    helm.sh/hook-weight: "-5"
+    helm.sh/hook-weight: '-5'
   name: vmagents.operator.victoriametrics.com
 spec:
-  conversion:
-    strategy: Webhook
-    webhook:
-      clientConfig:
-        service:
-          name: webhook-service
-          namespace: vm
-          path: /convert
-      conversionReviewVersions:
-      - v1
   group: operator.victoriametrics.com
   names:
     kind: VMAgent
@@ -39,6 +29,9 @@ spec:
       jsonPath: .status.updateStatus
       name: Status
       type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1beta1
     schema:
       openAPIV3Schema:
@@ -72,6 +65,49 @@ spec:
                   If left empty, VMAgent is assumed to run inside of the cluster
                   and will discover API servers automatically and use the pod's CA certificate
                   and bearer token file at /var/run/secrets/kubernetes.io/serviceaccount/.
+                  aPIServerConfig is deprecated use apiServerConfig instead
+                required:
+                - host
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              additionalScrapeConfigs:
+                description: |-
+                  AdditionalScrapeConfigs As scrape configs are appended, the user is responsible to make sure it
+                  is valid. Note that using this feature may expose the possibility to
+                  break upgrades of VMAgent. It is advised to review VMAgent release
+                  notes to ensure that no incompatible scrape configs are going to break
+                  VMAgent after the upgrade.
+                properties:
+                  key:
+                    description: The key of the secret to select from.  Must be a
+                      valid secret key.
+                    type: string
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                  optional:
+                    description: Specify whether the Secret or its key must be defined
+                    type: boolean
+                required:
+                - key
+                type: object
+                x-kubernetes-map-type: atomic
+              affinity:
+                description: Affinity If specified, the pod's scheduling constraints.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              apiServerConfig:
+                description: |-
+                  APIServerConfig allows specifying a host and auth methods to access apiserver.
+                  If left empty, VMAgent is assumed to run inside of the cluster
+                  and will discover API servers automatically and use the pod's CA certificate
+                  and bearer token file at /var/run/secrets/kubernetes.io/serviceaccount/.
                 properties:
                   authorization:
                     description: Authorization configures generic authorization params
@@ -84,15 +120,13 @@ spec:
                               be a valid secret key.
                             type: string
                           name:
-                            default: ''
+                            default: ""
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
                               allowed to be empty. Instances of this type with an empty value here are
                               almost certainly wrong.
-                              TODO: Add other useful fields. apiVersion, kind, uid?
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                              TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                             type: string
                           optional:
                             description: Specify whether the Secret or its key must
@@ -123,15 +157,13 @@ spec:
                               be a valid secret key.
                             type: string
                           name:
-                            default: ''
+                            default: ""
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
                               allowed to be empty. Instances of this type with an empty value here are
                               almost certainly wrong.
-                              TODO: Add other useful fields. apiVersion, kind, uid?
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                              TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                             type: string
                           optional:
                             description: Specify whether the Secret or its key must
@@ -156,15 +188,13 @@ spec:
                               be a valid secret key.
                             type: string
                           name:
-                            default: ''
+                            default: ""
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
                               allowed to be empty. Instances of this type with an empty value here are
                               almost certainly wrong.
-                              TODO: Add other useful fields. apiVersion, kind, uid?
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                              TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                             type: string
                           optional:
                             description: Specify whether the Secret or its key must
@@ -190,7 +220,8 @@ spec:
                     description: TLSConfig Config to use for accessing apiserver.
                     properties:
                       ca:
-                        description: Stuct containing the CA cert to use for the targets.
+                        description: Struct containing the CA cert to use for the
+                          targets.
                         properties:
                           configMap:
                             description: ConfigMap containing data to use for the
@@ -200,15 +231,13 @@ spec:
                                 description: The key to select.
                                 type: string
                               name:
-                                default: ''
+                                default: ""
                                 description: |-
                                   Name of the referent.
                                   This field is effectively required, but due to backwards compatibility is
                                   allowed to be empty. Instances of this type with an empty value here are
                                   almost certainly wrong.
-                                  TODO: Add other useful fields. apiVersion, kind, uid?
                                   More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                  TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                 type: string
                               optional:
                                 description: Specify whether the ConfigMap or its
@@ -226,15 +255,13 @@ spec:
                                   be a valid secret key.
                                 type: string
                               name:
-                                default: ''
+                                default: ""
                                 description: |-
                                   Name of the referent.
                                   This field is effectively required, but due to backwards compatibility is
                                   allowed to be empty. Instances of this type with an empty value here are
                                   almost certainly wrong.
-                                  TODO: Add other useful fields. apiVersion, kind, uid?
                                   More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                  TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                 type: string
                               optional:
                                 description: Specify whether the Secret or its key
@@ -261,15 +288,13 @@ spec:
                                 description: The key to select.
                                 type: string
                               name:
-                                default: ''
+                                default: ""
                                 description: |-
                                   Name of the referent.
                                   This field is effectively required, but due to backwards compatibility is
                                   allowed to be empty. Instances of this type with an empty value here are
                                   almost certainly wrong.
-                                  TODO: Add other useful fields. apiVersion, kind, uid?
                                   More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                  TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                 type: string
                               optional:
                                 description: Specify whether the ConfigMap or its
@@ -287,15 +312,13 @@ spec:
                                   be a valid secret key.
                                 type: string
                               name:
-                                default: ''
+                                default: ""
                                 description: |-
                                   Name of the referent.
                                   This field is effectively required, but due to backwards compatibility is
                                   allowed to be empty. Instances of this type with an empty value here are
                                   almost certainly wrong.
-                                  TODO: Add other useful fields. apiVersion, kind, uid?
                                   More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                  TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                 type: string
                               optional:
                                 description: Specify whether the Secret or its key
@@ -326,15 +349,13 @@ spec:
                               be a valid secret key.
                             type: string
                           name:
-                            default: ''
+                            default: ""
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
                               allowed to be empty. Instances of this type with an empty value here are
                               almost certainly wrong.
-                              TODO: Add other useful fields. apiVersion, kind, uid?
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                              TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                             type: string
                           optional:
                             description: Specify whether the Secret or its key must
@@ -351,40 +372,6 @@ spec:
                 required:
                 - host
                 type: object
-              additionalScrapeConfigs:
-                description: |-
-                  AdditionalScrapeConfigs As scrape configs are appended, the user is responsible to make sure it
-                  is valid. Note that using this feature may expose the possibility to
-                  break upgrades of VMAgent. It is advised to review VMAgent release
-                  notes to ensure that no incompatible scrape configs are going to break
-                  VMAgent after the upgrade.
-                properties:
-                  key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
-                    type: string
-                  name:
-                    default: ''
-                    description: |-
-                      Name of the referent.
-                      This field is effectively required, but due to backwards compatibility is
-                      allowed to be empty. Instances of this type with an empty value here are
-                      almost certainly wrong.
-                      TODO: Add other useful fields. apiVersion, kind, uid?
-                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
-                    type: string
-                  optional:
-                    description: Specify whether the Secret or its key must be defined
-                    type: boolean
-                required:
-                - key
-                type: object
-                x-kubernetes-map-type: atomic
-              affinity:
-                description: Affinity If specified, the pod's scheduling constraints.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               arbitraryFSAccessThroughSMs:
                 description: |-
                   ArbitraryFSAccessThroughSMs configures whether configuration
@@ -524,8 +511,7 @@ spec:
                                 anyOf:
                                 - type: integer
                                 - type: string
-                                pattern: 
-                                  ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                 x-kubernetes-int-or-string: true
                               description: |-
                                 Limits describes the maximum amount of compute resources allowed.
@@ -536,8 +522,7 @@ spec:
                                 anyOf:
                                 - type: integer
                                 - type: string
-                                pattern: 
-                                  ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                 x-kubernetes-int-or-string: true
                               description: |-
                                 Requests describes the minimum amount of compute resources required.
@@ -603,15 +588,13 @@ spec:
                             volumeAttributesClassName may be used to set the VolumeAttributesClass used by this claim.
                             If specified, the CSI driver will create or update the volume with the attributes defined
                             in the corresponding VolumeAttributesClass. This has a different purpose than storageClassName,
-                            it can be changed after the claim is created. An empty string value means that no VolumeAttributesClass
-                            will be applied to the claim but it's not allowed to reset this field to empty string once it is set.
-                            If unspecified and the PersistentVolumeClaim is unbound, the default VolumeAttributesClass
-                            will be set by the persistentvolume controller if it exists.
+                            it can be changed after the claim is created. An empty string or nil value indicates that no
+                            VolumeAttributesClass will be applied to the claim. If the claim enters an Infeasible error state,
+                            this field can be reset to its previous value (including nil) to cancel the modification.
                             If the resource referred to by volumeAttributesClass does not exist, this PersistentVolumeClaim will be
                             set to a Pending state, as reflected by the modifyVolumeStatus field, until such as a resource
                             exists.
                             More info: https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
-                            (Alpha) Using this field requires the VolumeAttributesClass feature gate to be enabled.
                           type: string
                         volumeMode:
                           description: |-
@@ -646,39 +629,38 @@ spec:
                             type: string
                           description: "allocatedResourceStatuses stores status of
                             resource being resized for the given PVC.\nKey names follow
-                            standard Kubernetes label syntax. Valid values are either:\n
-                            \t* Un-prefixed keys:\n\t\t- storage - the capacity of
-                            the volume.\n\t* Custom resources must use implementation-defined
-                            prefixed names such as \"example.com/my-custom-resource\"\
-                            \nApart from above values - keys that are unprefixed or
-                            have kubernetes.io prefix are considered\nreserved and
-                            hence may not be used.\n\n\nClaimResourceStatus can be
-                            in any of following states:\n\t- ControllerResizeInProgress:\n
-                            \t\tState set when resize controller starts resizing the
-                            volume in control-plane.\n\t- ControllerResizeFailed:\n
-                            \t\tState set when resize has failed in resize controller
-                            with a terminal error.\n\t- NodeResizePending:\n\t\tState
-                            set when resize controller has finished resizing the volume
-                            but further resizing of\n\t\tvolume is needed on the node.\n
-                            \t- NodeResizeInProgress:\n\t\tState set when kubelet
-                            starts resizing the volume.\n\t- NodeResizeFailed:\n\t
-                            \tState set when resizing has failed in kubelet with a
-                            terminal error. Transient errors don't set\n\t\tNodeResizeFailed.\n
-                            For example: if expanding a PVC for more capacity - this
-                            field can be one of the following states:\n\t- pvc.status.allocatedResourceStatus['storage']
+                            standard Kubernetes label syntax. Valid values are either:\n\t*
+                            Un-prefixed keys:\n\t\t- storage - the capacity of the
+                            volume.\n\t* Custom resources must use implementation-defined
+                            prefixed names such as \"example.com/my-custom-resource\"\nApart
+                            from above values - keys that are unprefixed or have kubernetes.io
+                            prefix are considered\nreserved and hence may not be used.\n\nClaimResourceStatus
+                            can be in any of following states:\n\t- ControllerResizeInProgress:\n\t\tState
+                            set when resize controller starts resizing the volume
+                            in control-plane.\n\t- ControllerResizeFailed:\n\t\tState
+                            set when resize has failed in resize controller with a
+                            terminal error.\n\t- NodeResizePending:\n\t\tState set
+                            when resize controller has finished resizing the volume
+                            but further resizing of\n\t\tvolume is needed on the node.\n\t-
+                            NodeResizeInProgress:\n\t\tState set when kubelet starts
+                            resizing the volume.\n\t- NodeResizeFailed:\n\t\tState
+                            set when resizing has failed in kubelet with a terminal
+                            error. Transient errors don't set\n\t\tNodeResizeFailed.\nFor
+                            example: if expanding a PVC for more capacity - this field
+                            can be one of the following states:\n\t- pvc.status.allocatedResourceStatus['storage']
                             = \"ControllerResizeInProgress\"\n     - pvc.status.allocatedResourceStatus['storage']
                             = \"ControllerResizeFailed\"\n     - pvc.status.allocatedResourceStatus['storage']
                             = \"NodeResizePending\"\n     - pvc.status.allocatedResourceStatus['storage']
                             = \"NodeResizeInProgress\"\n     - pvc.status.allocatedResourceStatus['storage']
                             = \"NodeResizeFailed\"\nWhen this field is not set, it
                             means that no resize operation is in progress for the
-                            given PVC.\n\n\nA controller that receives PVC update
-                            with previously unknown resourceName or ClaimResourceStatus\n
-                            should ignore the update for the purpose it was designed.
-                            For example - a controller that\nonly is responsible for
-                            resizing capacity of the volume, should ignore PVC updates
-                            that change other valid\nresources associated with PVC.\n
-                            \n\nThis is an alpha field and requires enabling RecoverVolumeExpansionFailure
+                            given PVC.\n\nA controller that receives PVC update with
+                            previously unknown resourceName or ClaimResourceStatus\nshould
+                            ignore the update for the purpose it was designed. For
+                            example - a controller that\nonly is responsible for resizing
+                            capacity of the volume, should ignore PVC updates that
+                            change other valid\nresources associated with PVC.\n\nThis
+                            is an alpha field and requires enabling RecoverVolumeExpansionFailure
                             feature."
                           type: object
                           x-kubernetes-map-type: granular
@@ -687,33 +669,31 @@ spec:
                             anyOf:
                             - type: integer
                             - type: string
-                            pattern: 
-                              ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                             x-kubernetes-int-or-string: true
                           description: "allocatedResources tracks the resources allocated
                             to a PVC including its capacity.\nKey names follow standard
-                            Kubernetes label syntax. Valid values are either:\n\t
-                            * Un-prefixed keys:\n\t\t- storage - the capacity of the
+                            Kubernetes label syntax. Valid values are either:\n\t*
+                            Un-prefixed keys:\n\t\t- storage - the capacity of the
                             volume.\n\t* Custom resources must use implementation-defined
-                            prefixed names such as \"example.com/my-custom-resource\"\
-                            \nApart from above values - keys that are unprefixed or
-                            have kubernetes.io prefix are considered\nreserved and
-                            hence may not be used.\n\n\nCapacity reported here may
-                            be larger than the actual capacity when a volume expansion
-                            operation\nis requested.\nFor storage quota, the larger
-                            value from allocatedResources and PVC.spec.resources is
-                            used.\nIf allocatedResources is not set, PVC.spec.resources
+                            prefixed names such as \"example.com/my-custom-resource\"\nApart
+                            from above values - keys that are unprefixed or have kubernetes.io
+                            prefix are considered\nreserved and hence may not be used.\n\nCapacity
+                            reported here may be larger than the actual capacity when
+                            a volume expansion operation\nis requested.\nFor storage
+                            quota, the larger value from allocatedResources and PVC.spec.resources
+                            is used.\nIf allocatedResources is not set, PVC.spec.resources
                             alone is used for quota calculation.\nIf a volume expansion
-                            capacity request is lowered, allocatedResources is only\n
-                            lowered if there are no expansion operations in progress
-                            and if the actual volume capacity\nis equal or lower than
-                            the requested capacity.\n\n\nA controller that receives
-                            PVC update with previously unknown resourceName\nshould
-                            ignore the update for the purpose it was designed. For
-                            example - a controller that\nonly is responsible for resizing
+                            capacity request is lowered, allocatedResources is only\nlowered
+                            if there are no expansion operations in progress and if
+                            the actual volume capacity\nis equal or lower than the
+                            requested capacity.\n\nA controller that receives PVC
+                            update with previously unknown resourceName\nshould ignore
+                            the update for the purpose it was designed. For example
+                            - a controller that\nonly is responsible for resizing
                             capacity of the volume, should ignore PVC updates that
-                            change other valid\nresources associated with PVC.\n\n
-                            \nThis is an alpha field and requires enabling RecoverVolumeExpansionFailure
+                            change other valid\nresources associated with PVC.\n\nThis
+                            is an alpha field and requires enabling RecoverVolumeExpansionFailure
                             feature."
                           type: object
                         capacity:
@@ -721,8 +701,7 @@ spec:
                             anyOf:
                             - type: integer
                             - type: string
-                            pattern: 
-                              ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                             x-kubernetes-int-or-string: true
                           description: capacity represents the actual resources of
                             the underlying volume.
@@ -756,10 +735,15 @@ spec:
                                   persistent volume is being resized.
                                 type: string
                               status:
+                                description: |-
+                                  Status is the status of the condition.
+                                  Can be True, False, Unknown.
+                                  More info: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/persistent-volume-claim-v1/#:~:text=state%20of%20pvc-,conditions.status,-(string)%2C%20required
                                 type: string
                               type:
-                                description: PersistentVolumeClaimConditionType is
-                                  a valid value of PersistentVolumeClaimCondition.Type
+                                description: |-
+                                  Type is the type of the condition.
+                                  More info: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/persistent-volume-claim-v1/#:~:text=set%20to%20%27ResizeStarted%27.-,PersistentVolumeClaimCondition,-contains%20details%20about
                                 type: string
                             required:
                             - status
@@ -773,13 +757,11 @@ spec:
                           description: |-
                             currentVolumeAttributesClassName is the current name of the VolumeAttributesClass the PVC is using.
                             When unset, there is no VolumeAttributeClass applied to this PersistentVolumeClaim
-                            This is an alpha field and requires enabling VolumeAttributesClass feature.
                           type: string
                         modifyVolumeStatus:
                           description: |-
                             ModifyVolumeStatus represents the status object of ControllerModifyVolume operation.
                             When this is unset, there is no ModifyVolume operation being attempted.
-                            This is an alpha field and requires enabling VolumeAttributesClass feature.
                           properties:
                             status:
                               description: "status is the status of the ControllerModifyVolume
@@ -817,6 +799,32 @@ spec:
                 items:
                   type: string
                 type: array
+              configReloadAuthKeySecret:
+                description: |-
+                  ConfigReloadAuthKeySecret defines optional secret reference authKey for /-/reload API requests.
+                  Given secret reference will be added to the application and vm-config-reloader as volume
+                  available since v0.57.0 version
+                properties:
+                  key:
+                    description: The key of the secret to select from.  Must be a
+                      valid secret key.
+                    type: string
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                  optional:
+                    description: Specify whether the Secret or its key must be defined
+                    type: boolean
+                required:
+                - key
+                type: object
+                x-kubernetes-map-type: atomic
               configReloaderExtraArgs:
                 additionalProperties:
                   type: string
@@ -838,10 +846,8 @@ spec:
                       Claims lists the names of resources, defined in spec.resourceClaims,
                       that are used by this container.
 
-
-                      This is an alpha field and requires enabling the
+                      This field depends on the
                       DynamicResourceAllocation feature gate.
-
 
                       This field is immutable. It can only be set for containers.
                     items:
@@ -852,6 +858,12 @@ spec:
                             Name must match the name of one entry in pod.spec.resourceClaims of
                             the Pod where this field is used. It makes that resource available
                             inside a container.
+                          type: string
+                        request:
+                          description: |-
+                            Request is the name chosen for a request in the referenced claim.
+                            If empty, everything from the claim is made available, otherwise
+                            only the result of this request.
                           type: string
                       required:
                       - name
@@ -865,8 +877,7 @@ spec:
                       anyOf:
                       - type: integer
                       - type: string
-                      pattern: 
-                        ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
                     description: |-
                       Limits describes the maximum amount of compute resources allowed.
@@ -877,8 +888,7 @@ spec:
                       anyOf:
                       - type: integer
                       - type: string
-                      pattern: 
-                        ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
                     description: |-
                       Requests describes the minimum amount of compute resources required.
@@ -899,6 +909,21 @@ spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
+              daemonSetMode:
+                description: |-
+                  DaemonSetMode enables DaemonSet deployment mode instead of Deployment.
+                  Supports only VMPodScrape
+                  (available from v0.55.0).
+                  Cannot be used with statefulMode
+                type: boolean
+              disableAutomountServiceAccountToken:
+                description: |-
+                  DisableAutomountServiceAccountToken whether to disable serviceAccount auto mount by Kubernetes (available from v0.54.0).
+                  Operator will conditionally create volumes and volumeMounts for containers if it requires k8s API access.
+                  For example, vmagent and vm-config-reloader requires k8s API access.
+                  Operator creates volumes with name: "kube-api-access", which can be used as volumeMount for extraContainers if needed.
+                  And also adds VolumeMounts at /var/run/secrets/kubernetes.io/serviceaccount.
+                type: boolean
               disableSelfServiceScrape:
                 description: |-
                   DisableSelfServiceScrape controls creation of VMServiceScrape by operator
@@ -933,9 +958,12 @@ spec:
                         of a pod.
                       properties:
                         name:
-                          description: Required.
+                          description: |-
+                            Name is this DNS resolver option's name.
+                            Required.
                           type: string
                         value:
+                          description: Value is this DNS resolver option's value.
                           type: string
                       type: object
                     type: array
@@ -953,6 +981,13 @@ spec:
               dnsPolicy:
                 description: DNSPolicy sets DNS policy for the pod
                 type: string
+              enableKubernetesAPISelectors:
+                description: |-
+                  EnableKubernetesAPISelectors instructs vmagent to use CRD scrape objects spec.selectors for
+                  Kubernetes API list and watch requests.
+                  https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#list-and-watch-filtering
+                  It could be useful to reduce Kubernetes API server resource usage for serving less than 100 CRD scrape objects in total.
+                type: boolean
               enforcedNamespaceLabel:
                 description: |-
                   EnforcedNamespaceLabel enforces adding a namespace label of origin for each alert
@@ -980,7 +1015,9 @@ spec:
                     a Container.
                   properties:
                     name:
-                      description: Name of the environment variable. Must be a C_IDENTIFIER.
+                      description: |-
+                        Name of the environment variable.
+                        May consist of any printable ASCII characters except '='.
                       type: string
                     value:
                       description: |-
@@ -998,6 +1035,210 @@ spec:
                   - name
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
+                type: array
+              extraEnvsFrom:
+                description: |-
+                  ExtraEnvsFrom defines source of env variables for the application container
+                  could either be secret or configmap
+                items:
+                  description: EnvFromSource represents the source of a set of ConfigMaps
+                    or Secrets
+                  properties:
+                    configMapRef:
+                      description: The ConfigMap to select from
+                      properties:
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the ConfigMap must be defined
+                          type: boolean
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    prefix:
+                      description: |-
+                        Optional text to prepend to the name of each environment variable.
+                        May consist of any printable ASCII characters except '='.
+                      type: string
+                    secretRef:
+                      description: The Secret to select from
+                      properties:
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the Secret must be defined
+                          type: boolean
+                      type: object
+                      x-kubernetes-map-type: atomic
+                  type: object
+                type: array
+              globalScrapeMetricRelabelConfigs:
+                description: GlobalScrapeMetricRelabelConfigs is a global metric relabel
+                  configuration, which is applied to each scrape job.
+                items:
+                  description: |-
+                    RelabelConfig allows dynamic rewriting of the label set
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
+                  properties:
+                    action:
+                      description: Action to perform based on regex matching. Default
+                        is 'replace'
+                      type: string
+                    if:
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
+                      x-kubernetes-preserve-unknown-fields: true
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: 'Labels is used together with Match for `action:
+                        graphite`'
+                      type: object
+                    match:
+                      description: 'Match is used together with Labels for `action:
+                        graphite`'
+                      type: string
+                    modulus:
+                      description: Modulus to take of the hash of the source label
+                        values.
+                      format: int64
+                      type: integer
+                    regex:
+                      description: |-
+                        Regular expression against which the extracted value is matched. Default is '(.*)'
+                        victoriaMetrics supports multiline regex joined with |
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
+                      x-kubernetes-preserve-unknown-fields: true
+                    replacement:
+                      description: |-
+                        Replacement value against which a regex replace is performed if the
+                        regular expression matches. Regex capture groups are available. Default is '$1'
+                      type: string
+                    separator:
+                      description: Separator placed between concatenated source label
+                        values. default is ';'.
+                      type: string
+                    source_labels:
+                      description: |-
+                        UnderScoreSourceLabels - additional form of source labels source_labels
+                        for compatibility with original relabel config.
+                        if set  both sourceLabels and source_labels, sourceLabels has priority.
+                        for details https://github.com/VictoriaMetrics/operator/issues/131
+                      items:
+                        type: string
+                      type: array
+                    sourceLabels:
+                      description: |-
+                        The source labels select values from existing labels. Their content is concatenated
+                        using the configured separator and matched against the configured regular expression
+                        for the replace, keep, and drop actions.
+                      items:
+                        type: string
+                      type: array
+                    target_label:
+                      description: |-
+                        UnderScoreTargetLabel - additional form of target label - target_label
+                        for compatibility with original relabel config.
+                        if set  both targetLabel and target_label, targetLabel has priority.
+                        for details https://github.com/VictoriaMetrics/operator/issues/131
+                      type: string
+                    targetLabel:
+                      description: |-
+                        Label to which the resulting value is written in a replace action.
+                        It is mandatory for replace actions. Regex capture groups are available.
+                      type: string
+                  type: object
+                type: array
+              globalScrapeRelabelConfigs:
+                description: GlobalScrapeRelabelConfigs is a global relabel configuration,
+                  which is applied to each samples of each scrape job during service
+                  discovery.
+                items:
+                  description: |-
+                    RelabelConfig allows dynamic rewriting of the label set
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
+                  properties:
+                    action:
+                      description: Action to perform based on regex matching. Default
+                        is 'replace'
+                      type: string
+                    if:
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
+                      x-kubernetes-preserve-unknown-fields: true
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: 'Labels is used together with Match for `action:
+                        graphite`'
+                      type: object
+                    match:
+                      description: 'Match is used together with Labels for `action:
+                        graphite`'
+                      type: string
+                    modulus:
+                      description: Modulus to take of the hash of the source label
+                        values.
+                      format: int64
+                      type: integer
+                    regex:
+                      description: |-
+                        Regular expression against which the extracted value is matched. Default is '(.*)'
+                        victoriaMetrics supports multiline regex joined with |
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
+                      x-kubernetes-preserve-unknown-fields: true
+                    replacement:
+                      description: |-
+                        Replacement value against which a regex replace is performed if the
+                        regular expression matches. Regex capture groups are available. Default is '$1'
+                      type: string
+                    separator:
+                      description: Separator placed between concatenated source label
+                        values. default is ';'.
+                      type: string
+                    source_labels:
+                      description: |-
+                        UnderScoreSourceLabels - additional form of source labels source_labels
+                        for compatibility with original relabel config.
+                        if set  both sourceLabels and source_labels, sourceLabels has priority.
+                        for details https://github.com/VictoriaMetrics/operator/issues/131
+                      items:
+                        type: string
+                      type: array
+                    sourceLabels:
+                      description: |-
+                        The source labels select values from existing labels. Their content is concatenated
+                        using the configured separator and matched against the configured regular expression
+                        for the replace, keep, and drop actions.
+                      items:
+                        type: string
+                      type: array
+                    target_label:
+                      description: |-
+                        UnderScoreTargetLabel - additional form of target label - target_label
+                        for compatibility with original relabel config.
+                        if set  both targetLabel and target_label, targetLabel has priority.
+                        for details https://github.com/VictoriaMetrics/operator/issues/131
+                      type: string
+                    targetLabel:
+                      description: |-
+                        Label to which the resulting value is written in a replace action.
+                        It is mandatory for replace actions. Regex capture groups are available.
+                      type: string
+                  type: object
                 type: array
               host_aliases:
                 description: |-
@@ -1083,15 +1324,13 @@ spec:
                     referenced object inside the same namespace.
                   properties:
                     name:
-                      default: ''
+                      default: ""
                       description: |-
                         Name of the referent.
                         This field is effectively required, but due to backwards compatibility is
                         allowed to be empty. Instances of this type with an empty value here are
                         almost certainly wrong.
-                        TODO: Add other useful fields. apiVersion, kind, uid?
                         More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                        TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
@@ -1121,15 +1360,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -1150,7 +1389,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -1225,11 +1464,14 @@ spec:
                 description: |-
                   License allows to configure license key to be used for enterprise features.
                   Using license key is supported starting from VictoriaMetrics v1.94.0.
-                  See [here](https://docs.victoriametrics.com/enterprise)
+                  See [here](https://docs.victoriametrics.com/victoriametrics/enterprise/)
                 properties:
+                  forceOffline:
+                    description: Enforce offline verification of the license key.
+                    type: boolean
                   key:
                     description: |-
-                      Enterprise license key. This flag is available only in [VictoriaMetrics enterprise](https://docs.victoriametrics.com/enterprise).
+                      Enterprise license key. This flag is available only in [VictoriaMetrics enterprise](https://docs.victoriametrics.com/victoriametrics/enterprise/).
                       To request a trial license, [go to](https://victoriametrics.com/products/enterprise/trial)
                     type: string
                   keyRef:
@@ -1241,15 +1483,13 @@ spec:
                           a valid secret key.
                         type: string
                       name:
-                        default: ''
+                        default: ""
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
                           allowed to be empty. Instances of this type with an empty value here are
                           almost certainly wrong.
-                          TODO: Add other useful fields. apiVersion, kind, uid?
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                          TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                         type: string
                       optional:
                         description: Specify whether the Secret or its key must be
@@ -1259,6 +1499,10 @@ spec:
                     - key
                     type: object
                     x-kubernetes-map-type: atomic
+                  reloadInterval:
+                    description: Interval to be used for checking for license key
+                      changes. Note that this is only applicable when using KeyRef.
+                    type: string
                 type: object
               livenessProbe:
                 description: LivenessProbe that will be added CRD pod
@@ -1281,6 +1525,29 @@ spec:
                 - FATAL
                 - PANIC
                 type: string
+              managedMetadata:
+                description: |-
+                  ManagedMetadata defines metadata that will be added to the all objects
+                  created by operator for the given CustomResource
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Annotations is an unstructured key value map stored with a resource that may be
+                      set by external tools to store and retrieve arbitrary metadata. They are not
+                      queryable and should be preserved when modifying objects.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Labels Map of string keys and values that can be used to organize and categorize
+                      (scope and select) objects.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+                    type: object
+                type: object
               maxScrapeInterval:
                 description: |-
                   MaxScrapeInterval allows limiting maximum scrape interval for VMServiceScrape, VMPodScrape and other scrapes
@@ -1288,7 +1555,7 @@ spec:
                 type: string
               minReadySeconds:
                 description: |-
-                  MinReadySeconds defines a minim number os seconds to wait before starting update next pod
+                  MinReadySeconds defines a minimum number of seconds to wait before starting update next pod
                   if previous in healthy state
                   Has no effect for VLogs and VMSingle
                 format: int32
@@ -1356,15 +1623,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -1385,7 +1652,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -1498,6 +1765,26 @@ spec:
                   Paused If set to true all actions on the underlying managed objects are not
                   going to be performed, except for delete actions.
                 type: boolean
+              persistentVolumeClaimRetentionPolicy:
+                description: PersistentVolumeClaimRetentionPolicy allows configuration
+                  of PVC retention policy
+                properties:
+                  whenDeleted:
+                    description: |-
+                      WhenDeleted specifies what happens to PVCs created from StatefulSet
+                      VolumeClaimTemplates when the StatefulSet is deleted. The default policy
+                      of `Retain` causes PVCs to not be affected by StatefulSet deletion. The
+                      `Delete` policy causes those PVCs to be deleted.
+                    type: string
+                  whenScaled:
+                    description: |-
+                      WhenScaled specifies what happens to PVCs created from StatefulSet
+                      VolumeClaimTemplates when the StatefulSet is scaled down. The default
+                      policy of `Retain` causes PVCs to not be affected by a scaledown. The
+                      `Delete` policy causes the associated PVCs for any excess pods above
+                      the replica count to be deleted.
+                    type: string
+                type: object
               podDisruptionBudget:
                 description: PodDisruptionBudget created by operator
                 properties:
@@ -1528,6 +1815,18 @@ spec:
                       replaces default labels selector generated by operator
                       it's useful when you need to create custom budget
                     type: object
+                  unhealthyPodEvictionPolicy:
+                    description: |-
+                      UnhealthyPodEvictionPolicy defines the criteria for when unhealthy pods
+
+                      Valid policies are IfHealthyBudget and AlwaysAllow.
+                      If no policy is specified, the default behavior will be used,
+                      which corresponds to the IfHealthyBudget policy.
+                      Available from operator v0.64.0
+                    enum:
+                    - IfHealthyBudget
+                    - AlwaysAllow
+                    type: string
                 type: object
               podMetadata:
                 description: PodMetadata configures Labels and Annotations which are
@@ -1619,15 +1918,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -1648,7 +1947,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -1805,15 +2104,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -1834,7 +2133,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -1953,15 +2252,13 @@ spec:
                     description: The key to select.
                     type: string
                   name:
-                    default: ''
+                    default: ""
                     description: |-
                       Name of the referent.
                       This field is effectively required, but due to backwards compatibility is
                       allowed to be empty. Instances of this type with an empty value here are
                       almost certainly wrong.
-                      TODO: Add other useful fields. apiVersion, kind, uid?
                       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                     type: string
                   optional:
                     description: Specify whether the ConfigMap or its key must be
@@ -1974,13 +2271,46 @@ spec:
               remoteWrite:
                 description: |-
                   RemoteWrite list of victoria metrics /some other remote write system
-                  for vm it must looks like: http://victoria-metrics-single:8429/api/v1/write
+                  for vm it must looks like: http://victoria-metrics-single:8428/api/v1/write
                   or for cluster different url
-                  https://github.com/VictoriaMetrics/VictoriaMetrics/tree/master/app/vmagent#splitting-data-streams-among-multiple-systems
+                  https://docs.victoriametrics.com/victoriametrics/vmagent/#splitting-data-streams-among-multiple-systems
                 items:
                   description: VMAgentRemoteWriteSpec defines the remote storage configuration
                     for VmAgent
                   properties:
+                    aws:
+                      description: AWS describes params specific to AWS cloud
+                      properties:
+                        ec2Endpoint:
+                          description: EC2Endpoint is an optional AWS EC2 API endpoint
+                            to use for the corresponding -remoteWrite.url if -remoteWrite.aws.useSigv4
+                            is set
+                          type: string
+                        region:
+                          description: Region is an optional AWS region to use for
+                            the corresponding -remoteWrite.url if -remoteWrite.aws.useSigv4
+                            is set
+                          type: string
+                        roleARN:
+                          description: RoleARN is an optional AWS region to use for
+                            the corresponding -remoteWrite.url if -remoteWrite.aws.useSigv4
+                            is set
+                          type: string
+                        service:
+                          description: Service is an optional AWS Service to use for
+                            the corresponding -remoteWrite.url if -remoteWrite.aws.useSigv4
+                            is set
+                          type: string
+                        stsEndpoint:
+                          description: STSEndpoint is an optional AWS STS API endpoint
+                            to use for the corresponding -remoteWrite.url if -remoteWrite.aws.useSigv4
+                            is set
+                          type: string
+                        useSigv4:
+                          description: UseSigv4 enables SigV4 request signing for
+                            the corresponding -remoteWrite.url
+                          type: boolean
+                      type: object
                     basicAuth:
                       description: BasicAuth allow an endpoint to authenticate over
                         basic authentication
@@ -1995,15 +2325,13 @@ spec:
                                 be a valid secret key.
                               type: string
                             name:
-                              default: ''
+                              default: ""
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
                                 allowed to be empty. Instances of this type with an empty value here are
                                 almost certainly wrong.
-                                TODO: Add other useful fields. apiVersion, kind, uid?
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                               type: string
                             optional:
                               description: Specify whether the Secret or its key must
@@ -2028,15 +2356,13 @@ spec:
                                 be a valid secret key.
                               type: string
                             name:
-                              default: ''
+                              default: ""
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
                                 allowed to be empty. Instances of this type with an empty value here are
                                 almost certainly wrong.
-                                TODO: Add other useful fields. apiVersion, kind, uid?
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                               type: string
                             optional:
                               description: Specify whether the Secret or its key must
@@ -2055,15 +2381,13 @@ spec:
                             be a valid secret key.
                           type: string
                         name:
-                          default: ''
+                          default: ""
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
                             allowed to be empty. Instances of this type with an empty value here are
                             almost certainly wrong.
-                            TODO: Add other useful fields. apiVersion, kind, uid?
                             More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                            TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                           type: string
                         optional:
                           description: Specify whether the Secret or its key must
@@ -2073,6 +2397,10 @@ spec:
                       - key
                       type: object
                       x-kubernetes-map-type: atomic
+                    forceVMProto:
+                      description: ForceVMProto forces using VictoriaMetrics protocol
+                        for sending data to -remoteWrite.url
+                      type: boolean
                     headers:
                       description: |-
                         Headers allow configuring custom http headers
@@ -2089,15 +2417,15 @@ spec:
                       items:
                         description: |-
                           RelabelConfig allows dynamic rewriting of the label set
-                          More info: https://docs.victoriametrics.com/#relabeling
+                          More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                         properties:
                           action:
                             description: Action to perform based on regex matching.
                               Default is 'replace'
                             type: string
                           if:
-                            description: "If represents metricsQL match expression
-                              (or list of expressions): '{__name__=~\"foo_.*\"}'"
+                            description: 'If represents metricsQL match expression
+                              (or list of expressions): ''{__name__=~"foo_.*"}'''
                             x-kubernetes-preserve-unknown-fields: true
                           labels:
                             additionalProperties:
@@ -2118,7 +2446,7 @@ spec:
                             description: |-
                               Regular expression against which the extracted value is matched. Default is '(.*)'
                               victoriaMetrics supports multiline regex joined with |
-                              https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                              https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                             x-kubernetes-preserve-unknown-fields: true
                           replacement:
                             description: |-
@@ -2160,6 +2488,11 @@ spec:
                             type: string
                         type: object
                       type: array
+                    maxDiskUsage:
+                      description: |-
+                        MaxDiskUsage defines the maximum file-based buffer size in bytes for the given remoteWrite
+                        It overrides global configuration defined at remoteWriteSettings.maxDiskUsagePerURL
+                      x-kubernetes-preserve-unknown-fields: true
                     oauth2:
                       description: OAuth2 defines auth configuration
                       properties:
@@ -2175,15 +2508,13 @@ spec:
                                   description: The key to select.
                                   type: string
                                 name:
-                                  default: ''
+                                  default: ""
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
                                     allowed to be empty. Instances of this type with an empty value here are
                                     almost certainly wrong.
-                                    TODO: Add other useful fields. apiVersion, kind, uid?
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                    TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                   type: string
                                 optional:
                                   description: Specify whether the ConfigMap or its
@@ -2201,15 +2532,13 @@ spec:
                                     be a valid secret key.
                                   type: string
                                 name:
-                                  default: ''
+                                  default: ""
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
                                     allowed to be empty. Instances of this type with an empty value here are
                                     almost certainly wrong.
-                                    TODO: Add other useful fields. apiVersion, kind, uid?
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                    TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                   type: string
                                 optional:
                                   description: Specify whether the Secret or its key
@@ -2228,15 +2557,13 @@ spec:
                                 be a valid secret key.
                               type: string
                             name:
-                              default: ''
+                              default: ""
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
                                 allowed to be empty. Instances of this type with an empty value here are
                                 almost certainly wrong.
-                                TODO: Add other useful fields. apiVersion, kind, uid?
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                               type: string
                             optional:
                               description: Specify whether the Secret or its key must
@@ -2255,11 +2582,23 @@ spec:
                             type: string
                           description: Parameters to append to the token URL
                           type: object
+                        proxy_url:
+                          description: |-
+                            The proxy URL for token_url connection
+                            ( available from v0.55.0).
+                            Is only supported by Scrape objects family
+                          type: string
                         scopes:
                           description: OAuth2 scopes used for the token request
                           items:
                             type: string
                           type: array
+                        tls_config:
+                          description: |-
+                            TLSConfig for token_url connection
+                            ( available from v0.55.0).
+                            Is only supported by Scrape objects family
+                          x-kubernetes-preserve-unknown-fields: true
                         token_url:
                           description: The URL to fetch the token from
                           minLength: 1
@@ -2268,6 +2607,10 @@ spec:
                       - client_id
                       - token_url
                       type: object
+                    proxyURL:
+                      description: 'ProxyURL for -remoteWrite.url. Supported proxies:
+                        http, https, socks5. Example: socks5://proxy:1234'
+                      type: string
                     sendTimeout:
                       description: Timeout for sending a single block of data to -remoteWrite.url
                         (default 1m0s)
@@ -2284,15 +2627,13 @@ spec:
                               description: The key to select.
                               type: string
                             name:
-                              default: ''
+                              default: ""
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
                                 allowed to be empty. Instances of this type with an empty value here are
                                 almost certainly wrong.
-                                TODO: Add other useful fields. apiVersion, kind, uid?
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                               type: string
                             optional:
                               description: Specify whether the ConfigMap or its key
@@ -2316,10 +2657,19 @@ spec:
                           items:
                             type: string
                           type: array
+                        enableWindows:
+                          description: EnableWindows enables aggregating data in separate
+                            windows ( available from v0.54.0).
+                          type: boolean
                         ignoreFirstIntervals:
                           description: IgnoreFirstIntervals instructs to ignore first
                             interval
                           type: integer
+                        ignoreFirstSampleInterval:
+                          description: IgnoreFirstSampleInterval sets interval for
+                            total and prometheus_total during which first samples
+                            will be ignored
+                          type: string
                         ignoreOldSamples:
                           description: IgnoreOldSamples instructs to ignore samples
                             with old timestamps outside the current aggregation interval.
@@ -2337,9 +2687,7 @@ spec:
                                 description: |-
                                   By is an optional list of labels for grouping input series.
 
-
                                   See also Without.
-
 
                                   If neither By nor Without are set, then the Outputs are calculated
                                   individually per each input time series.
@@ -2354,11 +2702,14 @@ spec:
                                 description: |-
                                   DropInputLabels is an optional list with labels, which must be dropped before further processing of input samples.
 
-
                                   Labels are dropped before de-duplication and aggregation.
                                 items:
                                   type: string
                                 type: array
+                              enable_windows:
+                                description: EnableWindows enables aggregating data
+                                  in separate windows
+                                type: boolean
                               flush_on_shutdown:
                                 description: |-
                                   FlushOnShutdown defines whether to flush the aggregation state on process termination
@@ -2373,6 +2724,11 @@ spec:
                                   samples with old timestamps outside the current
                                   aggregation interval.
                                 type: boolean
+                              ignoreFirstSampleInterval:
+                                description: IgnoreFirstSampleInterval sets interval
+                                  for total and prometheus_total during which first
+                                  samples will be ignored
+                                type: string
                               input_relabel_configs:
                                 description: |-
                                   InputRelabelConfigs is an optional relabeling rules, which are applied on the input
@@ -2380,16 +2736,15 @@ spec:
                                 items:
                                   description: |-
                                     RelabelConfig allows dynamic rewriting of the label set
-                                    More info: https://docs.victoriametrics.com/#relabeling
+                                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                                   properties:
                                     action:
                                       description: Action to perform based on regex
                                         matching. Default is 'replace'
                                       type: string
                                     if:
-                                      description: "If represents metricsQL match
-                                        expression (or list of expressions): '{__name__=~\"\
-                                        foo_.*\"}'"
+                                      description: 'If represents metricsQL match
+                                        expression (or list of expressions): ''{__name__=~"foo_.*"}'''
                                       x-kubernetes-preserve-unknown-fields: true
                                     labels:
                                       additionalProperties:
@@ -2410,7 +2765,7 @@ spec:
                                       description: |-
                                         Regular expression against which the extracted value is matched. Default is '(.*)'
                                         victoriaMetrics supports multiline regex joined with |
-                                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                                       x-kubernetes-preserve-unknown-fields: true
                                     replacement:
                                       description: |-
@@ -2464,7 +2819,6 @@ spec:
                                 description: |-
                                   Match is a label selector (or list of label selectors) for filtering time series for the given selector.
 
-
                                   If the match isn't set, then all the input time series are processed.
                                 x-kubernetes-preserve-unknown-fields: true
                               no_align_flush_to_interval:
@@ -2479,16 +2833,15 @@ spec:
                                 items:
                                   description: |-
                                     RelabelConfig allows dynamic rewriting of the label set
-                                    More info: https://docs.victoriametrics.com/#relabeling
+                                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                                   properties:
                                     action:
                                       description: Action to perform based on regex
                                         matching. Default is 'replace'
                                       type: string
                                     if:
-                                      description: "If represents metricsQL match
-                                        expression (or list of expressions): '{__name__=~\"\
-                                        foo_.*\"}'"
+                                      description: 'If represents metricsQL match
+                                        expression (or list of expressions): ''{__name__=~"foo_.*"}'''
                                       x-kubernetes-preserve-unknown-fields: true
                                     labels:
                                       additionalProperties:
@@ -2509,7 +2862,7 @@ spec:
                                       description: |-
                                         Regular expression against which the extracted value is matched. Default is '(.*)'
                                         victoriaMetrics supports multiline regex joined with |
-                                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                                       x-kubernetes-preserve-unknown-fields: true
                                     replacement:
                                       description: |-
@@ -2555,9 +2908,7 @@ spec:
                                 description: |-
                                   Outputs is a list of output aggregate functions to produce.
 
-
                                   The following names are allowed:
-
 
                                   - total - aggregates input counters
                                   - increase - counts the increase over input counters
@@ -2573,9 +2924,7 @@ spec:
                                   - histogram_bucket - creates VictoriaMetrics histogram for input samples
                                   - quantiles(phi1, ..., phiN) - quantiles' estimation for phi in the range [0..1]
 
-
                                   The output time series will have the following names:
-
 
                                     input_name:aggr_<interval>_<output>
                                 items:
@@ -2590,9 +2939,7 @@ spec:
                                 description: |-
                                   Without is an optional list of labels, which must be excluded when grouping input series.
 
-
                                   See also By.
-
 
                                   If neither By nor Without are set, then the Outputs are calculated
                                   individually per each input time series.
@@ -2610,7 +2957,7 @@ spec:
                         write target
                       properties:
                         ca:
-                          description: Stuct containing the CA cert to use for the
+                          description: Struct containing the CA cert to use for the
                             targets.
                           properties:
                             configMap:
@@ -2621,15 +2968,13 @@ spec:
                                   description: The key to select.
                                   type: string
                                 name:
-                                  default: ''
+                                  default: ""
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
                                     allowed to be empty. Instances of this type with an empty value here are
                                     almost certainly wrong.
-                                    TODO: Add other useful fields. apiVersion, kind, uid?
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                    TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                   type: string
                                 optional:
                                   description: Specify whether the ConfigMap or its
@@ -2647,15 +2992,13 @@ spec:
                                     be a valid secret key.
                                   type: string
                                 name:
-                                  default: ''
+                                  default: ""
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
                                     allowed to be empty. Instances of this type with an empty value here are
                                     almost certainly wrong.
-                                    TODO: Add other useful fields. apiVersion, kind, uid?
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                    TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                   type: string
                                 optional:
                                   description: Specify whether the Secret or its key
@@ -2682,15 +3025,13 @@ spec:
                                   description: The key to select.
                                   type: string
                                 name:
-                                  default: ''
+                                  default: ""
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
                                     allowed to be empty. Instances of this type with an empty value here are
                                     almost certainly wrong.
-                                    TODO: Add other useful fields. apiVersion, kind, uid?
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                    TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                   type: string
                                 optional:
                                   description: Specify whether the ConfigMap or its
@@ -2708,15 +3049,13 @@ spec:
                                     be a valid secret key.
                                   type: string
                                 name:
-                                  default: ''
+                                  default: ""
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
                                     allowed to be empty. Instances of this type with an empty value here are
                                     almost certainly wrong.
-                                    TODO: Add other useful fields. apiVersion, kind, uid?
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                    TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                                   type: string
                                 optional:
                                   description: Specify whether the Secret or its key
@@ -2747,15 +3086,13 @@ spec:
                                 be a valid secret key.
                               type: string
                             name:
-                              default: ''
+                              default: ""
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
                                 allowed to be empty. Instances of this type with an empty value here are
                                 almost certainly wrong.
-                                TODO: Add other useful fields. apiVersion, kind, uid?
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                               type: string
                             optional:
                               description: Specify whether the Secret or its key must
@@ -2780,15 +3117,13 @@ spec:
                           description: The key to select.
                           type: string
                         name:
-                          default: ''
+                          default: ""
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
                             allowed to be empty. Instances of this type with an empty value here are
                             almost certainly wrong.
-                            TODO: Add other useful fields. apiVersion, kind, uid?
                             More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                            TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                           type: string
                         optional:
                           description: Specify whether the ConfigMap or its key must
@@ -2825,8 +3160,7 @@ spec:
                     type: integer
                   maxDiskUsagePerURL:
                     description: The maximum file-based buffer size in bytes at -remoteWrite.tmpDataPath
-                    format: int64
-                    type: integer
+                    x-kubernetes-preserve-unknown-fields: true
                   queues:
                     description: The number of concurrent queues
                     format: int32
@@ -2843,7 +3177,7 @@ spec:
                   useMultiTenantMode:
                     description: |-
                       Configures vmagent accepting data via the same multitenant endpoints as vminsert at VictoriaMetrics cluster does,
-                      see [here](https://docs.victoriametrics.com/vmagent/#multitenancy).
+                      see [here](https://docs.victoriametrics.com/victoriametrics/vmagent/#multitenancy).
                       it's global setting and affects all remote storage configurations
                     type: boolean
                 type: object
@@ -2861,10 +3195,8 @@ spec:
                       Claims lists the names of resources, defined in spec.resourceClaims,
                       that are used by this container.
 
-
-                      This is an alpha field and requires enabling the
+                      This field depends on the
                       DynamicResourceAllocation feature gate.
-
 
                       This field is immutable. It can only be set for containers.
                     items:
@@ -2875,6 +3207,12 @@ spec:
                             Name must match the name of one entry in pod.spec.resourceClaims of
                             the Pod where this field is used. It makes that resource available
                             inside a container.
+                          type: string
+                        request:
+                          description: |-
+                            Request is the name chosen for a request in the referenced claim.
+                            If empty, everything from the claim is made available, otherwise
+                            only the result of this request.
                           type: string
                       required:
                       - name
@@ -2888,8 +3226,7 @@ spec:
                       anyOf:
                       - type: integer
                       - type: string
-                      pattern: 
-                        ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
                     description: |-
                       Limits describes the maximum amount of compute resources allowed.
@@ -2900,8 +3237,7 @@ spec:
                       anyOf:
                       - type: integer
                       - type: string
-                      pattern: 
-                        ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
                     description: |-
                       Requests describes the minimum amount of compute resources required.
@@ -2963,6 +3299,591 @@ spec:
               schedulerName:
                 description: SchedulerName - defines kubernetes scheduler name
                 type: string
+              scrapeClasses:
+                description: |-
+                  ScrapeClasses defines the list of scrape classes to expose to scraping objects such as
+                  PodScrapes, ServiceScrapes, Probes and ScrapeConfigs.
+                items:
+                  properties:
+                    attachMetadata:
+                      description: |-
+                        AttachMetadata defines additional metadata to the discovered targets.
+                        When the scrape object defines its own configuration, it takes
+                        precedence over the scrape class configuration.
+                      properties:
+                        node:
+                          description: |-
+                            Node instructs vmagent to add node specific metadata from service discovery
+                            Valid for roles: pod, endpoints, endpointslice.
+                          type: boolean
+                      type: object
+                    authorization:
+                      description: Authorization with http header Authorization
+                      properties:
+                        credentials:
+                          description: Reference to the secret with value for authorization
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        credentialsFile:
+                          description: File with value for authorization
+                          type: string
+                        type:
+                          description: Type of authorization, default to bearer
+                          type: string
+                      type: object
+                    basicAuth:
+                      description: BasicAuth allow an endpoint to authenticate over
+                        basic authentication
+                      properties:
+                        password:
+                          description: |-
+                            Password defines reference for secret with password value
+                            The secret needs to be in the same namespace as scrape object
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        password_file:
+                          description: |-
+                            PasswordFile defines path to password file at disk
+                            must be pre-mounted
+                          type: string
+                        username:
+                          description: |-
+                            Username defines reference for secret with username value
+                            The secret needs to be in the same namespace as scrape object
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                      type: object
+                    bearerTokenFile:
+                      description: File to read bearer token for scraping targets.
+                      type: string
+                    bearerTokenSecret:
+                      description: |-
+                        Secret to mount to read bearer token for scraping targets. The secret
+                        needs to be in the same namespace as the scrape object and accessible by
+                        the victoria-metrics operator.
+                      nullable: true
+                      properties:
+                        key:
+                          description: The key of the secret to select from.  Must
+                            be a valid secret key.
+                          type: string
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the Secret or its key must
+                            be defined
+                          type: boolean
+                      required:
+                      - key
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    default:
+                      description: |-
+                        default defines that the scrape applies to all scrape objects that
+                        don't configure an explicit scrape class name.
+
+                        Only one scrape class can be set as the default.
+                      type: boolean
+                    metricRelabelConfigs:
+                      description: MetricRelabelConfigs to apply to samples after
+                        scrapping.
+                      items:
+                        description: |-
+                          RelabelConfig allows dynamic rewriting of the label set
+                          More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
+                        properties:
+                          action:
+                            description: Action to perform based on regex matching.
+                              Default is 'replace'
+                            type: string
+                          if:
+                            description: 'If represents metricsQL match expression
+                              (or list of expressions): ''{__name__=~"foo_.*"}'''
+                            x-kubernetes-preserve-unknown-fields: true
+                          labels:
+                            additionalProperties:
+                              type: string
+                            description: 'Labels is used together with Match for `action:
+                              graphite`'
+                            type: object
+                          match:
+                            description: 'Match is used together with Labels for `action:
+                              graphite`'
+                            type: string
+                          modulus:
+                            description: Modulus to take of the hash of the source
+                              label values.
+                            format: int64
+                            type: integer
+                          regex:
+                            description: |-
+                              Regular expression against which the extracted value is matched. Default is '(.*)'
+                              victoriaMetrics supports multiline regex joined with |
+                              https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
+                            x-kubernetes-preserve-unknown-fields: true
+                          replacement:
+                            description: |-
+                              Replacement value against which a regex replace is performed if the
+                              regular expression matches. Regex capture groups are available. Default is '$1'
+                            type: string
+                          separator:
+                            description: Separator placed between concatenated source
+                              label values. default is ';'.
+                            type: string
+                          source_labels:
+                            description: |-
+                              UnderScoreSourceLabels - additional form of source labels source_labels
+                              for compatibility with original relabel config.
+                              if set  both sourceLabels and source_labels, sourceLabels has priority.
+                              for details https://github.com/VictoriaMetrics/operator/issues/131
+                            items:
+                              type: string
+                            type: array
+                          sourceLabels:
+                            description: |-
+                              The source labels select values from existing labels. Their content is concatenated
+                              using the configured separator and matched against the configured regular expression
+                              for the replace, keep, and drop actions.
+                            items:
+                              type: string
+                            type: array
+                          target_label:
+                            description: |-
+                              UnderScoreTargetLabel - additional form of target label - target_label
+                              for compatibility with original relabel config.
+                              if set  both targetLabel and target_label, targetLabel has priority.
+                              for details https://github.com/VictoriaMetrics/operator/issues/131
+                            type: string
+                          targetLabel:
+                            description: |-
+                              Label to which the resulting value is written in a replace action.
+                              It is mandatory for replace actions. Regex capture groups are available.
+                            type: string
+                        type: object
+                      type: array
+                    name:
+                      description: name of the scrape class.
+                      minLength: 1
+                      type: string
+                    oauth2:
+                      description: OAuth2 defines auth configuration
+                      properties:
+                        client_id:
+                          description: The secret or configmap containing the OAuth2
+                            client id
+                          properties:
+                            configMap:
+                              description: ConfigMap containing data to use for the
+                                targets.
+                              properties:
+                                key:
+                                  description: The key to select.
+                                  type: string
+                                name:
+                                  default: ""
+                                  description: |-
+                                    Name of the referent.
+                                    This field is effectively required, but due to backwards compatibility is
+                                    allowed to be empty. Instances of this type with an empty value here are
+                                    almost certainly wrong.
+                                    More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  type: string
+                                optional:
+                                  description: Specify whether the ConfigMap or its
+                                    key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            secret:
+                              description: Secret containing data to use for the targets.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must
+                                    be a valid secret key.
+                                  type: string
+                                name:
+                                  default: ""
+                                  description: |-
+                                    Name of the referent.
+                                    This field is effectively required, but due to backwards compatibility is
+                                    allowed to be empty. Instances of this type with an empty value here are
+                                    almost certainly wrong.
+                                    More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key
+                                    must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                          type: object
+                        client_secret:
+                          description: The secret containing the OAuth2 client secret
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        client_secret_file:
+                          description: ClientSecretFile defines path for client secret
+                            file.
+                          type: string
+                        endpoint_params:
+                          additionalProperties:
+                            type: string
+                          description: Parameters to append to the token URL
+                          type: object
+                        proxy_url:
+                          description: |-
+                            The proxy URL for token_url connection
+                            ( available from v0.55.0).
+                            Is only supported by Scrape objects family
+                          type: string
+                        scopes:
+                          description: OAuth2 scopes used for the token request
+                          items:
+                            type: string
+                          type: array
+                        tls_config:
+                          description: |-
+                            TLSConfig for token_url connection
+                            ( available from v0.55.0).
+                            Is only supported by Scrape objects family
+                          x-kubernetes-preserve-unknown-fields: true
+                        token_url:
+                          description: The URL to fetch the token from
+                          minLength: 1
+                          type: string
+                      required:
+                      - client_id
+                      - token_url
+                      type: object
+                    relabelConfigs:
+                      description: RelabelConfigs to apply to samples during service
+                        discovery.
+                      items:
+                        description: |-
+                          RelabelConfig allows dynamic rewriting of the label set
+                          More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
+                        properties:
+                          action:
+                            description: Action to perform based on regex matching.
+                              Default is 'replace'
+                            type: string
+                          if:
+                            description: 'If represents metricsQL match expression
+                              (or list of expressions): ''{__name__=~"foo_.*"}'''
+                            x-kubernetes-preserve-unknown-fields: true
+                          labels:
+                            additionalProperties:
+                              type: string
+                            description: 'Labels is used together with Match for `action:
+                              graphite`'
+                            type: object
+                          match:
+                            description: 'Match is used together with Labels for `action:
+                              graphite`'
+                            type: string
+                          modulus:
+                            description: Modulus to take of the hash of the source
+                              label values.
+                            format: int64
+                            type: integer
+                          regex:
+                            description: |-
+                              Regular expression against which the extracted value is matched. Default is '(.*)'
+                              victoriaMetrics supports multiline regex joined with |
+                              https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
+                            x-kubernetes-preserve-unknown-fields: true
+                          replacement:
+                            description: |-
+                              Replacement value against which a regex replace is performed if the
+                              regular expression matches. Regex capture groups are available. Default is '$1'
+                            type: string
+                          separator:
+                            description: Separator placed between concatenated source
+                              label values. default is ';'.
+                            type: string
+                          source_labels:
+                            description: |-
+                              UnderScoreSourceLabels - additional form of source labels source_labels
+                              for compatibility with original relabel config.
+                              if set  both sourceLabels and source_labels, sourceLabels has priority.
+                              for details https://github.com/VictoriaMetrics/operator/issues/131
+                            items:
+                              type: string
+                            type: array
+                          sourceLabels:
+                            description: |-
+                              The source labels select values from existing labels. Their content is concatenated
+                              using the configured separator and matched against the configured regular expression
+                              for the replace, keep, and drop actions.
+                            items:
+                              type: string
+                            type: array
+                          target_label:
+                            description: |-
+                              UnderScoreTargetLabel - additional form of target label - target_label
+                              for compatibility with original relabel config.
+                              if set  both targetLabel and target_label, targetLabel has priority.
+                              for details https://github.com/VictoriaMetrics/operator/issues/131
+                            type: string
+                          targetLabel:
+                            description: |-
+                              Label to which the resulting value is written in a replace action.
+                              It is mandatory for replace actions. Regex capture groups are available.
+                            type: string
+                        type: object
+                      type: array
+                    tlsConfig:
+                      description: TLSConfig configuration to use when scraping the
+                        endpoint
+                      properties:
+                        ca:
+                          description: Struct containing the CA cert to use for the
+                            targets.
+                          properties:
+                            configMap:
+                              description: ConfigMap containing data to use for the
+                                targets.
+                              properties:
+                                key:
+                                  description: The key to select.
+                                  type: string
+                                name:
+                                  default: ""
+                                  description: |-
+                                    Name of the referent.
+                                    This field is effectively required, but due to backwards compatibility is
+                                    allowed to be empty. Instances of this type with an empty value here are
+                                    almost certainly wrong.
+                                    More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  type: string
+                                optional:
+                                  description: Specify whether the ConfigMap or its
+                                    key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            secret:
+                              description: Secret containing data to use for the targets.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must
+                                    be a valid secret key.
+                                  type: string
+                                name:
+                                  default: ""
+                                  description: |-
+                                    Name of the referent.
+                                    This field is effectively required, but due to backwards compatibility is
+                                    allowed to be empty. Instances of this type with an empty value here are
+                                    almost certainly wrong.
+                                    More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key
+                                    must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                          type: object
+                        caFile:
+                          description: Path to the CA cert in the container to use
+                            for the targets.
+                          type: string
+                        cert:
+                          description: Struct containing the client cert file for
+                            the targets.
+                          properties:
+                            configMap:
+                              description: ConfigMap containing data to use for the
+                                targets.
+                              properties:
+                                key:
+                                  description: The key to select.
+                                  type: string
+                                name:
+                                  default: ""
+                                  description: |-
+                                    Name of the referent.
+                                    This field is effectively required, but due to backwards compatibility is
+                                    allowed to be empty. Instances of this type with an empty value here are
+                                    almost certainly wrong.
+                                    More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  type: string
+                                optional:
+                                  description: Specify whether the ConfigMap or its
+                                    key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            secret:
+                              description: Secret containing data to use for the targets.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must
+                                    be a valid secret key.
+                                  type: string
+                                name:
+                                  default: ""
+                                  description: |-
+                                    Name of the referent.
+                                    This field is effectively required, but due to backwards compatibility is
+                                    allowed to be empty. Instances of this type with an empty value here are
+                                    almost certainly wrong.
+                                    More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key
+                                    must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                          type: object
+                        certFile:
+                          description: Path to the client cert file in the container
+                            for the targets.
+                          type: string
+                        insecureSkipVerify:
+                          description: Disable target certificate validation.
+                          type: boolean
+                        keyFile:
+                          description: Path to the client key file in the container
+                            for the targets.
+                          type: string
+                        keySecret:
+                          description: Secret containing the client key file for the
+                            targets.
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        serverName:
+                          description: Used to verify the hostname for the targets.
+                          type: string
+                      type: object
+                  required:
+                  - name
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
               scrapeConfigNamespaceSelector:
                 description: |-
                   ScrapeConfigNamespaceSelector defines Namespaces to be selected for VMScrapeConfig discovery.
@@ -3021,15 +3942,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -3050,7 +3971,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -3231,15 +4152,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -3260,7 +4181,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -3414,7 +4335,7 @@ spec:
                   ShardCount - numbers of shards of VMAgent
                   in this case operator will use 1 deployment/sts per shard with
                   replicas count according to spec.replicas,
-                  see [here](https://docs.victoriametrics.com/vmagent/#scraping-big-number-of-targets)
+                  see [here](https://docs.victoriametrics.com/victoriametrics/vmagent/#scraping-big-number-of-targets)
                 type: integer
               startupProbe:
                 description: StartupProbe that will be added to CRD pod
@@ -3461,12 +4382,11 @@ spec:
                           the SizeLimit specified here and the sum of memory limits of all containers in a pod.
                           The default is nil which means that the limit is undefined.
                           More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir
-                        pattern: 
-                          ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                         x-kubernetes-int-or-string: true
                     type: object
                   volumeClaimTemplate:
-                    description: A PVC spec to be used by the VMAlertManager StatefulSets.
+                    description: A PVC spec to be used by the StatefulSets/Deployments.
                     properties:
                       apiVersion:
                         description: |-
@@ -3617,8 +4537,7 @@ spec:
                                   anyOf:
                                   - type: integer
                                   - type: string
-                                  pattern: 
-                                    ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                   x-kubernetes-int-or-string: true
                                 description: |-
                                   Limits describes the maximum amount of compute resources allowed.
@@ -3629,8 +4548,7 @@ spec:
                                   anyOf:
                                   - type: integer
                                   - type: string
-                                  pattern: 
-                                    ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                   x-kubernetes-int-or-string: true
                                 description: |-
                                   Requests describes the minimum amount of compute resources required.
@@ -3696,15 +4614,13 @@ spec:
                               volumeAttributesClassName may be used to set the VolumeAttributesClass used by this claim.
                               If specified, the CSI driver will create or update the volume with the attributes defined
                               in the corresponding VolumeAttributesClass. This has a different purpose than storageClassName,
-                              it can be changed after the claim is created. An empty string value means that no VolumeAttributesClass
-                              will be applied to the claim but it's not allowed to reset this field to empty string once it is set.
-                              If unspecified and the PersistentVolumeClaim is unbound, the default VolumeAttributesClass
-                              will be set by the persistentvolume controller if it exists.
+                              it can be changed after the claim is created. An empty string or nil value indicates that no
+                              VolumeAttributesClass will be applied to the claim. If the claim enters an Infeasible error state,
+                              this field can be reset to its previous value (including nil) to cancel the modification.
                               If the resource referred to by volumeAttributesClass does not exist, this PersistentVolumeClaim will be
                               set to a Pending state, as reflected by the modifyVolumeStatus field, until such as a resource
                               exists.
                               More info: https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
-                              (Alpha) Using this field requires the VolumeAttributesClass feature gate to be enabled.
                             type: string
                           volumeMode:
                             description: |-
@@ -3742,38 +4658,37 @@ spec:
                               follow standard Kubernetes label syntax. Valid values
                               are either:\n\t* Un-prefixed keys:\n\t\t- storage -
                               the capacity of the volume.\n\t* Custom resources must
-                              use implementation-defined prefixed names such as \"\
-                              example.com/my-custom-resource\"\nApart from above values
-                              - keys that are unprefixed or have kubernetes.io prefix
-                              are considered\nreserved and hence may not be used.\n
-                              \n\nClaimResourceStatus can be in any of following states:\n
-                              \t- ControllerResizeInProgress:\n\t\tState set when
-                              resize controller starts resizing the volume in control-plane.\n
-                              \t- ControllerResizeFailed:\n\t\tState set when resize
-                              has failed in resize controller with a terminal error.\n
-                              \t- NodeResizePending:\n\t\tState set when resize controller
-                              has finished resizing the volume but further resizing
-                              of\n\t\tvolume is needed on the node.\n\t- NodeResizeInProgress:\n
-                              \t\tState set when kubelet starts resizing the volume.\n
-                              \t- NodeResizeFailed:\n\t\tState set when resizing has
-                              failed in kubelet with a terminal error. Transient errors
-                              don't set\n\t\tNodeResizeFailed.\nFor example: if expanding
-                              a PVC for more capacity - this field can be one of the
-                              following states:\n\t- pvc.status.allocatedResourceStatus['storage']
+                              use implementation-defined prefixed names such as \"example.com/my-custom-resource\"\nApart
+                              from above values - keys that are unprefixed or have
+                              kubernetes.io prefix are considered\nreserved and hence
+                              may not be used.\n\nClaimResourceStatus can be in any
+                              of following states:\n\t- ControllerResizeInProgress:\n\t\tState
+                              set when resize controller starts resizing the volume
+                              in control-plane.\n\t- ControllerResizeFailed:\n\t\tState
+                              set when resize has failed in resize controller with
+                              a terminal error.\n\t- NodeResizePending:\n\t\tState
+                              set when resize controller has finished resizing the
+                              volume but further resizing of\n\t\tvolume is needed
+                              on the node.\n\t- NodeResizeInProgress:\n\t\tState set
+                              when kubelet starts resizing the volume.\n\t- NodeResizeFailed:\n\t\tState
+                              set when resizing has failed in kubelet with a terminal
+                              error. Transient errors don't set\n\t\tNodeResizeFailed.\nFor
+                              example: if expanding a PVC for more capacity - this
+                              field can be one of the following states:\n\t- pvc.status.allocatedResourceStatus['storage']
                               = \"ControllerResizeInProgress\"\n     - pvc.status.allocatedResourceStatus['storage']
                               = \"ControllerResizeFailed\"\n     - pvc.status.allocatedResourceStatus['storage']
                               = \"NodeResizePending\"\n     - pvc.status.allocatedResourceStatus['storage']
                               = \"NodeResizeInProgress\"\n     - pvc.status.allocatedResourceStatus['storage']
                               = \"NodeResizeFailed\"\nWhen this field is not set,
                               it means that no resize operation is in progress for
-                              the given PVC.\n\n\nA controller that receives PVC update
-                              with previously unknown resourceName or ClaimResourceStatus\n
-                              should ignore the update for the purpose it was designed.
-                              For example - a controller that\nonly is responsible
-                              for resizing capacity of the volume, should ignore PVC
-                              updates that change other valid\nresources associated
-                              with PVC.\n\n\nThis is an alpha field and requires enabling
-                              RecoverVolumeExpansionFailure feature."
+                              the given PVC.\n\nA controller that receives PVC update
+                              with previously unknown resourceName or ClaimResourceStatus\nshould
+                              ignore the update for the purpose it was designed. For
+                              example - a controller that\nonly is responsible for
+                              resizing capacity of the volume, should ignore PVC updates
+                              that change other valid\nresources associated with PVC.\n\nThis
+                              is an alpha field and requires enabling RecoverVolumeExpansionFailure
+                              feature."
                             type: object
                             x-kubernetes-map-type: granular
                           allocatedResources:
@@ -3781,34 +4696,32 @@ spec:
                               anyOf:
                               - type: integer
                               - type: string
-                              pattern: 
-                                ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                               x-kubernetes-int-or-string: true
                             description: "allocatedResources tracks the resources
                               allocated to a PVC including its capacity.\nKey names
                               follow standard Kubernetes label syntax. Valid values
                               are either:\n\t* Un-prefixed keys:\n\t\t- storage -
                               the capacity of the volume.\n\t* Custom resources must
-                              use implementation-defined prefixed names such as \"\
-                              example.com/my-custom-resource\"\nApart from above values
-                              - keys that are unprefixed or have kubernetes.io prefix
-                              are considered\nreserved and hence may not be used.\n
-                              \n\nCapacity reported here may be larger than the actual
-                              capacity when a volume expansion operation\nis requested.\n
-                              For storage quota, the larger value from allocatedResources
-                              and PVC.spec.resources is used.\nIf allocatedResources
-                              is not set, PVC.spec.resources alone is used for quota
-                              calculation.\nIf a volume expansion capacity request
-                              is lowered, allocatedResources is only\nlowered if there
-                              are no expansion operations in progress and if the actual
-                              volume capacity\nis equal or lower than the requested
-                              capacity.\n\n\nA controller that receives PVC update
-                              with previously unknown resourceName\nshould ignore
-                              the update for the purpose it was designed. For example
-                              - a controller that\nonly is responsible for resizing
-                              capacity of the volume, should ignore PVC updates that
-                              change other valid\nresources associated with PVC.\n
-                              \n\nThis is an alpha field and requires enabling RecoverVolumeExpansionFailure
+                              use implementation-defined prefixed names such as \"example.com/my-custom-resource\"\nApart
+                              from above values - keys that are unprefixed or have
+                              kubernetes.io prefix are considered\nreserved and hence
+                              may not be used.\n\nCapacity reported here may be larger
+                              than the actual capacity when a volume expansion operation\nis
+                              requested.\nFor storage quota, the larger value from
+                              allocatedResources and PVC.spec.resources is used.\nIf
+                              allocatedResources is not set, PVC.spec.resources alone
+                              is used for quota calculation.\nIf a volume expansion
+                              capacity request is lowered, allocatedResources is only\nlowered
+                              if there are no expansion operations in progress and
+                              if the actual volume capacity\nis equal or lower than
+                              the requested capacity.\n\nA controller that receives
+                              PVC update with previously unknown resourceName\nshould
+                              ignore the update for the purpose it was designed. For
+                              example - a controller that\nonly is responsible for
+                              resizing capacity of the volume, should ignore PVC updates
+                              that change other valid\nresources associated with PVC.\n\nThis
+                              is an alpha field and requires enabling RecoverVolumeExpansionFailure
                               feature."
                             type: object
                           capacity:
@@ -3816,8 +4729,7 @@ spec:
                               anyOf:
                               - type: integer
                               - type: string
-                              pattern: 
-                                ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                               x-kubernetes-int-or-string: true
                             description: capacity represents the actual resources
                               of the underlying volume.
@@ -3851,10 +4763,15 @@ spec:
                                     persistent volume is being resized.
                                   type: string
                                 status:
+                                  description: |-
+                                    Status is the status of the condition.
+                                    Can be True, False, Unknown.
+                                    More info: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/persistent-volume-claim-v1/#:~:text=state%20of%20pvc-,conditions.status,-(string)%2C%20required
                                   type: string
                                 type:
-                                  description: PersistentVolumeClaimConditionType
-                                    is a valid value of PersistentVolumeClaimCondition.Type
+                                  description: |-
+                                    Type is the type of the condition.
+                                    More info: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/persistent-volume-claim-v1/#:~:text=set%20to%20%27ResizeStarted%27.-,PersistentVolumeClaimCondition,-contains%20details%20about
                                   type: string
                               required:
                               - status
@@ -3868,13 +4785,11 @@ spec:
                             description: |-
                               currentVolumeAttributesClassName is the current name of the VolumeAttributesClass the PVC is using.
                               When unset, there is no VolumeAttributeClass applied to this PersistentVolumeClaim
-                              This is an alpha field and requires enabling VolumeAttributesClass feature.
                             type: string
                           modifyVolumeStatus:
                             description: |-
                               ModifyVolumeStatus represents the status object of ControllerModifyVolume operation.
                               When this is unset, there is no ModifyVolume operation being attempted.
-                              This is an alpha field and requires enabling VolumeAttributesClass feature.
                             properties:
                               status:
                                 description: "status is the status of the ControllerModifyVolume
@@ -3886,8 +4801,8 @@ spec:
                                   is being modified.\n - Infeasible\n  Infeasible
                                   indicates that the request has been rejected as
                                   invalid by the CSI driver. To\n\t  resolve the error,
-                                  a valid VolumeAttributesClass needs to be specified.\n
-                                  Note: New statuses can be added in the future. Consumers
+                                  a valid VolumeAttributesClass needs to be specified.\nNote:
+                                  New statuses can be added in the future. Consumers
                                   should check for unknown statuses and fail appropriately."
                                 type: string
                               targetVolumeAttributesClassName:
@@ -3962,15 +4877,15 @@ spec:
                 items:
                   description: |-
                     RelabelConfig allows dynamic rewriting of the label set
-                    More info: https://docs.victoriametrics.com/#relabeling
+                    More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
                       description: Action to perform based on regex matching. Default
                         is 'replace'
                       type: string
                     if:
-                      description: "If represents metricsQL match expression (or list
-                        of expressions): '{__name__=~\"foo_.*\"}'"
+                      description: 'If represents metricsQL match expression (or list
+                        of expressions): ''{__name__=~"foo_.*"}'''
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
@@ -3991,7 +4906,7 @@ spec:
                       description: |-
                         Regular expression against which the extracted value is matched. Default is '(.*)'
                         victoriaMetrics supports multiline regex joined with |
-                        https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                        https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                       x-kubernetes-preserve-unknown-fields: true
                     replacement:
                       description: |-
@@ -4035,7 +4950,7 @@ spec:
                 type: array
               staticScrapeSelector:
                 description: |-
-                  StaticScrapeSelector defines PodScrapes to be selected for target discovery.
+                  StaticScrapeSelector defines VMStaticScrape to be selected for target discovery.
                   Works in combination with NamespaceSelector.
                   If both nil - match everything.
                   NamespaceSelector nil - only objects at VMAgent namespace.
@@ -4095,15 +5010,13 @@ spec:
                         description: The key to select.
                         type: string
                       name:
-                        default: ''
+                        default: ""
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
                           allowed to be empty. Instances of this type with an empty value here are
                           almost certainly wrong.
-                          TODO: Add other useful fields. apiVersion, kind, uid?
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                          TODO: Drop `kubebuilder:default` when controller-gen doesn't need it https://github.com/kubernetes-sigs/kubebuilder/issues/3896.
                         type: string
                       optional:
                         description: Specify whether the ConfigMap or its key must
@@ -4126,9 +5039,17 @@ spec:
                     items:
                       type: string
                     type: array
+                  enableWindows:
+                    description: EnableWindows enables aggregating data in separate
+                      windows ( available from v0.54.0).
+                    type: boolean
                   ignoreFirstIntervals:
                     description: IgnoreFirstIntervals instructs to ignore first interval
                     type: integer
+                  ignoreFirstSampleInterval:
+                    description: IgnoreFirstSampleInterval sets interval for total
+                      and prometheus_total during which first samples will be ignored
+                    type: string
                   ignoreOldSamples:
                     description: IgnoreOldSamples instructs to ignore samples with
                       old timestamps outside the current aggregation interval.
@@ -4146,9 +5067,7 @@ spec:
                           description: |-
                             By is an optional list of labels for grouping input series.
 
-
                             See also Without.
-
 
                             If neither By nor Without are set, then the Outputs are calculated
                             individually per each input time series.
@@ -4162,11 +5081,14 @@ spec:
                           description: |-
                             DropInputLabels is an optional list with labels, which must be dropped before further processing of input samples.
 
-
                             Labels are dropped before de-duplication and aggregation.
                           items:
                             type: string
                           type: array
+                        enable_windows:
+                          description: EnableWindows enables aggregating data in separate
+                            windows
+                          type: boolean
                         flush_on_shutdown:
                           description: |-
                             FlushOnShutdown defines whether to flush the aggregation state on process termination
@@ -4180,6 +5102,11 @@ spec:
                           description: IgnoreOldSamples instructs to ignore samples
                             with old timestamps outside the current aggregation interval.
                           type: boolean
+                        ignoreFirstSampleInterval:
+                          description: IgnoreFirstSampleInterval sets interval for
+                            total and prometheus_total during which first samples
+                            will be ignored
+                          type: string
                         input_relabel_configs:
                           description: |-
                             InputRelabelConfigs is an optional relabeling rules, which are applied on the input
@@ -4187,16 +5114,15 @@ spec:
                           items:
                             description: |-
                               RelabelConfig allows dynamic rewriting of the label set
-                              More info: https://docs.victoriametrics.com/#relabeling
+                              More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                             properties:
                               action:
                                 description: Action to perform based on regex matching.
                                   Default is 'replace'
                                 type: string
                               if:
-                                description: "If represents metricsQL match expression
-                                  (or list of expressions): '{__name__=~\"foo_.*\"\
-                                  }'"
+                                description: 'If represents metricsQL match expression
+                                  (or list of expressions): ''{__name__=~"foo_.*"}'''
                                 x-kubernetes-preserve-unknown-fields: true
                               labels:
                                 additionalProperties:
@@ -4217,7 +5143,7 @@ spec:
                                 description: |-
                                   Regular expression against which the extracted value is matched. Default is '(.*)'
                                   victoriaMetrics supports multiline regex joined with |
-                                  https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                                  https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                                 x-kubernetes-preserve-unknown-fields: true
                               replacement:
                                 description: |-
@@ -4270,7 +5196,6 @@ spec:
                           description: |-
                             Match is a label selector (or list of label selectors) for filtering time series for the given selector.
 
-
                             If the match isn't set, then all the input time series are processed.
                           x-kubernetes-preserve-unknown-fields: true
                         no_align_flush_to_interval:
@@ -4285,16 +5210,15 @@ spec:
                           items:
                             description: |-
                               RelabelConfig allows dynamic rewriting of the label set
-                              More info: https://docs.victoriametrics.com/#relabeling
+                              More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                             properties:
                               action:
                                 description: Action to perform based on regex matching.
                                   Default is 'replace'
                                 type: string
                               if:
-                                description: "If represents metricsQL match expression
-                                  (or list of expressions): '{__name__=~\"foo_.*\"\
-                                  }'"
+                                description: 'If represents metricsQL match expression
+                                  (or list of expressions): ''{__name__=~"foo_.*"}'''
                                 x-kubernetes-preserve-unknown-fields: true
                               labels:
                                 additionalProperties:
@@ -4315,7 +5239,7 @@ spec:
                                 description: |-
                                   Regular expression against which the extracted value is matched. Default is '(.*)'
                                   victoriaMetrics supports multiline regex joined with |
-                                  https://docs.victoriametrics.com/vmagent/#relabeling-enhancements
+                                  https://docs.victoriametrics.com/victoriametrics/vmagent/#relabeling-enhancements
                                 x-kubernetes-preserve-unknown-fields: true
                               replacement:
                                 description: |-
@@ -4361,9 +5285,7 @@ spec:
                           description: |-
                             Outputs is a list of output aggregate functions to produce.
 
-
                             The following names are allowed:
-
 
                             - total - aggregates input counters
                             - increase - counts the increase over input counters
@@ -4379,9 +5301,7 @@ spec:
                             - histogram_bucket - creates VictoriaMetrics histogram for input samples
                             - quantiles(phi1, ..., phiN) - quantiles' estimation for phi in the range [0..1]
 
-
                             The output time series will have the following names:
-
 
                               input_name:aggr_<interval>_<output>
                           items:
@@ -4396,9 +5316,7 @@ spec:
                           description: |-
                             Without is an optional list of labels, which must be excluded when grouping input series.
 
-
                             See also By.
-
 
                             If neither By nor Without are set, then the Outputs are calculated
                             individually per each input time series.
@@ -4538,9 +5456,7 @@ spec:
                         RecursiveReadOnly specifies whether read-only mounts should be handled
                         recursively.
 
-
                         If ReadOnly is false, this field has no meaning and must be unspecified.
-
 
                         If ReadOnly is true, and this field is set to Disabled, the mount is not made
                         recursively read-only.  If this field is set to IfPossible, the mount is made
@@ -4549,10 +5465,8 @@ spec:
                         supported by the container runtime, otherwise the pod will not be started and
                         an error will be generated to indicate the reason.
 
-
                         If this field is set to IfPossible or Enabled, MountPropagation must be set to
                         None (or be unspecified, which defaults to None).
-
 
                         If this field is not specified, it is treated as an equivalent of Disabled.
                       type: string
@@ -4592,15 +5506,77 @@ spec:
           status:
             description: VMAgentStatus defines the observed state of VMAgent
             properties:
-              availableReplicas:
+              conditions:
+                description: 'Known .status.conditions.type are: "Available", "Progressing",
+                  and "Degraded"'
+                items:
+                  description: Condition defines status condition of the resource
+                  properties:
+                    lastTransitionTime:
+                      description: lastTransitionTime is the last time the condition
+                        transitioned from one status to another.
+                      format: date-time
+                      type: string
+                    lastUpdateTime:
+                      description: |-
+                        LastUpdateTime is the last time of given type update.
+                        This value is used for status TTL update and removal
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: Type of condition in CamelCase or in name.namespace.resource.victoriametrics.com/CamelCase.
+                      maxLength: 316
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - lastUpdateTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
                 description: |-
-                  AvailableReplicas Total number of available pods (ready for at least minReadySeconds)
-                  targeted by this VMAlert cluster.
-                format: int32
+                  ObservedGeneration defines current generation picked by operator for the
+                  reconcile
+                format: int64
                 type: integer
               reason:
-                description: Reason defines fail reason for update process, effective
-                  only for statefulMode
+                description: Reason defines human readable error reason
                 type: string
               replicas:
                 description: ReplicaCount Total number of pods targeted by this VMAgent
@@ -4614,21 +5590,9 @@ spec:
                   with uniq scrape targets
                 format: int32
                 type: integer
-              unavailableReplicas:
-                description: UnavailableReplicas Total number of unavailable pods
-                  targeted by this VMAgent cluster.
-                format: int32
-                type: integer
               updateStatus:
-                description: UpdateStatus defines a status for update rollout, effective
-                  only for statefulMode
+                description: UpdateStatus defines a status for update rollout
                 type: string
-              updatedReplicas:
-                description: |-
-                  UpdatedReplicas Total number of non-terminated pods targeted by this VMAgent
-                  cluster that have the desired version spec.
-                format: int32
-                type: integer
             type: object
         type: object
     served: true
@@ -4639,3 +5603,4 @@ spec:
         specReplicasPath: .spec.shardCount
         statusReplicasPath: .status.shards
       status: {}
+

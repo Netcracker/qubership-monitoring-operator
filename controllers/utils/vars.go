@@ -140,6 +140,8 @@ var (
 	VmAlertManagerServiceAccountAsset     = BasePath + "service-account.yaml"
 	VmAlertManagerClusterRoleAsset        = BasePath + "cluster-role.yaml"
 	VmAlertManagerClusterRoleBindingAsset = BasePath + "cluster-role-binding.yaml"
+	VmAlertManagerRoleAsset               = BasePath + "role.yaml"
+	VmAlertManagerRoleBindingAsset        = BasePath + "role-binding.yaml"
 
 	VmAlertAsset                   = BasePath + "vmalert.yaml"
 	VmAlertIngressAsset            = BasePath + "ingress.yaml"
@@ -152,6 +154,8 @@ var (
 	VmAuthServiceAccountAsset     = BasePath + "service-account.yaml"
 	VmAuthClusterRoleAsset        = BasePath + "cluster-role.yaml"
 	VmAuthClusterRoleBindingAsset = BasePath + "cluster-role-binding.yaml"
+	VmAuthRoleAsset               = BasePath + "role.yaml"
+	VmAuthRoleBindingAsset        = BasePath + "role-binding.yaml"
 
 	VmClusterAsset                   = BasePath + "vmcluster.yaml"
 	VmClusterServiceAccountAsset     = BasePath + "service-account.yaml"
@@ -269,6 +273,7 @@ var (
 	GrafanaDataSourceAsset = BasePath + "grafana-datasource.yaml"
 	GrafanaIngressAsset    = BasePath + "ingress.yaml"
 	GrafanaPodMonitorAsset = BasePath + "pod-monitor.yaml"
+	GrafanaDeploymentName  = "grafana-deployment"
 
 	// JaegerServiceLabels contains labels for Jaeger Service label selector
 	JaegerServiceLabels = map[string]string{
