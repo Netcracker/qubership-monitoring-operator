@@ -78,8 +78,8 @@ sslExporter:
       volumePath: /etc/ssl/cert.pem
     - volumeName: host-ca-certs
       volumePath: /etc/ssl/certs
-    - volumeName: host-kubeconfig
-      volumePath: /etc/rancher/k3s/k3s.yaml
+    # - volumeName: host-kubeconfig
+    #   volumePath: /etc/rancher/k3s/k3s.yaml
 
   image:
     repository: ribbybibby/ssl-exporter
@@ -126,10 +126,10 @@ sslExporter:
         module: file
         interval: 30s
 
-      - name: kubeconfig-cert
-        url: /etc/rancher/k3s/k3s.yaml
-        module: kubeconfig
-        interval: 300s
+      # - name: kubeconfig-cert
+      #   url: /etc/rancher/k3s/k3s.yaml
+      #   module: kubeconfig
+      #   interval: 300s
 ```
 
 ### Example: overriding modules
