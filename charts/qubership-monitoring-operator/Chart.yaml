@@ -87,7 +87,10 @@ dependencies:
     condition: goldpingerExporter.install
     version: ~0
     repository: "file://charts/goldpinger-exporter"
-
+  - name: sslExporter
+    condition: sslExporter.install
+    version: ~0
+    repository: "file://charts/ssl-exporter"
 
   # AWS CloudWatch exporter
   - name: cloudwatchExporter

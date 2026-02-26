@@ -1700,3 +1700,8 @@ stackdriver_exporter:
 goldpingerExporter:
   # Disable by default
   install: false
+
+# Exporter to check SSL certificates
+sslExporter:
+  # Enable for testing
+  install: true

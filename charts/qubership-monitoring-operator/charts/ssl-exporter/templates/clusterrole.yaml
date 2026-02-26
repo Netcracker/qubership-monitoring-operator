@@ -1,0 +1,12 @@
+{{- if and .Values.install .Values.serviceAccount.create .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "ssl-exporter.name" . }}
+  labels:
+    {{- include "ssl-exporter.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+{{- end }} 
