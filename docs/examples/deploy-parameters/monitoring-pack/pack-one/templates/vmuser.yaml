@@ -1,0 +1,124 @@
+{{- $vmAuthValues := .Values.vmAuth | default dict }}
+{{- $vmUserValues := .Values.vmUser | default dict }}
+{{- $vmUserSpec := $vmUserValues.spec | default dict }}
+{{- if and $vmAuthValues.install $vmUserValues.install }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMUser
+metadata:
+  labels:
+    name: vmuser
+    app.kubernetes.io/name: vmuser
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmUser.labels }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  name: {{ default (printf "%s-vmuser" (include "monitoring-pack-one.fullname" .)) $vmUserValues.name }}
+  namespace: {{ include "monitoring-pack-one.namespace" . }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" .Values.vmUser.annotations }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  {{- if $vmUserSpec.username }}
+  username: {{ $vmUserSpec.username }}
+  {{- end }}
+  {{- if $vmUserSpec.password }}
+  password: {{ $vmUserSpec.password }}
+  {{- end }}
+  {{- if $vmUserSpec.passwordRef }}
+  passwordRef: {{ toYaml $vmUserSpec.passwordRef | nindent 4 }}
+  {{- end }}
+  {{- if $vmUserSpec.tokenRef }}
+  tokenRef: {{ toYaml $vmUserSpec.tokenRef | nindent 4 }}
+  {{- end }}
+  {{- if $vmUserSpec.bearerToken }}
+  bearerToken: {{ $vmUserSpec.bearerToken }}
+  {{- end }}
+  generatePassword: {{ default false $vmUserSpec.generatePassword }}
+  {{- if $vmUserSpec.targetRefs }}
+  targetRefs: {{ toYaml $vmUserSpec.targetRefs | nindent 4 }}
+  {{- else }}
+  # Auto-generated targetRefs - simple routing like in controller
+  # Paths define which endpoints are accessible through VMAuth UI.
+  # VMAuth will route requests matching these path patterns to the corresponding backend services (VMAgent, VMSingle, etc.)
+  targetRefs:
+    {{- $vmAgentValues := .Values.vmAgent | default dict }}
+    {{- $vmSingleValues := .Values.vmSingle | default dict }}
+    {{- $namespace := include "monitoring-pack-one.namespace" . }}
+    {{- if and $vmSingleValues (or $vmSingleValues.install (and $vmSingleValues.serviceName $vmSingleValues.namespace)) }}
+    {{- if $vmSingleValues.install }}
+    # VMSingle CRD
+    - crd:
+        kind: VMSingle
+        name: {{ default "k8s" $vmSingleValues.name }}
+        namespace: {{ $vmSingleValues.namespace | default $namespace }}
+      paths:
+        - ""
+        - "/vmui.*"
+        - "/graph.*"
+        - "/api/v1/label.*"
+        - "/api/v1/query.*"
+        - "/api/v1/metadata.*"
+        - "/api/v1/format.*"
+        - "/api/v1/series.*"
+        - "/api/v1/status.*"
+        - "/api/v1/export.*"
+        - "/api/v1/admin/tsdb.*"
+        - "/prometheus/graph.*"
+        - "/prometheus/api/v1/label.*"
+        - "/graphite.*"
+        - "/prometheus/api/v1/query.*"
+        - "/prometheus/api/v1/rules"
+        - "/prometheus/api/v1/alerts"
+        - "/prometheus/api/v1/metadata"
+        - "/prometheus/api/v1/series.*"
+        - "/prometheus/api/v1/status.*"
+        - "/prometheus/api/v1/export.*"
+        - "/prometheus/federate"
+        - "/prometheus/api/v1/admin/tsdb.*"
+    {{- else if and $vmSingleValues.serviceName $vmSingleValues.namespace }}
+    # VMSingle static (Deployment/Service)
+    - static:
+        url: http://{{ $vmSingleValues.serviceName }}.{{ $vmSingleValues.namespace }}.svc:{{ $vmSingleValues.servicePort | default 8429 }}
+      paths:
+        - ""
+        - "/vmui.*"
+        - "/graph.*"
+        - "/api/v1/label.*"
+        - "/api/v1/query.*"
+        - "/api/v1/metadata.*"
+        - "/api/v1/format.*"
+        - "/api/v1/series.*"
+        - "/api/v1/status.*"
+        - "/api/v1/export.*"
+        - "/api/v1/admin/tsdb.*"
+        - "/prometheus/graph.*"
+        - "/prometheus/api/v1/label.*"
+        - "/graphite.*"
+        - "/prometheus/api/v1/query.*"
+        - "/prometheus/api/v1/rules"
+        - "/prometheus/api/v1/alerts"
+        - "/prometheus/api/v1/metadata"
+        - "/prometheus/api/v1/series.*"
+        - "/prometheus/api/v1/status.*"
+        - "/prometheus/api/v1/export.*"
+        - "/prometheus/federate"
+        - "/prometheus/api/v1/admin/tsdb.*"
+    {{- end }}
+    {{- end }}
+    {{- if $vmAgentValues.install }}
+    # VMAgent - always add if installed (can coexist with VMSingle)
+    - crd:
+        kind: VMAgent
+        name: {{ default (printf "%s-vmagent" (include "monitoring-pack-one.fullname" .)) $vmAgentValues.name }}
+        namespace: {{ $namespace }}
+      paths:
+        - "/config.*"
+        - "/target.*"
+        - "/service-discovery.*"
+        - "/static.*"
+        - "/api/v1/write"
+        - "/api/v1/import.*"
+        - "/api/v1/target.*"
+    {{- end }}
+  {{- end }}
+{{- end }}

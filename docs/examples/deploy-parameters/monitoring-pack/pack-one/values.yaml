@@ -1,0 +1,183 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# Namespace where VictoriaMetrics Operator is installed
+# Default: monitoring
+# Can be overridden via --set namespace=your-namespace
+namespace: "monitoring"
+
+commonLabels: {}
+commonAnnotations: {}
+
+# Label that marks shared exporters so other packs (e.g. pack-two) can discover them.
+# Change only if you have a different label strategy.
+monitoringPackLabel: "one"
+
+# Standard labels that will be applied to ServiceMonitor resources
+# Default value: platform.monitoring.type: exporter
+# Can be overridden by setting this value
+standardLabels: {}
+
+rbac:
+  # Enable RBAC resources creation
+  install: true
+  # Additional labels for RBAC resources
+  labels: {}
+  # Additional annotations for RBAC resources
+  annotations: {}
+  vmAgent:
+    # Override default service account name (empty = auto-generated)
+    serviceAccountName: ""
+    # Override default cluster role name (empty = auto-generated)
+    clusterRoleName: ""
+    # Override default cluster role binding name (empty = auto-generated)
+    clusterRoleBindingName: ""
+    # Override default role name (empty = auto-generated)
+    roleName: ""
+    # Override default role binding name (empty = auto-generated)
+    roleBindingName: ""
+    # Override default cluster rules (empty = use defaults from template)
+    clusterRules: []
+    # Override default role rules (empty = use defaults from template)
+    roleRules: []
+  vmOperator:
+    # Enable/disable ClusterRole/ClusterRoleBinding for victoria-metrics-operator
+    install: true
+    # ServiceAccount name that runs victoria-metrics-operator
+    serviceAccountName: ""
+    # Override ClusterRole name (empty = auto-generated)
+    clusterRoleName: ""
+    # Override ClusterRoleBinding name (empty = auto-generated)
+    clusterRoleBindingName: ""
+    # Override default cluster rules (empty = use defaults from template)
+    clusterRules: []
+
+vmAgent:
+  install: true
+  name: vmagent
+  labels: {}
+  annotations: {}
+  spec:
+    arbitraryFSAccessThroughSMs: {}
+    externalLabels:
+      cluster: example-cluster
+    extraArgs:
+      promscrape.streamParse: "true"
+    resources:
+      limits:
+        cpu: "1"
+        memory: 2000Mi
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    scrapeInterval: 30s
+    remoteWrite:
+      - url: http://vmsingle-k8s.vmsingle-standalone.svc:8429/api/v1/write
+
+vmAuth:
+  install: true
+  name: vmauth
+  labels: {}
+  annotations: {}
+  spec:
+    replicaCount: 1
+    selectAllByDefault: false
+    port: "8427"
+    resources:
+      limits:
+        cpu: "500m"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    extraArgs: {}
+    extraEnvs: []
+
+vmUser:
+  install: true
+  name: vmuser
+  labels: {}
+  annotations: {}
+  spec:
+    username: admin
+    password: admin
+    # targetRefs will be auto-generated if not specified
+    # targetRefs: []
+
+vmSingle:
+  install: false
+  name: k8s
+  namespace: vmsingle-standalone
+  serviceName: vmsingle-k8s
+  servicePort: 8429
+
+ingress:
+  install: true
+  vmAuth:
+    host: vmauth.example.com
+    ingressClassName: traefik
+    servicePort: 8427
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  vmAgent:
+    host: vmagent.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+  vmSingle:
+    host: vmsingle.example.com
+    ingressClassName: traefik
+    servicePort: 8429
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
+
+serviceMonitors:
+  namespaceSelector: {}
+  exporters:
+    kubeStateMetrics:
+      install: true
+      selector:
+        matchLabels:
+          platform.monitoring.app: kube-state-metrics
+      endpoints:
+        - port: http-metrics
+          interval: 30s
+    nodeExporter:
+      install: true
+      selector:
+        matchLabels:
+          platform.monitoring.app: node-exporter
+      endpoints:
+        - port: metrics
+          interval: 30s
+    cloudEventsExporter:
+      install: true
+      selector:
+        # Note: If targetNamespace is not "monitoring", update the value to match "{targetNamespace}-cloud-events-exporter"
+        matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+              - monitoring-cloud-events-exporter
+      endpoints:
+        - port: metrics
+          interval: 30s
+    versionExporter:
+      install: true
+      jobLabel: version-exporter
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: version-exporter
+      # Note: version-exporter ServiceMonitor in original chart doesn't have namespaceSelector
+      # If Service is in different namespace, set namespaceSelector to empty {} to search in all namespaces
+      namespaceSelector: {}
+      endpoints:
+        - port: http
+          path: /metrics
+          scheme: http
+          interval: 5m
+          scrapeTimeout: 30s

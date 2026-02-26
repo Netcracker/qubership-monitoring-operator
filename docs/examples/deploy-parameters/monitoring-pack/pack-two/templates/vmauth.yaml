@@ -1,0 +1,55 @@
+{{- $vmAuthValues := .Values.vmAuth | default dict }}
+{{- $vmAuthSpec := $vmAuthValues.spec | default dict }}
+{{- if $vmAuthValues.install }}
+{{- $namespace := include "monitoring-pack-two.namespace" . }}
+{{- $vmAuthName := default (printf "%s-vmauth" (include "monitoring-pack-two.fullname" .)) $vmAuthValues.name }}
+{{- $defaultUserSelector := dict "matchLabels" (dict "app.kubernetes.io/name" "vmuser" "monitoring-pack" "two") }}
+{{- $userSelector := default $defaultUserSelector $vmAuthSpec.userSelector }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAuth
+metadata:
+  labels:
+    name: vmauth
+    app.kubernetes.io/name: vmauth
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmAuth.labels }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  name: {{ $vmAuthName }}
+  namespace: {{ $namespace }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" .Values.vmAuth.annotations }}
+  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  replicaCount: {{ default 1 $vmAuthSpec.replicaCount }}
+  resources:
+{{ toYaml ($vmAuthSpec.resources | default dict) | indent 4 }}
+  securityContext:
+    runAsUser: 2000
+    runAsGroup: 2000
+    fsGroup: 2000
+
+  # Enable discovery all CRs if labelSelectors is empty
+  selectAllByDefault: {{ default false $vmAuthSpec.selectAllByDefault }}
+
+  # Selector to discovery CRs - only pack-two users
+  userSelector:
+{{ toYaml $userSelector | indent 4 }}
+  userNamespaceSelector:
+{{ toYaml ($vmAuthSpec.userNamespaceSelector | default dict) | indent 4 }}
+
+  {{- if $vmAuthSpec.port }}
+  port: {{ $vmAuthSpec.port | quote }}
+  {{- end }}
+
+  {{- if $vmAuthSpec.extraArgs }}
+  extraArgs:
+{{ toYaml $vmAuthSpec.extraArgs | indent 4 }}
+  {{- end }}
+
+  {{- if $vmAuthSpec.extraEnvs }}
+  extraEnvs:
+{{ toYaml $vmAuthSpec.extraEnvs | indent 4 }}
+  {{- end }}
+{{- end }}
