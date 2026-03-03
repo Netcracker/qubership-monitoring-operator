@@ -27,6 +27,12 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 		}
 		return err
 	}
+	if utils.WorkloadNeedsSelectorReplace(e, m) {
+		if err := r.DeleteResource(e); err != nil {
+			return err
+		}
+		return r.CreateResource(cr, m)
+	}
 
 	//Set parameters
 	e.SetLabels(m.GetLabels())
@@ -74,12 +80,6 @@ func (r *PushgatewayReconciler) handleService(cr *monv1.PlatformMonitoring) erro
 		r.Log.Error(err, "Failed creating Service manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -167,12 +167,6 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitorin
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {

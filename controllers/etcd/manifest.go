@@ -36,18 +36,14 @@ func etcdServiceMonitor(cr *monv1.PlatformMonitoring, etcdServiceNamespace strin
 		}
 	}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.EtcdServiceComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
@@ -83,10 +79,7 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 	if !isOpenshiftV4 {
 		service.Spec.Ports = service.Spec.Ports[:1]
 	}
-	// Set labels
-	service.Labels["name"] = utils.TruncLabel(service.GetName())
-	service.Labels["app.kubernetes.io/name"] = utils.TruncLabel(service.GetName())
-	service.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(service.GetName(), service.GetNamespace())
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.EtcdServiceComponentName), nil)
 
 	return &service, nil
 }
@@ -113,12 +106,6 @@ func nodeExporterServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAc
 	sa.SetName(cr.GetNamespace() + "-" + utils.NodeExporterComponentName)
 	sa.SetNamespace(cr.GetNamespace())
 
-	// Set labels
-	sa.Labels["name"] = utils.TruncLabel(sa.GetName())
-	sa.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sa.GetName())
-	sa.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sa.GetName(), sa.GetNamespace())
-	if cr.Spec.NodeExporter != nil {
-		sa.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
-	}
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.NodeExporterComponentName), nil)
 	return &sa, nil
 }

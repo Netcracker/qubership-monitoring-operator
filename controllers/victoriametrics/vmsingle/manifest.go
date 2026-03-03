@@ -33,6 +33,8 @@ func vmSingleServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccoun
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmSingleComponentName)
 	sa.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmSingleComponentName), nil)
+
 	return &sa, nil
 }
 
@@ -61,6 +63,8 @@ func vmSingleClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rb
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmSingleComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -80,6 +84,9 @@ func vmSingleClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRo
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmSingleComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmSingleComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -215,27 +222,26 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 			maps.Copy(vmsingle.Spec.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmsingleTLSSecretName(cr.Spec.Victoriametrics.VmSingle) + "/tls.key"})
 		}
 
-		// Set labels
-		vmsingle.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmsingle.GetName(), vmsingle.GetNamespace())
-		vmsingle.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmSingle.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:       vmsingle.GetName(),
+			Component:  utils.VmSingleComponentName,
+			Instance:   utils.GetInstanceLabel(vmsingle.GetName(), vmsingle.GetNamespace()),
+			Version:    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmSingle.Image),
+			Technology: "go",
+			ComponentLabels: utils.MergeLabels(
+				map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+				cr.Spec.Victoriametrics.VmSingle.Labels,
+			),
+		}
+		utils.SetLabelsForResource(&vmsingle, in, nil)
 
-		vmsingle.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         utils.TruncLabel(vmsingle.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(vmsingle.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmsingle.GetName(), vmsingle.GetNamespace()),
-			"app.kubernetes.io/component":  "victoriametrics",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmSingle.Image),
-		}}
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmsingle.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		if vmsingle.Spec.PodMetadata != nil {
-			if cr.Spec.Victoriametrics.VmSingle.Labels != nil {
-				for k, v := range cr.Spec.Victoriametrics.VmSingle.Labels {
-					vmsingle.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if vmsingle.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmSingle.Annotations != nil {
 				vmsingle.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmSingle.Annotations
 			} else {
@@ -313,15 +319,12 @@ func vmSingleIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, err
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmSingle.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmSingle.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmSingleComponentName)
+		if len(cr.Spec.Victoriametrics.VmSingle.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmSingle.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -389,15 +392,12 @@ func vmSingleIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmSingle.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmSingle.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmSingleComponentName)
+		if len(cr.Spec.Victoriametrics.VmSingle.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmSingle.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }

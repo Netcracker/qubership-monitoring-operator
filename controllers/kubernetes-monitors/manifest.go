@@ -31,24 +31,19 @@ func kubernetesMonitorsApiServerServiceMonitor(cr *monv1.PlatformMonitoring) (*p
 		}
 	}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		sm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
-	} else {
+	} else if cr.GetAnnotations() != nil {
 		for k, v := range cr.GetAnnotations() {
 			sm.Annotations[k] = v
 		}
@@ -73,24 +68,19 @@ func kubernetesMonitorsControllerManagerServiceMonitor(cr *monv1.PlatformMonitor
 		}
 	}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		sm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
-	} else {
+	} else if cr.GetAnnotations() != nil {
 		for k, v := range cr.GetAnnotations() {
 			sm.Annotations[k] = v
 		}
@@ -115,24 +105,19 @@ func kubernetesMonitorsSchedulerServiceMonitor(cr *monv1.PlatformMonitoring) (*p
 		}
 	}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		sm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
-	} else {
+	} else if cr.GetAnnotations() != nil {
 		for k, v := range cr.GetAnnotations() {
 			sm.Annotations[k] = v
 		}
@@ -158,24 +143,19 @@ func kubernetesMonitorsKubeletServiceMonitor(cr *monv1.PlatformMonitoring) (*pro
 	}
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		sm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
-	} else {
+	} else if cr.GetAnnotations() != nil {
 		for k, v := range cr.GetAnnotations() {
 			sm.Annotations[k] = v
 		}
@@ -207,24 +187,19 @@ func kubernetesMonitorsCoreDnsServiceMonitor(cr *monv1.PlatformMonitoring, isOpe
 		}
 	}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		sm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
-	} else {
+	} else if cr.GetAnnotations() != nil {
 		for k, v := range cr.GetAnnotations() {
 			sm.Annotations[k] = v
 		}
@@ -248,20 +223,16 @@ func kubernetesMonitorsNginxIngressPodMonitor(cr *monv1.PlatformMonitoring) (*pr
 			monitor.OverridePodMonitor(&pm)
 		}
 	}
-	// Set labels
-	pm.Labels["name"] = utils.TruncLabel(pm.GetName())
-	pm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(pm.GetName())
-	pm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(pm.GetName(), pm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		pm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := pm.Labels[k]; !ok {
-				pm.Labels[k] = v
-			}
-		}
-	}
+
+	// Set labels via centralized API (PodMonitor: base-only per spec)
+	utils.SetLabelsForResource(&pm, utils.LabelInput{
+		Name:            pm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if pm.Annotations == nil && cr.GetAnnotations() != nil {
 		pm.SetAnnotations(cr.GetAnnotations())
@@ -294,24 +265,19 @@ func openshiftServiceMonitor(cr *monv1.PlatformMonitoring,
 		}
 	}
 
-	// Set labels
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		sm.Labels["app.kubernetes.io/version"] = label
-	}
-	if cr.GetLabels() != nil {
-		for k, v := range cr.GetLabels() {
-			if _, ok := sm.Labels[k]; !ok {
-				sm.Labels[k] = v
-			}
-		}
-	}
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
-	} else {
+	} else if cr.GetAnnotations() != nil {
 		maps.Copy(sm.Annotations, cr.GetAnnotations())
 	}
 
