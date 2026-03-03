@@ -5,11 +5,7 @@ kind: Certificate
 metadata:
   name: vminsert-tls-certificate
   labels:
-    app.kubernetes.io/name: vminsert-tls-certificate
-    app.kubernetes.io/instance: {{ cat "vminsert-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: vmInsert
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "vminsert-tls-certificate" "component" "victoriametrics") | nindent 4 }}
 spec:
   secretName: {{ default "vminsert-tls-secret" .Values.vmCluster.vmInsertTlsConfig.generateCerts.secretName }}
   duration: {{ default 365 .Values.vmCluster.vmInsertTlsConfig.generateCerts.duration | mul 24 }}h

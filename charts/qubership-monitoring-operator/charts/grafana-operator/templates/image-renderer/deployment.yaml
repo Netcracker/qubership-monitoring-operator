@@ -1,16 +1,17 @@
 {{- if .Values.imageRenderer.install }}
 {{- $image := include "grafana.imageRenderer.image" . }}
+{{- $name := .Values.imageRenderer.name }}
+{{- $instance := printf "%s-%s" $name .Release.Namespace | trunc 63 | trimSuffix "-" }}
+{{- $version := splitList ":" $image | last }}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: {{ .Values.imageRenderer.name }}
+  name: {{ $name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.imageRenderer.name }}
-    app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: grafana
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    app: {{ .Values.imageRenderer.name }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" $name "component" "grafana") | nindent 4 }}
+    app.kubernetes.io/instance: {{ $instance }}
+    app.kubernetes.io/version: {{ $version | quote }}
+    app.kubernetes.io/technology: node-js
     {{- if .Values.imageRenderer.labels }}
       {{- toYaml .Values.imageRenderer.labels | nindent 4 }}
     {{- end }}
@@ -22,17 +23,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.imageRenderer.name }}
+      app.kubernetes.io/name: {{ $name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.imageRenderer.name }}
-        app.kubernetes.io/name: {{ .Values.imageRenderer.name }}
-        app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: grafana
-        app.kubernetes.io/part-of: monitoring
-        app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
+        {{- include "common-labels.resourceLabels" (dict "ctx" . "name" $name "component" "grafana") | nindent 8 }}
+        app.kubernetes.io/instance: {{ $instance }}
+        app.kubernetes.io/version: {{ $version | quote }}
+        app.kubernetes.io/technology: node-js
         {{- if .Values.imageRenderer.labels }}
           {{- toYaml .Values.imageRenderer.labels | nindent 8 }}
         {{- end }}
