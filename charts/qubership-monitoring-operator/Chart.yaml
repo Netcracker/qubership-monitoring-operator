@@ -16,6 +16,11 @@ appVersion: 0.75.1
 # ~0 is equivalent to >= 0, < 1 (i.e. >=0.x.x and < 1.x.x, where x may have any number)
 # Details https://github.com/Masterminds/semver#checking-version-constraints
 dependencies:
+  # Shared label helpers (library chart, no resources)
+  - name: common-labels
+    version: "0.1.0"
+    repository: "file://charts/_common-labels"
+
   # Grafana
   - name: grafana
     condition: grafana.install

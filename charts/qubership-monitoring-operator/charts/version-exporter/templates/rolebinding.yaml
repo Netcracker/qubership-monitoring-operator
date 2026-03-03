@@ -4,11 +4,7 @@ apiVersion: {{ template "rbac.apiVersion" . }}
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: version-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "version-exporter.instance" . }}
-    app.kubernetes.io/version: {{ template "version-exporter.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "version-exporter") | nindent 4 }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.serviceAccount.name }}

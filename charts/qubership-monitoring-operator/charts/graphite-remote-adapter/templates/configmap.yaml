@@ -4,12 +4,7 @@ kind: ConfigMap
 metadata:
   name: graphite-config
   labels:
-    app.kubernetes.io/name: graphite-config
-    app.kubernetes.io/instance: {{ cat "graphite-config-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: graphite-remote-adapter
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "graphiteRemoteAdapter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "graphite-config" "component" "graphite-remote-adapter") | nindent 4 }}
 data:
   {{- if .Values.additionalGraphiteConfig }}
   additionalGraphiteConfig.yaml: |-

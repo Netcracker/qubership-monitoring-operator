@@ -3,9 +3,7 @@ kind: PlatformMonitoring
 metadata:
   name: platformmonitoring
   labels:
-    app.kubernetes.io/name: platformmonitoring
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "platformmonitoring" "component" "monitoring-operator" "processedByOperator" (.Values.monitoringOperator.name | default "monitoring-operator")) | nindent 4 }}
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
 spec:

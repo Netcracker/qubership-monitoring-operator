@@ -4,14 +4,13 @@ apiVersion: apps/v1
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: promxy
-    app.kubernetes.io/part-of: monitoring
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "promxy") | nindent 4 }}
     {{- $image := include "promxy.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/instance: {{ printf "%s-%s" .Values.name .Release.Namespace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/technology: go
     {{- if .Values.labels }}
-      {{- toYaml .Values.labels | nindent 4 }}
+    {{- toYaml .Values.labels | nindent 4 }}
     {{- end }}
   {{- if .Values.annotations }}
   annotations:
@@ -26,14 +25,12 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
-        app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: promxy
-        app.kubernetes.io/part-of: monitoring
-        app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
+        {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "promxy") | nindent 8 }}
+        app.kubernetes.io/instance: {{ printf "%s-%s" .Values.name .Release.Namespace | trunc 63 | trimSuffix "-" }}
+        app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+        app.kubernetes.io/technology: go
         {{- if .Values.labels }}
-          {{- toYaml .Values.labels | nindent 8 }}
+        {{- toYaml .Values.labels | nindent 8 }}
         {{- end }}
       {{- if .Values.annotations }}
       annotations:

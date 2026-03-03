@@ -1,0 +1,5 @@
+apiVersion: v2
+name: common-labels
+description: Shared label helpers for monitoring subcharts
+version: 0.1.0
+type: library

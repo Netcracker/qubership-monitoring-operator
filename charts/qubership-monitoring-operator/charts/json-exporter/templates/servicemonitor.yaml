@@ -6,12 +6,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ $.Values.name }}-{{ .name }}
   labels:
-    app.kubernetes.io/name: {{ $.Values.name }}-{{ .name }}
-    app.kubernetes.io/instance: {{ cat $.Release.Namespace "-" $.Values.name "-" .name "-" $.Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "jsonExporter.image" $ }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" $ "name" (printf "%s-%s" $.Values.name .name) "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   endpoints:
   - port: {{ $.Values.service.name }}

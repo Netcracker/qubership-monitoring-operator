@@ -4,13 +4,12 @@ kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: version-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "version-exporter") | nindent 4 }}
     app.kubernetes.io/instance: {{ template "version-exporter.instance" . }}
     app.kubernetes.io/version: {{ template "version-exporter.version" . }}
+    app.kubernetes.io/technology: go
     {{- if .Values.labels }}
-      {{ toYaml .Values.labels | nindent 4 }}
+    {{ toYaml .Values.labels | nindent 4 }}
     {{- end }}
   {{- if .Values.annotations }}
   annotations:
@@ -25,14 +24,12 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
-        app.kubernetes.io/component: version-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "version-exporter") | nindent 8 }}
         app.kubernetes.io/instance: {{ template "version-exporter.instance" . }}
         app.kubernetes.io/version: {{ template "version-exporter.version" . }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: go
         {{- if .Values.labels }}
-          {{ toYaml .Values.labels | nindent 8 }}
+        {{ toYaml .Values.labels | nindent 8 }}
         {{- end }}
       {{- if .Values.annotations }}
       annotations:

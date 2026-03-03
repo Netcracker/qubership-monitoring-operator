@@ -5,6 +5,11 @@ description: A Helm chart for prometheus-json-exporter
 # A chart can be either an 'application' or a 'library' chart.
 type: application
 
+dependencies:
+  - name: common-labels
+    version: "0.1.0"
+    repository: "file://../_common-labels"
+
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 version: 0.1.2
