@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,8 +32,7 @@ func TestEtcdManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.EtcdServiceComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -47,7 +47,7 @@ func TestEtcdManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.EtcdServiceComponentName, "victoriametrics-operator", nil)
 		assert.Nil(t, m.GetAnnotations())
 	})
 	t.Run("Test Service manifest", func(t *testing.T) {
