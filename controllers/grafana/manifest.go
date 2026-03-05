@@ -65,6 +65,19 @@ func ensurePodSpecInitialized(graf *grafv1.Grafana) *grafv1.DeploymentV1PodSpec 
 	return deployment.Spec.Template.Spec
 }
 
+// ensureGrafanaContainerInitialized guarantees that PodSpec has at least one container
+// and that this container has a non-empty name, so that container-level fields like
+// EnvFrom and VolumeMounts can be configured safely.
+func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *corev1.Container {
+	if len(podSpec.Containers) == 0 {
+		podSpec.Containers = []corev1.Container{{}}
+	}
+	if podSpec.Containers[0].Name == "" {
+		podSpec.Containers[0].Name = "grafana"
+	}
+	return &podSpec.Containers[0]
+}
+
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
@@ -109,8 +122,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			// For now, skip setting Config if provided as RawExtension - it will be handled by grafana-operator
 		}
 		// DataStorage removed in grafana-operator v5
-		// EnvFrom configuration moved to different structure in v5
-		// Note: EnvFrom configuration may need to be handled differently in v5
+		// EnvFrom configuration moved to container-level in v5
 		if cr.Spec.Grafana.Replicas != nil {
 			// Replicas moved to Deployment.Spec.Replicas in v5
 			// Deployment.Spec is DeploymentV1Spec (not a pointer), so we work with it directly
@@ -121,8 +133,89 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 				graf.Spec.Deployment.Spec.Replicas = cr.Spec.Grafana.Replicas
 			}
 		}
-		// ConfigMaps removed in grafana-operator v5 - use different approach if needed
-		// Note: GrafanaHomeDashboard functionality may need alternative implementation
+		// Configure container-level settings (EnvFrom, volumes, home dashboard, etc.).
+		podSpec := ensurePodSpecInitialized(&graf)
+		container := ensureGrafanaContainerInitialized(podSpec)
+
+		// Attach envFrom so that grafana picks up extraVars / extraVarsSecret
+		// (GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH and other settings).
+		extraVarsCmRef := corev1.EnvFromSource{
+			ConfigMapRef: &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "grafana-extra-vars",
+				},
+			},
+		}
+		extraVarsSecretRef := corev1.EnvFromSource{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "grafana-extra-vars-secret",
+				},
+			},
+		}
+		// Avoid duplicating entries if they already exist
+		hasCmEnvFrom := false
+		hasSecretEnvFrom := false
+		for _, ef := range container.EnvFrom {
+			if ef.ConfigMapRef != nil && ef.ConfigMapRef.Name == extraVarsCmRef.ConfigMapRef.Name {
+				hasCmEnvFrom = true
+			}
+			if ef.SecretRef != nil && ef.SecretRef.Name == extraVarsSecretRef.SecretRef.Name {
+				hasSecretEnvFrom = true
+			}
+		}
+		if !hasCmEnvFrom {
+			container.EnvFrom = append(container.EnvFrom, extraVarsCmRef)
+		}
+		if !hasSecretEnvFrom {
+			container.EnvFrom = append(container.EnvFrom, extraVarsSecretRef)
+		}
+
+		// Grafana home dashboard: in v4 this was configured via graf.Spec.ConfigMaps.
+		// In v5 there is no ConfigMaps field, so we mount the ConfigMap explicitly
+		// and rely on GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH from extraVars.
+		if cr.Spec.Grafana.GrafanaHomeDashboard {
+			volumeName := "configmap-grafana-home-dashboard"
+			mountPath := "/etc/grafana-configmaps/grafana-home-dashboard"
+
+			// Ensure volume exists
+			hasVolume := false
+			for _, v := range podSpec.Volumes {
+				if v.Name == volumeName {
+					hasVolume = true
+					break
+				}
+			}
+			if !hasVolume {
+				podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+					Name: volumeName,
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: "grafana-home-dashboard",
+							},
+						},
+					},
+				})
+			}
+
+			// Ensure volume mount exists on main container
+			hasMount := false
+			for _, vm := range container.VolumeMounts {
+				if vm.Name == volumeName && vm.MountPath == mountPath {
+					hasMount = true
+					break
+				}
+			}
+			if !hasMount {
+				container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+					Name:      volumeName,
+					MountPath: mountPath,
+					ReadOnly:  true,
+				})
+			}
+		}
+
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
@@ -191,13 +284,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Secret name pattern: {grafana-name}-admin-credentials; keys: GF_SECURITY_ADMIN_USER, GF_SECURITY_ADMIN_PASSWORD.
 		if graf.Spec.DisableDefaultAdminSecret {
 			podSpec := ensurePodSpecInitialized(&graf)
-			if len(podSpec.Containers) == 0 {
-				podSpec.Containers = []corev1.Container{{}}
-			}
-			// Ensure container has a name
-			if podSpec.Containers[0].Name == "" {
-				podSpec.Containers[0].Name = "grafana"
-			}
+			container := ensureGrafanaContainerInitialized(podSpec)
 			adminSecretName := fmt.Sprintf("%s-admin-credentials", graf.GetName())
 			envVars := []corev1.EnvVar{
 				{
@@ -220,17 +307,17 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 				},
 			}
 			// Append to existing env vars if any, otherwise set new
-			if podSpec.Containers[0].Env == nil {
-				podSpec.Containers[0].Env = envVars
+			if container.Env == nil {
+				container.Env = envVars
 			} else {
 				// Check if env vars already exist to avoid duplicates
 				envMap := make(map[string]bool)
-				for _, env := range podSpec.Containers[0].Env {
+				for _, env := range container.Env {
 					envMap[env.Name] = true
 				}
 				for _, env := range envVars {
 					if !envMap[env.Name] {
-						podSpec.Containers[0].Env = append(podSpec.Containers[0].Env, env)
+						container.Env = append(container.Env, env)
 					}
 				}
 			}
