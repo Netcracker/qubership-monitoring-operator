@@ -4,11 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Release.Namespace "-" .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promitor.agentScraper.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "promitor-agent-scraper" "processedByOperator" "prometheus-operator") | nindent 4 }}
     {{- if .Values.serviceMonitor.labels }}
       {{ toYaml .Values.serviceMonitor.labels | nindent 4 }}
     {{- end }}

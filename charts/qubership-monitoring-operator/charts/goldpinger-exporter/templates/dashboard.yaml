@@ -4,7 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "monitoring" "processedByOperator" "grafana-operator") | nindent 4 }}
 spec:
   json: >    
     {

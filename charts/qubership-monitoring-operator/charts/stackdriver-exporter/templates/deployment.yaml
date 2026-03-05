@@ -4,12 +4,11 @@ kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: stackdriver-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "stackdriver-exporter") | nindent 4 }}
     {{- $image := include "stackdriver-exporter.image" . }}
+    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
     app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/technology: go
     {{- if .Values.labels }}
       {{- toYaml .Values.labels | nindent 4 }}
     {{- end }}
@@ -26,12 +25,10 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
+        {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "stackdriver-exporter") | nindent 8 }}
         app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: stackdriver-exporter
-        app.kubernetes.io/part-of: monitoring
         app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: go
         {{- if .Values.labels }}
           {{- toYaml .Values.labels | nindent 8 }}
         {{- end }}

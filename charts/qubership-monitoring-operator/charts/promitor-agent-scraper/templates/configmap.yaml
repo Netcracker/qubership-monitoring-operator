@@ -5,12 +5,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: promitor-agent-scraper
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promitor.agentScraper.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "promitor-agent-scraper") | nindent 4 }}
 data:
   runtime.yaml: |-
       server:

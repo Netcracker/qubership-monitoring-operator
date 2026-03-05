@@ -6,11 +6,7 @@ metadata:
   annotations:
     prometheus.io/scrape: "true"
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: cert-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "certExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "certExporter.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "cert-exporter") | nindent 4 }}
 spec:
   ports:
     - name: metrics

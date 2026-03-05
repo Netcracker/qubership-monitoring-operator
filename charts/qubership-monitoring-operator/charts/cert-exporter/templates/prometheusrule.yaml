@@ -6,11 +6,7 @@ kind: PrometheusRule
 metadata:
   name: {{ .name }}-prometheus-rules
   labels:
-    app.kubernetes.io/name: {{ .name }}-prometheus-rules
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
-    app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" $ "name" (printf "%s-prometheus-rules" .name) "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   groups:
   - name: {{ .name }}
