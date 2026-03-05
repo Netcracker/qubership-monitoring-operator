@@ -5,11 +5,7 @@ kind: Certificate
 metadata:
   name: vmagent-tls-certificate
   labels:
-    app.kubernetes.io/name: vmagent-tls-certificate
-    app.kubernetes.io/instance: {{ cat "vmagent-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: vmAgent
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" "vmagent-tls-certificate" "component" "victoriametrics") | nindent 4 }}
 spec:
   secretName: {{ default "vmagent-tls-secret" .Values.vmAgent.tlsConfig.generateCerts.secretName }}
   duration: {{ default 365 .Values.vmAgent.tlsConfig.generateCerts.duration | mul 24 }}h

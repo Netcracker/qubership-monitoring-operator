@@ -4,11 +4,7 @@ kind: Role
 metadata:
   name: {{ include "vm.cleanup.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "vm.cleanup.rbac.fullname" . }}
-    app.kubernetes.io/component: victoriametrics
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ include "vm.cleanup.rbac.fullname" . }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (include "vm.cleanup.rbac.fullname" .) "component" "victoriametrics") | nindent 4 }}
   annotations:
     "helm.sh/hook": pre-delete
     "helm.sh/hook-weight": "-5"
