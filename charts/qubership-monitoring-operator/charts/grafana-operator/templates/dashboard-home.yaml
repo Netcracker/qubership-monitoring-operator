@@ -16,7 +16,10 @@ data:
         "list": [
           {
             "builtIn": 1,
-            "datasource": "-- Grafana --",
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
             "enable": true,
             "hide": true,
             "iconColor": "rgba(0, 211, 255, 1)",
@@ -26,215 +29,59 @@ data:
         ]
       },
       "editable": true,
-      "gnetId": null,
+      "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 23,
-      "iteration": 1622199056616,
+      "id": 36,
       "links": [],
       "panels": [
         {
-          "datasource": null,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fieldConfig": {
             "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 0
-          },
-          "id": 23,
-          "options": {
-            "content": "&nbsp;\n\n\n### This page displayed [Prometheus](https://$prometheus_UI) and [Alertmanager](https://$alertmanager_UI) status, Ready pods and the Total number of pods in the Monitoring namespace. \n\n### Dashboards are grouped by tags on next panels:\n#### - Self-Monitoring Dashboard\n#### - Favorites Dashboards (your favorites dashboards)\n#### - Kubernetes Dashboards (dashboards with tag: \"k8s\")\n#### - Services Dashboards (kafka, postgresql, mongodb, etc; tag: \"prometheus\")\n#### - Standalone Hosts Dashboards (Graylog, balancers, etc; tag: \"standalone\")\n\n### [Link to Kubernetes Dashboard](https://$kuber_dashboard)\n\n\n",
-            "mode": "markdown"
-          },
-          "pluginVersion": "7.4.5",
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "",
-          "type": "text"
-        },
-        {
-          "datasource": "$datasource",
-          "description": "Show the prometheus instance uptime",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "decimals": 1,
-              "mappings": [
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
                 {
-                  "from": "",
-                  "id": 1,
-                  "text": "Down",
-                  "to": "",
-                  "type": 1,
-                  "value": "null"
+                  "targetBlank": true,
+                  "title": "Monitoring",
+                  "url": "http://${__data.fields.host}"
                 }
               ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "red",
-                    "value": null
-                  },
-                  {
-                    "color": "green",
-                    "value": 10
-                  }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 0,
-            "y": 8
-          },
-          "id": 12,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "last"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "7.4.5",
-          "targets": [
-            {
-              "expr": "max(time() - process_start_time_seconds{instance=~\"$prometheus_instance\"}) by(instance)",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            },
-            {
-              "expr": "max(time() - process_start_time_seconds{instance=~\"$vm_instance\"}) by(instance)",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "B"
-            }
-          ],
-          "title": "Monitoring Uptime",
-          "type": "stat"
-        },
-        {
-          "datasource": "$datasource",
-          "description": "Show the alertmanager instance uptime",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "decimals": 1,
               "mappings": [
                 {
-                  "from": "",
-                  "id": 1,
-                  "text": "Down",
-                  "to": "",
-                  "type": 1,
-                  "value": "null"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "red",
-                    "value": null
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
                   },
-                  {
-                    "color": "green",
-                    "value": 10
-                  }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 3,
-            "y": 8
-          },
-          "id": 21,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "last"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "7.4.5",
-          "targets": [
-            {
-              "expr": "max(time() - process_start_time_seconds{instance=\"$alertmanager_instance\"}) by(instance)",
-              "instant": false,
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Uptime Alertmanager",
-          "type": "stat"
-        },
-        {
-          "datasource": "$datasource",
-          "description": "Show Ready pods and all pods in the monitoring namespace",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {},
-              "mappings": [
-                {
-                  "from": "",
-                  "id": 1,
-                  "text": "Down",
-                  "to": "",
-                  "type": 1,
-                  "value": "null"
+                  "type": "range"
                 },
                 {
-                  "from": "",
-                  "id": 2,
-                  "text": "",
-                  "to": "",
-                  "type": 1
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
                 }
               ],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red",
-                    "value": null
-                  },
-                  {
-                    "color": "green",
-                    "value": 1
+                    "color": "green"
                   }
                 ]
               }
@@ -242,294 +89,597 @@ data:
             "overrides": []
           },
           "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 6,
-            "y": 8
+            "h": 2,
+            "w": 6,
+            "x": 0,
+            "y": 0
           },
-          "id": 25,
+          "id": 64,
+          "maxPerRow": 12,
           "options": {
-            "colorMode": "value",
-            "graphMode": "none",
+            "colorMode": "background",
+            "graphMode": "area",
             "justifyMode": "auto",
             "orientation": "auto",
+            "percentChangeColorMode": "standard",
             "reduceOptions": {
               "calcs": [
-                "last"
+                "lastNotNull"
               ],
               "fields": "",
               "values": false
             },
-            "text": {},
-            "textMode": "value"
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
           },
-          "pluginVersion": "7.4.5",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$prometheus_namespace\", condition=\"true\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            },
-            {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$prometheus_namespace\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "B"
-            },
-            {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$vm_namespace\", condition=\"true\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "C"
-            },
-            {
-              "expr": "sum(kube_pod_status_ready{exported_namespace=\"$vm_namespace\"})",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "D"
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "((min by (namespace) (kube_pod_container_status_running{namespace=\"$monitoring_ns\"})) * (sum by (namespace) (increase(kube_pod_container_status_restarts_total{namespace=\"$monitoring_ns\"}[5m]))<= bool 0) * (min by (namespace) (kube_deployment_spec_replicas{namespace=\"$monitoring_ns\"})) * (min by (namespace) (kube_statefulset_replicas{namespace=\"$monitoring_ns\"}))  * (max(increase(kube_events_warning_total{event_namespace=\"$monitoring_ns\"}[5m])))) * on(namespace) group_left(namespace, host) kube_ingress_path{namespace=\"$monitoring_ns\",kube_namespace=~\"$monitoring_ns\", service_name=\"vmauth-k8s\", ingress=~\".*vmalert.*\"}",
+              "format": "table",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "instant": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "B",
+              "useBackend": false
             }
           ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Ready pods / All pods",
+          "title": "Monitoring",
+          "transparent": true,
           "type": "stat"
         },
         {
-          "datasource": null,
-          "description": "Show dashboards with \"prometheus\" tag",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fieldConfig": {
             "defaults": {
-              "custom": {}
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "Monitoring",
+                  "url": "http://${__data.fields.host}"
+                }
+              ],
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
             },
             "overrides": []
           },
-          "folderId": null,
           "gridPos": {
-            "h": 9,
-            "w": 7,
-            "x": 9,
-            "y": 8
+            "h": 2,
+            "w": 6,
+            "x": 6,
+            "y": 0
           },
-          "headings": false,
-          "id": 8,
-          "limit": null,
+          "id": 65,
+          "maxPerRow": 12,
           "options": {
-            "folderId": null,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": true,
-            "showStarred": false,
-            "tags": [
-              "prometheus"
-            ]
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "prometheus"
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "min(kube_pod_container_status_running{namespace=\"$logging_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$logging_ns\"}[5m])) <= bool 0 ) * (min(kube_deployment_spec_replicas{namespace=\"$logging_ns\"})) * (min(kube_statefulset_replicas{namespace=\"$logging_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$logging_ns\"}[5m])))",
+              "format": "table",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "instant": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "C",
+              "useBackend": false
+            }
           ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Services",
-          "type": "dashlist"
+          "title": "Logging",
+          "transparent": true,
+          "type": "stat"
         },
         {
-          "datasource": null,
-          "description": "Show all dashboards",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fieldConfig": {
             "defaults": {
-              "custom": {}
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "Monitoring",
+                  "url": "http://${__data.fields.host}"
+                }
+              ],
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
             },
             "overrides": []
           },
-          "folderId": null,
           "gridPos": {
-            "h": 17,
-            "w": 8,
-            "x": 16,
-            "y": 8
+            "h": 2,
+            "w": 6,
+            "x": 12,
+            "y": 0
           },
-          "headings": false,
-          "id": 20,
-          "limit": null,
+          "id": 66,
+          "maxPerRow": 12,
           "options": {
-            "folderId": null,
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "min(kube_pod_container_status_running{namespace=\"$tracing_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$tracing_ns\"}[5m])) <= bool 0 ) * (min(kube_deployment_spec_replicas{namespace=\"$tracing_ns\"})) * (min(kube_statefulset_replicas{namespace=\"$tracing_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$tracing_ns\"}[5m])))",
+              "format": "table",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "instant": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "C",
+              "useBackend": false
+            }
+          ],
+          "title": "Tracing",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "Monitoring",
+                  "url": "http://${__data.fields.host}"
+                }
+              ],
+              "mappings": [
+                {
+                  "options": {
+                    "from": 0,
+                    "result": {
+                      "color": "red",
+                      "index": 0,
+                      "text": "Fail"
+                    },
+                    "to": 0.9
+                  },
+                  "type": "range"
+                },
+                {
+                  "options": {
+                    "from": 1,
+                    "result": {
+                      "color": "green",
+                      "index": 1,
+                      "text": "OK"
+                    },
+                    "to": 100
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 2,
+            "w": 6,
+            "x": 18,
+            "y": 0
+          },
+          "id": 67,
+          "maxPerRow": 12,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "percentChangeColorMode": "standard",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "min(kube_pod_container_status_running{namespace=\"$profiling_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$profiling_ns\"}[5m])) <= bool 0 ) * (min(kube_statefulset_replicas{namespace=\"$profiling_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$profiling_ns\"}[5m])))",
+              "format": "table",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "instant": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "C",
+              "useBackend": false
+            }
+          ],
+          "title": "Profiling",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 2
+          },
+          "id": 75,
+          "panels": [],
+          "title": "Quick Start Dashboards",
+          "type": "row"
+        },
+        {
+          "description": "Check these first to get up and running",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 0,
+            "y": 3
+          },
+          "id": 74,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
             "maxItems": 0,
-            "query": "",
+            "query": "Top Resources",
+            "showFolderNames": false,
             "showHeadings": false,
             "showRecentlyViewed": false,
             "showSearch": true,
             "showStarred": false,
             "tags": []
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "All dashboards",
-          "type": "dashlist"
-        },
-        {
-          "datasource": null,
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "folderId": null,
-          "gridPos": {
-            "h": 2,
-            "w": 9,
-            "x": 0,
-            "y": 11
-          },
-          "headings": false,
-          "id": 27,
-          "limit": null,
-          "options": {
-            "folderId": null,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": true,
-            "showStarred": false,
-            "tags": [
-              "self-monitor",
-              "k8s",
-              "prometheus"
-            ]
-          },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "self-monitor"
-          ],
-          "timeFrom": null,
-          "timeShift": null,
+          "pluginVersion": "11.6.5",
           "title": "",
           "type": "dashlist"
         },
         {
-          "datasource": null,
-          "description": "Show your favorite dashboards",
+          "description": "Check these first to get up and running",
           "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
-            "overrides": []
-          },
-          "folderId": 0,
-          "gridPos": {
-            "h": 6,
-            "w": 9,
-            "x": 0,
-            "y": 13
-          },
-          "headings": false,
-          "id": 10,
-          "limit": null,
-          "options": {
-            "folderId": 0,
-            "maxItems": 0,
-            "query": "",
-            "showHeadings": false,
-            "showRecentlyViewed": false,
-            "showSearch": false,
-            "showStarred": true,
-            "tags": []
-          },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": false,
-          "starred": true,
-          "tags": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Favorite",
-          "type": "dashlist"
-        },
-        {
-          "datasource": null,
-          "description": "Show dashboard with \"standalone\" tag",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
+            "defaults": {},
             "overrides": []
           },
           "gridPos": {
-            "h": 8,
-            "w": 7,
-            "x": 9,
-            "y": 17
+            "h": 4,
+            "w": 4,
+            "x": 4,
+            "y": 3
           },
-          "headings": false,
-          "id": 6,
-          "limit": null,
+          "id": 69,
           "options": {
-            "folderId": null,
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
             "maxItems": 0,
-            "query": "",
+            "query": "Cluster Overview",
+            "showFolderNames": false,
             "showHeadings": false,
             "showRecentlyViewed": false,
             "showSearch": true,
             "showStarred": false,
-            "tags": [
-              "standalone"
-            ]
+            "tags": []
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "standalone"
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Standalone hosts",
+          "pluginVersion": "11.6.5",
+          "title": "",
           "type": "dashlist"
         },
         {
-          "datasource": null,
-          "description": "Show dashboards with \"k8s\" tag",
+          "description": "Check these first to get up and running",
           "fieldConfig": {
-            "defaults": {
-              "custom": {}
-            },
+            "defaults": {},
             "overrides": []
           },
-          "folderId": null,
           "gridPos": {
-            "h": 6,
-            "w": 9,
-            "x": 0,
-            "y": 19
+            "h": 4,
+            "w": 4,
+            "x": 8,
+            "y": 3
           },
-          "headings": false,
-          "id": 2,
-          "limit": null,
+          "id": 71,
           "options": {
-            "folderId": null,
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "Pod Resources",
+            "showFolderNames": false,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": []
+          },
+          "pluginVersion": "11.6.5",
+          "title": "",
+          "type": "dashlist"
+        },
+        {
+          "description": "Check these first to get up and running",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 12,
+            "y": 3
+          },
+          "id": 70,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "Namespace Resources",
+            "showFolderNames": false,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": []
+          },
+          "pluginVersion": "11.6.5",
+          "title": "",
+          "type": "dashlist"
+        },
+        {
+          "description": "Check these first to get up and running",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 3
+          },
+          "id": 72,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "Nodes Resources",
+            "showFolderNames": false,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": []
+          },
+          "pluginVersion": "11.6.5",
+          "title": "",
+          "type": "dashlist"
+        },
+        {
+          "description": "Check these first to get up and running",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 3
+          },
+          "id": 73,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "Pods distribution by Node",
+            "showFolderNames": false,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": []
+          },
+          "pluginVersion": "11.6.5",
+          "title": "",
+          "type": "dashlist"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 7
+          },
+          "id": 76,
+          "panels": [],
+          "title": "Dashboards by Category (Browse by Topic)",
+          "type": "row"
+        },
+        {
+          "description": "Platform dashboards",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 0,
+            "y": 8
+          },
+          "id": 53,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
             "maxItems": 0,
             "query": "",
+            "showFolderNames": false,
             "showHeadings": false,
             "showRecentlyViewed": false,
             "showSearch": true,
@@ -538,62 +688,104 @@ data:
               "k8s"
             ]
           },
-          "pluginVersion": "7.4.5",
-          "query": "",
-          "recent": false,
-          "search": true,
-          "starred": false,
-          "tags": [
-            "k8s"
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Kubernetes",
+          "pluginVersion": "11.6.5",
+          "title": "Platform",
+          "type": "dashlist"
+        },
+        {
+          "description": "Middleware and DB dashboards",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 8,
+            "y": 8
+          },
+          "id": 54,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "",
+            "showFolderNames": false,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": [
+              "Kafka"
+            ]
+          },
+          "pluginVersion": "11.6.5",
+          "title": "Middleware and DB",
+          "type": "dashlist"
+        },
+        {
+          "description": "Process dashboards",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 16,
+            "y": 8
+          },
+          "id": 55,
+          "options": {
+            "folder": "monitoring",
+            "includeVars": false,
+            "keepTime": false,
+            "maxItems": 0,
+            "query": "",
+            "showFolderNames": false,
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": [
+              "process"
+            ]
+          },
+          "pluginVersion": "11.6.5",
+          "title": "Process",
           "type": "dashlist"
         }
       ],
-      "refresh": false,
-      "schemaVersion": 27,
-      "style": "dark",
+      "preload": false,
+      "refresh": "",
+      "schemaVersion": 41,
       "tags": [],
       "templating": {
         "list": [
           {
             "current": {
-              "selected": false,
               "text": "Platform Monitoring Prometheus",
-              "value": "Platform Monitoring Prometheus"
+              "value": "PC3E95692D54ABCC0"
             },
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "datasource",
             "options": [],
             "query": "prometheus",
-            "queryValue": "",
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
             "type": "datasource"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "None",
+              "text": "",
               "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(prometheus_build_info, instance)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "prometheus_instance",
             "options": [],
             "query": {
@@ -602,30 +794,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
+              "text": "10.244.0.31:9093",
+              "value": "10.244.0.31:9093"
             },
             "datasource": "$datasource",
             "definition": "label_values(alertmanager_build_info, instance)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "alertmanager_instance",
             "options": [],
             "query": {
@@ -634,27 +813,17 @@ data:
             },
             "refresh": 2,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
             "auto": false,
             "auto_count": 30,
             "auto_min": "10s",
             "current": {
-              "selected": false,
               "text": "5m",
               "value": "5m"
             },
-            "description": null,
-            "error": null,
             "hide": 2,
-            "label": null,
             "name": "interval",
             "options": [
               {
@@ -665,24 +834,17 @@ data:
             ],
             "query": "5m",
             "refresh": 2,
-            "skipUrlSync": false,
             "type": "interval"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "monitoring-test",
-              "value": "monitoring-test"
+              "text": "",
+              "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(prometheus_build_info, namespace)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "prometheus_namespace",
             "options": [],
             "query": {
@@ -691,29 +853,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "k8s.test.org",
-              "value": "k8s.test.org"
+              "text": "",
+              "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(kube_ingress_path{ingress=~\"kubernetes-dashboard\"}, host)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "kuber_dashboard",
             "options": [],
             "query": {
@@ -722,29 +872,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "selected": false,
-              "text": "prometheus.k8s.test.org",
-              "value": "prometheus.k8s.test.org"
+              "text": "",
+              "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(kube_ingress_path{exported_namespace=\"$prometheus_namespace\",service_port=\"9090\"}, host)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "prometheus_UI",
             "options": [],
             "query": {
@@ -753,30 +891,17 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
-            "allValue": null,
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
+              "text": "",
               "value": ""
             },
             "datasource": "$datasource",
             "definition": "label_values(kube_ingress_path{exported_namespace=\"$prometheus_namespace\",service_port=\"9093\"}, host)",
-            "description": null,
-            "error": null,
             "hide": 2,
             "includeAll": false,
-            "label": null,
-            "multi": false,
             "name": "alertmanager_UI",
             "options": [],
             "query": {
@@ -785,69 +910,126 @@ data:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
-          },
-          {
-            "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
-            },
-            "datasource": "$datasource",
-            "definition": "label_values(vm_app_version{container=\"vmagent\"}, instance)",
-            "hide": 2,
-            "includeAll": false,
-            "multi": false,
-            "name": "vm_instance",
-            "options": [],
-            "query": {
-              "query": "label_values(vm_app_version{container=\"vmagent\"}, instance)",
-              "refId": "StandardVariableQuery"
-            },
-            "refresh": 2,
-            "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
             "type": "query"
           },
           {
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
+              "text": "monitoring",
+              "value": "monitoring"
             },
-            "datasource": "$datasource",
-            "definition": "label_values(vm_app_version, namespace)",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_container_status_ready{container=~\"vmagent\"},namespace)",
             "hide": 2,
-            "includeAll": false,
-            "multi": false,
-            "name": "vm_namespace",
+            "name": "monitoring_ns",
             "options": [],
             "query": {
-              "query": "label_values(vm_app_version, namespace)",
-              "refId": "StandardVariableQuery"
+              "qryType": 1,
+              "query": "label_values(kube_pod_container_status_ready{container=~\"vmagent\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "text": "logging",
+              "value": "logging"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_container_status_ready{container=~\"vlselect\"},namespace)",
+            "hide": 2,
+            "name": "logging_ns",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_container_status_ready{container=~\"vlselect\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "type": "query"
+          },
+          {
+            "current": {
+              "text": "tracing",
+              "value": "tracing"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_container_status_ready{container=~\"query-frontend\"},namespace)",
+            "hide": 2,
+            "name": "tracing_ns",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_container_status_ready{container=~\"query-frontend\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "type": "query"
+          },
+          {
+            "current": {
+              "text": "profiling",
+              "value": "profiling"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_container_status_ready{container=~\"pyroscope\"},namespace)",
+            "hide": 2,
+            "name": "profiling_ns",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_container_status_ready{container=~\"pyroscope\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "type": "query"
+          },
+          {
+            "current": {
+              "text": "",
+              "value": ""
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values()",
+            "hide": 2,
+            "name": "monitoring_url",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values()",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
             "type": "query"
           }
         ]
       },
       "time": {
-        "from": "now-15m",
-        "to": "now"
+        "from": "2026-03-03T12:06:31.953Z",
+        "to": "2026-03-03T12:08:31.953Z"
       },
       "timepicker": {
+        "hidden": true,
         "refresh_intervals": [
           "10s",
           "30s",
@@ -861,8 +1043,7 @@ data:
         ]
       },
       "timezone": "",
-      "title": "Home Dashboard",
-      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `home-dashboard` ) }}",
-      "version": 2
+      "title": "Home Dashboard-v3",
+      "version": 3
     }
 {{- end }}
