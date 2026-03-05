@@ -4,11 +4,7 @@ kind: Role
 metadata:
   name: {{ .Values.integrationTests.name }}-int-tests
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}-int-tests
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (printf "%s-int-tests" .Values.integrationTests.name) "component" "platform-monitoring-tests") | nindent 4 }}
 rules:
   - apiGroups:
       - ""

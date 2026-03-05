@@ -4,11 +4,7 @@ apiVersion: v1
 metadata:
   name: {{ template "monitoring.name" . }}
   labels:
-    app.kubernetes.io/name: {{ template "monitoring.name" . }}
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (include "monitoring.name" .) "component" "monitoring-operator") | nindent 4 }}
     {{- if .Values.monitoringOperator.pprof.service.labels }}
       {{ toYaml .Values.monitoringOperator.pprof.service.labels | nindent 4 }}
     {{- end }}
