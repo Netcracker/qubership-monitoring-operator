@@ -30,7 +30,7 @@ permissions:
 jobs:
   test:
     name: Build and test with coverage        
-    uses: Netcracker/qubership-core-infra/.github/workflows/go-build-with-sonar.yaml@8638b5b8d369a450d36a3e03d9f2d8e31202dc00 #v1.3.0
+    uses: Netcracker/qubership-core-infra/.github/workflows/go-build-with-sonar.yaml@5abe90f775e97f7fb2d2c2ec96b2f8dc1b73ca65 #v1.3.0
     with:
       go-module-dir: '.'
       actor: ${{ github.actor }}
