@@ -33,7 +33,11 @@ spec:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
+<<<<<<< HEAD
       "id": 37,
+=======
+      "id": 36,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
       "links": [
         {
           "asDropdown": true,
@@ -117,12 +121,20 @@ spec:
             "overrides": []
           },
           "gridPos": {
+<<<<<<< HEAD
             "h": 6,
+=======
+            "h": 3,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "w": 4,
             "x": 0,
             "y": 1
           },
+<<<<<<< HEAD
           "id": 24,
+=======
+          "id": 8,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
           "maxDataPoints": 100,
           "options": {
             "colorMode": "value",
@@ -138,6 +150,10 @@ spec:
               "values": false
             },
             "showPercentChange": false,
+<<<<<<< HEAD
+=======
+            "text": {},
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "textMode": "auto",
             "wideLayout": true
           },
@@ -148,9 +164,15 @@ spec:
                 "uid": "$datasource"
               },
               "editorMode": "code",
+<<<<<<< HEAD
               "exemplar": false,
               "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
               "instant": false,
+=======
+              "exemplar": true,
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
+              "instant": true,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "interval": "1m",
               "legendFormat": "All alerts",
               "range": true,
@@ -175,9 +197,14 @@ spec:
                 "uid": "$datasource"
               },
               "editorMode": "code",
+<<<<<<< HEAD
               "exemplar": false,
               "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"pending\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
               "instant": false,
+=======
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"pending\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
+              "instant": true,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "interval": "1m",
               "intervalFactor": 1,
               "legendFormat": "Pending",
@@ -211,18 +238,30 @@ spec:
             "overrides": []
           },
           "gridPos": {
+<<<<<<< HEAD
             "h": 6,
+=======
+            "h": 3,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "w": 4,
             "x": 4,
             "y": 1
           },
+<<<<<<< HEAD
           "id": 19,
+=======
+          "id": 2,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
           "maxDataPoints": 100,
           "options": {
             "colorMode": "background",
             "graphMode": "area",
             "justifyMode": "auto",
+<<<<<<< HEAD
             "orientation": "auto",
+=======
+            "orientation": "horizontal",
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "percentChangeColorMode": "standard",
             "reduceOptions": {
               "calcs": [
@@ -232,6 +271,10 @@ spec:
               "values": false
             },
             "showPercentChange": false,
+<<<<<<< HEAD
+=======
+            "text": {},
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "textMode": "auto",
             "wideLayout": true
           },
@@ -254,7 +297,11 @@ spec:
               },
               "dsType": "elasticsearch",
               "editorMode": "code",
+<<<<<<< HEAD
               "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Critical))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}) default 0",
+=======
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Critical))\", cluster=~\"$cluster\", namespace=~\"$namespace\"} -0 > 0) ",
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -281,10 +328,26 @@ spec:
           "description": "Show the number of alerts with \"high\" severity",
           "fieldConfig": {
             "defaults": {
+<<<<<<< HEAD
               "color": {
                 "mode": "thresholds"
               },
               "mappings": [],
+=======
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "orange",
+                      "index": 0,
+                      "text": "0"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -297,7 +360,11 @@ spec:
             "overrides": []
           },
           "gridPos": {
+<<<<<<< HEAD
             "h": 6,
+=======
+            "h": 3,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "w": 4,
             "x": 8,
             "y": 1
@@ -318,12 +385,18 @@ spec:
               "values": false
             },
             "showPercentChange": false,
+<<<<<<< HEAD
             "textMode": "auto",
+=======
+            "text": {},
+            "textMode": "value",
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "wideLayout": true
           },
           "pluginVersion": "11.6.5",
           "targets": [
             {
+<<<<<<< HEAD
               "bucketAggs": [
                 {
                   "id": "2",
@@ -343,6 +416,15 @@ spec:
               "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(High))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}) default 0",
               "format": "time_series",
               "instant": false,
+=======
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(high))\", cluster=~\"$cluster\", namespace=~\"$namespace\"} - 0 > 0) ",
+              "hide": false,
+              "instant": true,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "Sum all {{severity}}",
@@ -367,10 +449,26 @@ spec:
           "description": "Show the number of alerts with \"warning\" severity",
           "fieldConfig": {
             "defaults": {
+<<<<<<< HEAD
               "color": {
                 "mode": "thresholds"
               },
               "mappings": [],
+=======
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "yellow",
+                      "index": 0,
+                      "text": "0"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -383,18 +481,30 @@ spec:
             "overrides": []
           },
           "gridPos": {
+<<<<<<< HEAD
             "h": 6,
+=======
+            "h": 3,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "w": 4,
             "x": 12,
             "y": 1
           },
+<<<<<<< HEAD
           "id": 21,
+=======
+          "id": 5,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
           "maxDataPoints": 100,
           "options": {
             "colorMode": "background",
             "graphMode": "area",
             "justifyMode": "auto",
+<<<<<<< HEAD
             "orientation": "auto",
+=======
+            "orientation": "horizontal",
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "percentChangeColorMode": "standard",
             "reduceOptions": {
               "calcs": [
@@ -404,12 +514,17 @@ spec:
               "values": false
             },
             "showPercentChange": false,
+<<<<<<< HEAD
+=======
+            "text": {},
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "textMode": "auto",
             "wideLayout": true
           },
           "pluginVersion": "11.6.5",
           "targets": [
             {
+<<<<<<< HEAD
               "bucketAggs": [
                 {
                   "id": "2",
@@ -427,6 +542,13 @@ spec:
               "dsType": "elasticsearch",
               "editorMode": "code",
               "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Warning))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}) default 0",
+=======
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\", alertstate=\"firing\",severity=~\"(?i:(warning))\", cluster=~\"$cluster\", namespace=~\"$namespace\"} -0 > 0) ",
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -453,10 +575,26 @@ spec:
           "description": "Show the number of alerts with \"info\" severity",
           "fieldConfig": {
             "defaults": {
+<<<<<<< HEAD
               "color": {
                 "mode": "thresholds"
               },
               "mappings": [],
+=======
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "blue",
+                      "index": 0,
+                      "text": "0"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -469,7 +607,11 @@ spec:
             "overrides": []
           },
           "gridPos": {
+<<<<<<< HEAD
             "h": 6,
+=======
+            "h": 3,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "w": 4,
             "x": 16,
             "y": 1
@@ -490,12 +632,17 @@ spec:
               "values": false
             },
             "showPercentChange": false,
+<<<<<<< HEAD
+=======
+            "text": {},
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "textMode": "auto",
             "wideLayout": true
           },
           "pluginVersion": "11.6.5",
           "targets": [
             {
+<<<<<<< HEAD
               "bucketAggs": [
                 {
                   "id": "2",
@@ -515,6 +662,14 @@ spec:
               "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Info))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}) default 0",
               "format": "time_series",
               "instant": false,
+=======
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(info))\", cluster=~\"$cluster\", namespace=~\"$namespace\"} -0 > 0) ",
+              "instant": true,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "Sum all {{severity}}",
@@ -539,10 +694,26 @@ spec:
           "description": "Show the number of alerts with \"other labels\" severity",
           "fieldConfig": {
             "defaults": {
+<<<<<<< HEAD
               "color": {
                 "mode": "thresholds"
               },
               "mappings": [],
+=======
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "color": "purple",
+                      "index": 0,
+                      "text": "0"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -555,7 +726,11 @@ spec:
             "overrides": []
           },
           "gridPos": {
+<<<<<<< HEAD
             "h": 6,
+=======
+            "h": 3,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "w": 4,
             "x": 20,
             "y": 1
@@ -576,12 +751,17 @@ spec:
               "values": false
             },
             "showPercentChange": false,
+<<<<<<< HEAD
+=======
+            "text": {},
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             "textMode": "auto",
             "wideLayout": true
           },
           "pluginVersion": "11.6.5",
           "targets": [
             {
+<<<<<<< HEAD
               "bucketAggs": [
                 {
                   "id": "2",
@@ -601,6 +781,14 @@ spec:
               "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity!~\"(?i:(critical|high|warning|info|))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}) default 0",
               "format": "time_series",
               "instant": false,
+=======
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity!~\"(?i:(critical|high|warning|info|))\", cluster=~\"$cluster\", namespace=~\"$namespace\"} -0 > 0) ",
+              "instant": true,
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "Sum all {{severity}}",
@@ -619,6 +807,7 @@ spec:
           "type": "stat"
         },
         {
+<<<<<<< HEAD
           "collapsed": false,
           "gridPos": {
             "h": 1,
@@ -729,12 +918,112 @@ spec:
               "legendFormat": "__auto",
               "range": false,
               "refId": "A"
+=======
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the number of alerts  (all alerts, sent to alertmanager, pending sent to alertmanager)",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46"
+                  },
+                  {
+                    "color": "rgba(237, 129, 40, 0.89)",
+                    "value": 1
+                  },
+                  {
+                    "color": "#d44a3a"
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 0,
+            "y": 4
+          },
+          "id": 24,
+          "maxDataPoints": 100,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
+              "instant": false,
+              "interval": "1m",
+              "legendFormat": "All alerts",
+              "range": true,
+              "refId": "C"
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             },
             {
               "datasource": {
                 "type": "prometheus",
               },
               "editorMode": "code",
+<<<<<<< HEAD
               "exemplar": false,
               "expr": "tlast_over_time(ALERTS {cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"}[$__range])*1000",
               "format": "table",
@@ -780,6 +1069,914 @@ spec:
               }
             }
           ],
+=======
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"}) ",
+              "format": "time_series",
+              "instant": false,
+              "interval": "1m",
+              "intervalFactor": 1,
+              "legendFormat": "Firing",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum(ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"pending\", cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
+              "instant": false,
+              "interval": "1m",
+              "intervalFactor": 1,
+              "legendFormat": "Pending",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Alerts",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the number of alerts with \"critical\" severity",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineStyle": {
+                  "fill": "solid"
+                },
+                "lineWidth": 1,
+                "pointSize": 3,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 4,
+            "y": 4
+          },
+          "id": 19,
+          "maxDataPoints": 100,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Critical))\", cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Sum all {{severity}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Critical))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{alertname}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Critical",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the number of alerts with \"high\" severity",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 3,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 8,
+            "y": 4
+          },
+          "id": 20,
+          "maxDataPoints": 100,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(High))\", cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Sum all {{severity}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(High))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{alertname}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "High",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the number of alerts with \"warning\" severity",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 3,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 12,
+            "y": 4
+          },
+          "id": 21,
+          "maxDataPoints": 100,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Warning))\", cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Sum all {{severity}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Warning))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{alertname}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Warning",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the number of alerts with \"info\" severity",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 3,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 16,
+            "y": 4
+          },
+          "id": 22,
+          "maxDataPoints": 100,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Info))\", cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Sum all {{severity}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity=~\"(?i:(Info))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{alertname}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Info",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Show the number of alerts with \"other labels\" severity",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 3,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 20,
+            "y": 4
+          },
+          "id": 23,
+          "maxDataPoints": 100,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "sum by (severity) (ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity!~\"(?i:(critical|high|warning|info|))\", cluster=~\"$cluster\", namespace=~\"$namespace\"})",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Sum all {{severity}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": 0,
+                    "trimEdges": 0
+                  },
+                  "type": "date_histogram"
+                }
+              ],
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "dsType": "elasticsearch",
+              "editorMode": "code",
+              "expr": "ALERTS{alertname!=\"DeadMansSwitch\",alertstate=\"firing\",severity!~\"(?i:(critical|high|warning|info|))\", cluster=~\"$cluster\", namespace=~\"$namespace\"}",
+              "format": "time_series",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{alertname}}",
+              "metrics": [
+                {
+                  "field": "select field",
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Other labels",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "id": 12,
+          "panels": [],
+          "title": "Alerts",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "color-background"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "critical": {
+                      "color": "red",
+                      "index": 0
+                    },
+                    "firing": {
+                      "color": "dark-red",
+                      "index": 2
+                    },
+                    "high": {
+                      "color": "orange",
+                      "index": 4
+                    },
+                    "info": {
+                      "color": "purple",
+                      "index": 5
+                    },
+                    "pending": {
+                      "color": "dark-yellow",
+                      "index": 3
+                    },
+                    "warning": {
+                      "color": "yellow",
+                      "index": 1
+                    }
+                  },
+                  "type": "value"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "transparent"
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 11
+          },
+          "id": 26,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": true,
+                "displayName": "Time"
+              }
+            ]
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum without (instance, endpoint, job, prometheus, service, exported_namespace, kube_container, kube_namespace, kube_pod, exported_pod) (ALERTS {cluster=~\"$cluster\", namespace=~\"$namespace\", severity=~\"$severity\"})",
+              "format": "table",
+              "hide": false,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Alerts list",
+>>>>>>> origin/feature/new-alerts-overview-dashboard
           "type": "table"
         }
       ],
@@ -808,8 +2005,17 @@ spec:
             "allValue": ".*",
             "allowCustomValue": false,
             "current": {
+<<<<<<< HEAD
               "text": "All",
               "value": "$__all"
+=======
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+>>>>>>> origin/feature/new-alerts-overview-dashboard
             },
             "datasource": {
               "uid": "$datasource"
@@ -831,7 +2037,13 @@ spec:
             "allValue": ".*",
             "allowCustomValue": false,
             "current": {
+<<<<<<< HEAD
               "text": "All",
+=======
+              "text": [
+                "All"
+              ],
+>>>>>>> origin/feature/new-alerts-overview-dashboard
               "value": [
                 "$__all"
               ]
