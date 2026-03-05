@@ -4,11 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: cloud-events-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "cloudEventsExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "cloudEventsExporter.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "cloud-events-exporter") | nindent 4 }}
 data:
 {{- if .Values.filtering }}
   filtering.yaml: |-

@@ -1,10 +1,15 @@
 {{- if .Values.install }}
+{{- $image := include "goldpinger.image" . }}
+{{- $instance := printf "%s-%s" .Values.name .Release.Namespace | trunc 63 | trimSuffix "-" }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "goldpinger-exporter") | nindent 4 }}
+    app.kubernetes.io/instance: {{ $instance }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/technology: go
 spec:
   {{- with .Values.updateStrategy }}
   updateStrategy:
@@ -12,7 +17,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "goldpinger.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ .Values.name | quote }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -20,7 +25,10 @@ spec:
         {{ toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "goldpinger.selectorLabels" . | nindent 8 }}
+        {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "goldpinger-exporter") | nindent 8 }}
+        app.kubernetes.io/instance: {{ $instance }}
+        app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+        app.kubernetes.io/technology: go
       {{- with .Values.podLabels }}
       {{ toYaml . | nindent 8 }}
       {{- end }}

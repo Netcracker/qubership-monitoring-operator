@@ -5,11 +5,7 @@ kind: Certificate
 metadata:
   name: vmalert-tls-certificate
   labels:
-    app.kubernetes.io/name: vmalert-tls-certificate
-    app.kubernetes.io/instance: {{ cat "vmalert-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: vmAlert
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "vmalert-tls-certificate" "component" "victoriametrics") | nindent 4 }}
 spec:
   secretName: {{ default "vmalert-tls-secret" .Values.vmAlert.tlsConfig.generateCerts.secretName }}
   duration: {{ default 365 .Values.vmAlert.tlsConfig.generateCerts.duration | mul 24 }}h

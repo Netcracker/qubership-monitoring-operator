@@ -4,11 +4,7 @@ kind: Service
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ template "cloudEventsExporter.fullname" . }}
-    app.kubernetes.io/component: cloud-events-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "cloudEventsExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "cloudEventsExporter.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" (include "cloudEventsExporter.fullname" .) "component" "cloud-events-exporter") | nindent 4 }}
 spec:
   type: ClusterIP
   ports:

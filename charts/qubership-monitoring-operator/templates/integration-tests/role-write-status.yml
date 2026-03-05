@@ -5,11 +5,7 @@ kind: Role
 metadata:
   name: {{ .Values.integrationTests.name }}-write-status
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}-write-status
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" (printf "%s-write-status" .Values.integrationTests.name) "component" "platform-monitoring-tests") | nindent 4 }}
 rules:
 - apiGroups:
   - {{ template "integrationTests.apigroup_custom_resource" . }}

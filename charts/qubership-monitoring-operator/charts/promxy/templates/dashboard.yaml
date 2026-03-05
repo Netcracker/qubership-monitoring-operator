@@ -4,12 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promxy.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "monitoring" "processedByOperator" "grafana-operator") | nindent 4 }}
 spec:
   json: >
     {

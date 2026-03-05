@@ -5,11 +5,7 @@ kind: Certificate
 metadata:
   name: vmoperator-tls-certificate
   labels:
-    app.kubernetes.io/name: vmoperator-tls-certificate
-    app.kubernetes.io/instance: {{ cat "vmoperator-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: vmOperator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "vmoperator-tls-certificate" "component" "victoriametrics") | nindent 4 }}
 spec:
   secretName: {{ default "vmoperator-tls-secret" .Values.vmOperator.tlsConfig.generateCerts.secretName }}
   duration: {{ default 365 .Values.vmOperator.tlsConfig.generateCerts.duration | mul 24 }}h

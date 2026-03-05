@@ -4,9 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
     {{- if .Values.serviceMonitor.labels }}
       {{ toYaml .Values.serviceMonitor.labels | nindent 4 }}
     {{- end }}

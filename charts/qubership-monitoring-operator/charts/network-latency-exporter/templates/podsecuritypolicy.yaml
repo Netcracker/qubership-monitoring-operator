@@ -5,11 +5,7 @@ kind: PodSecurityPolicy
 metadata:
   name: {{ template "networkLatencyExporter.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "networkLatencyExporter.rbac.fullname" . }}
-    app.kubernetes.io/component: network-latency-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" (include "networkLatencyExporter.rbac.fullname" .) "component" "network-latency-exporter") | nindent 4 }}
 spec:
   privileged: {{ default false .Values.rbac.privileged }}
   hostPID: false

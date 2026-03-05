@@ -6,11 +6,7 @@ kind: Issuer
 metadata:
   name: prometheus-tls-issuer
   labels:
-    app.kubernetes.io/name: prometheus-tls-issuer
-    app.kubernetes.io/instance: {{ cat "prometheus-tls-issuer-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: prometheus
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "prometheus-tls-issuer" "component" "prometheus") | nindent 4 }}
 spec:
   selfSigned: {}
 {{- end }}

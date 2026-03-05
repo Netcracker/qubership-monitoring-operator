@@ -3,12 +3,7 @@ kind: ServiceMonitor
 metadata:
   name: json-exporter-self-service-monitor
   labels:
-    app.kubernetes.io/name: json-exporter-self-service-monitor
-    app.kubernetes.io/instance: {{ cat "json-exporter-self-service-monitor-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "jsonExporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "json-exporter-self-service-monitor" "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval | default .Values.serviceMonitor.defaults.interval }}

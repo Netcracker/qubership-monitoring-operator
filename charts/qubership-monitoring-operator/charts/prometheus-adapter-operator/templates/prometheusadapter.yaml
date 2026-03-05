@@ -4,11 +4,7 @@ kind: PrometheusAdapter
 metadata:
   name: prometheus-adapter
   labels:
-    app.kubernetes.io/name: prometheus-adapter
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
-    app.kubernetes.io/version: {{ template "prometheusAdapter.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "prometheus-adapter" "component" "monitoring" "managedByOperator" "prometheus-adapter-operator" "processedByOperator" "prometheus-adapter-operator") | nindent 4 }}
     {{- if .Values.labels }}
       {{- toYaml .Values.labels | nindent 4 }}
     {{- end }}
@@ -63,7 +59,7 @@ spec:
   {{- else }}
   {{-  if .Values.operator.tlsConfig.existingSecret }}
   tlsConfig:
-    caSecret: 
+    caSecret:
       key: "ca.crt"
       name: {{ .Values.operator.tlsConfig.existingSecret }}
     certSecret:
@@ -75,7 +71,7 @@ spec:
   {{- else }}
   {{- if and .Values.operator.tlsConfig.generateCerts .Values.operator.tlsConfig.generateCerts.enabled }}
   tlsConfig:
-    caSecret: 
+    caSecret:
       key: "ca.crt"
       name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.generateCerts.secretName }}
     certSecret:
@@ -86,7 +82,7 @@ spec:
       name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.generateCerts.secretName }}
   {{- else }}
   tlsConfig:
-    caSecret: 
+    caSecret:
       key: "ca.crt"
       name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.createSecret.secretName }}
     certSecret:

@@ -4,11 +4,7 @@ kind: ClusterRole
 metadata:
   name: {{ template "monitoring.operator.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "monitoring.operator.rbac.fullname" . }}
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" (include "monitoring.operator.rbac.fullname" .) "component" "monitoring-operator") | nindent 4 }}
 rules:
   - apiGroups:
       - "rbac.authorization.k8s.io"

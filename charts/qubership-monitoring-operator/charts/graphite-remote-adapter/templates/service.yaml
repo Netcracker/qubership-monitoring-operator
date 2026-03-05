@@ -4,12 +4,7 @@ kind: Service
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: graphite-remote-adapter
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "graphiteRemoteAdapter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "graphite-remote-adapter") | nindent 4 }}
 spec:
   type: ClusterIP
   ports:

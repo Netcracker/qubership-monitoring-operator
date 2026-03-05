@@ -5,9 +5,7 @@ metadata:
   name: {{ .Values.name }}
   annotations: {{- toYaml .Values.service.annotations | nindent 4 }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: cloudwatch-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "cloudwatch-exporter") | nindent 4 }}
     {{- if .Values.service.labels }}
       {{ toYaml .Values.service.labels | nindent 4 }}
     {{- end }}

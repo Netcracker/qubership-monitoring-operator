@@ -4,11 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: kafka-java-clients
   labels:
-    app.kubernetes.io/name: kafka-java-clients
-    app.kubernetes.io/instance: {{ cat "kafka-java-clients-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "kafka-java-clients" "component" "monitoring" "managedByOperator" "monitoring-operator" "processedByOperator" "grafana-operator") | nindent 4 }}
 spec:
   name: kafka-java-clients-dashboard.json
   json: >

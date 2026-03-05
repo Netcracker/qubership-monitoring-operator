@@ -32,6 +32,8 @@ func vmClusterServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccou
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmClusterComponentName)
 	sa.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmClusterComponentName), nil)
+
 	return &sa, nil
 }
 
@@ -60,6 +62,8 @@ func vmClusterClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*r
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmClusterComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -79,6 +83,9 @@ func vmClusterClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterR
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmClusterComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmClusterComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -102,15 +109,27 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 
 		vmcluster.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmClusterComponentName
 
-		// Set labels
-		vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.GetName(), vmcluster.GetNamespace())
-
-		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmCluster.ClusterVersion)) > 0 {
-			vmcluster.Spec.ClusterVersion = cr.Spec.Victoriametrics.VmCluster.ClusterVersion
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmcluster.GetName(),
+			Component:       utils.VmClusterComponentName,
+			Instance:        utils.GetInstanceLabel(vmcluster.GetName(), vmcluster.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage),
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
 		}
-
+		// Set labels (resource + pod template for each component) in one place
+		utils.SetLabelsForResource(&vmcluster, in, nil)
 		if cr.Spec.Victoriametrics.VmCluster.VmSelect != nil {
 			vmcluster.Spec.VMSelect = cr.Spec.Victoriametrics.VmCluster.VmSelect
+			vmcluster.Spec.VMSelect.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+				Labels: utils.LabelsForPodTemplate(
+					vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name),
+					utils.VmSelectComponentName,
+					utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
+					utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage),
+					"go",
+				),
+			}
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMSelect.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
@@ -124,22 +143,19 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMSelect.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMSelect.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
-			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-
-			vmcluster.Spec.VMSelect.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
-				"app.kubernetes.io/component":  "victoriametrics",
-				"app.kubernetes.io/part-of":    "monitoring",
-				"app.kubernetes.io/managed-by": "monitoring-operator",
-				"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage),
-			}}
 		}
 
 		if cr.Spec.Victoriametrics.VmCluster.VmStorage != nil {
 			vmcluster.Spec.VMStorage = cr.Spec.Victoriametrics.VmCluster.VmStorage
+			vmcluster.Spec.VMStorage.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+				Labels: utils.LabelsForPodTemplate(
+					vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name),
+					utils.VmClusterComponentName,
+					utils.GetInstanceLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
+					utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage),
+					"go",
+				),
+			}
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMStorage.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
@@ -154,22 +170,19 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMStorage.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMStorage.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
-			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage)
-
-			vmcluster.Spec.VMStorage.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
-				"app.kubernetes.io/component":  "victoriametrics",
-				"app.kubernetes.io/part-of":    "monitoring",
-				"app.kubernetes.io/managed-by": "monitoring-operator",
-				"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage),
-			}}
 		}
 
 		if cr.Spec.Victoriametrics.VmCluster.VmInsert != nil {
 			vmcluster.Spec.VMInsert = cr.Spec.Victoriametrics.VmCluster.VmInsert
+			vmcluster.Spec.VMInsert.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+				Labels: utils.LabelsForPodTemplate(
+					vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name),
+					utils.VmClusterComponentName,
+					utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
+					utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage),
+					"go",
+				),
+			}
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMInsert.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
@@ -184,18 +197,10 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMInsert.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMInsert.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
-			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage)
+		}
 
-			vmcluster.Spec.VMInsert.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
-				"app.kubernetes.io/component":  "victoriametrics",
-				"app.kubernetes.io/part-of":    "monitoring",
-				"app.kubernetes.io/managed-by": "monitoring-operator",
-				"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage),
-			}}
+		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmCluster.ClusterVersion)) > 0 {
+			vmcluster.Spec.ClusterVersion = cr.Spec.Victoriametrics.VmCluster.ClusterVersion
 		}
 	}
 
@@ -270,15 +275,12 @@ func vmSelectIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, err
 			ingress.GetAnnotations()["nginx.ingress.kubernetes.io/app-root"] = "/select/0/vmui"
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmSelectComponentName)
+		if len(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -354,15 +356,12 @@ func vmSelectIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 			ingress.GetAnnotations()["nginx.ingress.kubernetes.io/app-root"] = "/select/0/vmui"
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmSelectComponentName)
+		if len(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }

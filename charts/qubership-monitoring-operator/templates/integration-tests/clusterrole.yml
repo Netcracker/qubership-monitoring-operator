@@ -4,11 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ template "integrationTests.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "integrationTests.rbac.fullname" . }}
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" (include "integrationTests.rbac.fullname" .) "component" "platform-monitoring-tests") | nindent 4 }}
 rules:
   - apiGroups:
       - "integreatly.org"

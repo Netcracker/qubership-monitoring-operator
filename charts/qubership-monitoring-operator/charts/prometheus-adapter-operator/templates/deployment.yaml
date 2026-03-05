@@ -4,9 +4,10 @@ kind: Deployment
 metadata:
   name: prometheus-adapter-operator
   labels:
-    app.kubernetes.io/name: prometheus-adapter-operator
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "prometheus-adapter-operator" "component" "prometheus-adapter" "managedByOperator" "prometheus-adapter-operator") | nindent 4 }}
     app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
-    {{- include "prometheusAdapter.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/version: {{ include "prometheusAdapter.operator.image" . | splitList ":" | last | quote }}
+    app.kubernetes.io/technology: go
     {{- if .Values.operator.labels }}
       {{- toYaml .Values.operator.labels | nindent 4 }}
     {{- end }}
@@ -22,10 +23,10 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: prometheus-adapter-operator
-        app.kubernetes.io/instance: {{ cat "prometheus-adapter-operator-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        {{- include "prometheusAdapter.commonLabels" . | nindent 8 }}
-        app.kubernetes.io/managed-by: Helm
+        {{- include "common-labels.resourceLabels" (dict "ctx" . "name" "prometheus-adapter-operator" "component" "prometheus-adapter" "managedByOperator" "prometheus-adapter-operator") | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
+        app.kubernetes.io/version: {{ include "prometheusAdapter.operator.image" . | splitList ":" | last | quote }}
+        app.kubernetes.io/technology: go
       {{- if .Values.operator.labels }}
         {{- toYaml .Values.operator.labels | nindent 8 }}
       {{- end }}

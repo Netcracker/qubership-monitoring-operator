@@ -4,11 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: cloud-events-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "cloudEventsExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "cloudEventsExporter.version" . }}
+    {{- include "common-labels.resourceLabels" (dict "ctx" . "name" .Values.name "component" "cloud-events-exporter" "processedByOperator" "prometheus-operator") | nindent 4 }}
     {{- if .Values.serviceMonitor.labels }}
     {{ toYaml .Values.serviceMonitor.labels | nindent 4 }}
     {{- end }}
