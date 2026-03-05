@@ -3,12 +3,7 @@ kind: ServiceMonitor
 metadata:
   name: blackbox-exporter
   labels:
-    app.kubernetes.io/name: blackbox-exporter
-    app.kubernetes.io/instance: {{ cat "blackbox-exporter-self-service-monitor-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "blackboxExporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" "blackbox-exporter" "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval }}

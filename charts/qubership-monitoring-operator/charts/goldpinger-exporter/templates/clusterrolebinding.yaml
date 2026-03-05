@@ -4,7 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ .Values.name }}-clusterrolebinding
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (printf "%s-clusterrolebinding" .Values.name) "component" "goldpinger-exporter") | nindent 4 }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "goldpinger.serviceAccountName" . }}

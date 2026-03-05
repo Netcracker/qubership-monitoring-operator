@@ -4,11 +4,7 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ template "certExporter.rbac.fullname" $ }}
   labels:
-    app.kubernetes.io/name: {{ template "certExporter.rbac.fullname" $ }}
-    app.kubernetes.io/component: cert-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
-    app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" $ "name" (include "certExporter.rbac.fullname" $) "component" "cert-exporter") | nindent 4 }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.name }}
