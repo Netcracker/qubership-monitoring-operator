@@ -216,6 +216,77 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 		}
 
+		// Grafana plugins init container: in v4 this was injected automatically by grafana-operator
+		// via --grafana-plugins-init-container-image CLI arg. In v5 that feature was removed,
+		// so we set up the init container explicitly via spec.deployment.spec.template.spec.initContainers.
+		// The init container pre-installs bundled plugins into a shared emptyDir volume that is
+		// then mounted into the main Grafana container at /var/lib/grafana/plugins.
+		if cr.Spec.Grafana.Operator.InitContainerImage != "" {
+			pluginsVolumeName := "grafana-plugins"
+			pluginsInitMountPath := "/opt/plugins"
+			pluginsMainMountPath := "/var/lib/grafana/plugins"
+
+			// Ensure the shared plugins emptyDir volume exists
+			hasPluginsVolume := false
+			for _, v := range podSpec.Volumes {
+				if v.Name == pluginsVolumeName {
+					hasPluginsVolume = true
+					break
+				}
+			}
+			if !hasPluginsVolume {
+				podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+					Name: pluginsVolumeName,
+					VolumeSource: corev1.VolumeSource{
+						EmptyDir: &corev1.EmptyDirVolumeSource{},
+					},
+				})
+			}
+
+			// Mount plugins volume in main Grafana container
+			hasPluginsMount := false
+			for _, vm := range container.VolumeMounts {
+				if vm.Name == pluginsVolumeName {
+					hasPluginsMount = true
+					break
+				}
+			}
+			if !hasPluginsMount {
+				container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+					Name:      pluginsVolumeName,
+					MountPath: pluginsMainMountPath,
+				})
+			}
+
+			// Add the plugins init container if not already present
+			hasInitContainer := false
+			for _, ic := range podSpec.InitContainers {
+				if ic.Name == "grafana-plugins-init" {
+					hasInitContainer = true
+					break
+				}
+			}
+			if !hasInitContainer {
+				podSpec.InitContainers = append(podSpec.InitContainers, corev1.Container{
+					Name:            "grafana-plugins-init",
+					Image:           cr.Spec.Grafana.Operator.InitContainerImage,
+					ImagePullPolicy: corev1.PullIfNotPresent,
+					Env: []corev1.EnvVar{
+						{
+							Name:  "GRAFANA_PLUGINS",
+							Value: "",
+						},
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							Name:      pluginsVolumeName,
+							MountPath: pluginsInitMountPath,
+						},
+					},
+				})
+			}
+		}
+
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
