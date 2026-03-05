@@ -5,11 +5,10 @@ kind: DaemonSet
 metadata:
   name: {{ .name }}
   labels:
-    app.kubernetes.io/name: {{ .name }}
-    app.kubernetes.io/component: cert-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.resourceLabels" (dict "ctx" $ "name" .name "component" "cert-exporter") | nindent 4 }}
     app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
     app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+    app.kubernetes.io/technology: go
     {{- if .daemonset.labels }}
       {{- toYaml .daemonset.labels | nindent 4 }}
     {{- end }}
@@ -25,12 +24,10 @@ spec:
     metadata:
       labels:
         app: {{ .name }}
-        app.kubernetes.io/name: {{ .name }}
-        app.kubernetes.io/component: cert-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.resourceLabels" (dict "ctx" $ "name" .name "component" "cert-exporter") | nindent 8 }}
         app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
         app.kubernetes.io/version: {{ template "certExporter.version" $ }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: go
         {{- if .daemonset.labels }}
           {{- toYaml .daemonset.labels | nindent 8 }}
         {{- end }}

@@ -13,29 +13,6 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
-Common labels
-*/}}
-{{- define "goldpinger.labels" -}}
-helm.sh/chart: {{ include "goldpinger.chart" . }}
-{{ include "goldpinger.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/name: {{ default .Values.rbac.name (include "goldpinger.name" .) }}
-app.kubernetes.io/component: goldpinger-exporter
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/part-of: monitoring
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "goldpinger.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "goldpinger.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
 Create the name of the service account to use
 */}}
 {{- define "goldpinger.serviceAccountName" -}}

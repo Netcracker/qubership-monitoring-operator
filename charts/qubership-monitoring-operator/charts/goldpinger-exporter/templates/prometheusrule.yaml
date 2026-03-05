@@ -9,7 +9,7 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
   {{- end }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   {{- with .Values.prometheusRule.rules }}
   groups:

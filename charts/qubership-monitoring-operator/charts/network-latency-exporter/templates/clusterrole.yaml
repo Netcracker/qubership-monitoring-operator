@@ -4,11 +4,7 @@ kind: ClusterRole
 metadata:
   name: {{ template "networkLatencyExporter.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "networkLatencyExporter.rbac.fullname" . }}
-    app.kubernetes.io/component: network-latency-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (include "networkLatencyExporter.rbac.fullname" .) "component" "network-latency-exporter") | nindent 4 }}
 rules:
   {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
   - apiGroups:
