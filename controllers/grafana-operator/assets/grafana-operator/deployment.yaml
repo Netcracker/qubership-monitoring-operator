@@ -25,16 +25,15 @@ spec:
         app.kubernetes.io/managed-by: monitoring-operator
     spec:
       containers:
-        - command:
-            - /manager
-          env:
+        # Note: Grafana Operator v5 image has its own entrypoint
+        # Setting command to /manager causes "stat /manager: no such file or directory" error
+        - env:
             - name: TEMPLATE_PATH
               value: /usr/local/bin/templates
+            # WATCH_NAMESPACE set to empty string to allow cross-namespace scanning
+            # When WATCH_NAMESPACE is empty, Grafana Operator v5 scans all namespaces
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -42,7 +41,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: grafana-operator
-          image: grafana-operator/grafana-operator:v4.1.1
+          image: quay.io/grafana-operator/grafana-operator:v5.21.4
           imagePullPolicy: IfNotPresent
           name: grafana-operator
           ports:

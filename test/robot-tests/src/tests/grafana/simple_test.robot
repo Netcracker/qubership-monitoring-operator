@@ -8,7 +8,7 @@ Suite Teardown  Cleanup Test Data
 *** Keywords ***
 Cleanup Test Data
     ${status}  ${message}=  Run Keyword And Ignore Error  Find Dashboard  ${uid}
-    Run Keyword If  '${status}'=='PASS'  Delete Dashboard Via Cloud Rest
+    Run Keyword If  '${status}'=='PASS'  Delete Dashboard Via Cloud Rest  ${dashboard_name}
 
 Initialize And Prepare Test Data
     Initialize Grafana Library

@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"

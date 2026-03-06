@@ -295,6 +295,8 @@ Check Apiserver Vmagent Target Metrics
 
 Check Etcd Vmagent Target Metrics
     [Tags]  full  smoke-test-vm  smoke  etcd
+    ${etcd_target}=  Get Prometheus Target  ${all_active_targets}  ${etcd}
+    Skip If  ${etcd_target}==${FALSE}  Etcd target is not configured or not reachable in this environment
     Check Vmagent Target Metrics With Retry
     ...  ${etcd}  ${all_active_targets}  ${vmagent_metrics}
 
