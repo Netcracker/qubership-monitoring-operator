@@ -12,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -179,21 +180,17 @@ func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, er
 			}
 		}
 
-		d.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		d.Spec.Template.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		if cr.Spec.Pushgateway.Labels != nil {
-			for k, v := range cr.Spec.Pushgateway.Labels {
-				d.Labels[k] = v
-				d.Spec.Template.Labels[k] = v
-			}
+		in := utils.LabelInput{
+			Name:            d.GetName(),
+			Component:       utils.PushgatewayComponentName,
+			Instance:        utils.GetInstanceLabel(d.GetName(), d.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Pushgateway.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.Pushgateway.Labels,
+		}
+		utils.SetLabelsForWorkload(&d, &d.Spec.Template.Labels, in)
+		d.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(in.Name)},
 		}
 
 		if len(strings.TrimSpace(cr.Spec.Pushgateway.PriorityClassName)) > 0 {
@@ -214,11 +211,7 @@ func pushgatewayPVC(cr *monv1.PlatformMonitoring) (*corev1.PersistentVolumeClaim
 	pvc.SetName(utils.PushgatewayComponentName)
 	pvc.SetNamespace(cr.GetNamespace())
 
-	// Set labels
-	pvc.Labels["name"] = utils.TruncLabel(pvc.GetName())
-	pvc.Labels["app.kubernetes.io/name"] = utils.TruncLabel(pvc.GetName())
-	pvc.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(pvc.GetName(), pvc.GetNamespace())
-	pvc.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
+	utils.SetLabelsForResource(&pvc, utils.BaseOnlyLabelInput(pvc.GetName(), utils.PushgatewayComponentName), nil)
 
 	if cr.Spec.Pushgateway != nil && cr.Spec.Pushgateway.Storage != nil {
 		// Set PVC spec
@@ -247,6 +240,10 @@ func pushgatewayService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 			}
 		}
 	}
+
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.PushgatewayComponentName), nil)
+	service.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.PushgatewayComponentName)}
+
 	return &service, nil
 }
 
@@ -301,15 +298,11 @@ func pushgatewayIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, 
 		// Set annotations
 		ingress.SetAnnotations(cr.Spec.Pushgateway.Ingress.Annotations)
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		for lKey, lValue := range cr.Spec.Pushgateway.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.PushgatewayComponentName)
+		if len(cr.Spec.Pushgateway.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Pushgateway.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -368,15 +361,11 @@ func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, 
 		// Set annotations
 		ingress.SetAnnotations(cr.Spec.Pushgateway.Ingress.Annotations)
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		for lKey, lValue := range cr.Spec.Pushgateway.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.PushgatewayComponentName)
+		if len(cr.Spec.Pushgateway.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Pushgateway.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -395,6 +384,15 @@ func pushgatewayServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMon
 		cr.Spec.Pushgateway.ServiceMonitor.OverrideServiceMonitor(&sm)
 	}
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
+
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.PushgatewayComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	return &sm, nil
 }

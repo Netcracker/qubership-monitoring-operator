@@ -26,9 +26,12 @@ const (
 	PrometheusServicePort            = 9090
 	PrometheusOAuthProxyServiceName  = "prometheus-oauth2-proxy"
 
-	GrafanaServiceName     = "grafana-service"
-	GrafanaServicePort     = 3000
-	GrafanaExtraVarsSecret = "grafana-extra-vars-secret"
+	GrafanaServiceName           = "grafana-service"
+	GrafanaServicePort           = 3000
+	GrafanaExtraVarsSecret       = "grafana-extra-vars-secret"
+	GrafanaConfigConfigMapName   = "grafana-config"
+	GrafanaDatasourcesConfigMap  = "grafana-datasources"
+	GrafanaAdminCredentialsName  = "grafana-admin-credentials"
 
 	ClickHouseServiceName = "clickhouse-cluster"
 	ClickHouseSecret      = "clickhouse-operator-credentials"
@@ -64,6 +67,8 @@ const (
 
 	VmClusterComponentName = "vmcluster"
 	VmSelectComponentName  = "vmselect"
+
+	VmUserComponentName = "vmuser"
 
 	NginxIngressAppRootAnnotation = "nginx.ingress.kubernetes.io/app-root"
 
@@ -102,7 +107,8 @@ var (
 	PrometheusIngressAsset            = BasePath + "ingress.yaml"
 	PrometheusPodMonitorAsset         = BasePath + "pod-monitor.yaml"
 
-	PrometheusRulesAsset = "assets/prometheus-rules.yaml"
+	PrometheusRulesAsset            = "assets/prometheus-rules.yaml"
+	PrometheusRulesComponentName    = "prometheus-rules"
 
 	// VmOperatorComponentName contains name of victoriametrics-operator pod
 	VmOperatorComponentName                   = "victoriametrics-operator"
@@ -274,6 +280,9 @@ var (
 	GrafanaIngressAsset    = BasePath + "ingress.yaml"
 	GrafanaPodMonitorAsset = BasePath + "pod-monitor.yaml"
 	GrafanaDeploymentName  = "grafana-deployment"
+
+	// KubernetesMonitorsComponentName contains name for kubernetes-monitors resources
+	KubernetesMonitorsComponentName = "kubernetes-monitors"
 
 	// JaegerServiceLabels contains labels for Jaeger Service label selector
 	JaegerServiceLabels = map[string]string{

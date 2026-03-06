@@ -102,11 +102,15 @@ func (r *EtcdMonitorReconciler) handleSecret(cr *monv1.PlatformMonitoring) error
 		return err
 	}
 
-	// Set labels
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		m.Labels["app.kubernetes.io/version"] = label
+	in := utils.LabelInput{
+		Name:      m.GetName(),
+		Component: utils.EtcdServiceComponentName,
+		Instance:  utils.GetInstanceLabel(m.GetName(), m.GetNamespace()),
 	}
+	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
+		in.Version = label
+	}
+	utils.SetLabelsForResource(m, in, nil)
 
 	e := &corev1.Secret{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
