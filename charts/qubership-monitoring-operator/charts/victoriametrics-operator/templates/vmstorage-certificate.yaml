@@ -5,11 +5,7 @@ kind: Certificate
 metadata:
   name: vmstorage-tls-certificate
   labels:
-    app.kubernetes.io/name: vmstorage-tls-certificate
-    app.kubernetes.io/instance: {{ cat "vmstorage-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: vmStorage
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" "vmstorage-tls-certificate" "component" "victoriametrics") | nindent 4 }}
 spec:
   secretName: {{ default "vmstorage-tls-secret" .Values.vmCluster.vmStorageTlsConfig.generateCerts.secretName }}
   duration: {{ default 365 .Values.vmCluster.vmStorageTlsConfig.generateCerts.duration | mul 24 }}h

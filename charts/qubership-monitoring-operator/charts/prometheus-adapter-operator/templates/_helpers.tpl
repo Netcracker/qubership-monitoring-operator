@@ -29,16 +29,6 @@ Image can be found from:
 {{- end -}}
 
 {{/*
-Create common labels for each resource which is creating by this chart.
-*/}}
-{{- define "prometheusAdapter.commonLabels" -}}
-app.kubernetes.io/component: prometheus-adapter
-app.kubernetes.io/part-of: monitoring
-{{- $image := include "prometheusAdapter.operator.image" . }}
-app.kubernetes.io/version: {{ splitList ":" $image | last }}
-{{- end }}
-
-{{/*
 Generate prometheusUrl for prometheus-adapter if it not defined
 */}}
 {{- define "prometheusAdapter.prometheusUrl" -}}
