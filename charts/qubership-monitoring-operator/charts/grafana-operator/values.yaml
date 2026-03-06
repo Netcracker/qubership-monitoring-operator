@@ -97,6 +97,8 @@ ingress: {}
 
 # Allows set configuration for grafana. The properties used to generate grafana.ini.
 # Ref: https://grafana.com/docs/grafana/latest/administration/configuration/
+# Optional: config.security.admin_user / config.security.admin_password override the values
+# used for the grafana-admin-credentials Secret (when disableDefaultAdminSecret=false).
 # Type: object
 # Mandatory: no
 #
@@ -115,51 +117,44 @@ config:
     level: warn
     mode: console
 
+# Admin credentials for Grafana (used when disableDefaultAdminSecret=false, which is the default).
+# Helm creates the {grafana-name}-admin-credentials Secret with GF_SECURITY_ADMIN_USER /
+# GF_SECURITY_ADMIN_PASSWORD keys. The values below are the defaults (admin/admin).
+# Set to "" to auto-generate a random value on first install; subsequent helm upgrades will
+# preserve the generated value.
+# Backward compatibility: if config.security.admin_user / config.security.admin_password are set,
+# they override these values when rendering the secret (single source of truth remains the secret).
+# Type: object
+# Mandatory: no
+#
 security:
+  # Admin username for Grafana.
+  # Set to "" to auto-generate.
+  # Type: string
+  # Default: admin
+  #
   admin_user: admin
+
+  # Admin password for Grafana.
+  # Set to "" to auto-generate.
+  # Type: string
+  # Default: admin
+  #
   admin_password: admin
 
-# When false (default), grafana-operator creates the secret with random password.
-# When true, Helm template creates grafana-admin-credentials secret from adminCredentialsSecret values.
+# Controls admin credentials management:
+#   false (default): Helm creates and manages the {grafana-name}-admin-credentials Secret
+#                    using the security.admin_user / security.admin_password values above.
+#                    grafana-operator is instructed NOT to auto-generate its own secret.
+#   true:            User is responsible for creating the secret.
+#                    If the secret exists, its credentials are used by Grafana automatically.
+#                    If it does not exist, Grafana falls back to its built-in default (admin/admin).
+#                    No validation error is raised.
 # Type: boolean
 # Mandatory: no
 # Default: false
 #
 disableDefaultAdminSecret: false
-
-# Admin credentials secret configuration (used when disableDefaultAdminSecret=true).
-# Helm template creates grafana-admin-credentials secret with these values.
-# Type: object
-# Mandatory: yes (when disableDefaultAdminSecret=true)
-#
-adminCredentialsSecret:
-  # Admin username for Grafana
-  # Type: string
-  # Mandatory: no
-  # Default: admin
-  #
-  adminUser: admin
-
-  # Admin password for Grafana
-  # Type: string
-  # Mandatory: yes (when disableDefaultAdminSecret=true)
-  # Default: ""
-  #
-  adminPassword: ""
-
-  # Additional labels for the secret
-  # Type: map[string]string
-  # Mandatory: no
-  # Default: {}
-  #
-  labels: {}
-
-  # Additional annotations for the secret
-  # Type: map[string]string
-  # Mandatory: no
-  # Default: {}
-  #
-  annotations: {}
 
 # Provides a means to configure the grafana data storage
 # Type: object

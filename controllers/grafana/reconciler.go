@@ -12,13 +12,15 @@ import (
 
 var isSecretUpdated = false
 
-// isManageAdminSecret returns true when monitoring-operator manages grafana-admin-credentials
-// (DisableDefaultAdminSecret is true).
+// isManageAdminSecret returns true when Helm (and therefore this operator) manages
+// the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
+// When the flag is true the user is responsible for the secret; we skip validation.
 func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
 	if cr.Spec.Grafana == nil {
 		return false
 	}
-	return cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret
+	// We manage the secret when disableDefaultAdminSecret is explicitly false or not set.
+	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil || !*cr.Spec.Grafana.DisableDefaultAdminSecret
 }
 
 type GrafanaReconciler struct {
@@ -109,8 +111,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// resetGrafanaCredentials is not used when disableDefaultAdminSecret=true:
-			// we do not create/update the secret; user manages it and restarts the Grafana pod if needed.
+			// To apply a manually changed secret value, restart the Grafana pod (new env var values
+			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
+			// available but not triggered automatically; it can be invoked for in-place credential updates.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")

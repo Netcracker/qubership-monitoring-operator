@@ -100,12 +100,12 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	}
 
 	if cr.Spec.Grafana != nil {
-		// In grafana-operator v5, disableDefaultAdminSecret is at spec level.
-		// Default (nil) = grafana-operator manages the secret (same as false).
-		graf.Spec.DisableDefaultAdminSecret = false
-		if cr.Spec.Grafana.DisableDefaultAdminSecret != nil {
-			graf.Spec.DisableDefaultAdminSecret = *cr.Spec.Grafana.DisableDefaultAdminSecret
-		}
+		// Always instruct grafana-operator NOT to auto-generate its own admin secret (disableDefaultAdminSecret=true).
+		// Admin credential management is handled at a higher level:
+		//   - disableDefaultAdminSecret=false (default): Helm creates the secret with configured values.
+		//   - disableDefaultAdminSecret=true: user creates the secret manually (optional).
+		// In both cases we do not want grafana-operator to generate a random secret on its own.
+		graf.Spec.DisableDefaultAdminSecret = true
 
 		// Do not set spec.ingress on the Grafana CR: Grafana Operator would then create its own Ingress.
 		// In grafana-operator v5, there's no "enabled" field - if spec.ingress is present (even with empty spec),
@@ -348,15 +348,25 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			podSpec.PriorityClassName = cr.Spec.Grafana.PriorityClassName
 		}
 
-		// When disableDefaultAdminSecret is true, we need to explicitly set environment variables
-		// to reference the admin credentials secret. The secret is created by Helm template
-		// (grafana-admin-credentials-secret.yaml) when disableDefaultAdminSecret=true.
-		// grafana-operator uses the same secret for API auth.
-		// Secret name pattern: {grafana-name}-admin-credentials; keys: GF_SECURITY_ADMIN_USER, GF_SECURITY_ADMIN_PASSWORD.
-		if graf.Spec.DisableDefaultAdminSecret {
+		// Inject admin credential env vars into the Grafana container so that:
+		//   a) Grafana picks up the correct user/password on startup.
+		//   b) grafana-operator v5 can authenticate against the Grafana API.
+		//
+		// Two modes driven by cr.Spec.Grafana.DisableDefaultAdminSecret:
+		//   false (nil, default) — Helm manages the secret (grafana-admin-credentials-secret.yaml).
+		//     The secret always exists; use REQUIRED refs (optional=false).
+		//   true — user is responsible for the secret; it may or may not exist.
+		//     Use OPTIONAL refs so that a missing secret does not prevent pod startup.
+		//     When the secret is absent, Grafana falls back to its built-in default (admin/admin).
+		{
 			podSpec := ensurePodSpecInitialized(&graf)
 			container := ensureGrafanaContainerInitialized(podSpec)
 			adminSecretName := fmt.Sprintf("%s-admin-credentials", graf.GetName())
+
+			// optional=true when the user manages the secret; optional=false when Helm manages it.
+			userManaged := cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret
+			optional := &userManaged
+
 			envVars := []corev1.EnvVar{
 				{
 					Name: "GF_SECURITY_ADMIN_USER",
@@ -364,6 +374,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: adminSecretName},
 							Key:                  "GF_SECURITY_ADMIN_USER",
+							Optional:             optional,
 						},
 					},
 				},
@@ -373,23 +384,19 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: adminSecretName},
 							Key:                  "GF_SECURITY_ADMIN_PASSWORD",
+							Optional:             optional,
 						},
 					},
 				},
 			}
-			// Append to existing env vars if any, otherwise set new
-			if container.Env == nil {
-				container.Env = envVars
-			} else {
-				// Check if env vars already exist to avoid duplicates
-				envMap := make(map[string]bool)
-				for _, env := range container.Env {
-					envMap[env.Name] = true
-				}
-				for _, env := range envVars {
-					if !envMap[env.Name] {
-						container.Env = append(container.Env, env)
-					}
+			// Append only if not already present (avoid duplicates on re-reconcile).
+			envMap := make(map[string]bool)
+			for _, env := range container.Env {
+				envMap[env.Name] = true
+			}
+			for _, env := range envVars {
+				if !envMap[env.Name] {
+					container.Env = append(container.Env, env)
 				}
 			}
 		}

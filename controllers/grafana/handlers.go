@@ -282,11 +282,11 @@ func getGrafanaAdminSecretName(cr *monv1.PlatformMonitoring) string {
 	return fmt.Sprintf("%s-admin-credentials", grafanaName)
 }
 
-// handleGrafanaCredentialsSecret runs when disableDefaultAdminSecret=true.
-// Per grafana-operator semantics, the flag disables automatic secret creation — the user must
-// pre-create the secret with keys GF_SECURITY_ADMIN_USER and GF_SECURITY_ADMIN_PASSWORD.
-// We validate that the secret exists and contains the required keys.
-// The secret is created by Helm template (grafana-admin-credentials-secret.yaml).
+// handleGrafanaCredentialsSecret checks the Helm-managed admin credentials secret when
+// disableDefaultAdminSecret=false. It is only used to log status; it never fails reconciliation.
+// If the secret is missing or incomplete, Grafana still has a fallback (built-in admin/admin when
+// env vars are optional, or the pod will use the secret once Helm creates it). The user can always
+// authenticate one way or another.
 func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
 	secretName := getGrafanaAdminSecretName(cr)
 	secretNamespace := cr.GetNamespace()
@@ -298,20 +298,24 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	err = r.GetResource(e)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return fmt.Errorf("secret %s/%s not found: when disableDefaultAdminSecret=true, the secret must be created by Helm template with grafana.adminCredentialsSecret.adminPassword set", secretNamespace, secretName)
+			r.Log.Info("Grafana admin credentials secret not found; Grafana may use built-in default until Helm creates the secret",
+				"secret", secretName, "namespace", secretNamespace)
+			return nil
 		}
 		return err
 	}
 
-	// Validate that secret contains required keys
 	if e.Data == nil {
-		return fmt.Errorf("secret %s/%s has no data", secretNamespace, secretName)
+		r.Log.Info("Grafana admin credentials secret has no data", "secret", secretName, "namespace", secretNamespace)
+		return nil
 	}
 	if _, ok := e.Data["GF_SECURITY_ADMIN_USER"]; !ok {
-		return fmt.Errorf("secret %s/%s missing required key GF_SECURITY_ADMIN_USER", secretNamespace, secretName)
+		r.Log.Info("Grafana admin credentials secret missing GF_SECURITY_ADMIN_USER", "secret", secretName, "namespace", secretNamespace)
+		return nil
 	}
 	if _, ok := e.Data["GF_SECURITY_ADMIN_PASSWORD"]; !ok {
-		return fmt.Errorf("secret %s/%s missing required key GF_SECURITY_ADMIN_PASSWORD", secretNamespace, secretName)
+		r.Log.Info("Grafana admin credentials secret missing GF_SECURITY_ADMIN_PASSWORD", "secret", secretName, "namespace", secretNamespace)
+		return nil
 	}
 
 	r.Log.Info("Grafana admin credentials secret validated", "secret", secretName, "namespace", secretNamespace)
