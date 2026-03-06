@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -57,11 +59,23 @@ func TestAlertmanagerManifests(t *testing.T) {
 		assert.Nil(t, m.GetAnnotations())
 	})
 	t.Run("Test ServiceAccount manifest", func(t *testing.T) {
-		m, err := alertmanagerServiceAccount(cr)
+		crWithSALabels := &monv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+			Spec: monv1.PlatformMonitoringSpec{
+				AlertManager: &monv1.AlertManager{
+					ServiceAccount: &monv1.EmbeddedObjectMetadata{
+						Labels: map[string]string{labelKey: labelValue},
+					},
+				},
+			},
+		}
+		m, err := alertmanagerServiceAccount(crWithSALabels)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ServiceAccount manifest should not be empty")
+		assert.NotNil(t, m.GetLabels())
+		assert.Equal(t, labelValue, m.GetLabels()[labelKey], "ServiceAccount.Labels should be merged")
 	})
 	t.Run("Test Secret manifest", func(t *testing.T) {
 		m, err := alertmanagerSecret(cr)
@@ -93,10 +107,15 @@ func TestAlertmanagerManifests(t *testing.T) {
 		assert.NotNil(t, m, "Ingress v1 manifest should not be empty")
 	})
 	t.Run("Test PodMonitor manifest", func(t *testing.T) {
-		m, err := alertmanagerPodMonitor(cr)
+		crWithLabels := &monv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring", Labels: map[string]string{labelKey: labelValue}},
+			Spec:      monv1.PlatformMonitoringSpec{AlertManager: &monv1.AlertManager{}},
+		}
+		m, err := alertmanagerPodMonitor(crWithLabels)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "PodMonitor manifest should not be empty")
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.AlertManagerComponentName, "prometheus-operator", map[string]string{labelKey: labelValue})
 	})
 }

@@ -10,6 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -36,16 +37,13 @@ func kubeStateMetricsServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.Servi
 				sa.Annotations[k] = v
 			}
 		}
-
-		if sa.Labels == nil && cr.Spec.KubeStateMetrics.ServiceAccount.Labels != nil {
-			sa.SetLabels(cr.Spec.KubeStateMetrics.ServiceAccount.Labels)
-		} else {
-			for k, v := range cr.Spec.KubeStateMetrics.ServiceAccount.Labels {
-				sa.Labels[k] = v
-			}
-		}
 	}
 
+	in := utils.BaseOnlyLabelInput(sa.GetName(), utils.KubestatemetricsComponentName)
+	if cr.Spec.KubeStateMetrics != nil && cr.Spec.KubeStateMetrics.ServiceAccount != nil {
+		in.ComponentLabels = cr.Spec.KubeStateMetrics.ServiceAccount.Labels
+	}
+	utils.SetLabelsForResource(&sa, in, nil)
 	return &sa, nil
 }
 
@@ -58,6 +56,7 @@ func kubeStateMetricsClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterR
 	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
 	clusterRole.SetName(cr.GetNamespace() + "-" + utils.KubestatemetricsComponentName)
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.KubestatemetricsComponentName), nil)
 	return &clusterRole, nil
 }
 
@@ -77,6 +76,7 @@ func kubeStateMetricsClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.C
 		sub.Name = cr.GetNamespace() + "-" + utils.KubestatemetricsComponentName
 		sub.Namespace = cr.GetNamespace()
 	}
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.KubestatemetricsComponentName), nil)
 	return &clusterRoleBinding, nil
 }
 
@@ -157,16 +157,18 @@ func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress bool) (
 			d.Spec.Template.Spec.Affinity = cr.Spec.KubeStateMetrics.Affinity
 		}
 
-		// Set labels
-		d.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
-
-		if cr.Spec.KubeStateMetrics.Labels != nil {
-			for k, v := range cr.Spec.KubeStateMetrics.Labels {
-				d.Labels[k] = v
-			}
+		// Set labels via centralized API
+		in := utils.LabelInput{
+			Name:            d.GetName(),
+			Component:       utils.KubestatemetricsComponentName,
+			Instance:        utils.GetInstanceLabel(d.GetName(), d.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.KubeStateMetrics.Labels,
+		}
+		utils.SetLabelsForWorkload(&d, &d.Spec.Template.Labels, in)
+		d.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(in.Name)},
 		}
 
 		if d.Annotations == nil && cr.Spec.KubeStateMetrics.Annotations != nil {
@@ -174,18 +176,6 @@ func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress bool) (
 		} else {
 			for k, v := range cr.Spec.KubeStateMetrics.Annotations {
 				d.Annotations[k] = v
-			}
-		}
-
-		// Set labels
-		d.Spec.Template.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
-
-		if cr.Spec.KubeStateMetrics.Labels != nil {
-			for k, v := range cr.Spec.KubeStateMetrics.Labels {
-				d.Spec.Template.Labels[k] = v
 			}
 		}
 
@@ -216,6 +206,7 @@ func kubeStateMetricsService(cr *monv1.PlatformMonitoring) (*corev1.Service, err
 	service.SetName(utils.KubestatemetricsComponentName)
 	service.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.KubestatemetricsComponentName), nil)
 	return &service, nil
 }
 
@@ -233,6 +224,15 @@ func kubeStateMetricsServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.Servi
 		cr.Spec.KubeStateMetrics.ServiceMonitor.OverrideServiceMonitor(&sm)
 	}
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
+
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.KubestatemetricsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	return &sm, nil
 }

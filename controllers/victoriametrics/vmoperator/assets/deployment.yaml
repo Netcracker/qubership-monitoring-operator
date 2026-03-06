@@ -1,9 +1,9 @@
+# Labels and selector are overwritten by manifest (SetLabelsForWorkload + selector).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app.kubernetes.io/name: victoriametrics-operator
-    app.kubernetes.io/instance: vm-operator
     app.kubernetes.io/component: victoriametrics
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
@@ -15,7 +15,6 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app.kubernetes.io/instance: vm-operator
       app.kubernetes.io/name: victoriametrics-operator
   strategy:
     rollingUpdate:
@@ -25,7 +24,6 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/instance: vm-operator
         app.kubernetes.io/name: victoriametrics-operator
         app.kubernetes.io/component: victoriametrics
         app.kubernetes.io/part-of: monitoring
