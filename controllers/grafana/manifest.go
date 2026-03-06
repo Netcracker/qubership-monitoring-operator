@@ -193,64 +193,61 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			graf.Spec.Deployment.PriorityClassName = cr.Spec.Grafana.PriorityClassName
 		}
 
-		// Set labels
-		graf.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
-		graf.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		if graf.Labels == nil && cr.Spec.Grafana.Labels != nil {
-			graf.SetLabels(cr.Spec.Grafana.Labels)
-		} else {
-			for k, v := range cr.Spec.Grafana.Labels {
-				graf.Labels[k] = v
-			}
+		// Set labels via centralized API (Grafana CR: base + component)
+		in := utils.LabelInput{
+			Name:            graf.GetName(),
+			Component:       utils.GrafanaComponentName,
+			Instance:        utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Grafana.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.Grafana.Labels,
 		}
+		utils.SetLabelsForResource(&graf, in, nil)
 
 		if graf.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
 			graf.SetAnnotations(cr.Spec.Grafana.Annotations)
-		} else {
+		} else if cr.Spec.Grafana.Annotations != nil {
 			for k, v := range cr.Spec.Grafana.Annotations {
 				graf.Annotations[k] = v
 			}
 		}
-		// Set labels
-		graf.Spec.Deployment.Labels = map[string]string{
-			"name":                         utils.TruncLabel(graf.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(graf.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace()),
-			"app.kubernetes.io/component":  "grafana",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Grafana.Image),
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-		}
-		if cr.Spec.Grafana.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Labels {
-				graf.Spec.Deployment.Labels[k] = v
-			}
-		}
+
+		// Deployment labels (pod template, same procedure as resource metadata)
+		graf.Spec.Deployment.Labels = in.Labels(nil)
 
 		if graf.Spec.Deployment.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
 			graf.Spec.Deployment.Annotations = cr.Spec.Grafana.Annotations
-		} else {
+		} else if cr.Spec.Grafana.Annotations != nil {
 			for k, v := range cr.Spec.Grafana.Annotations {
 				graf.Spec.Deployment.Annotations[k] = v
 			}
 		}
 
-		if graf.Spec.ServiceAccount != nil {
-			if graf.Spec.ServiceAccount.Annotations == nil && cr.Spec.Grafana.ServiceAccount.Annotations != nil {
-				graf.Spec.ServiceAccount.Annotations = cr.Spec.Grafana.ServiceAccount.Annotations
-			} else {
-				for k, v := range cr.Spec.Grafana.ServiceAccount.Annotations {
-					graf.Spec.ServiceAccount.Annotations[k] = v
-				}
-			}
+		// Service labels (grafana-service is created by grafana-operator from Grafana CR spec.service)
+		if graf.Spec.Service == nil {
+			graf.Spec.Service = &grafv1.GrafanaService{}
+		}
+		graf.Spec.Service.Labels = utils.ResourceLabels(utils.GrafanaServiceName, utils.GrafanaComponentName)
+		if cr.Spec.Grafana.Labels != nil {
+			maps.Copy(graf.Spec.Service.Labels, cr.Spec.Grafana.Labels)
+		}
 
-			if graf.Spec.ServiceAccount.Labels == nil && cr.Spec.Grafana.ServiceAccount.Labels != nil {
-				graf.Spec.ServiceAccount.Labels = cr.Spec.Grafana.ServiceAccount.Labels
-			} else {
-				for k, v := range cr.Spec.Grafana.ServiceAccount.Labels {
-					graf.Spec.ServiceAccount.Labels[k] = v
-				}
+		// ServiceAccount labels (grafana-serviceaccount is created by grafana-operator from Grafana CR spec.serviceAccount)
+		if graf.Spec.ServiceAccount == nil {
+			graf.Spec.ServiceAccount = &grafv1.GrafanaServiceAccount{}
+		}
+		graf.Spec.ServiceAccount.Labels = utils.ResourceLabels("grafana-serviceaccount", utils.GrafanaComponentName)
+		if cr.Spec.Grafana.ServiceAccount != nil && cr.Spec.Grafana.ServiceAccount.Labels != nil {
+			maps.Copy(graf.Spec.ServiceAccount.Labels, cr.Spec.Grafana.ServiceAccount.Labels)
+		}
+
+		if graf.Spec.ServiceAccount.Annotations == nil && cr.Spec.Grafana != nil && cr.Spec.Grafana.ServiceAccount != nil && cr.Spec.Grafana.ServiceAccount.Annotations != nil {
+			graf.Spec.ServiceAccount.Annotations = cr.Spec.Grafana.ServiceAccount.Annotations
+		} else if cr.Spec.Grafana != nil && cr.Spec.Grafana.ServiceAccount != nil && cr.Spec.Grafana.ServiceAccount.Annotations != nil {
+			if graf.Spec.ServiceAccount.Annotations == nil {
+				graf.Spec.ServiceAccount.Annotations = make(map[string]string)
 			}
+			maps.Copy(graf.Spec.ServiceAccount.Annotations, cr.Spec.Grafana.ServiceAccount.Annotations)
 		}
 	}
 	return &graf, nil
@@ -374,6 +371,8 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 
 	dataSource.Spec.Datasources[0].JsonData.TimeInterval = grafanaDatasourceInterval
 
+	utils.SetLabelsForResource(&dataSource, utils.BaseOnlyLabelInput(dataSource.GetName(), utils.GrafanaComponentName), nil)
+
 	return &dataSource, nil
 }
 
@@ -424,14 +423,12 @@ func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, erro
 		// Set annotations
 		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		for lKey, lValue := range cr.Spec.Grafana.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.GrafanaComponentName)
+		if len(cr.Spec.Grafana.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Grafana.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -490,14 +487,12 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		// Set annotations
 		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		for lKey, lValue := range cr.Spec.Grafana.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.GrafanaComponentName)
+		if len(cr.Spec.Grafana.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Grafana.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -515,5 +510,15 @@ func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error)
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.PodMonitor != nil && cr.Spec.Grafana.PodMonitor.IsInstall() {
 		cr.Spec.Grafana.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
+
+	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
+		Name:            podMonitor.GetName(),
+		Component:       utils.GrafanaComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
+
 	return &podMonitor, nil
 }

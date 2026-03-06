@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -68,11 +69,25 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		assert.Nil(t, m.Spec.Template.Annotations)
 	})
 	t.Run("Test ServiceAccount manifest", func(t *testing.T) {
-		m, err := grafanaOperatorServiceAccount(cr)
+		crWithSALabels := &monv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+			Spec: monv1.PlatformMonitoringSpec{
+				Grafana: &monv1.Grafana{
+					Operator: monv1.GrafanaOperator{
+						ServiceAccount: &monv1.EmbeddedObjectMetadata{
+							Labels: map[string]string{labelKey: labelValue},
+						},
+					},
+				},
+			},
+		}
+		m, err := grafanaOperatorServiceAccount(crWithSALabels)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ServiceAccount manifest should not be empty")
+		assert.NotNil(t, m.GetLabels())
+		assert.Equal(t, labelValue, m.GetLabels()[labelKey], "ServiceAccount.Labels should be merged")
 	})
 	t.Run("Test ClusterRole manifest", func(t *testing.T) {
 		m, err := grafanaOperatorClusterRole(cr)
@@ -110,5 +125,19 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 			}
 			assert.NotNil(t, m, "GrafanaDashboard manifest should not be empty")
 		}
+	})
+	crWithLabels := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring", Labels: map[string]string{labelKey: labelValue}},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{Operator: monv1.GrafanaOperator{Labels: map[string]string{labelKey: labelValue}}},
+		},
+	}
+	t.Run("Test PodMonitor manifest", func(t *testing.T) {
+		m, err := grafanaOperatorPodMonitor(crWithLabels)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "PodMonitor manifest should not be empty")
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.GrafanaOperatorComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 	})
 }

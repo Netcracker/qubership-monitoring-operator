@@ -16,7 +16,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -34,6 +33,8 @@ func vmAuthServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount,
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmAuthComponentName)
 	sa.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmAuthComponentName), nil)
 
 	return &sa, nil
 }
@@ -63,6 +64,8 @@ func vmAuthClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbac
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAuthComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -82,6 +85,9 @@ func vmAuthClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAuthComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -94,6 +100,9 @@ func vmAuthRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
 	role.SetName(cr.GetNamespace() + "-" + utils.VmAuthComponentName)
 	role.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmAuthComponentName), nil)
+
 	return &role, nil
 }
 
@@ -114,6 +123,9 @@ func vmAuthRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
 	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmAuthComponentName), nil)
+
 	return &roleBinding, nil
 }
 
@@ -353,27 +365,23 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 			maps.Copy(vmauth.Spec.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.key"})
 		}
 
-		// Set labels
-		vmauth.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmauth.GetName(), vmauth.GetNamespace())
-		vmauth.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmauth.GetName(),
+			Component:       utils.VmAuthComponentName,
+			Instance:        utils.GetInstanceLabel(vmauth.GetName(), vmauth.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image),
+			Technology:      "go",
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmauth, in, nil)
 
-		vmauth.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         utils.TruncLabel(vmauth.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(vmauth.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmauth.GetName(), vmauth.GetNamespace()),
-			"app.kubernetes.io/component":  "victoriametrics",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image),
-		}}
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmauth.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		if vmauth.Spec.PodMetadata != nil {
-			if cr.Spec.Victoriametrics.VmAuth.Labels != nil {
-				for k, v := range cr.Spec.Victoriametrics.VmAuth.Labels {
-					vmauth.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if vmauth.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmAuth.Annotations != nil {
 				vmauth.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmAuth.Annotations
 			} else {
@@ -464,13 +472,12 @@ func vmAuthIngress(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) 
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
-
-		ingress.SetLabels(labels.Merge(ingress.GetLabels(), cr.Spec.Victoriametrics.VmAuth.Ingress.Labels))
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAuthComponentName)
+		if len(cr.Spec.Victoriametrics.VmAuth.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAuth.Ingress.Labels
+		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }

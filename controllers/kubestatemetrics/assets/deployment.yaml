@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    platform.monitoring.app: kube-state-metrics
+    app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/component: kube-state-metrics
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
@@ -11,12 +11,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      platform.monitoring.app: kube-state-metrics
+      app.kubernetes.io/name: kube-state-metrics
   replicas: 1
   template:
     metadata:
       labels:
-        platform.monitoring.app: kube-state-metrics
+        app.kubernetes.io/name: kube-state-metrics
         app.kubernetes.io/component: kube-state-metrics
         app.kubernetes.io/part-of: monitoring
         app.kubernetes.io/managed-by: monitoring-operator

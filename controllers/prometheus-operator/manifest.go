@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -30,6 +31,7 @@ func prometheusOperatorRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) 
 	role.SetName(cr.GetNamespace() + "-" + utils.PrometheusOperatorComponentName)
 	role.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.PrometheusOperatorComponentName), nil)
 	return &role, nil
 }
 
@@ -43,27 +45,22 @@ func prometheusOperatorServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.Ser
 	sa.SetName(cr.GetNamespace() + "-" + utils.PrometheusOperatorComponentName)
 	sa.SetNamespace(cr.GetNamespace())
 
-	// Set annotations and labels for ServiceAccount in case
-	if cr.Spec.Prometheus != nil {
-		if cr.Spec.Prometheus.Operator.ServiceAccount != nil {
-			if sa.Annotations == nil && cr.Spec.Prometheus.ServiceAccount.Annotations != nil {
-				sa.SetAnnotations(cr.Spec.Prometheus.Operator.ServiceAccount.Annotations)
-			} else {
-				for k, v := range cr.Spec.Prometheus.Operator.ServiceAccount.Annotations {
-					sa.Annotations[k] = v
-				}
-			}
-
-			if sa.Labels == nil && cr.Spec.Prometheus.Operator.ServiceAccount.Labels != nil {
-				sa.SetLabels(cr.Spec.Prometheus.Operator.ServiceAccount.Labels)
-			} else {
-				for k, v := range cr.Spec.Prometheus.Operator.ServiceAccount.Labels {
-					sa.Labels[k] = v
-				}
+	// Set annotations for ServiceAccount in case
+	if cr.Spec.Prometheus != nil && cr.Spec.Prometheus.Operator.ServiceAccount != nil {
+		if sa.Annotations == nil && cr.Spec.Prometheus.Operator.ServiceAccount.Annotations != nil {
+			sa.SetAnnotations(cr.Spec.Prometheus.Operator.ServiceAccount.Annotations)
+		} else if cr.Spec.Prometheus.Operator.ServiceAccount.Annotations != nil {
+			for k, v := range cr.Spec.Prometheus.Operator.ServiceAccount.Annotations {
+				sa.Annotations[k] = v
 			}
 		}
 	}
 
+	in := utils.BaseOnlyLabelInput(sa.GetName(), utils.PrometheusOperatorComponentName)
+	if cr.Spec.Prometheus != nil && cr.Spec.Prometheus.Operator.ServiceAccount != nil {
+		in.ComponentLabels = cr.Spec.Prometheus.Operator.ServiceAccount.Labels
+	}
+	utils.SetLabelsForResource(&sa, in, nil)
 	return &sa, nil
 }
 
@@ -84,6 +81,7 @@ func prometheusOperatorRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBi
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.PrometheusOperatorComponentName
 	}
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.PrometheusOperatorComponentName), nil)
 	return &roleBinding, nil
 }
 
@@ -102,6 +100,7 @@ func prometheusOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.Cluste
 		Resources: []string{"services", "services/finalizers", "endpoints"},
 		Verbs:     []string{"get", "create", "list", "update", "watch"},
 	})
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.PrometheusOperatorComponentName), nil)
 	return &clusterRole, nil
 }
 
@@ -121,6 +120,7 @@ func prometheusOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.PrometheusOperatorComponentName
 	}
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.PrometheusOperatorComponentName), nil)
 	return &clusterRoleBinding, nil
 }
 
@@ -182,35 +182,33 @@ func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deploym
 			d.Spec.Template.Spec.Affinity = cr.Spec.Prometheus.Operator.Affinity
 		}
 
-		// Set labels
-		d.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
-
-		if cr.Spec.Prometheus.Operator.Labels != nil {
-			for k, v := range cr.Spec.Prometheus.Operator.Labels {
-				d.Labels[k] = v
-			}
+		// Set labels via centralized API (Deployment: SetLabelsForWorkload)
+		in := utils.LabelInput{
+			Name:            d.GetName(),
+			Component:       utils.PrometheusOperatorComponentName,
+			Instance:        utils.GetInstanceLabel(d.GetName(), d.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.Prometheus.Operator.Labels,
+		}
+		utils.SetLabelsForWorkload(&d, &d.Spec.Template.Labels, in)
+		d.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(in.Name)},
 		}
 
 		if d.Annotations == nil && cr.Spec.Prometheus.Operator.Annotations != nil {
 			d.SetAnnotations(cr.Spec.Prometheus.Operator.Annotations)
-		} else {
+		} else if cr.Spec.Prometheus.Operator.Annotations != nil {
 			for k, v := range cr.Spec.Prometheus.Operator.Annotations {
 				d.Annotations[k] = v
 			}
 		}
 
-		// Set labels
-		d.Spec.Template.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
-
-		if cr.Spec.Prometheus.Operator.Labels != nil {
-			for k, v := range cr.Spec.Prometheus.Operator.Labels {
-				d.Spec.Template.Labels[k] = v
+		if d.Spec.Template.Annotations == nil && cr.Spec.Prometheus.Operator.Annotations != nil {
+			d.Spec.Template.Annotations = cr.Spec.Prometheus.Operator.Annotations
+		} else if cr.Spec.Prometheus.Operator.Annotations != nil {
+			for k, v := range cr.Spec.Prometheus.Operator.Annotations {
+				d.Spec.Template.Annotations[k] = v
 			}
 		}
 
@@ -240,6 +238,7 @@ func prometheusOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, e
 	service.SetName(utils.PrometheusOperatorComponentName)
 	service.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.PrometheusOperatorComponentName), nil)
 	return &service, nil
 }
 
@@ -256,5 +255,18 @@ func prometheusOperatorPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMoni
 	if cr.Spec.Prometheus != nil && cr.Spec.Prometheus.Operator.PodMonitor != nil && cr.Spec.Prometheus.Operator.PodMonitor.IsInstall() {
 		cr.Spec.Prometheus.Operator.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
+
+	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
+		Name:            podMonitor.GetName(),
+		Component:       utils.PrometheusOperatorComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
+	podMonitor.Spec.Selector = metav1.LabelSelector{
+		MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.PrometheusOperatorComponentName)},
+	}
+
 	return &podMonitor, nil
 }

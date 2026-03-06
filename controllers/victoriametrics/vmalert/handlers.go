@@ -19,12 +19,6 @@ func (r *VmAlertReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) e
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlert.Image)
-
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -50,12 +44,6 @@ func (r *VmAlertReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) erro
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlert.Image)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -85,12 +73,6 @@ func (r *VmAlertReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitorin
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlert.Image)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
