@@ -41,7 +41,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: grafana-operator
-          image: quay.io/grafana-operator/grafana-operator:v5.21.4
+          image: quay.io/grafana-operator/grafana-operator:v5.22.0
           imagePullPolicy: IfNotPresent
           name: grafana-operator
           ports:

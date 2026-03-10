@@ -8,7 +8,7 @@ require (
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-task/slim-sprig v2.20.0+incompatible
-	github.com/grafana/grafana-operator/v5 v5.21.4 // Required for v1beta1 API
+	github.com/grafana/grafana-operator/v5 v5.22.0 // Required for v1beta1 API
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
 	github.com/openshift/api v3.9.1-0.20191105214740-21e87c8db569+incompatible
