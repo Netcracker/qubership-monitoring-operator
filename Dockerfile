@@ -1,5 +1,6 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine3.22 AS builder
+# Go 1.26 is required by github.com/grafana/grafana-operator/v5 v5.22.0
+FROM --platform=$BUILDPLATFORM golang:1.26.0-alpine3.22 AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
