@@ -440,6 +440,8 @@ rules:
       - grafanas
       - grafanas/status
       - grafanas/finalizers
+      - grafanamanifests
+      - grafanamanifests/status
       - grafanadashboards
       - grafanadashboards/status
       - grafanadatasources
