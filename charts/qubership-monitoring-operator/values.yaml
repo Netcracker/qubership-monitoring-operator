@@ -9,9 +9,6 @@ nameOverride: ""
 fullnameOverride: ""
 
 global:
-  # Common labels for subcharts (app.kubernetes.io/part-of)
-  partOf: monitoring
-
   # Indicates if monitoring-operator has permissions to deploy ClusterRole and
   # ClusterRoleBinding resources.
   # If set to `true` deploy all resources. Otherwise, deploy only Role and RoleBinding

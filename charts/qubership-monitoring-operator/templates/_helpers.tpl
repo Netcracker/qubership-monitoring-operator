@@ -14,7 +14,7 @@ Usage: {{- include "monitoring.resourceLabels" (dict "ctx" . "name" $name "compo
 name: {{ $name }}
 app.kubernetes.io/name: {{ $name }}
 app.kubernetes.io/component: {{ $component }}
-app.kubernetes.io/part-of: {{ (index $ctx.Values "global" | default dict).partOf | default "monitoring" }}
+app.kubernetes.io/part-of: monitoring
 app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
 {{- if .processedByOperator }}
 app.kubernetes.io/processed-by-operator: {{ .processedByOperator }}
