@@ -4,9 +4,7 @@ kind: ClusterRole
 metadata:
   name: {{ template "cloudwatch-exporter.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "cloudwatch-exporter.rbac.fullname" . }}
-    app.kubernetes.io/component: cloudwatch-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (include "cloudwatch-exporter.rbac.fullname" .) "component" "cloudwatch-exporter") | nindent 4 }}
 rules:
   - apiGroups: [""]
     resources: ["secrets","configmaps"]

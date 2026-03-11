@@ -4,11 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval | default "30s" }}
