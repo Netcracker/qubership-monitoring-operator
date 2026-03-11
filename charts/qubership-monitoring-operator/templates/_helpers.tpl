@@ -1,6 +1,27 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
+Resource labels: name, app.kubernetes.io/name, component, part-of, managed-by.
+Optional: processedByOperator (for CRs only).
+Usage: {{- include "monitoring.resourceLabels" (dict "ctx" . "name" $name "component" $component) | nindent 4 }}
+       For CRs: add "processedByOperator" "prometheus-adapter-operator"
+       For workloads (Deployment, StatefulSet, DaemonSet), add instance, version, technology inline.
+*/}}
+{{- define "monitoring.resourceLabels" -}}
+{{- $ctx := .ctx -}}
+{{- $name := .name -}}
+{{- $component := .component -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+app.kubernetes.io/part-of: monitoring
+app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+{{- if .processedByOperator }}
+app.kubernetes.io/processed-by-operator: {{ .processedByOperator }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Expand the name of the chart. This is suffixed with -alertmanager, which means subtract 13 from longest 63 available
 */}}
 {{- define "monitoring.name" -}}

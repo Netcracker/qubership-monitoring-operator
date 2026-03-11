@@ -5,11 +5,7 @@ kind: Role
 metadata:
   name: {{ template "monitoring.operator.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "monitoring.operator.fullname" . }}
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (include "monitoring.operator.fullname" .) "component" "monitoring-operator") | nindent 4 }}
 rules:
   - apiGroups:
       - "rbac.authorization.k8s.io"
