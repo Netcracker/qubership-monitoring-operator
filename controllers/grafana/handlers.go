@@ -85,10 +85,6 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 		return err
 	}
 
-	// Set labels
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-
 	e := &grafv1.GrafanaDataSource{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -175,12 +171,6 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -209,15 +199,13 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: cr.GetNamespace()}}
 	tmpSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials-temp", Namespace: cr.GetNamespace()}}
 
-	// Set labels
-	e.SetLabels(map[string]string{
-		"name":                         utils.TruncLabel(e.GetName()),
-		"app.kubernetes.io/name":       utils.TruncLabel(e.GetName()),
-		"app.kubernetes.io/managed-by": "monitoring-operator",
-		"app.kubernetes.io/part-of":    "monitoring",
-		"app.kubernetes.io/instance":   utils.GetInstanceLabel(e.GetName(), e.GetNamespace()),
-		"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Grafana.Image),
-	})
+	utils.SetLabelsForResource(e, utils.LabelInput{
+		Name:       e.GetName(),
+		Component:  utils.GrafanaComponentName,
+		Instance:   utils.GetInstanceLabel(e.GetName(), e.GetNamespace()),
+		Version:    utils.GetTagFromImage(cr.Spec.Grafana.Image),
+		Technology: "go",
+	}, nil)
 
 	if err = r.GetResource(e); err == nil {
 		if err = r.GetResource(tmpSecret); err == nil {
@@ -517,3 +505,4 @@ func sortServices(services []corev1.Service) {
 		return strings.Compare(a.Name, b.Name)
 	})
 }
+

@@ -102,14 +102,27 @@ func prometheusRules(cr *monv1.PlatformMonitoring) (*promv1.PrometheusRule, erro
 		rules.Spec = resultSpec
 	}
 
-	if rules.Labels == nil && cr.GetLabels() != nil {
-		rules.SetLabels(cr.Labels)
-	} else {
-		for k, v := range cr.GetLabels() {
-			if _, ok := rules.Labels[k]; !ok {
-				rules.Labels[k] = v
+	// Set labels via centralized API (base + component + cr.GetLabels())
+	if cr != nil {
+		crLabels := cr.GetLabels()
+		if crLabels == nil {
+			crLabels = make(map[string]string)
+		}
+		in := utils.LabelInput{
+			Name:            rules.GetName(),
+			Component:       utils.PrometheusRulesComponentName,
+			Instance:        utils.GetInstanceLabel(rules.GetName(), rules.GetNamespace()),
+			ComponentLabels: utils.MergeLabels(
+				map[string]string{"app.kubernetes.io/processed-by-operator": utils.OperatorDeploymentName},
+				crLabels,
+			),
+		}
+		if cr.Labels != nil {
+			if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
+				in.Version = label
 			}
 		}
+		utils.SetLabelsForResource(&rules, in, nil)
 	}
 
 	if rules.Annotations == nil && cr.GetAnnotations() != nil {
