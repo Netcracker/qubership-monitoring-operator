@@ -1,32 +1,33 @@
 name: Run Monitoring Pipeline
 
 on:
-  push:
-    branches: [main]
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
-  workflow_dispatch: {}
+  push
+#  push:
+#    branches: [main]
+#    paths:
+#    - '**'
+#    - '!.github/**'
+#    - '.github/workflows/integration-tests.yaml'
+#    - '!docs/**'
+#    - '!CODE-OF-CONDUCT.md'
+#    - '!CONTRIBUTING.md'
+#    - '!LICENSE'
+#    - '!README.md'
+#    - '!SECURITY.md'
+#  pull_request:
+#    types: [opened, synchronize, reopened]
+#    branches: [main]
+#    paths:
+#    - '**'
+#    - '!.github/**'
+#    - '.github/workflows/integration-tests.yaml'
+#    - '!docs/**'
+#    - '!CODE-OF-CONDUCT.md'
+#    - '!CONTRIBUTING.md'
+#    - '!LICENSE'
+#    - '!README.md'
+#    - '!SECURITY.md'
+#  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -55,9 +56,9 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@b894c4fbf5b93e8cca45e588ab46291c071fac2e #v1.5.2
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@fix_linting_errors_v2 #v1.5.2
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: '4cb7d7c09d0205268066b130c8c6205d9232507b' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'fix_linting_errors_v2' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
