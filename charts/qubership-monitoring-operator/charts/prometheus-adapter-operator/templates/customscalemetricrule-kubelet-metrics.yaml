@@ -4,11 +4,7 @@ kind: CustomScaleMetricRule
 metadata:
   name: kubelet-custom-metric-rule
   labels:
-    app.kubernetes.io/name: kubelet-custom-metric-rule
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
-    app.kubernetes.io/version: {{ template "prometheusAdapter.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" "kubelet-custom-metric-rule" "component" "monitoring" "managedByOperator" "prometheus-adapter-operator" "processedByOperator" "prometheus-adapter-operator") | nindent 4 }}
 spec:
   rules:
     # Container/Pod CPU usage metrics

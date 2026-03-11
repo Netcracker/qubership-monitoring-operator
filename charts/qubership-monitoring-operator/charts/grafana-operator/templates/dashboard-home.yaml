@@ -4,11 +4,7 @@ kind: ConfigMap
 metadata:
   name: grafana-home-dashboard
   labels:
-    app.kubernetes.io/name: grafana-home-dashboard
-    app.kubernetes.io/instance: {{ cat "grafana-home-dashboard-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" "grafana-home-dashboard" "component" "monitoring") | nindent 4 }}
 data:
   grafana-home-dashboard.json: |-
     {
