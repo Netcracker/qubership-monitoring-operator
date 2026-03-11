@@ -107,6 +107,12 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// In both cases we do not want grafana-operator to generate a random secret on its own.
 		graf.Spec.DisableDefaultAdminSecret = true
 
+		// IMPORTANT: propagate PlatformMonitoring.spec.grafana.image into Grafana.spec.version.
+		// In grafana-operator v5, spec.version accepts either a tag (e.g. "12.3.3") or a full image reference
+		if cr.Spec.Grafana.Image != "" {
+			graf.Spec.Version = cr.Spec.Grafana.Image
+		}
+
 		// Do not set spec.ingress on the Grafana CR: Grafana Operator would then create its own Ingress.
 		// In grafana-operator v5, there's no "enabled" field - if spec.ingress is present (even with empty spec),
 		// Grafana Operator creates a catch-all (*) Ingress. Asset no longer contains spec.ingress to avoid this.
