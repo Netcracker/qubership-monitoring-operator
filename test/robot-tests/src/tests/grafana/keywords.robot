@@ -121,8 +121,8 @@ Delete Dashboard Via Cloud Rest
 
 Check Dashboard Is Deleted In Grafana
     [Arguments]  ${uid}
-    ${state}=  Run Keyword And Return Status  Find Dashboard  ${uid}
-    Should Be Equal As Strings  ${state}  False
+    ${dashboard}=  Find Dashboard  ${uid}
+    Should Be Equal  ${dashboard}  ${NONE}
 
 Replace Dashboard In Namespace
     [Arguments]  ${namespace}  ${dashboard_name}  ${updated_dashboard}
