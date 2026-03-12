@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	pspApi "k8s.io/api/policy/v1beta1"
@@ -87,6 +88,25 @@ func (r *VmClusterReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitor
 					}
 				}
 			}
+			ingressHost := ""
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress != nil {
+				ingressHost = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host
+			}
+			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+				NamePrefix:  cr.GetNamespace() + "-" + utils.VmSelectServiceName,
+				Namespace:   cr.GetNamespace(),
+				Host:        ingressHost,
+				ServiceName: utils.VmSelectServiceName,
+				ServicePort: int32(utils.VmSelectServicePort),
+				Labels:      map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmSelectServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)},
+				ParentRefs:  parentRefs,
+			}); err != nil {
+				return err
+			}
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
@@ -142,6 +162,14 @@ func (r *VmClusterReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err = r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress.")
 		}
+	}
+	if err = vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
+		NamePrefix:  cr.GetNamespace() + "-" + utils.VmSelectServiceName,
+		Namespace:   cr.GetNamespace(),
+		ServiceName: utils.VmSelectServiceName,
+		ServicePort: int32(utils.VmSelectServicePort),
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 
 	if err := r.deleteServiceAccount(cr); err != nil {

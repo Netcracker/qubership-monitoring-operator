@@ -51,6 +51,57 @@ podMonitor:
     #   replacement: $1
     #   action: replace
 
+# Allows to define HTTPRoute for Grafana UI via monitoring-operator.
+# Type: object
+# Mandatory: no
+# Default: {}
+# HTTPRoute spec reference:
+# https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec
+# Example:
+# httpRoute:
+#   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+#   # Type: boolean
+#   # Default: false
+#   #
+#   install: true
+#
+#   # Hostnames overrides ingress hostname if specified.
+#   # Type: list[string]
+#   #
+#   hostnames:
+#     - grafana.example.com
+#
+#   # ParentRefs defines route parent references to Gateway/listener.
+#   # Type: list[object]
+#   #
+#   parentRefs:
+#     - name: gateway
+#       namespace: gateway-infra
+#       kind: Gateway
+#       group: gateway.networking.k8s.io
+#       # Optional listener section name
+#       sectionName: http
+#
+#   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+#   # Each rule may contain raw Gateway API matches/filters blocks.
+#   # Type: list[object]
+#   #
+#   rules:
+#     # Matches: raw HTTPRouteMatch objects
+#     - matches:
+#         - path:
+#             type: PathPrefix
+#             value: /api/v1
+#       # Filters: raw HTTPRouteFilter objects
+#       filters:
+#         - type: URLRewrite
+#           urlRewrite:
+#             path:
+#               type: ReplacePrefixMatch
+#               replacePrefixMatch: /
+#
+httpRoute: {}
+
 # Allows create Ingress for Grafana UI via monitoring-operator
 # Type: object
 # Mandatory: no

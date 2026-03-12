@@ -71,6 +71,36 @@ func (r *ComponentReconciler) HasApi(groupVersion schema.GroupVersion, kind stri
 	return hasApi
 }
 
+// HasApiGroupKind checks if API exists for a group/kind regardless of version.
+func (r *ComponentReconciler) HasApiGroupKind(group, kind string) bool {
+	_, ok := r.GetApiVersionForKind(group, kind)
+	return ok
+}
+
+// GetApiVersionForKind returns apiVersion for the first matching group/kind found by discovery.
+func (r *ComponentReconciler) GetApiVersionForKind(group, kind string) (string, bool) {
+	_, apiLists, err := r.Dc.ServerGroupsAndResources()
+	if err != nil {
+		r.Log.Error(err, "Error while check hasAPI")
+		return "", false
+	}
+	for _, apiList := range apiLists {
+		gv, err := schema.ParseGroupVersion(apiList.GroupVersion)
+		if err != nil {
+			continue
+		}
+		if gv.Group != group {
+			continue
+		}
+		for _, resource := range apiList.APIResources {
+			if resource.Kind == kind {
+				return apiList.GroupVersion, true
+			}
+		}
+	}
+	return "", false
+}
+
 // ResourceExists returns true if the given resource kind exists
 // in the given api groupversion
 func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
