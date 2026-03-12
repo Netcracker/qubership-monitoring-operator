@@ -82,7 +82,7 @@ gatewayApi:
   #     group: gateway.networking.k8s.io
   #     # Optional listener section name
   #     sectionName: http
-  #  
+  #
   #
   parentRefs: []
 
