@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -65,7 +66,8 @@ var _ = BeforeSuite(func() {
 			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "grafana-operator", "crds"),
 			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-adapter-operator", "crds"),
 			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-operator", "crds"),
-			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds")},
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds"),
+			filepath.Join("..", "..", "test", "envtests", "assets", "gatewayapi")},
 	}
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
@@ -81,6 +83,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = grafv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = vmetricsv1b1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = v1beta1ext.AddToScheme(scheme.Scheme)
