@@ -28,8 +28,7 @@ import (
 	"github.com/Netcracker/qubership-monitoring-operator/controllers"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
-	apis "github.com/grafana-operator/grafana-operator/v4/api"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	extensionsobj "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -76,8 +75,10 @@ func main() {
 	ctrl.SetLogger(utils.Logger(""))
 
 	namespace, found := os.LookupEnv("WATCH_NAMESPACE")
-	if !found {
-		namespace = "monitoring"
+	if !found || namespace == "" {
+		// If WATCH_NAMESPACE is not set or empty, scan all namespaces
+		// This enables cross-namespace scanning for allowCrossNamespaceImport feature
+		namespace = ""
 	}
 
 	if !pprofEnabled {
@@ -92,7 +93,12 @@ func main() {
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "b0cb59fe.netcracker.com",
 		NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
-			opts.DefaultNamespaces = map[string]cache.Config{namespace: {}}
+			// If WATCH_NAMESPACE is empty, don't set DefaultNamespaces to scan all namespaces
+			// This enables cross-namespace scanning for allowCrossNamespaceImport feature
+			if namespace != "" {
+				opts.DefaultNamespaces = map[string]cache.Config{namespace: {}}
+			}
+			// If namespace is empty, DefaultNamespaces remains nil, which means scan all namespaces
 			return cache.New(config, opts)
 		},
 	})
@@ -103,10 +109,8 @@ func main() {
 	logger.Info("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
-		logger.Error(err, "")
-		os.Exit(1)
-	}
+	// In Grafana Operator v5, apis.AddToScheme was removed
+	// Grafana scheme is added via grafv1.AddToScheme below
 
 	// Add extention scheme
 	if err = extensionsobj.AddToScheme(mgr.GetScheme()); err != nil {

@@ -18,10 +18,10 @@ package v1
 
 import (
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
-	grafv1alpha1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 )
@@ -146,6 +146,14 @@ type Grafana struct {
 	// Can be changed for already deployed service and the service
 	// will be removed during next reconciliation iteration
 	Install *bool `json:"install,omitempty"`
+	// Name specifies the name of the Grafana CR (default: "grafana").
+	// This allows creating multiple Grafana instances in the same cluster.
+	// +optional
+	Name string `json:"name,omitempty"`
+	// Namespace specifies the namespace for Grafana CR (default: PlatformMonitoring namespace).
+	// This allows creating Grafana instances in different namespaces.
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 	// SecurityContext holds pod-level security attributes.
 	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
 	// Resources defines resources requests and limits for single Pods.
@@ -153,7 +161,8 @@ type Grafana struct {
 	// Ingress allows to create Ingress for Grafana UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
 	// Config allows to override Config for Grafana.
-	Config grafv1alpha1.GrafanaConfig `json:"config,omitempty"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Config *runtime.RawExtension `json:"config,omitempty"`
 	// Custom grafana home dashboard
 	GrafanaHomeDashboard bool `json:"grafanaHomeDashboard,omitempty"`
 	// DashboardLabelSelector allows to query over a set of resources according to labels
@@ -173,7 +182,8 @@ type Grafana struct {
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
 	// DataStorage provides a means to configure the grafana data storage
-	DataStorage *grafv1alpha1.GrafanaDataStorage `json:"dataStorage,omitempty"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	DataStorage *runtime.RawExtension `json:"dataStorage,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
 	// and services.
@@ -196,6 +206,10 @@ type Grafana struct {
 	// PriorityClassName assigned to the Pods
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
+	// DisableDefaultAdminSecret prevents grafana-operator from creating default admin-credentials secret.
+	// When true (default), monitoring-operator manages the secret; when false, grafana-operator creates it.
+	// +optional
+	DisableDefaultAdminSecret *bool `json:"disableDefaultAdminSecret,omitempty"`
 }
 
 // GrafanaOperator defines the desired state for some part of grafana-operator deployment
@@ -206,8 +220,24 @@ type GrafanaOperator struct {
 	Image string `json:"image"`
 	// Image to use to initialize Grafana deployment.
 	InitContainerImage string `json:"initContainerImage"`
-	// Namespaces to scope the interaction of the Grafana operator.
+	// Namespaces is deprecated. Use WatchNamespaces for comma-separated list or enable namespaceScope.
 	Namespaces string `json:"namespaces,omitempty"`
+	// NamespaceScope limits the operator to its own namespace when set true.
+	NamespaceScope bool `json:"namespaceScope,omitempty"`
+	// LeaderElect enables leader election.
+	LeaderElect *bool `json:"leaderElect,omitempty"`
+	// WatchNamespaces defines comma separated namespaces to watch.
+	WatchNamespaces string `json:"watchNamespaces,omitempty"`
+	// WatchNamespaceSelector defines label selector for namespaces to watch.
+	WatchNamespaceSelector string `json:"watchNamespaceSelector,omitempty"`
+	// WatchLabelSelectors defines CR label selectors to watch.
+	WatchLabelSelectors string `json:"watchLabelSelectors,omitempty"`
+	// EnforceCacheLabels configures operator cache behaviour (off|safe|all).
+	EnforceCacheLabels string `json:"enforceCacheLabels,omitempty"`
+	// ClusterDomain configures cluster domain for generated services.
+	ClusterDomain string `json:"clusterDomain,omitempty"`
+	// MaxConcurrentReconciles overrides concurrency per CR type.
+	MaxConcurrentReconciles *int32 `json:"maxConcurrentReconciles,omitempty"`
 	// SecurityContext holds pod-level security attributes.
 	SecurityContext *SecurityContext `json:"securityContext,omitempty"`
 	// Resources defines resources requests and limits for single Pods.

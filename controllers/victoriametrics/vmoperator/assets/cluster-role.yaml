@@ -183,14 +183,15 @@ rules:
     apiGroups:
       - operator.victoriametrics.com
     resources:
-      - vmservicescrapes
-      - vmrules
-      - vmpodscrapes
-      - vmstaticscrapes
-      - vmnodescrapes
-      - vmprobes
       - vmalertmanagerconfigs
+      - vmdistributed
+      - vmnodescrapes
+      - vmpodscrapes
+      - vmprobes
+      - vmrules
       - vmscrapeconfigs
+      - vmservicescrapes
+      - vmstaticscrapes
   - verbs:
       - create
       - delete
@@ -223,18 +224,21 @@ rules:
       - vmalerts
       - vmalerts/finalizers
       - vmalerts/status
-      - vmclusters
-      - vmclusters/finalizers
-      - vmclusters/status
-      - vmsingles
-      - vmsingles/finalizers
-      - vmsingles/status
       - vmanomalies
       - vmanomalies/finalizers
       - vmanomalies/status
       - vmauths
       - vmauths/finalizers
       - vmauths/status
+      - vmclusters
+      - vmclusters/finalizers
+      - vmclusters/status
+      - vmdistributed
+      - vmdistributed/finalizers
+      - vmdistributed/status
+      - vmsingles
+      - vmsingles/finalizers
+      - vmsingles/status
       - vmusers
       - vmusers/finalizers
       - vmusers/status
