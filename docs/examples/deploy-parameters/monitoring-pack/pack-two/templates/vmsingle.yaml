@@ -1,0 +1,56 @@
+{{- if .Values.vmSingle.install }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  labels:
+    name: vmsingle
+    app.kubernetes.io/name: vmsingle
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmSingle.labels }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  name: {{ default (include "monitoring-pack-two.vmsingle.baseName" .) .Values.vmSingle.name }}
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" .Values.vmSingle.annotations }}
+  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  # Set the default users for Pod Security Context
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 2000
+    runAsGroup: 2000
+
+  replicaCount: {{ default 1 .Values.vmSingle.spec.replicaCount }}
+  retentionPeriod: {{ default "30d" .Values.vmSingle.spec.retentionPeriod }}
+  removePvcAfterDelete: {{ default true .Values.vmSingle.spec.removePvcAfterDelete }}
+
+  {{- if .Values.vmSingle.spec.resources }}
+  resources: {{ toYaml .Values.vmSingle.spec.resources | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.vmSingle.spec.extraArgs }}
+  extraArgs: {{ toYaml .Values.vmSingle.spec.extraArgs | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.vmSingle.spec.extraEnvs }}
+  extraEnvs: {{ toYaml .Values.vmSingle.spec.extraEnvs | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.vmSingle.spec.storage }}
+  storage: {{ toYaml .Values.vmSingle.spec.storage | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.vmSingle.spec.tolerations }}
+  tolerations: {{ toYaml .Values.vmSingle.spec.tolerations | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.vmSingle.spec.nodeSelector }}
+  nodeSelector: {{ toYaml .Values.vmSingle.spec.nodeSelector | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.vmSingle.spec.affinity }}
+  affinity: {{ toYaml .Values.vmSingle.spec.affinity | nindent 4 }}
+  {{- end }}
+{{- end }}

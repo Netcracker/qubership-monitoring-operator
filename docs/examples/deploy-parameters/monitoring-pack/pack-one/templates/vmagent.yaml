@@ -1,0 +1,63 @@
+{{- if .Values.vmAgent.install }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  labels:
+    name: vmagent
+    app.kubernetes.io/name: vmagent
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmAgent.labels }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  name: {{ default (printf "%s-vmagent" (include "monitoring-pack-one.fullname" .)) .Values.vmAgent.name }}
+  namespace: {{ include "monitoring-pack-one.namespace" . }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" .Values.vmAgent.annotations }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  # Set the default users for Pod Security Context
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 2000
+
+  # Enable discovery all CRs if labelSelectors is empty
+  selectAllByDefault: true
+
+  # Selector to discovery CRs
+  # Exclude the OpenShift Monitoring configurations
+  podScrapeSelector: {}
+  podScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  probeSelector: {}
+  probeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  serviceScrapeSelector: {}
+  serviceScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  nodeScrapeSelector: {}
+  nodeScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  staticScrapeSelector: {}
+  staticScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+
+  serviceAccountName: {{ include "monitoring-pack-one.vmagent.serviceAccountName" . }}
+{{- if .Values.vmAgent.spec }}
+{{ toYaml .Values.vmAgent.spec | indent 2 }}
+{{- end }}
+{{- end }}
