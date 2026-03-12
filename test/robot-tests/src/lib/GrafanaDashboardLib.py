@@ -56,11 +56,30 @@ class GrafanaDashboardLib:
         return {"status": "Success"}
 
     def replace_dashboard(self, namespace, body):
-        """Replace (update) GrafanaDashboard. body must have metadata.name and metadata.resourceVersion."""
+        """Replace (update) GrafanaDashboard without dropping operator finalizers."""
         api = self._get_api()
         name = body.get("metadata", {}).get("name")
         if not name:
             raise ValueError("GrafanaDashboard body must have metadata.name")
+        existing = api.get_namespaced_custom_object(
+            group=GROUP,
+            version=VERSION,
+            namespace=namespace,
+            plural=PLURAL,
+            name=name,
+        )
+        existing_meta = existing.get("metadata", {})
+        body_meta = body.setdefault("metadata", {})
+
+        # Preserve metadata that the grafana-operator adds during reconciliation.
+        # If replace removes finalizers, the dashboard CR disappears from Kubernetes
+        # without Grafana cleanup and the dashboard stays orphaned in Grafana.
+        if "resourceVersion" not in body_meta and existing_meta.get("resourceVersion"):
+            body_meta["resourceVersion"] = existing_meta["resourceVersion"]
+        if "finalizers" not in body_meta and existing_meta.get("finalizers"):
+            body_meta["finalizers"] = existing_meta["finalizers"]
+        if "annotations" not in body_meta and existing_meta.get("annotations"):
+            body_meta["annotations"] = existing_meta["annotations"]
         api.replace_namespaced_custom_object(
             group=GROUP,
             version=VERSION,
