@@ -11,6 +11,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -422,7 +423,7 @@ func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, erro
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
+		ingress.SetAnnotations(victoriametrics.GetIngressAnnotationsForGateway(cr, cr.Spec.Grafana.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
@@ -488,7 +489,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
+		ingress.SetAnnotations(victoriametrics.GetIngressAnnotationsForGateway(cr, cr.Spec.Grafana.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())

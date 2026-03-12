@@ -20,6 +20,7 @@ const (
 	AlertmanagerServicePort           = 9093
 	AlertmanagerOAuthProxyServiceName = "alertmanager-oauth2-proxy"
 	OAuthProxyServicePortName         = "oauth-proxy"
+	OAuthProxyServicePort             = 9092
 
 	StackdriverPrometheusSidecarName = "stackdriver-prometheus"
 	PrometheusServiceName            = "prometheus-operated"
