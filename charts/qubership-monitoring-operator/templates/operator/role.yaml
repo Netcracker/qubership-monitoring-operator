@@ -79,7 +79,7 @@ rules:
       - 'update'
       - 'watch'
       - 'patch'
-  
+
   - apiGroups: [""]
     resources: ["pods/exec"]
     verbs: ["create"]
@@ -418,6 +418,9 @@ rules:
       - vmclusters
       - vmclusters/finalizers
       - vmclusters/status
+      - vmdistributed
+      - vmdistributed/finalizers
+      - vmdistributed/status
       - vmnodescrapes
       - vmnodescrapes/finalizers
       - vmnodescrapes/status
