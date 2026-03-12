@@ -10,8 +10,14 @@
 install: false
 
 # A name of a microservice to deploy with.
-# This name will be used as name of the microservice deployment and in labels.
+# Used for resource metadata.name and for app.kubernetes.io/name / component in labels.
 name: blackbox-exporter
+
+# Component name for app.kubernetes.io/component (no kind suffix). Defaults to name if not set.
+component: blackbox-exporter
+
+# Technology for app.kubernetes.io/technology label (e.g. go, java).
+technology: go
 
 # A Docker image to deploy the blackbox-exporter.
 # image: prom/blackbox-exporter:v0.19.0
