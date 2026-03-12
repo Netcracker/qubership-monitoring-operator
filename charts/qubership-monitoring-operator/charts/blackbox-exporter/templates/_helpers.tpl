@@ -27,3 +27,5 @@ Return securityContext for blackboxExporter.
         {}
     {{- end -}}
 {{- end -}}
+
+{{/* no chart-specific label helpers; use root monitoring.* helpers + inline workload labels in templates */}}

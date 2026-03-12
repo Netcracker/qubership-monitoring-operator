@@ -10,7 +10,7 @@
 install: false
 
 # A name of a microservice to deploy with.
-# This name will be used as name of the microservice deployment and in labels.
+# Used for resource metadata.name and for app.kubernetes.io/name label.
 name: blackbox-exporter
 
 # A Docker image to deploy the blackbox-exporter.
