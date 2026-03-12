@@ -101,11 +101,11 @@ rules:
       - vmagents
       - vmagents/finalizers
       - vmagents/status
+      - vmalertmanagerconfigs
+      - vmalertmanagerconfigs/finalizers
       - vmalertmanagers
       - vmalertmanagers/finalizers
       - vmalertmanagers/status
-      - vmalertmanagerconfigs
-      - vmalertmanagerconfigs/finalizers
       - vmalerts
       - vmalerts/finalizers
       - vmalerts/status
@@ -118,24 +118,27 @@ rules:
       - vmclusters
       - vmclusters/finalizers
       - vmclusters/status
+      - vmdistributed
+      - vmdistributed/finalizers
+      - vmdistributed/status
+      - vmnodescrapes
+      - vmnodescrapes/finalizers
       - vmpodscrapes
+      - vmprobes
+      - vmprobes/finalizers
       - vmprobscrapes/finalizers
       - vmrules
       - vmrules/finalizers
-      - vmservicescrapes
-      - vmservicescrapes/finalizers
-      - vmprobes
-      - vmprobes/finalizers
-      - vmsingles
-      - vmsingles/finalizers
-      - vmsingles/status
-      - vmnodescrapes
-      - vmnodescrapes/finalizers
-      - vmstaticscrapes
-      - vmstaticscrapes/finalizers
       - vmscrapeconfigs
       - vmscrapeconfigs/finalizers
       - vmscrapeconfigs/status
+      - vmservicescrapes
+      - vmservicescrapes/finalizers
+      - vmsingles
+      - vmsingles/finalizers
+      - vmsingles/status
+      - vmstaticscrapes
+      - vmstaticscrapes/finalizers
       - vmusers
       - vmusers/finalizers
       - vmusers/status

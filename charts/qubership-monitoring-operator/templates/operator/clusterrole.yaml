@@ -539,6 +539,8 @@ rules:
       - vmauths/finalizers
       - vmclusters
       - vmclusters/finalizers
+      - vmdistributed
+      - vmdistributed/finalizers
       - vmnodescrapes
       - vmnodescrapes/finalizers
       - vmpodscrapes
@@ -586,6 +588,7 @@ rules:
       - vmanomalies/status
       - vmauths/status
       - vmclusters/status
+      - vmdistributed/status
       - vmnodescrapes/status
       - vmpodscrapes/status
       - vmprobes/status
