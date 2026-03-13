@@ -13,7 +13,7 @@ spec:
             "builtIn": 1,
             "datasource": {
               "type": "datasource",
-              "uid": "grafana"
+              "uid": "${datasource}"
             },
             "enable": true,
             "hide": true,
@@ -134,7 +134,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "(((count(count(node_cpu_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}) by (cpu))) - avg(sum by (mode)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='idle',instance=\"$node\",job=\"$job\"}[5m])))) * 100) / count(count(node_cpu_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}) by (cpu))",
+                  "expr": "(((count(count(node_cpu_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}) by (cpu))) - avg(sum by (mode)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='idle',instance=\"$node\",job=\"$job\"}[$__rate_interval])))) * 100) / count(count(node_cpu_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}) by (cpu))",
                   "hide": false,
                   "instant": false,
                   "interval": "",
@@ -791,7 +791,7 @@ spec:
                     "uid": "${datasource}"
                   },
                   "exemplar": true,
-                  "expr": "sum(irate(container_network_receive_bytes_total{cluster=\"$cluster\", node=\"$hostname\"}[5m])) + sum(irate(container_network_transmit_bytes_total{cluster=\"$cluster\", node=\"$hostname\"}[5m]))",
+                  "expr": "sum(irate(container_network_receive_bytes_total{cluster=\"$cluster\", node=\"$hostname\"}[$__rate_interval])) + sum(irate(container_network_transmit_bytes_total{cluster=\"$cluster\", node=\"$hostname\"}[$__rate_interval]))",
                   "instant": false,
                   "interval": "",
                   "legendFormat": "",
@@ -1439,7 +1439,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode=\"system\",instance=\"$node\",job=\"$job\"}[5m])) * 100",
+                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode=\"system\",instance=\"$node\",job=\"$job\"}[$__rate_interval])) * 100",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -1452,7 +1452,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='user',instance=\"$node\",job=\"$job\"}[5m])) * 100",
+                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='user',instance=\"$node\",job=\"$job\"}[$__rate_interval])) * 100",
                   "format": "time_series",
                   "hide": false,
                   "intervalFactor": 2,
@@ -1464,7 +1464,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='iowait',instance=\"$node\",job=\"$job\"}[5m])) * 100",
+                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='iowait',instance=\"$node\",job=\"$job\"}[$__rate_interval])) * 100",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Busy Iowait",
@@ -1475,7 +1475,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode=~\".*irq\",instance=\"$node\",job=\"$job\"}[5m])) * 100",
+                  "expr": "sum by (instance)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode=~\".*irq\",instance=\"$node\",job=\"$job\"}[$__rate_interval])) * 100",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Busy IRQs",
@@ -1486,7 +1486,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum (irate(node_cpu_seconds_total{mode!='idle',mode!='user',mode!='system',mode!='iowait',mode!='irq',mode!='softirq',instance=\"$node\",job=\"$job\"}[5m])) * 100",
+                  "expr": "sum (irate(node_cpu_seconds_total{mode!='idle',mode!='user',mode!='system',mode!='iowait',mode!='irq',mode!='softirq',instance=\"$node\",job=\"$job\"}[$__rate_interval])) * 100",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Busy Other",
@@ -1497,7 +1497,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (mode)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='idle',instance=\"$node\",job=\"$job\"}[5m])) * 100",
+                  "expr": "sum by (mode)(irate(node_cpu_seconds_total{cluster=\"$cluster\",mode='idle',instance=\"$node\",job=\"$job\"}[$__rate_interval])) * 100",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Idle",
@@ -2468,7 +2468,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])*8",
+                  "expr": "irate(node_network_receive_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])*8",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -2480,7 +2480,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])*8",
+                  "expr": "irate(node_network_transmit_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])*8",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "trans {{device}} ",
@@ -2851,7 +2851,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "exemplar": true,
-                  "expr": "sum(rate(node_cpu_seconds_total{cluster=\"$cluster\", instance=\"$node\", job=\"$job\"}[2m])) by (mode) / \nscalar(count(count(node_cpu_seconds_total{cluster=\"$cluster\", instance=\"$node\", job=\"$job\"}) by (cpu))) * 100",
+                  "expr": "sum(rate(node_cpu_seconds_total{cluster=\"$cluster\", instance=\"$node\", job=\"$job\"}[$__rate_interval])) by (mode) / \nscalar(count(count(node_cpu_seconds_total{cluster=\"$cluster\", instance=\"$node\", job=\"$job\"}) by (cpu))) * 100",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 1,
@@ -3914,7 +3914,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_read_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[5m])",
+                  "expr": "irate(node_disk_read_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -3927,7 +3927,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_written_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[5m])",
+                  "expr": "irate(node_disk_written_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "intervalFactor": 2,
@@ -4379,7 +4379,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_reads_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[5m])",
+                  "expr": "irate(node_disk_reads_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
                   "interval": "",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - Reads completed",
@@ -4390,7 +4390,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_writes_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[5m])",
+                  "expr": "irate(node_disk_writes_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"}[$__rate_interval])",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Writes completed",
                   "refId": "B",
@@ -4669,7 +4669,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])*8",
+                  "expr": "irate(node_network_receive_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])*8",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -4681,7 +4681,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])*8",
+                  "expr": "irate(node_network_transmit_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])*8",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Transmit",
@@ -4815,7 +4815,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_io_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"} [5m])",
+                  "expr": "irate(node_disk_io_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\",device=~\"$diskdevices\"} [$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -8477,7 +8477,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pgpgin{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pgpgin{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pagesin - Page in operations",
@@ -8488,7 +8488,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pgpgout{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pgpgout{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pagesout - Page out operations",
@@ -8603,7 +8603,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pswpin{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pswpin{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pswpin - Pages swapped in",
@@ -8614,7 +8614,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pswpout{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pswpout{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pswpout - Pages swapped out",
@@ -8993,7 +8993,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pgfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pgfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pgfault - Page major and minor fault operations",
@@ -9004,7 +9004,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pgmajfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pgmajfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pgmajfault - Major page fault operations",
@@ -9015,7 +9015,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_pgfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])  - irate(node_vmstat_pgmajfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_pgfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])  - irate(node_vmstat_pgmajfault{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Pgminfault - Minor page fault operations",
@@ -9404,7 +9404,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_vmstat_oom_kill{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_vmstat_oom_kill{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -10250,7 +10250,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_forks_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_forks_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "intervalFactor": 2,
@@ -10367,7 +10367,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(process_virtual_memory_bytes{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(process_virtual_memory_bytes{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "hide": false,
                   "interval": "",
                   "intervalFactor": 2,
@@ -10391,7 +10391,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(process_virtual_memory_bytes{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(process_virtual_memory_bytes{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "hide": false,
                   "interval": "",
                   "intervalFactor": 2,
@@ -10403,7 +10403,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(process_virtual_memory_max_bytes{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(process_virtual_memory_max_bytes{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "hide": false,
                   "interval": "",
                   "intervalFactor": 2,
@@ -10520,7 +10520,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_schedstat_running_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_schedstat_running_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -10532,7 +10532,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_schedstat_waiting_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_schedstat_waiting_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -10922,7 +10922,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_context_switches_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_context_switches_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "Context switches",
@@ -10933,7 +10933,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_intr_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_intr_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "intervalFactor": 2,
@@ -11202,7 +11202,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_interrupts_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_interrupts_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -11306,7 +11306,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_schedstat_timeslices_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_schedstat_timeslices_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -11514,7 +11514,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(process_cpu_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(process_cpu_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -12216,7 +12216,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_systemd_socket_accepted_connections_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_systemd_socket_accepted_connections_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -12895,7 +12895,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_reads_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_reads_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - Reads completed",
                   "refId": "A",
@@ -12905,7 +12905,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_writes_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_writes_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Writes completed",
                   "refId": "B",
@@ -13339,7 +13339,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_read_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_read_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - Read bytes",
@@ -13350,7 +13350,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_written_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_written_bytes_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Written bytes",
@@ -13785,7 +13785,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_read_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_read_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "hide": false,
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - Read time",
@@ -13796,7 +13796,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_write_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_write_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "hide": false,
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Write time",
@@ -14221,7 +14221,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_io_time_weighted_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_io_time_weighted_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - IO time weighted",
                   "refId": "A",
@@ -14656,7 +14656,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_reads_merged_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_reads_merged_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Read merged",
                   "refId": "A",
@@ -14666,7 +14666,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_writes_merged_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_writes_merged_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Write merged",
                   "refId": "B",
@@ -15089,7 +15089,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_io_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_io_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - IO time",
                   "refId": "A",
@@ -15099,7 +15099,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_discard_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_discard_time_seconds_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "interval": "",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - discard time",
@@ -15138,7 +15138,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_io_now{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_io_now{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - IO now",
                   "refId": "A",
@@ -15177,7 +15177,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_discards_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_discards_completed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "interval": "",
                   "intervalFactor": 4,
                   "legendFormat": "{{device}} - Discards completed",
@@ -15188,7 +15188,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_disk_discards_merged_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_disk_discards_merged_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "interval": "",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Discards merged",
@@ -16063,7 +16063,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_packets_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_packets_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -16075,7 +16075,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_packets_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_packets_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -16192,7 +16192,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_errs_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_errs_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Receive errors",
@@ -16203,7 +16203,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_errs_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_errs_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Rransmit errors",
@@ -16319,7 +16319,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_drop_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_drop_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Receive drop",
@@ -16330,7 +16330,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_drop_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_drop_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Transmit drop",
@@ -16446,7 +16446,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_compressed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_compressed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Receive compressed",
@@ -16457,7 +16457,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_compressed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_compressed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Transmit compressed",
@@ -16573,7 +16573,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_multicast_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_multicast_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Receive multicast",
@@ -16690,7 +16690,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_fifo_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_fifo_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Receive fifo",
@@ -16701,7 +16701,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_fifo_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_fifo_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Transmit fifo",
@@ -16740,7 +16740,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_receive_frame_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_receive_frame_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "intervalFactor": 2,
@@ -16780,7 +16780,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_carrier_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_carrier_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Statistic transmit_carrier",
@@ -16819,7 +16819,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_network_transmit_colls_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_network_transmit_colls_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "{{device}} - Transmit colls",
@@ -17060,7 +17060,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_softnet_processed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_softnet_processed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -17072,7 +17072,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_softnet_dropped_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_softnet_dropped_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -17111,7 +17111,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_softnet_times_squeezed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_softnet_times_squeezed_total{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -17945,7 +17945,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_IpExt_InOctets{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_IpExt_InOctets{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -17957,7 +17957,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_IpExt_OutOctets{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_IpExt_OutOctets{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "intervalFactor": 2,
                   "legendFormat": "OutOctets - Sent octets",
@@ -18061,7 +18061,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Ip_Forwarding{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Ip_Forwarding{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18177,7 +18177,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Icmp_InMsgs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Icmp_InMsgs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18189,7 +18189,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Icmp_OutMsgs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Icmp_OutMsgs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18305,7 +18305,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Icmp_InErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Icmp_InErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18434,7 +18434,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Udp_InDatagrams{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Udp_InDatagrams{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18446,7 +18446,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Udp_OutDatagrams{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Udp_OutDatagrams{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18549,7 +18549,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Udp_InErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Udp_InErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18561,7 +18561,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Udp_NoPorts{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Udp_NoPorts{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18573,7 +18573,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_UdpLite_InErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_UdpLite_InErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "interval": "",
                   "legendFormat": "InErrors Lite - UDPLite Datagrams that could not be delivered to an application",
                   "refId": "C"
@@ -18582,7 +18582,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Udp_RcvbufErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Udp_RcvbufErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18594,7 +18594,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Udp_SndbufErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Udp_SndbufErrors{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18634,7 +18634,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Tcp_InSegs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Tcp_InSegs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "instant": false,
                   "interval": "",
@@ -18647,7 +18647,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Tcp_OutSegs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Tcp_OutSegs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18687,7 +18687,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_TcpExt_ListenOverflows{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_TcpExt_ListenOverflows{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -18700,7 +18700,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_TcpExt_ListenDrops{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_TcpExt_ListenDrops{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -18713,7 +18713,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_TcpExt_TCPSynRetrans{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_TcpExt_TCPSynRetrans{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18725,7 +18725,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Tcp_RetransSegs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Tcp_RetransSegs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "interval": "",
                   "legendFormat": "RetransSegs - Segments retransmitted - that is, the number of TCP segments transmitted containing one or more previously transmitted octets",
                   "refId": "D"
@@ -18734,7 +18734,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Tcp_InErrs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Tcp_InErrs{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "interval": "",
                   "legendFormat": "InErrs - Segments received in error (e.g., bad TCP checksums)",
                   "refId": "E"
@@ -18826,7 +18826,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_TcpExt_SyncookiesFailed{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_TcpExt_SyncookiesFailed{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -18839,7 +18839,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_TcpExt_SyncookiesRecv{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_TcpExt_SyncookiesRecv{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -18852,7 +18852,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_TcpExt_SyncookiesSent{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_TcpExt_SyncookiesSent{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "hide": false,
                   "interval": "",
@@ -18894,7 +18894,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Tcp_ActiveOpens{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Tcp_ActiveOpens{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
@@ -18906,7 +18906,7 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "irate(node_netstat_Tcp_PassiveOpens{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[5m])",
+                  "expr": "irate(node_netstat_Tcp_PassiveOpens{cluster=\"$cluster\",instance=\"$node\",job=\"$job\"}[$__rate_interval])",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 2,
