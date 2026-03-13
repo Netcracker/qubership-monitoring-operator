@@ -1,18 +1,11 @@
 {{- if and .Values.install (not .Values.asDaemonSet) }}
+{{- $name := .Values.name -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ $name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: blackbox-exporter
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "blackboxExporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    {{- if .Values.labels }}
-      {{- toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    {{- include "blackboxExporter.labels.workload" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -20,26 +13,18 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: {{ $name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
-        app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: blackbox-exporter
-        app.kubernetes.io/part-of: monitoring
-        app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-          {{- toYaml .Values.labels | nindent 8 }}
-        {{- end }}
+        app: {{ $name }}
+        {{- include "blackboxExporter.labels.workload" . | nindent 8 }}
       {{- if .Values.annotations }}
       annotations:
         {{- toYaml .Values.annotations | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: {{ .Values.name }}
+      serviceAccountName: {{ $name }}
       securityContext:
         {{ include "blackboxExporter.securityContext" . }}
       {{- if .Values.tolerations }}
@@ -81,12 +66,12 @@ spec:
         - name: config
       {{- if .Values.secretConfig }}
           secret:
-            secretName: {{ .Values.name }}
+            secretName: {{ $name }}
       {{- else if .Values.configExistingSecretName }}
           secret:
             secretName: {{ .Values.configExistingSecretName }}
       {{- else }}
           configMap:
-            name: {{ .Values.name }}
+            name: {{ $name }}
 {{- end }}
 {{- end }}

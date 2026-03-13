@@ -1,6 +1,48 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
+Base resource labels: expects either chart context (.) or dict with ctx and optional overrides.
+When name or component are omitted, they are derived from ctx.Values (name, component|default name).
+Usage:
+  {{- include "monitoring.labels" . | nindent 4 }}
+  Or with overrides: (dict "ctx" . "name" "x" "processedByOperator" "prometheus-operator")
+*/}}
+{{- define "monitoring.labels" -}}
+{{- $ctx := index . "ctx" | default . -}}
+{{- $vals := $ctx.Values -}}
+{{- $name := .name | default $vals.name -}}
+{{- $component := .component | default ($vals.component | default $vals.name) -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+app.kubernetes.io/part-of: monitoring
+app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+{{- if .processedByOperator }}
+app.kubernetes.io/processed-by-operator: {{ .processedByOperator }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Workload labels: base labels plus instance, version, technology, and extraLabels.
+Use for Deployment, StatefulSet, DaemonSet metadata and pod template.
+Minimum: ctx, instance, version. Optional (default from ctx.Values): name, component, technology, extraLabels.
+*/}}
+{{- define "monitoring.workloadLabels" -}}
+{{- $ctx := .ctx -}}
+{{- $vals := $ctx.Values -}}
+{{- $technology := .technology | default ($vals.technology | default "go") -}}
+{{- $extraLabels := .extraLabels | default ($vals.labels | default dict) -}}
+{{- include "monitoring.labels" . }}
+app.kubernetes.io/instance: {{ .instance }}
+app.kubernetes.io/version: {{ .version }}
+app.kubernetes.io/technology: {{ $technology }}
+{{ with $extraLabels }}
+
+{{- toYaml . }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Expand the name of the chart. This is suffixed with -alertmanager, which means subtract 13 from longest 63 available
 */}}
 {{- define "monitoring.name" -}}

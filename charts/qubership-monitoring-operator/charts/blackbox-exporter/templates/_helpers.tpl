@@ -27,3 +27,14 @@ Return securityContext for blackboxExporter.
         {}
     {{- end -}}
 {{- end -}}
+
+{{/*
+blackboxExporter.labels.workload: for Deployment/DaemonSet metadata and pod template.
+Instance: name-namespace (trunc 63); version: image tag. Other resources use monitoring.labels directly.
+*/}}
+{{- define "blackboxExporter.labels.workload" -}}
+{{- $instance := cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" -}}
+{{- $version := splitList ":" (include "blackboxExporter.image" .) | last -}}
+{{- $ctx := dict "ctx" . "instance" $instance "version" $version -}}
+{{- include "monitoring.workloadLabels" $ctx -}}
+{{- end -}}
