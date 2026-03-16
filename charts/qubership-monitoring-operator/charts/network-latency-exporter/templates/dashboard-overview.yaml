@@ -4,11 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}-overview
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}-overview
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" (printf "%s-overview" .Values.name) "component" "monitoring" "processedByOperator" "grafana-operator") | nindent 4 }}
 spec:
   json: >
     {

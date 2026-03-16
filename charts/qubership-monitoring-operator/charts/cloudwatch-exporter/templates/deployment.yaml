@@ -4,11 +4,10 @@ kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: cloudwatch-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "cloudwatch-exporter") | nindent 4 }}
     app.kubernetes.io/instance: {{ template "cloudwatch-exporter.instance" . }}
     app.kubernetes.io/version: {{ template "cloudwatch-exporter.version" . }}
+    app.kubernetes.io/technology: go
     {{- if .Values.labels }}
       {{ toYaml .Values.labels | nindent 4 }}
     {{- end }}
@@ -25,12 +24,10 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
-        app.kubernetes.io/component: cloudwatch-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "cloudwatch-exporter") | nindent 8 }}
         app.kubernetes.io/instance: {{ template "cloudwatch-exporter.instance" . }}
         app.kubernetes.io/version: {{ template "cloudwatch-exporter.version" . }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: go
         {{- if .Values.labels }}
           {{ toYaml .Values.labels | nindent 8 }}
         {{- end }}

@@ -4,11 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "certExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "certExporter.version" . }}
+    {{- include "monitoring.resourceLabels" (dict "ctx" . "name" .Values.name "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
 spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval }}
