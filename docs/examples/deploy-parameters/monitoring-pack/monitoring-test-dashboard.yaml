@@ -9,11 +9,11 @@ metadata:
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
 spec:
-  allowCrossNamespaceImport: true
+  allowCrossNamespaceImport: false
   instanceSelector:
     matchLabels:
-      app.kubernetes.io/name: grafana
-  folder: monitoring
+      app.kubernetes.io/instance: grafana-monitoring
+  folderRef: monitoring-folder
   json: >
     {
       "annotations": {

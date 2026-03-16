@@ -11,6 +11,7 @@ metadata:
     app.kubernetes.io/component: victoriametrics
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
     {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmUser.labels }}
     {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
   name: {{ default (printf "%s-vmuser" (include "monitoring-pack-one.fullname" .)) $vmUserValues.name }}
@@ -42,8 +43,10 @@ spec:
   # VMAuth will route requests matching these path patterns to the corresponding backend services (VMAgent, VMSingle, etc.)
   targetRefs:
     {{- $vmAgentValues := .Values.vmAgent | default dict }}
+    {{- $vmAlertValues := .Values.vmAlert | default dict }}
     {{- $vmSingleValues := .Values.vmSingle | default dict }}
     {{- $namespace := include "monitoring-pack-one.namespace" . }}
+    {{- $ingressValues := .Values.ingress | default dict }}
     {{- if and $vmSingleValues (or $vmSingleValues.install (and $vmSingleValues.serviceName $vmSingleValues.namespace)) }}
     {{- if $vmSingleValues.install }}
     # VMSingle CRD
@@ -51,8 +54,18 @@ spec:
         kind: VMSingle
         name: {{ default "k8s" $vmSingleValues.name }}
         namespace: {{ $vmSingleValues.namespace | default $namespace }}
+      {{- if or (and $ingressValues.vmSingle $ingressValues.vmSingle.host) (and $ingressValues.vmAuth $ingressValues.vmAuth.host) }}
+      hosts:
+        {{- if and $ingressValues.vmSingle $ingressValues.vmSingle.host }}
+        - {{ $ingressValues.vmSingle.host }}
+        {{- end }}
+        {{- if and $ingressValues.vmAuth $ingressValues.vmAuth.host }}
+        - {{ $ingressValues.vmAuth.host }}
+        {{- end }}
+      {{- end }}
       paths:
         - ""
+        - "/"
         - "/vmui.*"
         - "/graph.*"
         - "/api/v1/label.*"
@@ -79,8 +92,18 @@ spec:
     # VMSingle static (Deployment/Service)
     - static:
         url: http://{{ $vmSingleValues.serviceName }}.{{ $vmSingleValues.namespace }}.svc:{{ $vmSingleValues.servicePort | default 8429 }}
+      {{- if or (and $ingressValues.vmSingle $ingressValues.vmSingle.host) (and $ingressValues.vmAuth $ingressValues.vmAuth.host) }}
+      hosts:
+        {{- if and $ingressValues.vmSingle $ingressValues.vmSingle.host }}
+        - {{ $ingressValues.vmSingle.host }}
+        {{- end }}
+        {{- if and $ingressValues.vmAuth $ingressValues.vmAuth.host }}
+        - {{ $ingressValues.vmAuth.host }}
+        {{- end }}
+      {{- end }}
       paths:
         - ""
+        - "/"
         - "/vmui.*"
         - "/graph.*"
         - "/api/v1/label.*"
@@ -105,12 +128,33 @@ spec:
         - "/prometheus/api/v1/admin/tsdb.*"
     {{- end }}
     {{- end }}
+    {{- if $vmAlertValues.install }}
+    - crd:
+        kind: VMAlert
+        name: {{ default (printf "%s-vmalert" (include "monitoring-pack-one.fullname" .)) $vmAlertValues.name }}
+        namespace: {{ $namespace }}
+      {{- if and $ingressValues.vmalert $ingressValues.vmalert.host }}
+      hosts:
+        - {{ $ingressValues.vmalert.host }}
+      {{- end }}
+      paths:
+        - ""
+        - "/"
+        - "/api/v1/alerts"
+        - "/api/v1/rules"
+        - "/metrics"
+        - "/-/reload"
+    {{- end }}
     {{- if $vmAgentValues.install }}
     # VMAgent - always add if installed (can coexist with VMSingle)
     - crd:
         kind: VMAgent
         name: {{ default (printf "%s-vmagent" (include "monitoring-pack-one.fullname" .)) $vmAgentValues.name }}
         namespace: {{ $namespace }}
+      {{- if and $ingressValues.vmAgent $ingressValues.vmAgent.host }}
+      hosts:
+        - {{ $ingressValues.vmAgent.host }}
+      {{- end }}
       paths:
         - "/config.*"
         - "/target.*"
@@ -119,6 +163,22 @@ spec:
         - "/api/v1/write"
         - "/api/v1/import.*"
         - "/api/v1/target.*"
+    {{- if and $ingressValues.vmAuth $ingressValues.vmAuth.host }}
+    - crd:
+        kind: VMAgent
+        name: {{ default (printf "%s-vmagent" (include "monitoring-pack-one.fullname" .)) $vmAgentValues.name }}
+        namespace: {{ $namespace }}
+      hosts:
+        - {{ $ingressValues.vmAuth.host }}
+      paths:
+        - "/config.*"
+        - "/target.*"
+        - "/service-discovery.*"
+        - "/static.*"
+        - "/api/v1/write"
+        - "/api/v1/import.*"
+        - "/api/v1/target.*"
+    {{- end }}
     {{- end }}
   {{- end }}
 {{- end }}

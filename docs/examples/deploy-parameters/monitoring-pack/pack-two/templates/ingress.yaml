@@ -135,13 +135,57 @@ spec:
 {{- end }}
 {{- end }}
 
+{{- if and .Values.vmAlert.install .Values.vmAuth.install .Values.ingress.install }}
+{{- if .Values.ingress.vmalert }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default (printf "%s-vmalert" (include "monitoring-pack-two.fullname" .)) .Values.vmAlert.name }}-ingress
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    name: vmalert-ingress
+    app.kubernetes.io/name: vmalert
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.ingress.vmalert.labels | default dict) }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  annotations:
+    {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.ingress.vmalert.annotations | default dict) }}
+    {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 4 }}
+spec:
+  {{- if .Values.ingress.vmalert.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.vmalert.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.vmalert.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vmauth-{{ default (printf "%s-vmauth" (include "monitoring-pack-two.fullname" .)) .Values.vmAuth.name }}
+                port:
+                  number: {{ .Values.ingress.vmAuth.servicePort | default 8427 }}
+  {{- if .Values.ingress.vmalert.tlsSecretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.vmalert.host }}
+      secretName: {{ .Values.ingress.vmalert.tlsSecretName }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
 {{- if and .Values.grafana.install .Values.ingress.install }}
 {{- if .Values.ingress.grafana }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ default (printf "%s-grafana" (include "monitoring-pack-two.fullname" .)) .Values.grafana.name }}-ingress
+  name: {{ include "monitoring-pack-two.grafana.name" . }}-ingress
   namespace: {{ include "monitoring-pack-two.namespace" . }}
   labels:
     name: grafana-ingress
@@ -168,7 +212,7 @@ spec:
             backend:
               service:
                 # Grafana Operator creates service as {grafana-cr-name}-service
-                name: {{ default (printf "%s-grafana" (include "monitoring-pack-two.fullname" .)) .Values.grafana.name }}-service
+                name: {{ include "monitoring-pack-two.grafana.name" . }}-service
                 port:
                   number: {{ .Values.ingress.grafana.servicePort | default 3000 }}
   {{- if .Values.ingress.grafana.tlsSecretName }}

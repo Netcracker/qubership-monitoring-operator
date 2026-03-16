@@ -42,9 +42,13 @@ spec:
 {{- if .Values.vmAlert.spec }}
 {{- $vmSingleName := default (include "monitoring-pack-two.vmsingle.baseName" .) .Values.vmSingle.name }}
 {{- $namespace := include "monitoring-pack-two.namespace" . }}
+{{- $newServiceName := printf "vmsingle-%s.%s.svc" $vmSingleName $namespace }}
 {{- $spec := .Values.vmAlert.spec | deepCopy }}
 {{- if $spec.datasource }}
-{{- $_ := set $spec.datasource "url" ($spec.datasource.url | replace "k8s-dev-vmsingle.monitoring.svc" (printf "vmsingle-%s.%s.svc" $vmSingleName $namespace)) }}
+{{- $_ := set $spec.datasource "url" ($spec.datasource.url | replace "k8s-dev-vmsingle.monitoring.svc" $newServiceName | replace "k8s-dev-vmsingle.pack-two.svc" $newServiceName) }}
+{{- end }}
+{{- if $spec.remoteWrite }}
+{{- $_ := set $spec.remoteWrite "url" ($spec.remoteWrite.url | replace "k8s-dev-vmsingle.monitoring.svc" $newServiceName | replace "k8s-dev-vmsingle.pack-two.svc" $newServiceName) }}
 {{- end }}
 {{ toYaml $spec | indent 2 }}
 {{- end }}

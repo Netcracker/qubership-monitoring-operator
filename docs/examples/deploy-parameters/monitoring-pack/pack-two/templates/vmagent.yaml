@@ -33,32 +33,46 @@ spec:
         values:
           - "one"
           - "two"
+      - key: app.kubernetes.io/instance
+        operator: NotIn
+        values:
+          - "vmagent"
+          - "vmauth"
+          - "vmalert"
   serviceScrapeNamespaceSelector:
     matchExpressions:
       - key: openshift.io/cluster-monitoring
         operator: NotIn
         values: ["true"]
 
-  # Other scrape selectors (can be configured if needed)
-  podScrapeSelector: {}
+  # Keep auxiliary scrape resources isolated to pack-two only.
+  podScrapeSelector:
+    matchLabels:
+      monitoring-pack: "two"
   podScrapeNamespaceSelector:
     matchExpressions:
       - key: openshift.io/cluster-monitoring
         operator: NotIn
         values: ["true"]
-  probeSelector: {}
+  probeSelector:
+    matchLabels:
+      monitoring-pack: "two"
   probeNamespaceSelector:
     matchExpressions:
       - key: openshift.io/cluster-monitoring
         operator: NotIn
         values: ["true"]
-  nodeScrapeSelector: {}
+  nodeScrapeSelector:
+    matchLabels:
+      monitoring-pack: "two"
   nodeScrapeNamespaceSelector:
     matchExpressions:
       - key: openshift.io/cluster-monitoring
         operator: NotIn
         values: ["true"]
-  staticScrapeSelector: {}
+  staticScrapeSelector:
+    matchLabels:
+      monitoring-pack: "two"
   staticScrapeNamespaceSelector:
     matchExpressions:
       - key: openshift.io/cluster-monitoring

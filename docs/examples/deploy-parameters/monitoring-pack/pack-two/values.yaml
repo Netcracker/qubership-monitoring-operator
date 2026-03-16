@@ -119,6 +119,12 @@ vmAgent:
           values:
             - "one"
             - "two"
+        - key: app.kubernetes.io/instance
+          operator: NotIn
+          values:
+            - "vmagent"
+            - "vmauth"
+            - "vmalert"
 
 vmAlert:
   install: true
@@ -133,11 +139,66 @@ vmAlert:
     notifier:
       url: https://alertmanager.example.com
     remoteWrite:
-      url: https://alertmanager.example.com/api/v1/alerts
+      url: http://k8s-dev-vmsingle.pack-two.svc:8429/api/v1/write
     ruleSelector:
       matchLabels:
         monitoring-pack: "two"
     ruleNamespaceSelector: {}
+
+vmRules:
+  alerts:
+    install: true
+    # Optional: override generated VMRule name
+    name: ""
+    labels: {}
+    annotations: {}
+    groups:
+      - name: pack-two-dev-alerts
+        interval: 30s
+        rules:
+          - alert: VMAgentDown
+            expr: up{job="vmagent-vmagent-dev"} == 0
+            for: 5m
+            labels:
+              severity: critical
+              monitoring-pack: "two"
+            annotations:
+              summary: "VMAgent for pack-two is down"
+              description: "VMAgent {{ $labels.instance }} has been down for more than 5 minutes."
+          - alert: VMSingleDown
+            expr: up{job="vmsingle-k8s-dev"} == 0
+            for: 5m
+            labels:
+              severity: critical
+              monitoring-pack: "two"
+            annotations:
+              summary: "VMSingle for pack-two is down"
+              description: "VMSingle {{ $labels.instance }} has been down for more than 5 minutes."
+          - alert: HighMemoryUsage
+            expr: (vm_memory_usage_bytes / vm_memory_available_bytes) > 0.9
+            for: 5m
+            labels:
+              severity: warning
+              monitoring-pack: "two"
+            annotations:
+              summary: "High memory usage in pack-two"
+              description: "Memory usage is above 90% for {{ $labels.instance }}."
+  recording:
+    install: true
+    # Optional: override generated VMRule name
+    name: ""
+    labels: {}
+    annotations: {}
+    groups:
+      - name: pack-two-dev-recording
+        interval: 30s
+        rules:
+          - record: pack_two:core_components:up_total
+            expr: sum(up{job=~"(vmagent-vmagent-dev|vmalert-vmalert-dev|vmsingle-k8s-dev|vmauth-vmauth-dev)"} == 1)
+          - record: pack_two:core_components:total
+            expr: count(up{job=~"(vmagent-vmagent-dev|vmalert-vmalert-dev|vmsingle-k8s-dev|vmauth-vmauth-dev)"})
+          - record: pack_two:core_components:availability_percent
+            expr: 100 * sum(up{job=~"(vmagent-vmagent-dev|vmalert-vmalert-dev|vmsingle-k8s-dev|vmauth-vmauth-dev)"} == 1) / count(up{job=~"(vmagent-vmagent-dev|vmalert-vmalert-dev|vmsingle-k8s-dev|vmauth-vmauth-dev)"})
 
 vmAuth:
   install: true
@@ -195,12 +256,19 @@ ingress:
     tlsSecretName: ""
     labels: {}
     annotations: {}
+  vmalert:
+    host: vmalert-dev.example.com
+    ingressClassName: traefik
+    servicePort: 8080
+    tlsSecretName: ""
+    labels: {}
+    annotations: {}
   # Grafana: Ingress created by this chart (Grafana Operator's Ingress disabled in grafana.spec)
   grafana:
     host: grafana-dev.example.com
     ingressClassName: traefik
     servicePort: 3000
-    tlsSecretName: ""
+    tlsSecretName: grafana-dev-tls
     labels: {}
     annotations: {}
 
@@ -241,8 +309,9 @@ grafana:
   # Set to true to create Grafana CR in pack-two namespace
   # Set to false to reuse Grafana from baseline (monitoring namespace)
   install: true
-  # Custom name for Grafana CR (default: pack-two-monitoring-pack-two-grafana)
-  name: ""
+  # Custom name for Grafana CR.
+  # Default is kept short so Grafana-managed Deployment/Service names stay readable.
+  name: grafana
   # Custom namespace for Grafana CR (default: pack-two)
   namespace: ""
   # Labels for Grafana CR
@@ -280,18 +349,6 @@ grafana:
         admin_password: admin
     # Ingress: do not set spec.ingress here — Grafana Operator would create its own Ingress.
     # We use a single Ingress from this chart (see ingress.grafana and templates/ingress.yaml).
-    livenessProbeSpec:
-      initialDelaySeconds: 60
-      timeoutSeconds: 30
-      periodSeconds: 10
-      successThreshold: 1
-      failureThreshold: 10
-    readinessProbeSpec:
-      initialDelaySeconds: 10
-      timeoutSeconds: 10
-      periodSeconds: 30
-      successThreshold: 1
-      failureThreshold: 10
   datasource:
     install: true
     name: pack-two-victoriametrics

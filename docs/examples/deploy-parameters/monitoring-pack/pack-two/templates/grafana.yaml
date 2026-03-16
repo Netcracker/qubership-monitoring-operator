@@ -2,10 +2,10 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
 metadata:
-  name: {{ default (printf "%s-grafana" (include "monitoring-pack-two.fullname" .)) .Values.grafana.name }}
+  name: {{ include "monitoring-pack-two.grafana.name" . }}
   namespace: {{ default (include "monitoring-pack-two.namespace" .) .Values.grafana.namespace }}
   labels:
-    app.kubernetes.io/name: {{ default (printf "%s-grafana" (include "monitoring-pack-two.fullname" .)) .Values.grafana.name }}
+    app.kubernetes.io/name: {{ include "monitoring-pack-two.grafana.name" . }}
     app.kubernetes.io/component: grafana
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
@@ -15,20 +15,5 @@ metadata:
   {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.grafana.annotations | default dict) }}
   {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
 spec:
-  {{- if .Values.grafana.spec }}
-{{ toYaml .Values.grafana.spec | indent 2 }}
-  {{- else }}
-  livenessProbeSpec:
-    initialDelaySeconds: 60
-    timeoutSeconds: 30
-    periodSeconds: 10
-    successThreshold: 1
-    failureThreshold: 10
-  readinessProbeSpec:
-    initialDelaySeconds: 10
-    timeoutSeconds: 10
-    periodSeconds: 30
-    successThreshold: 1
-    failureThreshold: 10
-  {{- end }}
+{{ toYaml (.Values.grafana.spec | default dict) | indent 2 }}
 {{- end }}

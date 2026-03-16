@@ -12,6 +12,6 @@ spec:
   allowCrossNamespaceImport: false
   instanceSelector:
     matchLabels:
-      app.kubernetes.io/name: grafana
+      app.kubernetes.io/instance: grafana-monitoring
   title: monitoring
   uid: monitoring

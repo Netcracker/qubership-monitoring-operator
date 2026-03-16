@@ -43,18 +43,24 @@ spec:
   # to the corresponding backend services (VMAgent, VMSingle, etc.)
   targetRefs:
     {{- $vmAgentValues := .Values.vmAgent | default dict }}
+    {{- $vmAlertValues := .Values.vmAlert | default dict }}
     {{- $vmSingleValues := .Values.vmSingle | default dict }}
     {{- $namespace := include "monitoring-pack-two.namespace" . }}
     {{- $ingressValues := .Values.ingress | default dict }}
     {{- if and $vmSingleValues $vmSingleValues.install }}
-    # VMSingle CRD - route requests from vmsingle host through VMAuth
+    # VMSingle CRD - route requests from vmsingle host and vmauth host through VMAuth.
     - crd:
         kind: VMSingle
         name: {{ default (include "monitoring-pack-two.vmsingle.baseName" .) $vmSingleValues.name }}
         namespace: {{ $vmSingleValues.namespace | default $namespace }}
-      {{- if and $ingressValues.vmSingle $ingressValues.vmSingle.host }}
+      {{- if or (and $ingressValues.vmSingle $ingressValues.vmSingle.host) (and $ingressValues.vmAuth $ingressValues.vmAuth.host) }}
       hosts:
+        {{- if and $ingressValues.vmSingle $ingressValues.vmSingle.host }}
         - {{ $ingressValues.vmSingle.host }}
+        {{- end }}
+        {{- if and $ingressValues.vmAuth $ingressValues.vmAuth.host }}
+        - {{ $ingressValues.vmAuth.host }}
+        {{- end }}
       {{- end }}
       paths:
         - ""
@@ -86,7 +92,24 @@ spec:
         - "/prometheus/api/v1/admin/tsdb.*"
     {{- end }}
     {{- if $vmAgentValues.install }}
-    # VMAgent - route requests from vmagent host through VMAuth
+    {{- if $vmAlertValues.install }}
+    - crd:
+        kind: VMAlert
+        name: {{ default (printf "%s-vmalert" (include "monitoring-pack-two.fullname" .)) $vmAlertValues.name }}
+        namespace: {{ $namespace }}
+      {{- if and $ingressValues.vmalert $ingressValues.vmalert.host }}
+      hosts:
+        - {{ $ingressValues.vmalert.host }}
+      {{- end }}
+      paths:
+        - ""
+        - "/"
+        - "/api/v1/alerts"
+        - "/api/v1/rules"
+        - "/metrics"
+        - "/-/reload"
+    {{- end }}
+    # VMAgent - route requests from dedicated vmagent host through VMAuth.
     - crd:
         kind: VMAgent
         name: {{ default (printf "%s-vmagent" (include "monitoring-pack-two.fullname" .)) $vmAgentValues.name }}
@@ -105,6 +128,23 @@ spec:
         - "/api/v1/write"
         - "/api/v1/import.*"
         - "/api/v1/target.*"
+    {{- if and $ingressValues.vmAuth $ingressValues.vmAuth.host }}
+    # VMAgent via shared VMAuth host: expose only agent-specific paths, keep root handled by VMSingle UI.
+    - crd:
+        kind: VMAgent
+        name: {{ default (printf "%s-vmagent" (include "monitoring-pack-two.fullname" .)) $vmAgentValues.name }}
+        namespace: {{ $namespace }}
+      hosts:
+        - {{ $ingressValues.vmAuth.host }}
+      paths:
+        - "/config.*"
+        - "/target.*"
+        - "/service-discovery.*"
+        - "/static.*"
+        - "/api/v1/write"
+        - "/api/v1/import.*"
+        - "/api/v1/target.*"
     {{- end }}
+  {{- end }}
   {{- end }}
 {{- end }}

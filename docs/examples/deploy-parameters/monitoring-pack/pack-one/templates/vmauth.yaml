@@ -3,7 +3,7 @@
 {{- if $vmAuthValues.install }}
 {{- $namespace := include "monitoring-pack-one.namespace" . }}
 {{- $vmAuthName := default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) $vmAuthValues.name }}
-{{- $defaultUserSelector := dict "matchLabels" (dict "app.kubernetes.io/name" "vmuser") }}
+{{- $defaultUserSelector := dict "matchLabels" (dict "app.kubernetes.io/name" "vmuser" "monitoring-pack" (include "monitoring-pack-one.monitoringPackLabel" .)) }}
 {{- $userSelector := default $defaultUserSelector $vmAuthSpec.userSelector }}
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMAuth
@@ -14,6 +14,7 @@ metadata:
     app.kubernetes.io/component: victoriametrics
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
     {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.vmAuth.labels }}
     {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
   name: {{ $vmAuthName }}

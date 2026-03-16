@@ -23,6 +23,7 @@ grafana:
     install: true
     host: grafana.example.com
     ingressClassName: traefik
+    tlsSecretName: grafana-tls
   config:
     log:
       mode: console

@@ -23,6 +23,10 @@
 {{- default "monitoring" .Values.namespace -}}
 {{- end -}}
 
+{{- define "monitoring-pack-one.monitoringPackLabel" -}}
+{{- default "one" .Values.monitoringPackLabel -}}
+{{- end -}}
+
 {{- define "monitoring-pack-one.standardLabels" -}}
 {{- $defaultLabels := dict "platform.monitoring.type" "exporter" -}}
 {{- $customLabels := .Values.standardLabels | default dict -}}
@@ -73,6 +77,50 @@
 {{- .Values.rbac.vmAgent.roleBindingName | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- printf "%s-%s-rolebinding" (include "monitoring-pack-one.fullname" .) (include "monitoring-pack-one.vmagent.baseName" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmalert.baseName" -}}
+{{- default "vmalert" .Values.vmAlert.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmalert.serviceAccountName" -}}
+{{- if .Values.rbac.vmAlert.serviceAccountName }}
+{{- .Values.rbac.vmAlert.serviceAccountName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" (include "monitoring-pack-one.fullname" .) (include "monitoring-pack-one.vmalert.baseName" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmalert.clusterRoleName" -}}
+{{- if .Values.rbac.vmAlert.clusterRoleName }}
+{{- .Values.rbac.vmAlert.clusterRoleName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-clusterrole" (include "monitoring-pack-one.fullname" .) (include "monitoring-pack-one.vmalert.baseName" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmalert.clusterRoleBindingName" -}}
+{{- if .Values.rbac.vmAlert.clusterRoleBindingName }}
+{{- .Values.rbac.vmAlert.clusterRoleBindingName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-clusterbinding" (include "monitoring-pack-one.fullname" .) (include "monitoring-pack-one.vmalert.baseName" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmalert.roleName" -}}
+{{- if .Values.rbac.vmAlert.roleName }}
+{{- .Values.rbac.vmAlert.roleName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-role" (include "monitoring-pack-one.fullname" .) (include "monitoring-pack-one.vmalert.baseName" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "monitoring-pack-one.vmalert.roleBindingName" -}}
+{{- if .Values.rbac.vmAlert.roleBindingName }}
+{{- .Values.rbac.vmAlert.roleBindingName | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-rolebinding" (include "monitoring-pack-one.fullname" .) (include "monitoring-pack-one.vmalert.baseName" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 

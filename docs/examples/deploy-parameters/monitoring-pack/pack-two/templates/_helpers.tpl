@@ -124,6 +124,10 @@
 {{- default "k8s" .Values.vmSingle.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "monitoring-pack-two.grafana.name" -}}
+{{- default "grafana" .Values.grafana.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{- define "monitoring-pack-two.vmoperator.serviceAccountName" -}}
 {{- if .Values.rbac.vmOperator.serviceAccountName }}
 {{- .Values.rbac.vmOperator.serviceAccountName | trunc 63 | trimSuffix "-" -}}

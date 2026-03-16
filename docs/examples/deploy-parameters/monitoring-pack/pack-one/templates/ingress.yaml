@@ -72,9 +72,13 @@ spec:
             pathType: Prefix
             backend:
               service:
+                {{- if .Values.vmAuth.install }}
+                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
+                {{- else }}
                 name: {{ default (printf "%s-vmagent" (include "monitoring-pack-one.fullname" .)) .Values.vmAgent.name }}-vmagent
+                {{- end }}
                 port:
-                  number: {{ .Values.ingress.vmAgent.servicePort | default 8429 }}
+                  number: {{ ternary (.Values.ingress.vmAuth.servicePort | default 8427) (.Values.ingress.vmAgent.servicePort | default 8429) .Values.vmAuth.install }}
   {{- if .Values.ingress.vmAgent.tlsSecretName }}
   tls:
     - hosts:
@@ -115,14 +119,60 @@ spec:
             pathType: Prefix
             backend:
               service:
+                {{- if .Values.vmAuth.install }}
+                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
+                {{- else }}
                 name: {{ .Values.vmSingle.serviceName | default (printf "%s-k8s" .Values.vmSingle.name) }}
+                {{- end }}
                 port:
-                  number: {{ .Values.ingress.vmSingle.servicePort | default 8429 }}
+                  number: {{ ternary (.Values.ingress.vmAuth.servicePort | default 8427) (.Values.ingress.vmSingle.servicePort | default 8429) .Values.vmAuth.install }}
   {{- if .Values.ingress.vmSingle.tlsSecretName }}
   tls:
     - hosts:
         - {{ .Values.ingress.vmSingle.host }}
       secretName: {{ .Values.ingress.vmSingle.tlsSecretName }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.vmAlert.install .Values.vmAuth.install .Values.ingress.install }}
+{{- if .Values.ingress.vmalert }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default (printf "%s-vmalert" (include "monitoring-pack-one.fullname" .)) .Values.vmAlert.name }}-ingress
+  namespace: {{ include "monitoring-pack-one.namespace" . }}
+  labels:
+    name: vmalert-ingress
+    app.kubernetes.io/name: vmalert
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.ingress.vmalert.labels | default dict) }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  annotations:
+    {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.ingress.vmalert.annotations | default dict) }}
+    {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 4 }}
+spec:
+  {{- if .Values.ingress.vmalert.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.vmalert.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.vmalert.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
+                port:
+                  number: {{ .Values.ingress.vmAuth.servicePort | default 8427 }}
+  {{- if .Values.ingress.vmalert.tlsSecretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.vmalert.host }}
+      secretName: {{ .Values.ingress.vmalert.tlsSecretName }}
   {{- end }}
 {{- end }}
 {{- end }}

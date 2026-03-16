@@ -66,11 +66,11 @@ kubectl create namespace vmsingle-standalone
 kubectl apply -f docs/examples/deploy-parameters/monitoring-pack/tests/vmsingle-direct.yaml
 ```
 
-## 3. Deploy test resources for checking separate grafana deployment (optional test target)
+## 3. Deploy test resources for checking Grafana resources managed by the operator (optional test target)
 
-This step together with the previous one aims to create a test example of a separately running grafana deployment (while
-being controlled by the operator) + grafanadashboard + grafanadatasource. This allows you to verify that Grafana
-Operator correctly manages Grafana resources even when they are in different namespaces and use cross-namespace import.
+This step together with the previous one creates a test `GrafanaFolder`, `GrafanaDatasource`, and `GrafanaDashboard`
+for the baseline Grafana deployment managed by Grafana Operator in the `monitoring` namespace. This allows you to verify
+that Grafana Operator correctly manages Grafana resources and binds them to the expected Grafana instance.
 
 ```bash
 kubectl apply -f docs/examples/deploy-parameters/monitoring-pack/monitoring-folder.yaml
@@ -107,8 +107,9 @@ helm upgrade --install pack-one docs/examples/deploy-parameters/monitoring-pack/
 ### 4.1. Configure VMAuth and VMUser (optional)
 
 By default, VMAuth and VMUser are installed with basic authentication (`admin/admin`). VMAuth automatically discovers
-VMUser resources using the label selector `app.kubernetes.io/name: vmuser`. Routing is automatically configured to route
-requests to installed components (vmagent, vmsingle) based on path patterns.
+VMUser resources using the label selector `app.kubernetes.io/name: vmuser` together with the pack-specific
+`monitoring-pack` label. Routing is automatically configured to route requests to installed components (`vmagent`,
+`vmsingle`, and `vmalert` when enabled) based on path patterns.
 
 **For pack-one** (`pack-one/values.yaml`):
 
@@ -131,7 +132,7 @@ requests to installed components (vmagent, vmsingle) based on path patterns.
      install: true
      spec:
        selectAllByDefault: false  # Default: false - uses userSelector to find VMUser
-       # userSelector: {}  # Default: matches app.kubernetes.io/name: vmuser
+       # userSelector: {}  # Default: matches app.kubernetes.io/name: vmuser + monitoring-pack: one
        # userNamespaceSelector: {}  # Default: empty (searches in all namespaces)
    ```
 
@@ -155,11 +156,12 @@ vmAuth:
     userSelector:
       matchLabels:
         app.kubernetes.io/name: vmuser
+        monitoring-pack: "two"
 ```
 
 ### 4.2. Configure Ingress (optional)
 
-To enable Ingress resources instead of port-forwarding:
+To enable Ingress resources:
 
 **For pack-one** (`pack-one/values.yaml`):
 
@@ -180,6 +182,10 @@ ingress:
     host: vmsingle.example.com
     ingressClassName: traefik
     servicePort: 8429
+  vmalert:
+    host: vmalert.example.com
+    ingressClassName: traefik
+    servicePort: 8080
 ```
 
 **For pack-two** (`pack-two/values.yaml`):
@@ -199,14 +205,22 @@ ingress:
     host: vmsingle-dev.example.com
     ingressClassName: traefik
     servicePort: 8429
+  vmalert:
+    host: vmalert-dev.example.com
+    ingressClassName: traefik
+    servicePort: 8080
+  grafana:
+    host: grafana-dev.example.com
+    ingressClassName: traefik
+    servicePort: 3000
 ```
 
 **Access services**:
-- **pack-one**: `http://vmauth.example.com`, `http://vmagent.example.com`, `http://vmsingle.example.com`
-- **pack-two**: `http://vmauth-dev.example.com`, `http://vmagent-dev.example.com`, `http://vmsingle-dev.example.com`
+- **pack-one**: `http://vmauth.example.com`, `http://vmagent.example.com`, `http://vmsingle.example.com`, `http://vmalert.example.com`
+- **pack-two**: `http://vmauth-dev.example.com`, `http://vmagent-dev.example.com`, `http://vmsingle-dev.example.com`, `http://vmalert-dev.example.com`, `http://grafana-dev.example.com`
 - If TLS is configured, use `https://` instead of `http://`
 
-> **Note**: If VMAuth is enabled, access vmagent and vmsingle through VMAuth using the configured credentials.
+> **Note**: If VMAuth is enabled, access vmagent, vmsingle, and vmalert through VMAuth using the configured credentials.
 
 ## 5. Install pack-two (DEV monitoring bundle)
 
@@ -227,6 +241,16 @@ exporters delivered by pack-one. The chart installs:
 2. Pack-two's VMAgent is rendered with `serviceScrapeSelector.matchExpressions` that includes both `"one"` and `"two"`,
 so it automatically discovers the shared exporters alongside its own.
 3. Each pack still keeps an isolated storage/alerting stack—only the scrape configuration is shared.
+
+**How ServiceMonitors are used now:**
+
+- **In pack-one**, ServiceMonitor objects are created only for the four mandatory exporters from the baseline
+  (`kube-state-metrics`, `node-exporter`, `cloud-events-exporter`, `version-exporter`). They live in a single, fixed
+  namespace (by default `monitoring`) and are labeled with `monitoring-pack: "one"`, so both pack-one and pack-two
+  can safely reuse them.
+- **In pack-two**, the chart does not recreate these mandatory ServiceMonitors. Instead, it reuses the ones from
+  pack-one via label selectors and provides a simple template for adding *additional* ServiceMonitors for DEV-specific
+  exporters when needed.
 
 ### 5.2 Install pack-two
 
@@ -271,7 +295,7 @@ GrafanaFolder, or GrafanaAlertRuleGroup):
      allowCrossNamespaceImport: true
      instanceSelector:
        matchLabels:
-         app.kubernetes.io/name: grafana
+         monitoring-pack: "two"
    ```
 
 2. **Configure `instanceSelector`** to specify which Grafana instance to connect to (see section 5.3.3)
@@ -282,14 +306,14 @@ GrafanaFolder, or GrafanaAlertRuleGroup):
 
 Filtering which dashboards and other resources will be connected to a Grafana instance happens at two levels:
 
-**Recommended approach (simple and efficient):**
+**Recommended approach used in this quickstart:**
 
 1. **At the operator level**: Specify `watchNamespaces` in Grafana Operator configuration to limit tracked namespaces:
    ```yaml
    # In operators-only-baseline-values.yaml
    grafana:
      operator:
-       watchNamespaces: "monitoring,pack-two"  # Operator tracks only these namespaces
+       watchNamespaces: ""  # Operator tracks all namespaces, binding is controlled by instanceSelector
    ```
 
 2. **At the resource level**: Use a simple label in `instanceSelector.matchLabels` for binding:
@@ -299,7 +323,7 @@ Filtering which dashboards and other resources will be connected to a Grafana in
      allowCrossNamespaceImport: true
      instanceSelector:
        matchLabels:
-         app.kubernetes.io/name: grafana  # Simple label for binding
+         monitoring-pack: "two"
    ```
 
    And ensure the Grafana CR has the corresponding label:
@@ -307,7 +331,7 @@ Filtering which dashboards and other resources will be connected to a Grafana in
    # In Grafana CR
    metadata:
      labels:
-       app.kubernetes.io/name: grafana
+       monitoring-pack: "two"
    ```
 
 > **Important**: If `watchNamespaces` is left empty (`""`), the operator will track all namespaces in the cluster. In
@@ -322,10 +346,10 @@ the operator will process more resources.
   Grafana instances in the namespaces specified in `watchNamespaces` (WATCH_NAMESPACE). So a pack-two dashboard with
   `instanceSelector: {}` and `allowCrossNamespaceImport: true` will appear in both baseline Grafana (monitoring) and
   pack-two Grafana. To limit dashboards to a single instance, use an explicit `instanceSelector` (e.g.
-  `matchLabels: app.kubernetes.io/name: pack-two-monitoring-pack-two-grafana`).
-- **`allowCrossNamespaceImport: false`**: the resource is not applied to any Grafana instance and the operator reports
-  *No Matching Instance* (the resource is no longer considered for cross-namespace binding). Use `allowCrossNamespaceImport: true`
-  when the dashboard/datasource and the Grafana instance are in different namespaces.
+  `matchLabels: monitoring-pack: "two"`).
+- **`allowCrossNamespaceImport: false`**: the resource is limited to Grafana instances in the **same namespace** as the
+  dashboard/datasource. Use `allowCrossNamespaceImport: true` only when the dashboard/datasource and the Grafana instance
+  are in different namespaces.
 
 **Additional capabilities (for advanced scenarios):**
 
@@ -351,64 +375,43 @@ Grafana instance has its own Deployment and operates independently, while all in
 Operator.
 
 **Example:**
-- **Baseline Grafana** (namespace `monitoring`): used by the OPS team, has label `app.kubernetes.io/name: grafana`
-- **Pack-two Grafana** (namespace `pack-two`): used by the DEV team, has label `app.kubernetes.io/name: pack-two-monitoring-pack-two-grafana`
+- **Baseline Grafana** (namespace `monitoring`): used by the OPS team, test resources bind to it via `app.kubernetes.io/instance: grafana-monitoring`
+- **Pack-two Grafana** (namespace `pack-two`): used by the DEV team, dashboards/datasource bind to it via `monitoring-pack: "two"`
 
 Each instance can have its own dashboards, datasources, and settings, while they are isolated from each other at the
 Deployment level.
 
 ## 6. Access services
-### Option A: Using Ingress (recommended)
-
 If Ingress is enabled, access services through the configured hosts:
 
-- **VMAuth**: `http://vmauth.example.com` (authenticate with credentials from `vmUser.spec`, default: `admin/admin`)
+- **Baseline Grafana**: `https://grafana.example.com`
+- **Pack-one VMAuth**: `http://vmauth.example.com` (authenticate with credentials from `vmUser.spec`, default: `admin/admin`)
   - Access VMUI through VMAuth: `http://vmauth.example.com/vmui/`
   - Access vmagent through VMAuth: `http://vmauth.example.com/targets`
-- **VMAgent**: `http://vmagent.example.com` (or through VMAuth if enabled)
-- **VMSingle**: `http://vmsingle.example.com` (or through VMAuth if enabled)
-
-### Option B: Using port-forward (for local troubleshooting)
-
-If Ingress is not configured, expose services locally:
-
-```bash
-# VMAuth (if enabled)
-kubectl port-forward -n pack-one svc/vmauth-vmauth 18427:8427 &
-
-# VMAgent
-kubectl port-forward -n pack-one svc/vmagent-vmagent 18428:8429 &
-
-# VMSingle
-kubectl port-forward -n vmsingle-standalone svc/vmsingle-k8s 18429:8429 &
-```
-
-Access the UIs/APIs through a browser or API client:
-
-- `vmauth`: [http://127.0.0.1:18427](http://127.0.0.1:18427) (if enabled, use `admin/admin` for authentication)
-  - VMUI through VMAuth: [http://127.0.0.1:18427/vmui/](http://127.0.0.1:18427/vmui/)
-  - vmagent targets through VMAuth: [http://127.0.0.1:18427/targets](http://127.0.0.1:18427/targets)
-- `vmagent`: [http://127.0.0.1:18428](http://127.0.0.1:18428)
-  - **Important**: VMAgent UI shows targets (`/targets` endpoint). VMSingle does NOT show targets when receiving data
-via `remoteWrite` from VMAgent.
-- `vmsingle`: [http://127.0.0.1:18429](http://127.0.0.1:18429)
-  - **Note**: VMSingle UI shows metrics queries, but NOT targets. To view targets, use VMAgent UI instead.
+- **Pack-one VMAgent**: `http://vmagent.example.com` (or through VMAuth if enabled)
+- **Pack-one VMSingle**: `http://vmsingle.example.com` (or through VMAuth if enabled)
+- **Pack-one VMAlert**: `http://vmalert.example.com` (or through VMAuth if enabled)
+- **Pack-two VMAuth**: `http://vmauth-dev.example.com`
+- **Pack-two VMAgent**: `http://vmagent-dev.example.com` (or through VMAuth if enabled)
+- **Pack-two VMSingle**: `http://vmsingle-dev.example.com` (or through VMAuth if enabled)
+- **Pack-two VMAlert**: `http://vmalert-dev.example.com` (or through VMAuth if enabled)
+- **Pack-two Grafana**: `https://grafana-dev.example.com`
 
 ## 7. Validate the data flow
 
-1. **vmagent targets** – open the vmagent UI (via Ingress or port-forward) → `/targets` and check that all mandatory
+1. **vmagent targets** – open the vmagent UI via Ingress → `/targets` and check that all mandatory
 exporter targets are in the `UP` state.
 
    ![vmagent targets](./images/vmagent-example.png)
 
-2. **vmsingle query** – open the vmsingle UI (via Ingress or port-forward) → `/vmui/` → `Query`, type `up`, run the
+2. **vmsingle query** – open the vmsingle UI via Ingress → `/vmui/` → `Query`, type `up`, run the
 query, and confirm that vmagent's scraped metrics arrive in vmsingle (results should include the exporters you enabled).
 
    ![vmsingle query](./images/vmsingle-example.png)
 
 3. **VMAuth routing** (if enabled) – access vmagent or vmsingle through VMAuth using the configured credentials
 (`admin/admin` by default).
-   - Access VMUI: `http://vmauth.example.com/vmui/` (or via port-forward: `http://127.0.0.1:18427/vmui/`)
+   - Access VMUI: `http://vmauth.example.com/vmui/`
    - Access vmagent targets: `http://vmauth.example.com/targets`
    - Access vmsingle query: `http://vmauth.example.com/vmui/query`
    

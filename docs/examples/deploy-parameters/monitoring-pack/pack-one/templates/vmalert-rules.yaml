@@ -1,18 +1,19 @@
 {{- if .Values.vmAlert.install }}
 {{- $alerts := .Values.vmRules.alerts | default dict }}
 {{- $recording := .Values.vmRules.recording | default dict }}
+{{- $baseLabelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" dict }}
 {{- if and ($alerts.install | default false) (gt (len ($alerts.groups | default list)) 0) }}
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMRule
 metadata:
-  name: {{ default (printf "%s-alerts" (include "monitoring-pack-two.fullname" .)) $alerts.name }}
-  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  name: {{ default (printf "%s-alerts" (include "monitoring-pack-one.fullname" .)) $alerts.name }}
+  namespace: {{ include "monitoring-pack-one.namespace" . }}
   labels:
-    monitoring-pack: "two"
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
     {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" ($alerts.labels | default dict) }}
-    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
   {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" ($alerts.annotations | default dict) }}
-  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
 spec:
   groups:
 {{ toYaml $alerts.groups | indent 4 }}
@@ -22,14 +23,14 @@ spec:
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMRule
 metadata:
-  name: {{ default (printf "%s-recording" (include "monitoring-pack-two.fullname" .)) $recording.name }}
-  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  name: {{ default (printf "%s-recording" (include "monitoring-pack-one.fullname" .)) $recording.name }}
+  namespace: {{ include "monitoring-pack-one.namespace" . }}
   labels:
-    monitoring-pack: "two"
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
     {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" ($recording.labels | default dict) }}
-    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
   {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" ($recording.annotations | default dict) }}
-  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
 spec:
   groups:
 {{ toYaml $recording.groups | indent 4 }}
