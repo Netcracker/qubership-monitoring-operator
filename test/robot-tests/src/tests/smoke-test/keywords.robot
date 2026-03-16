@@ -70,7 +70,12 @@ Close Session
 Preparation Session For External Service
     [Arguments]  ${external_url}    ${session}=external
     ${auth}=    Run Keyword If  '${session}'=='vmauth_ingress_session'  Get Creadentials From Secret
-    Create Session  ${session}  ${external_url}  auth=${auth}
+    ${use_url}=  Set Variable  ${external_url}
+    ${has_scheme}=  Run Keyword And Return Status  Should Start With  ${external_url}  http
+    IF  not ${has_scheme}
+        ${use_url}=  Determine Protocol  ${external_url}  ${auth}
+    END
+    Create Session  ${session}  ${use_url}  auth=${auth}
 
 Check Pod's List Is Not Empty
     [Arguments]  ${list_of_pods}
@@ -216,6 +221,8 @@ Check Route/Ingress Status
     ...  ${namespace}  platformmonitoring
     ${external_url}=  Check Route Or Ingress  ${custom_resource}  ${name-in-cr}
     ...  ${namespace}-${name}  ${namespace}  ${parentservice}
+    Run Keyword If  '${external_url}' == 'None'  Return From Keyword  False
+    Run Keyword If  '${external_url}' == ''  Return From Keyword  False
     Preparation Session For External Service  ${external_url}  ${session}
     RETURN  True
 

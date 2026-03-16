@@ -86,6 +86,35 @@ alertmanager:
     install: false  # Disable ingress for AlertManager
 ```
 
+## Gateway API Configuration
+
+You can expose UI endpoints using Gateway API HTTPRoutes. Gateway settings are configured once at the chart root,
+and each component can define its own `httpRoute` section rules overrides.
+More info in [HTTPRouteSpec]|(https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec).
+
+```yaml
+gatewayApi:
+  addIngressIgnoreAnnotation: true
+  parentRefs:
+    - name: gateway
+      namespace: gateway-infra
+      kind: Gateway
+      group: gateway.networking.k8s.io
+
+grafana:
+  httpRoute:
+    install: true
+    hostnames:
+      - grafana.example.com
+
+victoriametrics:
+  vmSingle:
+    httpRoute:
+      install: true
+      hostnames:
+        - vmsingle.example.com
+```
+
 ## Deployment Examples
 
 ### Production Deployment

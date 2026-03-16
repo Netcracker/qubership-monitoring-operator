@@ -3,6 +3,7 @@ package pushgateway
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -71,6 +72,26 @@ func (r *PushgatewayReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					}
 				}
 			}
+			ingressHost := ""
+			if cr.Spec.Pushgateway.Ingress != nil {
+				ingressHost = cr.Spec.Pushgateway.Ingress.Host
+			}
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.PushgatewayComponentName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    utils.PushgatewayComponentName,
+				ServicePort:    int32(cr.Spec.Pushgateway.Port),
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.PushgatewayComponentName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.PushgatewayComponentName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.PushgatewayComponentName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Pushgateway.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Pushgateway.HTTPRoute,
+			}); err != nil {
+				return err
+			}
 			// Reconcile ServiceMonitor if necessary
 			if cr.Spec.Pushgateway.ServiceMonitor != nil && cr.Spec.Pushgateway.ServiceMonitor.IsInstall() {
 				if err := r.handleServiceMonitor(cr); err != nil {
@@ -115,5 +136,13 @@ func (r *PushgatewayReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err := r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	if err := vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
+		NamePrefix:  cr.GetNamespace() + "-" + utils.PushgatewayComponentName,
+		Namespace:   cr.GetNamespace(),
+		ServiceName: utils.PushgatewayComponentName,
+		ServicePort: 0,
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 }

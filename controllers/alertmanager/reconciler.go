@@ -3,6 +3,7 @@ package alertmanager
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -71,6 +72,32 @@ func (r *AlertManagerReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					}
 				}
 			}
+			ingressHost := ""
+			if cr.Spec.AlertManager.Ingress != nil {
+				ingressHost = cr.Spec.AlertManager.Ingress.Host
+			}
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			serviceName := utils.AlertmanagerServiceName
+			servicePort := int32(utils.AlertmanagerServicePort)
+			if cr.Spec.Auth != nil && cr.Spec.OAuthProxy != nil {
+				serviceName = utils.AlertmanagerOAuthProxyServiceName
+				servicePort = int32(utils.OAuthProxyServicePort)
+			}
+			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.AlertManagerComponentName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    serviceName,
+				ServicePort:    servicePort,
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.AlertManagerComponentName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.AlertManagerComponentName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.AlertManagerComponentName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.AlertManager.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.AlertManager.HTTPRoute,
+			}); err != nil {
+				return err
+			}
 
 			if cr.Spec.AlertManager.PodMonitor != nil && cr.Spec.AlertManager.PodMonitor.IsInstall() {
 				if err := r.handlePodMonitor(cr); err != nil {
@@ -124,6 +151,14 @@ func (r *AlertManagerReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err := r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	if err := vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
+		NamePrefix:  cr.GetNamespace() + "-" + utils.AlertManagerComponentName,
+		Namespace:   cr.GetNamespace(),
+		ServiceName: utils.AlertmanagerServiceName,
+		ServicePort: int32(utils.AlertmanagerServicePort),
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 
 }

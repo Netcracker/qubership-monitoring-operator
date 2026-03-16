@@ -3,6 +3,7 @@ package grafana
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
@@ -78,6 +79,26 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					}
 				}
 			}
+			ingressHost := ""
+			if cr.Spec.Grafana.Ingress != nil {
+				ingressHost = cr.Spec.Grafana.Ingress.Host
+			}
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.GrafanaComponentName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    utils.GrafanaServiceName,
+				ServicePort:    int32(utils.GrafanaServicePort),
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.GrafanaComponentName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.GrafanaComponentName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.GrafanaComponentName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Grafana.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Grafana.HTTPRoute,
+			}); err != nil {
+				return err
+			}
 			// Reconcile Pod Monitor
 			if cr.Spec.Grafana.PodMonitor != nil && cr.Spec.Grafana.PodMonitor.IsInstall() {
 				if err := r.handlePodMonitor(cr); err != nil {
@@ -132,5 +153,13 @@ func (r *GrafanaReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err := r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	if err := vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
+		NamePrefix:  cr.GetNamespace() + "-" + utils.GrafanaComponentName,
+		Namespace:   cr.GetNamespace(),
+		ServiceName: utils.GrafanaServiceName,
+		ServicePort: int32(utils.GrafanaServicePort),
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 }

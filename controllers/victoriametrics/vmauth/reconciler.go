@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	pspApi "k8s.io/api/policy/v1beta1"
@@ -80,6 +81,26 @@ func (r *VmAuthReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitoring
 					}
 				}
 			}
+			ingressHost := ""
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			if cr.Spec.Victoriametrics.VmAuth.Ingress != nil {
+				ingressHost = cr.Spec.Victoriametrics.VmAuth.Ingress.Host
+			}
+			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.VmAuthServiceName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    utils.VmAuthServiceName,
+				ServicePort:    int32(utils.VmAuthServicePort),
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmAuthServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmAuthServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmAuthServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Victoriametrics.VmAuth.HTTPRoute,
+			}); err != nil {
+				return err
+			}
 
 			r.Log.Info("Component reconciled")
 		} else {
@@ -128,6 +149,14 @@ func (r *VmAuthReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err = r.deleteIngress(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	if err = vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
+		NamePrefix:  cr.GetNamespace() + "-" + utils.VmAuthServiceName,
+		Namespace:   cr.GetNamespace(),
+		ServiceName: utils.VmAuthServiceName,
+		ServicePort: int32(utils.VmAuthServicePort),
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 
 	if err := r.deleteServiceAccount(cr); err != nil {

@@ -57,6 +57,35 @@ roleBinding:
 #
 publicCloudName: ""
 
+# Gateway API settings shared by all components.
+# Type: object
+# Mandatory: no
+#
+gatewayApi:
+  # Add `gateway-api-converter.netcracker.com/ignore: "true"` to operator-managed ingresses.
+  # Type: boolean
+  # Mandatory: no
+  #
+  addIngressIgnoreAnnotation: false
+  # ParentRefs defines default parentRefs for HTTPRoutes.
+  # Per-component `httpRoute.parentRefs` overrides these values.
+  # More info on parentRefs:
+  # https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+  # Please note that fields are starting with `gateway` for
+  # Type: list[object]
+  # Mandatory: no
+  # Example:
+  # parentRefs:
+  #   - name: gateway
+  #     namespace: gateway-infra
+  #     kind: Gateway
+  #     group: gateway.networking.k8s.io
+  #     # Optional listener section name
+  #     sectionName: http
+  #
+  #
+  parentRefs: []
+
 # The PlatformMonitoring custom resource describes desired states for the monitoring application.
 # The application components:
 #   * kube-state-metrics  - a service to collects metrics from Kubernetes API
@@ -405,6 +434,13 @@ alertManager:
     # Default: ""
     #
     # tlsSecretName: ""
+
+  # Allows to create HTTPRoute for AlertManager UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  httpRoute: {}
 
   # SecurityContext holds pod-level security attributes.
   # The parameters are required if a Pod Security Policy is enabled
@@ -1438,6 +1474,13 @@ pushgateway:
     # Default: ""
     #
     # tlsSecretName: ""
+
+  # Allows create HTTPRoute for pushgateway UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  httpRoute: {}
 
   # Allow define which Nodes the Pods are scheduled on.
   # Type: map[string]

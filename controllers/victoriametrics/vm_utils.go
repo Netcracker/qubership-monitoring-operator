@@ -1,9 +1,28 @@
 package victoriametrics
 
 import (
+	"maps"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 )
+
+const GatewayAPIConverterIgnoreAnnotation = "gateway-api-converter.netcracker.com/ignore"
+
+func GetIngressAnnotationsForGateway(cr *monv1.PlatformMonitoring, annotations map[string]string) map[string]string {
+	result := maps.Clone(annotations)
+	if result == nil {
+		result = make(map[string]string)
+	}
+	if cr != nil && shouldAddIngressIgnoreAnnotation(cr) {
+		result[GatewayAPIConverterIgnoreAnnotation] = "true"
+	}
+	return result
+}
+
+func shouldAddIngressIgnoreAnnotation(cr *monv1.PlatformMonitoring) bool {
+	return cr.Spec.GatewayAPI != nil && cr.Spec.GatewayAPI.AddIngressIgnoreAnnotation
+}
 
 func GetVmalertTLSSecretName(vmalert monv1.VmAlert) string {
 	if vmalert.TLSConfig != nil {
