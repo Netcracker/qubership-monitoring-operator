@@ -79,16 +79,45 @@ def check_cr_label_updated(response, label):
     return False
 
 
+def _is_install_enabled(value):
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return bool(value)
+
+
+def _get_http_route_hostnames(k8s_lib, namespace, base_name):
+    name = base_name
+    if not name.endswith("-http-route"):
+        name = f"{name}-http-route"
+    try:
+        obj = k8s_lib.get_namespaced_custom_object(
+            group="gateway.networking.k8s.io",
+            version="v1",
+            namespace=namespace,
+            plural="httproutes",
+            name=name
+        )
+    except Exception:
+        return []
+    return obj.get("spec", {}).get("hostnames") or []
+
+
 def check_cr_service_exists(response, service, parentservice=None):
     if service in response.keys():
         service_child = response.get(service)
         if 'install' in service_child.keys():
-            if service_child.get('install'):
+            if _is_install_enabled(service_child.get('install')):
                 return True
+            # Explicitly disabled: do not treat host/hostnames as valid
+            return False
         if service == 'route' or service == 'ingress':
             if 'host' in service_child.keys():
                 if service_child.get('host') != '':
                     return True
+        if service == 'httpRoute':
+            hostnames = service_child.get('hostnames') or []
+            if len(hostnames) > 0:
+                return True
     elif parentservice:
         if parentservice in response.keys():
             service_child = response.get(parentservice)
@@ -104,10 +133,34 @@ def check_route_or_ingress(response, service_in_cr, service, namespace, parentse
         sub_service = response.get('spec').get(parentservice).get(service_in_cr)
     else:
         sub_service = response.get('spec').get(service_in_cr)
+    if not sub_service:
+        return ""
+    # Prefer HTTPRoute when configured
+    http_route = sub_service.get('httpRoute')
+    if http_route is not None:
+        if 'install' in http_route and not _is_install_enabled(http_route.get('install')):
+            return ""
+        hostnames = http_route.get('hostnames') or []
+        if len(hostnames) > 0:
+            return hostnames[0]
+        hostnames = _get_http_route_hostnames(k8s_lib, namespace, service)
+        if len(hostnames) > 0:
+            return hostnames[0]
+        # Fallback: use ingress.host if it is provided (even if ingress is disabled).
+        ingress_cfg = sub_service.get('ingress') or {}
+        ingress_host = ingress_cfg.get('host') or ""
+        if ingress_host:
+            return ingress_host
+        return ""
     if (check_cr_service_exists(sub_service, 'route')):
-        return k8s_lib.get_route_url(service, namespace)
+        return k8s_lib.get_route_url(service, namespace) or ""
+    ingress_cfg = sub_service.get('ingress')
+    if ingress_cfg is not None and 'install' in ingress_cfg.keys():
+        if not _is_install_enabled(ingress_cfg.get('install')):
+            return ""
     if (check_cr_service_exists(sub_service, 'ingress')):
-        return k8s_lib.get_ingress_url(service, namespace)
+        return k8s_lib.get_ingress_url(service, namespace) or ""
+    return ""
 
 
 def get_list_length(list_for_check):
