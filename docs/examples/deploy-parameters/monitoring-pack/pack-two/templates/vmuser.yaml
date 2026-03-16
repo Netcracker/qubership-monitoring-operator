@@ -93,6 +93,15 @@ spec:
     {{- end }}
     {{- if $vmAgentValues.install }}
     {{- if $vmAlertValues.install }}
+    {{- if and $ingressValues.vmalert $ingressValues.vmalert.host }}
+    - static:
+        url: http://vmalert-{{ $vmAlertValues.name | default "vmalert-dev" }}.{{ $namespace }}.svc:8080
+      hosts:
+        - {{ $ingressValues.vmalert.host }}
+      paths:
+        - ""
+        - "/"
+    {{- end }}
     - crd:
         kind: VMAlert
         name: {{ default (printf "%s-vmalert" (include "monitoring-pack-two.fullname" .)) $vmAlertValues.name }}
@@ -102,10 +111,12 @@ spec:
         - {{ $ingressValues.vmalert.host }}
       {{- end }}
       paths:
-        - ""
-        - "/"
         - "/api/v1/alerts"
         - "/api/v1/rules"
+        - "/api/v1/notifiers"
+        - "/api/v1/alert.*"
+        - "/api/v1/rule.*"
+        - "/api/v1/group.*"
         - "/metrics"
         - "/-/reload"
     {{- end }}
@@ -123,6 +134,7 @@ spec:
         - "/"
         - "/config.*"
         - "/target.*"
+        - "/targets.*"
         - "/service-discovery.*"
         - "/static.*"
         - "/api/v1/write"
@@ -139,6 +151,7 @@ spec:
       paths:
         - "/config.*"
         - "/target.*"
+        - "/targets.*"
         - "/service-discovery.*"
         - "/static.*"
         - "/api/v1/write"

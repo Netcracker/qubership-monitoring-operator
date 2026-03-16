@@ -29,7 +29,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
+                name: vmauth-{{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}
                 port:
                   number: {{ .Values.ingress.vmAuth.servicePort | default 8427 }}
   {{- if .Values.ingress.vmAuth.tlsSecretName }}
@@ -73,7 +73,9 @@ spec:
             backend:
               service:
                 {{- if .Values.vmAuth.install }}
-                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
+                # Route through VMAuth for authentication
+                # VictoriaMetrics Operator creates service as vmauth-{name}, not {name}-vmauth
+                name: vmauth-{{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}
                 {{- else }}
                 name: {{ default (printf "%s-vmagent" (include "monitoring-pack-one.fullname" .)) .Values.vmAgent.name }}-vmagent
                 {{- end }}
@@ -119,13 +121,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                {{- if .Values.vmAuth.install }}
-                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
-                {{- else }}
                 name: {{ .Values.vmSingle.serviceName | default (printf "%s-k8s" .Values.vmSingle.name) }}
-                {{- end }}
                 port:
-                  number: {{ ternary (.Values.ingress.vmAuth.servicePort | default 8427) (.Values.ingress.vmSingle.servicePort | default 8429) .Values.vmAuth.install }}
+                  number: {{ .Values.ingress.vmSingle.servicePort | default 8429 }}
   {{- if .Values.ingress.vmSingle.tlsSecretName }}
   tls:
     - hosts:
@@ -165,7 +163,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}-vmauth
+                # Route through VMAuth for authentication
+                # VictoriaMetrics Operator creates service as vmauth-{name}, not {name}-vmauth
+                name: vmauth-{{ default (printf "%s-vmauth" (include "monitoring-pack-one.fullname" .)) .Values.vmAuth.name }}
                 port:
                   number: {{ .Values.ingress.vmAuth.servicePort | default 8427 }}
   {{- if .Values.ingress.vmalert.tlsSecretName }}
