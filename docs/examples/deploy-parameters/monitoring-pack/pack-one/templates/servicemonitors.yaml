@@ -1,0 +1,117 @@
+{{- $resourceNamespace := default (include "monitoring-pack-one.namespace" .) .Values.serviceMonitors.resourceNamespace }}
+{{- $defaultTargetNamespace := default "monitoring" .Values.serviceMonitors.targetNamespace }}
+
+{{- if .Values.serviceMonitors.kubeStateMetrics.install }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ default (printf "%s-kubestatemetrics" (include "monitoring-pack-one.fullname" .)) .Values.serviceMonitors.kubeStateMetrics.name }}
+  namespace: {{ $resourceNamespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/exporter: kubeStateMetrics
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.serviceMonitors.kubeStateMetrics.labels | default dict) }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.serviceMonitors.kubeStateMetrics.annotations | default dict) }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  selector:
+    matchLabels:
+      platform.monitoring.app: kube-state-metrics
+  namespaceSelector:
+    matchNames:
+      - {{ default $defaultTargetNamespace .Values.serviceMonitors.kubeStateMetrics.targetNamespace }}
+  endpoints:
+    - port: http-metrics
+      interval: {{ .Values.serviceMonitors.kubeStateMetrics.interval | quote }}
+{{- end }}
+
+{{- if .Values.serviceMonitors.nodeExporter.install }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ default (printf "%s-nodeexporter" (include "monitoring-pack-one.fullname" .)) .Values.serviceMonitors.nodeExporter.name }}
+  namespace: {{ $resourceNamespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/exporter: nodeExporter
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.serviceMonitors.nodeExporter.labels | default dict) }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.serviceMonitors.nodeExporter.annotations | default dict) }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  selector:
+    matchLabels:
+      platform.monitoring.app: node-exporter
+  namespaceSelector:
+    matchNames:
+      - {{ default $defaultTargetNamespace .Values.serviceMonitors.nodeExporter.targetNamespace }}
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.serviceMonitors.nodeExporter.interval | quote }}
+{{- end }}
+
+{{- if .Values.serviceMonitors.cloudEventsExporter.install }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ default (printf "%s-cloudeventsexporter" (include "monitoring-pack-one.fullname" .)) .Values.serviceMonitors.cloudEventsExporter.name }}
+  namespace: {{ $resourceNamespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/exporter: cloudEventsExporter
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.serviceMonitors.cloudEventsExporter.labels | default dict) }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.serviceMonitors.cloudEventsExporter.annotations | default dict) }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - {{ default (printf "%s-cloud-events-exporter" (default $defaultTargetNamespace .Values.serviceMonitors.cloudEventsExporter.targetNamespace)) .Values.serviceMonitors.cloudEventsExporter.serviceName }}
+  namespaceSelector:
+    matchNames:
+      - {{ default $defaultTargetNamespace .Values.serviceMonitors.cloudEventsExporter.targetNamespace }}
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.serviceMonitors.cloudEventsExporter.interval | quote }}
+{{- end }}
+
+{{- if .Values.serviceMonitors.versionExporter.install }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ default (printf "%s-versionexporter" (include "monitoring-pack-one.fullname" .)) .Values.serviceMonitors.versionExporter.name }}
+  namespace: {{ $resourceNamespace }}
+  labels:
+    {{- include "monitoring-pack-one.standardLabels" . | nindent 4 }}
+    monitoring-pack-one/exporter: versionExporter
+    monitoring-pack: {{ include "monitoring-pack-one.monitoringPackLabel" . | quote }}
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.serviceMonitors.versionExporter.labels | default dict) }}
+    {{- include "monitoring-pack-one.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.serviceMonitors.versionExporter.annotations | default dict) }}
+  {{- include "monitoring-pack-one.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+  jobLabel: {{ .Values.serviceMonitors.versionExporter.jobLabel }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: version-exporter
+  namespaceSelector:
+    matchNames:
+      - {{ default $defaultTargetNamespace .Values.serviceMonitors.versionExporter.targetNamespace }}
+  endpoints:
+    - port: http
+      path: {{ .Values.serviceMonitors.versionExporter.path | quote }}
+      scheme: {{ .Values.serviceMonitors.versionExporter.scheme | quote }}
+      interval: {{ .Values.serviceMonitors.versionExporter.interval | quote }}
+      scrapeTimeout: {{ .Values.serviceMonitors.versionExporter.scrapeTimeout | quote }}
+{{- end }}

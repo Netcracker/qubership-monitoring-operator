@@ -1,0 +1,56 @@
+{{- if .Values.grafana.datasource.install }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: {{ default (printf "%s-victoriametrics" (include "monitoring-pack-two.fullname" .)) .Values.grafana.datasource.name }}
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    name: {{ default (printf "%s-victoriametrics" (include "monitoring-pack-two.fullname" .)) .Values.grafana.datasource.name }}
+    app.kubernetes.io/name: {{ default (printf "%s-victoriametrics" (include "monitoring-pack-two.fullname" .)) .Values.grafana.datasource.name }}
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" .Values.grafana.datasource.labels }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+{{- if hasKey .Values.grafana.dashboards "instanceSelector" }}
+{{ toYaml .Values.grafana.dashboards.instanceSelector | indent 4 }}
+{{- else }}
+    matchLabels:
+      app.kubernetes.io/name: grafana
+{{- end }}
+  {{- $vmSingleName := default (include "monitoring-pack-two.vmsingle.baseName" .) .Values.vmSingle.name }}
+  {{- $namespace := include "monitoring-pack-two.namespace" . }}
+  {{- $datasource := index .Values.grafana.datasource.spec.datasources 0 }}
+  datasource:
+    name: {{ $datasource.name }}
+    type: {{ $datasource.type }}
+    access: {{ $datasource.access }}
+    editable: {{ default true $datasource.editable }}
+    isDefault: {{ default false $datasource.isDefault }}
+    {{- if $datasource.uid }}
+    uid: {{ $datasource.uid }}
+    {{- end }}
+    url: {{ $datasource.url | replace "k8s-dev-vmsingle.pack-two.svc" (printf "vmsingle-%s.%s.svc" $vmSingleName $namespace) | replace "k8s-dev-vmsingle.monitoring.svc" (printf "vmsingle-%s.%s.svc" $vmSingleName $namespace) }}
+    {{- if $datasource.jsonData }}
+    jsonData: {{ toYaml $datasource.jsonData | nindent 6 }}
+    {{- end }}
+    {{- if $datasource.secureJsonData }}
+    secureJsonData: {{ toYaml $datasource.secureJsonData | nindent 6 }}
+    {{- end }}
+    {{- if $datasource.basicAuth }}
+    basicAuth: {{ $datasource.basicAuth }}
+    {{- end }}
+    {{- if $datasource.basicAuthUser }}
+    basicAuthUser: {{ $datasource.basicAuthUser }}
+    {{- end }}
+    {{- if $datasource.user }}
+    user: {{ $datasource.user }}
+    {{- end }}
+    {{- if $datasource.database }}
+    database: {{ $datasource.database }}
+    {{- end }}
+{{- end }}
