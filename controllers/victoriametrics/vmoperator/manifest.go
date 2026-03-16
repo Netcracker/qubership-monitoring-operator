@@ -12,6 +12,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/utils/ptr"
@@ -32,6 +33,8 @@ func vmOperatorRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetName(cr.GetNamespace() + "-" + utils.VmOperatorComponentName)
 	role.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmOperatorComponentName), nil)
+
 	return &role, nil
 }
 
@@ -44,6 +47,8 @@ func vmOperatorServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAcco
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmOperatorComponentName)
 	sa.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmOperatorComponentName), nil)
 
 	return &sa, nil
 }
@@ -65,6 +70,9 @@ func vmOperatorRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, e
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
 	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmOperatorComponentName), nil)
+
 	return &roleBinding, nil
 }
 
@@ -83,6 +91,9 @@ func vmOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, e
 		Resources: []string{"services", "services/finalizers", "endpoints"},
 		Verbs:     []string{"get", "create", "list", "update", "watch"},
 	})
+
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmOperatorComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -102,6 +113,9 @@ func vmOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmOperatorComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -221,14 +235,22 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 			}
 		}
 
-		// Set labels
-		d.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
-		if cr.Spec.Victoriametrics.VmOperator.Labels != nil {
-			for k, v := range cr.Spec.Victoriametrics.VmOperator.Labels {
-				d.Labels[k] = v
-			}
+		// Set labels via centralized API (Deployment: SetLabelsForWorkload with LabelInput from cr.Spec).
+		// Selector uses app.kubernetes.io/name only; instance in template is for identification.
+		// Migration: delete Deployment before upgrade if selector previously included instance.
+		in := utils.LabelInput{
+			Name:            d.GetName(),
+			Component:       utils.VmOperatorComponentName,
+			Instance:        utils.GetInstanceLabel(d.GetName(), d.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.Victoriametrics.VmOperator.Labels,
+		}
+		utils.SetLabelsForWorkload(&d, &d.Spec.Template.Labels, in)
+		d.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"app.kubernetes.io/name": utils.TruncLabel(in.Name),
+			},
 		}
 
 		if d.Annotations == nil && cr.Spec.Victoriametrics.VmOperator.Annotations != nil {
@@ -239,15 +261,7 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 			}
 		}
 
-		// Set labels
-		d.Spec.Template.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
-		if cr.Spec.Victoriametrics.VmOperator.Labels != nil {
-			for k, v := range cr.Spec.Victoriametrics.VmOperator.Labels {
-				d.Spec.Template.Labels[k] = v
-			}
-		}
+		// Template labels set above by SetLabelsForWorkload
 
 		if d.Spec.Template.Annotations == nil && cr.Spec.Victoriametrics.VmOperator.Annotations != nil {
 			d.Spec.Template.Annotations = cr.Spec.Victoriametrics.VmOperator.Annotations
@@ -275,6 +289,8 @@ func vmOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service.SetName(utils.VmOperatorComponentName)
 	service.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.VmOperatorComponentName), nil)
+
 	return &service, nil
 }
 
@@ -288,6 +304,8 @@ func vmKubeletService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	service.SetName(utils.VmKubeletName)
 	service.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.VmOperatorComponentName), nil)
+
 	return &service, nil
 }
 
@@ -300,6 +318,8 @@ func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints,
 	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
 	endpoints.SetName(utils.VmKubeletName)
 	endpoints.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&endpoints, utils.BaseOnlyLabelInput(endpoints.GetName(), utils.VmOperatorComponentName), nil)
 
 	return &endpoints, nil
 }

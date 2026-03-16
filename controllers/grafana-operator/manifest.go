@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -37,14 +38,13 @@ func grafanaOperatorServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.Servic
 				sa.Annotations[k] = v
 			}
 		}
-
-		if cr.Spec.Grafana.Operator.ServiceAccount.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Operator.ServiceAccount.Labels {
-				sa.Labels[k] = v
-			}
-		}
 	}
 
+	in := utils.BaseOnlyLabelInput(sa.GetName(), utils.GrafanaOperatorComponentName)
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Operator.ServiceAccount != nil {
+		in.ComponentLabels = cr.Spec.Grafana.Operator.ServiceAccount.Labels
+	}
+	utils.SetLabelsForResource(&sa, in, nil)
 	return &sa, nil
 }
 
@@ -57,6 +57,7 @@ func grafanaOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRo
 	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
 	clusterRole.SetName(cr.GetNamespace() + "-" + utils.GrafanaOperatorComponentName)
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.GrafanaOperatorComponentName), nil)
 	return &clusterRole, nil
 }
 
@@ -76,6 +77,7 @@ func grafanaOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cl
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.GrafanaOperatorComponentName
 	}
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.GrafanaOperatorComponentName), nil)
 	return &clusterRoleBinding, nil
 }
 
@@ -89,6 +91,7 @@ func grafanaOperatorRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetName(cr.GetNamespace() + "-" + utils.GrafanaOperatorComponentName)
 	role.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.GrafanaOperatorComponentName), nil)
 	return &role, nil
 }
 
@@ -109,6 +112,7 @@ func grafanaOperatorRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBindi
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.GrafanaOperatorComponentName
 	}
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.GrafanaOperatorComponentName), nil)
 	return &roleBinding, nil
 }
 
@@ -193,15 +197,17 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 			d.Spec.Template.Spec.Affinity = cr.Spec.Grafana.Operator.Affinity
 		}
 
-		// Set labels
-		d.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image)
-
-		if cr.Spec.Grafana.Operator.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Operator.Labels {
-				d.Labels[k] = v
-			}
+		in := utils.LabelInput{
+			Name:            d.GetName(),
+			Component:       utils.GrafanaOperatorComponentName,
+			Instance:        utils.GetInstanceLabel(d.GetName(), d.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.Grafana.Operator.Labels,
+		}
+		utils.SetLabelsForWorkload(&d, &d.Spec.Template.Labels, in)
+		d.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(in.Name)},
 		}
 
 		if d.Annotations == nil && cr.Spec.Grafana.Operator.Annotations != nil {
@@ -209,17 +215,6 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 		} else {
 			for k, v := range cr.Spec.Grafana.Operator.Annotations {
 				d.Annotations[k] = v
-			}
-		}
-
-		// Set labels
-		d.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image)
-
-		if cr.Spec.Grafana.Operator.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Operator.Labels {
-				d.Spec.Template.Labels[k] = v
 			}
 		}
 
@@ -255,15 +250,12 @@ func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.Gr
 	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1alpha1", Kind: "Grafana"})
 	dashboard.SetNamespace(cr.GetNamespace())
 
-	// Set labels
-	dashboard.Labels["name"] = utils.TruncLabel(dashboard.GetName())
-	dashboard.Labels["app.kubernetes.io/name"] = utils.TruncLabel(dashboard.GetName())
-	dashboard.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(dashboard.GetName(), dashboard.GetNamespace())
-	dashboard.Labels["app.kubernetes.io/part-of"] = "monitoring"
-	dashboard.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
-	if cr.Spec.Grafana != nil {
-		dashboard.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Operator.Image)
-	}
+	// Set labels (CR: base + processed-by-operator per spec)
+	utils.SetLabelsForResource(&dashboard, utils.LabelInput{
+		Name:            dashboard.GetName(),
+		Component:      utils.GrafanaOperatorComponentName,
+		ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "grafana-operator"},
+	}, nil)
 
 	return &dashboard, nil
 }
@@ -281,5 +273,18 @@ func grafanaOperatorPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Operator.PodMonitor != nil && cr.Spec.Grafana.Operator.PodMonitor.IsInstall() {
 		cr.Spec.Grafana.Operator.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
+
+	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
+		Name:            podMonitor.GetName(),
+		Component:       utils.GrafanaOperatorComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
+	podMonitor.Spec.Selector = metav1.LabelSelector{
+		MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.GrafanaOperatorComponentName)},
+	}
+
 	return &podMonitor, nil
 }

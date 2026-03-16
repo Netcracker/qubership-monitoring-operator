@@ -27,12 +27,6 @@ func (r *VmOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -62,12 +56,6 @@ func (r *VmOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -95,12 +83,6 @@ func (r *VmOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) e
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -127,12 +109,6 @@ func (r *VmOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) e
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -162,12 +138,6 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -205,6 +175,12 @@ func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) er
 		}
 		return err
 	}
+	if utils.WorkloadNeedsSelectorReplace(e, m) {
+		if err := r.DeleteResource(e); err != nil {
+			return err
+		}
+		return r.CreateResource(cr, m)
+	}
 
 	//Set parameters
 	e.SetLabels(m.GetLabels())
@@ -230,12 +206,6 @@ func (r *VmOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error
 		r.Log.Error(err, "Failed creating Service manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -265,12 +235,6 @@ func (r *VmOperatorReconciler) handleKubeletService(cr *monv1.PlatformMonitoring
 		r.Log.Error(err, "Failed creating Service manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -315,12 +279,6 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 	}
 
 	eps.Subsets[0].Addresses = addresses
-
-	// Set labels
-	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
-	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -389,11 +347,7 @@ func (r *VmOperatorReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
+	utils.SetLabelsForResource(m, utils.BaseOnlyLabelInput(m.GetName(), utils.VmOperatorComponentName), nil)
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -425,11 +379,7 @@ func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.Platfo
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
+	utils.SetLabelsForResource(m, utils.BaseOnlyLabelInput(m.GetName(), utils.VmOperatorComponentName), nil)
 
 	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {

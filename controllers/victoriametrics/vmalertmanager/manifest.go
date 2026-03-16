@@ -31,6 +31,8 @@ func vmAlertManagerServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.Service
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
 	sa.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &sa, nil
 }
 
@@ -59,6 +61,8 @@ func vmAlertManagerClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -78,6 +82,9 @@ func vmAlertManagerClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clu
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -90,6 +97,9 @@ func vmAlertManagerRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
 	role.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
 	role.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &role, nil
 }
 
@@ -110,6 +120,9 @@ func vmAlertManagerRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBindin
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
 	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &roleBinding, nil
 }
 
@@ -300,27 +313,23 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 			vmalertmgr.Spec.TerminationGracePeriodSeconds = cr.Spec.Victoriametrics.VmAlertManager.TerminationGracePeriodSeconds
 		}
 
-		// Set labels
-		vmalertmgr.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace())
-		vmalertmgr.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmalertmgr.GetName(),
+			Component:       utils.VmAlertManagerComponentName,
+			Instance:        utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image),
+			Technology:      "go",
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmalertmgr, in, nil)
 
-		vmalertmgr.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         utils.TruncLabel(vmalertmgr.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(vmalertmgr.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace()),
-			"app.kubernetes.io/component":  "victoriametrics",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image),
-		}}
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmalertmgr.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		if vmalertmgr.Spec.PodMetadata != nil {
-			if cr.Spec.Victoriametrics.VmAlertManager.Labels != nil {
-				for k, v := range cr.Spec.Victoriametrics.VmAlertManager.Labels {
-					vmalertmgr.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if vmalertmgr.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmAlertManager.Annotations != nil {
 				vmalertmgr.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmAlertManager.Annotations
 			} else {
@@ -346,6 +355,9 @@ func vmAlertmanagerSecret(cr *monv1.PlatformMonitoring) (*corev1.Secret, error) 
 	//Set parameters
 	secret.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Secret"})
 	secret.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&secret, utils.BaseOnlyLabelInput(secret.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &secret, nil
 }
 
@@ -409,15 +421,12 @@ func vmAlertManagerIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingres
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAlertManagerComponentName)
+		if len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -486,15 +495,12 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAlertManagerComponentName)
+		if len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }

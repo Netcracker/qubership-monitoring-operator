@@ -17,12 +17,6 @@ func (r *PrometheusOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) 
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
-
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -52,12 +46,6 @@ func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMo
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
-
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -85,12 +73,6 @@ func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonit
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
-
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -117,12 +99,6 @@ func (r *PrometheusOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonit
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -152,12 +128,6 @@ func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.Platfo
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -195,6 +165,12 @@ func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonito
 		}
 		return err
 	}
+	if utils.WorkloadNeedsSelectorReplace(e, m) {
+		if err := r.DeleteResource(e); err != nil {
+			return err
+		}
+		return r.CreateResource(cr, m)
+	}
 
 	//Set parameters
 	e.SetLabels(m.GetLabels())
@@ -221,11 +197,7 @@ func (r *PrometheusOperatorReconciler) handleService(cr *monv1.PlatformMonitorin
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
+	m.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.PrometheusOperatorComponentName)}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -255,12 +227,6 @@ func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonito
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Operator.Image)
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {

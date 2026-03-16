@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -126,16 +127,18 @@ func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring) (*appsv1.DaemonSet, err
 			daemonSet.Spec.Template.Spec.Affinity = cr.Spec.NodeExporter.Affinity
 		}
 
-		// Set labels
-		daemonSet.Labels["name"] = utils.TruncLabel(daemonSet.GetName())
-		daemonSet.Labels["app.kubernetes.io/name"] = utils.TruncLabel(daemonSet.GetName())
-		daemonSet.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
-		daemonSet.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
-
-		if cr.Spec.NodeExporter.Labels != nil {
-			for k, v := range cr.Spec.NodeExporter.Labels {
-				daemonSet.Labels[k] = v
-			}
+		// Set labels via centralized API
+		in := utils.LabelInput{
+			Name:            daemonSet.GetName(),
+			Component:       utils.NodeExporterComponentName,
+			Instance:        utils.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.NodeExporter.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.NodeExporter.Labels,
+		}
+		utils.SetLabelsForWorkload(&daemonSet, &daemonSet.Spec.Template.Labels, in)
+		daemonSet.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(in.Name)},
 		}
 
 		if daemonSet.Annotations == nil && cr.Spec.NodeExporter.Annotations != nil {
@@ -143,18 +146,6 @@ func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring) (*appsv1.DaemonSet, err
 		} else {
 			for k, v := range cr.Spec.NodeExporter.Annotations {
 				daemonSet.Annotations[k] = v
-			}
-		}
-
-		// Set labels
-		daemonSet.Spec.Template.Labels["name"] = utils.TruncLabel(daemonSet.GetName())
-		daemonSet.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(daemonSet.GetName())
-		daemonSet.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
-		daemonSet.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
-
-		if cr.Spec.NodeExporter.Labels != nil {
-			for k, v := range cr.Spec.NodeExporter.Labels {
-				daemonSet.Spec.Template.Labels[k] = v
 			}
 		}
 
@@ -203,6 +194,7 @@ func nodeExporterService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) 
 			}
 		}
 	}
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.NodeExporterComponentName), nil)
 	return &service, nil
 }
 
@@ -221,6 +213,14 @@ func nodeExporterServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMo
 	}
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:            sm.GetName(),
+		Component:       utils.NodeExporterComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 	return &sm, nil
 }
 
@@ -243,15 +243,12 @@ func nodeExporterServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAc
 				sa.Annotations[k] = v
 			}
 		}
-
-		if sa.Labels == nil && cr.Spec.NodeExporter.ServiceAccount.Labels != nil {
-			sa.SetLabels(cr.Spec.NodeExporter.ServiceAccount.Labels)
-		} else {
-			for k, v := range cr.Spec.NodeExporter.ServiceAccount.Labels {
-				sa.Labels[k] = v
-			}
-		}
 	}
 
+	in := utils.BaseOnlyLabelInput(sa.GetName(), utils.NodeExporterComponentName)
+	if cr.Spec.NodeExporter != nil && cr.Spec.NodeExporter.ServiceAccount != nil {
+		in.ComponentLabels = cr.Spec.NodeExporter.ServiceAccount.Labels
+	}
+	utils.SetLabelsForResource(&sa, in, nil)
 	return &sa, nil
 }

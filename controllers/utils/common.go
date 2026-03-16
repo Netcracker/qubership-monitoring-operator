@@ -6,6 +6,7 @@ import (
 	"embed"
 	"fmt"
 	"io"
+	"reflect"
 	"strconv"
 	"strings"
 	"text/template"
@@ -88,6 +89,27 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 		}
 	}
 	return false, nil
+}
+
+// WorkloadNeedsSelectorReplace returns true if the workload's selector changed.
+// For Deployment, DaemonSet, and StatefulSet, spec.selector is immutable; Update
+// would fail. Callers should Delete+Create instead.
+func WorkloadNeedsSelectorReplace(existing, desired client.Object) bool {
+	switch e := existing.(type) {
+	case *appsv1.Deployment:
+		if d, ok := desired.(*appsv1.Deployment); ok {
+			return !reflect.DeepEqual(e.Spec.Selector, d.Spec.Selector)
+		}
+	case *appsv1.DaemonSet:
+		if d, ok := desired.(*appsv1.DaemonSet); ok {
+			return !reflect.DeepEqual(e.Spec.Selector, d.Spec.Selector)
+		}
+	case *appsv1.StatefulSet:
+		if d, ok := desired.(*appsv1.StatefulSet); ok {
+			return !reflect.DeepEqual(e.Spec.Selector, d.Spec.Selector)
+		}
+	}
+	return false
 }
 
 func (r *ComponentReconciler) CreateResource(cr *monv1.PlatformMonitoring, o K8sResource, setRefOptional ...bool) error {
@@ -228,18 +250,6 @@ func ParseTemplate(fileContent, filePath, leftDelim, rightDelim string, paramete
 func GetTagFromImage(image string) string {
 	partsOfImage := strings.Split(image, ":")
 	return partsOfImage[len(partsOfImage)-1]
-}
-
-func GetInstanceLabel(name, namespace string) string {
-	label := fmt.Sprintf("%s-%s", name, namespace)
-	return TruncLabel(label)
-}
-
-func TruncLabel(label string) string {
-	if len(label) >= 63 {
-		return strings.Trim(label[:63], "-")
-	}
-	return strings.Trim(label, "-")
 }
 
 const defaultPodsPendingTimeout = time.Minute * 5
