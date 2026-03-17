@@ -3,13 +3,13 @@ package grafana
 import (
 	"testing"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	cr              *v1alpha1.PlatformMonitoring
+	cr              *monv1.PlatformMonitoring
 	labelKey        = "label.key"
 	labelValue      = "label-value"
 	annotationKey   = "annotation.key"
@@ -17,12 +17,12 @@ var (
 )
 
 func TestGrafanaManifests(t *testing.T) {
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Grafana: &v1alpha1.Grafana{
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{
 				Annotations: map[string]string{annotationKey: annotationValue},
 				Labels:      map[string]string{labelKey: labelValue},
 			},
@@ -43,12 +43,12 @@ func TestGrafanaManifests(t *testing.T) {
 		assert.NotNil(t, m.Spec.Deployment.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Deployment.Annotations[annotationKey])
 	})
-	cr = &v1alpha1.PlatformMonitoring{
+	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "monitoring",
 		},
-		Spec: v1alpha1.PlatformMonitoringSpec{
-			Grafana: &v1alpha1.Grafana{},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{},
 		},
 	}
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {

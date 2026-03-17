@@ -62,12 +62,15 @@ jobs:
       matrix:
         component:
         - name: qubership-monitoring-operator
+          description: Qubership Monitoring Operator image
           file: Dockerfile
           context: .
         - name: qubership-monitoring-transfer
+          description: Qubership Monitoring documentation and helm charts image
           file: docker-transfer/Dockerfile
           context: .
         - name: qubership-monitoring-int-tests
+          description: Qubership Monitoring integration tests image
           file: test/robot-tests/Dockerfile
           context: test/robot-tests
     runs-on: ubuntu-latest
@@ -90,6 +93,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=tag
+          type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
           type=sha,prefix=git-
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
@@ -117,7 +121,7 @@ jobs:
         file: ${{ matrix.component.file }}
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
-        push: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+        push: ${{ (github.actor != 'dependabot[bot]') && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || github.ref == 'refs/heads/main' || github.ref_type == 'tag') }}
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

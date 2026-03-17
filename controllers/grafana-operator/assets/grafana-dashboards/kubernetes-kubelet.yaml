@@ -13,7 +13,7 @@ spec:
             "builtIn": 1,
             "datasource": {
               "type": "datasource",
-              "uid": "grafana"
+              "uid": "${datasource}"
             },
             "enable": true,
             "hide": true,
@@ -540,7 +540,7 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_node_config_error{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[5m]))",
+              "expr": "sum(rate(kubelet_node_config_error{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[$__rate_interval]))",
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -642,10 +642,10 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_runtime_operations_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (operation_type, node)",
+              "expr": "sum(rate(kubelet_runtime_operations_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (operation_type, node)",
               "format": "time_series",
               "hide": false,
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_type}}",
               "refId": "A"
@@ -655,10 +655,10 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_runtime_operations{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (operation_type, node)",
+              "expr": "sum(rate(kubelet_runtime_operations{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (operation_type, node)",
               "format": "time_series",
               "hide": false,
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_type}}",
               "refId": "B"
@@ -758,9 +758,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_runtime_operations_errors_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, operation_type)",
+              "expr": "sum(rate(kubelet_runtime_operations_errors_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, operation_type)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_type}}",
               "refId": "A"
@@ -770,9 +770,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_runtime_operations_errors{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, operation_type)",
+              "expr": "sum(rate(kubelet_runtime_operations_errors{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, operation_type)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_type}}",
               "refId": "B"
@@ -872,9 +872,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(kubelet_runtime_operations_duration_seconds_bucket{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, operation_type, le))",
+              "expr": "histogram_quantile(0.99, sum(rate(kubelet_runtime_operations_duration_seconds_bucket{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, operation_type, le))",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_type}}",
               "refId": "A"
@@ -974,9 +974,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_pod_start_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node)",
+              "expr": "sum(rate(kubelet_pod_start_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} pod",
               "refId": "A"
@@ -986,9 +986,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_pod_worker_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node)",
+              "expr": "sum(rate(kubelet_pod_worker_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} worker",
               "refId": "B"
@@ -1088,9 +1088,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(kubelet_pod_start_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, le))",
+              "expr": "histogram_quantile(0.99, sum(rate(kubelet_pod_start_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, le))",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} pod",
               "refId": "A"
@@ -1100,9 +1100,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, le))",
+              "expr": "histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, le))",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} worker",
               "refId": "B"
@@ -1243,9 +1243,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(storage_operation_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, operation_name, volume_plugin)",
+              "expr": "sum(rate(storage_operation_duration_seconds_count{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, operation_name, volume_plugin)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_name}} {{volume_plugin}}",
               "refId": "A"
@@ -1386,9 +1386,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(storage_operation_errors_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])) by (node, operation_name, volume_plugin)",
+              "expr": "sum(rate(storage_operation_errors_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])) by (node, operation_name, volume_plugin)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_name}} {{volume_plugin}}",
               "refId": "A"
@@ -1529,9 +1529,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(storage_operation_duration_seconds_bucket{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[2m])) by (node, operation_name, volume_plugin, le))",
+              "expr": "histogram_quantile(0.99, sum(rate(storage_operation_duration_seconds_bucket{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[$__rate_interval])) by (node, operation_name, volume_plugin, le))",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_name}} {{volume_plugin}}",
               "refId": "A"
@@ -1632,7 +1632,7 @@ spec:
               "exemplar": true,
               "expr": "process_resident_memory_bytes{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}}",
               "refId": "A"
@@ -1732,9 +1732,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "rate(process_cpu_seconds_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[2m])",
+              "expr": "rate(process_cpu_seconds_total{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}[$__rate_interval])",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}}",
               "refId": "A"
@@ -1835,7 +1835,7 @@ spec:
               "exemplar": true,
               "expr": "go_goroutines{cluster=~\"$cluster\",job=\"kubelet\",node=~\"$instance\"}",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}}",
               "refId": "A"
@@ -1935,9 +1935,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "sum(rate(kubelet_cgroup_manager_duration_seconds_count{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[2m])) by (node, operation_type)",
+              "expr": "sum(rate(kubelet_cgroup_manager_duration_seconds_count{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[$__rate_interval])) by (node, operation_type)",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{operation_type}}",
               "refId": "A"
@@ -2037,9 +2037,9 @@ spec:
                 "uid": "$datasource"
               },
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum(rate(kubelet_cgroup_manager_duration_seconds_bucket{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[2m])) by (node, operation_type, le))",
+              "expr": "histogram_quantile(0.99, sum(rate(kubelet_cgroup_manager_duration_seconds_bucket{cluster=~\"$cluster\", job=\"kubelet\", node=~\"$instance\"}[$__rate_interval])) by (node, operation_type, le))",
               "format": "time_series",
-              "interval": "$interval",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{node}} {{operation_type}}",
               "refId": "A"

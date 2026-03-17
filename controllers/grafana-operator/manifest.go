@@ -4,7 +4,7 @@ import (
 	"embed"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -18,7 +18,7 @@ import (
 //go:embed  assets/*/*.yaml
 var assets embed.FS
 
-func grafanaOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+func grafanaOperatorServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
 	sa := corev1.ServiceAccount{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorServiceAccountAsset), 100).Decode(&sa); err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func grafanaOperatorServiceAccount(cr *v1alpha1.PlatformMonitoring) (*corev1.Ser
 	return &sa, nil
 }
 
-func grafanaOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
+func grafanaOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func grafanaOperatorClusterRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Cluste
 	return &clusterRole, nil
 }
 
-func grafanaOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+func grafanaOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func grafanaOperatorClusterRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1
 	return &clusterRoleBinding, nil
 }
 
-func grafanaOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) {
+func grafanaOperatorRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role := rbacv1.Role{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorRoleAsset), 100).Decode(&role); err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func grafanaOperatorRole(cr *v1alpha1.PlatformMonitoring) (*rbacv1.Role, error) 
 	return &role, nil
 }
 
-func grafanaOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+func grafanaOperatorRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func grafanaOperatorRoleBinding(cr *v1alpha1.PlatformMonitoring) (*rbacv1.RoleBi
 	return &roleBinding, nil
 }
 
-func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func grafanaOperatorDeployment(cr *v1alpha1.PlatformMonitoring) (*appsv1.Deploym
 	return &d, nil
 }
 
-func grafanaDashboard(cr *v1alpha1.PlatformMonitoring, fileName string) (*grafv1.GrafanaDashboard, error) {
+func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.GrafanaDashboard, error) {
 	dashboard := grafv1.GrafanaDashboard{}
 	fullPath := utils.BasePath + utils.DashboardsFolder + fileName
 	crParams := cr.ToParams()
@@ -268,7 +268,7 @@ func grafanaDashboard(cr *v1alpha1.PlatformMonitoring, fileName string) (*grafv1
 	return &dashboard, nil
 }
 
-func grafanaOperatorPodMonitor(cr *v1alpha1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+func grafanaOperatorPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
 	podMonitor := promv1.PodMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorPodMonitorAsset), 100).Decode(&podMonitor); err != nil {
 		return nil, err
