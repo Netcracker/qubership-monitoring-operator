@@ -5,6 +5,7 @@ metadata:
   name: {{ .Values.name }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   json: >    
     {

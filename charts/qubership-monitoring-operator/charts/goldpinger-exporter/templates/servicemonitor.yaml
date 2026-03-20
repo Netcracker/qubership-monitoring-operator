@@ -8,6 +8,7 @@ metadata:
   {{- end }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
     {{- range $key, $value := .Values.serviceMonitor.selector }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}

@@ -10,6 +10,7 @@ metadata:
   {{- end }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
 spec:
   {{- with .Values.prometheusRule.rules }}
   groups:

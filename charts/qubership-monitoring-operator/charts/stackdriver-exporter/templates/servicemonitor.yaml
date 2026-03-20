@@ -4,13 +4,10 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Release.Namespace "-" .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "stackdriver-exporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
     {{- if .Values.serviceMonitor.labels }}
-      {{ toYaml .Values.serviceMonitor.labels | nindent 4 }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.serviceMonitor.labels) | nindent 4 }}
     {{- end }}
 spec:
   endpoints:
