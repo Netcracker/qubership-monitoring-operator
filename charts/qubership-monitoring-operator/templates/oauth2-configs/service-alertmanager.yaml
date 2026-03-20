@@ -6,12 +6,7 @@ kind: Service
 metadata:
   name: alertmanager-oauth2-proxy
   labels:
-    app.kubernetes.io/name: alertmanager-oauth2-proxy
-    app.kubernetes.io/component: oauth2-proxy
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: {{ cat "alertmanager-oauth2-proxy-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "alertmanager-oauth2-proxy" "component" "oauth2-proxy") | nindent 4 }}
 spec:
   clusterIP: None
   ports:
