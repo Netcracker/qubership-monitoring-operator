@@ -4,7 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "monitoring.labels" (dict "ctx" .) | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   json: >

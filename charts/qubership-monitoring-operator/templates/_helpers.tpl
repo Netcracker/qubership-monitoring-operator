@@ -5,7 +5,7 @@ Base resource labels: expects either chart context (.) or dict with ctx and opti
 When name or component are omitted, they are derived from ctx.Values (name, component|default name).
 Usage:
   {{- include "monitoring.labels" . | nindent 4 }}
-  Or with overrides: (dict "ctx" . "name" "x" "processedByOperator" "prometheus-operator")
+  Or with overrides: (dict "ctx" . "name" "x" "component" "y")
 */}}
 {{- define "monitoring.labels" -}}
 {{- $ctx := index . "ctx" | default . -}}
@@ -22,7 +22,7 @@ app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
 {{/*
 Extra labels helper: renders arbitrary labels map when provided.
 Usage:
-  {{- include "monitoring.extraLabels" (dict "extraLabels" .Values.labels) | nindent 4 }}
+  {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.labels) | nindent 4 }}
 */}}
 {{- define "monitoring.extraLabels" -}}
 {{- $ctx := index . "ctx" | default . -}}
