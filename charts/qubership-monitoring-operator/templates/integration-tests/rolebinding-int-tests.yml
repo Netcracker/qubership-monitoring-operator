@@ -1,20 +1,17 @@
 {{- if .Values.integrationTests.install }}
+{{- $intTestsRole := printf "%s-int-tests" .Values.integrationTests.name -}}
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ .Values.integrationTests.name }}-int-tests
+  name: {{ $intTestsRole }}
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" $intTestsRole "component" "platform-monitoring-tests") | nindent 4 }}
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.integrationTests.name }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ .Values.integrationTests.name }}-int-tests
+  name: {{ $intTestsRole }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
