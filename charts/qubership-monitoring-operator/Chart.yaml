@@ -108,3 +108,9 @@ dependencies:
     condition: stackdriverExporter.install
     version: ~0
     repository: "file://charts/stackdriver-exporter"
+
+  # Qubership monitoring configuration
+  - name: prometheusrules
+    condition: prometheusRules.install
+    version: ~0
+    repository: "file://charts/prometheus-rules"

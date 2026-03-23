@@ -35,6 +35,7 @@ global:
 # Type: object
 # Mandatory: no
 #
+
 role:
   # Allow to disable create Role and ClusterRole for monitoring-operator during deploy.
   # If global.privilegedRights parameter is set to false, ClusterRole will not be installed in any case.
@@ -991,7 +992,7 @@ kubernetesMonitors:
     metricRelabelings: []
     relabelings: []
   apiserverServiceMonitor:
-    install: true
+    install: false
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings:
@@ -1280,18 +1281,22 @@ grafanaDashboards:
 #
 prometheusRules:
   install: true
+  alertsPackVersion: v1
   ruleGroups:
     - SelfMonitoring
     - AlertManager
-    - KubebernetesAlerts
+    - KubernetesAlerts
     - NodeProcesses
     - NodeExporters
     - DockerContainers
+    - HAmode
+    - HAproxy
     - Etcd
     - NginxIngressAlerts
     - CoreDnsAlerts
     - DRAlerts
     - BackupAlerts
+
   # override:
   #     - group: SelfMonitoring
   #       alert: PrometheusNotificationsBacklog
