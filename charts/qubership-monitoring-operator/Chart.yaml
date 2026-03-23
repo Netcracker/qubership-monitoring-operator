@@ -46,12 +46,6 @@ dependencies:
     version: ~0
     repository: "file://charts/promxy"
 
-  # Common Dashboards
-  - name: commonDashboards
-    condition: commonDashboards.install
-    version: ~0
-    repository: "file://charts/common-dashboards"
-
   # Integration tools
   - name: graphite_remote_adapter
     condition: graphite_remote_adapter.install

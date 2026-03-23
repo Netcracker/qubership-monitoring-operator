@@ -13,6 +13,11 @@
 #
 install: true
 
+# Common dashboards that stored in Monitoring
+commonDashboards:
+  # Enable by default
+  install: true
+
 # A docker image to use for prometheus-operator deployment with prometheus pod
 #
 # image: grafana/grafana:11.6.5

@@ -1630,11 +1630,6 @@ integrationTests:
 
 ##### Sub-charts section
 
-# Common dashboards that stored in Monitoring
-commonDashboards:
-  # Enable by default
-  install: true
-
 # Adapter to support HPA scaling by custom metrics from VictoriaMetrics or Prometheus
 prometheusAdapter:
   # Disable by default
