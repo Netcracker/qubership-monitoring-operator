@@ -4,9 +4,7 @@ kind: ClusterRole
 metadata:
   name: {{ template "prometheusAdapter.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "prometheusAdapter.rbac.fullname" . }}
-    app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
-    {{- include "prometheusAdapter.commonLabels" . | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "prometheusAdapter.rbac.fullname" .)) | nindent 4 }}
 rules:
   # Need to discover CRs in all namespaces
   - apiGroups:

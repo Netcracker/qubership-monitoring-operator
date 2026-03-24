@@ -7,15 +7,8 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: promitor-agent-resource-discovery
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promitor.agentResourceDiscovery.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    {{- if .Values.labels }}
-    {{ toYaml .Values.labels | nindent 8 }}
-    {{- end }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
 data:
   runtime.yaml: |-
       server:

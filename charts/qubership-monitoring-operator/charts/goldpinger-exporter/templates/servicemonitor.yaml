@@ -26,5 +26,5 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      {{- include "goldpinger.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "goldpinger.name" . }}
 {{- end -}}

@@ -4,12 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: graphite-remote-adapter-dashboard
   labels:
-    app.kubernetes.io/name: graphite-remote-adapter-dashboard
-    app.kubernetes.io/instance: {{ cat "graphite-remote-adapter-dashboard-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "graphiteRemoteAdapter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "graphite-remote-adapter-dashboard" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   json: >
     {

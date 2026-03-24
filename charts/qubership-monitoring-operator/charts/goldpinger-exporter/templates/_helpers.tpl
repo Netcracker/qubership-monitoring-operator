@@ -6,20 +6,10 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
-Selector labels
-*/}}
-{{- define "goldpinger.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "goldpinger.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Labels for goldpinger resources: logical name is default(.Values.rbac.name, goldpinger.name), same as pre-monitoring.labels charts.
-Delegates to monitoring.labels (component defaults to Chart.Name).
+Labels for goldpinger resources. Uses goldpinger.name so selector matchLabels stay consistent.
 */}}
 {{- define "goldpinger.labels" -}}
-{{- $name := default .Values.rbac.name (include "goldpinger.name" .) -}}
-{{- include "monitoring.labels" (dict "ctx" . "name" $name) -}}
+{{- include "monitoring.labels" (dict "ctx" . "name" (include "goldpinger.name" .)) -}}
 {{- end -}}
 
 {{/*
