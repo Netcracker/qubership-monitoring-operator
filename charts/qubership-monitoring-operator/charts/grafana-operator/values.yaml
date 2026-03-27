@@ -347,7 +347,7 @@ operator:
   # Type: string
   # Mandatory: yes
   #
-  # initContainerImage: product/prod.platform.system.monitoring_grafana-plugins-init:latest
+  # initContainerImage: ghcr.io/netcracker/qubership-grafana-plugins-init:latest
 
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -433,7 +433,7 @@ operator:
   # Default: not set
   #
   affinity: {}
-  
+
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
   # They are not queryable and should be preserved when modifying objects.
@@ -546,7 +546,7 @@ imageRenderer:
   # Default: not set
   #
   nodeSelector: {}
-  
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object

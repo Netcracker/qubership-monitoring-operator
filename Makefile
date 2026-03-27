@@ -108,9 +108,19 @@ clean:
 generate: controller-gen
 	echo "=> Generate CRDs and deepcopy ..."
 	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=256 \
-					  object:headerFile="hack/boilerplate.go.txt" \
+					  object:headerFile="tools/boilerplate.go.txt" \
 					  paths="./..." \
 					  output:crd:artifacts:config=charts/qubership-monitoring-operator/crds/
+
+	if [[ "$$OSTYPE" == "darwin"* ]]; then \
+	  SED_CMD="sed -i '' -e"; \
+	else \
+	  SED_CMD="sed -i"; \
+	fi; \
+	find charts/qubership-monitoring-operator/crds -name '*.yaml' | while read f; do \
+	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook-weight: \"-5\"" "$$f"; \
+	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook: crd-install" "$$f"; \
+	done
 
 # Find or download controller-gen
 # download controller-gen if necessary
@@ -160,7 +170,7 @@ vet:
 image:
 	echo "=> Build image ..."
 	docker build --pull -t $(CONTAINER_NAME) -f $(DOCKERFILE) .
-	
+
 	# Set image tag if build inside the Jenkins
 	for id in $(DOCKER_NAMES) ; do \
 		docker tag $(CONTAINER_NAME) "$$id"; \

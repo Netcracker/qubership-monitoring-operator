@@ -20,8 +20,15 @@ rules:
     - services
     - endpoints
     - pods
-    - endpointslices
     - namespaces
+- verbs:
+    - get
+    - list
+    - watch
+  apiGroups:
+    - 'discovery.k8s.io'
+  resources:
+    - endpointslices
 - verbs:
     - get
     - list

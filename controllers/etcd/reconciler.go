@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	v1alpha1 "github.com/Netcracker/qubership-monitoring-operator/api/v1alpha1"
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	kubernetesmonitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/go-logr/logr"
@@ -54,23 +54,11 @@ func NewEtcdMonitorReconciler(c client.Client, s *runtime.Scheme, dc discovery.D
 // Creates new service monitor and secret with certificates if its don't exists.
 // Updates monitor and secret in case of any changes.
 // Returns true if need to requeue, false otherwise.
-func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMonitoring) error {
+func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
-
-	// Create Secret
-	if err := r.handleSecret(cr); err != nil {
-		return err
-	}
 
 	// Try to get Route is there to check is it OpenShift or Kubernetes
 	isOpenshift := r.HasRouteApi()
-
-	// Get minor server version to recognise Kubernetes v1.19 or higher to get etcd certs correctly
-	minorServerVersion, err := r.GetMinorServerVersion()
-	if err != nil {
-		r.Log.Error(err, "Failed to get minor server version")
-		return err
-	}
 
 	isOpenshiftV4, err := r.IsOpenShiftV4()
 	if err != nil {
@@ -91,6 +79,26 @@ func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMo
 		return nil
 	}
 
+	if len(cr.Spec.KubernetesMonitors) == 0 || !kubernetesmonitors.IsMonitorInstall(cr, utils.EtcdServiceMonitorName) {
+		r.Log.Info("Uninstalling component if exists")
+		r.uninstall(cr, isOpenshift, etcdServiceNamespace, isOpenshiftV4)
+		r.Log.Info("Component reconciled")
+		return nil
+	}
+
+	// Create Secret
+	if err := r.handleSecret(cr); err != nil {
+		return err
+	}
+
+	// Get minor server version to recognise Kubernetes v1.19 or higher to get etcd certs correctly
+	minorServerVersion, err := r.GetMinorServerVersion()
+	if err != nil {
+		r.Log.Error(err, "Failed to get minor server version")
+		return err
+	}
+
+	// If monitor should not be installed in public cloud, the rest of this code will not work too
 	// Update certificate in the Secret
 	if err = r.updateCertificates(ctx, cr, isOpenshift, minorServerVersion, isOpenshiftV4); err != nil {
 		if apierrors.IsForbidden(err) && !utils.PrivilegedRights {
@@ -100,34 +108,26 @@ func (r *EtcdMonitorReconciler) Run(ctx context.Context, cr *v1alpha1.PlatformMo
 		}
 	}
 
-	if len(cr.Spec.KubernetesMonitors) > 0 {
-		if kubernetesmonitors.IsMonitorInstall(cr, utils.EtcdServiceMonitorName) {
-			if err = r.handleServiceAccount(cr); err != nil {
-				return err
-			}
-			if err = r.handleServiceMonitor(cr, etcdServiceNamespace, isOpenshiftV4); err != nil {
-				return err
-			}
-			if utils.PrivilegedRights {
-				if err = r.handleService(cr, isOpenshift, etcdServiceNamespace, isOpenshiftV4); err != nil {
-					return err
-				}
-			} else {
-				r.Log.Info("Skip Service resource reconciliation because privilegedRights=false")
-			}
-
-			r.Log.Info("Component reconciled")
-			return nil
-		}
+	if err = r.handleServiceAccount(cr); err != nil {
+		return err
 	}
-	r.Log.Info("Uninstalling component if exists")
-	r.uninstall(cr, isOpenshift, etcdServiceNamespace, isOpenshiftV4)
+	if err = r.handleServiceMonitor(cr, etcdServiceNamespace, isOpenshiftV4); err != nil {
+		return err
+	}
+	if utils.PrivilegedRights {
+		if err = r.handleService(cr, isOpenshift, etcdServiceNamespace, isOpenshiftV4); err != nil {
+			return err
+		}
+	} else {
+		r.Log.Info("Skip Service resource reconciliation because privilegedRights=false")
+	}
+
 	r.Log.Info("Component reconciled")
 	return nil
 }
 
 // uninstall deletes all resources related to the component
-func (r *EtcdMonitorReconciler) uninstall(cr *v1alpha1.PlatformMonitoring, isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) {
+func (r *EtcdMonitorReconciler) uninstall(cr *monv1.PlatformMonitoring, isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) {
 	if err := r.deleteServiceMonitor(cr, etcdServiceNamespace, isOpenshiftV4); err != nil {
 		r.Log.Error(err, "Can not delete ServiceMonitor")
 	}
@@ -295,7 +295,7 @@ func (r *EtcdMonitorReconciler) getCertsFromConfigmapAndSecret() (string, string
 	return caFile, certFile, keyFile, nil
 }
 
-func (r *EtcdMonitorReconciler) updateCertificates(ctx context.Context, cr *v1alpha1.PlatformMonitoring, isOpenshift bool, minorServerVersion int, isOpenshiftV4 bool) error {
+func (r *EtcdMonitorReconciler) updateCertificates(ctx context.Context, cr *monv1.PlatformMonitoring, isOpenshift bool, minorServerVersion int, isOpenshiftV4 bool) error {
 	var caFile, certFile, keyFile string
 	var err error
 

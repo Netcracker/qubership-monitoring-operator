@@ -67,7 +67,7 @@ networkLatencyExporter:
   serviceAccount:
     create: true
     name: "network-latency-exporter"
-  image: prod.platform.system.monitoring_network-latency-exporter:latest
+  image: ghcr.io/netcracker/qubership-network-latency-exporter:latest
   resources:
     limits:
       cpu: 200m

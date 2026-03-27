@@ -21,7 +21,7 @@ name: "cloud-events-exporter"
 # Type: string
 # Mandatory: yes
 #
-# image: product/prod.platform.logging_cloud-events-reader:latest
+# image: ghcr.io/netcracker/qubership-kube-events-reader:latest
 
 rbac:
   # Allow creating ClusterRole. If set to `false`, ClusterRole must be created manually.

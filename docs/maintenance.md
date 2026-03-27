@@ -59,7 +59,7 @@ CRDs created by this chart are not removed by default and should be manually cle
 * For Kubernetes
 
     ```bash
-    kubectl delete crd platformmonitoring.monitoring.qubership.org
+    kubectl delete crd platformmonitoring.monitoring.netcracker.com
     kubectl delete crd prometheuses.monitoring.coreos.com
     kubectl delete crd prometheusrules.monitoring.coreos.com
     kubectl delete crd servicemonitors.monitoring.coreos.com
@@ -73,7 +73,7 @@ CRDs created by this chart are not removed by default and should be manually cle
 * For OpenShift
 
     ```bash
-    oc delete crd platformmonitoring.monitoring.qubership.org
+    oc delete crd platformmonitoring.monitoring.netcracker.com
     oc delete crd prometheuses.monitoring.coreos.com
     oc delete crd prometheusrules.monitoring.coreos.com
     oc delete crd servicemonitors.monitoring.coreos.com
@@ -98,7 +98,7 @@ CR:
 
 ```yaml
 - apiGroups:
-    - "monitoring.qubership.org"
+    - "monitoring.netcracker.com"
   resources:
     - platformmonitorings
   verbs:
@@ -125,13 +125,13 @@ Thus using the operator, we can change the monitoring deployment parameters in r
    deployed. For example, use the following cli command.
 
    ```bash
-   kubectl get platformmonitorings.monitoring.qubership.org platformmonitoring -n <namespace>
+   kubectl get platformmonitorings.monitoring.netcracker.com platformmonitoring -n <namespace>
    ```
 
 3. Use the following cli command to open the object for editing.
 
    ```bash
-   kubectl edit platformmonitorings.monitoring.qubership.org platformmonitoring -n <namespace>
+   kubectl edit platformmonitorings.monitoring.netcracker.com platformmonitoring -n <namespace>
    ```
 
 4. Change the necessary parameters and save the object.
@@ -255,13 +255,13 @@ To remove the `PlatformMonitoring` CR, you can use the following command.
 * For Kubernetes
 
     ```bash
-    kubectl delete platformmonitorings.monitoring.qubership.org platformmonitoring -n <namespace>
+    kubectl delete platformmonitorings.monitoring.netcracker.com platformmonitoring -n <namespace>
     ```
 
 * For OpenShift
 
     ```bash
-    oc delete platformmonitorings.monitoring.qubership.org platformmonitoring -n <namespace>
+    oc delete platformmonitorings.monitoring.netcracker.com platformmonitoring -n <namespace>
     ```
 
 After executing the command, all Monitoring components are removed from the selected namespace. However, the following
@@ -310,9 +310,9 @@ CRDs created by this chart are not removed by default and should be manually cle
     kubectl delete crd prometheusrules.monitoring.coreos.com
     kubectl delete crd servicemonitors.monitoring.coreos.com
     kubectl delete crd thanosrulers.monitoring.coreos.com
-    kubectl delete crd customscalemetricrules.monitoring.qubership.org
-    kubectl delete crd platformmonitorings.monitoring.qubership.org
-    kubectl delete crd prometheusadapters.monitoring.qubership.org
+    kubectl delete crd customscalemetricrules.monitoring.netcracker.com
+    kubectl delete crd platformmonitorings.monitoring.netcracker.com
+    kubectl delete crd prometheusadapters.monitoring.netcracker.com
     ```
 
 * For OpenShift
@@ -330,9 +330,9 @@ CRDs created by this chart are not removed by default and should be manually cle
     oc delete crd prometheusrules.monitoring.coreos.com
     oc delete crd servicemonitors.monitoring.coreos.com
     oc delete crd thanosrulers.monitoring.coreos.com
-    oc delete crd customscalemetricrules.monitoring.qubership.org
-    oc delete crd platformmonitorings.monitoring.qubership.org
-    oc delete crd prometheusadapters.monitoring.qubership.org
+    oc delete crd customscalemetricrules.monitoring.netcracker.com
+    oc delete crd platformmonitorings.monitoring.netcracker.com
+    oc delete crd prometheusadapters.monitoring.netcracker.com
     ```
 
 ## Deploy/Skip/Remove based components

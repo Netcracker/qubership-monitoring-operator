@@ -34,7 +34,7 @@ Example:
 promxy:
   install: true
   name: "promxy"
-  image: quay.io/jacksontj/promxy:v0.0.92
+  image: quay.io/jacksontj/promxy:v0.0.93
   extraArgs:
     - '--log-level=info'
   config:

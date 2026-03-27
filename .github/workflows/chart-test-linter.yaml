@@ -1,0 +1,39 @@
+name: Lint and Test Helm Charts
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'charts/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+  workflow_dispatch: null
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Chart Testing
+        uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
+
+      - name: Copy examples for ct in /charts/qubership-monitoring-operator/ci/
+        run: |
+            mkdir -p charts/qubership-monitoring-operator/ci
+            cp docs/examples/deploy-parameters/*.yaml charts/qubership-monitoring-operator/ci/
+            cp docs/examples/deploy-parameters/**/*.yaml charts/qubership-monitoring-operator/ci/
+            ls -la charts charts/qubership-monitoring-operator charts/qubership-monitoring-operator/ci
+
+      - name: Run chart-testing (lint)
+        run: ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts
