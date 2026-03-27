@@ -35,7 +35,6 @@ global:
 # Type: object
 # Mandatory: no
 #
-
 role:
   # Allow to disable create Role and ClusterRole for monitoring-operator during deploy.
   # If global.privilegedRights parameter is set to false, ClusterRole will not be installed in any case.
@@ -80,7 +79,7 @@ monitoringOperator:
     name: ""
 
   # A docker image to use for monitoring-operator deployment
-  # image: prod.platform.system.monitoring_monitoring-operator:latest
+  # image: ghcr.io/netcracker/qubership-monitoring-operator:latest
 
   # The resources describes the compute resource requests and limits for single Pods.
   # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -992,7 +991,7 @@ kubernetesMonitors:
     metricRelabelings: []
     relabelings: []
   apiserverServiceMonitor:
-    install: false
+    install: true
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings:
@@ -1281,22 +1280,18 @@ grafanaDashboards:
 #
 prometheusRules:
   install: true
-  alertsPackVersion: v1
   ruleGroups:
     - SelfMonitoring
     - AlertManager
-    - KubernetesAlerts
+    - KubebernetesAlerts
     - NodeProcesses
     - NodeExporters
     - DockerContainers
-    - HAmode
-    - HAproxy
     - Etcd
     - NginxIngressAlerts
     - CoreDnsAlerts
     - DRAlerts
     - BackupAlerts
-
   # override:
   #     - group: SelfMonitoring
   #       alert: PrometheusNotificationsBacklog
@@ -1578,7 +1573,7 @@ integrationTests:
   # Default: not set
   #
   nodeSelector: {}
-  
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object
@@ -1624,10 +1619,10 @@ integrationTests:
     # The parameter (optional) specifies the path to Custom Resource that should be used for the write status of auto-tests execution.
     # Type: string
     # Mandatory: no
-    # Default: "monitoring.qubership.org/v1alpha1/prometheus-operator/platformmonitorings/platformmonitoring"
+    # Default: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
     # If namespace is not "prometheus-operator" change nc in custom resource path
     #
-    customResourcePath: "monitoring.qubership.org/v1alpha1/prometheus-operator/platformmonitorings/platformmonitoring"
+    customResourcePath: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
 
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
@@ -1698,5 +1693,10 @@ promitorAgentResourceDiscovery:
 
 # Exporter to request metrics from Google Cloud Operations about different Google Managed Services
 stackdriver_exporter:
+  # Disable by default
+  install: false
+
+# Exporter to check and visualize network connectivity between Kubernetes nodes and pods in the cluster
+goldpingerExporter:
   # Disable by default
   install: false

@@ -250,7 +250,7 @@ spec:
           summary: "Prometheus AlertManager notification failing (instance {{ $labels.instance }})"
           description: "Alertmanager is failing sending notifications\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
-  - name: KubebernetesAlerts
+  - name: KubernetesAlerts
     rules:
     - alert: KubernetesNodeReady
       expr: kube_node_status_condition{condition="Ready",status="true"} == 0
@@ -331,7 +331,7 @@ spec:
         severity: warning
       annotations:
         summary: Kubernetes Volume out of disk space (instance {{ $labels.instance }})
-        description: "Volume is almost full (< 25% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Volume is almost full (< 25 percent left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: KubernetesVolumeOutOfDiskSpaceHigh
       expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) * 100 < 10
@@ -340,7 +340,7 @@ spec:
         severity: high
       annotations:
         summary: Kubernetes Volume out of disk space (instance {{ $labels.instance }})
-        description: "Volume is almost full (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Volume is almost full (< 10 percent left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: KubernetesVolumeFullInFourDays
       expr: predict_linear(kubelet_volume_stats_available_bytes[6h], 345600) < 0
@@ -349,7 +349,7 @@ spec:
         severity: warning
       annotations:
         summary: Kubernetes Volume full in four days (instance {{ $labels.instance }})
-        description: "{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is expected to fill up within four days. Currently {{ $value | humanize }}% is available.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is expected to fill up within four days. Currently {{ $value | humanize }} percent is available.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: KubernetesStatefulsetDown
       expr: kube_statefulset_replicas - kube_statefulset_status_replicas_ready != 0
@@ -531,23 +531,23 @@ spec:
         severity: high
       annotations:
         summary: "Host high PIDs and Threads usage (instance {{ $labels.instance }})"
-        description: "Sum of node's pids and threads is filling up (< 20% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Sum of node's pids and threads is filling up (< 20 percent left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
   - name: NodeExporters
     rules:
-    - alert: NodeDiskUsageIsMoreThanThreshold
+    - alert: NodeDiskUsageIsMoreThanWarningThreshold
       annotations:
-        description: "Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is\n  VALUE = {{ $value }}%"
-        summary: "Disk usage on node > 70% (instance {{ $labels.node }})"
+        description: "Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is\n  VALUE = {{ $value }} percent"
+        summary: "Disk usage on node > 70 percent (instance {{ $labels.node }})"
       expr: (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"})) > 70
       for: 5m
       labels:
         severity: warning
 
-    - alert: NodeDiskUsageIsMoreThanThreshold
+    - alert: NodeDiskUsageIsMoreThanHighThreshold
       annotations:
-        description: "Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is\n VALUE = {{ $value }}%"
-        summary: "Disk usage on node > 90% (instance {{ $labels.node }})"
+        description: "Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is\n VALUE = {{ $value }} percent"
+        summary: "Disk usage on node > 90 percent (instance {{ $labels.node }})"
       expr: (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"}) * 100 / (node_filesystem_avail_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} + (node_filesystem_size_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"} - node_filesystem_free_bytes{fstype=~"ext.*|xfs", mountpoint !~".*pod.*"})) > 90
       for: 5m
       labels:
@@ -560,7 +560,7 @@ spec:
         severity: warning
       annotations:
         summary: "Host out of memory (instance {{ $labels.instance }})"
-        description: "Node memory is filling up (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Node memory is filling up (< 10 percent left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: HostMemoryUnderMemoryPressure
       expr: rate(node_vmstat_pgmajfault[2m]) * on(instance) group_left(nodename) node_uname_info > 1000
@@ -614,7 +614,7 @@ spec:
         severity: warning
       annotations:
         summary: "Host out of disk space (instance {{ $labels.instance }})"
-        description: "Disk is almost full (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Disk is almost full (< 10 percent left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: HostDiskWillFillIn4Hours
       expr: predict_linear(node_filesystem_free_bytes{fstype!~"tmpfs"}[1h], 14400) * on(instance) group_left(nodename) node_uname_info < 0
@@ -632,7 +632,7 @@ spec:
         severity: warning
       annotations:
         summary: "Host out of inodes (instance {{ $labels.instance }})"
-        description: "Disk is almost running out of available inodes (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Disk is almost running out of available inodes (< 10 percent left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: HostUnusualDiskReadLatency
       expr: (rate(node_disk_read_time_seconds_total[2m]) / rate(node_disk_reads_completed_total[2m])) * on(instance) group_left(nodename) node_uname_info > 100
@@ -659,7 +659,7 @@ spec:
         severity: warning
       annotations:
         summary: "Host high CPU load (instance {{ $labels.instance }})"
-        description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "CPU load is > 80 percent\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
   - name: DockerContainers
     rules:
@@ -679,7 +679,7 @@ spec:
         severity: warning
       annotations:
         summary: "Container Volume usage (instance {{ $labels.instance }})"
-        description: "Container Volume usage is above 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Container Volume usage is above 80 percent\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: ContainerVolumeIoUsage
       expr: (sum(container_fs_io_current) BY (node, name) * 100) > 80
@@ -688,7 +688,7 @@ spec:
         severity: warning
       annotations:
         summary: "Container Volume IO usage (instance {{ $labels.instance }})"
-        description: "Container Volume IO usage is above 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "Container Volume IO usage is above 80 percent\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: ContainerHighThrottleRate
       expr: rate(container_cpu_cfs_throttled_seconds_total[3m]) > 1
@@ -859,7 +859,7 @@ spec:
   - name: Etcd
     rules:
     - alert: EtcdInsufficientMembers
-      expr: count(etcd_server_id{job="etcd"}) % 2 == 0
+      expr: count(etcd_server_id{job="etcd"})%2 == 0
       for: 5m
       labels:
         severity: critical
@@ -885,23 +885,23 @@ spec:
         summary: "Etcd high number of leader changes (instance {{ $labels.instance }})"
         description: "Etcd leader changed more than 3 times during last hour\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
-    - alert: EtcdHighNumberOfFailedGrpcRequests
+    - alert: EtcdHighNumberOfFailedGrpcRequestsWarning
       expr: sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK", grpc_method!="Watch"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) > 0.01
       for: 5m
       labels:
         severity: warning
       annotations:
         summary: "Etcd high number of failed GRPC requests (instance {{ $labels.instance }})"
-        description: "More than 1% GRPC request failure detected in Etcd for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "More than 1 percent GRPC request failure detected in Etcd for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
-    - alert: EtcdHighNumberOfFailedGrpcRequests
+    - alert: EtcdHighNumberOfFailedGrpcRequestsCritical
       expr: sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK", grpc_method!="Watch"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) > 0.05
       for: 5m
       labels:
         severity: critical
       annotations:
         summary: "Etcd high number of failed GRPC requests (instance {{ $labels.instance }})"
-        description: "More than 5% GRPC request failure detected in Etcd for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+        description: "More than 5 percent GRPC request failure detected in Etcd for 5 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
     - alert: EtcdGrpcRequestsSlow
       expr: histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job="etcd",grpc_type="unary"}[5m])) by (grpc_service, grpc_method, le)) > 0.15
@@ -957,7 +957,7 @@ spec:
         severity: high
       annotations:
         summary: "Nginx high HTTP 4xx error rate (node: {{ $labels.node }}, namespace: {{ $labels.exported_namespace }}, ingress: {{ $labels.ingress }})"
-        description: "Too many HTTP requests with status 4xx (> 5%)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+        description: "Too many HTTP requests with status 4xx (> 5 percent)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
     - alert: NginxHighHttp5xxErrorRate
       expr: sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests{status=~"^5.."}[2m])) / sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests[2m])) * 100 > 5
@@ -966,7 +966,7 @@ spec:
         severity: high
       annotations:
         summary: "Nginx high HTTP 5xx error rate (node: {{ $labels.node }}, namespace: {{ $labels.exported_namespace }}, ingress: {{ $labels.ingress }})"
-        description: "Too many HTTP requests with status 5xx (> 5%)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+        description: "Too many HTTP requests with status 5xx (> 5 percent)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
     - alert: NginxLatencyHigh
       expr: histogram_quantile(0.99, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket[2m])) by (host, node, le)) > 3
@@ -1014,7 +1014,7 @@ spec:
       labels:
         severity: warning
 
-    - alert: CoreDNSErrorsHigh
+    - alert: CoreDNSErrorsHighCritical
       annotations:
         description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of requests
         summary: CoreDNS is returning SERVFAIL
@@ -1023,7 +1023,7 @@ spec:
       labels:
         severity: critical
       
-    - alert: CoreDNSErrorsHigh
+    - alert: CoreDNSErrorsHighWarning
       annotations:
         description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of requests
         summary: CoreDNS is returning SERVFAIL
@@ -1041,7 +1041,7 @@ spec:
       labels:
         severity: critical
       
-    - alert: CoreDNSForwardErrorsHigh
+    - alert: CoreDNSForwardErrorsHighCritical
       annotations:
         description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of forward requests to {{ $labels.to }}
         summary: CoreDNS is returning SERVFAIL for forward requests
@@ -1051,7 +1051,7 @@ spec:
         severity: critical
       
       
-    - alert: CoreDNSForwardErrorsHigh
+    - alert: CoreDNSForwardErrorsHighWarning
       annotations:
         description: CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of forward requests to {{ $labels.to }}
         summary: CoreDNS is returning SERVFAIL for forward requests

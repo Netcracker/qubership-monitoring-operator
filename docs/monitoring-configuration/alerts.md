@@ -46,17 +46,6 @@ parameter.
 
 You can find examples of configuration [in the appropriate section](#examples).
 
-### Deep alerts tuning using subchart
-
-If you want to make deep customizations on alerts (add new ones, override any alert fields, disable alerts etd) you can use v2 alerts functionality.
-To use it you need:
-
-1) Set alertsPackVersion: v2 value in prometheusRules section in values yaml.
-2) Use subchart`s values yaml (/charts/prometheus-rules) to set overrides for alerts. Overrides will be merged with default alerts, described in subchart helpers.tpl with higher priority.
-
-If you will set any other value for alertsPackVersion except "v2" or wont set this value at all - installation will happen on old flavour.
-Alert groups in subchart are supported in same manner as described above.
-
 ### Dead Man's Switch alert
 
 [Dead Man's Switch](https://en.wikipedia.org/wiki/Dead_man%27s_switch) alert is a special always-firing alert that meant
@@ -205,3 +194,20 @@ prometheusRules:
       severity: high
 ```
 
+## Alert test workflow
+
+Monitoring operator contains workflow to test alerts, so if alerts are added/modified you need to add/modify alerts tests for workflow to finish succesfully.
+For testing vmalert-tool is used, so test file should be written according to: https://docs.victoriametrics.com/victoriametrics/vmalert-tool/
+Many examples can be found in existing ./test/alerts-tests/test.yaml file.
+
+Test file is located in ./test/alerts-tests/test.yaml.
+This file should contain minimum 2 tests for each alert (one for alert to fire and one for alets not to fire). It`s checked by ./test/alerts-tests/tests-checker.sh script.
+If less than 2 tests for each alert exists - script will list such alerts in the workflow output and workflow will fail. However it will check configured alerts in the same run.
+
+Workflow support 2 points, where alerts can be located: 
+
+1. helm subchart: ./charts/qubership-monitoring-operator/charts/prometheus-rules
+2. assets: ./controllers/prometheus-rules/assets/prometheus-rules.yaml
+
+If helm subchart folder is detected - workflow will render alerts from it and ignore assets, otherwise it will use alerts from assets.
+```
