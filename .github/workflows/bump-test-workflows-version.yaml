@@ -18,7 +18,7 @@ jobs:
             echo "latest_release_tag=${latest_release_tag}" >> $GITHUB_ENV
             echo "latest_release_tag_sha=${latest_release_tag_sha}" >> $GITHUB_ENV
         - name: checkout
-          uses: actions/checkout@v6
+          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
           with:
             ref: main
             persist-credentials: true
@@ -29,6 +29,7 @@ jobs:
           run: |
             git config --global user.email "github-actions[bot]@qubership.com"
             git config --global user.name "Git Hub Actions [Bot]"
+            # shellcheck disable=2013
             for f in $(grep -rile "^[[:blank:]]*uses: netcracker/qubership-test-pipelines" ./.github/workflows); do
               sed -i "s#\(^[[:blank:]]*uses: netcracker/qubership-test-pipelines.*\)@.*#\1@${latest_release_tag_sha} \# ${latest_release_tag}#I" ${f}
               sed -i "s#\(^[[:blank:]]*pipeline_branch:\).*#\1 '${latest_release_tag_sha}'#" $f
