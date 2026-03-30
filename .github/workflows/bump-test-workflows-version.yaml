@@ -1,0 +1,57 @@
+---
+# ℹ️ The workflow is to consistently 'update netcracker/qubership-test-pipelines' versions and 'pipeline_branch' parameter in workflow files.
+# ⚠️ The workflow uses PAT (GH_ACCESS_TOKEN) with extended permissions. The PAT must have `contents: write` and `workflows: write` permissions.
+
+name: Bump qubership-test-pipelines version
+on: workflow_dispatch
+jobs:
+    bump:
+      permissions:
+        contents: write
+        pull-requests: write
+      runs-on: ubuntu-latest
+      steps:
+        - name: Get latest release tag SHA
+          run: |
+            latest_release_tag=$(curl -s https://api.github.com/repos/netcracker/qubership-test-pipelines/releases/latest | jq -r '.tag_name')
+            latest_release_tag_sha=$(curl -s https://api.github.com/repos/netcracker/qubership-test-pipelines/git/ref/tags/${latest_release_tag} | jq -r '.object.sha')
+            echo "latest_release_tag=${latest_release_tag}" >> $GITHUB_ENV
+            echo "latest_release_tag_sha=${latest_release_tag_sha}" >> $GITHUB_ENV
+        - name: checkout
+          uses: actions/checkout@v6
+          with:
+            ref: main
+            persist-credentials: true
+            token: ${{ secrets.GH_ACCESS_TOKEN }}
+        - name: Update version
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            git config --global user.email "github-actions[bot]@qubership.com"
+            git config --global user.name "Git Hub Actions [Bot]"
+            for f in $(grep -rile "^[[:blank:]]*uses: netcracker/qubership-test-pipelines" ./.github/workflows); do
+              sed -i "s#\(^[[:blank:]]*uses: netcracker/qubership-test-pipelines.*\)@.*#\1@${latest_release_tag_sha} \# ${latest_release_tag}#I" ${f}
+              sed -i "s#\(^[[:blank:]]*pipeline_branch:\).*#\1 '${latest_release_tag_sha}'#" $f
+            done
+
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "✅ Changes detected"
+
+              BRANCH_NAME="feature/bump-test-pipelines-version-$(date +%Y%m%d-%H%M%S)"
+
+              git checkout -b $BRANCH_NAME
+              git add .
+
+              COMMIT_MESSAGE="chore: bump netcracker/qubership-test-pipelines version to '${latest_release_tag_sha}' [$latest_release_tag]"
+
+              git commit -m "$COMMIT_MESSAGE"
+              git push origin $BRANCH_NAME
+
+              echo "✅ The newbranch $BRANCH_NAME created and pushed"
+
+              # Create Pull Request
+              gh pr create --base main --head $BRANCH_NAME --title "chore: bump netcracker/qubership-test-pipelines version" --body "$COMMIT_MESSAGE"
+              echo "✅ Pull Request created"
+            else
+              echo "❌ No changes."
+            fi
