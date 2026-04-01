@@ -1,3 +1,4 @@
+{{- if and .Values.install .Values.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -19,3 +20,4 @@ spec:
         operator: In
         values:
           - {{ .Values.name }}
+{{- end }}

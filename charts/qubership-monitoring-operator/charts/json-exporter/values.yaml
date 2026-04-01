@@ -98,29 +98,20 @@ service:
   # Default: {}
   labels: {}
 
-# Service monitor for pulling metrics.
+# ServiceMonitor for scraping exporter self-metrics (`/metrics`). For `/probe` targets use Prometheus Operator `Probe` CRs, not this chart.
 # Type: object
 # Mandatory: no
 serviceMonitor:
-  ## If true, a ServiceMonitor CRD is created
+  ## If true, the self-metrics ServiceMonitor CR is created
   enabled: true
   scheme: http
 
-  # Default values that will be used for all ServiceMonitors created by `targets`
+  # Defaults for the self ServiceMonitor scrape settings
   defaults:
     additionalMetricsRelabels: {}
     interval: 30s
     labels: {}
     scrapeTimeout: 30s
-
-#  targets:
-#    - name: example                    # Human readable URL that will appear in Prometheus / AlertManager
-#      url: http://example.com/healthz  # The URL that json-exporter will scrape
-#      labels: {}                       # Map of labels for ServiceMonitor. Overrides value set in `defaults`
-#      interval: 60s                    # Scraping interval. Overrides value set in `defaults`
-#      scrapeTimeout: 60s               # Scrape timeout. Overrides value set in `defaults`
-#      additionalMetricsRelabels: {}    # Map of metric labels and values to add
-#      module: example_module           # Name of the module to pick up from `config.yaml` for scraping this target. Optional. Default is `default` provided by the exporter itself.
 
 # The resources describe the computed resource requests and limits for single Pods.
 # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
