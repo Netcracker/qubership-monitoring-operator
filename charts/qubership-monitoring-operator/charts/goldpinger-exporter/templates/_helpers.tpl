@@ -6,7 +6,7 @@ Create the name of the service account to use
 */}}
 {{- define "goldpinger.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (printf "%s-service-account" .Values.name) .Values.serviceAccount.name }}
+{{- default .Values.name .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

@@ -2,9 +2,9 @@
 apiVersion: integreatly.org/v1alpha1
 kind: GrafanaDashboard
 metadata:
-  name: graphite-remote-adapter-dashboard
+  name: {{ .Values.name }}
   labels:
-    {{- include "monitoring.labels" (dict "ctx" . "name" "graphite-remote-adapter-dashboard" "component" "monitoring") | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" . "component" "monitoring") | nindent 4 }}
     app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   json: >

@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.name }}-zap
+  name: {{ .Values.name }}
   labels:
     {{- include "monitoring.labels" . | nindent 4 }}
 data:

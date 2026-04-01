@@ -2,12 +2,12 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ .Values.name }}-pod-security-policy
+  name: {{ .Values.name }}
   labels:
     {{- include "monitoring.labels" . | nindent 4 }}
 roleRef:
   kind: Role
-  name: {{ .Values.name }}-pod-security-policy
+  name: {{ .Values.name }}
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
