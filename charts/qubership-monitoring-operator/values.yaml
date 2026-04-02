@@ -70,6 +70,12 @@ publicCloudName: ""
 #   * GrafanaDataSource - a resource which describe a default Grafana datasource
 # Type: object
 #
+
+grafana:
+  install: true
+  operator:
+    install: true
+
 monitoringOperator:
 
   name: monitoring-operator
