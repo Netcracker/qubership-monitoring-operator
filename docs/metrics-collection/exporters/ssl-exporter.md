@@ -1,43 +1,69 @@
-# ssl-exporter-metrics
-
 This document describes the metrics list and how to collect them from ssl-exporter.
+
+# Metrics
+
+| Name          | Metrics Port | Metrics Endpoint        | Need Exporter? | Is Exporter Third Party? |
+| ------------- | ------------ | ----------------------- | -------------- | ------------------------ |
+| Self metrics  | `9219`       | `/metrics`              | No             | N/A                      |
+| Probe metrics | `9219`       | `/probe` + parameters | No             | N/A                      |
 
 ## How to Collect
 
-ssl-exporter exposes process metrics on port `9219` at `/metrics`, and provides a `/probe` endpoint to actively check certificates using `target` and `module` parameters.
+ssl-exporter exposes **process / registry metrics** on port `9219` at **`/metrics`**, and provides a **`/probe`** endpoint to actively check certificates using `target` and `module` query parameters.
 
-The recommended way to collect metrics is via a ServiceMonitor created by the chart, see the [installation guide](../../installation/components/exporters/ssl-exporter.md). Example of a standalone ServiceMonitor:
+By default, ssl-exporter has no authentication for these endpoints.
+
+### Scraping `/metrics` (chart default)
+
+When you enable `sslExporter.serviceMonitor.enabled`, this chart creates a **ServiceMonitor** that scrapes **`/metrics`** on the ssl-exporter **Service** (same pattern as other exporters). See the [installation guide](../../installation/components/exporters/ssl-exporter.md).
+
+Rendered shape (values may vary):
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: ssl-exporter-example
-  labels:
-    app.kubernetes.io/component: monitoring
+  name: ssl-exporter
 spec:
   endpoints:
     - port: http
+      path: /metrics
       scheme: http
-      path: /probe
-      interval: 60s
-      params:
-        target:
-          - google.com:443
-        module:
-          - https-external
-      metricRelabelings:
-        - sourceLabels: [instance]
-          targetLabel: instance
-          replacement: google.com:443
-        - sourceLabels: [target]
-          targetLabel: target
-          replacement: https-external-google
-  jobLabel: k8s-app
+      interval: 30s
+      scrapeTimeout: 30s
   selector:
     matchLabels:
       app.kubernetes.io/name: ssl-exporter
 ```
+
+### Per-target `/probe` scrapes
+
+The chart **does not** emit ranged ServiceMonitors for `/probe`. For probe-style metrics per URL/module, use Prometheus Operator **`Probe`** resources (recommended). A hand-written **`ServiceMonitor`** that scrapes `/probe` with `params` is **deprecated** in this workflow—prefer **`Probe`**, same as for blackbox-style checks.
+
+Point `spec.prober` at the ssl-exporter **Service** (host:port), set **`path: /probe`**, set **`module`** to an ssl-exporter module name (e.g. `https-external`), and list targets under **`spec.targets.staticConfig.static`**. Adjust `url` / namespace to match your install.
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: ssl-exporter-external-https-example
+  labels:
+    app.kubernetes.io/component: monitoring
+spec:
+  jobName: ssl-exporter-probe
+  interval: 60s
+  module: https-external
+  prober:
+    url: ssl-exporter:9219
+    scheme: http
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+        - https://google.com:443
+```
+
+See also the generic **`Probe`** examples under [`docs/examples/custom-resources/probe/`](../../examples/custom-resources/probe/) (static URLs and ingress discovery). If you do not use the Prometheus Operator, you can still add a static scrape in Prometheus **`additionalScrapeConfigs`** that hits `/probe` with the right query parameters.
 
 Check metrics manually:
 
@@ -118,4 +144,4 @@ Example rules:
   annotations:
     summary: "SSL certificate for {{ $labels.instance }} has expired"
     description: "The SSL certificate for {{ $labels.instance }} has expired."
-``` 
+```

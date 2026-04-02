@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "ssl-exporter.name" . }}
+  name: {{ .Values.name }}
   labels:
-    {{- include "ssl-exporter.labels" . | nindent 4 }}
-    {{- with .Values.service.labels }}
-    {{- toYaml . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- if not (empty .Values.service.labels) }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.service.labels) | nindent 4 }}
     {{- end }}
 spec:
   type: {{ .Values.service.type | default "ClusterIP" }}
@@ -16,5 +16,5 @@ spec:
       protocol: {{ .Values.service.protocol | default "TCP" }}
       name: {{ .Values.service.name | default "http" }}
   selector:
-    {{- include "ssl-exporter.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ .Values.name }}
 {{- end }}

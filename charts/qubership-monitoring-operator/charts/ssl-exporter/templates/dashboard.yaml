@@ -2,9 +2,10 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: {{ include "ssl-exporter.name" . }}
+  name: {{ .Values.name }}
   labels:
-    {{- include "ssl-exporter.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   instanceSelector:
     matchLabels:

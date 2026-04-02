@@ -161,41 +161,9 @@ serviceMonitor:
   enabled: true
   scheme: http
   defaults:
-    additionalMetricsRelabels: {}
     interval: 30s
     labels: {}
     scrapeTimeout: 30s
-  targets:
-    - name: https-external-google
-      url: google.com:443
-      module: https-external
-      interval: 60s
-
-    - name: https-self-kubernetes-apiserver
-      url: kubernetes.default.svc:443
-      module: https-selfsigned
-      interval: 60s
-
-    - name: https-internal-kubernetes-apiserver
-      url: kubernetes.default.svc:443
-      module: https-internal
-      interval: 60s
-
-    - name: secret-tls-all-namespaces
-      # url: <namespace>/<secret_name>
-      url: "*/*"
-      module: kubernetes
-      interval: 30s
-
-    - name: file-cert-pem
-      url: /etc/ssl/cert.pem
-      module: file
-      interval: 30s
-
-    # - name: kubeconfig-cert
-    #   url: /etc/rancher/k3s/k3s.yaml
-    #   module: kubeconfig
-    #   interval: 300s
 
 alerts:
   enabled: true
