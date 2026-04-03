@@ -58,6 +58,6 @@ jobs:
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@b894c4fbf5b93e8cca45e588ab46291c071fac2e #v1.5.2
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: '2f121437fc38a1b26766c8810ded5bf66f679298' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'feature/upgrade-grafana-operator-version' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
