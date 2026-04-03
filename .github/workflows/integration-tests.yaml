@@ -58,6 +58,6 @@ jobs:
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@b894c4fbf5b93e8cca45e588ab46291c071fac2e #v1.5.2
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: '09834487deedf2ac907fd8d49bb1bcc3944d4fd5b7af107ca8cd4149dc36642a' #this value must match the value after '@' in 'uses'
+      pipeline_branch: '8d86c3fd63fc5a0800387068ecf7af1bcff08b22' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
