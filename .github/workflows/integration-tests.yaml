@@ -2,7 +2,6 @@ name: Run Monitoring Pipeline
 
 on:
   push:
-    branches: [main]
     paths:
     - '**'
     - '!.github/**'
@@ -15,7 +14,6 @@ on:
     - '!SECURITY.md'
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [main]
     paths:
     - '**'
     - '!.github/**'
@@ -61,7 +59,7 @@ jobs:
         )
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@b894c4fbf5b93e8cca45e588ab46291c071fac2e #v1.5.2
     with:
-      service_branch: ${{ github.ref }}
+      service_branch: ${{ github.sha }}
       pipeline_branch: 'b894c4fbf5b93e8cca45e588ab46291c071fac2e' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
