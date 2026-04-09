@@ -117,7 +117,8 @@ spec:
       {{- toYaml .Values.prometheus.externalLabels | nindent 6 }}
     externalUrl:
       {{- toYaml .Values.prometheus.externalUrl | nindent 6 }}
-    remoteWrite:
+    {{- if .Values.prometheus.remoteWrite }}  
+    remoteWrite:  
       {{- range .Values.prometheus.remoteWrite }}
       {{- if .url }}
       - url: {{ .url }}
@@ -190,6 +191,7 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+    {{- end }}
     remoteRead:
       {{- toYaml .Values.prometheus.remoteRead | nindent 6 }}
     secrets:

@@ -1,4 +1,4 @@
-{{- if .Values.backupDaemonDashboard }}
+{{- if and .Values.backupDaemonDashboard .Values.install }}
 apiVersion: integreatly.org/v1alpha1
 kind: GrafanaDashboard
 metadata:
