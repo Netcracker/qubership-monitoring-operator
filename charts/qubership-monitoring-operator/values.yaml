@@ -1624,6 +1624,34 @@ integrationTests:
     #
     customResourcePath: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
 
+  # ATP report upload (S3 settings under atpReport.atpStorage). Env only when atpReport.enabled.
+  atpReport:
+    enabled: false
+    atpStorage:
+      # S3 provider type: aws (for real AWS S3), minio, s3 (for S3-compatible with custom endpoint)
+      provider: "aws"
+      # S3 API server URL (e.g., https://s3.amazonaws.com or https://minio.example.com)
+      serverUrl: "https://s3.amazonaws.com"
+      # S3 UI URL for browsing results (e.g., https://minio.example.com)
+      serverUiUrl: ""
+      # S3 bucket name. If empty - S3 integration is disabled and results stay local
+      bucket: ""
+      # S3 region (required for AWS S3)
+      region: "us-east-1"
+      # S3 credentials (Secret when atpReport.enabled)
+      username: ""
+      password: ""
+
+  # URL for viewing Allure reports (e.g., https://reports.example.com)
+  # Type: string
+  # Mandatory: no
+  atpReportViewUiUrl: ""
+
+  # Environment name for organizing test results path in S3
+  # Type: string
+  # Mandatory: no
+  environmentName: "monitoring"
+
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
   # priorityClassName: "priorityClassName"

@@ -316,7 +316,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmSingle.image -}}
     {{- printf "%s" .Values.victoriametrics.vmSingle.image -}}
   {{- else -}}
-    {{- print  "docker.io/victoriametrics/victoria-metrics:v1.130.0" -}}
+    {{- print "docker.io/victoriametrics/victoria-metrics:v1.130.0" -}}
   {{- end -}}
 {{- end -}}
 
