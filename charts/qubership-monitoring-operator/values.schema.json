@@ -341,8 +341,7 @@
                             "examples": [["{__name__=~'prometheus_example_app_metric'}"]]
                         }
                     },
-                    "required": ["image", "projectId", "location", "cluster"],
-                    "additionalProperties": false
+                    "required": ["image", "projectId", "location", "cluster"]
                 },
                 "jaeger": {
                     "type": "object",
@@ -352,8 +351,7 @@
                             "type": "boolean",
                             "description": "Automatically discover Jaeger service across all namespaces and create Grafana datasource if found"
                         }
-                    },
-                    "additionalProperties": false
+                    }
                 },
                 "clickHouse": {
                     "type": "object",
@@ -363,8 +361,7 @@
                             "type": "boolean",
                             "description": "Create Grafana datasource for ClickHouse Performance Dashboard"
                         }
-                    },
-                    "additionalProperties": false
+                    }
                 }
             }
         },
@@ -621,8 +618,7 @@
                                         "type": "string",
                                         "description": "Separator for sourceLabels"
                                     }
-                                },
-                                "additionalProperties": true
+                                }
                             },
                             "examples": [[{
                                         "action": "keep",
@@ -664,8 +660,7 @@
                                         "type": "string",
                                         "enum": ["keep", "drop", "replace", "labelmap", "labeldrop", "labelkeep", "hashmod", "labelreplace"]
                                     }
-                                },
-                                "additionalProperties": true
+                                }
                             },
                             "examples": [[{
                                         "sourceLabels": ["__meta_kubernetes_pod_node_name"],
@@ -676,8 +671,7 @@
                                         "action": "replace"
                                     }]]
                         }
-                    },
-                    "additionalProperties": false
+                    }
                 },
                 "scrapeResources": {
                     "type": "string",
