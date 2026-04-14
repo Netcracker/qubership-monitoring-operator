@@ -43,9 +43,6 @@ on:
         type: boolean
         default: false
         description: 'Dry run'
-  workflow_run:
-    workflows: [Run Monitoring Pipeline]
-    types: [requested]
 
 concurrency:
   # On main/release, we don't want any jobs cancelled so the sha is used to name the group
@@ -121,7 +118,14 @@ jobs:
         file: ${{ matrix.component.file }}
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
-        push: ${{ (github.actor != 'dependabot[bot]') && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || github.ref == 'refs/heads/main' || github.ref_type == 'tag') }}
+        push: >-
+          ${{ 
+            (github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]') &&
+            (
+            (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+            github.ref == 'refs/heads/main' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+            )
+          }}
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
