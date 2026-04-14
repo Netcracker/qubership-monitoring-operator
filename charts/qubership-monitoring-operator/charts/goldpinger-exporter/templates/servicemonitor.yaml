@@ -3,9 +3,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
-  {{- if .Values.serviceMonitor.namespace }}
-  namespace: {{ .Values.serviceMonitor.namespace }}
-  {{- end }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
     {{- range $key, $value := .Values.serviceMonitor.selector }}
