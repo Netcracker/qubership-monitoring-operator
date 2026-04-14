@@ -13,7 +13,7 @@ spec:
             "builtIn": 1,
             "datasource": {
               "type": "datasource",
-              "uid": "grafana"
+              "uid": "${datasource}"
             },
             "enable": true,
             "hide": true,
@@ -32,12 +32,12 @@ spec:
               "uid": "${datasource}"
             },
             "enable": false,
-            "expr": "max_over_time(kube_pod_status_phase{cluster=\"${cluster}\", phase!=\"Running\", exported_pod!~\"${exclude_annotations}\"}[$__rate_interval]) == 1",
+            "expr": "max_over_time(kube_pod_status_phase{cluster=\"${cluster}\", phase!=\"Running\", pod!~\"${exclude_annotations}\"}[$__rate_interval]) == 1",
             "iconColor": "red",
             "name": "Pod not in running state",
             "step": "1h",
             "tagKeys": "NotRunning",
-            "textFormat": "{{phase}} {{exported_pod}} on {{exported_namespace}}",
+            "textFormat": "{{phase}} {{pod}} on {{namespace}}",
             "titleFormat": "Pod not running:",
             "useValueForTime": false
           },
@@ -46,11 +46,11 @@ spec:
               "uid": "${datasource}"
             },
             "enable": false,
-            "expr": "max_over_time(kube_pod_container_status_terminated_reason{reason!=\"Completed\", cluster=\"$cluster\", exported_pod!~\"${exclude_annotations}\"}[$__rate_interval]) == 1",
+            "expr": "max_over_time(kube_pod_container_status_terminated_reason{reason!=\"Completed\", cluster=\"$cluster\", pod!~\"${exclude_annotations}\"}[$__rate_interval]) == 1",
             "iconColor": "orange",
             "name": "Pod terminated",
             "step": "",
-            "textFormat": "{{reason}} {{exported_pod}} on {{exported_namespace}}",
+            "textFormat": "{{reason}} {{pod}} on {{namespace}}",
             "titleFormat": "Pod terminated:"
           },
           {
@@ -58,10 +58,10 @@ spec:
               "uid": "${datasource}"
             },
             "enable": false,
-            "expr": "increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\", exported_pod!~\"${exclude_annotations}\"}[$__rate_interval]) > 0",
+            "expr": "increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\", pod!~\"${exclude_annotations}\"}[$__rate_interval]) > 0",
             "iconColor": "purple",
             "name": "Pod restarted",
-            "textFormat": "{{exported_pod}} on {{exported_namespace}}",
+            "textFormat": "{{pod}} on {{namespace}}",
             "titleFormat": "Container restarted"
           }
         ]
@@ -92,7 +92,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -106,7 +106,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -200,7 +200,7 @@ spec:
                 "uid": "${datasource}"
               },
               "exemplar": true,
-              "expr": "sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{image!=\"\", container!=\"POD\", cluster=\"$cluster\", pod=~\"$top_cpu_pods\"}[2m])) * 1000",
+              "expr": "sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{image!=\"\", container!=\"POD\", cluster=\"$cluster\", pod=~\"$top_cpu_pods\"}[$__rate_interval])) * 1000",
               "interval": "",
               "legendFormat": "{{ namespace }}/{{ pod }}",
               "refId": "A"
@@ -340,7 +340,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\", pod=~\"$top_cpu_pods\"}[2m]))) by (namespace, pod) * 1000",
+              "expr": "sum(sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\", pod=~\"$top_cpu_pods\"}[$__rate_interval]))) by (namespace, pod) * 1000",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -354,7 +354,7 @@ spec:
                 "uid": "${datasource}"
               },
               "exemplar": false,
-              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_requests{cluster=\"$cluster\", exported_pod=~\"$top_cpu_pods\", resource=\"cpu\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\"), \"pod\", \"$1\", \"exported_pod\",\"(.*)\")) by (namespace, pod) * 1000",
+              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_requests{cluster=\"$cluster\", pod=~\"$top_cpu_pods\", resource=\"cpu\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\"), \"pod\", \"$1\", \"pod\",\"(.*)\")) by (namespace, pod) * 1000",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -368,7 +368,7 @@ spec:
                 "uid": "${datasource}"
               },
               "exemplar": false,
-              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\", exported_pod=~\"$top_cpu_pods\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\"), \"pod\", \"$1\", \"exported_pod\",\"(.*)\")) by (namespace, pod) * 1000",
+              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\", pod=~\"$top_cpu_pods\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\"), \"pod\", \"$1\", \"pod\",\"(.*)\")) by (namespace, pod) * 1000",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -418,7 +418,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -432,7 +432,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -674,7 +674,7 @@ spec:
                 "uid": "${datasource}"
               },
               "exemplar": false,
-              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\", exported_pod=~\"$top_mem_pods\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\"), \"pod\", \"$1\", \"exported_pod\",\"(.*)\")) by (namespace, pod)",
+              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\", pod=~\"$top_mem_pods\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\"), \"pod\", \"$1\", \"pod\",\"(.*)\")) by (namespace, pod)",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -688,7 +688,7 @@ spec:
                 "uid": "${datasource}"
               },
               "exemplar": false,
-              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\", exported_pod=~\"$top_mem_pods\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\"), \"pod\", \"$1\", \"exported_pod\",\"(.*)\")) by (namespace, pod)",
+              "expr": "sum(label_replace(label_replace(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\", pod=~\"$top_mem_pods\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\"), \"pod\", \"$1\", \"pod\",\"(.*)\")) by (namespace, pod)",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -738,7 +738,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -752,7 +752,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -852,7 +852,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_read_pods\"}[5m])) by (namespace, pod)",
+              "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_read_pods\"}[$__rate_interval])) by (namespace, pod)",
               "interval": "",
               "legendFormat": "{{ namespace }}/{{ pod }} - reads",
               "range": true,
@@ -864,7 +864,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_write_pods\"}[5m])) by (namespace, pod) * -1",
+              "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_write_pods\"}[$__rate_interval])) by (namespace, pod) * -1",
               "hide": false,
               "interval": "",
               "legendFormat": "{{ namespace }}/{{ pod }} - writes",
@@ -980,11 +980,11 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_read_pods\"}[5m])) by (namespace, pod)",
+              "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_read_pods\"}[$__rate_interval])) by (namespace, pod)",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -995,11 +995,11 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_write_pods\"}[5m])) by (namespace, pod)",
+              "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", pod=~\"$top_disk_write_pods\"}[$__rate_interval])) by (namespace, pod)",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -1047,7 +1047,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1159,7 +1159,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1171,7 +1171,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1266,7 +1266,7 @@ spec:
                     "uid": "${datasource}"
                   },
                   "exemplar": true,
-                  "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{image!=\"\", container!=\"POD\", cluster=\"$cluster\", namespace=~\"$top_cpu_namespaces\"}[2m])) * 1000",
+                  "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{image!=\"\", container!=\"POD\", cluster=\"$cluster\", namespace=~\"$top_cpu_namespaces\"}[$__rate_interval])) * 1000",
                   "interval": "",
                   "legendFormat": "{{ namespace }}",
                   "refId": "A"
@@ -1378,11 +1378,11 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(sum by (namespace) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_cpu_namespaces\"}[2m]))) by (namespace) * 1000",
+                  "expr": "sum(sum by (namespace) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_cpu_namespaces\"}[$__rate_interval]))) by (namespace) * 1000",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -1393,10 +1393,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "sum(label_replace(kube_pod_container_resource_requests{cluster=\"$cluster\", exported_namespace=~\"$top_cpu_namespaces\", resource=\"cpu\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\")) by (namespace) * 1000",
+                  "expr": "sum(label_replace(kube_pod_container_resource_requests{cluster=\"$cluster\", namespace=~\"$top_cpu_namespaces\", resource=\"cpu\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\")) by (namespace) * 1000",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -1407,10 +1407,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "sum(label_replace(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\", exported_namespace=~\"$top_cpu_namespaces\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\")) by (namespace) * 1000",
+                  "expr": "sum(label_replace(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\", namespace=~\"$top_cpu_namespaces\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\")) by (namespace) * 1000",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -1460,7 +1460,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1472,7 +1472,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1684,7 +1684,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "exemplar": false,
@@ -1699,10 +1699,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "sum(label_replace(kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\", exported_namespace=~\"$top_mem_namespaces\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\")) by (namespace)",
+                  "expr": "sum(label_replace(kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\", namespace=~\"$top_mem_namespaces\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\")) by (namespace)",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -1713,10 +1713,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "sum(label_replace(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\", exported_namespace=~\"$top_mem_namespaces\"}, \"namespace\", \"$1\", \"exported_namespace\",\"(.*)\")) by (namespace)",
+                  "expr": "sum(label_replace(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\", namespace=~\"$top_mem_namespaces\"}, \"namespace\", \"$1\", \"namespace\",\"(.*)\")) by (namespace)",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -1766,7 +1766,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1778,7 +1778,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1879,7 +1879,7 @@ spec:
                   },
                   "editorMode": "code",
                   "exemplar": true,
-                  "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_read_namespaces\"}[5m])) by (namespace)",
+                  "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_read_namespaces\"}[$__rate_interval])) by (namespace)",
                   "interval": "",
                   "legendFormat": "{{ namespace }} - reads",
                   "range": true,
@@ -1891,7 +1891,7 @@ spec:
                   },
                   "editorMode": "code",
                   "exemplar": true,
-                  "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_write_namespaces\"}[5m])) by (namespace) * -1",
+                  "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_write_namespaces\"}[$__rate_interval])) by (namespace) * -1",
                   "hide": false,
                   "interval": "",
                   "legendFormat": "{{ namespace }} - writes",
@@ -1994,11 +1994,11 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_read_namespaces\"}[5m])) by (namespace)",
+                  "expr": "sum(rate(container_fs_reads_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_read_namespaces\"}[$__rate_interval])) by (namespace)",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -2009,11 +2009,11 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_write_namespaces\"}[5m])) by (namespace)",
+                  "expr": "sum(rate(container_fs_writes_bytes_total{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\", namespace=~\"$top_disk_write_namespaces\"}[$__rate_interval])) by (namespace)",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -2061,7 +2061,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2073,7 +2073,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2169,7 +2169,7 @@ spec:
                     "uid": "${datasource}"
                   },
                   "exemplar": true,
-                  "expr": "(1 - avg(irate(node_cpu_seconds_total{mode=\"idle\",cluster=\"$cluster\", instance=~\"$top_cpu_nodes\"}[5m]) * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (node)) * 100",
+                  "expr": "(1 - avg(irate(node_cpu_seconds_total{mode=\"idle\",cluster=\"$cluster\", instance=~\"$top_cpu_nodes\"}[$__rate_interval]) * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (node)) * 100",
                   "hide": false,
                   "interval": "",
                   "legendFormat": "{{ node }}",
@@ -2629,7 +2629,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "(node_uname_info{cluster=\"$cluster\",instance=~\"$top_cpu_nodes\"} -0) * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}",
@@ -2643,7 +2643,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "count(node_cpu_seconds_total{mode='system',cluster=\"$cluster\",instance=~\"$top_cpu_nodes\"} * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (instance)",
@@ -2657,7 +2657,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "node_load5{cluster=\"$cluster\",instance=~\"$top_cpu_nodes\"} * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}",
@@ -2670,10 +2670,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "(1 - avg(irate(node_cpu_seconds_total{mode=\"idle\",cluster=\"$cluster\",instance=~\"$top_cpu_nodes\"}[5m])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (instance)) * 100",
+                  "expr": "(1 - avg(irate(node_cpu_seconds_total{mode=\"idle\",cluster=\"$cluster\",instance=~\"$top_cpu_nodes\"}[$__rate_interval])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (instance)) * 100",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -2728,7 +2728,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2740,7 +2740,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -3242,7 +3242,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "(node_uname_info{cluster=\"$cluster\", instance=~\"$top_memory_nodes\"} -0) * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}",
@@ -3255,7 +3255,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "(node_memory_MemTotal_bytes{cluster=\"$cluster\", instance=~\"$top_memory_nodes\"} - 0) * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}",
@@ -3269,7 +3269,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "(1 - ((node_memory_MemAvailable_bytes{cluster=\"$cluster\", instance=~\"$top_memory_nodes\"} / (node_memory_MemTotal_bytes{cluster=\"$cluster\", instance=~\"$top_memory_nodes\"})* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}))) * 100",
@@ -3326,7 +3326,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -3338,7 +3338,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -3435,7 +3435,7 @@ spec:
                     "uid": "${datasource}"
                   },
                   "exemplar": true,
-                  "expr": "max(irate(node_disk_read_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_read_nodes\"}[5m])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (node)",
+                  "expr": "max(irate(node_disk_read_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_read_nodes\"}[$__rate_interval])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (node)",
                   "hide": false,
                   "interval": "",
                   "legendFormat": "{{ node }} - reads / sec",
@@ -3446,7 +3446,7 @@ spec:
                     "uid": "${datasource}"
                   },
                   "exemplar": true,
-                  "expr": "max((irate(node_disk_written_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_write_nodes\"}[5m])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"})) by (node) * -1",
+                  "expr": "max((irate(node_disk_written_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_write_nodes\"}[$__rate_interval])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"})) by (node) * -1",
                   "hide": false,
                   "interval": "",
                   "legendFormat": "{{ node }} - writes / sec",
@@ -3881,7 +3881,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
                   "expr": "(node_uname_info{cluster=\"$cluster\", instance=~\"($top_disk_read_nodes|$top_disk_write_nodes)\"} -0) * on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}",
@@ -3894,10 +3894,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "max(irate(node_disk_read_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_read_nodes\"}[5m])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (instance)",
+                  "expr": "max(irate(node_disk_read_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_read_nodes\"}[$__rate_interval])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"}) by (instance)",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -3908,10 +3908,10 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "exemplar": false,
-                  "expr": "max((irate(node_disk_written_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_write_nodes\"}[5m])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"})) by (instance)",
+                  "expr": "max((irate(node_disk_written_bytes_total{cluster=\"$cluster\", instance=~\"$top_disk_write_nodes\"}[$__rate_interval])* on(node) group_left(label_kubernetes_io_hostname) kube_node_labels{label_kubernetes_io_hostname=~\".*\"})) by (instance)",
                   "format": "table",
                   "hide": false,
                   "instant": true,
@@ -3965,7 +3965,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }

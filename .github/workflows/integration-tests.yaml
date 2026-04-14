@@ -45,7 +45,7 @@ jobs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
       - name: Wait for build.yaml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@8d542a426ce561c7dce745f6b9cee068d1d7e101 # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@d11baa8a4b42d1a931808c0766ee23eb344c47dd # v2.2.0
         id: wait
         with:
           workflow: build.yaml
@@ -54,8 +54,12 @@ jobs:
   Monitoring-Pipeline:
     needs: [Wait-for-images]
     if: |
-       needs.Wait-for-images.outputs.conclusion == 'success'
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@b894c4fbf5b93e8cca45e588ab46291c071fac2e #v1.5.2
+      needs.Wait-for-images.outputs.conclusion == 'success' &&
+        (
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'renovate[bot]'
+        )
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@0317a7311f0fdd1e6d492fb3a75d722835851b15 #v1.6.1
     with:
       service_branch: ${{ github.sha }}
       pipeline_branch: '4cb7d7c09d0205268066b130c8c6205d9232507b' #this value must match the value after '@' in 'uses'
