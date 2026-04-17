@@ -10,7 +10,8 @@ Image can be found from:
   {{- if .Values.operator.image -}}
     {{- printf "%s" .Values.operator.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.11.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -24,7 +25,8 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:0.11.3" -}}
   {{- end -}}
 {{- end -}}
 
