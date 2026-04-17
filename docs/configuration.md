@@ -409,7 +409,7 @@ spec:
     any: true
   podMetricsEndpoints:
     - interval: 30s
-      port: prometheus
+      port: metrics
       scheme: http
   selector:
     matchLabels:
@@ -1140,7 +1140,7 @@ spec:
     any: true
   podMetricsEndpoints:
     - interval: 30s
-      port: prometheus
+      port: metrics
       scheme: http
       tlsConfig:
         ca:

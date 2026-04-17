@@ -637,7 +637,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to pod",
-                            "url": "./d/monitoring-k8s-pod-resources/k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
                           }
                         ]
                       }
@@ -805,8 +805,8 @@ spec:
                         "value": [
                           {
                             "targetBlank": true,
-                            "title": "Drill down to pods",
-                            "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
                           }
                         ]
                       }
@@ -3755,7 +3755,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Pod Details",
-                        "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                       }
                     ]
                   },
@@ -3776,7 +3776,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Node Details",
-                        "url": "./d/monitoring-node-details/node-details?var-datasource=$datasource&var-cluster=$cluster&var-hostname=${__data.fields.Node}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `node-details`) ) %}/node-details?var-datasource=$datasource&var-cluster=$cluster&var-hostname=${__data.fields.Node}"
                       }
                     ]
                   }
@@ -4730,7 +4730,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Pod Details",
-                        "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                       }
                     ]
                   },
@@ -4751,7 +4751,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Node Details",
-                        "url": "./d/monitoring-node-details/node-details?var-datasource=$datasource&var-cluster=$cluster&var-hostname=${__data.fields.Node}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `node-details`) ) %}/node-details?var-datasource=$datasource&var-cluster=$cluster&var-hostname=${__data.fields.Node}"
                       }
                     ]
                   }
@@ -5232,7 +5232,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Pod Details",
-                            "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                           }
                         ]
                       }
@@ -5530,7 +5530,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Pod Details",
-                            "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                           }
                         ]
                       }
@@ -6101,7 +6101,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Pod Details",
-                        "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                       }
                     ]
                   }
@@ -6274,7 +6274,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Pod Details",
-                        "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                       }
                     ]
                   }
@@ -6726,7 +6726,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Pod Details",
-                        "url": "./d/monitoring-k8s-pod-resources/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}"
                       }
                     ]
                   }
@@ -7211,8 +7211,7 @@ spec:
         "list": [
           {
             "current": {
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "includeAll": false,
             "label": "datasource",
@@ -7374,5 +7373,6 @@ spec:
       },
       "timezone": "browser",
       "title": "Kubernetes / Namespace Resources",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}",
       "version": 2
     }

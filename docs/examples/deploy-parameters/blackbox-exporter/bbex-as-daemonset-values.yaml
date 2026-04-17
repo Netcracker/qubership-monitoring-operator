@@ -13,6 +13,8 @@ blackboxExporter:
           valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
           no_follow_redirects: false
           preferred_ip_protocol: "ip4"
+          tls_config:
+            insecure_skip_verify: true
   serviceMonitor:
     targets:
       - name: example-http-probe

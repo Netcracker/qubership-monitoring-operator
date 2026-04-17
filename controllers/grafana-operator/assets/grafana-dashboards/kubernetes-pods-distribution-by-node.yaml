@@ -581,7 +581,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to Pod Resources",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}﻿﻿﻿﻿&var-pod=﻿﻿${__data.fields.pod}﻿﻿&var-interval="
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.pod}&var-interval="
                       }
                     ]
                   }
@@ -775,7 +775,7 @@ spec:
               "link": false,
               "linkTargetBlank": false,
               "linkTooltip": "Drill down to pod details",
-              "linkUrl": "./d/6581e46e4e5c7b140a07646395ef7b23/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=$__cell_1",
+              "linkUrl": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=${__data.fields.pod}",
               "pattern": "pod",
               "thresholds": [],
               "type": "number",
@@ -1083,7 +1083,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to Pod Resources",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}//kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}﻿﻿﻿﻿&var-pod=﻿﻿${__data.fields.pod}﻿﻿&var-interval="
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.pod}&var-interval="
                       }
                     ]
                   }
@@ -2246,7 +2246,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to Pod Recources",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}//kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}﻿﻿﻿﻿&var-pod=﻿﻿${__data.fields.pod}﻿﻿&var-interval="
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.pod}&var-interval="
                           }
                         ]
                       }
@@ -3083,7 +3083,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to Pod Resources",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}//kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}﻿﻿﻿﻿&var-pod=﻿﻿${__data.fields.pod}﻿﻿&var-interval="
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.pod}&var-interval="
                           }
                         ]
                       }
@@ -3297,7 +3297,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to Pod Resources",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}//kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}﻿﻿﻿﻿&var-pod=﻿﻿${__data.fields.pod}﻿﻿&var-interval="
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.pod}&var-interval="
                           }
                         ]
                       }
@@ -4000,7 +4000,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to Pod Resources",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}//kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}﻿﻿﻿﻿&var-pod=﻿﻿${__data.fields.pod}﻿﻿&var-interval="
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.pod}&var-interval="
                           }
                         ]
                       }
@@ -4153,9 +4153,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "PC3E95692D54ABCC0"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

@@ -1249,6 +1249,7 @@ grafanaDashboards:
     - kubernetes-nodes-resources
     - kubernetes-pod-resources
     - kubernetes-pods-distribution-by-node
+    - kubernetes-pods-distribution-by-zone
     - kubernetes-top-resources
     - node-details
     - overall-platform-health

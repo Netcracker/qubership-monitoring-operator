@@ -706,7 +706,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/monitoring-k8s-namespace-resources/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       }
@@ -723,8 +723,8 @@ spec:
                         "value": [
                           {
                             "targetBlank": true,
-                            "title": "Drill down to pods",
-                            "url": "./d/monitoring-k8s-pod-resources/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
                           }
                         ]
                       }
@@ -799,28 +799,25 @@ spec:
                       "Value #A": true,
                       "Value #B": true,
                       "__name__": true,
-                      "container": false,
                       "endpoint": true,
-                      "container": true,
+                      "exported_container": true,
                       "instance": true,
                       "job": true,
                       "kube_container": true,
                       "kube_namespace": true,
                       "kube_pod": true,
-                      "namespace": true,
-                      "pod": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
                       "service": true,
-                      "uid": true
+                      "uid": true,
+                      "prometheus": true
                     },
                     "indexByName": {
                       "Time": 5,
                       "Value #A": 13,
                       "__name__": 6,
-                      "container": 2,
                       "endpoint": 7,
                       "container": 4,
-                      "namespace": 0,
-                      "pod": 1,
                       "instance": 8,
                       "job": 9,
                       "namespace": 10,
@@ -910,7 +907,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/monitoring-k8s-namespace-resources/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       }
@@ -928,7 +925,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to pod",
-                            "url": "./d/monitoring-k8s-pod-resources/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
                           }
                         ]
                       },
@@ -984,7 +981,6 @@ spec:
                       "Time": true,
                       "Value": true,
                       "__name__": true,
-                      "container": false,
                       "endpoint": true,
                       "container": true,
                       "instance": true,
@@ -1001,11 +997,8 @@ spec:
                       "Time": 4,
                       "Value": 12,
                       "__name__": 5,
-                      "container": 2,
                       "endpoint": 6,
                       "container": 13,
-                      "namespace": 0,
-                      "pod": 1,
                       "instance": 7,
                       "job": 8,
                       "namespace": 9,
@@ -1937,7 +1930,7 @@ spec:
                   "sort": "none"
                 }
               },
-              ""pluginVersion": "11.6.5",
+              "pluginVersion": "11.6.5",
               "repeat": "pod",
               "repeatDirection": "v",
               "targets": [
@@ -2630,7 +2623,7 @@ spec:
                   "sort": "none"
                 }
               },
-              ""pluginVersion": "11.6.5",
+              "pluginVersion": "11.6.5",
               "repeat": "pod",
               "repeatDirection": "v",
               "targets": [
@@ -3010,7 +3003,7 @@ spec:
                   "sort": "none"
                 }
               },
-              ""pluginVersion": "11.6.5",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -3137,7 +3130,7 @@ spec:
                   "sort": "none"
                 }
               },
-              ""pluginVersion": "11.6.5",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -3261,7 +3254,7 @@ spec:
                   "sort": "none"
                 }
               },
-              ""pluginVersion": "11.6.5",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -4049,8 +4042,7 @@ spec:
         "list": [
           {
             "current": {
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "includeAll": false,
             "label": "datasource",
@@ -4245,5 +4237,6 @@ spec:
       },
       "timezone": "",
       "title": "Kubernetes / Pod Resources",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}",
       "version": 2
     }

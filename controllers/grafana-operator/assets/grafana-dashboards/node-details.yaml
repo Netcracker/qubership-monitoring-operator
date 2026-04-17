@@ -19190,8 +19190,7 @@ spec:
         "list": [
           {
             "current": {
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "includeAll": false,
             "label": "datasource",
@@ -19319,5 +19318,6 @@ spec:
       "timepicker": {},
       "timezone": "browser",
       "title": "Node Details",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `node-details`) ) %}",
       "version": 2
     }
