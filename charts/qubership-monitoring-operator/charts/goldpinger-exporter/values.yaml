@@ -80,7 +80,7 @@ ingress:
   #      - chart-example.local
 
 ## Set a priorityClassName for the pod. If left blank a default priority will be set.
-priorityClassName:
+# priorityClassName:
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

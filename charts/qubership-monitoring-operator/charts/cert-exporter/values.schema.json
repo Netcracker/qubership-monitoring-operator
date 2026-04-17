@@ -1,0 +1,369 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "additionalHostPathVolumes": {
+            "type": "array",
+            "description": "Additional hostPath volumes to mount into the container.",
+            "default": [],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "volumeName": {
+                        "type": "string",
+                        "description": "Unique name of the volume."
+                    },
+                    "volumePath": {
+                        "type": "string",
+                        "description": "Path to directory or file on the host system. Same path will be used in the container."
+                    }
+                }
+            }
+        },
+        "certsInFiles": {
+            "type": "object",
+            "properties": {
+                "defaultCerts": {
+                    "type": "boolean",
+                    "description": "Parse certs from default Kubernetes/OpenShift paths.",
+                    "default": true
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable parsing certificates from host file system.",
+                    "default": true
+                },
+                "excludeCerts": {
+                    "type": "string",
+                    "description": "Exclude certificate paths matching this glob/regex.",
+                    "default": ""
+                },
+                "includeCerts": {
+                    "type": "string",
+                    "description": "Include certificate paths matching this glob/regex.",
+                    "default": ""
+                }
+            },
+            "description": "Settings for parsing certificates from host file system."
+        },
+        "certsInKubeconfig": {
+            "type": "object",
+            "properties": {
+                "defaultCerts": {
+                    "type": "boolean",
+                    "description": "Parse kubeconfig certs from default Kubernetes/OpenShift paths.",
+                    "default": true
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable parsing certificates from kubeconfig files.",
+                    "default": false
+                },
+                "excludeCerts": {
+                    "type": "string",
+                    "description": "Exclude kubeconfig paths matching this glob/regex.",
+                    "default": ""
+                },
+                "includeCerts": {
+                    "type": "string",
+                    "description": "Include kubeconfig paths matching this glob/regex.",
+                    "default": ""
+                }
+            },
+            "description": "Settings for parsing certificates from kubeconfig files."
+        },
+        "certsInSecrets": {
+            "type": "object",
+            "properties": {
+                "annotationSelector": {
+                    "type": "string",
+                    "description": "Select secrets by annotation.",
+                    "default": ""
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable parsing certificates from Kubernetes secrets.",
+                    "default": true
+                },
+                "excludeCerts": {
+                    "type": "string",
+                    "description": "Exclude secret keys matching this glob/regex.",
+                    "default": ""
+                },
+                "includeCerts": {
+                    "type": "string",
+                    "description": "Include secret keys matching this glob/regex.",
+                    "default": "*.crt"
+                },
+                "kubeconfigPath": {
+                    "type": "string",
+                    "description": "Path to kubeconfig for out-of-cluster installation.",
+                    "default": ""
+                },
+                "labelSelector": {
+                    "type": "string",
+                    "description": "Select secrets by label.",
+                    "default": ""
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "DEPRECATED: select a single namespace; empty means all when namespaces is not set. Use `namespaces` instead of `namespace`",
+                    "default": ""
+                },
+                "namespaces": {
+                    "type": "string",
+                    "description": "Comma-separated list of namespaces to search; empty means all when namespace is not set.",
+                    "default": ""
+                },
+                "types": {
+                    "type": "array",
+                    "description": "Limit secrets to specific types; empty means all types.",
+                    "default": []
+                }
+            },
+            "description": "Settings for parsing certificates from Kubernetes secrets."
+        },
+        "daemonset": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "Pod affinity rules for daemonset Pods.",
+                    "default": {}
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Pod annotations for daemonset Pods.",
+                    "default": {}
+                },
+                "extraArgs": {
+                    "type": "array",
+                    "description": "Additional arguments for daemonset containers.",
+                    "default": []
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Pod labels for daemonset Pods.",
+                    "default": {}
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "Resource requests and limits for daemonset Pods.",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Maximum resource allocations for daemonset Pods.",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU limit (e.g., '500m' for 0.5 CPU)."
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory limit (e.g., '256Mi' for 256 MiB)."
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Minimum resources required for daemonset Pods.",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU request (e.g., '100m' for 0.1 CPU)."
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory request (e.g., '128Mi' for 128 MiB)."
+                                }
+                            }
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "description": "Pod tolerations for daemonset Pods.",
+                    "default": [
+                        {
+                            "operator": "Exists"
+                        }
+                    ]
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "Pod security context for daemonset Pods.",
+                    "properties": {
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: false"
+                        },
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process.\nType: integer\nMandatory: false"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Node selector for daemonset Pods.",
+                    "default": {}
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName for daemonset Pods."
+                }
+            },
+            "description": "Pod-specific settings for daemonset (used for file/kubeconfig collection)."
+        },
+        "deployment": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "Pod affinity rules for deployment Pods.",
+                    "default": {}
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Pod annotations for deployment Pods.",
+                    "default": {}
+                },
+                "extraArgs": {
+                    "type": "array",
+                    "description": "Additional arguments for deployment containers.",
+                    "default": []
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Pod labels for deployment Pods.",
+                    "default": {}
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "Resource requests and limits for deployment Pods.",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Maximum resource allocations for deployment Pods.",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU limit (e.g., '500m' for 0.5 CPU)."
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory limit (e.g., '256Mi' for 256 MiB)."
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Minimum resources required for deployment Pods.",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU request (e.g., '100m' for 0.1 CPU)."
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory request (e.g., '128Mi' for 128 MiB)."
+                                }
+                            }
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Pod tolerations for deployment Pods.",
+                    "default": []
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "Pod security context for deployment Pods.",
+                    "properties": {
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: false"
+                        },
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process.\nType: integer\nMandatory: false"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Node selector for deployment Pods."
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName for deployment Pods."
+                }
+            },
+            "description": "Pod-specific settings for deployment (used for secrets collection)."
+        },
+        "image": {
+            "type": "string",
+            "description": "A docker image to deploy the cert-exporter.\nDefault: docker.io/joeelliott/cert-exporter:v2.14.0"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Enable deployment of cert-exporter.",
+            "default": false
+        },
+        "name": {
+            "type": "string",
+            "description": "Microservice name used for deployment name and labels.",
+            "default": "cert-exporter"
+        },
+        "pollingPeriod": {
+            "type": "string",
+            "description": "Interval between certificate checks (Go time.Duration).",
+            "default": "1h0m0s"
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Create ServiceMonitor.",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Metrics scrape interval.",
+                    "default": "2m"
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Metrics scrape timeout (must be less than interval).",
+                    "default": "1m"
+                }
+            },
+            "description": "ServiceMonitor configuration for Prometheus Operator."
+        },
+        "servicePort": {
+            "type": "integer",
+            "description": "Service port for cert-exporter.",
+            "default": 9219
+        },
+        "setupAlertingRules": {
+            "type": "boolean",
+            "description": "Create Prometheus alerting rules for cert-exporter.",
+            "default": true
+        },
+        "setupGrafanaDashboard": {
+            "type": "boolean",
+            "description": "Create Grafana dashboard for cert-exporter.",
+            "default": true
+        },
+        "setupSecurityContext": {
+            "type": "boolean",
+            "description": "Create PodSecurityPolicy or SecurityContextConstraints.",
+            "default": true
+        }
+    }
+}
