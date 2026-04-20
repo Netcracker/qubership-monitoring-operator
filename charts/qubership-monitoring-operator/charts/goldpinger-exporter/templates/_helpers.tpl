@@ -56,6 +56,7 @@ Image can be found from:
 {{- if and .Values.image.repository .Values.image.tag -}}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
 {{- else -}}
+{{- /* # renovate: datasource=github-releases depName=bloomberg/goldpinger */ -}}
 {{- print "bloomberg/goldpinger:3.10.2" -}}
 {{- end -}}
 {{- end -}}

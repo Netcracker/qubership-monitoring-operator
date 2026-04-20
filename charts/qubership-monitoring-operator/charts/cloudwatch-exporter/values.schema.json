@@ -1,0 +1,282 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object",
+            "description": "Affinity rules for pod scheduling.",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata.",
+            "default": {}
+        },
+        "aws": {
+            "type": "object",
+            "description": "AWS credentials configuration for CloudWatch access.",
+            "properties": {
+                "aws_access_key_id": {
+                    "type": "string",
+                    "description": "AWS access key ID to authenticate with AWS if not using a credentials secret."
+                },
+                "aws_secret_access_key": {
+                    "type": "string",
+                    "description": "AWS secret access key to authenticate with AWS if not using a credentials secret."
+                },
+                "secret": {
+                    "type": "object",
+                    "description": "Reference to a pre-created Kubernetes Secret containing AWS credentials.",
+                    "properties": {
+                        "includesSessionToken": {
+                            "type": "boolean",
+                            "description": "Indicates whether the referenced secret contains a session token field.",
+                            "default": false
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "Name of the Kubernetes Secret that stores AWS credentials."
+                        }
+                    }
+                }
+            }
+        },
+        "command": {
+            "type": "array",
+            "description": "Override the default container command used to start cloudwatch-exporter.",
+            "items": {
+                "type": "string"
+            },
+            "default": []
+        },
+        "config": {
+            "type": "string",
+            "description": "CloudWatch exporter configuration rendered into the container."
+        },
+        "containerPort": {
+            "type": "integer",
+            "description": "Port exposed by the cloudwatch-exporter container.",
+            "default": 9106
+        },
+        "image": {
+            "type": "string",
+            "description": "A docker image for cloudwatch-exporter in the format <repository>:<tag>.\nDefault: docker.io/prom/cloudwatch-exporter:v0.16.0"
+        },
+        "imagePullPolicy": {
+            "type": "string",
+            "description": "Image pull policy for the cloudwatch-exporter container.",
+            "default": "IfNotPresent"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Enable deployment of cloudwatch-exporter.",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects.",
+            "default": {}
+        },
+        "name": {
+            "type": "string",
+            "description": "Name used for the cloudwatch-exporter deployment and related resources.",
+            "default": "cloudwatch-exporter"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Node selector for scheduling cloudwatch-exporter pods.",
+            "default": {}
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the cloudwatch-exporter pods to prevent them from evicting."
+         },
+        "rbac": {
+            "type": "object",
+            "description": "RBAC configuration for cloudwatch-exporter.",
+            "properties": {
+                "createClusterRole": {
+                    "type": "boolean",
+                    "description": "Allow creating ClusterRole. If false, ClusterRole must be created manually.",
+                    "default": true
+                },
+                "createClusterRoleBinding": {
+                    "type": "boolean",
+                    "description": "Allow creating ClusterRoleBinding. If false, ClusterRoleBinding must be created manually.",
+                    "default": true
+                }
+            }
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Number of cloudwatch-exporter replicas to deploy.",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "Compute resource requests and limits for cloudwatch-exporter pods.",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Maximum compute resources allocated to cloudwatch-exporter pods.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU limit for cloudwatch-exporter pods, e.g. '500m' for 0.5 CPU cores."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory limit for cloudwatch-exporter pods, e.g. '256Mi' for 256 MiB of memory."
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Minimum compute resources required for cloudwatch-exporter pods.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU request for cloudwatch-exporter pods, e.g. '250m' for 0.25 CPU cores."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory request for cloudwatch-exporter pods, e.g. '128Mi' for 128 MiB of memory."
+                        }
+                    }
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "description": "Service configuration for cloudwatch-exporter.",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations to add to the cloudwatch-exporter Service.",
+                    "default": {}
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels to add to the cloudwatch-exporter Service.",
+                    "default": {}
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port exposed by the cloudwatch-exporter Service.",
+                    "default": 9106
+                },
+                "portName": {
+                    "type": "string",
+                    "description": "Name of the service port exposed by cloudwatch-exporter.",
+                    "default": "http"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Kubernetes Service type for cloudwatch-exporter.",
+                    "default": "ClusterIP"
+                }
+            },
+            "default": {}
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "Service account configuration for cloudwatch-exporter.",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations to add to the cloudwatch-exporter ServiceAccount.",
+                    "examples": [
+                        {
+                            "eks.amazonaws.com/role-arn": "arn:aws:iam::1234567890:role/prom-cloudwatch-exporter-oidc"
+                        }
+                    ]
+                },
+                "automountServiceAccountToken": {
+                    "type": "boolean",
+                    "description": "Whether the service account token should be automatically mounted into the pod.",
+                    "default": true
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Whether a ServiceAccount should be created.",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the ServiceAccount to use.",
+                    "default": "cloudwatch-exporter"
+                }
+            },
+            "default": {}
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for Openshift cluster.",
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process.\nDefaults to user specified in image metadata if unspecified."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "ServiceMonitor configuration for Prometheus scraping.",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Whether to create a ServiceMonitor for cloudwatch-exporter.",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Set how frequently Prometheus should scrape.",
+                    "default": "5m"
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "description": "MetricRelabelConfigs to apply to samples before ingestion.",
+                    "items": {
+                        "type": "object",
+                        "description": "A Prometheus MetricRelabelConfig. See https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs for details."
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels applied to the ServiceMonitor.",
+                    "default": {
+                        "app.kubernetes.io/component":  "monitoring"
+                    }
+                },
+                "relabelings": {
+                    "type": "array",
+                    "description": "RelabelConfigs to apply to the scrape request before scraping.",
+                    "items": {
+                        "type": "object",
+                        "description": "A Prometheus RelabelConfig. See https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config for details."
+                    }
+                },
+                "telemetryPath": {
+                    "type": "string",
+                    "description": "Telemetry path used by the ServiceMonitor to scrape metrics.",
+                    "default": "/metrics"
+                },
+                "timeout": {
+                    "type": "string",
+                    "description": "Scrape timeout for the ServiceMonitor.",
+                    "default": "10s"
+                }
+            },
+            "default": {}
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pod to schedule onto nodes with matching taints.",
+            "default": []
+        }
+    }
+}

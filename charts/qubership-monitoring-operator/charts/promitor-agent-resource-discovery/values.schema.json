@@ -1,0 +1,437 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object",
+            "description": "Node affinity rules for promitor-agent-resource-discovery pods."
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations to add to promitor-agent-resource-discovery pods."
+        },
+        "azureAuthentication": {
+            "type": "object",
+            "description": "Azure authentication settings for promitor-agent-resource-discovery.",
+            "properties": {
+                "identity": {
+                    "type": "object",
+                    "description": "Azure identity details used for authentication.",
+                    "properties": {
+                        "binding": {
+                            "type": "string",
+                            "description": "Aad Pod Identity name, when using UserAssignedManagedIdentity or SystemAssignedManagedIdentity as mode.",
+                            "default": ""
+                        },
+                        "id": {
+                            "type": "string",
+                            "description": "Id of the Azure AD entity to authenticate with.",
+                            "default": ""
+                        },
+                        "key": {
+                            "type": "string",
+                            "description": "Secret of the Azure AD entity to authenticate with. Sets the environment variable PROMITOR_AUTH_APPKEY through the secrets.appKeySecret field in the Secret.",
+                            "default": ""
+                        }
+                    }
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "Authentication type to use to authenticate. Options are ServicePrincipal, UserAssignedManagedIdentity or SystemAssignedManagedIdentity.",
+                    "default": "ServicePrincipal"
+                }
+            }
+        },
+        "azureLandscape": {
+            "type": "object",
+            "description": "Azure landscape configuration for resource discovery.",
+            "properties": {
+                "cloud": {
+                    "type": "string",
+                    "description": "Azure cloud environment to use.",
+                    "default": "Global"
+                },
+                "subscriptions": {
+                    "type": "array",
+                    "description": "List of Azure subscriptions to scan for resources.",
+                    "default": []
+                },
+                "tenantId": {
+                    "type": "string",
+                    "description": "Azure tenant id.",
+                    "default": ""
+                }
+            }
+        },
+        "cache": {
+            "type": "object",
+            "description": "Cache settings for Promitor resource discovery.",
+            "properties": {
+                "durationInMinutes": {
+                    "type": "integer",
+                    "description": "Cache duration for resource discovery results in minutes.",
+                    "default": 5
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable or disable caching for resource discovery.",
+                    "default": true
+                }
+            }
+        },
+        "containerSecurityContext": {
+            "type": "object",
+            "description": "Security context settings for the promitor-agent-resource-discovery container.",
+            "properties": {
+                "allowPrivilegeEscalation": {
+                    "type": "boolean",
+                    "description": "Whether the container can gain more privileges than its parent process.",
+                    "default": false
+                },
+                "capabilities": {
+                    "type": "object",
+                    "description": "Process capabilities configuration.",
+                    "default": {
+                        "drop": [
+                            "ALL"
+                        ]
+                    }
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether to enable the container security context.",
+                    "default": true
+                },
+                "privileged": {
+                    "type": "boolean",
+                    "description": "Whether the container should run in privileged mode.",
+                    "default": false
+                },
+                "readOnlyRootFilesystem": {
+                    "type": "boolean",
+                    "description": "Whether the container root filesystem should be read-only.",
+                    "default": true
+                }
+            }
+        },
+        "extraVolumeMounts": {
+            "type": "array",
+            "description": "Additional volume mounts to add to promitor-agent-resource-discovery pods.",
+            "examples": [
+                [
+                    {
+                        "name": "secrets-store-inline",
+                        "mountPath": "/mnt/promitor-secrets",
+                        "readOnly": true
+                    }
+                ]
+            ]
+        },
+        "extraVolumes": {
+            "type": "array",
+            "description": "Additional volumes to add to promitor-agent-resource-discovery pods.",
+            "examples": [
+                [
+                    {
+                        "name": "secrets-store-inline",
+                        "csi": {
+                            "driver": "secrets-store.csi.k8s.io",
+                            "readOnly": true,
+                            "volumeAttributes": {
+                                "secretProviderClass": "promitor-secrets"
+                            }
+                        }
+                    }
+                ]
+            ]
+        },
+        "image": {
+            "type": "string",
+            "description": "Docker image to use for promitor-agent-resource-discovery deployment.\nDefault: ghcr.io/tomkerkhove/promitor-agent-resource-discovery:0.13.0"
+        },
+        "imagePullPolicy": {
+            "type": "string",
+            "description": "Image pull policy to use for promitor-agent-resource-discovery deployment.",
+            "default": "IfNotPresent"
+        },
+        "imagePullSecrets": {
+            "type": "array",
+            "description": "Reference to one or more secrets to be used when pulling images from private registries.",
+            "default": []
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable deploy promitor-agent-resource-discovery.",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Labels to add to promitor-agent-resource-discovery pods."
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of promitor-agent-resource-discovery which use in deployment and other objects names.",
+            "default": "promitor-agent-resource-discovery"
+        },
+        "nodeSelector": {
+            "type": "array",
+            "description": "Node selector settings for promitor-agent-resource-discovery pods."
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "Priority class name for promitor-agent-resource-discovery pods."
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Replicas spec configuration for promitor-agent-resource-discovery.",
+            "default": 1
+        },
+        "resourceDiscoveryGroups": {
+            "type": "array",
+            "description": "Resource discovery group definitions for Promitor.",
+            "default": []
+        },
+        "resources": {
+            "type": "object",
+            "description": "Resource requests and limits for promitor-agent-resource-discovery.",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Maximum resources allowed for promitor-agent-resource-discovery container.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU limit for promitor-agent-resource-discovery container."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory limit for promitor-agent-resource-discovery container."
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Minimum resources required for promitor-agent-resource-discovery container.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU request for promitor-agent-resource-discovery container."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory request for promitor-agent-resource-discovery container."
+                        }
+                    }
+                }
+            }
+        },
+        "secrets": {
+            "type": "object",
+            "description": "Secrets configuration for Azure authentication.",
+            "properties": {
+                "appKeySecret": {
+                    "type": "string",
+                    "description": "Name of the field for Azure AD identity secret in the Secret resource.",
+                    "default": "azure-app-key"
+                },
+                "createSecret": {
+                    "type": "boolean",
+                    "description": "Whether to create the Azure AD identity secret automatically.",
+                    "default": true
+                },
+                "extra": {
+                    "type": "object",
+                    "description": "Additional secret values to include in the created secret.",
+                    "default": {}
+                },
+                "secretName": {
+                    "type": "string",
+                    "description": "Name of the secret for Azure AD identity secret.",
+                    "default": "promitor-agent-resource-discovery-azure-auth"
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "Pod-level security context settings for promitor-agent-resource-discovery.",
+            "properties": {
+                "runAsGroup": {
+                    "type": "integer",
+                    "description": "The group ID to run the entrypoint of the container process."
+                },
+                "runAsNonRoot": {
+                    "type": "boolean",
+                    "description": "Whether to require the container to run as a non-root user.",
+                    "default": true
+                },
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The user ID to run the entrypoint of the container process."
+                },
+                "seccompProfile": {
+                    "type": "object",
+                    "description": "Seccomp profile settings for the pod."
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "description": "Service configuration for promitor-agent-resource-discovery.",
+            "properties": {
+                "azureLoadBalancer": {
+                    "type": "object",
+                    "description": "Azure load balancer settings for the service.",
+                    "properties": {
+                        "dnsPrefix": {
+                            "type": "string",
+                            "description": "Prefix for DNS name to expose the service on using <name>.<location>.cloudapp.azure.com format. Azure Kubernetes Service only."
+                        },
+                        "exposeInternally": {
+                            "type": "boolean",
+                            "description": "To restrict access to Promitor by exposing it through an internal load balancer. Azure Kubernetes Service only.",
+                            "default": false
+                        }
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels set which will create in service.",
+                    "default": {}
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port of promitor-agent-resource-discovery which use in service.",
+                    "default": 8889
+                },
+                "targetPort": {
+                    "type": "integer",
+                    "description": "Target port of promitor-agent-resource-discovery which use in service and container.",
+                    "default": 5000
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Type of promitor-agent-resource-discovery service.",
+                    "default": "ClusterIP"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "ServiceAccount configuration for promitor-agent-resource-discovery.",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations to add to the ServiceAccount.",
+                    "default": {}
+                },
+                "automountServiceAccountToken": {
+                    "type": "boolean",
+                    "description": "Set this to true if you plan on using Pod Security Policy",
+                    "default": false
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Specifies whether a ServiceAccount should be created.",
+                    "default": true
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels to add to the ServiceAccount.",
+                    "default": {}
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the ServiceAccount to use.",
+                    "default": "promitor-agent-resource-discovery"
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "ServiceMonitor configuration for Prometheus scraping.",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "When set true then use a ServiceMonitor to configure scraping.",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Set how frequently Prometheus should scrape.",
+                    "default": "5m"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator.",
+                    "default": {
+                        "app.kubernetes.io/component": "monitoring"
+                    }
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "description": "Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion."
+                },
+                "relabelings": {
+                    "type": "array",
+                    "description": "Set relabeling rules for the ServiceMonitor to apply before scraping."
+                },
+                "timeout": {
+                    "type": "string",
+                    "description": "Set the timeout for scraping metrics."
+                }
+            }
+        },
+        "telemetry": {
+            "type": "object",
+            "description": "Telemetry configuration for promitor-agent-resource-discovery.",
+            "properties": {
+                "applicationInsights": {
+                    "type": "object",
+                    "description": "Application Insights telemetry settings.",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Whether Application Insights telemetry is enabled.",
+                            "default": false
+                        },
+                        "key": {
+                            "type": "string",
+                            "description": "Instrumentation key for Application Insights.",
+                            "default": ""
+                        },
+                        "logLevel": {
+                            "type": "string",
+                            "description": "Log level for Application Insights.",
+                            "default": ""
+                        }
+                    }
+                },
+                "containerLogs": {
+                    "type": "object",
+                    "description": "Container log settings.",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Whether container logs are enabled.",
+                            "default": true
+                        },
+                        "logLevel": {
+                            "type": "string",
+                            "description": "Log level for container logs.",
+                            "default": ""
+                        }
+                    }
+                },
+                "defaultLogLevel": {
+                    "type": "string",
+                    "description": "Default log level for promitor-agent-resource-discovery.",
+                    "default": "Error"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Pod tolerations for promitor-agent-resource-discovery."
+        }
+    }
+}

@@ -7,9 +7,7 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 |------------------------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | install                                              | Enables or disables deployment of ssl-exporter.                                                                                                                                                                                                     | bool   |
 | name                                                 | Microservice name used for object names and labels.                                                                                                                                                                                                  | string |
-| setupSecurityContext                                 | Creates PodSecurityPolicy or SecurityContextConstraints (when applicable for the platform).                                                                                                                                                          | bool   |
 | installGrafanaDashboard                                | Creates a Grafana dashboard for ssl-exporter.                                                                                                                                                                                                       | bool   |
-| setupAlertingRules                                   | Creates Prometheus alerting rules for ssl-exporter (as part of the operator).                                                                                                                                                                       | bool   |
 | additionalHostPathVolumes                            | List of HostPath volumes to mount files/directories from the host into the container (e.g., certificates or kubeconfig).                                                                                                                           | list[object] |
 | additionalHostPathVolumes[N].volumeName              | Unique volume name.                                                                                                                                                                                                                                  | string |
 | additionalHostPathVolumes[N].volumePath              | Path to the file/directory on the host. The same path is used as a mount point inside the container.                                                                                                                                                | string |
@@ -19,11 +17,9 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 | service.protocol                                     | Service protocol.                                                                                                                                                                                                                                    | string |
 | service.name                                         | Service port name.                                                                                                                                                                                                                                   | string |
 | service.labels                                       | Additional labels for the Service.                                                                                                                                                                                                                   | object |
-| image.repository                                     | Container image repository. Defaults to `ribbybibby/ssl-exporter`.                                                                                                                                                                                   | string |
-| image.tag                                            | Image tag. By default equals to chart `appVersion`.                                                                                                                                                                                                  | string |
-| image.pullPolicy                                     | Image pull policy.                                                                                                                                                                                                                                   | string |
-| image.pullSecret                                     | Docker registry secret name (if required).                                                                                                                                                                                                           | string |
-| preDeleteHook.enabled                                | Delete generated resources on chart uninstall.                                                                                                                                                                                                       | bool   |
+| image                                                | Full container image (`repository:tag`). If unset, the chart default is defined in `charts/ssl-exporter/templates/_helpers.tpl` (`ribbybibby/ssl-exporter:2.4.3`).                                                                                     | string |
+| imagePullPolicy                                      | Image pull policy.                                                                                                                                                                                                                                   | string |
+| imagePullSecrets                                     | Pull secrets for the pod (same as Kubernetes `imagePullSecrets`, e.g. `- name: my-registry-secret`).                                                                                                                                               | list   |
 | rbac.create                                          | Create RBAC objects (ClusterRole/Binding). Required when using the `kubernetes` module to read secrets.                                                                                                                                              | bool   |
 | serviceAccount.create                                | Create a ServiceAccount.                                                                                                                                                                                                                             | bool   |
 | serviceAccount.annotations                           | Annotations for ServiceAccount.                                                                                                                                                                                                                      | object |
@@ -62,9 +58,7 @@ The chart installs ssl-exporter and, when `serviceMonitor.enabled` is true, a si
 sslExporter:
   install: true
   name: ssl-exporter
-  setupSecurityContext: true
   installGrafanaDashboard: true
-  setupAlertingRules: true
 
   # Optional host mounts
   additionalHostPathVolumes:
@@ -75,10 +69,9 @@ sslExporter:
     # - volumeName: host-kubeconfig
     #   volumePath: /etc/rancher/k3s/k3s.yaml
 
-  image:
-    repository: ribbybibby/ssl-exporter
-    tag: 2.4.3
-    pullPolicy: IfNotPresent
+  # image: ribbybibby/ssl-exporter:2.4.3
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
 
   service:
     type: ClusterIP

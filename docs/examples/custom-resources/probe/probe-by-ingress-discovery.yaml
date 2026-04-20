@@ -16,7 +16,7 @@ spec:
     ingress:
       selector:
         matchLabels:
-          name: prometheus
+          name: monitoring-vmauth-k8s
       namespaceSelector:
         matchNames:
           - monitoring

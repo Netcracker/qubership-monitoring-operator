@@ -1,0 +1,186 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable or disable deploy promxy.",
+            "default": false
+        },
+        "name": {
+            "type": "string",
+            "description": "A name of the microservice to deploy with. This name is used as the name of the microservice deployment and in labels.",
+            "default": "promxy"
+        },
+        "image": {
+            "type": "string",
+            "description": "A docker image to use for promxy deployment.\nDefault: quay.io/jacksontj/promxy:v0.0.93"
+        },
+        "extraArgs": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Additional arguments for promxy container.",
+            "default": []
+        },
+        "config": {
+            "type": "object",
+            "description": "Configuration for promxy.",
+            "properties": {
+                "serverGroups": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "description": "Base configuration of targets (server groups) for promxy. Every group should contain address (service or ingress for scraping Prometheus metrics), scheme (http or https) and unique label for identification in Grafana. Scheme 'http' is using by default."
+                },
+                "detailedConfig": {
+                    "type": "string",
+                    "description": "Detailed configuration for promxy in the YAML format. If this parameter is specified, the rest of parameters from the config section will not be used.",
+                    "default": ""
+                }
+            }
+        },
+        "grafanaDashboard": {
+            "type": "boolean",
+            "description": "Allows creating Grafana DR overview dashboard.",
+            "default": true
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for promxy.",
+            "default": {},
+            "properties": {
+                "requests": {
+                    "type": "object",
+                    "description": "The minimum resources required for promxy container.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The amount of CPU required for promxy container. It can be expressed in cores (e.g. 1) or in millicores (e.g. 500m)."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The amount of memory required for promxy container. It can be expressed in bytes (e.g. 128974848) or in human-readable format (e.g. 128Mi)."
+                        }
+                    }
+                },
+                "limits": {
+                    "type": "object",
+                    "description": "The resource limits for promxy container.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The maximum amount of CPU that promxy container can use. It can be expressed in cores (e.g. 1) or in millicores (e.g. 500m)."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The maximum amount of memory that promxy container can use. It can be expressed in bytes (e.g. 128974848) or in human-readable format (e.g. 128Mi)."
+                        }
+                    }
+                }
+            }
+        },
+        "port": {
+            "type": "integer",
+            "description": "Port for promxy container and service.",
+            "default": 9090
+        },
+        "configmapReload": {
+            "type": "object",
+            "description": "Additional container with small sidecar that reload promxy when configmap with configuration is changing.",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to disable deploy promxy-configmap-reload container.",
+                    "default": true
+                },
+                "image": {
+                    "type": "string",
+                    "description": "A docker image to use for promxy-configmap-reload deployment.\nDefault: ghcr.io/jimmidyson/configmap-reload:v0.14.0"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for promxy-configmap-reload.",
+                    "default": {},
+                    "properties": {
+                        "requests": {
+                            "type": "object",
+                            "description": "The minimum resources required for promxy-configmap-reload container.",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "The amount of CPU required for promxy-configmap-reload container. It can be expressed in cores (e.g. 1) or in millicores (e.g. 500m)."
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "The amount of memory required for promxy-configmap-reload container. It can be expressed in bytes (e.g. 128974848) or in human-readable format (e.g. 128Mi)."
+                                }
+                            }
+                        },
+                        "limits": {
+                            "type": "object",
+                            "description": "The resource limits for promxy-configmap-reload container.",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "The maximum amount of CPU that promxy-configmap-reload container can use. It can be expressed in cores (e.g. 1) or in millicores (e.g. 500m)."
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "The maximum amount of memory that promxy-configmap-reload container can use. It can be expressed in bytes (e.g. 128974848) or in human-readable format (e.g. 128Mi)."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for Openshift cluster.",
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process.\nDefaults to user specified in image metadata if unspecified."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            },
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints.",
+            "default": []
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow define which Nodes the Pods are scheduled on."
+        },
+        "affinity": {
+            "type": "object",
+            "description": "If specified, the pod's scheduling constraints.",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects.",
+            "default": {}
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services.",
+            "default": {}
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the Pods to prevent them from evicting."
+        }
+    }
+}
