@@ -74,39 +74,4 @@ blackboxExporter:
           preferred_ip_protocol: "ip4"  # defaults to "ip6"
           query_name: "www.prometheus.io"
   serviceMonitor:
-    defaults:
-      additionalMetricsRelabels: {}
-      interval: 30s
-      scrapeTimeout: 30s
-      module: http_2xx
-    targets:
-      - name: example-http-get
-        url: https://example.com:8080
-        interval: 120s
-        scrapeTimeout: 120s
-        module: http_2xx_example
-        additionalMetricsRelabels: {}
-      - name: example-http-post
-        url: http://example.com
-        interval: 120s
-        scrapeTimeout: 60s
-        module: http_post_2xx
-        additionalMetricsRelabels: {}
-      - name: example-dns-udp
-        url: 8.8.8.8
-        interval: 60s
-        scrapeTimeout: 60s
-        module: dns_udp_example
-        additionalMetricsRelabels: {}
-      - name: example-dns-soa
-        url: 8.8.8.8
-        interval: 60s
-        scrapeTimeout: 60s
-        module: dns_soa
-        additionalMetricsRelabels: {}
-      - name: example-dns-tcp
-        url: 8.8.8.8
-        interval: 60s
-        scrapeTimeout: 60s
-        module: dns_tcp_example
-        additionalMetricsRelabels: {}
+    enabled: true

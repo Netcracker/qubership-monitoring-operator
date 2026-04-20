@@ -37,19 +37,11 @@ target configurations.
 | serviceMonitor                          | ServiceMonitor configuration for metrics scraping.                                                                                                                                                                    | object                                                                                                                       |
 | serviceMonitor.enabled                  | Enable ServiceMonitor creation for automatic metrics scraping.                                                                                                                                                        | bool                                                                                                                         |
 | serviceMonitor.scheme                   | HTTP scheme to use for scraping (http/https).                                                                                                                                                                         | string                                                                                                                       |
-| serviceMonitor.defaults                 | Default values for all ServiceMonitors created by targets.                                                                                                                                                            | object                                                                                                                       |
+| serviceMonitor.defaults                 | Default scrape interval/timeout/labels for the self-metrics ServiceMonitor (`/metrics`).                                                                                                                                 | object                                                                                                                       |
 | serviceMonitor.defaults.interval        | Default scraping interval.                                                                                                                                                                                            | string                                                                                                                       |
 | serviceMonitor.defaults.scrapeTimeout   | Default scrape timeout.                                                                                                                                                                                               | string                                                                                                                       |
-| serviceMonitor.defaults.labels          | Default labels for ServiceMonitors.                                                                                                                                                                                   | map[string]string                                                                                                            |
+| serviceMonitor.defaults.labels          | Default labels for the ServiceMonitor.                                                                                                                                                                                | map[string]string                                                                                                            |
 | serviceMonitor.defaults.additionalMetricsRelabels | Default metric relabeling rules.                                                                                                                                                                                  | map[string]string                                                                                                            |
-| serviceMonitor.targets                  | List of targets to scrape with json-exporter.                                                                                                                                                                         | list[object]                                                                                                                 |
-| serviceMonitor.targets[N].name          | Human readable name for the target.                                                                                                                                                                                   | string                                                                                                                       |
-| serviceMonitor.targets[N].url           | URL that json-exporter will scrape.                                                                                                                                                                                   | string                                                                                                                       |
-| serviceMonitor.targets[N].labels        | Additional labels for this target's ServiceMonitor.                                                                                                                                                                   | map[string]string                                                                                                            |
-| serviceMonitor.targets[N].interval      | Scraping interval for this target.                                                                                                                                                                                    | string                                                                                                                       |
-| serviceMonitor.targets[N].scrapeTimeout | Scrape timeout for this target.                                                                                                                                                                                       | string                                                                                                                       |
-| serviceMonitor.targets[N].module        | Name of the module from config to use for this target.                                                                                                                                                                | string                                                                                                                       |
-| serviceMonitor.targets[N].additionalMetricsRelabels | Additional metric relabeling rules for this target.                                                                                                                                                      | map[string]string                                                                                                            |
 | config                                  | Configuration of json-exporter modules and metrics extraction rules.                                                                                                                                                  | object                                                                                                                       |
 | config.modules                          | Map of module configurations for different scraping scenarios.                                                                                                                                                        | map[string]object                                                                                                            |
 | config.modules[name].metrics            | List of metrics to extract from JSON responses.                                                                                                                                                                       | list[object]                                                                                                                 |
@@ -84,7 +76,7 @@ target configurations.
 The json-exporter provides two main endpoints:
 
 - `/metrics` - Self-monitoring metrics
-- `/probe` - Probe endpoint for scraping JSON targets
+- `/probe` - Probe endpoint for scraping JSON targets (configure scraping with Prometheus Operator `Probe` CRs, not Helm `ServiceMonitor` templates in this chart)
 
 ## Configuration Examples
 
@@ -130,14 +122,8 @@ jsonExporter:
         headers:
           User-Agent: "json-exporter/1.0"
   
-  # Configure targets to scrape
   serviceMonitor:
     enabled: true
-    targets:
-      - name: api-health
-        url: "http://my-api.example.com/health"
-        interval: 30s
-        scrapeTimeout: 10s
 ```
 
 ### Complex JSON Structure
@@ -178,11 +164,6 @@ jsonExporter:
   
   serviceMonitor:
     enabled: true
-    targets:
-      - name: complex-service
-        url: "https://api.example.com/status"
-        module: complex_api
-        interval: 60s
 ```
 
 ### POST Request with Body
@@ -211,11 +192,6 @@ jsonExporter:
   
   serviceMonitor:
     enabled: true
-    targets:
-      - name: database-stats
-        url: "https://api.example.com/query"
-        module: post_api
-        interval: 300s  # 5 minutes
 ```
 
 ### Authentication and TLS
@@ -259,10 +235,6 @@ jsonExporter:
   
   serviceMonitor:
     enabled: true
-    targets:
-      - name: secure-api
-        url: "https://secure-api.example.com/metrics"
-        module: secure_api
 ```
 
 ### Template-based Body
@@ -290,10 +262,6 @@ jsonExporter:
   
   serviceMonitor:
     enabled: true
-    targets:
-      - name: templated-endpoint
-        url: "https://api.example.com/templated?query_id=metrics_query"
-        module: templated_api
 ```
 
 ### Production Configuration
@@ -382,7 +350,6 @@ jsonExporter:
         headers:
           Authorization: "Bearer {{ .token }}"
   
-  # ServiceMonitor with multiple targets
   serviceMonitor:
     enabled: true
     scheme: http
@@ -391,20 +358,6 @@ jsonExporter:
       scrapeTimeout: 10s
       labels:
         monitoring: "json-exporter"
-    targets:
-      # API health monitoring
-      - name: api-health
-        url: "http://my-api.svc.cluster.local:8080/health"
-        module: api_monitoring
-        interval: 15s
-        
-      # Business metrics
-      - name: business-metrics
-        url: "http://analytics.svc.cluster.local:8080/metrics"
-        module: business_metrics
-        interval: 60s
-        additionalMetricsRelabels:
-          environment: "production"
   
   # Pod labels and annotations
   labels:
@@ -451,10 +404,11 @@ Common JSONPath expressions for extracting data:
 
 ### Common Issues
 
-1. **No metrics from targets**
+1. **No metrics from `/probe` endpoints**
    - Check target URL accessibility from the pod
    - Verify module configuration syntax
    - Check JSONPath expressions with test data
+   - Confirm `Probe` CRs and VM/Prometheus scrape configuration
 
 2. **Authentication failures**
    - Verify credentials are mounted correctly

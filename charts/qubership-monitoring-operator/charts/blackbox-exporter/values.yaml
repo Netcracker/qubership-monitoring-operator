@@ -121,7 +121,7 @@ extraArgs: []
 #  - "--web.route-prefix=/example/path"
 
 serviceMonitor:
-  # If true, a ServiceMonitor CRD is created for a prometheus operator.
+  # If true, a ServiceMonitor is created for the exporter self-metrics (`/metrics`). For `/probe` targets use Prometheus Operator `Probe` CRs, not this chart.
   # Type: boolean
   # Mandatory: no
   # Default: true
@@ -147,31 +147,6 @@ serviceMonitor:
   # Default: http
   #
   scheme: http
-
-  # DEPRECATED! Please use Probe CR instead.
-  # Default values that will be used for all ServiceMonitors created by `targets`.
-  # Type: object
-  # Mandatory: no
-  #
-  defaults:
-    additionalMetricsRelabels: {}
-    interval: 30s
-    # Please note that scrapeTimeout must be less the interval
-    scrapeTimeout: 30s
-    module: http_2xx
-
-  # DEPRECATED! Please use Probe CR instead.
-  # Parameters for each targets that will be created.
-  # Type: list[object]
-  # Mandatory: yes
-  #
-  targets: []
-  #  - name: example                    # Human readable URL that will appear in Prometheus / AlertManager
-  #    url: http://example.com/healthz  # The URL that blackbox will scrape
-  #    interval: 60s                    # Scraping interval. Overrides value set in `defaults`
-  #    scrapeTimeout: 60s               # Scrape timeout. Overrides value set in `defaults`. Must be less than interval
-  #    module: http_2xx                 # Module used for scraping. Overrides value set in `defaults`
-  #    additionalMetricsRelabels: {}    # Map of metric labels and values to add
 
 # Allows to create Grafana dashboard for blackbox-exporter.
 # Type: boolean

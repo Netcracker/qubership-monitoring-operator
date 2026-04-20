@@ -1,23 +1,12 @@
 {{/*
-Expand the name of the chart.
+Service account and image helpers for goldpinger-exporter. Labels use parent chart include "monitoring.labels" . (Values.name drives app.kubernetes.io/name).
 */}}
-{{- define "goldpinger.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Labels for goldpinger resources. Uses goldpinger.name so selector matchLabels stay consistent.
-*/}}
-{{- define "goldpinger.labels" -}}
-{{- include "monitoring.labels" (dict "ctx" . "name" (include "goldpinger.name" .)) -}}
-{{- end -}}
-
 {{/*
 Create the name of the service account to use
 */}}
 {{- define "goldpinger.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (printf "%s-service-account" .Values.name) .Values.serviceAccount.name }}
+{{- default .Values.name .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

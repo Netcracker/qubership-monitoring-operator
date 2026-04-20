@@ -27,7 +27,7 @@ rbac:
 
 serviceAccount:
   create: true
-  # name: goldpinger-exporter-service-account
+  # name: goldpinger-exporter
 
 goldpinger:
   port: 8080

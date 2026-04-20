@@ -15,6 +15,4 @@ blackboxExporter:
           tls_config:
             insecure_skip_verify: true
   serviceMonitor:
-    targets:
-      - name: example-http-probe
-        url: https://www.example.com
+    enabled: true
