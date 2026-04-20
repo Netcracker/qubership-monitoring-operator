@@ -58,7 +58,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "gridPos": {
                 "h": 7,
@@ -88,7 +88,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -102,7 +102,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -326,7 +326,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to pod",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.[exported_namespace]}&var-pod=﻿﻿${__data.fields.[route]}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.[exported_namespace]}&var-pod=${__data.fields.[route]}"
                       }
                     ]
                   }
@@ -505,7 +505,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1062,7 +1062,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "description": "Sows amount of connections and errors(only to backends) to frontends and backends",
               "fieldConfig": {
@@ -1158,7 +1158,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(irate(haproxy_frontend_connections_total{frontend=~\"$frontend\",pod=~\"$router\",cluster=\"$cluster\"}[5m])) by (pod)",
@@ -1173,7 +1173,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(irate(haproxy_backend_connections_total{backend=~\"$backend\",pod=~\"$router\",cluster=\"$cluster\"}[5m])) by (pod)",
@@ -1188,7 +1188,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(irate(haproxy_backend_connection_errors_total{backend=~\"$backend\",pod=~\"$router\",cluster=\"$cluster\"}[5m])) by (pod)",
@@ -1209,7 +1209,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1221,7 +1221,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1500,7 +1500,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1512,7 +1512,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1765,7 +1765,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1777,7 +1777,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2006,7 +2006,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2018,7 +2018,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2336,7 +2336,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2348,7 +2348,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2577,7 +2577,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2589,7 +2589,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -3060,7 +3060,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -3577,9 +3577,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,
