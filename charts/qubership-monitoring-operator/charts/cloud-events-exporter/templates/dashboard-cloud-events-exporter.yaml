@@ -166,7 +166,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(increase(kube_events_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\"}[$__interval])) by (type)",
+              "expr": "sum(rate(kube_events_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\"}[$__rate_interval])) by (type)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -263,7 +263,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace!=\"\",kind=~\"$kind\"}[$__interval])) by (event_namespace)",
+              "expr": "sum(rate(kube_events_warning_total{cluster=\"$cluster\",event_namespace!=\"\",kind=~\"$kind\"}[$__rate_interval])) by (event_namespace)",
               "instant": false,
               "legendFormat": "{{ `{{` }}event_namespace{{ `}}` }}",
               "range": true,
@@ -275,7 +275,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_warning_total{event_namespace=\"\"}[$interval])) by (event_namespace)",
+              "expr": "sum(rate(kube_events_warning_total{event_namespace=~\"$namespace\"}[$__rate_interval])) by (event_namespace)",
               "hide": false,
               "instant": false,
               "legendFormat": "clustered",
@@ -373,7 +373,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\"}[$__interval])) by (reason)",
+              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\"}[$__range])) by (reason)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{ `{{` }}reason{{ `}}` }}",
@@ -463,7 +463,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=\"\",reason=~\"$reason_warning\",kind=~\"$kind\"}[$__interval])) by (event_object, kind)",
+              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_warning\",kind=~\"$kind\"}[$__range])) by (event_object, kind)",
               "instant": false,
               "legendFormat": "{{ `{{` }}event_object{{ `}}` }} ({{ `{{` }}kind{{ `}}` }})",
               "range": true,
@@ -570,7 +570,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__interval]))",
+              "expr": "sum(increase(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__range]))",
               "hide": false,
               "instant": false,
               "legendFormat": "unknown",
@@ -639,7 +639,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",reason=~\"$reason_warning\"}[$__interval])) by (reason)",
+              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",reason=~\"$reason_warning\"}[$__range])) by (reason)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -736,7 +736,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\"}[$__interval])) by (reason)",
+              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\"}[$__range])) by (reason)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{ `{{` }}reason{{ `}}` }}",
@@ -826,7 +826,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=\"\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__interval])) by (event_object, kind)",
+              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__range])) by (event_object, kind)",
               "instant": false,
               "legendFormat": "{{ `{{` }}event_object{{ `}}` }} ({{ `{{` }}kind{{ `}}` }})",
               "range": true,
@@ -933,7 +933,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__interval]))",
+              "expr": "sum(increase(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__range]))",
               "hide": false,
               "instant": false,
               "legendFormat": "unknown",
@@ -1003,7 +1003,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__interval])) by (reason)",
+              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__range])) by (reason)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1113,7 +1113,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance!=\"\"}[$__interval])) by (controller, controller_instance)",
+              "expr": "sum(rate(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance!=\"\"}[$__rate_interval])) by (controller, controller_instance)",
               "instant": false,
               "legendFormat": "{{ `{{` }}controller{{ `}}` }} ({{ `{{` }}controller_instance{{ `}}` }})",
               "range": true,
@@ -1125,7 +1125,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance=\"\"}[$__interval])) by (controller)",
+              "expr": "sum(rate(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance=\"\"}[$__rate_interval])) by (controller)",
               "hide": false,
               "instant": false,
               "legendFormat": "{{ `{{` }}controller{{ `}}` }}",
@@ -1138,7 +1138,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance!=\"\"}[$__interval])) by (controller_instance)",
+              "expr": "sum(rate(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance!=\"\"}[$__rate_interval])) by (controller_instance)",
               "hide": false,
               "instant": false,
               "legendFormat": "{{ `{{` }}controller_instance{{ `}}` }}",
@@ -1151,7 +1151,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__interval]))",
+              "expr": "sum(rate(kube_events_reporting_controller_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__rate_interval]))",
               "hide": false,
               "instant": false,
               "legendFormat": "unknown",
@@ -1249,7 +1249,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",reason=~\"$reason_warning\"}[$__interval])) by (reason)",
+              "expr": "sum(rate(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",reason=~\"$reason_warning\"}[$__rate_interval])) by (reason)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1306,7 +1306,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to namespace",
-                        "url": "./d/monitoring-k8s-namespace-resources/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.event_namespace}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace "k8s-namespace-resources") }}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.event_namespace}"
                       }
                     ]
                   }
@@ -1324,7 +1324,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to node",
-                        "url": "./d/monitoring-k8s-nodes-resources/monitoring-k8s-nodes-resources?var-datasource=$datasource&var-cluster=$cluster&var-node=${__data.fields.instance}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace "k8s-nodes-resources") }}/kubernetes-nodes-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-node=${__data.fields.instance}"
                       }
                     ]
                   }
@@ -1360,7 +1360,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_warning\",kind=~\"$kind\"}[$__interval])",
+              "expr": "increase(kube_events_warning_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_warning\",kind=~\"$kind\"}[$__range])",
               "format": "table",
               "instant": true,
               "legendFormat": "__auto",
@@ -1553,7 +1553,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance!=\"\"}[$__interval])) by (controller, controller_instance)",
+              "expr": "sum(rate(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance!=\"\"}[$__rate_interval])) by (controller, controller_instance)",
               "instant": false,
               "legendFormat": "{{ `{{` }}controller{{ `}}` }} ({{ `{{` }}controller_instance{{ `}}` }})",
               "range": true,
@@ -1565,7 +1565,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance=\"\"}[$interval])) by (controller)",
+              "expr": "sum(rate(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller!=\"\",controller_instance=\"\"}[$__rate_interval])) by (controller)",
               "hide": false,
               "instant": false,
               "legendFormat": "{{ `{{` }}controller{{ `}}` }}",
@@ -1578,7 +1578,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance!=\"\"}[$interval])) by (controller_instance)",
+              "expr": "sum(rate(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance!=\"\"}[$__rate_interval])) by (controller_instance)",
               "hide": false,
               "instant": false,
               "legendFormat": "{{ `{{` }}controller_instance{{ `}}` }}",
@@ -1591,7 +1591,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$interval]))",
+              "expr": "sum(rate(kube_events_reporting_controller_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",kind=~\"$kind\",controller=\"\",controller_instance=\"\"}[$__rate_interval]))",
               "hide": false,
               "instant": false,
               "legendFormat": "unknown",
@@ -1599,7 +1599,7 @@ spec:
               "refId": "D"
             }
           ],
-          "title": "Normal events controllers",
+          "title": "Normal events controllers, rps",
           "type": "timeseries"
         },
         {
@@ -1689,14 +1689,14 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__interval])) by (reason)",
+              "expr": "sum(rate(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__rate_interval])) by (reason)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "Normal events reasons",
+          "title": "Normal events reasons, rps",
           "type": "timeseries"
         },
         {
@@ -1746,7 +1746,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to namespace",
-                        "url": "./d/monitoring-k8s-namespace-resources/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.event_namespace}"
+                        "url": "./d/{{ printf `%.40s` (printf `%s-%s` .Release.Namespace "k8s-namespace-resources") }}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.event_namespace}"
                       }
                     ]
                   }
@@ -1782,7 +1782,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__interval])",
+              "expr": "increase(kube_events_normal_total{cluster=\"$cluster\",event_namespace=~\"$namespace\",reason=~\"$reason_normal\",kind=~\"$kind\"}[$__range])",
               "format": "table",
               "instant": true,
               "legendFormat": "__auto",
@@ -1883,9 +1883,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "PC3E95692D54ABCC0"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -1940,7 +1938,7 @@ spec:
             },
             "datasource": {
               "type": "prometheus",
-              "uid": "PC3E95692D54ABCC0"
+              "uid": "${datasource}"
             },
             "definition": "label_values(kube_events_total{cluster=\"$cluster\"},event_namespace)",
             "hide": 0,

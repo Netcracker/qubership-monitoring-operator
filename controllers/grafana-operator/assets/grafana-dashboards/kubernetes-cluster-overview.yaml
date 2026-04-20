@@ -32,7 +32,7 @@ spec:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 139,
+      "id": 35,
       "links": [
         {
           "asDropdown": false,
@@ -76,14 +76,9 @@ spec:
           "url": ""
         }
       ],
-      "liveNow": false,
       "panels": [
         {
           "collapsed": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -92,15 +87,6 @@ spec:
           },
           "id": 43,
           "panels": [],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Overview",
           "type": "row"
         },
@@ -120,8 +106,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -165,7 +150,7 @@ spec:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -208,8 +193,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "text",
-                    "value": null
+                    "color": "text"
                   },
                   {
                     "color": "semi-dark-yellow",
@@ -250,7 +234,7 @@ spec:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -292,8 +276,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "rgb(212, 219, 211)",
-                    "value": null
+                    "color": "rgb(212, 219, 211)"
                   }
                 ]
               },
@@ -326,7 +309,7 @@ spec:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -359,8 +342,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "rgb(212, 219, 211)",
-                    "value": null
+                    "color": "rgb(212, 219, 211)"
                   }
                 ]
               }
@@ -392,7 +374,7 @@ spec:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -424,8 +406,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -443,8 +424,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green",
-                          "value": null
+                          "color": "green"
                         },
                         {
                           "color": "yellow",
@@ -467,8 +447,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green",
-                          "value": null
+                          "color": "green"
                         },
                         {
                           "color": "red",
@@ -506,7 +485,7 @@ spec:
             "textMode": "auto",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -575,8 +554,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -594,8 +572,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green",
-                          "value": null
+                          "color": "green"
                         },
                         {
                           "color": "red",
@@ -633,7 +610,7 @@ spec:
             "textMode": "value_and_name",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -676,6 +653,7 @@ spec:
                 "mode": "continuous-GrYlRd"
               },
               "custom": {
+                "axisPlacement": "auto",
                 "fillOpacity": 100,
                 "hideFrom": {
                   "legend": false,
@@ -730,11 +708,9 @@ spec:
                 },
                 {
                   "options": {
-                    "from": null,
                     "result": {
                       "text": "N/A"
-                    },
-                    "to": null
+                    }
                   },
                   "type": "range"
                 }
@@ -743,8 +719,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -763,7 +738,6 @@ spec:
             "y": 5
           },
           "id": 157,
-          "interval": "",
           "options": {
             "alignValue": "right",
             "legend": {
@@ -775,11 +749,12 @@ spec:
             "rowHeight": 0.9,
             "showValue": "auto",
             "tooltip": {
+              "hideZeros": false,
               "mode": "single",
               "sort": "none"
             }
           },
-          "pluginVersion": "7.5.10",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "aggregation": "Last",
@@ -822,8 +797,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -841,8 +815,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green",
-                          "value": null
+                          "color": "green"
                         },
                         {
                           "color": "red",
@@ -865,8 +838,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green",
-                          "value": null
+                          "color": "green"
                         },
                         {
                           "color": "rgba(132, 185, 177, 0.54)",
@@ -889,8 +861,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green",
-                          "value": null
+                          "color": "green"
                         },
                         {
                           "color": "light-yellow",
@@ -928,7 +899,7 @@ spec:
             "textMode": "value_and_name",
             "wideLayout": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -984,8 +955,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "#EAB839",
@@ -1010,6 +980,12 @@ spec:
           "id": 35,
           "options": {
             "displayMode": "lcd",
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
             "maxVizHeight": 300,
             "minVizHeight": 10,
             "minVizWidth": 0,
@@ -1027,7 +1003,7 @@ spec:
             "text": {},
             "valueMode": "color"
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -1090,8 +1066,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "#EAB839",
@@ -1116,6 +1091,12 @@ spec:
           "id": 118,
           "options": {
             "displayMode": "lcd",
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
             "maxVizHeight": 300,
             "minVizHeight": 10,
             "minVizWidth": 0,
@@ -1133,7 +1114,7 @@ spec:
             "text": {},
             "valueMode": "color"
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -1157,72 +1138,298 @@ spec:
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "Shows memory utilization and allocation for the whole cluster\n\n! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes",
+          "description": "Shows CPU usage, Requests and Limits over allocatable per node.\n\n! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes",
           "fieldConfig": {
             "defaults": {
-              "mappings": [],
-              "max": 1,
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "max": 3,
               "min": 0,
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 0.7
-                  },
-                  {
-                    "color": "red",
-                    "value": 0.9
+                    "color": "green"
                   }
                 ]
               },
               "unit": "percentunit"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #A"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU Usage, %"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 0.75
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #B"
+                },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.75
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Requests, %"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #C"
+                },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.75
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Limits, %"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "node"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Node"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #D"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU Allocatable, cores"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #E"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU Usage, cores"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #F"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Requests, cores"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #G"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Limits, cores"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
-            "h": 3,
+            "h": 4,
             "w": 12,
             "x": 12,
             "y": 18
           },
-          "id": 37,
+          "id": 162,
           "options": {
-            "displayMode": "lcd",
-            "maxVizHeight": 300,
-            "minVizHeight": 10,
-            "minVizWidth": 0,
-            "namePlacement": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "mean"
-              ],
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
               "fields": "",
-              "values": false
+              "reducer": [
+                "sum"
+              ],
+              "show": false
             },
-            "showUnfilled": false,
-            "sizing": "auto",
-            "text": {},
-            "valueMode": "color"
+            "showHeader": true
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
+              "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(container_memory_rss{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\"}) / sum(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "expr": "kube_node_status_allocatable{cluster=\"$cluster\", resource=\"cpu\"}",
+              "format": "table",
+              "hide": false,
               "instant": true,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Memory Utilization",
+              "legendFormat": "CPU Utilization",
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(rate(container_cpu_usage_seconds_total{cluster=\"$cluster\",container=\"\",namespace!=\"\"}[$__rate_interval]))",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Utilization",
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(rate(container_cpu_usage_seconds_total{cluster=\"$cluster\",container=\"\",namespace!=\"\"}[$__rate_interval])) / sum by (node)(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"cpu\"})",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Utilization",
               "refId": "A"
             },
             {
@@ -1230,12 +1437,30 @@ spec:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
+              "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\"}) / sum(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "expr": "sum by (node)(kube_pod_container_resource_requests{cluster=\"$cluster\", resource=\"cpu\"})",
+              "format": "table",
+              "hide": false,
               "instant": true,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Memory Requests Commitment",
+              "legendFormat": "CPU Requests Commitment",
+              "refId": "F"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(kube_pod_container_resource_requests{cluster=\"$cluster\", resource=\"cpu\"}) / sum by (node)(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"cpu\"}) ",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Requests Commitment",
               "refId": "B"
             },
             {
@@ -1243,17 +1468,58 @@ spec:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
+              "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\"}) / sum(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "expr": "sum by (node)(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\"})",
+              "format": "table",
+              "hide": false,
               "instant": true,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Memory Limits Commitment",
+              "legendFormat": "CPU Limits Commitment",
+              "refId": "G"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\"}) / sum by (node)(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"cpu\"})",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Limits Commitment",
               "refId": "C"
             }
           ],
-          "title": "Memory Usage",
-          "type": "bargauge"
+          "title": "CPU Usage, Requests, Limits Over Allocatable by Node",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {}
+            },
+            {
+              "id": "filterFieldsByName",
+              "options": {
+                "include": {
+                  "names": [
+                    "node",
+                    "Value #D",
+                    "Value #E",
+                    "Value #A",
+                    "Value #F",
+                    "Value #B",
+                    "Value #C",
+                    "Value #G"
+                  ]
+                }
+              }
+            }
+          ],
+          "type": "table"
         },
         {
           "datasource": {
@@ -1278,8 +1544,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1308,8 +1573,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "red",
-                          "value": null
+                          "color": "red"
                         },
                         {
                           "color": "red",
@@ -1323,7 +1587,7 @@ spec:
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "namespace"
+                  "options": "Namespace"
                 },
                 "properties": [
                   {
@@ -1332,7 +1596,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to namespace",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}"
                       }
                     ]
                   }
@@ -1341,7 +1605,7 @@ spec:
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "pod"
+                  "options": "Pod"
                 },
                 "properties": [
                   {
@@ -1349,8 +1613,8 @@ spec:
                     "value": [
                       {
                         "targetBlank": true,
-                        "title": "Drill down to pods",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                        "title": "Drill down to pod",
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.Namespace}&var-pod=${__data.fields.Pod}"
                       }
                     ]
                   }
@@ -1359,7 +1623,7 @@ spec:
             ]
           },
           "gridPos": {
-            "h": 8,
+            "h": 16,
             "w": 12,
             "x": 0,
             "y": 21
@@ -1379,11 +1643,11 @@ spec:
             "sortBy": [
               {
                 "desc": false,
-                "displayName": "namespace"
+                "displayName": "exported_namespace"
               }
             ]
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -1476,9 +1740,9 @@ spec:
                   "__name__": 1,
                   "container": 2,
                   "endpoint": 3,
-                  "container": 6,
-                  "namespace": 4,
-                  "pod": 5,
+                  "exported_container": 6,
+                  "exported_namespace": 4,
+                  "exported_pod": 5,
                   "instance": 7,
                   "job": 8,
                   "namespace": 9,
@@ -1488,10 +1752,507 @@ spec:
                   "service": 12
                 },
                 "renameByName": {
-                  "container": "Container",
-                  "namespace": "Namespace",
-                  "pod": "Pod",
+                  "exported_container": "Container",
+                  "exported_namespace": "Namespace",
+                  "exported_pod": "Pod",
                   "reason": "Reason"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows memory utilization and allocation for the whole cluster\n\n! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "max": 1,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 0.7
+                  },
+                  {
+                    "color": "red",
+                    "value": 0.9
+                  }
+                ]
+              },
+              "unit": "percentunit"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 12,
+            "y": 22
+          },
+          "id": 37,
+          "options": {
+            "displayMode": "lcd",
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "maxVizHeight": 300,
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "namePlacement": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "mean"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": false,
+            "sizing": "auto",
+            "text": {},
+            "valueMode": "color"
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum(container_memory_rss{cluster=\"$cluster\", container!~\"^(.*POD.*|)$\"}) / sum(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Memory Utilization",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "exemplar": false,
+              "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\"}) / sum(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Memory Requests Commitment",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "exemplar": false,
+              "expr": "sum(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\"}) / sum(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Memory Limits Commitment",
+              "refId": "C"
+            }
+          ],
+          "title": "Memory Usage",
+          "type": "bargauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows Memory usage, Requests and Limits over allocatable per node.\n\n! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "max": 3,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "percentunit"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #A"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Memory Usage, %"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 0.75
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #B"
+                },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.75
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Requests, %"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #C"
+                },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.75
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.9
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Limits, %"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "node"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Node"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #D"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Memory Allocatable, bytes"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #E"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Memory Usage, bytes"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #F"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Requests, bytes"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #G"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Limits, bytes"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 12,
+            "x": 12,
+            "y": 25
+          },
+          "id": 163,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "11.6.5",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"}",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Utilization",
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(container_memory_rss{cluster=\"$cluster\",container=\"\",namespace!=\"\"})",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Utilization",
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(container_memory_rss{cluster=\"$cluster\",container=\"\",namespace!=\"\"}) / sum by (node)(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Utilization",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(kube_pod_container_resource_requests{cluster=\"$cluster\", resource=\"memory\"})",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Requests Commitment",
+              "refId": "F"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(kube_pod_container_resource_requests{cluster=\"$cluster\", resource=\"memory\"}) / sum by (node)(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"}) ",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Requests Commitment",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\"})",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Limits Commitment",
+              "refId": "G"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum by (node)(kube_pod_container_resource_limits{resource=\"memory\", cluster=\"$cluster\"}) / sum by (node)(kube_node_status_allocatable{cluster=\"$cluster\", resource=\"memory\"})",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "CPU Limits Commitment",
+              "refId": "C"
+            }
+          ],
+          "title": "Memory Usage, Requests, Limits Over Allocatable by Node",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {}
+            },
+            {
+              "id": "filterFieldsByName",
+              "options": {
+                "include": {
+                  "names": [
+                    "node",
+                    "Value #D",
+                    "Value #E",
+                    "Value #A",
+                    "Value #F",
+                    "Value #B",
+                    "Value #C",
+                    "Value #G"
+                  ]
                 }
               }
             }
@@ -1521,8 +2282,7 @@ spec:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1544,8 +2304,7 @@ spec:
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "yellow",
-                          "value": null
+                          "color": "yellow"
                         },
                         {
                           "color": "red",
@@ -1575,7 +2334,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to namespace",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                       }
                     ]
                   }
@@ -1593,7 +2352,7 @@ spec:
                       {
                         "targetBlank": true,
                         "title": "Drill down to pod",
-                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                        "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
                       }
                     ]
                   }
@@ -1605,7 +2364,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 21
+            "y": 29
           },
           "id": 69,
           "options": {
@@ -1626,7 +2385,7 @@ spec:
               }
             ]
           },
-          "pluginVersion": "11.2.1",
+          "pluginVersion": "11.6.5",
           "targets": [
             {
               "datasource": {
@@ -1650,17 +2409,18 @@ spec:
                   "Time": true,
                   "Value": true,
                   "__name__": true,
-                  "container": true,
+                  "exported_container": true,
                   "endpoint": true,
                   "instance": true,
                   "job": true,
                   "kube_container": true,
                   "kube_namespace": true,
                   "kube_pod": true,
-                  "namespace": true,
-                  "pod": true,
+                  "exported_namespace": true,
+                  "exported_pod": true,
                   "service": true,
-                  "uid": true
+                  "uid": true,
+                  "prometheus": true
                 },
                 "indexByName": {
                   "Time": 0,
@@ -1668,8 +2428,6 @@ spec:
                   "__name__": 1,
                   "container": 2,
                   "endpoint": 3,
-                  "namespace": 5,
-                  "pod": 4,
                   "instance": 6,
                   "job": 7,
                   "namespace": 8,
@@ -1688,15 +2446,11 @@ spec:
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 29
+            "y": 37
           },
           "id": 129,
           "panels": [
@@ -1717,8 +2471,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -1736,8 +2489,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -1754,7 +2506,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 0,
-                "y": 30
+                "y": 92
               },
               "id": 142,
               "options": {
@@ -1778,7 +2530,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -1826,8 +2578,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -1845,8 +2596,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -1863,7 +2613,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 6,
-                "y": 30
+                "y": 92
               },
               "id": 154,
               "options": {
@@ -1887,7 +2637,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -1934,8 +2684,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -1953,8 +2702,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -1971,7 +2719,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 12,
-                "y": 30
+                "y": 92
               },
               "id": 146,
               "options": {
@@ -1995,7 +2743,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -2043,8 +2791,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -2062,8 +2809,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -2080,7 +2826,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 18,
-                "y": 30
+                "y": 92
               },
               "id": 148,
               "options": {
@@ -2104,7 +2850,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -2153,8 +2899,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -2172,8 +2917,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -2190,7 +2934,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 0,
-                "y": 35
+                "y": 97
               },
               "id": 156,
               "options": {
@@ -2214,7 +2958,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -2273,8 +3017,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -2292,8 +3035,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -2310,7 +3052,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 6,
-                "y": 35
+                "y": 97
               },
               "id": 150,
               "options": {
@@ -2334,7 +3076,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -2382,8 +3124,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       }
                     ]
                   }
@@ -2401,8 +3142,7 @@ spec:
                           "mode": "absolute",
                           "steps": [
                             {
-                              "color": "green",
-                              "value": null
+                              "color": "green"
                             },
                             {
                               "color": "red",
@@ -2419,7 +3159,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 12,
-                "y": 35
+                "y": 97
               },
               "id": 152,
               "options": {
@@ -2443,7 +3183,7 @@ spec:
                 "textMode": "auto",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -2491,8 +3231,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "#666666",
-                        "value": null
+                        "color": "#666666"
                       }
                     ]
                   }
@@ -2503,7 +3242,7 @@ spec:
                 "h": 5,
                 "w": 6,
                 "x": 18,
-                "y": 35
+                "y": 97
               },
               "id": 144,
               "options": {
@@ -2527,7 +3266,7 @@ spec:
                 "textMode": "value_and_name",
                 "wideLayout": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -2547,29 +3286,16 @@ spec:
               "type": "stat"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Resources",
           "type": "row"
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 38
           },
           "id": 127,
           "panels": [
@@ -2588,8 +3314,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "rgb(212, 219, 211)",
-                        "value": null
+                        "color": "rgb(212, 219, 211)"
                       }
                     ]
                   },
@@ -2601,7 +3326,7 @@ spec:
                 "h": 5,
                 "w": 5,
                 "x": 0,
-                "y": 31
+                "y": 103
               },
               "id": 115,
               "options": {
@@ -2689,8 +3414,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -2727,7 +3451,7 @@ spec:
                 "h": 10,
                 "w": 19,
                 "x": 5,
-                "y": 31
+                "y": 103
               },
               "id": 113,
               "options": {
@@ -2747,7 +3471,6 @@ spec:
                 }
               },
               "pluginVersion": "11.2.1",
-              "repeatDirection": "h",
               "targets": [
                 {
                   "datasource": {
@@ -2781,8 +3504,7 @@ spec:
                     "mode": "percentage",
                     "steps": [
                       {
-                        "color": "red",
-                        "value": null
+                        "color": "red"
                       },
                       {
                         "color": "red",
@@ -2806,7 +3528,7 @@ spec:
                 "h": 5,
                 "w": 5,
                 "x": 0,
-                "y": 36
+                "y": 189
               },
               "id": 92,
               "options": {
@@ -2846,29 +3568,16 @@ spec:
               "type": "stat"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Ingress",
           "type": "row"
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 31
+            "y": 39
           },
           "id": 109,
           "panels": [
@@ -2945,7 +3654,7 @@ spec:
                 "h": 4,
                 "w": 8,
                 "x": 0,
-                "y": 4
+                "y": 49
               },
               "id": 83,
               "options": {
@@ -3077,7 +3786,7 @@ spec:
                 "h": 4,
                 "w": 8,
                 "x": 8,
-                "y": 4
+                "y": 49
               },
               "id": 84,
               "options": {
@@ -3209,7 +3918,7 @@ spec:
                 "h": 4,
                 "w": 8,
                 "x": 16,
-                "y": 4
+                "y": 49
               },
               "id": 86,
               "options": {
@@ -3269,29 +3978,16 @@ spec:
               "type": "stat"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Certificates",
           "type": "row"
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 32
+            "y": 40
           },
           "id": 21,
           "panels": [
@@ -3346,8 +4042,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -3361,9 +4056,9 @@ spec:
               },
               "gridPos": {
                 "h": 12,
-                "w": 10,
+                "w": 12,
                 "x": 0,
-                "y": 33
+                "y": 50
               },
               "id": 7,
               "options": {
@@ -3377,18 +4072,19 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "single",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
                     "uid": "$datasource"
                   },
                   "editorMode": "code",
-                  "expr": "sum by (namespace) (\r\nrate(container_cpu_usage_seconds_total{image!=\"\", container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__rate_interval])) ",
+                  "expr": "sum by (namespace) (\r\nrate(container_cpu_usage_seconds_total{image!=\"\", container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range])) ",
                   "format": "time_series",
                   "interval": "",
                   "intervalFactor": 1,
@@ -3406,13 +4102,133 @@ spec:
                 "type": "prometheus",
                 "uid": "$datasource"
               },
-              "description": "Shows CPU requests and limits quota allocation per namespace in the cluster",
+              "description": "Shows CPU throttled, stalled by each namespace in the cluster",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "Seconds",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 30,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "links": [],
+                  "mappings": [],
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 12,
+                "w": 12,
+                "x": 12,
+                "y": 50
+              },
+              "id": 158,
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "pluginVersion": "11.6.5",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum by (namespace) (rate(container_pressure_cpu_stalled_seconds_total{image!=\"\",container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range]))",
+                  "format": "time_series",
+                  "interval": "",
+                  "intervalFactor": 1,
+                  "legendFormat": "Stalled {{namespace}}",
+                  "range": true,
+                  "refId": "A",
+                  "step": 10
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum by (namespace)(rate(container_cpu_cfs_throttled_seconds_total{image!=\"\",container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range]))",
+                  "hide": false,
+                  "instant": false,
+                  "legendFormat": "Throttled {{namespace}}",
+                  "range": true,
+                  "refId": "B"
+                }
+              ],
+              "title": "CPU Throttled, Stalled",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "description": "Shows CPU usage over requests and limits, throttled, stalled time  per namespace in the cluster",
               "fieldConfig": {
                 "defaults": {
                   "color": {
                     "mode": "thresholds"
                   },
                   "custom": {
+                    "align": "auto",
                     "cellOptions": {
                       "type": "auto"
                     },
@@ -3425,8 +4241,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -3475,37 +4290,8 @@ spec:
                         "value": [
                           {
                             "targetBlank": true,
-                            "title": "Drill down to pods",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
-                          }
-                        ]
-                      },
-                      {
-                        "id": "custom.align"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Value #B"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "RS"
-                      },
-                      {
-                        "id": "unit",
-                        "value": "short"
-                      },
-                      {
-                        "id": "links",
-                        "value": [
-                          {
-                            "targetBlank": false,
-                            "title": "",
-                            "url": ""
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       },
@@ -3653,7 +4439,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       },
@@ -3684,29 +4470,45 @@ spec:
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "Value #I"
+                      "options": "Value #B"
                     },
                     "properties": [
                       {
                         "id": "displayName",
-                        "value": "SS"
+                        "value": "CPU Stalled, sec"
                       },
                       {
                         "id": "unit",
-                        "value": "short"
+                        "value": "s"
                       },
                       {
                         "id": "custom.align"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #H"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "CPU Throttled, sec"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "s"
                       }
                     ]
                   }
                 ]
               },
               "gridPos": {
-                "h": 12,
-                "w": 14,
-                "x": 10,
-                "y": 33
+                "h": 5,
+                "w": 24,
+                "x": 0,
+                "y": 62
               },
               "id": 8,
               "options": {
@@ -3721,7 +4523,7 @@ spec:
                 },
                 "showHeader": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -3769,7 +4571,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "editorMode": "code",
-                  "expr": "sum( sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\"}[$__rate_interval]))) by (namespace) / sum(label_replace(kube_pod_container_resource_requests{cluster=\"$cluster\", resource=\"cpu\"},\"namespace\",\"$1\",\"namespace\",\"(.*)\")) by (namespace)",
+                  "expr": "sum( sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\"}[$__rate_interval]))) by (namespace) / sum(label_replace(kube_pod_container_resource_requests{cluster=\"$cluster\", resource=\"cpu\"},\"namespace\",\"$1\",\"exported_namespace\",\"(.*)\")) by (namespace)",
                   "format": "table",
                   "instant": true,
                   "interval": "",
@@ -3796,7 +4598,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "editorMode": "code",
-                  "expr": "sum( sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\"}[$__rate_interval]))) by (namespace) / sum(label_replace(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\"},\"namespace\",\"$1\",\"namespace\",\"(.*)\")) by (namespace)",
+                  "expr": "sum( sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", image!=\"\", container!~\"^(.*POD.*|)$\"}[$__rate_interval]))) by (namespace) / sum(label_replace(kube_pod_container_resource_limits{resource=\"cpu\", cluster=\"$cluster\"},\"namespace\",\"$1\",\"exported_namespace\",\"(.*)\")) by (namespace)",
                   "format": "table",
                   "instant": true,
                   "interval": "",
@@ -3804,27 +4606,46 @@ spec:
                   "legendFormat": "",
                   "refId": "G",
                   "step": 10
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum by (namespace) (rate(container_pressure_cpu_stalled_seconds_total{image!=\"\", container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range])) ",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "B"
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum by (namespace)(rate(container_cpu_cfs_throttled_seconds_total{image!=\"\",container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range]))",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "H"
                 }
               ],
-              "title": "CPU Quota",
+              "title": "CPU Usage over requests, limits, throttled, stalled time",
               "transformations": [
                 {
                   "id": "merge",
-                  "options": {
-                    "reducers": []
-                  }
+                  "options": {}
                 }
               ],
               "type": "table"
-            }
-          ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
             }
           ],
           "title": "CPU",
@@ -3832,15 +4653,11 @@ spec:
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 33
+            "y": 41
           },
           "id": 23,
           "panels": [
@@ -3895,8 +4712,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -3910,9 +4726,9 @@ spec:
               },
               "gridPos": {
                 "h": 14,
-                "w": 10,
+                "w": 12,
                 "x": 0,
-                "y": 34
+                "y": 123
               },
               "id": 9,
               "options": {
@@ -3926,11 +4742,12 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "single",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -3956,13 +4773,121 @@ spec:
                 "type": "prometheus",
                 "uid": "$datasource"
               },
-              "description": "Shows memory requests and limits quota allocation per namespace in the cluster",
+              "description": "Shows memory stall in seconds by namespace in the cluster",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "Seconds",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 30,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "links": [],
+                  "mappings": [],
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 14,
+                "w": 12,
+                "x": 12,
+                "y": 123
+              },
+              "id": 159,
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "pluginVersion": "11.6.5",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "exemplar": true,
+                  "expr": "sum by (namespace) (rate(container_pressure_memory_stalled_seconds_total{image!=\"\", container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range])) ",
+                  "format": "time_series",
+                  "interval": "",
+                  "intervalFactor": 2,
+                  "legendFormat": "{{namespace}}",
+                  "range": true,
+                  "refId": "A",
+                  "step": 10
+                }
+              ],
+              "title": "Memory Stalled",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "description": "Shows memory usage over requests and limits, stalled time  per namespace in the cluster",
               "fieldConfig": {
                 "defaults": {
                   "color": {
                     "mode": "thresholds"
                   },
                   "custom": {
+                    "align": "auto",
                     "cellOptions": {
                       "type": "auto"
                     },
@@ -3975,8 +4900,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -4025,8 +4949,8 @@ spec:
                         "value": [
                           {
                             "targetBlank": true,
-                            "title": "Drill down to pods",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pods?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       },
@@ -4174,7 +5098,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-details?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell_1"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       },
@@ -4182,14 +5106,30 @@ spec:
                         "id": "custom.align"
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #H"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Memory stalled, sec"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
                   }
                 ]
               },
               "gridPos": {
-                "h": 14,
-                "w": 14,
-                "x": 10,
-                "y": 34
+                "h": 6,
+                "w": 24,
+                "x": 0,
+                "y": 137
               },
               "id": 10,
               "options": {
@@ -4204,7 +5144,7 @@ spec:
                 },
                 "showHeader": true
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -4299,9 +5239,24 @@ spec:
                   "legendFormat": "",
                   "refId": "G",
                   "step": 10
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum by (namespace) (rate(container_pressure_memory_stalled_seconds_total{image!=\"\", container!~\"^(.*POD.*|)$\", cluster=\"$cluster\"}[$__range])) ",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "H"
                 }
               ],
-              "title": "Memory Quota",
+              "title": "Memory usage over requests, limits, throttled, stalled time",
               "transformations": [
                 {
                   "id": "merge",
@@ -4313,29 +5268,16 @@ spec:
               "type": "table"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Memory",
           "type": "row"
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 34
+            "y": 42
           },
           "id": 49,
           "panels": [
@@ -4386,7 +5328,8 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to namespace",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-namespace=${__field.labels.namespace}"
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-namespace=${__field.labels.namespace}",
+                      "targetBlank": true
                     }
                   ],
                   "mappings": [],
@@ -4394,8 +5337,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -4422,9 +5364,9 @@ spec:
               },
               "gridPos": {
                 "h": 8,
-                "w": 12,
+                "w": 8,
                 "x": 0,
-                "y": 35
+                "y": 144
               },
               "id": 51,
               "options": {
@@ -4438,11 +5380,12 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -4517,7 +5460,8 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to namespace",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-namespace=${__field.labels.namespace}"
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-namespace=${__field.labels.namespace}",
+                      "targetBlank": true
                     }
                   ],
                   "mappings": [],
@@ -4525,8 +5469,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -4553,9 +5496,9 @@ spec:
               },
               "gridPos": {
                 "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 35
+                "w": 8,
+                "x": 8,
+                "y": 144
               },
               "id": 53,
               "options": {
@@ -4569,11 +5512,12 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -4598,7 +5542,128 @@ spec:
                   "refId": "B"
                 }
               ],
-              "title": " IOps per namespace",
+              "title": "IOps per namespace",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "description": "Disk stall in seconds per namespace",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 10,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "links": [
+                    {
+                      "title": "Drill down to namespace",
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-namespace=${__field.labels.namespace}",
+                      "targetBlank": true
+                    }
+                  ],
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "/.*writing.*/"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.transform",
+                        "value": "negative-Y"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 16,
+                "y": 144
+              },
+              "id": 160,
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              },
+              "pluginVersion": "11.6.5",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum (rate(container_pressure_io_stalled_seconds_total{cluster=\"$cluster\",container!~\"^(.*POD.*|)$\"}[$__range])) by (namespace)",
+                  "interval": "",
+                  "legendFormat": "{{ namespace }}",
+                  "range": true,
+                  "refId": "A"
+                }
+              ],
+              "title": "Disk stall in seconds per namespace",
               "type": "timeseries"
             },
             {
@@ -4648,7 +5713,8 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to node",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-node=${__field.labels.node}"
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-node=${__field.labels.node}",
+                      "targetBlank": true
                     }
                   ],
                   "mappings": [],
@@ -4656,8 +5722,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -4684,9 +5749,9 @@ spec:
               },
               "gridPos": {
                 "h": 8,
-                "w": 12,
+                "w": 8,
                 "x": 0,
-                "y": 43
+                "y": 152
               },
               "id": 55,
               "options": {
@@ -4700,11 +5765,12 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -4729,7 +5795,7 @@ spec:
                   "refId": "B"
                 }
               ],
-              "title": "Disk I/O utilization  per node",
+              "title": "Disk I/O utilization per node",
               "type": "timeseries"
             },
             {
@@ -4779,7 +5845,8 @@ spec:
                   "links": [
                     {
                       "title": "Drill down to node",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?orgId=1&var-datasource=${datasource}&var-cluster=&var-node=${__field.labels.node}"
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-node=${__field.labels.node}",
+                      "targetBlank": true
                     }
                   ],
                   "mappings": [],
@@ -4787,8 +5854,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -4815,9 +5881,9 @@ spec:
               },
               "gridPos": {
                 "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 43
+                "w": 8,
+                "x": 8,
+                "y": 152
               },
               "id": 57,
               "options": {
@@ -4831,11 +5897,12 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
@@ -4860,7 +5927,128 @@ spec:
                   "refId": "B"
                 }
               ],
-              "title": " IOps per node",
+              "title": "IOps per node",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "description": "Disk stall in seconds per node",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 10,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "links": [
+                    {
+                      "title": "Drill down to node",
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-nodes-resources`) ) %}/kubernetes-nodes-resources?var-datasource=${datasource}&var-cluster=${cluster}&var-node=${__field.labels.node}",
+                      "targetBlank": true
+                    }
+                  ],
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "/.*writing.*/"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.transform",
+                        "value": "negative-Y"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 16,
+                "y": 152
+              },
+              "id": 161,
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              },
+              "pluginVersion": "11.6.5",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "editorMode": "code",
+                  "expr": "sum (rate(node_pressure_io_stalled_seconds_total{cluster=\"$cluster\"}[$__range])) by (node)",
+                  "interval": "",
+                  "legendFormat": "{{ namespace }}",
+                  "range": true,
+                  "refId": "A"
+                }
+              ],
+              "title": "Disk stall in seconds per node",
               "type": "timeseries"
             },
             {
@@ -4913,8 +6101,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -4986,7 +6173,7 @@ spec:
                 "h": 8,
                 "w": 24,
                 "x": 0,
-                "y": 51
+                "y": 160
               },
               "id": 111,
               "options": {
@@ -4999,16 +6186,17 @@ spec:
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 }
               },
-              "pluginVersion": "11.2.1",
+              "pluginVersion": "11.6.5",
               "targets": [
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "${datasource}"
+                    "uid": "$datasource"
                   },
                   "exemplar": true,
                   "expr": "sum by(device, fstype)(node_filesystem_size_bytes{cluster=~\"$cluster\"}) - sum by(device, fstype)(node_filesystem_free_bytes{cluster=~\"$cluster\"})",
@@ -5021,7 +6209,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "${datasource}"
+                    "uid": "$datasource"
                   },
                   "exemplar": true,
                   "expr": "sum by(device, fstype)(node_filesystem_size_bytes{cluster=~\"$cluster\"})",
@@ -5034,29 +6222,16 @@ spec:
               "type": "timeseries"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Disk",
           "type": "row"
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 35
+            "y": 43
           },
           "id": 71,
           "panels": [
@@ -5083,7 +6258,7 @@ spec:
                 "h": 4,
                 "w": 3,
                 "x": 0,
-                "y": 8
+                "y": 70
               },
               "id": 61,
               "options": {
@@ -5181,7 +6356,7 @@ spec:
                 "h": 8,
                 "w": 9,
                 "x": 3,
-                "y": 8
+                "y": 70
               },
               "id": 59,
               "options": {
@@ -5207,7 +6382,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "${datasource}"
+                    "uid": "$datasource"
                   },
                   "exemplar": false,
                   "expr": "kube_persistentvolume_status_phase{cluster=~\"$cluster\", phase!=\"Bound\"} == 1",
@@ -5316,7 +6491,7 @@ spec:
                 "h": 8,
                 "w": 12,
                 "x": 12,
-                "y": 8
+                "y": 70
               },
               "id": 63,
               "options": {
@@ -5336,7 +6511,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "${datasource}"
+                    "uid": "$datasource"
                   },
                   "exemplar": false,
                   "expr": "kube_persistentvolumeclaim_status_phase{cluster=~\"$cluster\", phase!=\"Bound\"} == 1",
@@ -5368,7 +6543,6 @@ spec:
                       "Value": 11,
                       "__name__": 1,
                       "endpoint": 2,
-                      "namespace": 4,
                       "instance": 5,
                       "job": 6,
                       "namespace": 7,
@@ -5410,7 +6584,7 @@ spec:
                 "h": 4,
                 "w": 3,
                 "x": 0,
-                "y": 12
+                "y": 74
               },
               "id": 65,
               "options": {
@@ -5447,29 +6621,16 @@ spec:
               "type": "stat"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Volumes",
           "type": "row"
         },
         {
           "collapsed": true,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "gridPos": {
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 36
+            "y": 44
           },
           "id": 25,
           "panels": [
@@ -5496,8 +6657,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -5689,7 +6849,7 @@ spec:
                           {
                             "targetBlank": true,
                             "title": "Drill down to namespace",
-                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/k8s-resources-namespace?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$__cell"
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
                           }
                         ]
                       },
@@ -5704,7 +6864,7 @@ spec:
                 "h": 7,
                 "w": 24,
                 "x": 0,
-                "y": 37
+                "y": 190
               },
               "id": 11,
               "interval": "1m",
@@ -5861,8 +7021,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -5891,7 +7050,7 @@ spec:
                 "h": 8,
                 "w": 6,
                 "x": 0,
-                "y": 44
+                "y": 197
               },
               "id": 39,
               "options": {
@@ -5981,8 +7140,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "transparent",
-                        "value": null
+                        "color": "transparent"
                       },
                       {
                         "color": "red",
@@ -6011,7 +7169,7 @@ spec:
                 "h": 8,
                 "w": 18,
                 "x": 6,
-                "y": 44
+                "y": 197
               },
               "id": 12,
               "options": {
@@ -6108,8 +7266,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -6138,7 +7295,7 @@ spec:
                 "h": 7,
                 "w": 24,
                 "x": 0,
-                "y": 52
+                "y": 205
               },
               "id": 14,
               "options": {
@@ -6232,8 +7389,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -6262,7 +7418,7 @@ spec:
                 "h": 7,
                 "w": 24,
                 "x": 0,
-                "y": 59
+                "y": 212
               },
               "id": 16,
               "options": {
@@ -6358,8 +7514,7 @@ spec:
                     "mode": "absolute",
                     "steps": [
                       {
-                        "color": "green",
-                        "value": null
+                        "color": "green"
                       },
                       {
                         "color": "red",
@@ -6375,7 +7530,7 @@ spec:
                 "h": 7,
                 "w": 24,
                 "x": 0,
-                "y": 66
+                "y": 219
               },
               "id": 18,
               "options": {
@@ -6423,21 +7578,13 @@ spec:
               "type": "timeseries"
             }
           ],
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "refId": "A"
-            }
-          ],
           "title": "Network",
           "type": "row"
         }
       ],
+      "preload": false,
       "refresh": "",
-      "schemaVersion": 39,
+      "schemaVersion": 41,
       "tags": [
         "k8s",
         "cluster"
@@ -6446,27 +7593,19 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
-            "hide": 0,
             "includeAll": false,
-            "multi": false,
             "name": "datasource",
             "options": [],
             "query": "prometheus",
-            "queryValue": "",
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
             "type": "datasource"
           },
           {
             "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
+              "text": "",
               "value": ""
             },
             "datasource": {
@@ -6474,9 +7613,7 @@ spec:
               "uid": "$datasource"
             },
             "definition": "label_values(up, cluster)",
-            "hide": 0,
             "includeAll": false,
-            "multi": false,
             "name": "cluster",
             "options": [],
             "query": {
@@ -6485,30 +7622,19 @@ spec:
             },
             "refresh": 1,
             "regex": "",
-            "skipUrlSync": false,
             "sort": 1,
-            "tagValuesQuery": "",
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           },
           {
             "auto": true,
             "auto_count": "50",
             "auto_min": "10s",
             "current": {
-              "selected": false,
-              "text": "auto",
-              "value": "$__auto_interval_interval"
+              "text": "$__auto",
+              "value": "$__auto"
             },
-            "hide": 0,
             "name": "interval",
             "options": [
-              {
-                "selected": true,
-                "text": "auto",
-                "value": "$__auto_interval_interval"
-              },
               {
                 "selected": false,
                 "text": "1m",
@@ -6561,15 +7687,13 @@ spec:
               }
             ],
             "query": "1m,5m,10m,15m,30m,1h,3h,6h,12h,1d",
-            "queryValue": "",
             "refresh": 2,
-            "skipUrlSync": false,
             "type": "interval"
           }
         ]
       },
       "time": {
-        "from": "now-30m",
+        "from": "now-24h",
         "to": "now"
       },
       "timepicker": {
@@ -6583,22 +7707,10 @@ spec:
           "1h",
           "2h",
           "1d"
-        ],
-        "time_options": [
-          "5m",
-          "15m",
-          "1h",
-          "6h",
-          "12h",
-          "24h",
-          "2d",
-          "7d",
-          "30d"
         ]
       },
       "timezone": "browser",
       "title": "Kubernetes / Cluster Overview",
       "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-cluster-overview`) ) %}",
-      "version": 1,
-      "weekStart": ""
+      "version": 2
     }

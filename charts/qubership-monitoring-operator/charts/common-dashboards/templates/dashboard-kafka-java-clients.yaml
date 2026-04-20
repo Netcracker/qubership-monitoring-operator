@@ -6191,7 +6191,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(rate(spring_kafka_listener_seconds_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=~\"$pod\", result!=\"success\"}[5m])) by (name, pod, exception) OR on() vector(0)",
@@ -6319,9 +6319,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "Platform Monitoring Prometheus"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

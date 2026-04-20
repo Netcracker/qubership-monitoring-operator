@@ -493,6 +493,7 @@ var _ = Describe("Reconcile", func() {
 			"kubernetes-nodes-resources",
 			"kubernetes-pod-resources",
 			"kubernetes-pods-distribution-by-node",
+			"kubernetes-pods-distribution-by-zone",
 			"kubernetes-top-resources",
 			"prometheus-cardinality-explorer",
 			"prometheus-self-monitor",
