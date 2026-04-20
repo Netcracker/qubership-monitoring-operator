@@ -1,17 +1,11 @@
 {{- if .Values.monitoringOperator.pprof.install }}
+{{- $pprofServiceName := include "monitoring.name" . -}}
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ template "monitoring.name" . }}
+  name: {{ $pprofServiceName }}
   labels:
-    app.kubernetes.io/name: {{ template "monitoring.name" . }}
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
-    {{- if .Values.monitoringOperator.pprof.service.labels }}
-      {{ toYaml .Values.monitoringOperator.pprof.service.labels | nindent 4 }}
-    {{- end }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" $pprofServiceName) | nindent 4 }}
   {{- if .Values.monitoringOperator.pprof.service.annotations }}
   annotations:
     {{ toYaml .Values.monitoringOperator.pprof.service.annotations | nindent 4 }}
@@ -24,5 +18,5 @@ spec:
       targetPort: {{ .Values.monitoringOperator.pprof.containerPort }}
       protocol: TCP
   selector:
-    app.kubernetes.io/name: {{ template "monitoring.name" . }}
+    app.kubernetes.io/name: {{ $pprofServiceName }}
 {{- end }}
