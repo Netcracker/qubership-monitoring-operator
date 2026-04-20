@@ -2,18 +2,23 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "ssl-exporter.name" . }}
+  name: {{ .Values.name }}
   labels:
-    {{- include "ssl-exporter.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ splitList ":" (include "ssl-exporter.image" .) | last }}
+    app.kubernetes.io/technology: go
 spec:
   selector:
     matchLabels:
-      {{- include "ssl-exporter.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ .Values.name }}
   template:
     metadata:
       labels:
-        {{- include "ssl-exporter.labels" . | nindent 8 }}
-        {{- include "ssl-exporter.selectorLabels" . | nindent 8 }}
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ splitList ":" (include "ssl-exporter.image" .) | last }}
+        app.kubernetes.io/technology: go
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -29,7 +34,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "ssl-exporter.name" . }}
+        - name: {{ .Values.name }}
           image: {{ include "ssl-exporter.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
           args:
@@ -58,7 +63,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ include "ssl-exporter.name" . }}-config
+            name: {{ .Values.name }}-config
       {{- if .Values.additionalHostPathVolumes }}
         {{- range .Values.additionalHostPathVolumes }}
         - name: {{ .volumeName }}

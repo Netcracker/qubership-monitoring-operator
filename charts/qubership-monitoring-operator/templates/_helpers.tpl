@@ -34,6 +34,29 @@ Namespace need truncate to 26 symbols to allow specify suffixes till 35 symbols
   {{- printf "%s" .Release.Namespace | trunc 26 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/* Base resource labels: pass full chart context as ., or dict with "ctx" and optional "name" / "component". */}}
+{{- define "monitoring.labels" -}}
+{{- $ctx := index . "ctx" | default . -}}
+{{- $vals := $ctx.Values -}}
+{{- $name := .name | default $vals.name -}}
+{{- $component := .component | default $ctx.Chart.Name -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+app.kubernetes.io/part-of: monitoring
+app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+{{- end -}}
+
+{{- define "monitoring.extraLabels" -}}
+{{- $ctx := index . "ctx" | default . -}}
+{{- $vals := $ctx.Values -}}
+{{- $extra := .extraLabels | default ($vals.labels | default dict) -}}
+{{- with $extra }}
+
+{{ toYaml . }}
+{{- end }}
+{{- end -}}
+
 {{- define "monitoring.instance" -}}
   {{- printf "%s-%s" (include "monitoring.namespace" .) .Values.monitoringOperator.name | nospace | trunc 63 | trimSuffix "-" }}
 {{- end -}}

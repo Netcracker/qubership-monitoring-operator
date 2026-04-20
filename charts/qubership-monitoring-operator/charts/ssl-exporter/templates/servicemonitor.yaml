@@ -1,41 +1,22 @@
 {{- if and .Values.install .Values.serviceMonitor.enabled }}
-{{- range .Values.serviceMonitor.targets }}
----
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ $.Values.name }}-{{ .name }}
+  name: {{ .Values.name }}
   labels:
-    {{- include "ssl-exporter.labels" $ | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if not (empty .Values.serviceMonitor.defaults.labels) }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.serviceMonitor.defaults.labels) | nindent 4 }}
+    {{- end }}
 spec:
   endpoints:
-  - port: http
-    scheme: {{ $.Values.serviceMonitor.scheme }}
-    path: "/probe"
-    interval: {{ .interval | default $.Values.serviceMonitor.defaults.interval }}
-    scrapeTimeout: {{ .scrapeTimeout | default $.Values.serviceMonitor.defaults.scrapeTimeout }}
-    params:
-      target:
-      - {{ .url | quote }}
-      {{- if .module }}
-      module:
-      - {{ .module | quote }}
-      {{- end }}
-    metricRelabelings:
-      - sourceLabels: [instance]
-        targetLabel: instance
-        replacement: {{ .url | quote }}
-      - sourceLabels: [target]
-        targetLabel: target
-        replacement: {{ .name | quote }}
-      {{- if .additionalMetricsRelabels }}
-        {{- toYaml .additionalMetricsRelabels | nindent 6 }}
-      {{- else if $.Values.serviceMonitor.defaults.additionalMetricsRelabels }}
-        {{- toYaml $.Values.serviceMonitor.defaults.additionalMetricsRelabels | nindent 6 }}
-      {{- end }}
-  jobLabel: {{ $.Release.Name }}
+    - port: {{ .Values.service.name | default "http" }}
+      path: /metrics
+      scheme: {{ .Values.serviceMonitor.scheme }}
+      interval: {{ .Values.serviceMonitor.defaults.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.defaults.scrapeTimeout }}
   selector:
     matchLabels:
-      {{- include "ssl-exporter.selectorLabels" $ | nindent 6 }}
-{{- end }}
+      app.kubernetes.io/name: {{ .Values.name }}
 {{- end }}

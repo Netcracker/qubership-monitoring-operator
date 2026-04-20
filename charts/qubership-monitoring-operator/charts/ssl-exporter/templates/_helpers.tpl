@@ -1,43 +1,6 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
-Expand the name of the chart.
-*/}}
-{{- define "ssl-exporter.name" -}}
-{{- default .Chart.Name .Values.name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "ssl-exporter.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Common labels
-*/}}
-{{- define "ssl-exporter.labels" -}}
-helm.sh/chart: {{ include "ssl-exporter.chart" . }}
-{{ include "ssl-exporter.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/name: {{ .Values.name }}
-app.kubernetes.io/component: ssl-exporter
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/part-of: monitoring
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "ssl-exporter.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "ssl-exporter.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
 Create the name of the service account to use
 */}}
 {{- define "ssl-exporter.serviceAccountName" -}}

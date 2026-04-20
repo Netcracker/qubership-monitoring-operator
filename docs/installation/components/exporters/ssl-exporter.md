@@ -38,26 +38,21 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 | modules.file                                         | Module for reading certificates from files inside the container filesystem. Enabled by default.                                                                                                                                                      | object |
 | modules.kubernetes                                   | Module for reading certificates from Kubernetes secrets. Enabled by default. Requires RBAC permissions on `secrets` (get/list/watch).                                                                                                               | object |
 | modules.kubeconfig                                   | Module for reading certificates from kubeconfig files. Enabled by default.                                                                                                                                                                           | object |
-| serviceMonitor.enabled                               | Create a ServiceMonitor for Prometheus Operator.                                                                                                                                                                                                     | bool   |
+| serviceMonitor.enabled                               | Create a ServiceMonitor that scrapes the workload Service at `/metrics` (standard Prometheus exposition).                                                                                                                                             | bool   |
 | serviceMonitor.scheme                                | Scrape scheme (`http`/`https`).                                                                                                                                                                                                                      | string |
-| serviceMonitor.defaults.additionalMetricsRelabels    | Default `metricRelabelings` for all targets.                                                                                                                                                                                                         | object |
-| serviceMonitor.defaults.interval                     | Default scrape interval.                                                                                                                                                                                                                             | string |
-| serviceMonitor.defaults.labels                       | Additional labels for ServiceMonitor.                                                                                                                                                                                                                | object |
-| serviceMonitor.defaults.scrapeTimeout                | Default scrape timeout.                                                                                                                                                                                                                              | string |
-| serviceMonitor.targets                               | List of targets to create dedicated ServiceMonitors with `/probe` endpoint.                                                                                                                                                                          | list[object] |
-| serviceMonitor.targets[N].name                       | Human-friendly target name (also exposed as `target` label).                                                                                                                                                                                         | string |
-| serviceMonitor.targets[N].url                        | Target URL (e.g., `google.com:443`) or a file/secret path depending on selected module.                                                                                                                                                              | string |
-| serviceMonitor.targets[N].module                     | Module name (`https-external`, `https-selfsigned`, `https-internal`, `file`, `kubernetes`, `kubeconfig`).                                                                                                                                            | string |
-| serviceMonitor.targets[N].interval                   | Scrape interval for this target (overrides default).                                                                                                                                                                                                  | string |
-| serviceMonitor.targets[N].scrapeTimeout              | Scrape timeout for this target (overrides default).                                                                                                                                                                                                   | string |
-| serviceMonitor.targets[N].additionalMetricsRelabels  | Additional metric relabelings for this target.                                                                                                                                                                                                       | object |
+| serviceMonitor.defaults.interval                     | Scrape interval for the `/metrics` endpoint.                                                                                                                                                                                                         | string |
+| serviceMonitor.defaults.labels                       | Additional labels for ServiceMonitor metadata.                                                                                                                                                                                                       | object |
+| serviceMonitor.defaults.scrapeTimeout                | Scrape timeout.                                                                                                                                                                                                                                      | string |
+| alerts.enabled                                       | Enable a set of preconfigured alerts (if supported by the operator).                                                                                                                                                                                 | bool   |
 | prometheusRule.enabled                               | Create a `PrometheusRule` in the cluster using the provided `rules`.                                                                                                                                                                                 | bool   |
 | prometheusRule.namespace                             | Explicit namespace for `PrometheusRule`. Defaults to the release namespace.                                                                                                                                                                          | string |
 | prometheusRule.labels                                | Additional labels for `PrometheusRule`.                                                                                                                                                                                                              | object |
 | prometheusRule.rules                                 | List of alerting rules (same format as in the PrometheusRule CR).                                                                                                                                                                                    | list[object] |
 <!-- markdownlint-enable line-length -->
 
-### Example: basic installation with multiple targets
+### Example: basic installation
+
+The chart installs ssl-exporter and, when `serviceMonitor.enabled` is true, a single ServiceMonitor that scrapes **`/metrics`** on the workload Service. For **per-target** active checks via **`/probe`**, configure Prometheus Operator **`Probe`** resources (do not add ad-hoc `ServiceMonitor` objects for `/probe`; that pattern is deprecated here). See [ssl-exporter metrics](../../../metrics-collection/exporters/ssl-exporter.md).
 
 ```yaml
 sslExporter:
@@ -91,37 +86,7 @@ sslExporter:
     defaults:
       interval: 30s
       scrapeTimeout: 30s
-      additionalMetricsRelabels: {}
-    targets:
-      - name: https-external-google
-        url: google.com:443
-        module: https-external
-        interval: 60s
-
-      - name: https-self-kubernetes-apiserver
-        url: kubernetes.default.svc:443
-        module: https-selfsigned
-        interval: 60s
-
-      - name: https-internal-kubernetes-apiserver
-        url: kubernetes.default.svc:443
-        module: https-internal
-        interval: 60s
-
-      - name: secret-service-ca
-        url: kube-system/serving-ca
-        module: kubernetes
-        interval: 30s
-
-      - name: file-cert-pem
-        url: /etc/ssl/cert.pem
-        module: file
-        interval: 30s
-
-      # - name: kubeconfig-cert
-      #   url: /etc/rancher/k3s/k3s.yaml
-      #   module: kubeconfig
-      #   interval: 300s
+      labels: {}
 ```
 
 ### Example: overriding modules

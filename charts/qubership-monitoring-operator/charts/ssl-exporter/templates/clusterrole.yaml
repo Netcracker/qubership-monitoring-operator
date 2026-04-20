@@ -2,11 +2,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "ssl-exporter.name" . }}
+  name: {{ .Values.name }}
   labels:
-    {{- include "ssl-exporter.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]
-{{- end }} 
+{{- end }}
