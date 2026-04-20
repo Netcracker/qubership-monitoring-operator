@@ -1,17 +1,14 @@
 {{- if and .Values.install .Values.serviceMonitor.enabled }}
+{{- $name := .Values.name -}}
 {{- range .Values.serviceMonitor.targets }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ $.Values.name }}-{{ .name }}
+  name: {{ $name }}-{{ .name }}
   labels:
-    app.kubernetes.io/name: {{ $.Values.name }}-{{ .name }}
-    app.kubernetes.io/instance: {{ cat $.Values.name "-" .name "-" $.Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "blackboxExporter.image" $ }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" (dict "ctx" $ "name" (printf "%s-%s" $.Values.name .name)) | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
 spec:
   endpoints:
   - port: http
@@ -33,12 +30,12 @@ spec:
       - targetLabel: {{ $targetLabel }}
         replacement: {{ $replacement }}
         {{- end }}
-  jobLabel: {{ $.Values.name }}
+  jobLabel: {{ $name }}
   selector:
     matchExpressions:
       - key: app.kubernetes.io/name
         operator: In
         values:
-          - {{ $.Values.name }}
+          - {{ $name }}
 {{- end }}
 {{- end }}
