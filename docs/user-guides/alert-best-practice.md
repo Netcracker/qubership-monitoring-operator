@@ -511,5 +511,5 @@ There are some useful links which you can read to know more about various best p
 * [Prometheus - Alerting](https://prometheus.io/docs/practices/alerting/)
 * [Prometheus - Recording Rules](https://prometheus.io/docs/practices/rules/)
 * [Prometheus - Alerting based on metrics](https://prometheus.io/docs/tutorials/alerting_based_on_metrics/)
-* [Awesome - Prometheus Alerts](https://samber.github.io/awesome-prometheus-alerts/rules.html)
+* [Awesome - Prometheus Alerts](https://samber.github.io/awesome-prometheus-alerts/)
 * [Awesome - Prometheus](https://github.com/roaldnefs/awesome-prometheus)
