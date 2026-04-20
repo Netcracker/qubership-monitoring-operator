@@ -49,12 +49,14 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Return the appropriate image name
+Find ssl-exporter image
 */}}
 {{- define "ssl-exporter.image" -}}
-{{- $repo := .Values.image.repository | default "ribbybibby/ssl-exporter" }}
-{{- $tag := .Values.image.tag | default "2.4.3" }}
-{{- printf "%s:%s" $repo $tag }}
+{{- if .Values.image -}}
+{{- printf "%s" .Values.image -}}
+{{- else -}}
+{{- print "ribbybibby/ssl-exporter:2.4.3" -}}
+{{- end -}}
 {{- end }}
 
 {{/*

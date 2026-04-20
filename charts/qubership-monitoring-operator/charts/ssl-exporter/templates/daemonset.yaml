@@ -19,9 +19,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      {{- with .Values.image.pullSecret }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ . }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "ssl-exporter.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
@@ -31,7 +31,7 @@ spec:
       containers:
         - name: {{ include "ssl-exporter.name" . }}
           image: {{ include "ssl-exporter.image" . }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
           args:
             - --config.file=/etc/ssl-exporter/ssl-exporter.yaml
           ports:

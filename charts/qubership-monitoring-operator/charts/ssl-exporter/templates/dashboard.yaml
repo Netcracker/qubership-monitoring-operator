@@ -306,7 +306,7 @@ spec:
               "expr": "(up{cluster=\"$cluster\",namespace=~\"$namespace\",pod=~\".*ssl-exporter.*\"} == 0 or ssl_probe_success{cluster=\"$cluster\",namespace=~\"$namespace\"} == 0)",
               "format": "time_series",
               "instant": false,
-              "legendFormat": "{{instance}}",
+              "legendFormat": "{{`{{`}}instance{{`}}`}}",
               "refId": "A"
             }
           ],
@@ -637,7 +637,7 @@ spec:
       },
       "timezone": "browser",
       "title": "SSL/TLS Exporter",
-      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `ssl-exporter` ) }}"б
+      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `ssl-exporter` ) }}"
       "version": 1,
       "weekStart": ""
     }

@@ -17,10 +17,9 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 | service.protocol                                     | Service protocol.                                                                                                                                                                                                                                    | string |
 | service.name                                         | Service port name.                                                                                                                                                                                                                                   | string |
 | service.labels                                       | Additional labels for the Service.                                                                                                                                                                                                                   | object |
-| image.repository                                     | Container image repository. Defaults to `ribbybibby/ssl-exporter`.                                                                                                                                                                                   | string |
-| image.tag                                            | Image tag. By default equals to chart `appVersion`.                                                                                                                                                                                                  | string |
-| image.pullPolicy                                     | Image pull policy.                                                                                                                                                                                                                                   | string |
-| image.pullSecret                                     | Docker registry secret name (if required).                                                                                                                                                                                                           | string |
+| image                                                | Full container image (`repository:tag`). If unset, the chart default is defined in `charts/ssl-exporter/templates/_helpers.tpl` (`ribbybibby/ssl-exporter:2.4.3`).                                                                                     | string |
+| imagePullPolicy                                      | Image pull policy.                                                                                                                                                                                                                                   | string |
+| imagePullSecrets                                     | Pull secrets for the pod (same as Kubernetes `imagePullSecrets`, e.g. `- name: my-registry-secret`).                                                                                                                                               | list   |
 | rbac.create                                          | Create RBAC objects (ClusterRole/Binding). Required when using the `kubernetes` module to read secrets.                                                                                                                                              | bool   |
 | serviceAccount.create                                | Create a ServiceAccount.                                                                                                                                                                                                                             | bool   |
 | serviceAccount.annotations                           | Annotations for ServiceAccount.                                                                                                                                                                                                                      | object |
@@ -75,10 +74,9 @@ sslExporter:
     # - volumeName: host-kubeconfig
     #   volumePath: /etc/rancher/k3s/k3s.yaml
 
-  image:
-    repository: ribbybibby/ssl-exporter
-    tag: 2.4.3
-    pullPolicy: IfNotPresent
+  # image: ribbybibby/ssl-exporter:2.4.3
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
 
   service:
     type: ClusterIP

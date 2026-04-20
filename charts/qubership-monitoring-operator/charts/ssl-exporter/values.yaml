@@ -46,14 +46,23 @@ service:
   name: http
   labels: {}
 
-## Set properties of used image
-##
-image:
-  repository: ribbybibby/ssl-exporter
-  # Override the image tag whose default is the chart appVersion
-  tag: 2.4.3
-  pullPolicy: IfNotPresent
-  # pullSecret: []
+# A Docker image to deploy ssl-exporter (`repository:tag`).
+# Type: string
+# Mandatory: no
+# Default: see `ssl-exporter.image` in templates/_helpers.tpl
+#
+# image: ribbybibby/ssl-exporter:2.4.3
+
+# Image pull policy to use for ssl-exporter deployment.
+# Type: string
+# Mandatory: no
+# Default: IfNotPresent
+#
+imagePullPolicy: IfNotPresent
+
+## Reference to one or more secrets to be used when pulling images
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
 
 ## Install RBAC roles and bindings
 ##
