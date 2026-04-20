@@ -1,18 +1,15 @@
 {{- if .Values.install }}
+{{- $image := include "jsonExporter.image" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: json-exporter
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "jsonExporter.image" . }}
     app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    {{- if .Values.labels }}
-      {{ toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -26,15 +23,11 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
+        {{- include "monitoring.labels" . | nindent 8 }}
         app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: json-exporter
-        app.kubernetes.io/part-of: monitoring
         app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-          {{- toYaml .Values.labels | nindent 8 }}
-        {{- end }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
       {{- if .Values.annotations }}
       annotations:
         {{- toYaml .Values.annotations | nindent 8 }}

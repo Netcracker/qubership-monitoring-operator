@@ -4,12 +4,7 @@ kind: Service
 metadata:
   name: {{ .Values.name }}
   labels:
-    name: {{ .Values.name }}
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: network-latency-exporter
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    {{- include "monitoring.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:

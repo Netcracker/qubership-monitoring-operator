@@ -5,6 +5,8 @@ metadata:
   name: {{ .Values.name }}
   labels:
     {{- include "goldpinger.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 spec:
   {{- with .Values.updateStrategy }}
   updateStrategy:
