@@ -80,11 +80,6 @@ image:
   pullPolicy: IfNotPresent
   # pullSecret: []
 
-## Delete generated resources when chart is uninstalled
-##
-preDeleteHook:
-  enabled: true
-
 ## Install RBAC roles and bindings
 ##
 rbac:
@@ -196,9 +191,6 @@ serviceMonitor:
     #   url: /etc/rancher/k3s/k3s.yaml
     #   module: kubeconfig
     #   interval: 300s
-
-alerts:
-  enabled: true
 
 prometheusRule:
   enabled: false
