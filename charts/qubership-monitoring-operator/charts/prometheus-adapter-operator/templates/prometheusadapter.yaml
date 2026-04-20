@@ -4,14 +4,9 @@ kind: PrometheusAdapter
 metadata:
   name: prometheus-adapter
   labels:
-    app.kubernetes.io/name: prometheus-adapter
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
-    app.kubernetes.io/version: {{ template "prometheusAdapter.version" . }}
-    {{- if .Values.labels }}
-      {{- toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "prometheus-adapter" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-adapter-operator
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}

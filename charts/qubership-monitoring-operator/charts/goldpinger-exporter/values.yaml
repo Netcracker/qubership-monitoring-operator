@@ -23,7 +23,7 @@ image:
 rbac:
   create: true
   clusterscoped: true
-  name: goldpinger-exporter-rbac
+  # name: goldpinger-exporter-rbac
 
 serviceAccount:
   create: true
