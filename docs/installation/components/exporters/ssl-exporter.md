@@ -7,9 +7,7 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 |------------------------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | install                                              | Enables or disables deployment of ssl-exporter.                                                                                                                                                                                                     | bool   |
 | name                                                 | Microservice name used for object names and labels.                                                                                                                                                                                                  | string |
-| setupSecurityContext                                 | Creates PodSecurityPolicy or SecurityContextConstraints (when applicable for the platform).                                                                                                                                                          | bool   |
 | installGrafanaDashboard                                | Creates a Grafana dashboard for ssl-exporter.                                                                                                                                                                                                       | bool   |
-| setupAlertingRules                                   | Creates Prometheus alerting rules for ssl-exporter (as part of the operator).                                                                                                                                                                       | bool   |
 | additionalHostPathVolumes                            | List of HostPath volumes to mount files/directories from the host into the container (e.g., certificates or kubeconfig).                                                                                                                           | list[object] |
 | additionalHostPathVolumes[N].volumeName              | Unique volume name.                                                                                                                                                                                                                                  | string |
 | additionalHostPathVolumes[N].volumePath              | Path to the file/directory on the host. The same path is used as a mount point inside the container.                                                                                                                                                | string |
@@ -66,9 +64,7 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 sslExporter:
   install: true
   name: ssl-exporter
-  setupSecurityContext: true
   installGrafanaDashboard: true
-  setupAlertingRules: true
 
   # Optional host mounts
   additionalHostPathVolumes:
