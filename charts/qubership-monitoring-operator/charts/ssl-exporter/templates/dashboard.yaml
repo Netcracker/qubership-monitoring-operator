@@ -12,11 +12,20 @@ spec:
         "list": [
           {
             "builtIn": 1,
-            "datasource": "-- Grafana --",
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
             "enable": true,
             "hide": true,
             "iconColor": "rgba(0, 211, 255, 1)",
             "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
             "type": "dashboard"
           }
         ]
@@ -36,7 +45,10 @@ spec:
           "colorPrefix": false,
           "colorValue": false,
           "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
-          "datasource": "Prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "decimals": 0,
           "description": "",
           "format": "none",
@@ -120,7 +132,10 @@ spec:
           "colorPrefix": false,
           "colorValue": false,
           "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
-          "datasource": "Prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "decimals": 0,
           "description": "",
           "format": "none",
@@ -202,7 +217,10 @@ spec:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 0,
           "fillGradient": 0,
           "gridPos": {
@@ -302,7 +320,10 @@ spec:
         },
         {
           "columns": [],
-          "datasource": "Prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "description": "Possible reasons:\n- site is down\n- server is down\n- certificate has expired\n- certificate's CA is not trusted by the exporter\n- other connection errors\n- other certificate errors",
           "fontSize": "100%",
           "gridPos": {
@@ -434,7 +455,10 @@ spec:
         {
           "cacheTimeout": null,
           "columns": [],
-          "datasource": "Prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "description": "",
           "fontSize": "100%",
           "gridPos": {
@@ -588,12 +612,33 @@ spec:
       "templating": {
         "list": [
           {
-            "allValue": null,
             "current": {
-              "text": "All",
+              "selected": false,
+              "text": "default",
+              "value": "default"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": ["All"],
               "value": ["$__all"]
             },
-            "datasource": "Prometheus",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
             "definition": "label_values(ssl_probe_success, job)",
             "hide": 0,
             "includeAll": true,
@@ -601,7 +646,10 @@ spec:
             "multi": true,
             "name": "job",
             "options": [],
-            "query": "label_values(ssl_probe_success, job)",
+            "query": {
+              "query": "label_values(ssl_probe_success, job)",
+              "refId": "StandardVariableQuery"
+            },
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
@@ -613,12 +661,15 @@ spec:
             "useTags": false
           },
           {
-            "allValue": null,
             "current": {
-              "text": "All",
+              "selected": true,
+              "text": ["All"],
               "value": ["$__all"]
             },
-            "datasource": "Prometheus",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
             "definition": "label_values({job=~\"$job\"}, instance)",
             "hide": 0,
             "includeAll": true,
@@ -626,7 +677,10 @@ spec:
             "multi": true,
             "name": "instance",
             "options": [],
-            "query": "label_values({job=~\"$job\"}, instance)",
+            "query": {
+              "query": "label_values({job=~\"$job\"}, instance)",
+              "refId": "StandardVariableQuery"
+            },
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
