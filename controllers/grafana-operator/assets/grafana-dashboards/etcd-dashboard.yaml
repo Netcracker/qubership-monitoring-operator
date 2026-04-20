@@ -196,7 +196,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": false,
               "expr": "(etcd_server_is_leader{cluster=\"$cluster\"} == 1)",
@@ -299,7 +299,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "histogram_quantile(0.99, sum(rate(etcd_disk_wal_fsync_duration_seconds_bucket{cluster=\"$cluster\"}[$interval])) by (pod, le))",
@@ -970,7 +970,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "etcd_mvcc_db_total_size_in_bytes{cluster=\"$cluster\", service=~\".*etcd.*\"}",
@@ -1089,7 +1089,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "histogram_quantile(0.99, sum(rate(etcd_disk_wal_fsync_duration_seconds_bucket{cluster=\"$cluster\", service=~\".*etcd.*\"}[5m])) by (pod, le))",
@@ -1105,7 +1105,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "histogram_quantile(0.99, sum(rate(etcd_disk_backend_commit_duration_seconds_bucket{cluster=\"$cluster\", service=~\".*etcd.*\"}[5m])) by (pod, le))",
@@ -1968,7 +1968,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_server_proposals_committed_total{cluster=\"$cluster\"}[5m]))",
@@ -1983,7 +1983,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_server_proposals_applied_total{cluster=\"$cluster\"}[5m]))",
@@ -2190,7 +2190,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_disk_wal_fsync_duration_seconds_sum{cluster=\"$cluster\"}[2m]))",
@@ -2204,7 +2204,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_disk_backend_commit_duration_seconds_sum{cluster=\"$cluster\"}[2m]))",
@@ -2309,7 +2309,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "rate(etcd_server_slow_apply_total{cluster=\"$cluster\"}[2m])",
@@ -2325,7 +2325,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "rate(etcd_server_slow_read_indexes_total{cluster=\"$cluster\"}[2m])",
@@ -2445,7 +2445,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_network_client_grpc_received_bytes_total{cluster=\"$cluster\"}[2m]))",
@@ -2459,7 +2459,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_network_client_grpc_sent_bytes_total{cluster=\"$cluster\"}[2m]))",
@@ -2564,7 +2564,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "sum(rate(etcd_debugging_snap_save_total_duration_seconds_sum{cluster=\"$cluster\"}[2m]))",
@@ -2669,7 +2669,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "rate(etcd_snap_fsync_duration_seconds_sum[5m])",
@@ -2774,7 +2774,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": true,
               "expr": "rate(etcd_snap_db_save_total_duration_seconds_sum[5m])",
@@ -2812,9 +2812,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "PC3E95692D54ABCC0"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

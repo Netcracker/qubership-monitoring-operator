@@ -4,12 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: graphite-remote-adapter-dashboard
   labels:
-    app.kubernetes.io/name: graphite-remote-adapter-dashboard
-    app.kubernetes.io/instance: {{ cat "graphite-remote-adapter-dashboard-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "graphiteRemoteAdapter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "graphite-remote-adapter-dashboard" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   json: >
     {
@@ -45,7 +41,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -59,7 +55,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -726,7 +722,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1522,7 +1518,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1534,7 +1530,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1750,7 +1746,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1762,7 +1758,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1977,7 +1973,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1989,7 +1985,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2204,7 +2200,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2222,9 +2218,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "PC3E95692D54ABCC0"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

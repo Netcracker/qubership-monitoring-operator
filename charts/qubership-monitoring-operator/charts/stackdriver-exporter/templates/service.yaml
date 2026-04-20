@@ -4,15 +4,8 @@ apiVersion: v1
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: stackdriver-exporter
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "stackdriver-exporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    {{- if .Values.labels }}
-      {{- toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.service.annotations }}
   annotations:
     {{- toYaml .Values.service.annotations | nindent 4 }}

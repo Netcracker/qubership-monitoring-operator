@@ -1,0 +1,405 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "APIService": {
+            "type": "object",
+            "properties": {
+                "customMetrics": {
+                    "type": "boolean",
+                    "description": "Create APIService for custom.metrics.k8s.io",
+                    "default": true
+                },
+                "resourceMetrics": {
+                    "type": "boolean",
+                    "description": "Create APIService for metrics.k8s.io",
+                    "default": false
+                }
+            },
+            "description": "APIService creation settings for prometheus adapter operator"
+        },
+        "affinity": {
+            "type": "object",
+            "description": "If specified, the pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "default": {
+                "podAntiAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": [
+                        {
+                            "labelSelector": {
+                                "matchExpressions": [
+                                    {
+                                        "key": "app.kubernetes.io/name",
+                                        "operator": "In",
+                                        "values": [
+                                            "prometheus-adapter"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "topologyKey": "kubernetes.io/hostname"
+                        }
+                    ]
+                }
+            }
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+            "default": {}
+        },
+        "auth": {
+            "type": "object",
+            "description": "Auth configuration for prometheus adapter operator",
+            "default": {},
+            "properties": {
+                "basicAuth": {
+                    "type": "object",
+                    "properties": {
+                        "password": {
+                            "type": "object",
+                            "description": "Secret name and key inside with the password for basic authentication to Prometheus"
+                        },
+                        "username": {
+                            "type": "object",
+                            "description": "Secret name and key inside with the username for basic authentication to Prometheus",
+                            "properties": {
+                                "key": {
+                                    "type": "string",
+                                    "description": "Key inside the secret with the username for basic authentication to Prometheus"
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "description": "Secret name with the username for basic authentication to Prometheus"
+                                }
+                            }
+                        },
+                        "createSecret": {
+                            "type": "object",
+                            "username": {
+                                "type": "string",
+                                "description": "Username for basic authentication to Prometheus to store in the secret that will be created"
+                            },
+                            "password": {
+                                "type": "string",
+                                "description": "Password for basic authentication to Prometheus to store in the secret that will be created"
+                            }
+                        }
+                    },
+                    "description": "Basic authentication configuration for connecting to Prometheus"
+                }
+            }
+        },
+        "configResourceMetrics": {
+            "type": "object",
+            "description": "Config for resourceMetrics will be added in prometheus-adapter-resource-rules ConfigMap."
+        },
+        "clusterRole": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to disable create Role during deploy",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the cluster role for prometheus-adapter-operator",
+                    "default": "prometheus-adapter-operator"
+                }
+            },
+            "description": "No description available"
+        },
+        "clusterRoleBinding": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to disable create RoleBinding during deploy",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the cluster role binding for prometheus-adapter-operator",
+                    "default": "prometheus-adapter-operator"
+                }
+            },
+            "description": "No description available"
+        },
+        "customScaleMetricRulesSelector": {
+            "type": "array",
+            "description": "Label selector for CustomScaleMetricRule custom resources",
+            "default": []
+        },
+        "enableCustomMetrics": {
+            "type": "boolean",
+            "description": "Enable adapter for custom.metrics.k8s.io",
+            "default": true
+        },
+        "enableResourceMetrics": {
+            "type": "boolean",
+            "description": "Enable adapter for metrics.k8s.io",
+            "default": false
+        },
+        "image": {
+            "type": "string",
+            "description": "Prometheus adapter operator image to deploy.\nDefault: ghcr.io/netcracker/qubership-prometheus-adapter:main"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to disable deploy prometheus-adapter-operator",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+            "default": {}
+        },
+        "metricsRelistInterval": {
+            "type": "string",
+            "description": "Interval at which to update the cache of available metrics from Prometheus",
+            "default": "1m"
+        },
+        "name": {
+            "type": "string",
+            "description": "Provide a name in place of prometheus-adapter-operator for labels",
+            "default": "prometheus-adapter-operator"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow define which Nodes the Pods are scheduled on",
+            "default": {}
+        },
+        "operator": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints for the operator",
+                    "default": {}
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations for the operator resources",
+                    "default": {}
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Prometheus adapter operator image to deploy.\nDefault: ghcr.io/netcracker/qubership-prometheus-adapter-operator:main"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels for the operator resources",
+                    "default": {}
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Node selector for the operator pods",
+                    "default": {}
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the operator Pods to prevent them from evicting. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for operator pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+                    "default": {},
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describes the maximum amount of compute resources allowed.",
+                            "default": {},
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describes the minimum amount of compute resources required.",
+                            "default": {},
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "SecurityContext holds pod-level security attributes for the operator",
+                    "default": {},
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. The default value is set to \"0\",\n because otherwise the operator does not work correctly."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod."
+                        }
+                    }
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "description": "Create secret with TLS certificates for prometheus adapter operator. Do not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "Certificate in PEM format to store in the secret"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "Private key in PEM format to store in the secret"
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "CA certificate in PEM format to store in the secret"
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Secret name to store TLS certificates",
+                                    "default": ""
+                                }
+                            }
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "TLS configuration from existing secret. If specified, all subsequent parameters in tls section are ignored."
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "clusterIssuerName": {
+                                    "type": "string",
+                                    "description": "ClusterIssuer name to use for certificate generation",
+                                    "default": ""
+                                },
+                                "duration": {
+                                    "type": "integer",
+                                    "description": "Duration in days for generated certificates",
+                                    "default": 365
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "description": "Generate certificates using cert-manager",
+                                    "default": true
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "description": "Number of days before certificate expiry to renew",
+                                    "default": 15
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Secret name to store generated certificates",
+                                    "default": ""
+                                }
+                            },
+                            "description": "No description available"
+                        }
+                    },
+                    "description": "TLS configuration for prometheus adapter operator"
+                },
+                "tlsEnabled": {
+                    "type": "boolean",
+                    "description": "Enable TLS for prometheus adapter operator",
+                    "default": false
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the operator pods to schedule onto nodes with matching taints",
+                    "default": []
+                }
+            },
+            "description": "Operator deployment settings"
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the Pods to prevent them from evicting. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+        },
+        "prometheusUrl": {
+            "type": "string",
+            "description": "URL used to connect to Prometheus. May contains query parameters to configure the connection",
+            "default": ""
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Replicas set the expected replicas of the prometheus-adapter",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+            "default": {},
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Limits describes the maximum amount of compute resources allowed for a container. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#resource-limits",
+                    "default": {},
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Requests describes the minimum amount of compute resources required for a container. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#resource-requests-and-limits",
+                    "default": {},
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes",
+            "default": {},
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. The default value is set to \"0\",\n because otherwise the operator does not work correctly."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints",
+            "default": []
+        }
+    },
+    "description": "Schema for prometheus-adapter-operator Helm values"
+}

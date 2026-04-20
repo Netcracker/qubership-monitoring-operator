@@ -2,11 +2,9 @@
 apiVersion: {{ template "rbac.apiVersion" . }}
 kind: Role
 metadata:
-  name: prometheus-adapter-operator
+  name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: prometheus-adapter-operator
-    app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
-    {{- include "prometheusAdapter.commonLabels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
 rules:
   # Permissions for leader election
   - apiGroups:

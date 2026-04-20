@@ -113,7 +113,7 @@ serviceMonitor:
     labels: {}
     scrapeTimeout: 30s
 
-  targets:
+#  targets:
 #    - name: example                    # Human readable URL that will appear in Prometheus / AlertManager
 #      url: http://example.com/healthz  # The URL that json-exporter will scrape
 #      labels: {}                       # Map of labels for ServiceMonitor. Overrides value set in `defaults`

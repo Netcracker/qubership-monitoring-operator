@@ -6,34 +6,11 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "goldpinger.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Common labels
+Labels for goldpinger resources. Uses goldpinger.name so selector matchLabels stay consistent.
 */}}
 {{- define "goldpinger.labels" -}}
-helm.sh/chart: {{ include "goldpinger.chart" . }}
-{{ include "goldpinger.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/name: {{ default .Values.rbac.name (include "goldpinger.name" .) }}
-app.kubernetes.io/component: goldpinger-exporter
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/part-of: monitoring
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "goldpinger.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "goldpinger.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
+{{- include "monitoring.labels" (dict "ctx" . "name" (include "goldpinger.name" .)) -}}
+{{- end -}}
 
 {{/*
 Create the name of the service account to use
@@ -56,6 +33,7 @@ Image can be found from:
 {{- if and .Values.image.repository .Values.image.tag -}}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
 {{- else -}}
+{{- /* # renovate: datasource=github-releases depName=bloomberg/goldpinger */ -}}
 {{- print "bloomberg/goldpinger:3.10.2" -}}
 {{- end -}}
 {{- end -}}
