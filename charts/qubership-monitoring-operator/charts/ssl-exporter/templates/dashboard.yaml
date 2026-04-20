@@ -105,7 +105,7 @@ spec:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "count(max(ssl_cert_not_after{instance=~\"$instance\",job=~\"$job\"}) by (issuer_cn,serial_no))",
+              "expr": "count(max(ssl_cert_not_after{cluster=\"$cluster\",namespace=~\"$namespace\"}) by (issuer_cn,serial_no))",
               "refId": "A"
             }
           ],
@@ -192,7 +192,7 @@ spec:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "count(max(ssl_cert_not_after{instance=~\"$instance\",job=~\"$job\"}) by (instance))",
+              "expr": "count(max(ssl_cert_not_after{cluster=\"$cluster\",namespace=~\"$namespace\"}) by (instance))",
               "refId": "A"
             }
           ],
@@ -267,7 +267,7 @@ spec:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "(up{job=~\"$job\", instance=~\"$instance\"} == 0 or ssl_probe_success{job=~\"$job\", instance=~\"$instance\"} == 0)^0",
+              "expr": "(up{cluster=\"$cluster\",namespace=~\"$namespace\",pod=~\".*ssl-exporter.*\"} == 0 or ssl_probe_success{cluster=\"$cluster\",namespace=~\"$namespace\"} == 0)^0",
               "format": "time_series",
               "instant": false,
               "legendFormat": "{{`{{instance}}`}}",
@@ -337,15 +337,6 @@ spec:
           "maxPerRow": 2,
           "options": {},
           "pageSize": 10,
-          "repeat": "job",
-          "repeatDirection": "h",
-          "scopedVars": {
-            "job": {
-              "selected": false,
-              "text": "ssl",
-              "value": "ssl"
-            }
-          },
           "scroll": true,
           "showHeader": true,
           "sort": {
@@ -437,7 +428,7 @@ spec:
           ],
           "targets": [
             {
-              "expr": "ssl_probe_success{instance=~\"$instance\",job=~\"$job\"} == 0",
+              "expr": "ssl_probe_success{cluster=\"$cluster\",namespace=~\"$namespace\"} == 0",
               "format": "table",
               "instant": true,
               "intervalFactor": 1,
@@ -447,7 +438,7 @@ spec:
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Failed SSL Connects - $job",
+          "title": "Failed SSL Connects",
           "transform": "table",
           "transparent": true,
           "type": "table"
@@ -589,7 +580,7 @@ spec:
           ],
           "targets": [
             {
-              "expr": "((ssl_cert_not_after{instance=~\"$instance\",job=~\"$job\"} - time())/24/60/60)",
+              "expr": "((ssl_cert_not_after{cluster=\"$cluster\",namespace=~\"$namespace\"} - time())/24/60/60)",
               "format": "table",
               "instant": true,
               "interval": "",
@@ -631,65 +622,59 @@ spec:
           },
           {
             "current": {
-              "selected": true,
-              "text": ["All"],
-              "value": ["$__all"]
+              "isNone": true,
+              "selected": false,
+              "text": "None",
+              "value": ""
             },
             "datasource": {
               "type": "prometheus",
               "uid": "${datasource}"
             },
-            "definition": "label_values(ssl_probe_success, job)",
+            "definition": "label_values(kube_pod_info,cluster)",
             "hide": 0,
-            "includeAll": true,
-            "label": "Job",
-            "multi": true,
-            "name": "job",
+            "includeAll": false,
+            "multi": false,
+            "name": "cluster",
             "options": [],
             "query": {
-              "query": "label_values(ssl_probe_success, job)",
-              "refId": "StandardVariableQuery"
+              "qryType": 1,
+              "query": "label_values(kube_pod_info,cluster)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
-            "sort": 5,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "sort": 0,
+            "type": "query"
           },
           {
+            "allValue": ".*",
             "current": {
               "selected": true,
-              "text": ["All"],
-              "value": ["$__all"]
+              "text": "All",
+              "value": "$__all"
             },
             "datasource": {
               "type": "prometheus",
               "uid": "${datasource}"
             },
-            "definition": "label_values({job=~\"$job\"}, instance)",
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", label_app_kubernetes_io_name=~\".+\"},namespace)",
             "hide": 0,
             "includeAll": true,
-            "label": "Instance",
-            "multi": true,
-            "name": "instance",
+            "multi": false,
+            "name": "namespace",
             "options": [],
             "query": {
-              "query": "label_values({job=~\"$job\"}, instance)",
-              "refId": "StandardVariableQuery"
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", label_app_kubernetes_io_name=~\".+\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
             "sort": 1,
-            "tagValuesQuery": "",
-            "tags": [],
-            "tagsQuery": "",
-            "type": "query",
-            "useTags": false
+            "type": "query"
           }
         ]
       },
