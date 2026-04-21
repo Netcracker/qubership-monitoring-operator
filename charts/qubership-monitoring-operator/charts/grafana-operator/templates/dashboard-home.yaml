@@ -560,9 +560,13 @@ data:
         "list": [
           {
             "current": {
+<<<<<<< HEAD
               "selected": false,
               "text": "Platform Monitoring Prometheus",
               "value": "Platform Monitoring Prometheus"
+=======
+              "text": "Platform Monitoring Prometheus"
+>>>>>>> bc1b02b (feat(ui): new home dashboard)
             },
             "description": null,
             "error": null,

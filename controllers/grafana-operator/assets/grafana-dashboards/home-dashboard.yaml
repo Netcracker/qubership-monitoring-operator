@@ -555,9 +555,13 @@ spec:
         "list": [
           {
             "current": {
+<<<<<<< HEAD
               "selected": false,
               "text": "Platform Monitoring Prometheus",
               "value": "Platform Monitoring Prometheus"
+=======
+              "text": "Platform Monitoring Prometheus"
+>>>>>>> bc1b02b (feat(ui): new home dashboard)
             },
             "description": null,
             "error": null,
@@ -857,6 +861,10 @@ spec:
       },
       "timezone": "",
       "title": "Home Dashboard",
+<<<<<<< HEAD
       "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `home-dashboard`) ) %}",
+=======
+      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `home-dashboard` ) }}",
+>>>>>>> bc1b02b (feat(ui): new home dashboard)
       "version": 2
     }
