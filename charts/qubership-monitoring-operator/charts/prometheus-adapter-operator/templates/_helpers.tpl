@@ -10,7 +10,8 @@ Image can be found from:
   {{- if .Values.operator.image -}}
     {{- printf "%s" .Values.operator.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.11.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -24,18 +25,16 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:0.11.3" -}}
   {{- end -}}
 {{- end -}}
 
 {{/*
-Create common labels for each resource which is creating by this chart.
+Operator image tag (workload version label).
 */}}
-{{- define "prometheusAdapter.commonLabels" -}}
-app.kubernetes.io/component: prometheus-adapter
-app.kubernetes.io/part-of: monitoring
-{{- $image := include "prometheusAdapter.operator.image" . }}
-app.kubernetes.io/version: {{ splitList ":" $image | last }}
+{{- define "prometheusAdapter.operator.version" -}}
+{{- splitList ":" (include "prometheusAdapter.operator.image" .) | last }}
 {{- end }}
 
 {{/*

@@ -1,17 +1,15 @@
 {{- if .Values.install }}
+{{- $cloudName := include "cloudEventsExporter.fullname" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ template "cloudEventsExporter.fullname" . }}
-    app.kubernetes.io/component: cloud-events-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" (dict "ctx" . "name" $cloudName) | nindent 4 }}
     app.kubernetes.io/instance: {{ template "cloudEventsExporter.instance" . }}
     app.kubernetes.io/version: {{ template "cloudEventsExporter.version" . }}
-    {{- if .Values.labels }}
-      {{ toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -19,23 +17,19 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ template "cloudEventsExporter.fullname" . }}
+      app.kubernetes.io/name: {{ $cloudName }}
   replicas: 1
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ template "cloudEventsExporter.fullname" . }}
-        app.kubernetes.io/component: cloud-events-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" (dict "ctx" . "name" $cloudName) | nindent 8 }}
         app.kubernetes.io/instance: {{ template "cloudEventsExporter.instance" . }}
         app.kubernetes.io/version: {{ template "cloudEventsExporter.version" . }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-        {{ toYaml .Values.labels | nindent 8 }}
-        {{- end }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
       annotations:
         {{- if .Values.annotations }}
-        {{ toYaml .Values.annotations | nindent 8 }}
+        {{- toYaml .Values.annotations | nindent 8 }}
         {{- end }}
     spec:
       {{- if .Values.priorityClassName }}

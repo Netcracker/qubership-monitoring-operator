@@ -1,0 +1,218 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "description": "Schema for network-latency-exporter Helm values",
+    "properties": {
+        "additionalLabels": {
+            "type": "object",
+            "description": "Allows specifying custom labels for DaemonSet of `network-latency-exporter`."
+        },
+        "affinity": {
+            "type": "object",
+            "description": "The pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+            "default": {}
+        },
+        "checkTarget": {
+            "type": "string",
+            "description": "The comma-separated list of network protocols and ports (separated by ':') via which packets will be sent. Supported protocols: UDP, TCP, ICMP. If no port specified for protocol, port 1 will be used",
+            "default": "UDP:80,TCP:80,ICMP"
+        },
+        "createGrafanaDashboards": {
+            "type": "boolean",
+            "description": "Allow creating Grafana Dashboards for network-latency-exporter",
+            "default": true
+        },
+        "discoverEnable": {
+            "type": "boolean",
+            "description": "Allow enabling/disabling script for discovering nodes IP",
+            "default": true
+        },
+        "extraArgs": {
+            "type": "array",
+            "description": "Extra arguments to pass to the network-latency-exporter",
+            "default": []
+        },
+        "image": {
+            "type": "string",
+            "description": "Network latency exporter image to deploy.\nDefault: ghcr.io/netcracker/qubership-network-latency-exporter:main"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to disable deploy network-latency-exporter",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+            "default": {}
+        },
+        "latencyTypes": {
+            "type": "string",
+            "description": "The comma-separated list of collectors. Supported latency types: node_collector",
+            "default": "node_collector"
+        },
+        "name": {
+            "type": "string",
+            "description": "Provide a name in place of network-latency-exporter for labels",
+            "default": "network-latency-exporter"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow to define which Nodes the Pods are scheduled on",
+            "default": {}
+        },
+        "packetSize": {
+            "type": "integer",
+            "description": "The size of packet to sent in bytes",
+            "default": 64
+        },
+        "packetsNum": {
+            "type": "integer",
+            "description": "The number of packets to send per probe",
+            "default": 10
+        },
+        "rbac": {
+            "type": "object",
+            "description": "RBAC configuration for network-latency-exporter",
+            "properties": {
+                "createClusterRole": {
+                    "type": "boolean",
+                    "description": "Allow creating ClusterRole. If set to false, ClusterRole must be created manually",
+                    "default": true
+                },
+                "createClusterRoleBinding": {
+                    "type": "boolean",
+                    "description": "Allow creating ClusterRoleBinding. If set to false, ClusterRoleBinding must be created manually",
+                    "default": true
+                },
+                "privileged": {
+                    "type": "boolean",
+                    "description": "If true, set parameters in PSP or SCC for ability to running container in the privileged mode and set privileged: true to the security context in the exporter's container",
+                    "default": false
+                },
+                "setupSecurityContext": {
+                    "type": "boolean",
+                    "description": "Allow creating PodSecurityPolicy or SecurityContextConstraints. If set to false, PodSecurityPolicy / SecurityContextConstraints must be created manually",
+                    "default": true
+                }
+            }
+        },
+        "requestTimeout": {
+            "type": "integer",
+            "description": "The response time for each packet sent which the application waits response, in seconds",
+            "default": 3
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Limits describe the maximum amount of compute resources allowed",
+                    "default": {},
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The maximum amount of CPU allowed. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The maximum amount of memory allowed. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Requests describe the minimum amount of compute resources required",
+                    "default": {},
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The minimum amount of CPU required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The minimum amount of memory required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                }
+            },
+            "default": {}
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for OpenShift cluster",
+            "default": {},
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. The default value is set to \"0\",\n because otherwise the exporter does not work correctly."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod. If unset, the Kubelet will not modify the ownership and permissions of any volume."
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "Service account for network-latency-exporter to use. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+            "properties": {
+                "create": {
+                    "type": "boolean",
+                    "description": "Allow creating ServiceAccount. If set to false, ServiceAccount must be created manually",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Provide a name in place of network-latency-exporter for ServiceAccount",
+                    "default": "network-latency-exporter"
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "ServiceMonitor configuration for Prometheus Operator",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "If true, a ServiceMonitor is created for a prometheus-operator",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Scraping interval for Prometheus",
+                    "default": "30s"
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Scraping timeout for Prometheus",
+                    "default": "20s"
+                }
+            }
+        },
+        "timeout": {
+            "type": "string",
+            "description": "The metrics collection timeout. Can be calculated as TIMEOUT = 10s + (REQUEST_TIMEOUT * PACKETS_NUM * <NUMBER_OF_PROTOCOLS>)",
+            "default": "100s"
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints. Default tolerations \"operator: Exists\" for installing on master nodes",
+            "items": {
+                "type": "object",
+                "description": "Toleration object"
+            },
+            "default": [
+                {
+                    "operator": "Exists"
+                }
+            ]
+        }
+    }
+}

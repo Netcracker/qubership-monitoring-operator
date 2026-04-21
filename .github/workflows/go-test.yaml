@@ -1,24 +1,3 @@
-# This workflow handles Go builds with optional Sonar analysis.
-# It can be called from other workflows and supports different build modes based on:
-# - Actor type (bot or user)
-#
-# Build steps:
-#  - Automatically detects Go module location using go.mod file
-#  - Runs tests with coverage
-#  - Sonar analysis (if not skipped for restricted actors)
-#
-# Sonar analysis:
-# - Only runs if both sonar-project-key and sonar-token are provided
-# - Always skipped for restricted actors
-# - Requires proper Sonar configuration (organization, host URL, etc.)
-#
-# Restricted actors:
-# - Defined in .github/config/build-config.yaml
-# - Cannot run Sonar analysis
-#
-# Working directory:
-# - Automatically detected based on go.mod file location
-# - All Go commands are executed in the directory containing go.modname: Go unit tests
 name: Go test with Sonar
 on:
   push: {}
@@ -28,9 +7,34 @@ on:
 permissions:
   contents: read
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      sonar-project-key: ${{ steps.config.outputs.sonar-project-key }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Resolve sonar project key based on restricted actors
+        id: config
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          restricted=$(python3 -c "
+          import yaml, os
+          with open('.github/config/build-config.yaml') as f:
+              config = yaml.safe_load(f)
+          actors = config.get('restricted-actors', [])
+          print('true' if os.environ['ACTOR'] in actors else 'false')
+          ")
+          if [ "$restricted" = "true" ]; then
+            echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
+          else
+            echo "sonar-project-key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
+          fi
+
   test:
-    name: Build and test with coverage        
-    uses: Netcracker/qubership-core-infra/.github/workflows/go-build-with-sonar.yaml@8638b5b8d369a450d36a3e03d9f2d8e31202dc00 #v1.3.0
+    needs: prepare
+    name: Build and test with coverage
+    uses: Netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@bc2a0bd082147e23b4091616c608a21cc2957728 # v2.4.1
     with:
       go-module-dir: '.'
       actor: ${{ github.actor }}
@@ -39,5 +43,11 @@ jobs:
       envtest-version: 'release-0.19'
       cover-packages: './controllers/...,./api/...'
       install-envtest: true
-    secrets:
-      sonar-token: ${{ secrets.SONAR_TOKEN }}
+      kube-version: '1.30.0'
+      envtest-version: 'release-0.19'
+      skip-docker: true
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
+      packages: write

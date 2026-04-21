@@ -3,11 +3,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
-  {{- if .Values.serviceMonitor.namespace }}
-  namespace: {{ .Values.serviceMonitor.namespace }}
-  {{- end }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
     {{- range $key, $value := .Values.serviceMonitor.selector }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -28,5 +26,5 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      {{- include "goldpinger.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ .Values.name }}
 {{- end -}}
