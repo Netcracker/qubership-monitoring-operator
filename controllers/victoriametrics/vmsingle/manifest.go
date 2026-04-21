@@ -302,7 +302,7 @@ func vmSingleIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, err
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(victoriametrics.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmSingle.Ingress.Annotations))
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmSingle.Ingress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)
@@ -378,7 +378,7 @@ func vmSingleIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(victoriametrics.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmSingle.Ingress.Annotations))
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmSingle.Ingress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)

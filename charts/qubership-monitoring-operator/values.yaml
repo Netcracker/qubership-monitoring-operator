@@ -71,7 +71,6 @@ gatewayApi:
   # Per-component `httpRoute.parentRefs` overrides these values.
   # More info on parentRefs:
   # https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
-  # Please note that fields are starting with `gateway` for
   # Type: list[object]
   # Mandatory: no
   # Example:

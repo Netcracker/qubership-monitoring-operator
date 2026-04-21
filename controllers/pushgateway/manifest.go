@@ -7,7 +7,6 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -300,7 +299,7 @@ func pushgatewayIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, 
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(victoriametrics.GetIngressAnnotationsForGateway(cr, cr.Spec.Pushgateway.Ingress.Annotations))
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Pushgateway.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
@@ -367,7 +366,7 @@ func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, 
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(victoriametrics.GetIngressAnnotationsForGateway(cr, cr.Spec.Pushgateway.Ingress.Annotations))
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Pushgateway.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())

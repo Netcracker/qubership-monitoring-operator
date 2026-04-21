@@ -41,6 +41,11 @@ func ReconcileGatewayRoutes(r *utils.ComponentReconciler, cr *monv1.PlatformMoni
 
 	routeGroup := gatewayAPIGroupForConfig(cfg, routeCfg)
 	if !needHTTPRoute {
+		// Skip cleanup when Gateway API was never configured for this component,
+		// to avoid unnecessary API-discovery calls on every reconcile.
+		if routeCfg == nil && len(cfg.ParentRefs) == 0 {
+			return nil
+		}
 		return deleteGatewayResource(r, buildHTTPRoute(cfg, nil, nil), routeGroup)
 	}
 

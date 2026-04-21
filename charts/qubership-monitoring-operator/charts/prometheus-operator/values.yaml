@@ -253,6 +253,13 @@ ingress: {}
   #
   # tlsSecretName: ""
 
+# Allows create HTTPRoute for Prometheus UI via monitoring-operator.
+# Type: object
+# Mandatory: no
+# Default: {}
+#
+httpRoute: {}
+
 # Storage spec to specify how storage shall be used
 # More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#storagespec
 # Type: object
