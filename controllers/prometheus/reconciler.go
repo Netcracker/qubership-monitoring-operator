@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -107,7 +107,7 @@ func (r *PrometheusReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				serviceName = utils.PrometheusOAuthProxyServiceName
 				servicePort = int32(utils.OAuthProxyServicePort)
 			}
-			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
 				NamePrefix:     cr.GetNamespace() + "-" + utils.PrometheusComponentName,
 				Namespace:      cr.GetNamespace(),
 				Host:           ingressHost,
@@ -209,11 +209,21 @@ func (r *PrometheusReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
 	}
-	if err := vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
-		NamePrefix:  cr.GetNamespace() + "-" + utils.PrometheusComponentName,
-		Namespace:   cr.GetNamespace(),
-		ServiceName: utils.PrometheusServiceName,
-		ServicePort: int32(utils.PrometheusServicePort),
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Prometheus != nil {
+		componentRoute = cr.Spec.Prometheus.HTTPRoute
+	}
+	if err := gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.PrometheusComponentName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.PrometheusServiceName,
+		ServicePort:    int32(utils.PrometheusServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
 	}); err != nil {
 		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}

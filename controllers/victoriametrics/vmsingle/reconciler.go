@@ -4,8 +4,8 @@ import (
 	"context"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	pspApi "k8s.io/api/policy/v1beta1"
@@ -99,7 +99,7 @@ func (r *VmSingleReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitori
 			if cr.Spec.Victoriametrics.VmSingle.Ingress != nil {
 				ingressHost = cr.Spec.Victoriametrics.VmSingle.Ingress.Host
 			}
-			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
 				NamePrefix:     cr.GetNamespace() + "-" + utils.VmSingleServiceName,
 				Namespace:      cr.GetNamespace(),
 				Host:           ingressHost,
@@ -170,11 +170,21 @@ func (r *VmSingleReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 			r.Log.Error(err, "Can not delete Ingress.")
 		}
 	}
-	if err = vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
-		NamePrefix:  cr.GetNamespace() + "-" + utils.VmSingleServiceName,
-		Namespace:   cr.GetNamespace(),
-		ServiceName: utils.VmSingleServiceName,
-		ServicePort: int32(utils.VmSingleServicePort),
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Victoriametrics != nil {
+		componentRoute = cr.Spec.Victoriametrics.VmSingle.HTTPRoute
+	}
+	if err = gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.VmSingleServiceName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.VmSingleServiceName,
+		ServicePort:    int32(utils.VmSingleServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
 	}); err != nil {
 		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}

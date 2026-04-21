@@ -2,8 +2,8 @@ package pushgateway
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -80,7 +80,7 @@ func (r *PushgatewayReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if cr.Spec.GatewayAPI != nil {
 				parentRefs = cr.Spec.GatewayAPI.ParentRefs
 			}
-			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
 				NamePrefix:     cr.GetNamespace() + "-" + utils.PushgatewayComponentName,
 				Namespace:      cr.GetNamespace(),
 				Host:           ingressHost,
@@ -137,11 +137,21 @@ func (r *PushgatewayReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
 	}
-	if err := vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
-		NamePrefix:  cr.GetNamespace() + "-" + utils.PushgatewayComponentName,
-		Namespace:   cr.GetNamespace(),
-		ServiceName: utils.PushgatewayComponentName,
-		ServicePort: 0,
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Pushgateway != nil {
+		componentRoute = cr.Spec.Pushgateway.HTTPRoute
+	}
+	if err := gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.PushgatewayComponentName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.PushgatewayComponentName,
+		ServicePort:    0,
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
 	}); err != nil {
 		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}

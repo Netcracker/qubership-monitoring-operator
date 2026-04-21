@@ -4,8 +4,8 @@ import (
 	"context"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	vmutils "github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
 	pspApi "k8s.io/api/policy/v1beta1"
@@ -96,7 +96,7 @@ func (r *VmClusterReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitor
 			if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress != nil {
 				ingressHost = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host
 			}
-			if err := vmutils.ReconcileGatewayRoutes(r.ComponentReconciler, cr, vmutils.GatewayRouteConfig{
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
 				NamePrefix:  cr.GetNamespace() + "-" + utils.VmSelectServiceName,
 				Namespace:   cr.GetNamespace(),
 				Host:        ingressHost,
@@ -163,11 +163,16 @@ func (r *VmClusterReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 			r.Log.Error(err, "Can not delete Ingress.")
 		}
 	}
-	if err = vmutils.DeleteGatewayRoutes(r.ComponentReconciler, vmutils.GatewayRouteConfig{
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	if err = gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
 		NamePrefix:  cr.GetNamespace() + "-" + utils.VmSelectServiceName,
 		Namespace:   cr.GetNamespace(),
 		ServiceName: utils.VmSelectServiceName,
 		ServicePort: int32(utils.VmSelectServicePort),
+		ParentRefs:  parentRefs,
 	}); err != nil {
 		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}

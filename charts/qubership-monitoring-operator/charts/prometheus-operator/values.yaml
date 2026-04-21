@@ -257,6 +257,34 @@ ingress: {}
 # Type: object
 # Mandatory: no
 # Default: {}
+# HTTPRoute spec reference:
+# https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec
+# Example:
+# httpRoute:
+#   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+#   # Default: false
+#   install: true
+#
+#   # Hostnames overrides ingress hostname if specified.
+#   hostnames:
+#     - prometheus.example.com
+#
+#   # ParentRefs overrides gatewayApi.parentRefs for this route.
+#   # All parentRefs in one route must use the same API group.
+#   parentRefs:
+#     - name: gateway
+#       namespace: gateway-infra
+#       kind: Gateway
+#       group: gateway.networking.k8s.io
+#       sectionName: http
+#
+#   # Rules may contain raw Gateway API matches/filters blocks.
+#   # BackendRefs are managed by operator.
+#   rules:
+#     - matches:
+#         - path:
+#             type: PathPrefix
+#             value: /
 #
 httpRoute: {}
 

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -38,4 +39,8 @@ func Logger(name string) logr.Logger {
 		panic("Can not initialize logger")
 	}
 	return zapr.NewLogger(logger).WithName(name)
+}
+
+func Warn(log logr.Logger, msg string, keysAndValues ...interface{}) {
+	slog.New(logr.ToSlogHandler(log)).Warn(msg, keysAndValues...)
 }
