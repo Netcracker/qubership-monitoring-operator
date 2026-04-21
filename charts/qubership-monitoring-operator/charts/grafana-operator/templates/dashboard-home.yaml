@@ -1039,7 +1039,7 @@ data:
       },
       "timezone": "",
       "title": "Home Dashboard",
-      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `home-dashboard` ) }}",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `home-dashboard`) ) %}",
       "version": 2
     }
 {{- end }}
