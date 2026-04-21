@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vmnodescrapes.operator.victoriametrics.com
@@ -61,11 +61,10 @@ spec:
                     description: Reference to the secret with value for authorization
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -74,8 +73,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -89,8 +87,7 @@ spec:
                     type: string
                 type: object
               basicAuth:
-                description: BasicAuth allow an endpoint to authenticate over basic
-                  authentication
+                description: BasicAuth allow an endpoint to authenticate over basic authentication
                 properties:
                   password:
                     description: |-
@@ -98,11 +95,10 @@ spec:
                       The secret needs to be in the same namespace as scrape object
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -111,8 +107,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -129,11 +124,10 @@ spec:
                       The secret needs to be in the same namespace as scrape object
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -142,8 +136,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -161,11 +154,10 @@ spec:
                 nullable: true
                 properties:
                   key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
+                    description: The key of the secret to select from.  Must be a valid secret key.
                     type: string
                   name:
-                    default: ""
+                    default: ''
                     description: |-
                       Name of the referent.
                       This field is effectively required, but due to backwards compatibility is
@@ -184,12 +176,10 @@ spec:
                 description: FollowRedirects controls redirects for scraping.
                 type: boolean
               honorLabels:
-                description: HonorLabels chooses the metric's labels on collisions
-                  with target labels.
+                description: HonorLabels chooses the metric's labels on collisions with target labels.
                 type: boolean
               honorTimestamps:
-                description: HonorTimestamps controls whether vmagent respects the
-                  timestamps present in scraped data.
+                description: HonorTimestamps controls whether vmagent respects the timestamps present in scraped data.
                 type: boolean
               interval:
                 description: Interval at which metrics should be scraped
@@ -198,8 +188,7 @@ spec:
                 description: The label to use to retrieve the job name from.
                 type: string
               max_scrape_size:
-                description: MaxScrapeSize defines a maximum size of scraped data
-                  for a job
+                description: MaxScrapeSize defines a maximum size of scraped data for a job
                 type: string
               metricRelabelConfigs:
                 description: MetricRelabelConfigs to apply to samples after scrapping.
@@ -209,26 +198,21 @@ spec:
                     More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
-                      description: Action to perform based on regex matching. Default
-                        is 'replace'
+                      description: Action to perform based on regex matching. Default is 'replace'
                       type: string
                     if:
-                      description: 'If represents metricsQL match expression (or list
-                        of expressions): ''{__name__=~"foo_.*"}'''
+                      description: "If represents metricsQL match expression (or list of expressions): '{__name__=~\"foo_.*\"}'"
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
                         type: string
-                      description: 'Labels is used together with Match for `action:
-                        graphite`'
+                      description: 'Labels is used together with Match for `action: graphite`'
                       type: object
                     match:
-                      description: 'Match is used together with Labels for `action:
-                        graphite`'
+                      description: 'Match is used together with Labels for `action: graphite`'
                       type: string
                     modulus:
-                      description: Modulus to take of the hash of the source label
-                        values.
+                      description: Modulus to take of the hash of the source label values.
                       format: int64
                       type: integer
                     regex:
@@ -243,14 +227,13 @@ spec:
                         regular expression matches. Regex capture groups are available. Default is '$1'
                       type: string
                     separator:
-                      description: Separator placed between concatenated source label
-                        values. default is ';'.
+                      description: Separator placed between concatenated source label values. default is ';'.
                       type: string
                     source_labels:
                       description: |-
                         UnderScoreSourceLabels - additional form of source labels source_labels
                         for compatibility with original relabel config.
-                        if set  both sourceLabels and source_labels, sourceLabels has priority.
+                        if set both sourceLabels and source_labels, sourceLabels has priority.
                         for details https://github.com/VictoriaMetrics/operator/issues/131
                       items:
                         type: string
@@ -267,7 +250,7 @@ spec:
                       description: |-
                         UnderScoreTargetLabel - additional form of target label - target_label
                         for compatibility with original relabel config.
-                        if set  both targetLabel and target_label, targetLabel has priority.
+                        if set both targetLabel and target_label, targetLabel has priority.
                         for details https://github.com/VictoriaMetrics/operator/issues/131
                       type: string
                     targetLabel:
@@ -281,8 +264,7 @@ spec:
                 description: OAuth2 defines auth configuration
                 properties:
                   client_id:
-                    description: The secret or configmap containing the OAuth2 client
-                      id
+                    description: The secret or configmap containing the OAuth2 client id
                     properties:
                       configMap:
                         description: ConfigMap containing data to use for the targets.
@@ -291,7 +273,7 @@ spec:
                             description: The key to select.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -300,8 +282,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the ConfigMap or its key
-                              must be defined
+                            description: Specify whether the ConfigMap or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -311,11 +292,10 @@ spec:
                         description: Secret containing data to use for the targets.
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -324,8 +304,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -336,11 +315,10 @@ spec:
                     description: The secret containing the OAuth2 client secret
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -349,8 +327,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -403,8 +380,7 @@ spec:
                 description: Name of the port exposed at Node.
                 type: string
               proxyURL:
-                description: ProxyURL eg http://proxyserver:2195 Directs scrapes to
-                  proxy through this endpoint.
+                description: ProxyURL eg http://proxyserver:2195 Directs scrapes to proxy through this endpoint.
                 type: string
               relabelConfigs:
                 description: RelabelConfigs to apply to samples during service discovery.
@@ -414,26 +390,21 @@ spec:
                     More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                   properties:
                     action:
-                      description: Action to perform based on regex matching. Default
-                        is 'replace'
+                      description: Action to perform based on regex matching. Default is 'replace'
                       type: string
                     if:
-                      description: 'If represents metricsQL match expression (or list
-                        of expressions): ''{__name__=~"foo_.*"}'''
+                      description: "If represents metricsQL match expression (or list of expressions): '{__name__=~\"foo_.*\"}'"
                       x-kubernetes-preserve-unknown-fields: true
                     labels:
                       additionalProperties:
                         type: string
-                      description: 'Labels is used together with Match for `action:
-                        graphite`'
+                      description: 'Labels is used together with Match for `action: graphite`'
                       type: object
                     match:
-                      description: 'Match is used together with Labels for `action:
-                        graphite`'
+                      description: 'Match is used together with Labels for `action: graphite`'
                       type: string
                     modulus:
-                      description: Modulus to take of the hash of the source label
-                        values.
+                      description: Modulus to take of the hash of the source label values.
                       format: int64
                       type: integer
                     regex:
@@ -448,14 +419,13 @@ spec:
                         regular expression matches. Regex capture groups are available. Default is '$1'
                       type: string
                     separator:
-                      description: Separator placed between concatenated source label
-                        values. default is ';'.
+                      description: Separator placed between concatenated source label values. default is ';'.
                       type: string
                     source_labels:
                       description: |-
                         UnderScoreSourceLabels - additional form of source labels source_labels
                         for compatibility with original relabel config.
-                        if set  both sourceLabels and source_labels, sourceLabels has priority.
+                        if set both sourceLabels and source_labels, sourceLabels has priority.
                         for details https://github.com/VictoriaMetrics/operator/issues/131
                       items:
                         type: string
@@ -472,7 +442,7 @@ spec:
                       description: |-
                         UnderScoreTargetLabel - additional form of target label - target_label
                         for compatibility with original relabel config.
-                        if set  both targetLabel and target_label, targetLabel has priority.
+                        if set both targetLabel and target_label, targetLabel has priority.
                         for details https://github.com/VictoriaMetrics/operator/issues/131
                       type: string
                     targetLabel:
@@ -483,8 +453,7 @@ spec:
                   type: object
                 type: array
               sampleLimit:
-                description: SampleLimit defines per-scrape limit on number of scraped
-                  samples that will be accepted.
+                description: SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
                 type: integer
               scheme:
                 description: HTTP scheme to use for scraping.
@@ -509,16 +478,14 @@ spec:
                 description: Selector to select kubernetes Nodes.
                 properties:
                   matchExpressions:
-                    description: matchExpressions is a list of label selector requirements.
-                      The requirements are ANDed.
+                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                     items:
                       description: |-
                         A label selector requirement is a selector that contains values, a key, and an operator that
                         relates the key and values.
                       properties:
                         key:
-                          description: key is the label key that the selector applies
-                            to.
+                          description: key is the label key that the selector applies to.
                           type: string
                         operator:
                           description: |-
@@ -557,8 +524,7 @@ spec:
                   a single target can expose during all the scrapes on the time window of 24h.
                 type: integer
               targetLabels:
-                description: TargetLabels transfers labels on the Kubernetes Node
-                  onto the target.
+                description: TargetLabels transfers labels on the Kubernetes Node onto the target.
                 items:
                   type: string
                 type: array
@@ -575,7 +541,7 @@ spec:
                             description: The key to select.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -584,8 +550,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the ConfigMap or its key
-                              must be defined
+                            description: Specify whether the ConfigMap or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -595,11 +560,10 @@ spec:
                         description: Secret containing data to use for the targets.
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -608,8 +572,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -617,8 +580,7 @@ spec:
                         x-kubernetes-map-type: atomic
                     type: object
                   caFile:
-                    description: Path to the CA cert in the container to use for the
-                      targets.
+                    description: Path to the CA cert in the container to use for the targets.
                     type: string
                   cert:
                     description: Struct containing the client cert file for the targets.
@@ -630,7 +592,7 @@ spec:
                             description: The key to select.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -639,8 +601,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the ConfigMap or its key
-                              must be defined
+                            description: Specify whether the ConfigMap or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -650,11 +611,10 @@ spec:
                         description: Secret containing data to use for the targets.
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -663,8 +623,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -672,25 +631,22 @@ spec:
                         x-kubernetes-map-type: atomic
                     type: object
                   certFile:
-                    description: Path to the client cert file in the container for
-                      the targets.
+                    description: Path to the client cert file in the container for the targets.
                     type: string
                   insecureSkipVerify:
                     description: Disable target certificate validation.
                     type: boolean
                   keyFile:
-                    description: Path to the client key file in the container for
-                      the targets.
+                    description: Path to the client key file in the container for the targets.
                     type: string
                   keySecret:
                     description: Secret containing the client key file for the targets.
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -699,8 +655,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -711,8 +666,7 @@ spec:
                     type: string
                 type: object
               vm_scrape_params:
-                description: VMScrapeParams defines VictoriaMetrics specific scrape
-                  parameters
+                description: VMScrapeParams defines VictoriaMetrics specific scrape parameters
                 properties:
                   disable_compression:
                     description: DisableCompression
@@ -742,8 +696,7 @@ spec:
                       See feature description https://docs.victoriametrics.com/victoriametrics/vmagent/#scraping-targets-via-a-proxy
                     properties:
                       basic_auth:
-                        description: BasicAuth allow an endpoint to authenticate over
-                          basic authentication
+                        description: BasicAuth allow an endpoint to authenticate over basic authentication
                         properties:
                           password:
                             description: |-
@@ -751,11 +704,10 @@ spec:
                               The secret needs to be in the same namespace as scrape object
                             properties:
                               key:
-                                description: The key of the secret to select from.  Must
-                                  be a valid secret key.
+                                description: The key of the secret to select from.  Must be a valid secret key.
                                 type: string
                               name:
-                                default: ""
+                                default: ''
                                 description: |-
                                   Name of the referent.
                                   This field is effectively required, but due to backwards compatibility is
@@ -764,8 +716,7 @@ spec:
                                   More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                 type: string
                               optional:
-                                description: Specify whether the Secret or its key
-                                  must be defined
+                                description: Specify whether the Secret or its key must be defined
                                 type: boolean
                             required:
                             - key
@@ -782,11 +733,10 @@ spec:
                               The secret needs to be in the same namespace as scrape object
                             properties:
                               key:
-                                description: The key of the secret to select from.  Must
-                                  be a valid secret key.
+                                description: The key of the secret to select from.  Must be a valid secret key.
                                 type: string
                               name:
-                                default: ""
+                                default: ''
                                 description: |-
                                   Name of the referent.
                                   This field is effectively required, but due to backwards compatibility is
@@ -795,8 +745,7 @@ spec:
                                   More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                 type: string
                               optional:
-                                description: Specify whether the Secret or its key
-                                  must be defined
+                                description: Specify whether the Secret or its key must be defined
                                 type: boolean
                             required:
                             - key
@@ -807,11 +756,10 @@ spec:
                         description: SecretKeySelector selects a key of a Secret.
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -820,8 +768,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -844,14 +791,12 @@ spec:
             description: ScrapeObjectStatus defines the observed state of ScrapeObjects
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -887,8 +832,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:

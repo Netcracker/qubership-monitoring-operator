@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vmrules.operator.victoriametrics.com
@@ -54,8 +54,7 @@ spec:
               groups:
                 description: Groups list of group rules
                 items:
-                  description: RuleGroup is a list of sequentially evaluated recording
-                    and alerting rules.
+                  description: RuleGroup is a list of sequentially evaluated recording and alerting rules.
                   properties:
                     concurrency:
                       description: Concurrency defines how many rules execute at once.
@@ -78,15 +77,6 @@ spec:
                         Optional
                         Group will be evaluated at the exact offset in the range of [0...interval].
                       type: string
-                    extra_filter_labels:
-                      additionalProperties:
-                        type: string
-                      description: |-
-                        ExtraFilterLabels optional list of label filters applied to every rule's
-                        request within a group. Is compatible only with VM datasource.
-                        See more details [here](https://docs.victoriametrics.com/victoriametrics/#prometheus-querying-api-enhancements)
-                        Deprecated: use params instead
-                      type: object
                     headers:
                       description: |-
                         Headers contains optional HTTP headers added to each rule request
@@ -134,8 +124,7 @@ spec:
                         items:
                           type: string
                         type: array
-                      description: Params optional HTTP URL parameters added to each
-                        rule request
+                      description: Params optional HTTP URL parameters added to each rule request
                       type: object
                     rules:
                       description: Rules list of alert rules
@@ -156,8 +145,7 @@ spec:
                               it useful for tracking
                             type: boolean
                           expr:
-                            description: Expr is query, that will be evaluated at
-                              dataSource
+                            description: Expr is query, that will be evaluated at dataSource
                             type: string
                           for:
                             description: |-
@@ -176,8 +164,7 @@ spec:
                             description: Labels will be added to rule configuration
                             type: object
                           record:
-                            description: Record represents a query, that will be recorded
-                              to dataSource
+                            description: Record represents a query, that will be recorded to dataSource
                             type: string
                           update_entries_limit:
                             description: |-
@@ -208,14 +195,12 @@ spec:
             description: VMRuleStatus defines the observed state of VMRule
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -251,8 +236,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:

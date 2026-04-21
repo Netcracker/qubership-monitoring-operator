@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vmalerts.operator.victoriametrics.com
@@ -21,7 +21,7 @@ spec:
       jsonPath: .status.updateStatus
       name: Status
       type: string
-    - description: The desired replicas number of Alertmanagers
+    - description: The desired replicas number of VMAlerts
       jsonPath: .spec.replicaCount
       name: ReplicaCount
       type: integer
@@ -31,8 +31,7 @@ spec:
     name: v1beta1
     schema:
       openAPIV3Schema:
-        description: VMAlert  executes a list of given alerting or recording rules
-          against configured address.
+        description: VMAlert  executes a list of given alerting or recording rules against configured address.
         properties:
           apiVersion:
             description: |-
@@ -73,11 +72,10 @@ spec:
                   available since v0.57.0 version
                 properties:
                   key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
+                    description: The key of the secret to select from.  Must be a valid secret key.
                     type: string
                   name:
-                    default: ""
+                    default: ''
                     description: |-
                       Name of the referent.
                       This field is effectively required, but due to backwards compatibility is
@@ -97,11 +95,13 @@ spec:
                   type: string
                 description: |-
                   ConfigReloaderExtraArgs that will be passed to  VMAuths config-reloader container
-                  for example resyncInterval: "30s"
+                  for example resync-interval: "30s"
                 type: object
+              configReloaderImage:
+                description: ConfigReloaderImage defines image:tag for config-reloader container
+                type: string
               configReloaderImageTag:
-                description: ConfigReloaderImageTag defines image:tag for config-reloader
-                  container
+                description: ConfigReloaderImageTag defines image:tag for config-reloader container
                 type: string
               configReloaderResources:
                 description: |-
@@ -169,20 +169,17 @@ spec:
                   Containers property allows to inject additions sidecars or to patch existing containers.
                   It can be useful for proxies, backup, etc.
                 items:
-                  description: A single application container that you want to run
-                    within a pod.
+                  description: A single application container that you want to run within a pod.
                   required:
                   - name
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
               datasource:
-                description: Datasource Victoria Metrics or VMSelect url. Required
-                  parameter. e.g. http://127.0.0.1:8428
+                description: Datasource Victoria Metrics or VMSelect url. Required parameter. e.g. http://127.0.0.1:8428
                 properties:
                   basicAuth:
-                    description: BasicAuth allow an endpoint to authenticate over
-                      basic authentication
+                    description: BasicAuth allow an endpoint to authenticate over basic authentication
                     properties:
                       password:
                         description: |-
@@ -190,11 +187,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -203,8 +199,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -221,11 +216,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -234,8 +228,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -249,11 +242,10 @@ spec:
                     description: Optional bearer auth token to use for -remoteWrite.url
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -262,8 +254,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -291,8 +282,7 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   url:
-                    description: Victoria Metrics or VMSelect url. Required parameter.
-                      E.g. http://127.0.0.1:8428
+                    description: Victoria Metrics or VMSelect url. Required parameter. E.g. http://127.0.0.1:8428
                     type: string
                 required:
                 - url
@@ -335,8 +325,7 @@ spec:
                       Duplicated entries will be removed. Resolution options given in Options
                       will override those that appear in the base DNSPolicy.
                     items:
-                      description: PodDNSConfigOption defines DNS resolver options
-                        of a pod.
+                      description: PodDNSConfigOption defines DNS resolver options of a pod.
                       properties:
                         name:
                           description: |-
@@ -369,15 +358,13 @@ spec:
                   being created.
                 type: string
               evaluationInterval:
-                description: EvaluationInterval defines how often to evaluate rules
-                  by default
+                description: EvaluationInterval defines how often to evaluate rules by default
                 pattern: '[0-9]+(ms|s|m|h)'
                 type: string
               externalLabels:
                 additionalProperties:
                   type: string
-                description: 'ExternalLabels in the form ''name: value'' to add to
-                  all generated recording rules and alerts.'
+                description: "ExternalLabels in the form 'name: value' to add to all generated recording rules and alerts."
                 type: object
               extraArgs:
                 additionalProperties:
@@ -389,8 +376,7 @@ spec:
               extraEnvs:
                 description: ExtraEnvs that will be passed to the application container
                 items:
-                  description: EnvVar represents an environment variable present in
-                    a Container.
+                  description: EnvVar represents an environment variable present in a Container.
                   properties:
                     name:
                       description: |-
@@ -419,14 +405,13 @@ spec:
                   ExtraEnvsFrom defines source of env variables for the application container
                   could either be secret or configmap
                 items:
-                  description: EnvFromSource represents the source of a set of ConfigMaps
-                    or Secrets
+                  description: EnvFromSource represents the source of a set of ConfigMaps or Secrets
                   properties:
                     configMapRef:
                       description: The ConfigMap to select from
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -448,7 +433,7 @@ spec:
                       description: The Secret to select from
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -511,8 +496,7 @@ spec:
                   type: object
                 type: array
               hostNetwork:
-                description: HostNetwork controls whether the pod may use the node
-                  network namespace
+                description: HostNetwork controls whether the pod may use the node network namespace
                 type: boolean
               image:
                 description: |-
@@ -523,8 +507,7 @@ spec:
                     description: PullPolicy describes how to pull docker image
                     type: string
                   repository:
-                    description: Repository contains name of docker image + it's repository
-                      if needed
+                    description: Repository contains name of docker image + it's repository if needed
                     type: string
                   tag:
                     description: Tag contains desired docker image version
@@ -541,7 +524,7 @@ spec:
                     referenced object inside the same namespace.
                   properties:
                     name:
-                      default: ""
+                      default: ''
                       description: |-
                         Name of the referent.
                         This field is effectively required, but due to backwards compatibility is
@@ -558,8 +541,7 @@ spec:
                   Any errors during the execution of an initContainer will lead to a restart of the Pod.
                   More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
                 items:
-                  description: A single application container that you want to run
-                    within a pod.
+                  description: A single application container that you want to run within a pod.
                   required:
                   - name
                   type: object
@@ -580,15 +562,13 @@ spec:
                       To request a trial license, [go to](https://victoriametrics.com/products/enterprise/trial)
                     type: string
                   keyRef:
-                    description: KeyRef is reference to secret with license key for
-                      enterprise features.
+                    description: KeyRef is reference to secret with license key for enterprise features.
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -597,20 +577,18 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
                     type: object
                     x-kubernetes-map-type: atomic
                   reloadInterval:
-                    description: Interval to be used for checking for license key
-                      changes. Note that this is only applicable when using KeyRef.
+                    description: Interval to be used for checking for license key changes. Note that this is only applicable when using KeyRef.
                     type: string
                 type: object
               livenessProbe:
-                description: LivenessProbe that will be added CRD pod
+                description: LivenessProbe that will be added to CR pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               logFormat:
@@ -663,8 +641,7 @@ spec:
               nodeSelector:
                 additionalProperties:
                   type: string
-                description: NodeSelector Define which Nodes the Pods are scheduled
-                  on.
+                description: NodeSelector Define which Nodes the Pods are scheduled on.
                 type: object
               notifier:
                 description: |-
@@ -673,8 +650,7 @@ spec:
                   only one of notifier options could be chosen: notifierConfigRef or notifiers + notifier
                 properties:
                   basicAuth:
-                    description: BasicAuth allow an endpoint to authenticate over
-                      basic authentication
+                    description: BasicAuth allow an endpoint to authenticate over basic authentication
                     properties:
                       password:
                         description: |-
@@ -682,11 +658,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -695,8 +670,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -713,11 +687,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -726,8 +699,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -741,11 +713,10 @@ spec:
                     description: Optional bearer auth token to use for -remoteWrite.url
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -754,8 +725,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -791,16 +761,14 @@ spec:
                           label selector matches no objects.
                         properties:
                           matchExpressions:
-                            description: matchExpressions is a list of label selector
-                              requirements. The requirements are ANDed.
+                            description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                             items:
                               description: |-
                                 A label selector requirement is a selector that contains values, a key, and an operator that
                                 relates the key and values.
                               properties:
                                 key:
-                                  description: key is the label key that the selector
-                                    applies to.
+                                  description: key is the label key that the selector applies to.
                                   type: string
                                 operator:
                                   description: |-
@@ -864,11 +832,10 @@ spec:
                   only one of notifier options could be chosen: notifierConfigRef or notifiers + notifier
                 properties:
                   key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
+                    description: The key of the secret to select from.  Must be a valid secret key.
                     type: string
                   name:
-                    default: ""
+                    default: ''
                     description: |-
                       Name of the referent.
                       This field is effectively required, but due to backwards compatibility is
@@ -889,12 +856,10 @@ spec:
                   If specified both notifier and notifiers, notifier will be added as last element to notifiers.
                   only one of notifier options could be chosen: notifierConfigRef or notifiers + notifier
                 items:
-                  description: VMAlertNotifierSpec defines the notifier url for sending
-                    information about alerts
+                  description: VMAlertNotifierSpec defines the notifier url for sending information about alerts
                   properties:
                     basicAuth:
-                      description: BasicAuth allow an endpoint to authenticate over
-                        basic authentication
+                      description: BasicAuth allow an endpoint to authenticate over basic authentication
                       properties:
                         password:
                           description: |-
@@ -902,11 +867,10 @@ spec:
                             The secret needs to be in the same namespace as scrape object
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must
-                                be a valid secret key.
+                              description: The key of the secret to select from.  Must be a valid secret key.
                               type: string
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -915,8 +879,7 @@ spec:
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must
-                                be defined
+                              description: Specify whether the Secret or its key must be defined
                               type: boolean
                           required:
                           - key
@@ -933,11 +896,10 @@ spec:
                             The secret needs to be in the same namespace as scrape object
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must
-                                be a valid secret key.
+                              description: The key of the secret to select from.  Must be a valid secret key.
                               type: string
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -946,8 +908,7 @@ spec:
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must
-                                be defined
+                              description: Specify whether the Secret or its key must be defined
                               type: boolean
                           required:
                           - key
@@ -961,11 +922,10 @@ spec:
                       description: Optional bearer auth token to use for -remoteWrite.url
                       properties:
                         key:
-                          description: The key of the secret to select from.  Must
-                            be a valid secret key.
+                          description: The key of the secret to select from.  Must be a valid secret key.
                           type: string
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -974,8 +934,7 @@ spec:
                             More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                           type: string
                         optional:
-                          description: Specify whether the Secret or its key must
-                            be defined
+                          description: Specify whether the Secret or its key must be defined
                           type: boolean
                       required:
                       - key
@@ -1011,16 +970,14 @@ spec:
                             label selector matches no objects.
                           properties:
                             matchExpressions:
-                              description: matchExpressions is a list of label selector
-                                requirements. The requirements are ANDed.
+                              description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                               items:
                                 description: |-
                                   A label selector requirement is a selector that contains values, a key, and an operator that
                                   relates the key and values.
                                 properties:
                                   key:
-                                    description: key is the label key that the selector
-                                      applies to.
+                                    description: key is the label key that the selector applies to.
                                     type: string
                                   operator:
                                     description: |-
@@ -1128,8 +1085,7 @@ spec:
                     type: string
                 type: object
               podMetadata:
-                description: PodMetadata configures Labels and Annotations which are
-                  propagated to the VMAlert pods.
+                description: PodMetadata configures Labels and Annotations which are propagated to the VMAlert pods.
                 properties:
                   annotations:
                     additionalProperties:
@@ -1171,15 +1127,14 @@ spec:
                   description: PodReadinessGate contains the reference to a pod condition
                   properties:
                     conditionType:
-                      description: ConditionType refers to a condition in the pod's
-                        condition list with matching type.
+                      description: ConditionType refers to a condition in the pod's condition list with matching type.
                       type: string
                   required:
                   - conditionType
                   type: object
                 type: array
               readinessProbe:
-                description: ReadinessProbe that will be added CRD pod
+                description: ReadinessProbe that will be added to CR pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               remoteRead:
@@ -1191,8 +1146,7 @@ spec:
                   E.g. http://127.0.0.1:8428
                 properties:
                   basicAuth:
-                    description: BasicAuth allow an endpoint to authenticate over
-                      basic authentication
+                    description: BasicAuth allow an endpoint to authenticate over basic authentication
                     properties:
                       password:
                         description: |-
@@ -1200,11 +1154,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -1213,8 +1166,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -1231,11 +1183,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -1244,8 +1195,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -1259,11 +1209,10 @@ spec:
                     description: Optional bearer auth token to use for -remoteWrite.url
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -1272,8 +1221,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -1321,8 +1269,7 @@ spec:
                   E.g. http://127.0.0.1:8428
                 properties:
                   basicAuth:
-                    description: BasicAuth allow an endpoint to authenticate over
-                      basic authentication
+                    description: BasicAuth allow an endpoint to authenticate over basic authentication
                     properties:
                       password:
                         description: |-
@@ -1330,11 +1277,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -1343,8 +1289,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -1361,11 +1306,10 @@ spec:
                           The secret needs to be in the same namespace as scrape object
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -1374,8 +1318,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -1389,11 +1332,10 @@ spec:
                     description: Optional bearer auth token to use for -remoteWrite.url
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -1402,21 +1344,18 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
                     type: object
                     x-kubernetes-map-type: atomic
                   concurrency:
-                    description: Defines number of readers that concurrently write
-                      into remote storage (default 1)
+                    description: Defines number of readers that concurrently write into remote storage (default 1)
                     format: int32
                     type: integer
                   flushInterval:
-                    description: Defines interval of flushes to remote write endpoint
-                      (default 5s)
+                    description: Defines interval of flushes to remote write endpoint (default 5s)
                     pattern: '[0-9]+(ms|s|m|h)'
                     type: string
                   headers:
@@ -1430,13 +1369,11 @@ spec:
                       type: string
                     type: array
                   maxBatchSize:
-                    description: Defines defines max number of timeseries to be flushed
-                      at once (default 1000)
+                    description: Defines defines max number of timeseries to be flushed at once (default 1000)
                     format: int32
                     type: integer
                   maxQueueSize:
-                    description: Defines the max number of pending datapoints to remote
-                      write endpoint (default 100000)
+                    description: Defines the max number of pending datapoints to remote write endpoint (default 100000)
                     format: int32
                     type: integer
                   oauth2:
@@ -1574,16 +1511,14 @@ spec:
                   NamespaceSelector nil - only objects at VMAlert namespace.
                 properties:
                   matchExpressions:
-                    description: matchExpressions is a list of label selector requirements.
-                      The requirements are ANDed.
+                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                     items:
                       description: |-
                         A label selector requirement is a selector that contains values, a key, and an operator that
                         relates the key and values.
                       properties:
                         key:
-                          description: key is the label key that the selector applies
-                            to.
+                          description: key is the label key that the selector applies to.
                           type: string
                         operator:
                           description: |-
@@ -1637,16 +1572,14 @@ spec:
                   NamespaceSelector nil - only objects at VMAlert namespace.
                 properties:
                   matchExpressions:
-                    description: matchExpressions is a list of label selector requirements.
-                      The requirements are ANDed.
+                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                     items:
                       description: |-
                         A label selector requirement is a selector that contains values, a key, and an operator that
                         relates the key and values.
                       properties:
                         key:
-                          description: key is the label key that the selector applies
-                            to.
+                          description: key is the label key that the selector applies to.
                           type: string
                         operator:
                           description: |-
@@ -1709,12 +1642,10 @@ spec:
                   with selectAllByDefault: false - selects nothing
                 type: boolean
               serviceAccountName:
-                description: ServiceAccountName is the name of the ServiceAccount
-                  to use to run the pods
+                description: ServiceAccountName is the name of the ServiceAccount to use to run the pods
                 type: string
               serviceScrapeSpec:
-                description: ServiceScrapeSpec that will be added to vmalert VMServiceScrape
-                  spec
+                description: ServiceScrapeSpec that will be added to vmalert VMServiceScrape spec
                 required:
                 - endpoints
                 type: object
@@ -1723,8 +1654,7 @@ spec:
                 description: ServiceSpec that will be added to vmalert service spec
                 properties:
                   metadata:
-                    description: EmbeddedObjectMetadata defines objectMeta for additional
-                      service.
+                    description: EmbeddedObjectMetadata defines objectMeta for additional service.
                     properties:
                       annotations:
                         additionalProperties:
@@ -1769,12 +1699,11 @@ spec:
                 - spec
                 type: object
               startupProbe:
-                description: StartupProbe that will be added to CRD pod
+                description: StartupProbe that will be added to CR pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               terminationGracePeriodSeconds:
-                description: TerminationGracePeriodSeconds period for container graceful
-                  termination
+                description: TerminationGracePeriodSeconds period for container graceful termination
                 format: int64
                 type: integer
               tolerations:
@@ -1823,8 +1752,7 @@ spec:
                   such as regions, zones, nodes, and other user-defined topology domains
                   https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
                 items:
-                  description: TopologySpreadConstraint specifies how to spread matching
-                    pods among the given topology.
+                  description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
                   required:
                   - maxSkew
                   - topologyKey
@@ -1855,14 +1783,14 @@ spec:
                   UseVMConfigReloader replaces prometheus-like config-reloader
                   with vm one. It uses secrets watch instead of file watch
                   which greatly increases speed of config updates
+                  Removed since v0.67.0: this property is ignored and no longer needed
                 type: boolean
               volumeMounts:
                 description: |-
                   VolumeMounts allows configuration of additional VolumeMounts on the output Deployment/StatefulSet definition.
                   VolumeMounts specified will be appended to other VolumeMounts in the Application container
                 items:
-                  description: VolumeMount describes a mounting of a Volume within
-                    a container.
+                  description: VolumeMount describes a mounting of a Volume within a container.
                   properties:
                     mountPath:
                       description: |-
@@ -1928,8 +1856,7 @@ spec:
                   Volumes specified will be appended to other volumes that are generated.
                   / +optional
                 items:
-                  description: Volume represents a named volume in a pod that may
-                    be accessed by any container in the pod.
+                  description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
                   required:
                   - name
                   type: object
@@ -1942,14 +1869,12 @@ spec:
             description: VMAlertStatus defines the observed state of VMAlert
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -1985,8 +1910,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:
