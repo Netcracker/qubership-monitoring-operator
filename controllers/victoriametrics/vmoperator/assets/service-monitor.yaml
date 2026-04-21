@@ -1,12 +1,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
+  name: victoriametrics-operator
   labels:
-    app: vmoperator
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/component: victoriametrics-operator
     app.kubernetes.io/managed-by: monitoring-operator
-  name: vmoperator
+    app.kubernetes.io/part-of: monitoring
 spec:
   endpoints:
   - interval: 30s
