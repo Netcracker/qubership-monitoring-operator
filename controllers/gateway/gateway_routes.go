@@ -286,14 +286,7 @@ func buildParentRefs(routeParentRefs, defaultParentRefs []monv1.GatewayParentRef
 func buildHTTPRouteRules(cfg GatewayRouteConfig, rules []monv1.GatewayHTTPRouteRule) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(rules))
 	for ruleIdx, rule := range rules {
-		item := map[string]interface{}{
-			"backendRefs": []interface{}{
-				map[string]interface{}{
-					"name": cfg.ServiceName,
-					"port": cfg.ServicePort,
-				},
-			},
-		}
+		item := map[string]interface{}{}
 		matches, err := rawJSONSliceToInterfaces(rule.Matches)
 		if err != nil {
 			return nil, fmt.Errorf("invalid HTTPRoute rule %d matches: %w", ruleIdx, err)
@@ -308,9 +301,35 @@ func buildHTTPRouteRules(cfg GatewayRouteConfig, rules []monv1.GatewayHTTPRouteR
 		if len(filters) > 0 {
 			item["filters"] = filters
 		}
+		// Omit backendRefs when the rule has a terminal filter (RequestRedirect or URLRewrite)
+		// that replaces the backend destination — adding backendRefs alongside these filters
+		// produces an invalid HTTPRoute that Gateway implementations reject.
+		if !hasTerminalFilter(filters) {
+			item["backendRefs"] = []interface{}{
+				map[string]interface{}{
+					"name": cfg.ServiceName,
+					"port": cfg.ServicePort,
+				},
+			}
+		}
 		result = append(result, item)
 	}
 	return result, nil
+}
+
+// hasTerminalFilter reports whether any filter in the list is a RequestRedirect or URLRewrite,
+// both of which replace the request destination and must not be combined with backendRefs.
+func hasTerminalFilter(filters []interface{}) bool {
+	for _, f := range filters {
+		m, ok := f.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if t, ok := m["type"].(string); ok && (t == "RequestRedirect" || t == "URLRewrite") {
+			return true
+		}
+	}
+	return false
 }
 
 func rawJSONSliceToInterfaces(items []monv1.GatewayJSON) ([]interface{}, error) {

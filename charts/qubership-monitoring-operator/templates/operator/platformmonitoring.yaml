@@ -44,7 +44,7 @@ spec:
   oAuthProxy:
     image: {{ template "oauth2proxy.image" . }}
   {{- end }}
-  {{- if .Values.gatewayApi }}
+  {{- if or .Values.gatewayApi.addIngressIgnoreAnnotation .Values.gatewayApi.parentRefs }}
   gatewayApi:
     addIngressIgnoreAnnotation: {{ .Values.gatewayApi.addIngressIgnoreAnnotation | default false }}
     {{- if .Values.gatewayApi.parentRefs }}

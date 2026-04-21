@@ -88,11 +88,10 @@ func (r *VmClusterReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitor
 					}
 				}
 			}
+			// VmCluster does not support per-component HTTPRoute (the field is excluded from the API).
+			// Passing ComponentRoute=nil with no ParentRefs lets ReconcileGatewayRoutes short-circuit
+			// immediately, avoiding unnecessary API-discovery calls on every reconcile.
 			ingressHost := ""
-			parentRefs := []monv1.GatewayParentRef(nil)
-			if cr.Spec.GatewayAPI != nil {
-				parentRefs = cr.Spec.GatewayAPI.ParentRefs
-			}
 			if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress != nil {
 				ingressHost = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host
 			}
@@ -103,7 +102,6 @@ func (r *VmClusterReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitor
 				ServiceName: utils.VmSelectServiceName,
 				ServicePort: int32(utils.VmSelectServicePort),
 				Labels:      map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmSelectServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)},
-				ParentRefs:  parentRefs,
 			}); err != nil {
 				return err
 			}

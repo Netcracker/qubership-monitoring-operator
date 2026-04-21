@@ -101,12 +101,14 @@ Supported `httpRoute` fields:
 | ----- | ----------- |
 | `install` | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`. |
 | `hostnames` | Overrides generated hostnames. If omitted, the component ingress host is used. |
-| `parentRefs` | Overrides `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
+| `parentRefs` | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
 | `rules[].matches` | Raw Gateway API HTTPRoute match blocks. |
 | `rules[].filters` | Raw Gateway API HTTPRoute filter blocks. |
 
 `backendRefs` are managed by the operator and cannot be configured through `httpRoute.rules`.
-When custom `rules` are set, the operator still injects the component backend service and port into each rule.
+When custom `rules` are set, the operator injects the component backend service and port into each rule,
+**unless** the rule contains a `RequestRedirect` or `URLRewrite` filter — those filters replace the
+backend destination, so `backendRefs` is omitted for those rules.
 
 The operator logs HTTPRoute status warnings when the Gateway controller reports unhealthy parent status,
 including empty `status.parents`, `Accepted=False`, or `ResolvedRefs=False`. These warnings do not fail

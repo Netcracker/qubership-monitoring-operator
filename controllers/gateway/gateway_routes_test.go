@@ -217,7 +217,6 @@ func TestBuildHTTPRouteRules(t *testing.T) {
 	rules := []monv1.GatewayHTTPRouteRule{
 		{
 			Matches: []monv1.GatewayJSON{{Raw: []byte(`{"path":{"type":"PathPrefix","value":"/a"}}`)}},
-			Filters: []monv1.GatewayJSON{{Raw: []byte(`{"type":"URLRewrite"}`)}},
 		},
 	}
 
@@ -240,8 +239,43 @@ func TestBuildHTTPRouteRules(t *testing.T) {
 	if _, ok := rule["matches"]; !ok {
 		t.Fatalf("expected matches to be set")
 	}
-	if _, ok := rule["filters"]; !ok {
-		t.Fatalf("expected filters to be set")
+}
+
+func TestBuildHTTPRouteRulesOmitsBackendRefsForTerminalFilters(t *testing.T) {
+	t.Parallel()
+
+	cfg := GatewayRouteConfig{
+		ServiceName: "svc",
+		ServicePort: 8080,
+	}
+
+	for _, filterType := range []string{"RequestRedirect", "URLRewrite"} {
+		t.Run(filterType, func(t *testing.T) {
+			t.Parallel()
+			rules := []monv1.GatewayHTTPRouteRule{
+				{
+					Matches: []monv1.GatewayJSON{{Raw: []byte(`{"path":{"type":"PathPrefix","value":"/a"}}`)}},
+					Filters: []monv1.GatewayJSON{{Raw: []byte(`{"type":"` + filterType + `"}`)}},
+				},
+			}
+			got, err := buildHTTPRouteRules(cfg, rules)
+			if err != nil {
+				t.Fatalf("expected valid rules, got %v", err)
+			}
+			if len(got) != 1 {
+				t.Fatalf("expected 1 rule, got=%d", len(got))
+			}
+			rule := got[0].(map[string]interface{})
+			if _, ok := rule["backendRefs"]; ok {
+				t.Fatalf("expected backendRefs to be absent for %s filter, but it was present", filterType)
+			}
+			if _, ok := rule["matches"]; !ok {
+				t.Fatalf("expected matches to be set")
+			}
+			if _, ok := rule["filters"]; !ok {
+				t.Fatalf("expected filters to be set")
+			}
+		})
 	}
 }
 
