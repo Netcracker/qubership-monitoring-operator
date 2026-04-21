@@ -136,14 +136,62 @@ affinity: {}
 #     enabled: true
 #     timeout: 30s
 
+# ServiceMonitor for scraping self metrics from `/metrics`.
 serviceMonitor:
   enabled: true
   scheme: http
+  interval: 30s
+  labels: {}
+  scrapeTimeout: 30s
+
+# Probe resources for active checks via `/probe`.
+# These targets replace the older pattern of generating per-target ServiceMonitors.
+probes:
+  enabled: true
+  scheme: http
+  path: /probe
   defaults:
+    additionalMetricsRelabels: []
     interval: 30s
     labels: {}
     scrapeTimeout: 30s
+  targets:
+    # Example target for an external HTTPS endpoint.
+    # Uncomment and adjust as needed.
+    # - name: https-external-google
+    #   url: google.com:443
+    #   module: https-external
+    #   interval: 60s
 
+    # Kubernetes API over HTTPS; certificate chain is not verified (insecure_skip_verify in module).
+    - name: https-self-kubernetes-apiserver
+      url: kubernetes.default.svc:443
+      module: https-selfsigned
+      interval: 60s
+
+    # Same API endpoint as above, but TLS is verified using the pod service account CA (in-cluster trust).
+    - name: https-internal-kubernetes-apiserver
+      url: kubernetes.default.svc:443
+      module: https-internal
+      interval: 60s
+
+    # Scans TLS secrets across namespaces; url is namespace/secret pattern (*/* = all namespaces and secrets).
+    - name: secret-tls-all-namespaces
+      # url: <namespace>/<secret_name>
+      url: "*/*"
+      module: kubernetes
+      interval: 30s
+
+    # Reads certificate material from a file on the exporter pod (host path mounted as /etc/ssl/cert.pem).
+    - name: file-cert-pem
+      url: /etc/ssl/cert.pem
+      module: file
+      interval: 30s
+
+    # - name: kubeconfig-cert
+    #   url: /etc/rancher/k3s/k3s.yaml
+    #   module: kubeconfig
+    #   interval: 300s
 prometheusRule:
   enabled: false
   # namespace: monitoring
