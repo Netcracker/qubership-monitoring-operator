@@ -1,0 +1,86 @@
+{{- if .Values.install }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ splitList ":" (include "ssl-exporter.image" .) | last }}
+    app.kubernetes.io/technology: go
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ splitList ":" (include "ssl-exporter.image" .) | last }}
+        app.kubernetes.io/technology: go
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ssl-exporter.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.name }}
+          image: {{ include "ssl-exporter.image" . }}
+          imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
+          args:
+            - --config.file=/etc/ssl-exporter/ssl-exporter.yaml
+          ports:
+            - name: {{ .Values.service.name | default "http" }}
+              containerPort: {{ .Values.service.targetPort | default 9219 }}
+              protocol: {{ .Values.service.protocol | default "TCP" }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/ssl-exporter
+              readOnly: true
+          {{- if .Values.additionalHostPathVolumes }}
+            {{- range .Values.additionalHostPathVolumes }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .volumePath }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.name }}-config
+      {{- if .Values.additionalHostPathVolumes }}
+        {{- range .Values.additionalHostPathVolumes }}
+        - name: {{ .volumeName }}
+          hostPath:
+            path: {{ .volumePath }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
