@@ -638,7 +638,7 @@ spec:
       },
       "timezone": "browser",
       "title": "SSL/TLS Exporter",
-      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `ssl-exporter` ) }}"
+      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `ssl-exporter` ) }}",
       "version": 1,
       "weekStart": ""
     }

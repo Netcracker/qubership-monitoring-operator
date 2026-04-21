@@ -31,7 +31,7 @@ spec:
     - targetLabel: target
       replacement: {{ .name | quote }}
     {{- if .additionalMetricsRelabels }}
-{{ toYaml . | nindent 4 }}
+{{ toYaml .additionalMetricsRelabels | nindent 4 }}
     {{- else if $.Values.probes.defaults.additionalMetricsRelabels }}
 {{ toYaml $.Values.probes.defaults.additionalMetricsRelabels | nindent 4 }}
     {{- end }}

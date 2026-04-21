@@ -60,7 +60,7 @@ spec:
   targets:
     staticConfig:
       static:
-        - https://google.com:443
+        - google.com:443
 ```
 
 See also the generic **`Probe`** examples under [`docs/examples/custom-resources/probe/`](../../examples/custom-resources/probe/) (static URLs and ingress discovery). If you do not use the Prometheus Operator, you can still add a static scrape in Prometheus **`additionalScrapeConfigs`** that hits `/probe` with the right query parameters.
