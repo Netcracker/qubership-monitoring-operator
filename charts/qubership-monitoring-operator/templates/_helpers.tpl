@@ -1,6 +1,40 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
+Base resource labels: expects either chart context (.) or dict with ctx and optional overrides.
+When name or component are omitted, they are derived from ctx.Values (name, component|default name).
+Usage:
+  {{- include "monitoring.labels" . | nindent 4 }}
+  Or with overrides: (dict "ctx" . "name" "x" "component" "y")
+*/}}
+{{- define "monitoring.labels" -}}
+{{- $ctx := index . "ctx" | default . -}}
+{{- $vals := $ctx.Values -}}
+{{- $name := .name | default $vals.name -}}
+{{- $component := .component | default $ctx.Chart.Name -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+app.kubernetes.io/part-of: monitoring
+app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+{{- end -}}
+
+{{/*
+Extra labels helper: renders arbitrary labels map when provided.
+Usage:
+  {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.labels) | nindent 4 }}
+*/}}
+{{- define "monitoring.extraLabels" -}}
+{{- $ctx := index . "ctx" | default . -}}
+{{- $vals := $ctx.Values -}}
+{{- $extra := .extraLabels | default ($vals.labels | default dict) -}}
+{{ with $extra }}
+
+{{ toYaml . }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Expand the name of the chart. This is suffixed with -alertmanager, which means subtract 13 from longest 63 available
 */}}
 {{- define "monitoring.name" -}}
@@ -32,29 +66,6 @@ Namespace need truncate to 26 symbols to allow specify suffixes till 35 symbols
 */}}
 {{- define "monitoring.namespace" -}}
   {{- printf "%s" .Release.Namespace | trunc 26 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/* Base resource labels: pass full chart context as ., or dict with "ctx" and optional "name" / "component". */}}
-{{- define "monitoring.labels" -}}
-{{- $ctx := index . "ctx" | default . -}}
-{{- $vals := $ctx.Values -}}
-{{- $name := .name | default $vals.name -}}
-{{- $component := .component | default $ctx.Chart.Name -}}
-name: {{ $name }}
-app.kubernetes.io/name: {{ $name }}
-app.kubernetes.io/component: {{ $component }}
-app.kubernetes.io/part-of: monitoring
-app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
-{{- end -}}
-
-{{- define "monitoring.extraLabels" -}}
-{{- $ctx := index . "ctx" | default . -}}
-{{- $vals := $ctx.Values -}}
-{{- $extra := .extraLabels | default ($vals.labels | default dict) -}}
-{{- with $extra }}
-
-{{ toYaml . }}
-{{- end }}
 {{- end -}}
 
 {{- define "monitoring.instance" -}}
