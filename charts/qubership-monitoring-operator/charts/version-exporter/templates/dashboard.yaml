@@ -4,11 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "version-exporter.instance" . }}
-    app.kubernetes.io/version: {{ template "version-exporter.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   json: >
     {
@@ -2361,9 +2358,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "Platform Monitoring Prometheus"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

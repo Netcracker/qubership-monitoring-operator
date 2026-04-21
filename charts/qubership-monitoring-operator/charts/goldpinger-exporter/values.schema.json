@@ -1,0 +1,392 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object",
+            "description": "Affinity rules for pod scheduling.",
+            "default": {}
+        },
+        "containerSecurityContext": {
+            "type": "object",
+            "description": "Security context for the goldpinger container.",
+            "properties": {
+                "allowPrivilegeEscalation": {
+                    "type": "boolean",
+                    "description": "Deny container privilege escalation.",
+                    "default": false
+                },
+                "capabilities": {
+                    "type": "object",
+                    "description": "Linux capabilities to drop or add for the container.",
+                    "default": {
+                        "drop": ["ALL"]
+                    }
+                },
+                "readOnlyRootFilesystem": {
+                    "type": "boolean",
+                    "description": "Mount container root filesystem as read-only.",
+                    "default": true
+                },
+                "runAsNonRoot": {
+                    "type": "boolean",
+                    "description": "Require container to run as a non-root user.",
+                    "default": true
+                }
+            }
+        },
+        "extraEnv": {
+            "type": "array",
+            "description": "Additional environment variables for the container.",
+            "default": []
+        },
+        "goldpinger": {
+            "type": "object",
+            "description": "Goldpinger application configuration.",
+            "properties": {
+                "port": {
+                    "type": "integer",
+                    "description": "Port on which goldpinger listens.",
+                    "default": 8080
+                },
+                "zapConfig": {
+                    "type": "string",
+                    "description": "Zap logger configuration in JSON format."
+                }
+            },
+            "default": {}
+        },
+        "image": {
+            "type": "object",
+            "description": "Image configuration for goldpinger.",
+            "properties": {
+                "pullPolicy": {
+                    "type": "string",
+                    "description": "Image pull policy.",
+                    "default": "IfNotPresent"
+                },
+                "pullSecrets": {
+                    "type": "array",
+                    "description": "Image pull secrets for private registries. Secrets must be manually created in the namespace.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "repository": {
+                    "type": "string",
+                    "description": "Image repository.",
+                    "default": "bloomberg/goldpinger"
+                },
+                "tag": {
+                    "type": "string",
+                    "description": "Image tag. Overrides the image tag - default is the chart appVersion.",
+                    "default": "3.10.2"
+                }
+            },
+            "default": {}
+        },
+        "ingress": {
+            "type": "object",
+            "description": "Ingress configuration for goldpinger.",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations for the Ingress resource.",
+                    "default": {}
+                },
+                "className": {
+                    "type": "string",
+                    "description": "Ingress class name.",
+                    "default": ""
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable Ingress resource creation.",
+                    "default": false
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "host": {
+                                "type": "string",
+                                "description": "Hostname for the Ingress."
+                            },
+                            "paths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "path": {
+                                            "type": "string",
+                                            "description": "URL path for the route."
+                                        },
+                                        "pathType": {
+                                            "type": "string",
+                                            "description": "Path type (Exact, Prefix, or ImplementationSpecific)."
+                                        }
+                                    }
+                                },
+                                "description": "Paths for the host."
+                            }
+                        }
+                    },
+                    "description": "Hosts configuration for the Ingress.",
+                    "default": [{"host": "chart-example.local", "paths": [{"path": "/", "pathType": "ImplementationSpecific"}]}]
+                },
+                "tls": {
+                    "type": "array",
+                    "description": "TLS configuration for the Ingress.",
+                    "default": [],
+                    "examples": [
+                          [
+                            {
+                                "secretName": "chart-example-tls",
+                                "hosts": ["chart-example.local"]
+                            }
+                        ]
+                    ]
+                }
+            },
+            "default": {}
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Enable deployment of goldpinger-exporter.",
+            "default": false
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of the goldpinger-exporter deployment.",
+            "default": "goldpinger-exporter"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Node selector for pod scheduling.",
+            "default": {}
+        },
+        "podAnnotations": {
+            "type": "object",
+            "description": "Annotations to add to the pod.",
+            "default": {}
+        },
+        "podLabels": {
+            "type": "object",
+            "description": "Labels to add to the pod.",
+            "default": {}
+        },
+        "podSecurityContext": {
+            "type": "object",
+            "description": "Security context for the pod.",
+            "properties": {
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "File system group for pod volumes.",
+                    "default": 2000
+                },
+                "runAsNonRoot": {
+                    "type": "boolean",
+                    "description": "Require pod to run as a non-root user.",
+                    "default": true
+                },
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "User ID to run the pod.",
+                    "default": 1000
+                },
+                "seccompProfile": {
+                    "type": "object",
+                    "description": "Seccomp profile configuration.",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Seccomp profile type.",
+                            "default": "RuntimeDefault"
+                        }
+                    }
+                }
+            }
+        },
+        "podSecurityPolicy": {
+            "type": "object",
+            "description": "Pod Security Policy configuration. Enable this if pod security policy enabled in your cluster.",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable Pod Security Policy.",
+                    "default": false
+                },
+                "policyName": {
+                    "type": "string",
+                    "description": "Name of the PSP to use.",
+                    "default": "unrestricted-psp"
+                }
+            },
+            "default": {}
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "Priority class name for the pod. If left blank a default priority will be set."
+        },
+        "prometheusRule": {
+            "type": "object",
+            "description": "PrometheusRule configuration for alerting.",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable PrometheusRule creation.",
+                    "default": false
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "rbac": {
+            "type": "object",
+            "description": "RBAC configuration for goldpinger.",
+            "properties": {
+                "clusterscoped": {
+                    "type": "boolean",
+                    "description": "Create cluster-scoped RBAC resources.",
+                    "default": true
+                },
+                "create": {
+                    "type": "boolean",
+                    "description": "Create RBAC resources.",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the RBAC resources.",
+                    "default": "goldpinger-exporter-rbac"
+                }
+            }
+        },
+        "resources": {
+            "type": "object",
+            "description": "Resource requests and limits for the container.",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Maximum resources allocated to the container.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU limit (e.g., '500m' for 0.5 CPU)."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory limit (e.g., '128Mi' for 128 MiB)."
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Minimum resources required for the container.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU request (e.g., '250m' for 0.25 CPU)."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory request (e.g., '64Mi' for 64 MiB)."
+                        }
+                    }
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "description": "Service configuration for goldpinger.",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations for the Service.",
+                    "default": {}
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels for the Service.",
+                    "default": {}
+                },
+                "loadBalancerSourceRanges": {
+                    "type": "object",
+                    "description": "Load balancer source ranges.",
+                    "default": {}
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Service port.",
+                    "default": 8081
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Kubernetes Service type.",
+                    "default": "ClusterIP"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "Service account configuration.",
+            "properties": {
+                "create": {
+                    "type": "boolean",
+                    "description": "Create a ServiceAccount resource.",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the ServiceAccount to create or use."
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "ServiceMonitor configuration for Prometheus.",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable ServiceMonitor creation.",
+                    "default": true
+                },
+                "honorLabels": {
+                    "type": "boolean",
+                    "description": "Honor existing labels on metrics scraped by this ServiceMonitor."
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Scrape interval for the ServiceMonitor.",
+                    "default": "30s"
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "description": "Metric relabelings to apply.",
+                    "default": []
+                },
+                "selector": {
+                    "type": "object",
+                    "description": "Label selector for ServiceMonitor.",
+                    "default": {
+                        "prometheus": "kube-prometheus"
+                    }
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations for pod scheduling.",
+            "default": []
+        },
+        "updateStrategy": {
+            "type": "object",
+            "description": "Update strategy for pod rollout."
+        }
+    }
+}

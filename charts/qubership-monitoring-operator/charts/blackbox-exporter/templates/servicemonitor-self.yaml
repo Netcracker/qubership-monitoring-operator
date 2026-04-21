@@ -1,14 +1,12 @@
+{{- if and .Values.install .Values.serviceMonitor.enabled }}
+{{- $name := .Values.name -}}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: blackbox-exporter
+  name: {{ $name }}
   labels:
-    app.kubernetes.io/name: blackbox-exporter
-    app.kubernetes.io/instance: {{ cat "blackbox-exporter-self-service-monitor-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "blackboxExporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
 spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval }}
@@ -16,10 +14,11 @@ spec:
       path: /metrics
       port: http
       scheme: {{ .Values.serviceMonitor.scheme }}
-  jobLabel: blackbox-exporter-self
+  jobLabel: {{ $name }}-self
   selector:
     matchExpressions:
       - key: app.kubernetes.io/name
         operator: In
         values:
-          - {{ .Values.name }}
+          - {{ $name }}
+{{- end }}

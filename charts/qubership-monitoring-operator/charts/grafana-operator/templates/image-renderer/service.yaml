@@ -5,13 +5,9 @@ kind: Service
 metadata:
   name: {{ .Values.imageRenderer.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.imageRenderer.name }}
-    app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: grafana
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.imageRenderer.name) | nindent 4 }}
     {{- if .Values.imageRenderer.labels }}
-      {{- toYaml .Values.imageRenderer.labels | nindent 4 }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.imageRenderer.labels) | nindent 4 }}
     {{- end }}
   {{- if .Values.imageRenderer.annotations }}
   annotations:

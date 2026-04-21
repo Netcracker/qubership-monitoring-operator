@@ -235,7 +235,7 @@ The default `CustomScaleMetricRule` CR contains the following configuration:
 apiVersion: monitoring.netcracker.com/v1
 kind: CustomScaleMetricRule
 metadata:
-  name: kubelet-custom-metric-rule
+  name: kubelet-custom
   labels:
     app.kubernetes.io/component: monitoring
 spec:

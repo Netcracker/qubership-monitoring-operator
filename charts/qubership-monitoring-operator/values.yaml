@@ -1285,6 +1285,7 @@ grafanaDashboards:
     - kubernetes-nodes-resources
     - kubernetes-pod-resources
     - kubernetes-pods-distribution-by-node
+    - kubernetes-pods-distribution-by-zone
     - kubernetes-top-resources
     - node-details
     - overall-platform-health
@@ -1379,7 +1380,7 @@ pushgateway:
   # Mandatory: no
   # Default: not set
   #
-  volumes: {}
+  volumes: []
 
   # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
   # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
@@ -1389,7 +1390,7 @@ pushgateway:
   # Mandatory: no
   # Default: not set
   #
-  volumeMounts: {}
+  volumeMounts: []
 
   # PVC spec for Pushgateway. If specified, also adds flags
   # --persistence.file=/data/pushgateway.data and --persistence.interval=5m,

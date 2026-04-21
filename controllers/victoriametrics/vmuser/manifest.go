@@ -180,13 +180,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 	}
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
-		vmuser.Spec.UserConfigOption = vmetricsv1b1.UserConfigOption{
-			TLSConfig: &vmetricsv1b1.TLSConfig{
-				InsecureSkipVerify: false,
-				CAFile:             "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/ca.crt",
-				CertFile:           "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.crt",
-				KeyFile:            "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.key",
-			},
+		vmuser.Spec.TLSConfig = &vmetricsv1b1.TLSConfig{
+			InsecureSkipVerify: false,
+			CAFile:             "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/ca.crt",
+			CertFile:           "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.crt",
+			KeyFile:            "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.key",
 		}
 	}
 

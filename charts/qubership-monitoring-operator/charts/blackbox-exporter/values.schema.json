@@ -1,0 +1,233 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object",
+            "description": "Pod affinity rules.",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored\nwith a resource that may be set by external tools to store and retrieve arbitrary metadata.",
+            "default": {}
+        },
+        "asDaemonSet": {
+            "type": "boolean",
+            "description": "Deploy blackbox-exporter as a DaemonSet instead of a Deployment.",
+            "default": false
+        },
+        "config": {
+            "type": "object",
+            "description": "Configuration of blackbox-exporter modules.",
+            "default": {
+                "modules": {
+                    "http_2xx": {
+                        "http": {
+                            "no_follow_redirects": false,
+                            "preferred_ip_protocol": "ip4",
+                            "valid_http_versions": [
+                                "HTTP/1.1",
+                                "HTTP/2.0"
+                            ]
+                        },
+                        "prober":  "http",
+                        "timeout": "5s"
+                    },
+                    "icmp": {
+                        "icmp": {
+                            "preferred_ip_protocol": "ip4",
+                            "source_ip_address": "127.0.0.1"
+                        },
+                        "prober": "icmp",
+                        "timeout": "5s"
+                    },
+                    "tcp": {
+                        "prober": "tcp",
+                        "tcp": {
+                            "preferred_ip_protocol": "ip4",
+                            "source_ip_address": "127.0.0.1"
+                        },
+                        "timeout": "5s"
+                    }
+                }
+            }
+        },
+        "configExistingSecretName": {
+            "type": "string",
+            "description": "Existing Secret name containing config; ignored when secretConfig is true.",
+            "default": ""
+        },
+        "containerPort": {
+            "type": "integer",
+            "description": "Container port only; application port can be changed via extraArgs.",
+            "default": 9115
+        },
+        "containerSecurityContext": {
+            "type": "object",
+            "description": "Container security context."
+        },
+        "createServiceAccount": {
+            "type": "boolean",
+            "description": "Create a ServiceAccount for the deployment.",
+            "default": true
+        },
+        "extraArgs": {
+            "type": "array",
+            "description": "Additional command-line arguments for blackbox-exporter.",
+            "default": []
+        },
+        "grafanaDashboard": {
+            "type": "boolean",
+            "description": "Create Grafana dashboard for blackbox-exporter.",
+            "default": true
+        },
+        "image": {
+            "type": "string",
+            "description": "A docker image to deploy the blackbox-exporter.\nDefault: docker.io/prom/blackbox-exporter:v0.27.0"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Enable deployment of blackbox-exporter.",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects.",
+            "default": {}
+        },
+        "name": {
+            "type": "string",
+            "description": "Microservice name used for deployment name and labels.",
+            "default": "blackbox-exporter"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Node selector for scheduling the Pod to dedicated nodes."
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "Priority class name for scheduling the Pod."
+        },
+        "resources": {
+            "type": "object",
+            "description": "Compute resource requests and limits for the Pod.",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Maximum resource allocations for the Pod.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU limit (e.g., '500m' for 0.5 CPU)."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory limit (e.g., '256Mi' for 256 MiB)."
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Minimum resources required for the Pod.",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU request (e.g., '100m' for 0.1 CPU)."
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory request (e.g., '128Mi' for 128 MiB)."
+                        }
+                    }
+                }
+            }
+        },
+        "secretConfig": {
+            "type": "boolean",
+            "description": "Store configuration in a Secret instead of a ConfigMap.",
+            "default": false
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "Pod security context.",
+            "properties": {
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                },
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process.\nType: integer\nMandatory: false"
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "properties": {
+                "defaults": {
+                    "type": "object",
+                    "properties": {
+                        "additionalMetricsRelabels": {
+                            "type": "object",
+                            "description": "Additional metric relabels to apply to targets.",
+                            "default": {}
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Default scrape interval for targets.",
+                            "default": "30s"
+                        },
+                        "module": {
+                            "type": "string",
+                            "description": "Default probe module name.",
+                            "default": "http_2xx"
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Default scrape timeout for targets.",
+                            "default": "30s"
+                        }
+                    },
+                    "description": "DEPRECATED: defaults for ServiceMonitor targets. Please use Probe CR instead."
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Create a ServiceMonitor.",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Metrics scrape interval.",
+                    "default": "30s"
+                },
+                "scheme": {
+                    "type": "string",
+                    "description": "HTTP scheme for scraping.",
+                    "default": "http"
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Metrics scrape timeout (must be less than interval).",
+                    "default": "30s"
+                },
+                "targets": {
+                    "type": "array",
+                    "description": "DEPRECATED: list of ServiceMonitor targets. Please use Probe CR instead.",
+                    "default": []
+                }
+            },
+            "description": "ServiceMonitor configuration for Prometheus Operator."
+        },
+        "servicePort": {
+            "type": "integer",
+            "description": "Service port for blackbox-exporter.",
+            "default": 9115
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Allows to schedule the pods onto nodes with matching taints.",
+            "default": []
+        }
+    }
+}

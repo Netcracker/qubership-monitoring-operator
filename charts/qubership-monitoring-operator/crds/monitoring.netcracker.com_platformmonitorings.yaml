@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.5
+    controller-gen.kubebuilder.io/version: v0.20.0
     helm.sh/hook: crd-install
     helm.sh/hook-weight: "-5"
   name: platformmonitorings.monitoring.netcracker.com
@@ -379,13 +379,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -414,7 +411,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -541,12 +538,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -698,13 +693,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -733,7 +725,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -860,12 +852,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -3166,13 +3156,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -3201,7 +3188,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -3328,12 +3315,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -3485,13 +3470,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -3520,7 +3502,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -3647,12 +3629,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -5063,13 +5043,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -5098,7 +5075,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -5225,13 +5202,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -5385,13 +5359,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -5420,7 +5391,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -5547,13 +5518,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -6790,13 +6758,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -6825,7 +6790,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -6952,12 +6917,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -7109,13 +7072,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -7144,7 +7104,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -7271,12 +7231,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -8289,13 +8247,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -8324,7 +8279,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -8451,12 +8406,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -8608,13 +8561,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -8643,7 +8593,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -8770,12 +8720,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -9574,13 +9522,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -9609,7 +9554,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -9736,12 +9681,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -9893,13 +9836,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -9928,7 +9868,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -10055,12 +9995,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -12434,13 +12372,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -12469,7 +12404,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -12596,13 +12531,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -12756,13 +12688,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -12791,7 +12720,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -12918,13 +12847,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -18137,13 +18063,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -18172,7 +18095,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -18299,12 +18222,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -18456,13 +18377,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -18491,7 +18409,7 @@ spec:
                                 relative to the given namespace(s)) that this pod should be
                                 co-located (affinity) or not co-located (anti-affinity) with,
                                 where co-located is defined as running on a node whose value of
-                                the lab
+                                the...
                               properties:
                                 labelSelector:
                                   description: |-
@@ -18618,12 +18536,10 @@ spec:
                                   type: array
                                   x-kubernetes-list-type: atomic
                                 topologyKey:
-                                  description: "This pod should be co-located (affinity)
-                                    or not co-located (anti-affinity) with the pods
-                                    matching\nthe labelSelector in the specified namespaces,
-                                    where co-located is defined as running on a node\nwhose
-                                    value of the label with key topologyKey matches
-                                    that of "
+                                  description: |-
+                                    This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                    the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                    whose value of the label with key topologyKey matches that of...
                                   type: string
                               required:
                               - topologyKey
@@ -21250,13 +21166,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -21285,7 +21198,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -21412,13 +21325,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -21572,13 +21482,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -21607,7 +21514,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -21734,13 +21641,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -26580,13 +26484,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -26615,7 +26516,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -26742,13 +26643,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -26902,13 +26800,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -26937,7 +26832,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -27064,13 +26959,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -33074,13 +32966,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -33109,7 +32998,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -33236,13 +33125,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -33396,13 +33282,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -33431,7 +33314,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -33558,13 +33441,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -35280,7 +35160,7 @@ spec:
                                   Cert defines reference for secret with CA content under given key
                                   mutually exclusive with CertFile
                                   ClientAuthType defines server policy for client authentication
-                                  If you want to enable client authentication (aka mTLS), you need to use RequireAndVerifyClient
+                                  If you want to enable client authentication (aka mTLS), you need to use...
                                 enum:
                                 - NoClientCert
                                 - RequireAndVerifyClientCert
@@ -37730,7 +37610,7 @@ spec:
                                   Cert defines reference for secret with CA content under given key
                                   mutually exclusive with CertFile
                                   ClientAuthType defines server policy for client authentication
-                                  If you want to enable client authentication (aka mTLS), you need to use RequireAndVerifyClient
+                                  If you want to enable client authentication (aka mTLS), you need to use...
                                 enum:
                                 - NoClientCert
                                 - RequireAndVerifyClientCert
@@ -38168,13 +38048,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -38203,7 +38080,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -38330,13 +38207,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -38490,13 +38364,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -38525,7 +38396,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -38652,13 +38523,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -42591,13 +42459,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -42626,7 +42491,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -42753,13 +42618,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -42913,13 +42775,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -42948,7 +42807,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -43075,13 +42934,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -44126,13 +43982,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -44161,7 +44014,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -44288,13 +44141,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -44448,13 +44298,10 @@ spec:
                                           type: array
                                           x-kubernetes-list-type: atomic
                                         topologyKey:
-                                          description: "This pod should be co-located
-                                            (affinity) or not co-located (anti-affinity)
-                                            with the pods matching\nthe labelSelector
-                                            in the specified namespaces, where co-located
-                                            is defined as running on a node\nwhose
-                                            value of the label with key topologyKey
-                                            matches that of "
+                                          description: |-
+                                            This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                            the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                            whose value of the label with key topologyKey matches that of...
                                           type: string
                                       required:
                                       - topologyKey
@@ -44483,7 +44330,7 @@ spec:
                                     relative to the given namespace(s)) that this pod should be
                                     co-located (affinity) or not co-located (anti-affinity) with,
                                     where co-located is defined as running on a node whose value of
-                                    the lab
+                                    the...
                                   properties:
                                     labelSelector:
                                       description: |-
@@ -44610,13 +44457,10 @@ spec:
                                       type: array
                                       x-kubernetes-list-type: atomic
                                     topologyKey:
-                                      description: "This pod should be co-located
-                                        (affinity) or not co-located (anti-affinity)
-                                        with the pods matching\nthe labelSelector
-                                        in the specified namespaces, where co-located
-                                        is defined as running on a node\nwhose value
-                                        of the label with key topologyKey matches
-                                        that of "
+                                      description: |-
+                                        This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching
+                                        the labelSelector in the specified namespaces, where co-located is defined as running on a node
+                                        whose value of the label with key topologyKey matches that of...
                                       type: string
                                   required:
                                   - topologyKey
@@ -46245,7 +46089,7 @@ spec:
                           RetentionPeriod for the stored metrics
                           Note VictoriaMetrics has data/ and indexdb/ folders
                           metrics from data/ removed eventually as soon as partition leaves retention period
-                          reverse index data at indexdb rotates once at the half of configured retention per
+                          reverse index data at indexdb rotates once at the half of configured retention...
                         type: string
                       secrets:
                         description: |-

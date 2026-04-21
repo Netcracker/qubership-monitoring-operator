@@ -4,9 +4,10 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
-  json: >    
+  json: >
     {
       "annotations": {
         "list": [
@@ -34,7 +35,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -48,7 +49,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -470,7 +471,8 @@ spec:
                   }
                 ]
               },
-              "unit": "percentunit"
+              "unit": "percentunit",
+              "max": 1
             },
             "overrides": []
           },
@@ -521,7 +523,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -535,7 +537,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -847,7 +849,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -861,7 +863,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1174,9 +1176,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "PC3E95692D54ABCC0"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

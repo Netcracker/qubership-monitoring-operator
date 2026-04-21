@@ -4,11 +4,10 @@ apiVersion: apps/v1
 metadata:
   name: {{ .Values.integrationTests.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.integrationTests.name "component" "platform-monitoring-tests") | nindent 4 }}
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    app.kubernetes.io/technology: python
     {{- if .Values.integrationTests.labels }}
       {{- toYaml .Values.integrationTests.labels | nindent 4 }}
     {{- end }}
@@ -26,13 +25,10 @@ spec:
   template:
     metadata:
       labels:
-        name: {{ .Values.integrationTests.name }}
-        app.kubernetes.io/name: {{ .Values.integrationTests.name }}
-        app.kubernetes.io/component: platform-monitoring-tests
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" (dict "ctx" . "name" .Values.integrationTests.name "component" "platform-monitoring-tests") | nindent 8 }}
         app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
         app.kubernetes.io/version: {{ template "integrationTests.version" . }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: python
         {{- if .Values.integrationTests.labels }}
           {{- toYaml .Values.integrationTests.labels | nindent 8 }}
         {{- end }}

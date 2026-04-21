@@ -266,7 +266,7 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key",
 				}
 			}
-			vmagentRemoteWrite.URL = vmCluster.VMInsertURL() + "/insert/0/prometheus/api/v1/write"
+			vmagentRemoteWrite.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus/api/v1/write"
 			addVmInsert := true
 			for _, rw := range vmagent.Spec.RemoteWrite {
 				if rw.URL == vmagentRemoteWrite.URL {
@@ -288,7 +288,12 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		}
 
 		if cr.Spec.Victoriametrics.VmAgent.InlineRelabelConfig != nil {
-			vmagent.Spec.InlineRelabelConfig = cr.Spec.Victoriametrics.VmAgent.InlineRelabelConfig
+			inlineRelabelConfigs := make([]*vmetricsv1b1.RelabelConfig, len(cr.Spec.Victoriametrics.VmAgent.InlineRelabelConfig))
+		for i := range cr.Spec.Victoriametrics.VmAgent.InlineRelabelConfig {
+			cfg := cr.Spec.Victoriametrics.VmAgent.InlineRelabelConfig[i]
+			inlineRelabelConfigs[i] = &cfg
+		}
+		vmagent.Spec.InlineRelabelConfig = inlineRelabelConfigs
 		}
 
 		// Set additional containers
