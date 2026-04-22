@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	monitoringv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,6 +31,14 @@ import (
 
 //go:embed  assets/*.yaml
 var assets embed.FS
+
+const (
+	nameLabelKey      = "name"
+	appNameLabelKey   = "app.kubernetes.io/name"
+	instanceLabelKey  = "app.kubernetes.io/instance"
+	componentLabelKey = "app.kubernetes.io/component"
+	etcdComponent     = "monitoring-etcd"
+)
 
 type appOptions struct {
 	namespace  string
@@ -141,7 +149,7 @@ func run(ctx context.Context, opts appOptions, log *slog.Logger) error {
 		return fmt.Errorf("failed to verify etcd certificates: %w", err)
 	}
 
-	customResourceInstance := &qubershiporgv1.PlatformMonitoring{}
+	customResourceInstance := &monitoringv1.PlatformMonitoring{}
 	if err := clients.client.Get(ctx, namespacedName, customResourceInstance); err != nil {
 		return fmt.Errorf("failed to get PlatformMonitoring custom resource: %w", err)
 	}
@@ -160,7 +168,7 @@ func newKubeClients() (*kubeClients, error) {
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
 		return nil, fmt.Errorf("failed to add core Kubernetes types to scheme: %w", err)
 	}
-	if err := qubershiporgv1.AddToScheme(scheme); err != nil {
+	if err := monitoringv1.AddToScheme(scheme); err != nil {
 		return nil, fmt.Errorf("failed to add PlatformMonitoring to scheme: %w", err)
 	}
 	if err := promv1.AddToScheme(scheme); err != nil {
@@ -220,7 +228,7 @@ func logEtcdCertsError(log *slog.Logger, err error, message string) {
 	log.Error(message, "error", err)
 }
 
-func buildEtcdSecret(cr *qubershiporgv1.PlatformMonitoring, namespace string, secretName string, certs certificateData) (*corev1.Secret, error) {
+func buildEtcdSecret(cr *monitoringv1.PlatformMonitoring, namespace string, secretName string, certs certificateData) (*corev1.Secret, error) {
 	certData := make(map[string][]byte)
 	certData["etcd-client-ca.crt"] = []byte(certs.ca)
 	certData["etcd-client.crt"] = []byte(certs.crt)
@@ -239,7 +247,7 @@ func buildEtcdSecret(cr *qubershiporgv1.PlatformMonitoring, namespace string, se
 	return secret, nil
 }
 
-func syncEtcdResources(cr *qubershiporgv1.PlatformMonitoring, clients *kubeClients, secret *corev1.Secret, namespace string, isOpenshift bool, isOpenshiftV4 bool, log *slog.Logger) error {
+func syncEtcdResources(cr *monitoringv1.PlatformMonitoring, clients *kubeClients, secret *corev1.Secret, namespace string, isOpenshift bool, isOpenshiftV4 bool, log *slog.Logger) error {
 	if err := createOrUpdateSecret(clients.clientset, secret, log); err != nil {
 		return fmt.Errorf("secret operation failed for %s: %w", secret.Name, err)
 	}
@@ -267,39 +275,60 @@ func extractEtcdCertPaths(ctx context.Context, clientset *kubernetes.Clientset, 
 
 	if err != nil || len(pods.Items) == 0 {
 		log.Error("Failed to retrieve pods to get etcd certificates", "error", err)
-		return "", "", "", err
+		return "", "", "", podListError(err)
 	}
 
-	var podNames []string
-	var podIndex int
-
-	for i, p := range pods.Items {
-		if p.Status.Phase == corev1.PodRunning {
-			podNames = append(podNames, p.ObjectMeta.Name)
-			podIndex = i
-		}
-	}
-	if len(podNames) == 0 {
+	etcdPod, err := runningEtcdPod(pods.Items)
+	if err != nil {
 		log.Error("Failed to find etcd pods among pods to get etcd certificates", "error", err)
 		return "", "", "", err
 	}
 
-	etcdPod := pods.Items[podIndex]
+	peerKey, caCrt, peerCrt = certPathsFromPod(etcdPod, peerKey, caCrt, peerCrt)
+	return peerKey, caCrt, peerCrt, nil
+}
 
-	for _, container := range etcdPod.Spec.Containers {
-		if container.Name == "etcd" {
-			for _, arg := range container.Command {
-				if strings.HasPrefix(arg, "--peer-key-file=") {
-					peerKey = strings.SplitN(arg, "=", 2)[1]
-				} else if strings.HasPrefix(arg, "--peer-trusted-ca-file=") {
-					caCrt = strings.SplitN(arg, "=", 2)[1]
-				} else if strings.HasPrefix(arg, "--peer-cert-file=") {
-					peerCrt = strings.SplitN(arg, "=", 2)[1]
-				}
-			}
+func podListError(err error) error {
+	if err != nil {
+		return err
+	}
+	return fmt.Errorf("no etcd pods found")
+}
+
+func runningEtcdPod(pods []corev1.Pod) (corev1.Pod, error) {
+	for _, pod := range pods {
+		if pod.Status.Phase == corev1.PodRunning {
+			return pod, nil
 		}
 	}
-	return peerKey, caCrt, peerCrt, nil
+	return corev1.Pod{}, fmt.Errorf("no running etcd pods found")
+}
+
+func certPathsFromPod(pod corev1.Pod, peerKey string, caCrt string, peerCrt string) (string, string, string) {
+	for _, container := range pod.Spec.Containers {
+		if container.Name == "etcd" {
+			return certPathsFromArgs(container.Command, peerKey, caCrt, peerCrt)
+		}
+	}
+	return peerKey, caCrt, peerCrt
+}
+
+func certPathsFromArgs(args []string, peerKey string, caCrt string, peerCrt string) (string, string, string) {
+	for _, arg := range args {
+		name, value, found := strings.Cut(arg, "=")
+		if !found {
+			continue
+		}
+		switch name {
+		case "--peer-key-file":
+			peerKey = value
+		case "--peer-trusted-ca-file":
+			caCrt = value
+		case "--peer-cert-file":
+			peerCrt = value
+		}
+	}
+	return peerKey, caCrt, peerCrt
 }
 
 func hasRouteApi(clientset *kubernetes.Clientset) (bool, error) {
@@ -398,7 +427,7 @@ func readFileToString(log *slog.Logger, filename string) (string, error) {
 	return string(data), nil
 }
 
-func etcdServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, namespace string, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
+func etcdServiceMonitor(cr *monitoringv1.PlatformMonitoring, namespace string, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.EtcdServiceMonitorAsset), 100).Decode(&sm); err != nil {
 		return nil, err
@@ -427,10 +456,10 @@ func etcdServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, namespace string,
 		maps.Copy(sm.Labels, cr.GetLabels())
 	}
 
-	sm.Labels["name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/name"] = utils.TruncLabel(sm.GetName())
-	sm.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
-	sm.Labels["app.kubernetes.io/component"] = "monitoring-etcd"
+	sm.Labels[nameLabelKey] = utils.TruncLabel(sm.GetName())
+	sm.Labels[appNameLabelKey] = utils.TruncLabel(sm.GetName())
+	sm.Labels[instanceLabelKey] = utils.GetInstanceLabel(sm.GetName(), sm.GetNamespace())
+	sm.Labels[componentLabelKey] = etcdComponent
 
 	if sm.Annotations == nil && cr.GetAnnotations() != nil {
 		sm.SetAnnotations(cr.GetAnnotations())
@@ -449,7 +478,7 @@ func etcdServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, namespace string,
 	return &sm, nil
 }
 
-func createOrUpdateServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, cl client.Client, namespace string, isOpenshiftV4 bool, log *slog.Logger) error {
+func createOrUpdateServiceMonitor(cr *monitoringv1.PlatformMonitoring, cl client.Client, namespace string, isOpenshiftV4 bool, log *slog.Logger) error {
 	sm, err := etcdServiceMonitor(cr, namespace, isOpenshiftV4)
 	if err != nil {
 		log.Error("Failed creating ServiceMonitor manifest", "error", err)
@@ -478,11 +507,8 @@ func createOrUpdateServiceMonitor(cr *qubershiporgv1.PlatformMonitoring, cl clie
 	return nil
 }
 
-func CreateOrUpdateService(cr *qubershiporgv1.PlatformMonitoring, clientset *kubernetes.Clientset, isOpenshift bool, isOpenshiftV4 bool, log *slog.Logger) error {
-	etcdServiceNamespace := utils.EtcdServiceComponentNamespace
-	if isOpenshiftV4 {
-		etcdServiceNamespace = utils.EtcdServiceComponentNamespaceOpenshiftV4
-	}
+func CreateOrUpdateService(cr *monitoringv1.PlatformMonitoring, clientset kubernetes.Interface, isOpenshift bool, isOpenshiftV4 bool, log *slog.Logger) error {
+	etcdServiceNamespace := etcdServiceNamespace(isOpenshiftV4)
 
 	m, err := etcdService(isOpenshift, etcdServiceNamespace, isOpenshiftV4)
 	if err != nil {
@@ -490,17 +516,39 @@ func CreateOrUpdateService(cr *qubershiporgv1.PlatformMonitoring, clientset *kub
 		return err
 	}
 
-	e, err := clientset.CoreV1().Services(etcdServiceNamespace).Get(context.TODO(), m.Name, metav1.GetOptions{})
+	e, exists, err := getExistingEtcdService(clientset, etcdServiceNamespace, m.Name)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
-			e = &corev1.Service{}
-			e.Name = m.Name
-			e.Namespace = etcdServiceNamespace
-		} else {
-			return fmt.Errorf("failed to get check if etcd service exists: %w", err)
-		}
+		return err
 	}
 
+	applyEtcdService(cr, e, m)
+	return persistEtcdService(clientset, etcdServiceNamespace, e, exists, log)
+}
+
+func etcdServiceNamespace(isOpenshiftV4 bool) string {
+	if isOpenshiftV4 {
+		return utils.EtcdServiceComponentNamespaceOpenshiftV4
+	}
+	return utils.EtcdServiceComponentNamespace
+}
+
+func getExistingEtcdService(clientset kubernetes.Interface, namespace string, name string) (*corev1.Service, bool, error) {
+	service, err := clientset.CoreV1().Services(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		return &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+		}, false, nil
+	}
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to get check if etcd service exists: %w", err)
+	}
+	return service, true, nil
+}
+
+func applyEtcdService(cr *monitoringv1.PlatformMonitoring, e *corev1.Service, m *corev1.Service) {
 	e.TypeMeta = m.TypeMeta
 	e.Spec.Ports = m.Spec.Ports
 	e.Spec.Selector = m.Spec.Selector
@@ -516,31 +564,41 @@ func CreateOrUpdateService(cr *qubershiporgv1.PlatformMonitoring, clientset *kub
 	if e.Annotations == nil {
 		e.Annotations = make(map[string]string)
 	}
-	if e.Annotations == nil && cr.GetAnnotations() != nil {
+	if cr.GetAnnotations() != nil {
 		maps.Copy(e.Annotations, cr.GetAnnotations())
 	}
 	maps.Copy(e.Labels, m.Labels)
-	if apierrors.IsNotFound(err) {
-		if _, err = clientset.CoreV1().Services(etcdServiceNamespace).Create(context.TODO(), e, metav1.CreateOptions{}); err != nil {
-			log.Error("Failed to create etcd service", "error", err, "service", m.Name)
-			return err
-		} else {
-			log.Info("Service created", "service", m.Name)
-			return nil
-		}
-	} else {
-		if _, err = clientset.CoreV1().Services(etcdServiceNamespace).Update(context.TODO(), e, metav1.UpdateOptions{}); err != nil {
-			if apierrors.IsForbidden(err) {
-				log.Info("Failed to update etcd service", "error", err, "service", m.Name)
-				return err
-			}
-			log.Error("Failed to update etcd service", "error", err, "service", m.Name)
-			return fmt.Errorf("failed to update etcd service: %w", err)
-		}
-		log.Info("Service updated", "service", m.Name)
-		return nil
-	}
 }
+
+func persistEtcdService(clientset kubernetes.Interface, namespace string, service *corev1.Service, exists bool, log *slog.Logger) error {
+	if !exists {
+		return createEtcdService(clientset, namespace, service, log)
+	}
+	return updateEtcdService(clientset, namespace, service, log)
+}
+
+func createEtcdService(clientset kubernetes.Interface, namespace string, service *corev1.Service, log *slog.Logger) error {
+	if _, err := clientset.CoreV1().Services(namespace).Create(context.TODO(), service, metav1.CreateOptions{}); err != nil {
+		log.Error("Failed to create etcd service", "error", err, "service", service.Name)
+		return err
+	}
+	log.Info("Service created", "service", service.Name)
+	return nil
+}
+
+func updateEtcdService(clientset kubernetes.Interface, namespace string, service *corev1.Service, log *slog.Logger) error {
+	if _, err := clientset.CoreV1().Services(namespace).Update(context.TODO(), service, metav1.UpdateOptions{}); err != nil {
+		if apierrors.IsForbidden(err) {
+			log.Info("Failed to update etcd service", "error", err, "service", service.Name)
+			return err
+		}
+		log.Error("Failed to update etcd service", "error", err, "service", service.Name)
+		return fmt.Errorf("failed to update etcd service: %w", err)
+	}
+	log.Info("Service updated", "service", service.Name)
+	return nil
+}
+
 func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bool) (*corev1.Service, error) {
 	service := corev1.Service{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.EtcdServiceComponentAsset), 100).Decode(&service); err != nil {
@@ -565,10 +623,10 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 		service.Spec.Ports = service.Spec.Ports[:1]
 	}
 	service.Spec.ClusterIP = ""
-	service.Labels["name"] = utils.TruncLabel(service.GetName())
-	service.Labels["app.kubernetes.io/name"] = utils.TruncLabel(service.GetName())
-	service.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(service.GetName(), service.GetNamespace())
-	service.Labels["app.kubernetes.io/component"] = "monitoring-etcd"
+	service.Labels[nameLabelKey] = utils.TruncLabel(service.GetName())
+	service.Labels[appNameLabelKey] = utils.TruncLabel(service.GetName())
+	service.Labels[instanceLabelKey] = utils.GetInstanceLabel(service.GetName(), service.GetNamespace())
+	service.Labels[componentLabelKey] = etcdComponent
 
 	return &service, nil
 }
@@ -626,7 +684,7 @@ func certVerify(keyData string, caData string, crtData string, log *slog.Logger)
 	}
 	return nil
 }
-func etcdSecret(cr *qubershiporgv1.PlatformMonitoring, secret *corev1.Secret) (*corev1.Secret, error) {
+func etcdSecret(cr *monitoringv1.PlatformMonitoring, secret *corev1.Secret) (*corev1.Secret, error) {
 	secret.Labels = make(map[string]string)
 	secret.Annotations = make(map[string]string)
 	//Set parameters
@@ -637,10 +695,10 @@ func etcdSecret(cr *qubershiporgv1.PlatformMonitoring, secret *corev1.Secret) (*
 			}
 		}
 	}
-	secret.Labels["name"] = secret.Name
-	secret.Labels["app.kubernetes.io/name"] = utils.TruncLabel(secret.Name)
-	secret.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(secret.Name, secret.Namespace)
-	secret.Labels["app.kubernetes.io/component"] = "monitoring-etcd"
+	secret.Labels[nameLabelKey] = secret.Name
+	secret.Labels[appNameLabelKey] = utils.TruncLabel(secret.Name)
+	secret.Labels[instanceLabelKey] = utils.GetInstanceLabel(secret.Name, secret.Namespace)
+	secret.Labels[componentLabelKey] = etcdComponent
 	if secret.Annotations == nil && cr.GetAnnotations() != nil {
 		secret.SetAnnotations(cr.GetAnnotations())
 	} else {

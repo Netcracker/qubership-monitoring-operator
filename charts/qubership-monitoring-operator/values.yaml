@@ -1721,6 +1721,8 @@ etcdCertsJob:
     limits:
       cpu: 500m
       memory: 128Mi
+      ephemeral-storage: 128Mi
     requests:
       cpu: 10m
       memory: 64Mi
+      ephemeral-storage: 16Mi

@@ -28,9 +28,11 @@ ENV USER_UID=2001 \
     GROUP_NAME=monitoring-operator
 
 WORKDIR /
-COPY --from=builder --chown=${USER_UID} --chmod=0555 /workspace/etcd .
+COPY --from=builder /workspace/etcd /etcd
 
-RUN addgroup "${GROUP_NAME}" && adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
+RUN chmod 0555 /etcd && \
+    addgroup "${GROUP_NAME}" && \
+    adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
 USER ${USER_UID}
 
 ENTRYPOINT ["/etcd"]

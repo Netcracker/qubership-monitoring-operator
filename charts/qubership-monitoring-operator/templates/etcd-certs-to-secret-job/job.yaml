@@ -66,6 +66,7 @@ spec:
           volumeMounts:
             - name: etc
               mountPath: /etc
+              readOnly: true
           securityContext:
             {{ include "etcdCertsJob.securityContext" . }}
       {{- if .Values.etcdCertsJob.priorityClassName }}
