@@ -64,6 +64,7 @@ func ReconcileGatewayRoutes(r *utils.ComponentReconciler, cr *monv1.PlatformMoni
 	if len(hostnames) == 0 {
 		return errors.NewBadRequest("can not reconcile HTTPRoute without hostnames: set ingress.host or component httpRoute.hostnames")
 	}
+	logHTTPRouteConfigWarnings(r, cfg, routeCfg)
 
 	desired, err := buildHTTPRoute(cfg, routeCfg, hostnames)
 	if err != nil {
@@ -301,9 +302,8 @@ func buildHTTPRouteRules(cfg GatewayRouteConfig, rules []monv1.GatewayHTTPRouteR
 		if len(filters) > 0 {
 			item["filters"] = filters
 		}
-		// Omit backendRefs when the rule has a terminal filter (RequestRedirect or URLRewrite)
-		// that replaces the backend destination — adding backendRefs alongside these filters
-		// produces an invalid HTTPRoute that Gateway implementations reject.
+		// Omit backendRefs when the rule has a RequestRedirect filter because
+		// redirects generate a response directly instead of forwarding upstream.
 		if !hasTerminalFilter(filters) {
 			item["backendRefs"] = []interface{}{
 				map[string]interface{}{
@@ -317,15 +317,15 @@ func buildHTTPRouteRules(cfg GatewayRouteConfig, rules []monv1.GatewayHTTPRouteR
 	return result, nil
 }
 
-// hasTerminalFilter reports whether any filter in the list is a RequestRedirect or URLRewrite,
-// both of which replace the request destination and must not be combined with backendRefs.
+// hasTerminalFilter reports whether any filter in the list generates the response directly
+// and therefore must not be combined with backendRefs.
 func hasTerminalFilter(filters []interface{}) bool {
 	for _, f := range filters {
 		m, ok := f.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		if t, ok := m["type"].(string); ok && (t == "RequestRedirect" || t == "URLRewrite") {
+		if t, ok := m["type"].(string); ok && t == "RequestRedirect" {
 			return true
 		}
 	}
@@ -402,6 +402,29 @@ func validateGatewayParentRefs(resolver *gatewayAPIResolver, cfg GatewayRouteCon
 		}
 	}
 	return nil
+}
+
+func logHTTPRouteConfigWarnings(r *utils.ComponentReconciler, cfg GatewayRouteConfig, routeCfg *monv1.GatewayHTTPRoute) {
+	if hasHTTPRouteParentRefs(cfg, routeCfg) {
+		return
+	}
+	utils.Warn(
+		r.Log,
+		"Gateway API HTTPRoute has no parentRefs configured",
+		utils.ResourceKey, httpRouteKind,
+		"name", cfg.NamePrefix+httpRouteNameSuffix,
+		"namespace", cfg.Namespace,
+		"reason", "NoParentRefs",
+		"statusMessage", "HTTPRoute spec.parentRefs is empty; status.parents will remain empty until a parent Gateway is configured",
+	)
+}
+
+func hasHTTPRouteParentRefs(cfg GatewayRouteConfig, routeCfg *monv1.GatewayHTTPRoute) bool {
+	var routeParentRefs []monv1.GatewayParentRef
+	if routeCfg != nil {
+		routeParentRefs = routeCfg.ParentRefs
+	}
+	return len(buildParentRefs(routeParentRefs, cfg.ParentRefs)) > 0
 }
 
 type httpRouteParentStatusWarning struct {

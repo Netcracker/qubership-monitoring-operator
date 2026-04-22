@@ -2308,6 +2308,11 @@ func (in *VmCluster) DeepCopyInto(out *VmCluster) {
 		*out = new(Ingress)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.VmSelectHTTPRoute != nil {
+		in, out := &in.VmSelectHTTPRoute, &out.VmSelectHTTPRoute
+		*out = new(GatewayHTTPRoute)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.VmInsert != nil {
 		in, out := &in.VmInsert, &out.VmInsert
 		*out = new(v1beta1.VMInsert)

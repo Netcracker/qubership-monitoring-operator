@@ -88,20 +88,23 @@ func (r *VmClusterReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitor
 					}
 				}
 			}
-			// VmCluster does not support per-component HTTPRoute (the field is excluded from the API).
-			// Passing ComponentRoute=nil with no ParentRefs lets ReconcileGatewayRoutes short-circuit
-			// immediately, avoiding unnecessary API-discovery calls on every reconcile.
 			ingressHost := ""
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
 			if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress != nil {
 				ingressHost = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host
 			}
 			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
-				NamePrefix:  cr.GetNamespace() + "-" + utils.VmSelectServiceName,
-				Namespace:   cr.GetNamespace(),
-				Host:        ingressHost,
-				ServiceName: utils.VmSelectServiceName,
-				ServicePort: int32(utils.VmSelectServicePort),
-				Labels:      map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmSelectServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)},
+				NamePrefix:     cr.GetNamespace() + "-" + utils.VmSelectServiceName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    utils.VmSelectServiceName,
+				ServicePort:    int32(utils.VmSelectServicePort),
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmSelectServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmSelectServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Victoriametrics.VmCluster.VmSelectHTTPRoute,
 			}); err != nil {
 				return err
 			}
@@ -165,12 +168,17 @@ func (r *VmClusterReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if cr.Spec.GatewayAPI != nil {
 		parentRefs = cr.Spec.GatewayAPI.ParentRefs
 	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Victoriametrics != nil {
+		componentRoute = cr.Spec.Victoriametrics.VmCluster.VmSelectHTTPRoute
+	}
 	if err = gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
-		NamePrefix:  cr.GetNamespace() + "-" + utils.VmSelectServiceName,
-		Namespace:   cr.GetNamespace(),
-		ServiceName: utils.VmSelectServiceName,
-		ServicePort: int32(utils.VmSelectServicePort),
-		ParentRefs:  parentRefs,
+		NamePrefix:     cr.GetNamespace() + "-" + utils.VmSelectServiceName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.VmSelectServiceName,
+		ServicePort:    int32(utils.VmSelectServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
 	}); err != nil {
 		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}

@@ -1894,6 +1894,50 @@ vmCluster:
   #
   vmSelectIngress: {}
 
+  # Allows create HTTPRoute for vmSelect UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # vmSelectHttpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmselect.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #
+  vmSelectHttpRoute: {}
+
   vmSelectTlsConfig:
     # TLS configuration from existing secret
     # If specified, all subsequent parameters in tls section are ignored.

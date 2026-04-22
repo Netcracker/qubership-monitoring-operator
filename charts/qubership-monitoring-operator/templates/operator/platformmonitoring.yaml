@@ -44,13 +44,15 @@ spec:
   oAuthProxy:
     image: {{ template "oauth2proxy.image" . }}
   {{- end }}
-  {{- if or .Values.gatewayApi.addIngressIgnoreAnnotation .Values.gatewayApi.parentRefs }}
+  {{- with .Values.gatewayApi }}
+  {{- if or .addIngressIgnoreAnnotation .parentRefs }}
   gatewayApi:
-    addIngressIgnoreAnnotation: {{ .Values.gatewayApi.addIngressIgnoreAnnotation | default false }}
-    {{- if .Values.gatewayApi.parentRefs }}
+    addIngressIgnoreAnnotation: {{ .addIngressIgnoreAnnotation | default false }}
+    {{- if .parentRefs }}
     parentRefs:
-      {{- toYaml .Values.gatewayApi.parentRefs | nindent 6 }}
+      {{- toYaml .parentRefs | nindent 6 }}
     {{- end }}
+  {{- end }}
   {{- end }}
   {{- if .Values.prometheus }}
   {{- if .Values.prometheus.install }}
@@ -1019,6 +1021,10 @@ spec:
       vmSelectImage: {{ template "vm.select.image" . }}
       vmSelectIngress:
         {{ include "vm.select.ingress" . }}
+      {{- if .Values.victoriametrics.vmCluster.vmSelectHttpRoute }}
+      vmSelectHttpRoute:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmSelectHttpRoute | nindent 8 }}
+      {{- end }}
       vmSelectTlsConfig:
         {{- if .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret }}
         secretName: {{ .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret | quote }}

@@ -1312,6 +1312,8 @@ type VmCluster struct {
 	VmSelectTLSConfig *VmTLSConfig `json:"vmSelectTlsConfig,omitempty"`
 	// Ingress enables ingress configuration for VMSelect.
 	VmSelectIngress *Ingress `json:"vmSelectIngress,omitempty"`
+	// HTTPRoute allows to configure Gateway API HTTPRoute for VMSelect.
+	VmSelectHTTPRoute *GatewayHTTPRoute `json:"vmSelectHttpRoute,omitempty"`
 	// +optional
 	VmInsert *vmetricsv1b1.VMInsert `json:"vminsert,omitempty"`
 	//Image for VMInsert

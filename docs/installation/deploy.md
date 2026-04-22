@@ -92,8 +92,8 @@ You can expose UI endpoints using Gateway API HTTPRoutes. Gateway settings are c
 and each component can define its own `httpRoute` section with hostnames, parent references, matches, and filters.
 More info in [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec).
 
-The operator supports HTTPRoutes for Prometheus, AlertManager, Grafana, Pushgateway, VmSingle, VmAgent,
-VmAlertManager, VmAlert, and VmAuth.
+The operator supports HTTPRoutes for Prometheus, AlertManager, Grafana, Pushgateway, VmSingle, VmSelect,
+VmAgent, VmAlertManager, VmAlert, and VmAuth.
 
 Supported `httpRoute` fields:
 
