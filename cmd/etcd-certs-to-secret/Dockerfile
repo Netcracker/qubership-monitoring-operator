@@ -18,7 +18,7 @@ COPY assets/ assets/
 COPY main.go main.go
 
 # Build
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o etcd main.go
+RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" GO111MODULE=on go build -a -o etcd main.go
 
 # Use alpine base container
 FROM alpine:3.22.0
@@ -28,9 +28,9 @@ ENV USER_UID=2001 \
     GROUP_NAME=monitoring-operator
 
 WORKDIR /
-COPY --from=builder --chown=${USER_UID} /workspace/etcd .
+COPY --from=builder --chown=${USER_UID} --chmod=0555 /workspace/etcd .
 
-RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
+RUN addgroup "${GROUP_NAME}" && adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
 USER ${USER_UID}
 
 ENTRYPOINT ["/etcd"]

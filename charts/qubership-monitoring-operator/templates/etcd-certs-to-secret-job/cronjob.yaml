@@ -18,7 +18,7 @@ spec:
     spec:
       {{- if .Values.etcdCertsJob.activeDeadlineSeconds }}
       activeDeadlineSeconds: {{ .Values.etcdCertsJob.activeDeadlineSeconds | default 60 }}
-      {{- end}}
+      {{- end }}
       {{- if .Values.etcdCertsJob.ttlSecondsAfterFinished }}
       ttlSecondsAfterFinished: {{ .Values.etcdCertsJob.ttlSecondsAfterFinished | default 60 }}
       {{- end }}
@@ -54,6 +54,7 @@ spec:
               imagePullPolicy: {{ .Values.etcdCertsJob.imagePullPolicy }}
               args:
                 - '--secret=kube-etcd-client-certs'
+                - '--log-level={{ .Values.etcdCertsJob.logLevel }}'
               env:
                 - name: WATCH_NAMESPACE
                   valueFrom:

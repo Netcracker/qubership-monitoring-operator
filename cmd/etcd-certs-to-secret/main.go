@@ -32,141 +32,226 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func main() {
-	var namespace string
-	var secretName string
-	//var etcdPodLabel string
-	var keyData, caData, crtData string
-	flag.StringVar(&secretName, "secret", "kube-etcd-client-certs", "Name of the secret to create/update")
-	//flag.StringVar(&etcdPodLabel, "label", "component=etcd", "Label selector for etcd pod")
-	flag.Parse()
-	namespace, found := os.LookupEnv("WATCH_NAMESPACE")
-	if !found {
-		namespace = "monitoring"
-	}
+type appOptions struct {
+	namespace  string
+	secretName string
+	logLevel   slog.Level
+}
 
-	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
+type kubeClients struct {
+	client          client.Client
+	clientset       *kubernetes.Clientset
+	discoveryClient discovery.DiscoveryInterface
+}
+
+type certificateData struct {
+	key string
+	ca  string
+	crt string
+}
+
+func main() {
+	opts, err := parseOptions()
+	log := newLogger(opts.logLevel)
 	slog.SetDefault(log)
 
+	if err != nil {
+		log.Error("invalid command line options", "error", err)
+		os.Exit(1)
+	}
+
+	if err := run(context.TODO(), opts, log); err != nil {
+		log.Error("etcd certificates synchronization failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func parseOptions() (appOptions, error) {
+	var secretName string
+	var logLevel string
+	flag.StringVar(&secretName, "secret", "kube-etcd-client-certs", "Name of the secret to create/update")
+	flag.StringVar(&logLevel, "log-level", "info", "Log level: debug, info, warn, or error")
+	flag.Parse()
+
+	namespace := "monitoring"
+	if value, found := os.LookupEnv("WATCH_NAMESPACE"); found {
+		namespace = value
+	}
+
+	level, err := parseLogLevel(logLevel)
+	if err != nil {
+		return appOptions{}, err
+	}
+
+	return appOptions{
+		namespace:  namespace,
+		secretName: secretName,
+		logLevel:   level,
+	}, nil
+}
+
+func parseLogLevel(level string) (slog.Level, error) {
+	switch strings.ToLower(level) {
+	case "debug":
+		return slog.LevelDebug, nil
+	case "info":
+		return slog.LevelInfo, nil
+	case "warn", "warning":
+		return slog.LevelWarn, nil
+	case "error":
+		return slog.LevelError, nil
+	default:
+		return slog.LevelInfo, fmt.Errorf("unsupported log level %q", level)
+	}
+}
+
+func newLogger(level slog.Level) *slog.Logger {
+	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	}))
+}
+
+func run(ctx context.Context, opts appOptions, log *slog.Logger) error {
 	namespacedName := types.NamespacedName{
-		Namespace: namespace,
+		Namespace: opts.namespace,
 		Name:      "platformmonitoring",
 	}
 
+	clients, err := newKubeClients()
+	if err != nil {
+		return err
+	}
+
+	isOpenshift, err := hasRouteApi(clients.clientset)
+	if err != nil {
+		return fmt.Errorf("couldn't check if cluster has Route API: %w", err)
+	}
+
+	isOpenshiftV4, err := isOpenshiftV4(clients.discoveryClient, isOpenshift, log)
+	if err != nil {
+		return fmt.Errorf("couldn't check cluster version: %w", err)
+	}
+
+	certs, err := loadEtcdCerts(clients.clientset, isOpenshift, isOpenshiftV4, log)
+	if err != nil {
+		return err
+	}
+
+	if err := certVerify(certs.key, certs.ca, certs.crt, log); err != nil {
+		return fmt.Errorf("failed to verify etcd certificates: %w", err)
+	}
+
+	customResourceInstance := &qubershiporgv1.PlatformMonitoring{}
+	if err := clients.client.Get(ctx, namespacedName, customResourceInstance); err != nil {
+		return fmt.Errorf("failed to get PlatformMonitoring custom resource: %w", err)
+	}
+
+	secret, err := buildEtcdSecret(customResourceInstance, opts.namespace, opts.secretName, certs)
+	if err != nil {
+		return err
+	}
+
+	return syncEtcdResources(customResourceInstance, clients, secret, opts.namespace, isOpenshift, isOpenshiftV4, log)
+}
+
+func newKubeClients() (*kubeClients, error) {
 	scheme := runtime.NewScheme()
 
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
-		log.Error("Failed to add core Kubernetes types to scheme", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to add core Kubernetes types to scheme: %w", err)
 	}
 	if err := qubershiporgv1.AddToScheme(scheme); err != nil {
-		log.Error("Failed to add PlatformMonitoring to scheme", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to add PlatformMonitoring to scheme: %w", err)
 	}
 	if err := promv1.AddToScheme(scheme); err != nil {
-		log.Error("Failed to add promv1 to scheme", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to add promv1 to scheme: %w", err)
 	}
 
 	cfg, err := config.GetConfig()
 	if err != nil {
-		log.Error("Couldn't get config", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("couldn't get config: %w", err)
 	}
 	cl, err := client.New(cfg, client.Options{
 		Scheme: scheme})
 	if err != nil {
-		log.Error("Couldn't get client", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("couldn't get client: %w", err)
 	}
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		log.Error("Couldn't get clientset", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("couldn't get clientset: %w", err)
 	}
 
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
 	if err != nil {
-		log.Error("Couldn't get discovery client", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("couldn't get discovery client: %w", err)
 	}
 
-	isOpenshift, err := hasRouteApi(clientset)
-	if err != nil {
-		log.Error("Couldn't check if cluster has Route API", "error", err)
-		os.Exit(1)
-	}
+	return &kubeClients{
+		client:          cl,
+		clientset:       clientset,
+		discoveryClient: dc,
+	}, nil
+}
 
-	isOpenshiftV4, err := isOpenshiftV4(dc, isOpenshift, log)
-	if err != nil {
-		log.Error("Couldn't check cluster version", "error", err)
-		os.Exit(1)
-	}
-
+func loadEtcdCerts(clientset *kubernetes.Clientset, isOpenshift bool, isOpenshiftV4 bool, log *slog.Logger) (certificateData, error) {
 	if isOpenshiftV4 {
-		keyData, caData, crtData, err = getCertsFromConfigmapAndSecret(clientset, log, utils.EtcdCertificatesSourceNamespaceOpenshiftV4, utils.EtcdCertificatesSourceConfigmapOpenshiftV4, utils.EtcdCertificatesSourceSecretOpenshiftV4)
+		keyData, caData, crtData, err := getCertsFromConfigmapAndSecret(clientset, log, utils.EtcdCertificatesSourceNamespaceOpenshiftV4, utils.EtcdCertificatesSourceConfigmapOpenshiftV4, utils.EtcdCertificatesSourceSecretOpenshiftV4)
 		if err != nil {
-			if apierrors.IsForbidden(err) {
-				log.Error("Unable to update etcd certificates due to a lack of permission to access the requested etcd resource.", "error", err)
-			} else {
-				log.Error("Failed to get etcd certificates from configmap and secret", "error", err)
-			}
-			os.Exit(1)
+			logEtcdCertsError(log, err, "Failed to get etcd certificates from configmap and secret")
+			return certificateData{}, err
 		}
 		log.Info("Extracting etcd certificates from configmap and secret (Openshift v4)", "etcdNamespace", utils.EtcdCertificatesSourceNamespaceOpenshiftV4, "EtcdCertsSourceConfigmap", utils.EtcdCertificatesSourceConfigmapOpenshiftV4, "etcdCertsSourceSecret", utils.EtcdCertificatesSourceSecretOpenshiftV4)
-	} else {
-		keyData, caData, crtData, err = getCertsFromHostpath(clientset, log, utils.EtcdServiceComponentNamespace, utils.EtcdPodLabelSelector, isOpenshift)
-		if err != nil {
-			if apierrors.IsForbidden(err) {
-				log.Error("Unable to update etcd certificates due to a lack of permission to access the requested etcd resource.", "error", err)
-			} else {
-				log.Error("Failed to get etcd certificates from hostpath", "error", err)
-			}
-			os.Exit(1)
-		}
+		return certificateData{key: keyData, ca: caData, crt: crtData}, nil
 	}
-	if err := certVerify(keyData, caData, crtData, log); err != nil {
-		log.Error("Failed to verify etcd certificates", "error", err)
-		os.Exit(1)
-	}
-	customResourceInstance := &qubershiporgv1.PlatformMonitoring{}
-	if err := cl.Get(context.TODO(), namespacedName, customResourceInstance); err != nil {
-		log.Error("Failed to get PlatformMonitoring custom resource", "error", err)
-		os.Exit(1)
-	}
-	certData := make(map[string][]byte)
-	certData["etcd-client-ca.crt"] = []byte(caData)
-	certData["etcd-client.crt"] = []byte(crtData)
-	certData["etcd-client.key"] = []byte(keyData)
 
-	secret := &corev1.Secret{}
-	if secret, err = etcdSecret(customResourceInstance, &corev1.Secret{
+	keyData, caData, crtData, err := getCertsFromHostpath(clientset, log, utils.EtcdServiceComponentNamespace, utils.EtcdPodLabelSelector, isOpenshift)
+	if err != nil {
+		logEtcdCertsError(log, err, "Failed to get etcd certificates from hostpath")
+		return certificateData{}, err
+	}
+	return certificateData{key: keyData, ca: caData, crt: crtData}, nil
+}
+
+func logEtcdCertsError(log *slog.Logger, err error, message string) {
+	if apierrors.IsForbidden(err) {
+		log.Error("Unable to update etcd certificates due to a lack of permission to access the requested etcd resource.", "error", err)
+		return
+	}
+	log.Error(message, "error", err)
+}
+
+func buildEtcdSecret(cr *qubershiporgv1.PlatformMonitoring, namespace string, secretName string, certs certificateData) (*corev1.Secret, error) {
+	certData := make(map[string][]byte)
+	certData["etcd-client-ca.crt"] = []byte(certs.ca)
+	certData["etcd-client.crt"] = []byte(certs.crt)
+	certData["etcd-client.key"] = []byte(certs.key)
+
+	secret, err := etcdSecret(cr, &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: namespace,
 		},
 		Data: certData,
-	}); err != nil {
-		log.Error("Failed creating Secret manifest", "error", err)
-		os.Exit(1)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed creating Secret manifest: %w", err)
+	}
+	return secret, nil
+}
+
+func syncEtcdResources(cr *qubershiporgv1.PlatformMonitoring, clients *kubeClients, secret *corev1.Secret, namespace string, isOpenshift bool, isOpenshiftV4 bool, log *slog.Logger) error {
+	if err := createOrUpdateSecret(clients.clientset, secret, log); err != nil {
+		return fmt.Errorf("secret operation failed for %s: %w", secret.Name, err)
 	}
 
-	if err := createOrUpdateSecret(clientset, secret, log); err != nil {
-		log.Error("Secret operation failed", "secret", secretName, "error", err)
-		os.Exit(1)
+	if err := createOrUpdateServiceMonitor(cr, clients.client, namespace, isOpenshiftV4, log); err != nil {
+		return fmt.Errorf("failed to create/update etcd ServiceMonitor: %w", err)
 	}
 
-	if err := createOrUpdateServiceMonitor(customResourceInstance, cl, namespace, isOpenshiftV4, log); err != nil {
-		log.Error("Failed to create/update etcd ServiceMonitor", "error", err)
-		os.Exit(1)
+	if err := CreateOrUpdateService(cr, clients.clientset, isOpenshift, isOpenshiftV4, log); err != nil {
+		return fmt.Errorf("failed to create/update etcd Service: %w", err)
 	}
-
-	if err := CreateOrUpdateService(customResourceInstance, clientset, isOpenshift, isOpenshiftV4, log); err != nil {
-		log.Error("Failed to create/update etcd Service", "error", err)
-		os.Exit(1)
-	}
+	return nil
 }
 
 // Retrieve etcd certificates paths from etcd pods' command line arguments
@@ -488,7 +573,7 @@ func etcdService(isOpenshift bool, etcdServiceNamespace string, isOpenshiftV4 bo
 	return &service, nil
 }
 
-func createOrUpdateSecret(clientset *kubernetes.Clientset, secret *corev1.Secret, log *slog.Logger) error {
+func createOrUpdateSecret(clientset kubernetes.Interface, secret *corev1.Secret, log *slog.Logger) error {
 	_, err := clientset.CoreV1().Secrets(secret.Namespace).Get(context.TODO(), secret.Name, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsForbidden(err) {
@@ -537,8 +622,6 @@ func certVerify(keyData string, caData string, crtData string, log *slog.Logger)
 		return fmt.Errorf("invalid CA certificate format")
 	}
 	if peerCertBeginIndex == -1 || peerCertEndIndex == -1 || peerCertBeginIndex > peerCertEndIndex {
-		log.Error("invalid peer certificate format")
-		os.Exit(1)
 		return fmt.Errorf("invalid peer certificate format")
 	}
 	return nil

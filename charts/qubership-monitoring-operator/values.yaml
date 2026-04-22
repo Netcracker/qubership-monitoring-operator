@@ -138,7 +138,7 @@ monitoringOperator:
     # Mandatory: no
     # Default: false
     #
-    install: true
+    install: false
 
     # Type: integer
     # Mandatory: no
@@ -1703,6 +1703,7 @@ goldpingerExporter:
   install: false
 etcdCertsJob:
   name: "etcd-certs-to-secret"
+  logLevel: "info"
   schedule: "0 0 1 * *"
   ttlSecondsAfterFinished: 180
   rbac:
