@@ -60,7 +60,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -92,7 +92,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -104,7 +104,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -118,7 +118,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -590,7 +590,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -604,7 +604,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1618,7 +1618,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1733,7 +1733,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "description": "How long it took to process a request, partitioned by method and HTTP path",
               "fieldConfig": {
@@ -1839,7 +1839,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "exemplar": true,
@@ -1859,7 +1859,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1871,7 +1871,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2116,7 +2116,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2128,7 +2128,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2515,7 +2515,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2527,7 +2527,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2540,7 +2540,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "description": "Shows amount of error requests to different methods per second partitioned by error codes",
               "fieldConfig": {
@@ -2646,7 +2646,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "exemplar": true,
@@ -2790,7 +2790,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -3151,7 +3151,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(increase(go_sql_stats_connections_closed_max_idle{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", container=\"$container\"}[$interval])) by (db_name) OR on() vector(0)",
@@ -3164,7 +3164,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(increase(go_sql_stats_connections_closed_max_idle_time{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", container=\"$container\"}[$interval])) by (db_name) OR on() vector(0)",
@@ -3178,7 +3178,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(increase(go_sql_stats_connections_closed_max_lifetime{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", container=\"$container\"}[$interval])) by (db_name) OR on() vector(0)",
@@ -3208,9 +3208,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

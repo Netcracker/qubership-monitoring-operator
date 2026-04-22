@@ -54,7 +54,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "description": "Describes some specific use cases for panels",
               "gridPos": {
@@ -356,7 +356,7 @@ spec:
               "datasource": {
                 "uid": "$datasource"
               },
-              "expr": "100 * (sum(rate(apiserver_request_total{cluster=\"$cluster\", code=~\"5..\", job=\"kube-apiserver\"}[5m])) / sum(rate(apiserver_request_total{cluster=\"$cluster\", job=\"kube-apiserver\"}[5m])))",
+              "expr": "100 * (sum(rate(apiserver_request_total{cluster=\"$cluster\", code=~\"5..\", job=\"kube-apiserver\"}[$__rate_interval])) / sum(rate(apiserver_request_total{cluster=\"$cluster\", job=\"kube-apiserver\"}[$__rate_interval])))",
               "interval": "",
               "legendFormat": "Error rate",
               "refId": "A"
@@ -425,7 +425,7 @@ spec:
               "datasource": {
                 "uid": "$datasource"
               },
-              "expr": "sum(rate(apiserver_request_duration_seconds_sum{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[5m])) / sum(rate(apiserver_request_duration_seconds_count{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[5m]))",
+              "expr": "sum(rate(apiserver_request_duration_seconds_sum{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[$__rate_interval])) / sum(rate(apiserver_request_duration_seconds_count{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[$__rate_interval]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -494,7 +494,7 @@ spec:
               "datasource": {
                 "uid": "$datasource"
               },
-              "expr": "sum(rate(etcd_request_duration_seconds_sum{cluster=\"$cluster\", job=\"kube-apiserver\"}[5m])) / sum(rate(etcd_request_duration_seconds_count{cluster=\"$cluster\", job=\"kube-apiserver\"}[5m]))",
+              "expr": "sum(rate(etcd_request_duration_seconds_sum{cluster=\"$cluster\", job=\"kube-apiserver\"}[$__rate_interval])) / sum(rate(etcd_request_duration_seconds_count{cluster=\"$cluster\", job=\"kube-apiserver\"}[$__rate_interval]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -740,9 +740,9 @@ spec:
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "label_replace(\r\n    sum by(instance)(\r\n        rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])),\r\n    \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:.*)*\") \r\n* on(host_ip) group_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\n(\r\nlabel_replace(\r\n    sum by(instance)(rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\", host_network=\"true\"}[5m])),\r\n    \"pod\", \"$1\", \"instance\", \"(.+)\"\r\n    )\r\n)",
+              "expr": "label_replace(\r\n    sum by(instance)(\r\n        rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])),\r\n    \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:.*)*\") \r\n* on(host_ip) group_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\n(\r\nlabel_replace(\r\n    sum by(instance)(rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\", host_network=\"true\"}[$__rate_interval])),\r\n    \"pod\", \"$1\", \"instance\", \"(.+)\"\r\n    )\r\n)",
               "hide": false,
-              "interval": "$interval",
+              "interval": "",
               "legendFormat": "{{ pod }}",
               "range": true,
               "refId": "A"
@@ -853,8 +853,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by(verb)(rate(apiserver_request_total{cluster=\"$cluster\", job=\"kube-apiserver\"}[5m]))",
-                  "interval": "$interval",
+                  "expr": "sum by(verb)(rate(apiserver_request_total{cluster=\"$cluster\", job=\"kube-apiserver\"}[$__rate_interval]))",
+                  "interval": "",
                   "intervalFactor": 1,
                   "legendFormat": "{{resource}}",
                   "refId": "A"
@@ -952,9 +952,9 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by(group, resource) (rate(apiserver_request_total{cluster=\"$cluster\", job=\"kube-apiserver\"}[5m]))",
+                  "expr": "sum by(group, resource) (rate(apiserver_request_total{cluster=\"$cluster\", job=\"kube-apiserver\"}[$__rate_interval]))",
                   "instant": false,
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "{{group}}/{{resource}}",
                   "refId": "A"
                 }
@@ -1074,9 +1074,9 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (le) (rate(apiserver_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[5m])))",
+                  "expr": "histogram_quantile(0.99, sum by (le) (rate(apiserver_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[$__rate_interval])))",
                   "hide": false,
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "Request duration 0.99 quantile",
                   "refId": "B"
                 }
@@ -1172,8 +1172,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[5m])) by (verb, le))\r",
-                  "interval": "$interval",
+                  "expr": "histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[$__rate_interval])) by (verb, le))\r",
+                  "interval": "",
                   "legendFormat": "{{verb}}",
                   "refId": "A"
                 }
@@ -1270,8 +1270,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (resource, group, le) (rate(apiserver_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[5m])) )\r",
-                  "interval": "$interval",
+                  "expr": "histogram_quantile(0.99, sum by (resource, group, le) (rate(apiserver_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"kube-apiserver\", verb!=\"WATCH\"}[$__rate_interval])) )\r",
+                  "interval": "",
                   "legendFormat": "{{group}}/{{resource}}",
                   "refId": "A"
                 }
@@ -1394,9 +1394,9 @@ spec:
                     "uid": "${datasource}"
                   },
                   "exemplar": true,
-                  "expr": "(\r\n  label_replace(\r\n    sum by (instance) (rate(apiserver_request_total{code=~\"[4,5]..\",job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))\r\n    /\r\n    sum by (instance) (rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))\r\n  * 100,\r\n  \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:.*)*\"\r\n  )\r\n)\r\n* on(host_ip) group_left(pod, node)\r\n  kube_pod_info{pod=~\"kube-apiserver.*\", host_network=\"true\"}\r\n  or on (instance)\r\n  (\r\n    label_replace(\r\n      sum by (instance) (rate(apiserver_request_total{code=~\"[4,5]..\",job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))\r\n      /\r\n      sum by (instance) (rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))\r\n    * 100,\r\n    \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n    )\r\n  )",
-                  "interval": "$interval",
-                  "legendFormat": "{{exported_pod}}",
+                  "expr": "(\r\n  label_replace(\r\n    sum by (instance) (rate(apiserver_request_total{code=~\"[4,5]..\",job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))\r\n    /\r\n    sum by (instance) (rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))\r\n  * 100,\r\n  \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:.*)*\"\r\n  )\r\n)\r\n* on(host_ip) group_left(pod, node)\r\n  kube_pod_info{pod=~\"kube-apiserver.*\", host_network=\"true\"}\r\n  or on (instance)\r\n  (\r\n    label_replace(\r\n      sum by (instance) (rate(apiserver_request_total{code=~\"[4,5]..\",job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))\r\n      /\r\n      sum by (instance) (rate(apiserver_request_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))\r\n    * 100,\r\n    \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n    )\r\n  )",
+                  "interval": "",
+                  "legendFormat": "{{pod}}",
                   "refId": "A"
                 }
               ],
@@ -1489,8 +1489,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by(verb) (rate(apiserver_request_total{code=~\"[4,5]..\", job=\"kube-apiserver\", cluster=\"$cluster\"}[10m]))",
-                  "interval": "$interval",
+                  "expr": "sum by(verb) (rate(apiserver_request_total{code=~\"[4,5]..\", job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))",
+                  "interval": "",
                   "legendFormat": "{{group}}",
                   "refId": "A"
                 }
@@ -1585,9 +1585,9 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (code) (rate(apiserver_request_total{code=~\"[4,5]..\", job=\"kube-apiserver\", cluster=\"$cluster\"}[10m]))",
+                  "expr": "sum by (code) (rate(apiserver_request_total{code=~\"[4,5]..\", job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))",
                   "instant": false,
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "{{code}}",
                   "refId": "A"
                 }
@@ -1709,8 +1709,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (name)(rate(workqueue_adds_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))",
-                  "interval": "$interval",
+                  "expr": "sum by (name)(rate(workqueue_adds_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))",
+                  "interval": "",
                   "legendFormat": "{{name}}",
                   "refId": "A"
                 }
@@ -1809,7 +1809,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "expr": "sum by (name)(workqueue_depth{job=\"kube-apiserver\", cluster=\"$cluster\"})",
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "{{name}}",
                   "refId": "A"
                 }
@@ -1903,9 +1903,9 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (le) (rate(workqueue_work_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])))",
+                  "expr": "histogram_quantile(0.99, sum by (le) (rate(workqueue_work_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])))",
                   "hide": false,
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "Processing time 0.99  quantile",
                   "refId": "B"
                 }
@@ -1999,8 +1999,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (le) (rate(workqueue_queue_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])))",
-                  "interval": "$interval",
+                  "expr": "histogram_quantile(0.99, sum by (le) (rate(workqueue_queue_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])))",
+                  "interval": "",
                   "legendFormat": "Queue time 0.99  quantile",
                   "refId": "A"
                 }
@@ -2095,7 +2095,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "expr": "sum (workqueue_unfinished_work_seconds{job=\"kube-apiserver\", cluster=\"$cluster\"})",
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "Unfinished work time",
                   "refId": "A"
                 }
@@ -2190,7 +2190,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "expr": "sum (workqueue_longest_running_processor_seconds{job=\"kube-apiserver\", cluster=\"$cluster\"})",
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "Longest running processor time",
                   "refId": "A"
                 }
@@ -2311,8 +2311,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "sum by (type)(rate(etcd_request_duration_seconds_count{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))",
-                  "interval": "$interval",
+                  "expr": "sum by (type)(rate(etcd_request_duration_seconds_count{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))",
+                  "interval": "",
                   "legendFormat": "{{type}}",
                   "refId": "A"
                 }
@@ -2406,9 +2406,9 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (le) (rate(etcd_request_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])))",
+                  "expr": "histogram_quantile(0.99, sum by (le) (rate(etcd_request_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])))",
                   "hide": false,
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "Request duration 0.99 quantile",
                   "refId": "A"
                 }
@@ -2505,8 +2505,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (operation, le) (rate(etcd_request_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])))",
-                  "interval": "$interval",
+                  "expr": "histogram_quantile(0.99, sum by (operation, le) (rate(etcd_request_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])))",
+                  "interval": "",
                   "legendFormat": "{{type}}",
                   "refId": "A"
                 }
@@ -2602,8 +2602,8 @@ spec:
                   "datasource": {
                     "uid": "$datasource"
                   },
-                  "expr": "histogram_quantile(0.99, sum by (type, le) (rate(etcd_request_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])))",
-                  "interval": "$interval",
+                  "expr": "histogram_quantile(0.99, sum by (type, le) (rate(etcd_request_duration_seconds_bucket{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])))",
+                  "interval": "",
                   "legendFormat": "{{type}}",
                   "refId": "A"
                 }
@@ -2700,7 +2700,7 @@ spec:
                     "uid": "$datasource"
                   },
                   "expr": "sum by (resource)((apiserver_storage_objects{job=\"kube-apiserver\", cluster=\"$cluster\"}))",
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "{{resource}}",
                   "refId": "A"
                 }
@@ -2823,8 +2823,8 @@ spec:
                   },
                   "editorMode": "code",
                   "exemplar": true,
-                  "expr": "label_replace((sum by(instance)(rate(process_cpu_seconds_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))\r\n), \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n)\r\n* on(host_ip) group_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace((sum by(instance)(rate(process_cpu_seconds_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m]))\r\n), \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
-                  "interval": "$interval",
+                  "expr": "label_replace((sum by(instance)(rate(process_cpu_seconds_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))\r\n), \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n)\r\n* on(host_ip) group_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace((sum by(instance)(rate(process_cpu_seconds_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval]))\r\n), \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
+                  "interval": "",
                   "legendFormat": "{{ pod }}",
                   "range": true,
                   "refId": "A"
@@ -2924,7 +2924,7 @@ spec:
                   "editorMode": "code",
                   "exemplar": true,
                   "expr": "label_replace(\r\n\tgo_goroutines{job=\"kube-apiserver\", cluster=\"$cluster\"}, \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n) * on(host_ip) \r\ngroup_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace(\r\n\tgo_goroutines{job=\"kube-apiserver\", cluster=\"$cluster\"}, \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "{{ pod }}",
                   "range": true,
                   "refId": "A"
@@ -3024,7 +3024,7 @@ spec:
                   "editorMode": "code",
                   "exemplar": true,
                   "expr": "label_replace(\r\n\tprocess_resident_memory_bytes{job=\"kube-apiserver\", cluster=\"$cluster\"}, \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n) * on(host_ip) \r\ngroup_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace(\r\n\tprocess_resident_memory_bytes{job=\"kube-apiserver\", cluster=\"$cluster\"}, \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
-                  "interval": "$interval",
+                  "interval": "",
                   "legendFormat": "{{ pod }}",
                   "range": true,
                   "refId": "A"
@@ -3124,7 +3124,7 @@ spec:
                   "editorMode": "code",
                   "exemplar": true,
                   "expr": "label_replace(\r\n\tsum by (instance) (go_memstats_alloc_bytes{job=\"kube-apiserver\", cluster=\"$cluster\"}), \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n) * on(host_ip) \r\ngroup_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace(\r\n\tsum by (instance) (go_memstats_alloc_bytes{job=\"kube-apiserver\", cluster=\"$cluster\"}), \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
-                  "interval": "$interval",
+                  "interval": "",
                   "intervalFactor": 1,
                   "legendFormat": "{{ pod }}",
                   "range": true,
@@ -3224,8 +3224,8 @@ spec:
                   },
                   "editorMode": "code",
                   "exemplar": true,
-                  "expr": "label_replace(\r\n\tsum by(instance)(rate(go_memstats_alloc_bytes_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])), \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n) * on(host_ip) \r\ngroup_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace(\r\n\tsum by(instance)(rate(go_memstats_alloc_bytes_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[5m])), \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
-                  "interval": "$interval",
+                  "expr": "label_replace(\r\n\tsum by(instance)(rate(go_memstats_alloc_bytes_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])), \"host_ip\", \"$1\", \"instance\", \"([^:]+)(:(.*))*\"\r\n) * on(host_ip) \r\ngroup_left(pod, node) (kube_pod_info{pod=~\"kube-apiserver.*\", cluster=\"$cluster\", host_network=\"true\"})\r\nor on (instance)\r\nlabel_replace(\r\n\tsum by(instance)(rate(go_memstats_alloc_bytes_total{job=\"kube-apiserver\", cluster=\"$cluster\"}[$__rate_interval])), \"pod\", \"$1\", \"instance\", \"(.*)\"\r\n)",
+                  "interval": "",
                   "legendFormat": "{{ pod }}",
                   "range": true,
                   "refId": "A"
@@ -3257,9 +3257,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

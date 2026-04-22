@@ -17,7 +17,7 @@ spec:
             "builtIn": 1,
             "datasource": {
               "type": "grafana",
-              "uid": "-- Grafana --"
+              "uid": "${datasource}"
             },
             "enable": true,
             "hide": true,
@@ -873,9 +873,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "Platform Monitoring Prometheus"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -928,7 +926,7 @@ spec:
               "type": "prometheus",
               "uid": "${datasource}"
             },
-            "definition": "label_values(kube_pod_info{cluster=\"$cluster\"},exported_namespace)",
+            "definition": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
             "description": "Namespace name to filter Pods distribution tables",
             "hide": 0,
             "includeAll": true,
@@ -937,7 +935,7 @@ spec:
             "name": "namespace",
             "options": [],
             "query": {
-              "query": "label_values(kube_pod_info{cluster=\"$cluster\"},exported_namespace)",
+              "query": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 2,

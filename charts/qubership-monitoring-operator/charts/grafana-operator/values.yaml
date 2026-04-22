@@ -13,7 +13,9 @@
 #
 install: true
 
-# A docker image to use for prometheus-operator deployment with prometheus pod
+# A docker image to use for grafana-operator deployment
+# Type: string
+# Mandatory: no
 #
 # image: grafana/grafana:11.6.5
 
@@ -349,10 +351,6 @@ serviceAccount:
   #
   labels: {}
   # app.kubernetes.io/managed-by: helm
-
-# PriorityClassName assigned to the Pods to prevent them from evicting.
-# Type: string
-# priorityClassName: "priorityClassName"
 
 # Manages Grafana component
 # Type: object

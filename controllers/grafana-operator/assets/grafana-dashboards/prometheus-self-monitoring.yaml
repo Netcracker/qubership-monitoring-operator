@@ -129,7 +129,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "exemplar": false,
               "expr": "max(time() - process_start_time_seconds{instance=~\"$instance\"}) by(instance)",
@@ -1005,7 +1005,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1019,7 +1019,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1441,7 +1441,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2217,7 +2217,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2229,7 +2229,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -2458,7 +2458,7 @@ spec:
                     {
                       "targetBlank": true,
                       "title": "cardinality explorer",
-                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `prometheus-cardinality-explorer`) ) %}/cardinality-explorer?var-datasource=${datasource}&var-metric=${__data.fields[__name__]}&var-job=${job}&var-cluster=${cluster}"
+                      "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `prometheus-cardinality-explorer`) ) %}/prometheus-cardinality-explorer?var-datasource=${datasource}&var-metric=${__data.fields[__name__]}&var-job=${job}&var-cluster=${cluster}"
                     }
                   ],
                   "mappings": [],
@@ -2635,7 +2635,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2647,7 +2647,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -3532,7 +3532,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -3544,7 +3544,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -4180,7 +4180,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -4192,7 +4192,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -4538,7 +4538,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -4550,7 +4550,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -5040,7 +5040,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -5052,7 +5052,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -5673,7 +5673,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -5685,7 +5685,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -6365,7 +6365,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -6377,7 +6377,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -6706,7 +6706,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -6718,7 +6718,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -7133,7 +7133,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -7145,7 +7145,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -7490,7 +7490,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -7502,7 +7502,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -8057,7 +8057,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -8069,7 +8069,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -8890,7 +8890,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -8902,7 +8902,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -9540,7 +9540,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -9552,7 +9552,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -9962,7 +9962,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -9974,7 +9974,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -10189,7 +10189,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -10208,9 +10208,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

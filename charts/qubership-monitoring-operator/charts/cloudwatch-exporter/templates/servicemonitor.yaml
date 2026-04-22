@@ -4,11 +4,10 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" (dict "ctx" . "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
     {{- if .Values.serviceMonitor.labels }}
-      {{ toYaml .Values.serviceMonitor.labels | nindent 4 }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.serviceMonitor.labels) | nindent 4 }}
     {{- end }}
 spec:
   endpoints:

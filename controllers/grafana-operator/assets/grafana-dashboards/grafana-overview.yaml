@@ -473,7 +473,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -970,7 +970,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "P4169E866C3094E38"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -982,7 +982,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1227,7 +1227,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "P4169E866C3094E38"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1239,7 +1239,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1484,7 +1484,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "P4169E866C3094E38"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1496,7 +1496,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1747,7 +1747,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "P4169E866C3094E38"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -2153,9 +2153,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

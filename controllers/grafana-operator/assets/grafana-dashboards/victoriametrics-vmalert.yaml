@@ -2307,9 +2307,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "PC3E95692D54ABCC0"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -2332,7 +2330,7 @@ spec:
             },
             "datasource": {
               "type": "prometheus",
-              "uid": "PC3E95692D54ABCC0"
+              "uid": "${ds}"
             },
             "definition": "label_values(up, cluster)",
             "hide": 0,

@@ -152,7 +152,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "expr": "count(group(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\".+\"}) by (namespace, label_app_kubernetes_io_name, label_app_kubernetes_io_tls)) OR vector(0)",
@@ -393,7 +393,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "expr": "count(group(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\".+\", label_app_kubernetes_io_tls=\"true\"}) by (namespace, label_app_kubernetes_io_name, label_app_kubernetes_io_tls)) OR vector(0)",
@@ -463,7 +463,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "expr": "count(group(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\".+\", label_app_kubernetes_io_tls=\"false\"}) by (namespace, label_app_kubernetes_io_name, label_app_kubernetes_io_tls)) OR vector(0)",
@@ -533,7 +533,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "expr": "count(group(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\".+\", label_app_kubernetes_io_tls=\"\"}) by (namespace, label_app_kubernetes_io_name, label_app_kubernetes_io_tls)) OR vector(0)",
@@ -557,9 +557,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

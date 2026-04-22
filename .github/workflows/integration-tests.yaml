@@ -2,6 +2,7 @@ name: Run Monitoring Pipeline
 
 on:
   push:
+    branches: [main]
     paths:
     - '**'
     - '!.github/**'
@@ -14,6 +15,7 @@ on:
     - '!SECURITY.md'
   pull_request:
     types: [opened, synchronize, reopened]
+    branches: [main]
     paths:
     - '**'
     - '!.github/**'
@@ -32,18 +34,19 @@ permissions:
 jobs:
   Wait-for-images:
     if: |
-        github.event.pull_request.user.login != 'dependabot[bot]' &&
-        github.event.pull_request.user.login != 'renovate[bot]'
+      (
+        github.event_name != 'pull_request' || (
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'renovate[bot]' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        )
+      )
     runs-on: ubuntu-latest
     outputs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
-      Branch: ${{ github.ref }}
-      Event: ${{ github.event_name }}
-      service_branch: ${{ github.sha }}
-      pipeline_branch: 'b894c4fbf5b93e8cca45e588ab46291c071fac2e'
     steps:
       - name: Wait for build.yaml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@8d542a426ce561c7dce745f6b9cee068d1d7e101 # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@d11baa8a4b42d1a931808c0766ee23eb344c47dd # v2.2.0
         id: wait
         with:
           workflow: build.yaml
@@ -57,9 +60,9 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@b894c4fbf5b93e8cca45e588ab46291c071fac2e #v1.5.2
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@5e867049c9bc60651f53611cdcf167dc0c7f8ff4 #v1.7.0
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'b894c4fbf5b93e8cca45e588ab46291c071fac2e' #this value must match the value after '@' in 'uses'
+      pipeline_branch: '5e867049c9bc60651f53611cdcf167dc0c7f8ff4' #this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'

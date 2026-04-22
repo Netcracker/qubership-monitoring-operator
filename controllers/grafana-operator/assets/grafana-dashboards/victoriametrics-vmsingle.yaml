@@ -1753,7 +1753,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "P4169E866C3094E38"
+            "uid": "${ds}"
           },
           "gridPos": {
             "h": 1,
@@ -2100,7 +2100,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "P4169E866C3094E38"
+                "uid": "${ds}"
               },
               "refId": "A"
             }
@@ -5126,9 +5126,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -5150,7 +5148,7 @@ spec:
             },
             "datasource": {
               "type": "prometheus",
-              "uid": "PC3E95692D54ABCC0"
+              "uid": "${ds}"
             },
             "definition": "label_values(up, cluster)",
             "hide": 0,

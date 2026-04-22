@@ -4,11 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}-overview
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}-overview
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
-    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" (printf "%s-overview" .Values.name) "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   instanceSelector:
     matchLabels:
@@ -56,7 +53,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -70,7 +67,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -326,7 +323,7 @@ spec:
           "collapsed": true,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -1008,7 +1005,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -1027,9 +1024,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

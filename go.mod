@@ -3,7 +3,7 @@ module github.com/Netcracker/qubership-monitoring-operator
 go 1.26.0
 
 require (
-	github.com/VictoriaMetrics/operator/api v0.0.0-20241014161824-90a26652481b
+	github.com/VictoriaMetrics/operator/api v0.66.1
 	github.com/distribution/reference v0.6.0
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
@@ -28,10 +28,12 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/VictoriaMetrics/VictoriaMetrics v1.101.0 // indirect
-	github.com/VictoriaMetrics/metrics v1.34.0 // indirect
-	github.com/VictoriaMetrics/metricsql v0.75.1 // indirect
-	github.com/aws/aws-sdk-go v1.55.5 // indirect
+	github.com/VictoriaMetrics/VictoriaLogs v1.36.2-0.20251008164716-21c0fb3de84d // indirect
+	github.com/VictoriaMetrics/VictoriaMetrics v1.131.0 // indirect
+	github.com/VictoriaMetrics/easyproto v0.1.4 // indirect
+	github.com/VictoriaMetrics/metrics v1.40.2 // indirect
+	github.com/VictoriaMetrics/metricsql v0.84.8 // indirect
+	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
@@ -41,6 +43,7 @@ require (
 	github.com/evanphx/json-patch v5.9.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-openapi/analysis v0.24.1 // indirect
@@ -69,9 +72,9 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/gnostic-models v0.6.8 // indirect
+	github.com/google/btree v1.1.3 // indirect
+	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20260115054156-294ebfa9ad83 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
@@ -82,6 +85,7 @@ require (
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/moby/spdystream v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
@@ -91,7 +95,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/alertmanager v0.27.0 // indirect
+	github.com/prometheus/alertmanager v0.28.0 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
@@ -102,9 +106,10 @@ require (
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	github.com/valyala/gozstd v1.21.1 // indirect
+	github.com/valyala/gozstd v1.24.0 // indirect
 	github.com/valyala/histogram v1.2.0 // indirect
 	github.com/valyala/quicktemplate v1.8.0 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.6 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
@@ -118,10 +123,11 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/term v0.39.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
-	golang.org/x/time v0.12.0 // indirect
+	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -129,7 +135,8 @@ require (
 	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
 	sigs.k8s.io/gateway-api v1.3.0 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.7.0 // indirect
+	sigs.k8s.io/randfill v1.0.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v6.3.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
@@ -140,10 +147,10 @@ exclude (
 
 replace (
 	github.com/google/gnostic => github.com/google/gnostic v0.6.9
-	k8s.io/api => k8s.io/api v0.30.1
+	k8s.io/api => k8s.io/api v0.34.1
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.30.1
-	k8s.io/apimachinery => k8s.io/apimachinery v0.30.1
-	k8s.io/client-go => k8s.io/client-go v0.30.1
+	k8s.io/apimachinery => k8s.io/apimachinery v0.34.1
+	k8s.io/client-go => k8s.io/client-go v0.34.1
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20240620174524-b456828f718b
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.18.4
 )
