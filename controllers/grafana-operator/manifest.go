@@ -264,18 +264,12 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 			d.Spec.Template.Spec.Affinity = cr.Spec.Grafana.Operator.Affinity
 		}
 
-		// Initialize labels and annotations maps if nil to prevent panic
+		// Initialize labels maps if nil to prevent panic (we always set standard labels).
 		if d.Labels == nil {
 			d.Labels = make(map[string]string)
 		}
-		if d.Annotations == nil {
-			d.Annotations = make(map[string]string)
-		}
 		if d.Spec.Template.Labels == nil {
 			d.Spec.Template.Labels = make(map[string]string)
-		}
-		if d.Spec.Template.Annotations == nil {
-			d.Spec.Template.Annotations = make(map[string]string)
 		}
 
 		// Set labels
@@ -290,6 +284,9 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 		}
 
 		if cr.Spec.Grafana.Operator.Annotations != nil {
+			if d.Annotations == nil {
+				d.Annotations = make(map[string]string)
+			}
 			for k, v := range cr.Spec.Grafana.Operator.Annotations {
 				d.Annotations[k] = v
 			}
@@ -307,9 +304,19 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 		}
 
 		if cr.Spec.Grafana.Operator.Annotations != nil {
+			if d.Spec.Template.Annotations == nil {
+				d.Spec.Template.Annotations = make(map[string]string)
+			}
 			for k, v := range cr.Spec.Grafana.Operator.Annotations {
 				d.Spec.Template.Annotations[k] = v
 			}
+		}
+		// Keep nil when there are no annotations (newer decoders may use empty maps).
+		if len(d.Annotations) == 0 {
+			d.Annotations = nil
+		}
+		if len(d.Spec.Template.Annotations) == 0 {
+			d.Spec.Template.Annotations = nil
 		}
 		if len(strings.TrimSpace(cr.Spec.Grafana.Operator.PriorityClassName)) > 0 {
 			d.Spec.Template.Spec.PriorityClassName = cr.Spec.Grafana.Operator.PriorityClassName
