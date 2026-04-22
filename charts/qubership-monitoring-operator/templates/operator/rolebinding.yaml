@@ -1,15 +1,12 @@
 {{- if .Values.role.install }}
 {{- if not .Values.global.privilegedRights }}
+{{- $operatorRoleName := include "monitoring.operator.fullname" . -}}
 kind: RoleBinding
 apiVersion: {{ template "rbac.apiVersion" . }}
 metadata:
-  name: {{ template "monitoring.operator.fullname" . }}
+  name: {{ $operatorRoleName }}
   labels:
-    app.kubernetes.io/name: {{ template "monitoring.operator.fullname" . }}
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" $operatorRoleName) | nindent 4 }}
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.monitoringOperator.serviceAccount.name }}

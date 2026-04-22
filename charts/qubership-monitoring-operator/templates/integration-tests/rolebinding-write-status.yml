@@ -1,22 +1,19 @@
 {{- if .Values.integrationTests.install }}
 {{- if eq (.Values.integrationTests.statusWriting.enabled | toString) "true" }}
+{{- $writeStatusRole := printf "%s-write-status" .Values.integrationTests.name -}}
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ .Values.integrationTests.name }}-write-status
+  name: {{ $writeStatusRole }}
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}-write-status
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" $writeStatusRole "component" "platform-monitoring-tests") | nindent 4 }}
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.integrationTests.name }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ .Values.integrationTests.name }}-write-status
+  name: {{ $writeStatusRole }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}

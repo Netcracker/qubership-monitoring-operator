@@ -1,19 +1,16 @@
 {{- if .Values.install }}
+{{- $image := include "promitor.agentScraper.image" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: promitor-agent-scraper
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promitor.agentScraper.image" . }}
     app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    {{- if .Values.labels }}
-      {{ toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    app.kubernetes.io/technology: csharp
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -27,23 +24,19 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
+        {{- include "monitoring.labels" . | nindent 8 }}
         app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: promitor-agent-scraper
-        app.kubernetes.io/part-of: monitoring
         app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-          {{ toYaml .Values.labels | nindent 8 }}
+        app.kubernetes.io/technology: csharp
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+        {{- if empty .Values.azureAuthentication.identity.binding | not }}
+        aadpodidbinding: {{ .Values.azureAuthentication.identity.binding }}
         {{- end }}
       annotations:
         checksum/config: {{ .Files.Get "templates/promitor-agent-scraper/configmap.yaml" | sha256sum }}
         checksum/secrets: {{ .Files.Get "templates/promitor-agent-scraper/secrets.yaml" | sha256sum }}
         {{- if .Values.annotations }}
-          {{ toYaml .Values.annotations | nindent 8 }}
-        {{- end }}
-        {{- if empty .Values.azureAuthentication.identity.binding | not }}
-        aadpodidbinding: {{ .Values.azureAuthentication.identity.binding }}
+        {{- toYaml .Values.annotations | nindent 8 }}
         {{- end }}
     spec:
       securityContext:

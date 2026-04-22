@@ -5,13 +5,12 @@ kind: DaemonSet
 metadata:
   name: {{ .name }}
   labels:
-    app.kubernetes.io/name: {{ .name }}
-    app.kubernetes.io/component: cert-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" $ | nindent 4 }}
     app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
     app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+    app.kubernetes.io/technology: go
     {{- if .daemonset.labels }}
-      {{- toYaml .daemonset.labels | nindent 4 }}
+    {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .daemonset.labels) | nindent 4 }}
     {{- end }}
   {{- if .daemonset.annotations }}
   annotations:
@@ -25,14 +24,12 @@ spec:
     metadata:
       labels:
         app: {{ .name }}
-        app.kubernetes.io/name: {{ .name }}
-        app.kubernetes.io/component: cert-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" $ | nindent 8 }}
         app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
         app.kubernetes.io/version: {{ template "certExporter.version" $ }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: go
         {{- if .daemonset.labels }}
-          {{- toYaml .daemonset.labels | nindent 8 }}
+        {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .daemonset.labels) | nindent 8 }}
         {{- end }}
       {{- if .daemonset.annotations }}
       annotations:
@@ -94,10 +91,16 @@ spec:
           args:
           {{- if and .certsInFiles .certsInFiles.enabled }}
             {{- if and .certsInFiles.defaultCerts (not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints")) }}
-            - --include-cert-glob={/etc/kubernetes,/var/lib/kubelet/pki}/**/*.{crt,pem}
+            - --include-cert-glob=/etc/kubernetes/**/*.crt
+            - --include-cert-glob=/etc/kubernetes/**/*.pem
+            - --include-cert-glob=/var/lib/kubelet/pki/**/*.crt
+            - --include-cert-glob=/var/lib/kubelet/pki/**/*.pem
             {{- end }}
             {{- if and .certsInFiles.defaultCerts ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
-            - --include-cert-glob=/etc/{etcd,origin}/**/*.{crt,pem}
+            - --include-cert-glob=/etc/etcd/**/*.crt
+            - --include-cert-glob=/etc/etcd/**/*.pem
+            - --include-cert-glob=/etc/origin/**/*.crt
+            - --include-cert-glob=/etc/origin/**/*.pem
             {{- end }}
             {{- if .certsInFiles.includeCerts }}
             - --include-cert-glob={{ .certsInFiles.includeCerts }}
@@ -108,10 +111,12 @@ spec:
           {{- end }}
           {{- if and .certsInKubeconfig .certsInKubeconfig.enabled }}
             {{- if and .certsInKubeconfig.defaultCerts (not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints")) }}
-            - --include-kubeconfig-glob={/etc/kubernetes/**/*.conf,/root/.kube/config}
+            - --include-kubeconfig-glob=/etc/kubernetes/**/*.conf
+            - --include-kubeconfig-glob=/root/.kube/config
             {{- end }}
             {{- if and .certsInKubeconfig.defaultCerts ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
-            - --include-kubeconfig-glob={/etc/origin/**/*.kubeconfig,/root/.kube/config}
+            - --include-kubeconfig-glob=/etc/origin/**/*.kubeconfig
+            - --include-kubeconfig-glob=/root/.kube/config
             {{- end }}
             {{- if .certsInKubeconfig.includeCerts }}
             - --include-kubeconfig-glob={{ .certsInKubeconfig.includeCerts }}

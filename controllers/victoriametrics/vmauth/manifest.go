@@ -319,8 +319,8 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 			svc := &vmetricsv1b1.AdditionalServiceSpec{
 				EmbeddedObjectMetadata: vmetricsv1b1.EmbeddedObjectMetadata{
 					Name:        utils.VmAuthOAuthProxyServiceName,
-					Labels:      vmauth.AllLabels(),
-					Annotations: vmauth.AnnotationsFiltered(),
+					Labels:      vmauth.FinalLabels(),
+					Annotations: vmauth.FinalAnnotations(),
 				},
 				Spec: corev1.ServiceSpec{
 					Type:     corev1.ServiceTypeClusterIP,

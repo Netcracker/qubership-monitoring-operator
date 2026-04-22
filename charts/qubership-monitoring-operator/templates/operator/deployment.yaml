@@ -3,14 +3,11 @@ kind: Deployment
 metadata:
   name: {{ .Values.monitoringOperator.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.monitoringOperator.name }}
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.monitoringOperator.name) | nindent 4 }}
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
-    {{- if .Values.monitoringOperator.labels }}
-      {{- toYaml .Values.monitoringOperator.labels | nindent 4 }}
-    {{- end }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.monitoringOperator.annotations }}
   annotations:
     {{- toYaml .Values.monitoringOperator.annotations | nindent 4 }}
@@ -23,16 +20,11 @@ spec:
   template:
     metadata:
       labels:
-        name: {{ .Values.monitoringOperator.name }}
-        app.kubernetes.io/name: {{ .Values.monitoringOperator.name }}
-        app.kubernetes.io/component: monitoring-operator
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" (dict "ctx" . "name" .Values.monitoringOperator.name) | nindent 8 }}
         app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
         app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.monitoringOperator.labels }}
-          {{- toYaml .Values.monitoringOperator.labels | nindent 8 }}
-        {{- end }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
       {{- if .Values.monitoringOperator.annotations }}
       annotations:
         {{- toYaml .Values.monitoringOperator.annotations | nindent 8 }}

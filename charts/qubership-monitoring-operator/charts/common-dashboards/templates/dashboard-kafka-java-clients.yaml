@@ -4,11 +4,8 @@ kind: GrafanaDashboard
 metadata:
   name: kafka-java-clients
   labels:
-    app.kubernetes.io/name: kafka-java-clients
-    app.kubernetes.io/instance: {{ cat "kafka-java-clients-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "kafka-java-clients" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
   instanceSelector:
     matchLabels:
@@ -6194,7 +6191,7 @@ spec:
                 {
                   "datasource": {
                     "type": "prometheus",
-                    "uid": "PC3E95692D54ABCC0"
+                    "uid": "${datasource}"
                   },
                   "editorMode": "code",
                   "expr": "sum(rate(spring_kafka_listener_seconds_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=~\"$pod\", result!=\"success\"}[5m])) by (name, pod, exception) OR on() vector(0)",
@@ -6322,9 +6319,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "Platform Monitoring Prometheus",
-              "value": "Platform Monitoring Prometheus"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,

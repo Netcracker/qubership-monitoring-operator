@@ -4,11 +4,7 @@ kind: Job
 metadata:
   name: {{ include "vm.cleanup.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "vm.cleanup.rbac.fullname" . }}
-    app.kubernetes.io/component: victoriametrics
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ include "vm.cleanup.rbac.fullname" . }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "vm.cleanup.rbac.fullname" .)) | nindent 4 }}
   annotations:
     "helm.sh/hook": pre-delete
     "helm.sh/hook-weight": "-5"
@@ -18,11 +14,7 @@ spec:
     metadata:
       name: {{ include "vm.cleanup.rbac.fullname" . }}
       labels:
-        app.kubernetes.io/name: {{ include "vm.cleanup.rbac.fullname" . }}
-        app.kubernetes.io/component: victoriametrics
-        app.kubernetes.io/part-of: monitoring
-        app.kubernetes.io/instance: {{ include "vm.cleanup.rbac.fullname" . }}
-        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        {{- include "monitoring.labels" (dict "ctx" . "name" (include "vm.cleanup.rbac.fullname" .)) | nindent 8 }}
     spec:
       serviceAccountName: {{ include "vm.cleanup.rbac.fullname" . }}
       restartPolicy: OnFailure

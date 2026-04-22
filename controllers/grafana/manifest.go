@@ -534,7 +534,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 				maps.Copy(vmCluster.Spec.VMSelect.ExtraArgs, map[string]string{"tls": "true"})
 			}
 			if dataSource.Spec.Datasource != nil {
-				dataSource.Spec.Datasource.URL = vmCluster.VMSelectURL() + "/select/0/prometheus"
+				dataSource.Spec.Datasource.URL =  vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"
 			}
 		}
 		if cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
