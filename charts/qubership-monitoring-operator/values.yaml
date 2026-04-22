@@ -1716,6 +1716,7 @@ etcdCertsJob:
   annotations: {}
   imagePullSecrets: []
   imagePullPolicy: "IfNotPresent"
+  automountServiceAccountToken: true
   priorityClassName: ""
   resources:
     limits:

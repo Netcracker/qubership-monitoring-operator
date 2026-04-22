@@ -326,15 +326,7 @@ func TestCreateOrUpdateServiceOpenShiftV4Namespace(t *testing.T) {
 }
 
 func TestCreateOrUpdateServiceMonitor(t *testing.T) {
-	scheme := runtime.NewScheme()
-	if err := monitoringv1.AddToScheme(scheme); err != nil {
-		t.Fatalf("add PlatformMonitoring scheme failed: %v", err)
-	}
-	if err := promv1.AddToScheme(scheme); err != nil {
-		t.Fatalf("add ServiceMonitor scheme failed: %v", err)
-	}
-
-	cl := ctrlfake.NewClientBuilder().WithScheme(scheme).Build()
+	cl := newServiceMonitorClient(t)
 	cr := platformMonitoring()
 	log := testLogger()
 
@@ -342,29 +334,58 @@ func TestCreateOrUpdateServiceMonitor(t *testing.T) {
 		t.Fatalf("create failed: %v", err)
 	}
 
-	key := client.ObjectKey{Name: "monitoring-etcd-service-monitor", Namespace: "monitoring"}
-	got := &promv1.ServiceMonitor{}
-	if err := cl.Get(context.TODO(), key, got); err != nil {
-		t.Fatalf("get created ServiceMonitor failed: %v", err)
-	}
-	if got.Spec.NamespaceSelector.MatchNames[0] != utils.EtcdServiceComponentNamespace {
-		t.Fatalf("got namespace selector %#v", got.Spec.NamespaceSelector.MatchNames)
-	}
-	if got.Labels["team"] != "monitoring" {
-		t.Fatal("custom labels were not copied")
-	}
+	got := getServiceMonitor(t, cl, "created")
+	assertServiceMonitorNamespace(t, got, utils.EtcdServiceComponentNamespace)
+	assertCustomLabelsCopied(t, got.Labels)
 
 	if err := createOrUpdateServiceMonitor(cr, cl, "monitoring", true, log); err != nil {
 		t.Fatalf("update failed: %v", err)
 	}
-	if err := cl.Get(context.TODO(), key, got); err != nil {
-		t.Fatalf("get updated ServiceMonitor failed: %v", err)
-	}
-	if got.Spec.NamespaceSelector.MatchNames[0] != utils.EtcdServiceComponentNamespaceOpenshiftV4 {
-		t.Fatalf("got namespace selector %#v", got.Spec.NamespaceSelector.MatchNames)
-	}
+
+	got = getServiceMonitor(t, cl, "updated")
+	assertServiceMonitorNamespace(t, got, utils.EtcdServiceComponentNamespaceOpenshiftV4)
 	if got.Spec.Endpoints[0].Port != "etcd-metrics" {
 		t.Fatalf("got endpoint port %q, want etcd-metrics", got.Spec.Endpoints[0].Port)
+	}
+}
+
+func newServiceMonitorClient(t *testing.T) client.Client {
+	t.Helper()
+
+	scheme := runtime.NewScheme()
+	if err := monitoringv1.AddToScheme(scheme); err != nil {
+		t.Fatalf("add PlatformMonitoring scheme failed: %v", err)
+	}
+	if err := promv1.AddToScheme(scheme); err != nil {
+		t.Fatalf("add ServiceMonitor scheme failed: %v", err)
+	}
+	return ctrlfake.NewClientBuilder().WithScheme(scheme).Build()
+}
+
+func getServiceMonitor(t *testing.T, cl client.Client, operation string) *promv1.ServiceMonitor {
+	t.Helper()
+
+	key := client.ObjectKey{Name: "monitoring-etcd-service-monitor", Namespace: "monitoring"}
+	sm := &promv1.ServiceMonitor{}
+	if err := cl.Get(context.TODO(), key, sm); err != nil {
+		t.Fatalf("get %s ServiceMonitor failed: %v", operation, err)
+	}
+	return sm
+}
+
+func assertServiceMonitorNamespace(t *testing.T, sm *promv1.ServiceMonitor, want string) {
+	t.Helper()
+
+	if sm.Spec.NamespaceSelector.MatchNames[0] != want {
+		t.Fatalf("got namespace selector %#v", sm.Spec.NamespaceSelector.MatchNames)
+	}
+}
+
+func assertCustomLabelsCopied(t *testing.T, labels map[string]string) {
+	t.Helper()
+
+	if labels["team"] != "monitoring" {
+		t.Fatal("custom labels were not copied")
 	}
 }
 
