@@ -248,20 +248,25 @@ func TestEtcdService(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-
-			if service.Namespace != tt.wantNamespace {
-				t.Fatalf("got namespace %q, want %q", service.Namespace, tt.wantNamespace)
-			}
-			if _, ok := service.Spec.Selector[tt.wantSelectorKey]; !ok {
-				t.Fatalf("selector %q not found in %#v", tt.wantSelectorKey, service.Spec.Selector)
-			}
-			if len(service.Spec.Ports) != tt.wantPorts {
-				t.Fatalf("got %d ports, want %d", len(service.Spec.Ports), tt.wantPorts)
-			}
-			if service.Spec.ClusterIP != "" {
-				t.Fatalf("got ClusterIP %q, want empty", service.Spec.ClusterIP)
-			}
+			assertEtcdService(t, service, tt.wantNamespace, tt.wantSelectorKey, tt.wantPorts)
 		})
+	}
+}
+
+func assertEtcdService(t *testing.T, service *corev1.Service, wantNamespace string, wantSelectorKey string, wantPorts int) {
+	t.Helper()
+
+	if service.Namespace != wantNamespace {
+		t.Fatalf("got namespace %q, want %q", service.Namespace, wantNamespace)
+	}
+	if _, ok := service.Spec.Selector[wantSelectorKey]; !ok {
+		t.Fatalf("selector %q not found in %#v", wantSelectorKey, service.Spec.Selector)
+	}
+	if len(service.Spec.Ports) != wantPorts {
+		t.Fatalf("got %d ports, want %d", len(service.Spec.Ports), wantPorts)
+	}
+	if service.Spec.ClusterIP != "" {
+		t.Fatalf("got ClusterIP %q, want empty", service.Spec.ClusterIP)
 	}
 }
 
