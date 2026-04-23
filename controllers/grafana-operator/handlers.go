@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -197,10 +198,22 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 		return err
 	}
 
+	// Deployment.spec.selector is immutable; keep the selector already stored in the
+	// API server and merge template labels so matchLabels stay satisfied (upgrades / Helm).
+	var preservedSelector *metav1.LabelSelector
+	if e.Spec.Selector != nil {
+		preservedSelector = e.Spec.Selector.DeepCopy()
+	}
+
 	//Set parameters
 	e.SetLabels(m.GetLabels())
-	e.Spec.Selector = m.Spec.Selector
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
+	if preservedSelector != nil {
+		e.Spec.Selector = preservedSelector
+	} else {
+		e.Spec.Selector = m.Spec.Selector
+	}
+	e.Spec.Template.Labels = deploymentTemplateLabelsForUpdate(
+		e.Spec.Template.Labels, m.Spec.Template.Labels, e.Spec.Selector)
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
@@ -348,4 +361,30 @@ func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *monv1.PlatformMonitorin
 		return err
 	}
 	return nil
+}
+
+func mergeStringStringMaps(base, overlay map[string]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range base {
+		out[k] = v
+	}
+	for k, v := range overlay {
+		out[k] = v
+	}
+	return out
+}
+
+// deploymentTemplateLabelsForUpdate merges desired template labels into existing ones and
+// forces keys from spec.selector.matchLabels so the pod template stays valid for the API.
+func deploymentTemplateLabelsForUpdate(existing, desired map[string]string, sel *metav1.LabelSelector) map[string]string {
+	merged := mergeStringStringMaps(existing, desired)
+	if sel != nil {
+		for k, v := range sel.MatchLabels {
+			merged[k] = v
+		}
+	}
+	if len(merged) == 0 {
+		return nil
+	}
+	return merged
 }
