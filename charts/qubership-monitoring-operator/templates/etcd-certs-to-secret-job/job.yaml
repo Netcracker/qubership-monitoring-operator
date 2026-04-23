@@ -37,14 +37,14 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.etcdCertsJob.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.etcdCertsJob.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.etcdCertsJob.tolerations }}
       tolerations:
-        - key: node-role.kubernetes.io/master
-          operator: Exists
-          effect: NoSchedule
-        - operator: "Exists"
-          effect: "NoExecute"
-        - operator: "Exists"
-          effect: "NoSchedule"
+        {{- toYaml .Values.etcdCertsJob.tolerations | nindent 8 }}
+      {{- end }}
       containers:
         - name: etcd-certs-to-secret
           image: {{ include "etcdCertsJob.image" . }}

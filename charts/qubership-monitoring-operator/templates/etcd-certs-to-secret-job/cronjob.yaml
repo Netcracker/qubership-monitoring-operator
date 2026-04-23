@@ -36,14 +36,14 @@ spec:
             {{- toYaml .Values.etcdCertsJob.annotations | nindent 12 }}
           {{- end }}
         spec:
+          {{- if .Values.etcdCertsJob.nodeSelector }}
+          nodeSelector:
+            {{- toYaml .Values.etcdCertsJob.nodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.etcdCertsJob.tolerations }}
           tolerations:
-            - key: node-role.kubernetes.io/master
-              operator: Exists
-              effect: NoSchedule
-            - operator: "Exists"
-              effect: "NoExecute"
-            - operator: "Exists"
-              effect: "NoSchedule"
+            {{- toYaml .Values.etcdCertsJob.tolerations | nindent 12 }}
+          {{- end }}
           {{- with .Values.etcdCertsJob.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
