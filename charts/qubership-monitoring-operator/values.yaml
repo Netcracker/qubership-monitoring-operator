@@ -1740,7 +1740,7 @@ etcdCertsJob:
     roleBindingName: "etcd-certs-to-secret-rb"
     clusterRoleName: "etcd-certs-to-secret-clusterrole"
     clusterRoleBindingName: "etcd-certs-to-secret-clusterrb"
-  
+
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
   # They are not queryable and should be preserved when modifying objects.
@@ -1749,7 +1749,7 @@ etcdCertsJob:
   # Mandatory: no
   # Default: not set
   annotations: {}
-  
+
   # A secrets list to use when pulling images from private registries
   imagePullSecrets: []
 
@@ -1765,7 +1765,7 @@ etcdCertsJob:
   # Mandatory: no
   # Default: true
   #
-  automountServiceAccountToken: false
+  automountServiceAccountToken: true
 
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
