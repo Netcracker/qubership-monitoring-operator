@@ -1113,7 +1113,7 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .Values.grafana }}
-  {{- if .Values.grafana.install }}
+  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
   grafana:
     install: {{ .Values.grafana.install }}
     image: {{ template "grafana.image" . }}
