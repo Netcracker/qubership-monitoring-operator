@@ -1,0 +1,47 @@
+{{- if.Values.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "grafana-operator.fullname" . }}
+  namespace: {{ include "grafana-operator.namespace" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator.name" .)) | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if .Values.additionalLabels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.additionalLabels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.serviceMonitor.additionalLabels) | nindent 4 }}
+    {{- end }}
+spec:
+  jobLabel: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "grafana-operator.name" . }}
+  endpoints:
+    - port: metrics
+      path: {{ .Values.serviceMonitor.telemetryPath }}
+      {{- with .Values.serviceMonitor.interval }}
+      interval: {{ . }}
+      {{- end }}
+      {{- with .Values.serviceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ . }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+{{ toYaml .Values.serviceMonitor.metricRelabelings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.relabelings }}
+      relabelings:
+{{ toYaml .Values.serviceMonitor.relabelings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.targetLabels }}
+      targetLabels:
+      {{- range .Values.serviceMonitor.targetLabels }}
+        - {{ . }}
+      {{- end }}
+      {{- end }}
+{{- end }}
