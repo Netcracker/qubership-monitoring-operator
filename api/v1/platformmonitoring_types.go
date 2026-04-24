@@ -118,9 +118,6 @@ type AlertManager struct {
 	// PriorityClassName assigned to the Pods
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
-	// TLSConfig stores secret Name with certificate for TLS connection
-	// +optional
-	TLSConfig *CommonTLSConfig `json:"tlsConfig,omitempty"`
 }
 
 // EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta
@@ -199,9 +196,6 @@ type Grafana struct {
 	// PriorityClassName assigned to the Pods
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty"`
-	// TLSConfig stores the name of the secret with certificates for the TLS connection
-	// +optional
-	TLSConfig *CommonTLSConfig `json:"tlsConfig,omitempty"`
 }
 
 // GrafanaOperator defines the desired state for some part of grafana-operator deployment
@@ -1381,8 +1375,7 @@ type Pushgateway struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// PriorityClassName assigned to the Pods
 	// +optional
-	PriorityClassName string           `json:"priorityClassName,omitempty"`
-	TLSConfig         *CommonTLSConfig `json:"tlsConfig,omitempty"`
+	PriorityClassName string `json:"priorityClassName,omitempty"`
 }
 
 // Integration handles parameters to set up Platform Monitoring integration with other monitoring tools and public clouds.
@@ -1409,11 +1402,6 @@ type Auth struct {
 	TokenURL     string     `json:"tokenUrl"`
 	UserInfoURL  string     `json:"userInfoUrl"`
 	TLSConfig    *TLSConfig `json:"tlsConfig,omitempty"`
-}
-
-// Common TLSConfig keeps secretName used for TLS
-type CommonTLSConfig struct {
-	SecretName string `json:"secretName,omitempty"`
 }
 
 // TLSConfig extends the safe TLS configuration with file parameters.

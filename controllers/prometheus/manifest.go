@@ -473,18 +473,7 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 		ing := cr.Spec.Prometheus.Ingress
 
 		switch {
-		// 1. If Host is provided
-		case ing.Host != "":
-			rules = append(rules, networkingv1.IngressRule{
-				Host: ing.Host,
-				IngressRuleValue: networkingv1.IngressRuleValue{
-					HTTP: &networkingv1.HTTPIngressRuleValue{
-						Paths: []networkingv1.HTTPIngressPath{defaultPrometheusPath(pathType)},
-					},
-				},
-			})
-
-		// 2. If custom ingress rules provided
+		// 1. If custom ingress rules provided
 		case len(ing.Rules) > 0:
 			for _, r := range ing.Rules {
 				// fallback if HTTP is not set
@@ -542,7 +531,18 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 				})
 			}
 
-		// 3. fallback: if no Host or no custom ingress rules provided
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultPrometheusPath(pathType)},
+					},
+				},
+			})
+
+		// 3. fallback: if no custom ingress rules or Host provided
 		default:
 			rules = append(rules, networkingv1.IngressRule{
 				IngressRuleValue: networkingv1.IngressRuleValue{
@@ -557,20 +557,6 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 		// Configure TLS for Prometheus ingress
 		tlsConfigured := false
 
-		pickSecret := func(ingressTLSSecret string, tlsCfg *monv1.PromTLSConfig) string {
-			if ingressTLSSecret != "" {
-				return ingressTLSSecret
-			}
-			if tlsCfg != nil && tlsCfg.GenerateCerts.Enabled {
-				if tlsCfg.GenerateCerts.SecretName != "" {
-					return tlsCfg.GenerateCerts.SecretName
-				} else {
-					return "prometheus-cert-manager-tls"
-				}
-			}
-
-			return ""
-		}
 		// 1. Ingress.TLS[]
 		if !tlsConfigured && len(cr.Spec.Prometheus.Ingress.TLS) > 0 {
 			for _, hostgroup := range cr.Spec.Prometheus.Ingress.TLS {
@@ -587,9 +573,9 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 					continue
 				}
 				secret := hostgroup.SecretName
-				// fallback: if secretName is empty - use TLSSecretName
+				// fallback: if secretName is empty - use ingress TLSSecretName only
 				if secret == "" {
-					secret = pickSecret(cr.Spec.Prometheus.Ingress.TLSSecretName, cr.Spec.Prometheus.TLSConfig)
+					secret = cr.Spec.Prometheus.Ingress.TLSSecretName
 				}
 				if secret != "" {
 					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
@@ -602,9 +588,9 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 				tlsConfigured = true
 			}
 		}
-		// 2. TLSSecretName | TLSConfig.generateCerts.SecretName + Host
+		// 2. Ingress TLSSecretName + Host
 		if !tlsConfigured && cr.Spec.Prometheus.Ingress.Host != "" {
-			secret := pickSecret(cr.Spec.Prometheus.Ingress.TLSSecretName, cr.Spec.Prometheus.TLSConfig)
+			secret := cr.Spec.Prometheus.Ingress.TLSSecretName
 			if secret != "" {
 				ingress.Spec.TLS = []networkingv1.IngressTLS{
 					{
@@ -618,7 +604,7 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 		// 4. Ingress.Rules[]
 		if !tlsConfigured && len(cr.Spec.Prometheus.Ingress.Rules) > 0 {
 			tlsHosts := []string{}
-			secret := pickSecret(cr.Spec.Prometheus.Ingress.TLSSecretName, cr.Spec.Prometheus.TLSConfig)
+			secret := cr.Spec.Prometheus.Ingress.TLSSecretName
 			for _, rule := range cr.Spec.Prometheus.Ingress.Rules {
 				if rule.Host != "" {
 					tlsHosts = append(tlsHosts, rule.Host)

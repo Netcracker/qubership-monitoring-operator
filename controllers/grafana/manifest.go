@@ -390,18 +390,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		ing := cr.Spec.Grafana.Ingress
 
 		switch {
-		// 1. If Host is provided
-		case ing.Host != "":
-			rules = append(rules, networkingv1.IngressRule{
-				Host: ing.Host,
-				IngressRuleValue: networkingv1.IngressRuleValue{
-					HTTP: &networkingv1.HTTPIngressRuleValue{
-						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(pathType)},
-					},
-				},
-			})
-
-		// 2. If custom ingress rules provided
+		// 1. If custom ingress rules provided
 		case len(ing.Rules) > 0:
 			for _, r := range ing.Rules {
 				// fallback if HTTP is not set
@@ -459,7 +448,18 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 				})
 			}
 
-		// 3. fallback: if no Host or no custom ingress rules provided
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(pathType)},
+					},
+				},
+			})
+
+		// 3. fallback: if no custom ingress rules or Host provided
 		default:
 			rules = append(rules, networkingv1.IngressRule{
 				IngressRuleValue: networkingv1.IngressRuleValue{
@@ -472,15 +472,6 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		ingress.Spec.Rules = rules
 
 		tlsConfigured := false
-		pickSecret := func(ingressTLSSecret string, tlsCfg *monv1.CommonTLSConfig) string {
-			if ingressTLSSecret != "" {
-				return ingressTLSSecret
-			}
-			if tlsCfg != nil {
-				return tlsCfg.SecretName
-			}
-			return ""
-		}
 		// Configure tls if TLS config is defined
 		if !tlsConfigured && len(cr.Spec.Grafana.Ingress.TLS) > 0 {
 			for _, hostgroup := range cr.Spec.Grafana.Ingress.TLS {
@@ -496,10 +487,10 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 				if len(validHosts) == 0 {
 					continue
 				}
-				// fallback: if secretName is empty - use TLSSecretName
+				// fallback: if secretName is empty - use ingress TLSSecretName only
 				secret := hostgroup.SecretName
 				if secret == "" {
-					secret = pickSecret(cr.Spec.Grafana.Ingress.TLSSecretName, cr.Spec.Grafana.TLSConfig)
+					secret = cr.Spec.Grafana.Ingress.TLSSecretName
 				}
 				if secret != "" {
 					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
@@ -514,7 +505,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		}
 		// Configure TLS if TLS secret name and host is set
 		if !tlsConfigured && cr.Spec.Grafana.Ingress.Host != "" {
-			secret := pickSecret(cr.Spec.Grafana.Ingress.TLSSecretName, cr.Spec.Grafana.TLSConfig)
+			secret := cr.Spec.Grafana.Ingress.TLSSecretName
 			if secret != "" {
 				ingress.Spec.TLS = []networkingv1.IngressTLS{
 					{
@@ -528,7 +519,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
 		if !tlsConfigured && len(cr.Spec.Grafana.Ingress.Rules) > 0 {
 			tlsHosts := []string{}
-			secret := pickSecret(cr.Spec.Grafana.Ingress.TLSSecretName, cr.Spec.Grafana.TLSConfig)
+			secret := cr.Spec.Grafana.Ingress.TLSSecretName
 			for _, rule := range cr.Spec.Grafana.Ingress.Rules {
 				if rule.Host != "" {
 					tlsHosts = append(tlsHosts, rule.Host)

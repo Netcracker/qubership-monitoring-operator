@@ -363,18 +363,7 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 		ing := cr.Spec.Victoriametrics.VmAlertManager.Ingress
 
 		switch {
-		// 1. If Host is provided
-		case ing.Host != "":
-			rules = append(rules, networkingv1.IngressRule{
-				Host: ing.Host,
-				IngressRuleValue: networkingv1.IngressRuleValue{
-					HTTP: &networkingv1.HTTPIngressRuleValue{
-						Paths: []networkingv1.HTTPIngressPath{defaultVmAlertManagerPath(pathType)},
-					},
-				},
-			})
-
-		// 2. If custom ingress rules provided
+		// 1. If custom ingress rules provided
 		case len(ing.Rules) > 0:
 			for _, r := range ing.Rules {
 				// fallback if HTTP is not set
@@ -432,7 +421,18 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 				})
 			}
 
-		// 3. fallback: if no Host or no custom ingress rules provided
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAlertManagerPath(pathType)},
+					},
+				},
+			})
+
+		// 3. fallback: if no custom ingress rules or Host provided
 		default:
 			rules = append(rules, networkingv1.IngressRule{
 				IngressRuleValue: networkingv1.IngressRuleValue{
@@ -445,15 +445,6 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 		ingress.Spec.Rules = rules
 
 		tlsConfigured := false
-		pickSecret := func(ingressTLSSecret string, tlsCfg *monv1.VmTLSConfig) string {
-			if ingressTLSSecret != "" {
-				return ingressTLSSecret
-			}
-			if tlsCfg != nil {
-				return tlsCfg.SecretName
-			}
-			return ""
-		}
 		// Configure tls if TLS config is defined
 		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLS) > 0 {
 			for _, hostgroup := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLS {
@@ -469,10 +460,10 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 				if len(validHosts) == 0 {
 					continue
 				}
-				// fallback: if secretName is empty - use TLSSecretName
+				// fallback: if secretName is empty - use ingress TLSSecretName only
 				secret := hostgroup.SecretName
 				if secret == "" {
-					secret = pickSecret(cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName, cr.Spec.Victoriametrics.VmAlertManager.TLSConfig)
+					secret = cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
 				}
 				if secret != "" {
 					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
@@ -487,7 +478,7 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 		}
 		// Configure tls if TLS secret name and host is set
 		if !tlsConfigured && cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host != "" {
-			secret := pickSecret(cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName, cr.Spec.Victoriametrics.VmAlertManager.TLSConfig)
+			secret := cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
 			if secret != "" {
 				ingress.Spec.TLS = []networkingv1.IngressTLS{
 					{
@@ -501,7 +492,7 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
 		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Rules) > 0 {
 			tlsHosts := []string{}
-			secret := pickSecret(cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName, cr.Spec.Victoriametrics.VmAlertManager.TLSConfig)
+			secret := cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
 			for _, rule := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Rules {
 				if rule.Host != "" {
 					tlsHosts = append(tlsHosts, rule.Host)
