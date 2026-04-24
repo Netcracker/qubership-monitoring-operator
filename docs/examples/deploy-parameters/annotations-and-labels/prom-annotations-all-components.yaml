@@ -5,49 +5,49 @@ monitoringOperator:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 
 # Grafana
 grafana:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
   operator:
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
 
 # Prometheus stack
 prometheus:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 alertManager:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 
 # Exporters
 kubeStateMetrics:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 nodeExporter:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 
 # Integrations tests
 integrationTests:
