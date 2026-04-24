@@ -1,0 +1,13 @@
+{{- if .Values.grafana.converter }}
+{{- if .Values.grafana.converter.enable }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-resources-converter
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "grafana-resources-converter") | nindent 4 }}
+data:
+  parameters.yaml: |-
+    {{- toYaml .Values.grafana.converter | nindent 4 }}
+{{- end }}
+{{- end }}

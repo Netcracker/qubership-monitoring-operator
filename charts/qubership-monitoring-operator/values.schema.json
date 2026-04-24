@@ -284,6 +284,16 @@
                 }
             }
         },
+        "grafanaConverter": {
+            "type": "object",
+            "description": "Converter to migrate Grafana resources from v1alpha1 to v1beta1 APIs",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
         "grafanaDashboards": {
             "type": "object",
             "properties": {

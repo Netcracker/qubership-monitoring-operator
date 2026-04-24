@@ -1701,3 +1701,8 @@ stackdriver_exporter:
 goldpingerExporter:
   # Disable by default
   install: false
+
+# Converter to migrate Grafana resources from v1alpha1 to v1beta1 APIs
+grafanaConverter:
+  # Install by default as a migration helper for Grafana Operator v5
+  install: true
