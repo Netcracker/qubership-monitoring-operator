@@ -106,7 +106,7 @@ spec:
     {{- end }}
     {{- if and .Values.prometheus.ingress (eq (toString .Values.prometheus.ingress.install) "true") }}
     ingress:
-      {{- include "prometheus.ingress" . | nindent 6 }}
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.prometheus.ingress "hostPrefix" "prometheus") | nindent 6 }}
     {{- end }}
     {{- if .Values.prometheus.alerting }}
     alerting:
@@ -409,7 +409,7 @@ spec:
       paused: {{ .Values.victoriametrics.vmSingle.paused | default false }}
       {{- if and .Values.victoriametrics.vmSingle.ingress (eq (toString .Values.victoriametrics.vmSingle.ingress.install) "true") }}
       ingress:
-        {{- include "vm.single.ingress" . | nindent 8 }}
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmSingle.ingress "hostPrefix" "vmsingle") | nindent 8 }}
       {{- end }}
       image: {{ template "vm.single.image" . }}
       retentionPeriod: {{ .Values.victoriametrics.vmSingle.retentionPeriod | default "14d" }}
@@ -486,7 +486,7 @@ spec:
       paused: {{ .Values.victoriametrics.vmAgent.paused | default false }}
       {{- if and .Values.victoriametrics.vmAgent.ingress (eq (toString .Values.victoriametrics.vmAgent.ingress.install) "true") }}
       ingress:
-        {{- include "vm.agent.ingress" . | nindent 8 }}
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAgent.ingress "hostPrefix" "vmagent") | nindent 8 }}
       {{- end }}
       image: {{ template "vm.agent.image" . }}
       resources:
@@ -653,7 +653,7 @@ spec:
       replicas: {{ .Values.victoriametrics.vmAlertManager.replicas | default 1 }}
       {{- if and .Values.victoriametrics.vmAlertManager.ingress (eq (toString .Values.victoriametrics.vmAlertManager.ingress.install) "true") }}
       ingress:
-        {{- include "vm.alertmanager.ingress" . | nindent 8 }}
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAlertManager.ingress "hostPrefix" "vmalertmanager") | nindent 8 }}
       {{- end }}
       resources:
         {{ include "vm.alertmanager.resources" . }}
@@ -759,7 +759,7 @@ spec:
       replicas: {{ .Values.victoriametrics.vmAlert.replicas | default 1 }}
       {{- if and .Values.victoriametrics.vmAlert.ingress (eq (toString .Values.victoriametrics.vmAlert.ingress.install) "true") }}
       ingress:
-        {{- include "vm.alert.ingress" . | nindent 8 }}
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAlert.ingress "hostPrefix" "vmalert") | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAlert.port }}
       port: {{ .Values.victoriametrics.vmAlert.port }}
@@ -886,7 +886,7 @@ spec:
         {{- toYaml .Values.victoriametrics.vmAuth.containers | nindent 8 }}
       {{- if and .Values.victoriametrics.vmAuth.ingress (eq (toString .Values.victoriametrics.vmAuth.ingress.install) "true") }}
       ingress:
-        {{- include "vm.auth.ingress" . | nindent 8 }}
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAuth.ingress "hostPrefix" "vmauth") | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAuth.port }}
       port: {{ .Values.victoriametrics.vmAuth.port }}
@@ -1011,7 +1011,7 @@ spec:
       vmSelectImage: {{ template "vm.select.image" . }}
       {{- if and .Values.victoriametrics.vmCluster.vmSelectIngress (eq (toString .Values.victoriametrics.vmCluster.vmSelectIngress.install) "true") }}
       vmSelectIngress:
-        {{- include "vm.select.ingress" . | nindent 8 }}
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmCluster.vmSelectIngress "hostPrefix" "vmselect") | nindent 8 }}
         {{- end }}
       {{- if .Values.victoriametrics.tlsEnabled }}
       vmSelectTlsConfig:
@@ -1112,7 +1112,7 @@ spec:
     {{- end }}
     {{- if and .Values.alertManager.ingress (eq (toString .Values.alertManager.ingress.install) "true") }}
     ingress:
-      {{- include "alertmanager.ingress" . | nindent 6 }}
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.alertManager.ingress "hostPrefix" "alertmanager") | nindent 6 }}
     {{- end }}
     containers:
       {{- toYaml .Values.alertManager.containers | nindent 6 }}
@@ -1155,7 +1155,7 @@ spec:
     paused: {{ .Values.grafana.paused | default false }}
     {{- if and .Values.grafana.ingress (eq (toString .Values.grafana.ingress.install) "true") }}
     ingress:
-      {{- include "grafana.ingress" . | nindent 6 }}
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.grafana.ingress "hostPrefix" "grafana") | nindent 6 }}
     {{- end }}
     config:
       {{- toYaml .Values.grafana.config | nindent 6 }}
@@ -1431,7 +1431,7 @@ spec:
     port: {{ .Values.pushgateway.port}}
     {{- if and .Values.pushgateway.ingress (eq (toString .Values.pushgateway.ingress.install) "true") }}
     ingress:
-      {{- include "pushgateway.ingress" . | nindent 6 }}
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.pushgateway.ingress "hostPrefix" "pushgateway") | nindent 6 }}
     {{- end }}
     paused: {{ .Values.pushgateway.paused | default false }}
     {{- if .Values.pushgateway.serviceMonitor }}
