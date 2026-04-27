@@ -3,7 +3,6 @@ package grafana
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"maps"
 	"strings"
@@ -16,10 +15,8 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
 )
@@ -377,109 +374,164 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	return &dataSource, nil
 }
 
-func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
-	ingress := v1beta1.Ingress{}
-	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
-		return nil, err
-	}
-	// Set parameters
-	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1beta1", Kind: "Ingress"})
-	ingress.SetName(cr.GetNamespace() + "-" + utils.GrafanaComponentName)
-	ingress.SetNamespace(cr.GetNamespace())
-
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Ingress != nil && cr.Spec.Grafana.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Grafana.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-		// Add rule for grafana UI
-		rule := v1beta1.IngressRule{Host: cr.Spec.Grafana.Ingress.Host}
-		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
-			Paths: []v1beta1.HTTPIngressPath{
-				{
-					Path: "/",
-					Backend: v1beta1.IngressBackend{
-						ServiceName: utils.GrafanaServiceName,
-						ServicePort: intstr.FromInt(utils.GrafanaServicePort),
-					},
-				},
-			},
-		}
-		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
-
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Grafana.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []v1beta1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Grafana.Ingress.Host},
-					SecretName: cr.Spec.Grafana.Ingress.TLSSecretName,
-				},
-			}
-		}
-
-		if cr.Spec.Grafana.Ingress.IngressClassName != nil {
-			ingress.Spec.IngressClassName = cr.Spec.Grafana.Ingress.IngressClassName
-		}
-
-		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
-
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		for lKey, lValue := range cr.Spec.Grafana.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
-		}
-	}
-	return &ingress, nil
-}
-
 func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
 	ingress := networkingv1.Ingress{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
-	//Set parameters
+	//Set metadata
 	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1", Kind: "Ingress"})
 	ingress.SetName(cr.GetNamespace() + "-" + utils.GrafanaComponentName)
 	ingress.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Ingress != nil && cr.Spec.Grafana.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Grafana.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
+		var rules []networkingv1.IngressRule
 		pathType := networkingv1.PathTypePrefix
-		// Add rule for grafana UI
-		rule := networkingv1.IngressRule{Host: cr.Spec.Grafana.Ingress.Host}
-		rule.HTTP = &networkingv1.HTTPIngressRuleValue{
-			Paths: []networkingv1.HTTPIngressPath{
-				{
-					Path:     "/",
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: &networkingv1.IngressServiceBackend{
-							Name: utils.GrafanaServiceName,
-							Port: networkingv1.ServiceBackendPort{
-								Number: utils.GrafanaServicePort,
+		ing := cr.Spec.Grafana.Ingress
+
+		switch {
+		// 1. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &monv1.HTTPIngressRuleValue{
+						Paths: []monv1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: monv1.IngressPathBackend{
+									Service: monv1.IngressPathBackendService{
+										Name: utils.GrafanaServiceName,
+										Port: monv1.ServiceBackendPort{
+											Number: utils.GrafanaServicePort,
+										},
+									},
+								},
 							},
 						},
+					}
+				}
+
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(pathType)},
 					},
 				},
-			},
-		}
-		ingress.Spec.Rules = []networkingv1.IngressRule{rule}
+			})
 
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Grafana.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Grafana.Ingress.Host},
-					SecretName: cr.Spec.Grafana.Ingress.TLSSecretName,
+		// 3. fallback: if no custom ingress rules or Host provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(pathType)},
+					},
 				},
+			})
+		}
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Grafana.Ingress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Grafana.Ingress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				// fallback: if secretName is empty - use ingress TLSSecretName only
+				secret := hostgroup.SecretName
+				if secret == "" {
+					secret = cr.Spec.Grafana.Ingress.TLSSecretName
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure TLS if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Grafana.Ingress.Host != "" {
+			secret := cr.Spec.Grafana.Ingress.TLSSecretName
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Grafana.Ingress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Grafana.Ingress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := cr.Spec.Grafana.Ingress.TLSSecretName
+			for _, rule := range cr.Spec.Grafana.Ingress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
 			}
 		}
 
@@ -516,4 +568,19 @@ func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error)
 		cr.Spec.Grafana.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
 	return &podMonitor, nil
+}
+
+func defaultGrafanaPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.GrafanaServiceName,
+				Port: networkingv1.ServiceBackendPort{
+					Number: utils.GrafanaServicePort,
+				},
+			},
+		},
+	}
 }
