@@ -1,8 +1,14 @@
+{{- if and .Values.global.privilegedRights .Values.rbac.createClusterRole }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: manager-role
+  name: {{ include "grafana-operator.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator.name" .)) | nindent 4 }}
+    {{- if .Values.additionalLabels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
+    {{- end }}
 rules:
   - apiGroups:
       - ""
@@ -54,11 +60,7 @@ rules:
       - patch
       - update
       - watch
-  - verbs:
-      - get
-      - list
-      - watch
-    apiGroups:
+  - apiGroups:
       - integreatly.org
     resources:
       - grafananotificationchannels
@@ -69,6 +71,10 @@ rules:
       - grafanadatasources/status
       - grafanafolders
       - grafanafolders/status
+    verbs:
+      - get
+      - list
+      - watch
   - apiGroups:
       - grafana.integreatly.org
     resources:
@@ -237,3 +243,18 @@ rules:
       - patch
       - update
       - watch
+  {{- if $.Capabilities.APIVersions.Has "route.openshift.io/v1/Route" }}
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+      - routes/custom-host
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  {{- end }}
+{{- end }}

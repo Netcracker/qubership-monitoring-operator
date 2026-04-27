@@ -15,8 +15,12 @@ watchNamespaces: ""
 # By default it's all namespaces.
 watchNamespaceSelector: ""
 
-# -- Determines if the target cluster is OpenShift. Additional rbac permissions for routes will be added on OpenShift
-isOpenShift: false
+# -- RBAC-related settings
+rbac:
+  # -- Set to false to skip ClusterRole creation
+  createClusterRole: true
+  # -- Set to false to skip ClusterRoleBinding creation
+  createClusterRoleBinding: true
 
 # -- Additional environment variables
 env: []
