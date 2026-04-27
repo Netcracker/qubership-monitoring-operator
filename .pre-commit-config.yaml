@@ -1,0 +1,55 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+default_stages:
+  - pre-commit
+repos:
+  - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update # Use latest versions of pre-commit checks
+    rev: v0.9.0
+    hooks:
+      - id: pre-commit-update
+        args:
+          - --bleeding-edge
+          - pre-commit-golang
+  - repo: https://github.com/pre-commit/pre-commit-hooks # General checks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: no-commit-to-branch
+      - id: destroyed-symlinks
+      - id: mixed-line-ending
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: https://github.com/compilerla/conventional-pre-commit # Conventional commits https://www.conventionalcommits.org
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages:
+          - commit-msg
+        args:
+          - --strict
+          - --verbose
+  - repo: https://github.com/gitleaks/gitleaks # Check for security leaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks-docker
+  - repo: https://github.com/google/yamlfmt # Restore format of .pre-commit-config.yaml after pre-commit-update
+    rev: v0.21.0
+    hooks:
+      - id: yamlfmt
+        files: '^.pre-commit-config.yaml$'
+  - repo: https://github.com/adrienverge/yamllint # YAML checks
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args:
+          - --config-file
+          - .github/linters/.yaml-lint.yml
+  - repo: https://github.com/exadmin/CyberFerret # CyberFerret Check
+    rev: v.1.2.5
+    hooks:
+      - id: cyberferret
