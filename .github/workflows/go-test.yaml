@@ -34,9 +34,8 @@ jobs:
   test:
     needs: prepare
     name: Build and test with coverage
-    uses: Netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@bc2a0bd082147e23b4091616c608a21cc2957728 # v2.4.1
+    uses: Beauline/qubership-core-infra/.github/workflows/generic-go-build.yaml@bc2a0bd082147e23b4091616c608a21cc2957728 # v2.4.1
     with:
-      go-module-dir: '.'
       sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
       go-module-configs: >-
         [
@@ -49,7 +48,6 @@ jobs:
             "cover-packages": "./..."
           }
         ]
-      cover-packages: './controllers/...,./api/...'
       install-envtest: true
       kube-version: '1.30.0'
       envtest-version: 'release-0.19'
