@@ -52,7 +52,8 @@ jobs:
       kube-version: '1.30.0'
       envtest-version: 'release-0.19'
       skip-docker: true
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read
       pull-requests: write
