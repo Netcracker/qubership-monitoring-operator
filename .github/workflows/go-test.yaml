@@ -38,6 +38,17 @@ jobs:
     with:
       go-module-dir: '.'
       sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
+      go-module-configs: >-
+        [
+          {
+            "dir": ".",
+            "cover-packages": "./controllers/...,./api/..."
+          },
+          {
+            "dir": "cmd/etcd-certs-to-secret",
+            "cover-packages": "./..."
+          }
+        ]
       cover-packages: './controllers/...,./api/...'
       install-envtest: true
       kube-version: '1.30.0'
