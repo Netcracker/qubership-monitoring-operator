@@ -74,11 +74,11 @@ spec:
             - name: GRAFANA
               value: "true"
             - name: GRAFANA_HOST
-            {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
+              {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
               value: {{ .Values.grafana.ingress.host | quote }}
-            {{- else }}
+              {{- else }}
               value: grafana-{{ .Values.NAMESPACE }}.{{ .Values.CLOUD_PUBLIC_HOST}}
-            {{- end }}
+              {{- end }}
             {{- else }}
             - name: GRAFANA
               value: "false"
@@ -127,6 +127,34 @@ spec:
             - name: STATUS_CUSTOM_RESOURCE_PATH
               value: {{ template "integrationTests.customResourcePath" . }}
             {{- end }}
+            {{- if .Values.integrationTests.atpReport.enabled }}
+            - name: ATP_REPORT_ENABLED
+              value: {{ .Values.integrationTests.atpReport.enabled | quote }}
+            - name: ATP_STORAGE_PROVIDER
+              value: {{ .Values.integrationTests.atpReport.atpStorage.provider | quote }}
+            - name: ATP_STORAGE_SERVER_URL
+              value: {{ .Values.integrationTests.atpReport.atpStorage.serverUrl | quote }}
+            - name: ATP_STORAGE_SERVER_UI_URL
+              value: {{ .Values.integrationTests.atpReport.atpStorage.serverUiUrl | quote }}
+            - name: ATP_STORAGE_BUCKET
+              value: {{ .Values.integrationTests.atpReport.atpStorage.bucket | quote }}
+            - name: ATP_STORAGE_REGION
+              value: {{ .Values.integrationTests.atpReport.atpStorage.region | quote }}
+            - name: ATP_STORAGE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.name }}-atp-storage-secret
+                  key: atp-storage-username
+            - name: ATP_STORAGE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.name }}-atp-storage-secret
+                  key: atp-storage-password
+            - name: ATP_REPORT_VIEW_UI_URL
+              value: {{ .Values.integrationTests.atpReportViewUiUrl | quote }}
+            {{- end }}
+            - name: ENVIRONMENT_NAME
+              value: {{ .Values.integrationTests.environmentName | quote }}
             - name: RANDOM_RUN_TRIGGER
               value: {{ randAlphaNum 10 | quote }}
           volumeMounts:
