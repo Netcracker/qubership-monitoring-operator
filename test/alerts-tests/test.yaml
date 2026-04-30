@@ -103,7 +103,7 @@ tests:
       exp_annotations:
         summary: "Kubernetes out of disk (instance )"
         description: " has OutOfDisk condition\n  VALUE = 1\n  LABELS: map[__name__:kube_node_status_condition alertgroup:KubernetesAlerts alertname:KubernetesOutOfDisk condition:OutOfDisk severity:critical status:true]"
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_node_status_condition{condition="OutOfDisk", status="true"}'
@@ -139,7 +139,7 @@ tests:
     groupname: KubernetesAlerts
     alertname: KubernetesJobFailed
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_cronjob_spec_suspend'
@@ -165,7 +165,7 @@ tests:
     groupname: KubernetesAlerts
     alertname: KubernetesCronjobSuspended
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_persistentvolumeclaim_status_phase{phase="Pending"}'
@@ -192,7 +192,7 @@ tests:
     groupname: KubernetesAlerts
     alertname: KubernetesPersistentvolumeclaimPending
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_persistentvolume_status_phase{phase="Pending",job="kube-state-metrics"}'
@@ -226,7 +226,7 @@ tests:
   - series: 'kubelet_volume_stats_available_bytes'
     values: "24x1440"
   - series: 'kubelet_volume_stats_capacity_bytes'
-    values: "100x1440"  
+    values: "100x1440"
   alert_rule_test:
   - eval_time: 5m
     groupname: KubernetesAlerts
@@ -244,7 +244,7 @@ tests:
   - series: 'kubelet_volume_stats_available_bytes'
     values: "50x1440"
   - series: 'kubelet_volume_stats_capacity_bytes'
-    values: "100x1440"  
+    values: "100x1440"
   alert_rule_test:
   - eval_time: 5m
     groupname: KubernetesAlerts
@@ -256,7 +256,7 @@ tests:
   - series: 'kubelet_volume_stats_available_bytes'
     values: "9x1440"
   - series: 'kubelet_volume_stats_capacity_bytes'
-    values: "100x1440"  
+    values: "100x1440"
   alert_rule_test:
   - eval_time: 5m
     groupname: KubernetesAlerts
@@ -274,7 +274,7 @@ tests:
   - series: 'kubelet_volume_stats_available_bytes'
     values: "50x1440"
   - series: 'kubelet_volume_stats_capacity_bytes'
-    values: "100x1440"  
+    values: "100x1440"
   alert_rule_test:
   - eval_time: 5m
     groupname: KubernetesAlerts
@@ -405,7 +405,7 @@ tests:
 
       exp_annotations:
         summary: "Kubernetes ReplicasSet mismatch (instance )"
-        description: "Deployment Replicas mismatch\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesReplicassetMismatch severity:warning]"        
+        description: "Deployment Replicas mismatch\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesReplicassetMismatch severity:warning]"
 
 - interval: 1m
   input_series:
@@ -435,7 +435,7 @@ tests:
 
       exp_annotations:
         summary: "Kubernetes Deployment replicas mismatch (instance )"
-        description: "Deployment Replicas mismatch\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDeploymentReplicasMismatch severity:warning]"      
+        description: "Deployment Replicas mismatch\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDeploymentReplicasMismatch severity:warning]"
 
 - interval: 1m
   input_series:
@@ -465,7 +465,7 @@ tests:
 
       exp_annotations:
         summary: "Kubernetes StatefulSet replicas mismatch (instance )"
-        description: "A StatefulSet has not matched the expected number of replicas for longer than 15 minutes.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesStatefulsetReplicasMismatch severity:warning]" 
+        description: "A StatefulSet has not matched the expected number of replicas for longer than 15 minutes.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesStatefulsetReplicasMismatch severity:warning]"
 
 - interval: 1m
   input_series:
@@ -477,7 +477,7 @@ tests:
   - eval_time: 5m
     groupname: KubernetesAlerts
     alertname: KubernetesStatefulsetReplicasMismatch
-    exp_alerts: [] 
+    exp_alerts: []
 
 - interval: 1m
   input_series:
@@ -495,7 +495,7 @@ tests:
 
       exp_annotations:
         summary: "Kubernetes Deployment generation mismatch (instance )"
-        description: "A Deployment has failed but has not been rolled back.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDeploymentGenerationMismatch severity:critical]" 
+        description: "A Deployment has failed but has not been rolled back.\n  VALUE = 1\n  LABELS: map[alertgroup:KubernetesAlerts alertname:KubernetesDeploymentGenerationMismatch severity:critical]"
 
 - interval: 1m
   input_series:
@@ -508,7 +508,7 @@ tests:
     groupname: KubernetesAlerts
     alertname: KubernetesDeploymentGenerationMismatch
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_statefulset_status_observed_generation'
@@ -564,7 +564,7 @@ tests:
   - series: 'kube_statefulset_status_current_revision'
     values: "1x1440"
   - series: 'kube_statefulset_status_update_revision'
-    values: "1x1440"  
+    values: "1x1440"
   - series: 'kube_statefulset_replicas'
     values: "1x1440"
   - series: 'kube_statefulset_status_replicas_updated'
@@ -682,7 +682,7 @@ tests:
     groupname: KubernetesAlerts
     alertname: KubernetesCronjobTooLong
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_job_status_failed'
@@ -744,7 +744,7 @@ tests:
   - series: 'apiserver_request_duration_seconds_bucket{le="0.5"}'
     values: "0+30x1440"
   - series: 'apiserver_request_duration_seconds_bucket{le="1"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'apiserver_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+110x1440"
   alert_rule_test:
@@ -768,7 +768,7 @@ tests:
   - series: 'apiserver_request_duration_seconds_bucket{le="0.3"}'
     values: "0+102x1440"
   - series: 'apiserver_request_duration_seconds_bucket{le="0.4"}'
-    values: "0+103x1440"    
+    values: "0+103x1440"
   - series: 'apiserver_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+104x1440"
   alert_rule_test:
@@ -776,7 +776,7 @@ tests:
     groupname: KubernetesAlerts
     alertname: ApiServerRequestsSlow
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'workqueue_depth'
@@ -838,7 +838,7 @@ tests:
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
     values: "0+30x1440"
   - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
     values: "0+110x1440"
   - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
@@ -865,7 +865,7 @@ tests:
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
     values: "0+30x1440"
   - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
     values: "0+110x1440"
   - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
@@ -885,7 +885,7 @@ tests:
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
     values: "0+30x1440"
   - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
     values: "0+110x1440"
   - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
@@ -912,7 +912,7 @@ tests:
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet", le="0.5"}'
     values: "0+30x1440"
   - series: 'apiserver_request_duration_seconds_bucket{job="kubelet", le="1"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'apiserver_request_duration_seconds_bucket {job="kubelet",le="+Inf"}'
     values: "0+110x1440"
   - series: 'apiserver_client_certificate_expiration_seconds_count{job="kubelet"}'
@@ -930,9 +930,9 @@ tests:
   - series: 'node_processes_max_processes'
     values: "10x1440"
   - series: 'node_processes_threads'
-    values: "1x1440"    
+    values: "1x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 5m
     groupname: NodeProcesses
@@ -952,15 +952,15 @@ tests:
   - series: 'node_processes_max_processes'
     values: "100x1440"
   - series: 'node_processes_threads'
-    values: "10x1440"    
+    values: "10x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 5m
     groupname: NodeProcesses
     alertname: CountPidsAndThreadOutOfLimit
     exp_alerts: []
-       
+
 - interval: 1m
   input_series:
   - series: 'node_memory_MemAvailable_bytes'
@@ -968,7 +968,7 @@ tests:
   - series: 'node_memory_MemTotal_bytes'
     values: "100x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -988,7 +988,7 @@ tests:
   - series: 'node_memory_MemTotal_bytes'
     values: "100x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -1000,7 +1000,7 @@ tests:
   - series: 'node_vmstat_pgmajfault'
     values: "120000+120000x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1018,7 +1018,7 @@ tests:
   - series: 'node_vmstat_pgmajfault'
     values: "0x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1030,7 +1030,7 @@ tests:
   - series: 'node_network_receive_bytes_total'
     values: "12582912000+12582912000x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1048,7 +1048,7 @@ tests:
   - series: 'node_network_receive_bytes_total'
     values: "0x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1060,7 +1060,7 @@ tests:
   - series: 'node_network_transmit_bytes_total'
     values: "12582912000+12582912000x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1078,7 +1078,7 @@ tests:
   - series: 'node_network_transmit_bytes_total'
     values: "0x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1090,7 +1090,7 @@ tests:
   - series: 'node_disk_read_bytes_total'
     values: "12582912000+12582912000x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1108,7 +1108,7 @@ tests:
   - series: 'node_disk_read_bytes_total'
     values: "0x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1120,7 +1120,7 @@ tests:
   - series: 'node_disk_written_bytes_total'
     values: "12582912000+12582912000x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1132,13 +1132,13 @@ tests:
       exp_annotations:
         summary: "Host unusual disk write rate (instance )"
         description: "Disk is probably writing too much data (> 50 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskWriteRate severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'node_disk_written_bytes_total'
     values: "0x1440"
   - series: 'node_uname_info'
-    values: "1x1440"   
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1148,11 +1148,11 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_filesystem_avail_bytes{mountpoint="/"}'
-    values: "5x1440"   
+    values: "5x1440"
   - series: 'node_filesystem_size_bytes{mountpoint="/"}'
     values: "100x1440"
   - series: 'node_uname_info'
-    values: "1x1440"    
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1165,15 +1165,15 @@ tests:
       exp_annotations:
         summary: "Host out of disk space (instance )"
         description: "Disk is almost full (< 10 percent left)\n  VALUE = 5\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfDiskSpace mountpoint:/ severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'node_filesystem_avail_bytes{mountpoint="/"}'
-    values: "100x1440"   
+    values: "100x1440"
   - series: 'node_filesystem_size_bytes{mountpoint="/"}'
     values: "100x1440"
   - series: 'node_uname_info'
-    values: "1x1440"    
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 6m
     groupname: NodeExporters
@@ -1183,9 +1183,9 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_filesystem_free_bytes'
-    values: "-1x300"   
+    values: "-1x300"
   - series: 'node_uname_info'
-    values: "1x300"   
+    values: "1x300"
   alert_rule_test:
   - eval_time: 5h
     groupname: NodeExporters
@@ -1201,9 +1201,9 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_filesystem_free_bytes'
-    values: "1x300"   
+    values: "1x300"
   - series: 'node_uname_info'
-    values: "1x300"   
+    values: "1x300"
   alert_rule_test:
   - eval_time: 5h
     groupname: NodeExporters
@@ -1248,11 +1248,11 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_disk_read_time_seconds_total'
-    values: "24000+24000x1440"   
+    values: "24000+24000x1440"
   - series: 'node_disk_reads_completed_total'
     values: "120+120x1440"
   - series: 'node_uname_info'
-    values: "1x1440"    
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -1268,11 +1268,11 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_disk_read_time_seconds_total'
-    values: "240+240x1440"   
+    values: "240+240x1440"
   - series: 'node_disk_reads_completed_total'
     values: "120+120x1440"
   - series: 'node_uname_info'
-    values: "1x1440"    
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -1282,11 +1282,11 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_disk_write_time_seconds_total'
-    values: "24000+24000x1440"   
+    values: "24000+24000x1440"
   - series: 'node_disk_writes_completed_total'
     values: "120+120x1440"
   - series: 'node_uname_info'
-    values: "1x1440"    
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -1302,11 +1302,11 @@ tests:
 - interval: 1m
   input_series:
   - series: 'node_disk_write_time_seconds_total'
-    values: "240+240x1440"   
+    values: "240+240x1440"
   - series: 'node_disk_writes_completed_total'
     values: "120+120x1440"
   - series: 'node_uname_info'
-    values: "1x1440"    
+    values: "1x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -1342,7 +1342,7 @@ tests:
     groupname: NodeExporters
     alertname: HostHighCpuLoad
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'container_last_seen'
@@ -1399,7 +1399,7 @@ tests:
     alertname: ContainerVolumeUsage
     exp_alerts: []
 
-        
+
 - interval: 1m
   input_series:
   - series: 'container_fs_io_current'
@@ -1477,7 +1477,7 @@ tests:
     groupname: HAmode
     alertname: NotHAKubernetesDeploymentAvailableReplicas
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_statefulset_status_replicas_available'
@@ -1529,7 +1529,7 @@ tests:
     groupname: HAmode
     alertname: NotHAKubernetesDeploymentDesiredReplicas
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_statefulset_status_replicas'
@@ -1555,7 +1555,7 @@ tests:
     groupname: HAmode
     alertname: NotHAKubernetesStatefulSetDesiredReplicas
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="ReplicaSet", created_by_name="test"}'
@@ -1570,7 +1570,7 @@ tests:
 
       exp_annotations:
         summary: "Not HA mode: Deployment Has Multiple Pods per Node (instance )"
-        description: "Not HA mode: Kubernetes Deployment has 2 or more replicas on the same node\n  VALUE = 1\n  LABELS: map[alertgroup:HAmode alertname:NotHAKubernetesDeploymentMultiplePodsPerNode severity:warning]"   
+        description: "Not HA mode: Kubernetes Deployment has 2 or more replicas on the same node\n  VALUE = 1\n  LABELS: map[alertgroup:HAmode alertname:NotHAKubernetesDeploymentMultiplePodsPerNode severity:warning]"
 
 - interval: 1m
   input_series:
@@ -1623,7 +1623,7 @@ tests:
       exp_annotations:
         summary: "HAProxy down (instance )"
         description: "HAProxy down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_up alertgroup:HAproxy alertname:HaproxyDown severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'haproxy_up'
@@ -1711,7 +1711,7 @@ tests:
     groupname: HAproxy
     alertname: HaproxyServerConnectionErrors
     exp_alerts: []
-     
+
 - interval: 1m
   input_series:
   - series: 'haproxy_backend_current_queue'
@@ -1841,7 +1841,7 @@ tests:
     groupname: HAproxy
     alertname: HaproxyBackendDown
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'haproxy_server_up'
@@ -1903,7 +1903,7 @@ tests:
   - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.15"}'
     values: "0+3x1440"
   - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.2"}'
-    values: "0+1000x1440"    
+    values: "0+1000x1440"
   - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="+Inf"}'
     values: "0+2000x1440"
   alert_rule_test:
@@ -1927,7 +1927,7 @@ tests:
   - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.015"}'
     values: "0+3x1440"
   - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="0.02"}'
-    values: "0+1000x1440"    
+    values: "0+1000x1440"
   - series: 'grpc_server_handling_seconds_bucket{job="etcd", grpc_type="unary", le="+Inf"}'
     values: "0+1001x1440"
   alert_rule_test:
@@ -2023,7 +2023,7 @@ tests:
   - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.5"}'
     values: "0+3x1440"
   - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="1"}'
-    values: "0+1000x1440"    
+    values: "0+1000x1440"
   - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="+Inf"}'
     values: "0+2000x1440"
   alert_rule_test:
@@ -2047,7 +2047,7 @@ tests:
   - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.05"}'
     values: "0+3x1440"
   - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="0.1"}'
-    values: "0+1000x1440"    
+    values: "0+1000x1440"
   - series: 'etcd_disk_wal_fsync_duration_seconds_bucket{le="+Inf"}'
     values: "0+1001x1440"
   alert_rule_test:
@@ -2065,7 +2065,7 @@ tests:
   - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.5"}'
     values: "0+3x1440"
   - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="1"}'
-    values: "0+1000x1440"    
+    values: "0+1000x1440"
   - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="+Inf"}'
     values: "0+2000x1440"
   alert_rule_test:
@@ -2089,7 +2089,7 @@ tests:
   - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.05"}'
     values: "0+3x1440"
   - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="0.1"}'
-    values: "0+1000x1440"    
+    values: "0+1000x1440"
   - series: 'etcd_disk_backend_commit_duration_seconds_bucket{le="+Inf"}'
     values: "0+1001x1440"
   alert_rule_test:
@@ -2135,7 +2135,7 @@ tests:
   - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="3"}'
     values: "0+3x1440"
   - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="+Inf"}'
     values: "0+1000x1440"
   alert_rule_test:
@@ -2160,7 +2160,7 @@ tests:
   - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="0.03"}'
     values: "0+300x1440"
   - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="0.05"}'
-    values: "0+400x1440"    
+    values: "0+400x1440"
   - series: 'etcd_network_peer_round_trip_time_seconds_bucket{job="etcd", le="+Inf"}'
     values: "0+401x1440"
   alert_rule_test:
@@ -2238,7 +2238,7 @@ tests:
   - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="3"}'
     values: "0+3x1440"
   - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+1000x1440"
   alert_rule_test:
@@ -2262,7 +2262,7 @@ tests:
   - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="0.3"}'
     values: "0+3x1440"
   - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="0.5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'nginx_ingress_controller_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+101x1440"
   alert_rule_test:
@@ -2270,7 +2270,7 @@ tests:
     groupname: NginxIngressAlerts
     alertname: NginxLatencyHigh
     exp_alerts: []
-       
+
 - interval: 1m
   input_series:
   - series: 'coredns_panics_total'
@@ -2306,7 +2306,7 @@ tests:
   - series: 'coredns_dns_request_duration_seconds_bucket{le="3"}'
     values: "0+3x1440"
   - series: 'coredns_dns_request_duration_seconds_bucket{le="5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'coredns_dns_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+1000x1440"
   alert_rule_test:
@@ -2330,7 +2330,7 @@ tests:
   - series: 'coredns_dns_request_duration_seconds_bucket{le="0.3"}'
     values: "0+3x1440"
   - series: 'coredns_dns_request_duration_seconds_bucket{le="0.5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'coredns_dns_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+101x1440"
   alert_rule_test:
@@ -2400,7 +2400,7 @@ tests:
   - series: 'coredns_forward_request_duration_seconds_bucket{le="3"}'
     values: "0+3x1440"
   - series: 'coredns_forward_request_duration_seconds_bucket{le="5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'coredns_forward_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+1000x1440"
   alert_rule_test:
@@ -2424,7 +2424,7 @@ tests:
   - series: 'coredns_forward_request_duration_seconds_bucket{le="0.3"}'
     values: "0+3x1440"
   - series: 'coredns_forward_request_duration_seconds_bucket{le="0.5"}'
-    values: "0+100x1440"    
+    values: "0+100x1440"
   - series: 'coredns_forward_request_duration_seconds_bucket{le="+Inf"}'
     values: "0+101x1440"
   alert_rule_test:
@@ -2448,7 +2448,7 @@ tests:
       exp_annotations:
         summary: "Probe failed (instance: )"
         description: "Probe failed\n  VALUE = 0\n  LABELS: map[__name__:probe_success alertgroup:DRAlerts alertname:ProbeFailed severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'probe_success'
@@ -2473,7 +2473,7 @@ tests:
 
       exp_annotations:
         summary: "Slow probe (instance: )"
-        description: "Blackbox probe took more than 1s to complete\n  VALUE = 2\n  LABELS: map[__name__:probe_duration_seconds alertgroup:DRAlerts alertname:SlowProbe severity:warning]"       
+        description: "Blackbox probe took more than 1s to complete\n  VALUE = 2\n  LABELS: map[__name__:probe_duration_seconds alertgroup:DRAlerts alertname:SlowProbe severity:warning]"
 
 - interval: 1m
   input_series:
@@ -2484,7 +2484,7 @@ tests:
     groupname: DRAlerts
     alertname: SlowProbe
     exp_alerts: []
-        
+
 - interval: 1m
   input_series:
   - series: 'probe_http_status_code'
@@ -2561,8 +2561,8 @@ tests:
   - eval_time: 5m
     groupname: BackupAlerts
     alertname: Last Backup Failed
-    exp_alerts: []       
-                          
+    exp_alerts: []
+
 - interval: 1m
   input_series:
   - series: vm_data_size_bytes
@@ -2619,7 +2619,7 @@ tests:
         alertname: DeadMansSwitch
       exp_annotations:
         summary: "An always-firing Dead Man's Switch alert (instance )"
-        description: "This is an alert meant to ensure that the entire alerting pipeline is functional. This alert should always be firing.\n  VALUE = 1\n  LABELS: map[alertgroup:Heartbeat alertname:DeadMansSwitch severity:information]"                
+        description: "This is an alert meant to ensure that the entire alerting pipeline is functional. This alert should always be firing.\n  VALUE = 1\n  LABELS: map[alertgroup:Heartbeat alertname:DeadMansSwitch severity:information]"
 
 - interval: 1m
   input_series:
@@ -2635,7 +2635,7 @@ tests:
       exp_annotations:
         summary: "Prometheus job missing (instance )"
         description: "A Prometheus job has disappeared\n  VALUE = 1\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusJobMissing severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'up{job="prometheus-pod-monitor"}'
@@ -2645,7 +2645,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusJobMissing
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'up'
@@ -2660,7 +2660,7 @@ tests:
       exp_annotations:
         summary: "Prometheus target missing (instance )"
         description: "A Prometheus target has disappeared. An exporter might be crashed.\n  VALUE = 0\n  LABELS: map[__name__:up alertgroup:SelfMonitoring alertname:PrometheusTargetMissing severity:high]"
-        
+
 - interval: 1m
   input_series:
   - series: 'up'
@@ -2670,7 +2670,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTargetMissing
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'up'
@@ -2685,7 +2685,7 @@ tests:
       exp_annotations:
         summary: "Prometheus all targets missing (job )"
         description: "A Prometheus job does not have living target anymore.\n  VALUE = 1\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusAllTargetsMissing severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'up'
@@ -2695,7 +2695,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusAllTargetsMissing
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_config_last_reload_successful'
@@ -2710,7 +2710,7 @@ tests:
       exp_annotations:
         summary: "Prometheus configuration reload failure (instance )"
         description: "Prometheus configuration reload error\n  VALUE = 0\n  LABELS: map[__name__:prometheus_config_last_reload_successful alertgroup:SelfMonitoring alertname:PrometheusConfigurationReloadFailure severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_config_last_reload_successful'
@@ -2736,7 +2736,7 @@ tests:
       exp_annotations:
         summary: "Prometheus too many restarts (instance )"
         description: "Prometheus has restarted more than twice in the last 15 minutes. It might be crashlooping.\n  VALUE = 15\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTooManyRestarts job:prometheus-pod-monitor severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'process_start_time_seconds{job="prometheus-pod-monitor"}'
@@ -2746,7 +2746,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTooManyRestarts
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_rule_evaluation_failures_total'
@@ -2761,7 +2761,7 @@ tests:
       exp_annotations:
         summary: "Prometheus rule evaluation failures (instance )"
         description: "Prometheus encountered 3 rule evaluation failures, leading to potentially ignored alerts.\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusRuleEvaluationFailures severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_rule_evaluation_failures_total'
@@ -2771,7 +2771,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusRuleEvaluationFailures
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_template_text_expansion_failures_total'
@@ -2786,7 +2786,7 @@ tests:
       exp_annotations:
         summary: "Prometheus template text expansion failures (instance )"
         description: "Prometheus encountered 3 template text expansion failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTemplateTextExpansionFailures severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_template_text_expansion_failures_total'
@@ -2813,7 +2813,7 @@ tests:
       exp_annotations:
         summary: "Prometheus rule evaluation slow (instance )"
         description: "Prometheus rule evaluation took more time than the scheduled interval. I indicates a slower storage backend access or too complex query.\n  VALUE = 2\n  LABELS: map[__name__:prometheus_rule_group_last_duration_seconds alertgroup:SelfMonitoring alertname:PrometheusRuleEvaluationSlow severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_rule_group_last_duration_seconds'
@@ -2825,7 +2825,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusRuleEvaluationSlow
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_notifications_queue_length'
@@ -2840,7 +2840,7 @@ tests:
       exp_annotations:
         summary: "Prometheus notifications backlog (instance )"
         description: "The Prometheus notification queue has not been empty for 10 minutes\n  VALUE = 1\n  LABELS: map[__name__:prometheus_notifications_queue_length alertgroup:SelfMonitoring alertname:PrometheusNotificationsBacklog severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_notifications_queue_length'
@@ -2850,7 +2850,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusNotificationsBacklog
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_sd_discovered_targets'
@@ -2865,7 +2865,7 @@ tests:
       exp_annotations:
         summary: "Prometheus target empty (instance )"
         description: "Prometheus has no target in service discovery\n  VALUE = 0\n  LABELS: map[__name__:prometheus_sd_discovered_targets alertgroup:SelfMonitoring alertname:PrometheusTargetEmpty severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_sd_discovered_targets'
@@ -2892,7 +2892,7 @@ tests:
       exp_annotations:
         summary: "Prometheus target scraping slow (instance ) for 2 minutes"
         description: "Prometheus is scraping exporters slowly\n  VALUE = 140\n  LABELS: map[__name__:prometheus_target_interval_length_seconds alertgroup:SelfMonitoring alertname:PrometheusTargetScrapingSlowTwoMinutes interval:2m0s quantile:0.9 severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_interval_length_seconds{interval="2m0s", quantile="0.9"}'
@@ -2902,7 +2902,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTargetScrapingSlowTwoMinutes
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_interval_length_seconds{interval="1m0s", quantile="0.9"}'
@@ -2919,7 +2919,7 @@ tests:
       exp_annotations:
         summary: "Prometheus target scraping slow (instance ) for 1 minute"
         description: "Prometheus is scraping exporters slowly\n  VALUE = 80\n  LABELS: map[__name__:prometheus_target_interval_length_seconds alertgroup:SelfMonitoring alertname:PrometheusTargetScrapingSlowOneMinute interval:1m0s quantile:0.9 severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_interval_length_seconds{interval="1m0s", quantile="0.9"}'
@@ -2929,7 +2929,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTargetScrapingSlowOneMinute
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_interval_length_seconds{interval="30s", quantile="0.9"}'
@@ -2946,7 +2946,7 @@ tests:
       exp_annotations:
         summary: "Prometheus target scraping slow (instance ) for 30 seconds"
         description: "Prometheus is scraping exporters slowly\n  VALUE = 50\n  LABELS: map[__name__:prometheus_target_interval_length_seconds alertgroup:SelfMonitoring alertname:PrometheusTargetScrapingSlowThirtySeconds interval:30s quantile:0.9 severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_interval_length_seconds{interval="30s", quantile="0.9"}'
@@ -2956,7 +2956,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTargetScrapingSlowThirtySeconds
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_scrapes_exceeded_sample_limit_total'
@@ -2971,7 +2971,7 @@ tests:
       exp_annotations:
         summary: "Prometheus large scrape (instance )"
         description: "Prometheus has many scrapes that exceed the sample limit\n  VALUE = 20\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusLargeScrape severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_scrapes_exceeded_sample_limit_total'
@@ -2981,7 +2981,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusLargeScrape
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_scrapes_sample_duplicate_timestamp_total'
@@ -2996,7 +2996,7 @@ tests:
       exp_annotations:
         summary: "Prometheus target scrape duplicate (instance )"
         description: "Prometheus has many samples rejected due to duplicate timestamps but different values\n  VALUE = 5\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTargetScrapeDuplicate severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_target_scrapes_sample_duplicate_timestamp_total'
@@ -3006,7 +3006,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTargetScrapeDuplicate
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_checkpoint_creations_failed_total'
@@ -3021,7 +3021,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB checkpoint creation failures (instance )"
         description: "Prometheus encountered 3 checkpoint creation failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbCheckpointCreationFailures severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_checkpoint_creations_failed_total'
@@ -3031,7 +3031,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTsdbCheckpointCreationFailures
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_checkpoint_deletions_failed_total'
@@ -3046,7 +3046,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB checkpoint deletion failures (instance )"
         description: "Prometheus encountered 3 checkpoint deletion failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbCheckpointDeletionFailures severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_checkpoint_deletions_failed_total'
@@ -3056,7 +3056,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTsdbCheckpointDeletionFailures
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_compactions_failed_total'
@@ -3071,7 +3071,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB compactions failed (instance )"
         description: "Prometheus encountered 3 TSDB compactions failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbCompactionsFailed severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_compactions_failed_total'
@@ -3081,7 +3081,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTsdbCompactionsFailed
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_head_truncations_failed_total'
@@ -3096,7 +3096,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB head truncations failed (instance )"
         description: "Prometheus encountered 3 TSDB head truncation failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbHeadTruncationsFailed severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_head_truncations_failed_total'
@@ -3106,7 +3106,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTsdbHeadTruncationsFailed
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_reloads_failures_total'
@@ -3121,7 +3121,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB reload failures (instance )"
         description: "Prometheus encountered 3 TSDB reload failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbReloadFailures severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_reloads_failures_total'
@@ -3131,7 +3131,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTsdbReloadFailures
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_wal_corruptions_total'
@@ -3146,7 +3146,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB WAL corruptions (instance )"
         description: "Prometheus encountered 3 TSDB WAL corruptions\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbWalCorruptions severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_wal_corruptions_total'
@@ -3171,7 +3171,7 @@ tests:
       exp_annotations:
         summary: "Prometheus TSDB WAL truncations failed (instance )"
         description: "Prometheus encountered 3 TSDB WAL truncation failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbWalTruncationsFailed severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_tsdb_wal_truncations_failed_total'
@@ -3181,7 +3181,7 @@ tests:
     groupname: SelfMonitoring
     alertname: PrometheusTsdbWalTruncationsFailed
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'alertmanager_config_last_reload_successful'
@@ -3196,7 +3196,7 @@ tests:
       exp_annotations:
         summary: "Prometheus AlertManager configuration reload failure (instance )"
         description: "AlertManager configuration reload error\n  VALUE = 0\n  LABELS: map[__name__:alertmanager_config_last_reload_successful alertgroup:AlertManager alertname:PrometheusAlertmanagerConfigurationReloadFailure severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'alertmanager_config_last_reload_successful'
@@ -3206,7 +3206,7 @@ tests:
     groupname: AlertManager
     alertname: PrometheusAlertmanagerConfigurationReloadFailure
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'prometheus_notifications_alertmanagers_discovered'
@@ -3221,7 +3221,7 @@ tests:
       exp_annotations:
         summary: "Prometheus not connected to alertmanager (instance )"
         description: "Prometheus cannot connect the alertmanager\n  VALUE = 0\n  LABELS: map[__name__:prometheus_notifications_alertmanagers_discovered alertgroup:AlertManager alertname:PrometheusNotConnectedToAlertmanager severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'prometheus_notifications_alertmanagers_discovered'
@@ -3231,7 +3231,7 @@ tests:
     groupname: AlertManager
     alertname: PrometheusNotConnectedToAlertmanager
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'alertmanager_notifications_failed_total'
@@ -3246,7 +3246,7 @@ tests:
       exp_annotations:
         summary: "Prometheus AlertManager notification failing (instance )"
         description: "Alertmanager is failing sending notifications\n  VALUE = 2\n  LABELS: map[alertgroup:AlertManager alertname:PrometheusAlertmanagerNotificationFailing severity:high]"
-        
+
 - interval: 1m
   input_series:
   - series: 'alertmanager_notifications_failed_total'
@@ -3256,7 +3256,7 @@ tests:
     groupname: AlertManager
     alertname: PrometheusAlertmanagerNotificationFailing
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'node_filesystem_size_bytes{fstype="xfs"}'
@@ -3264,7 +3264,7 @@ tests:
   - series: 'node_filesystem_free_bytes{fstype="xfs"}'
     values: "15x1440"
   - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
-    values: "15x1440"  
+    values: "15x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -3276,7 +3276,7 @@ tests:
       exp_annotations:
         summary: "Disk usage on node > 70 percent (instance )"
         description: "Node  disk usage of  is\n  VALUE = 85 percent"
-        
+
 - interval: 1m
   input_series:
   - series: 'node_filesystem_size_bytes{fstype="xfs"}'
@@ -3284,13 +3284,13 @@ tests:
   - series: 'node_filesystem_free_bytes{fstype="xfs"}'
     values: "100x1440"
   - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
-    values: "100x1440" 
+    values: "100x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
     alertname: NodeDiskUsageIsMoreThanWarningThreshold
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'node_filesystem_size_bytes{fstype="xfs"}'
@@ -3298,7 +3298,7 @@ tests:
   - series: 'node_filesystem_free_bytes{fstype="xfs"}'
     values: "0x1440"
   - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
-    values: "0x1440"  
+    values: "0x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
@@ -3310,7 +3310,7 @@ tests:
       exp_annotations:
         summary: "Disk usage on node > 90 percent (instance )"
         description: "Node  disk usage of  is\n VALUE = 100 percent"
-        
+
 - interval: 1m
   input_series:
   - series: 'node_filesystem_size_bytes{fstype="xfs"}'
@@ -3318,13 +3318,13 @@ tests:
   - series: 'node_filesystem_free_bytes{fstype="xfs"}'
     values: "100x1440"
   - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
-    values: "100x1440" 
+    values: "100x1440"
   alert_rule_test:
   - eval_time: 15m
     groupname: NodeExporters
     alertname: NodeDiskUsageIsMoreThanHighThreshold
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'grpc_server_handled_total{job="etcd",grpc_code="Error"}'
@@ -3341,7 +3341,7 @@ tests:
       exp_annotations:
         summary: "Etcd high number of failed GRPC requests (instance )"
         description: "More than 1 percent GRPC request failure detected in Etcd for 5 minutes\n  VALUE = 1\n  LABELS: map[alertgroup:Etcd alertname:EtcdHighNumberOfFailedGrpcRequestsWarning severity:warning]"
-        
+
 - interval: 1m
   input_series:
   - series: 'grpc_server_handled_total{job="etcd",grpc_code="Error"}'
@@ -3370,7 +3370,7 @@ tests:
       exp_annotations:
         summary: "CoreDNS is returning SERVFAIL"
         description: "CoreDNS is returning SERVFAIL for 3.846% of requests"
-        
+
 - interval: 1m
   input_series:
   - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
@@ -3382,7 +3382,7 @@ tests:
     groupname: CoreDnsAlerts
     alertname: CoreDNSErrorsHighCritical
     exp_alerts: []
-    
+
 - interval: 1m
   input_series:
   - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
@@ -3399,7 +3399,7 @@ tests:
       exp_annotations:
         summary: "CoreDNS is returning SERVFAIL"
         description: "CoreDNS is returning SERVFAIL for 1.316% of requests"
-        
+
 - interval: 1m
   input_series:
   - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
@@ -3428,7 +3428,7 @@ tests:
       exp_annotations:
         summary: "CoreDNS is returning SERVFAIL for forward requests"
         description: "CoreDNS is returning SERVFAIL for 3.846% of forward requests to "
-        
+
 - interval: 1m
   input_series:
   - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
@@ -3457,7 +3457,7 @@ tests:
       exp_annotations:
         summary: "Etcd high number of failed GRPC requests (instance )"
         description: "More than 5 percent GRPC request failure detected in Etcd for 5 minutes\n  VALUE = 1\n  LABELS: map[alertgroup:Etcd alertname:EtcdHighNumberOfFailedGrpcRequestsCritical severity:critical]"
-        
+
 - interval: 1m
   input_series:
   - series: 'grpc_server_handled_total{job="etcd",grpc_code="Error"}'
@@ -3486,7 +3486,7 @@ tests:
       exp_annotations:
         summary: "CoreDNS is returning SERVFAIL for forward requests"
         description: "CoreDNS is returning SERVFAIL for 1.316% of forward requests to "
-        
+
 - interval: 1m
   input_series:
   - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
