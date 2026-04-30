@@ -29,14 +29,14 @@ OPERATORS = {
 # Map of common non-UTF-8 / "smart" characters that appear in CRD descriptions
 # and break YAML parsers or downstream tooling. Replace with safe ASCII equivalents.
 CHAR_REPLACEMENTS = {
-    "‘": "'",   # left single quotation mark
-    "’": "'",   # right single quotation mark
-    "“": '"',   # left double quotation mark
-    "”": '"',   # right double quotation mark
-    "–": "-",   # en dash
-    "—": "-",   # em dash
-    "…": "...", # horizontal ellipsis
-    " ": " ",   # non-breaking space
+    "‘": "'",    # left single quotation mark
+    "’": "'",    # right single quotation mark
+    "“": '"',    # left double quotation mark
+    "”": '"',    # right double quotation mark
+    "–": "-",    # en dash
+    "—": "-",    # em dash
+    "…": "...",  # horizontal ellipsis
+    " ": " ",    # non-breaking space
 }
 
 HELM_HOOK_ANNOTATIONS = {
