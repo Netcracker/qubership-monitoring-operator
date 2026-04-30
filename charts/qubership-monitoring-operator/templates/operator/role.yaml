@@ -8,249 +8,158 @@ metadata:
   labels:
     {{- include "monitoring.labels" (dict "ctx" . "name" $operatorRoleName) | nindent 4 }}
 rules:
-  - apiGroups:
-      - "rbac.authorization.k8s.io"
-    resources:
-      - rolebindings
-      - roles
-    verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
-  - apiGroups:
-      - "config.openshift.io"
-    resources:
-      - clusterversions
-    verbs:
-      - 'get'
-  - apiGroups:
-      - "monitoring.netcracker.com"
-    resources:
-      - platformmonitorings
-      - platformmonitorings/finalizers
-      - platformmonitorings/status
-    verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
+  ############################################### Kubernetes API Groups ################################################
 
+  # core
+  # This is needed for handling core Kubernetes resources
   - apiGroups:
       - ""
     resources:
-      - nodes
-      - nodes/metrics
       - limitranges
-      - persistentvolumes
       - replicationcontrollers
       - resourcequotas
     verbs:
-      - 'get'
-      - 'list'
-      - 'watch'
-
+      - get
+      - list
+      - watch
   - apiGroups:
       - ""
     resources:
-      - pods
-      - services
-      - services/finalizers
-      - endpoints
-      - persistentvolumeclaims
-      - events
       - configmaps
       - configmaps/finalizers
+      - configmaps/status
+      - endpoints
+      - events
+      - persistentvolumeclaims
+      - persistentvolumeclaims/finalizers
+      - pods
       - secrets
       - secrets/finalizers
       - serviceaccounts
+      - serviceaccounts/finalizers
+      - services
+      - services/finalizers
     verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
-      - 'patch'
-  
-  - apiGroups: [""]
-    resources: ["pods/exec"]
-    verbs: ["create"]
-
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
   - apiGroups:
-      - "apps"
-    resourceNames:
-      - {{ .Values.monitoringOperator.name }}
+      - ""
     resources:
-      - deployments/finalizers
+      - pods/exec
     verbs:
-      - 'update'
+      - create
 
+  # apps
+  # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
   - apiGroups:
-      - "apps"
+      - apps
     resources:
+      - daemonsets
+      - daemonsets/finalizers
       - deployments
       - deployments/finalizers
-      - daemonsets
       - replicasets
       - statefulsets
       - statefulsets/finalizers
       - statefulsets/status
     verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
-      - 'patch'
-
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
   - apiGroups:
-      - "apiregistration.k8s.io"
-    resources:
-      - apiservices
-    verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
-
-  - apiGroups:
-      - "route.openshift.io"
-    resources:
-      - routes
-    verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
-
-  # Prometheus Operator: Monitoring:
-  - apiGroups:
-      - "monitoring.coreos.com"
-    resources:
-      - alertmanagers
-      - alertmanagers/finalizers
-      - alertmanagers/status
-      - alertmanagerconfigs
-      - alertmanagerconfigs/finalizers
-      - alertmanagerconfigs/status
-      - prometheuses
-      - prometheuses/finalizers
-      - prometheuses/status
-      - prometheusrules
-      - prometheusrules/finalizers
-      - prometheusrules/status
-      - thanosrulers
-      - thanosrulers/finalizers
-      - thanosrulers/status
-      - podmonitors
-      - podmonitors/finalizers
-      - podmonitors/status
-      - probes
-      - probes/finalizers
-      - probes/status
-      - servicemonitors
-      - servicemonitors/finalizers
-      - servicemonitors/status
-    verbs:
-      - 'create'
-      - 'delete'
-      - 'get'
-      - 'list'
-      - 'update'
-      - 'watch'
-      - 'patch'
-
-  # Kube-state-metrics: Certificates:
-  - apiGroups:
-      - "certificates.k8s.io"
-    resources:
-      - certificatesigningrequests
-    verbs:
-      - 'list'
-      - 'watch'
-  # Extensions:
-  - apiGroups:
-      - "extensions"
+      - extensions
     resources:
       - daemonsets
       - deployments
       - replicasets
-      - ingresses
     verbs:
-      - 'list'
-      - 'watch'
-  # Policy:
+      - get
+      - list
+      - watch
+
+  # batch
+  # This is needed for handling CronJobs and Jobs
   - apiGroups:
-      - "policy"
-    resources:
-      - poddisruptionbudgets
-    verbs:
-      - 'list'
-      - 'watch'
-  # Batch: get Jobs
-  - apiGroups:
-      - "batch"
+      - batch
     resources:
       - cronjobs
       - jobs
     verbs:
-      - 'list'
-      - 'watch'
+      - list
+      - watch
+
+  # rbac.authorization.k8s.io
+  # This is needed for role and rolebinding creation
   - apiGroups:
-      - "extensions"
+      - rbac.authorization.k8s.io
     resources:
-      - daemonsets
-      - deployments
-      - replicasets
-      - ingresses
+      - rolebindings
+      - roles
     verbs:
-      - 'list'
-      - 'watch'
-  # Storage: get list StorageClasses
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # policy
+  # This is needed for handling PodDisruptionBudgets
   - apiGroups:
-      - "storage.k8s.io"
+      - policy
     resources:
-      - storageclasses
+      - poddisruptionbudgets
     verbs:
-      - 'list'
-      - 'watch'
-  # Autoscailing: vertical and horizontal
+      - list
+      - watch
+
+  # autoscaling
+  # This is needed for handling HorizontalPodAutoscalers and VerticalPodAutoscalers
   - apiGroups:
-      - "autoscaling.k8s.io"
+      - autoscaling.k8s.io
     resources:
       - verticalpodautoscalers
     verbs:
-      - 'list'
-      - 'watch'
+      - list
+      - watch
   - apiGroups:
-      - "autoscaling"
+      - autoscaling
     resources:
       - horizontalpodautoscalers
     verbs:
-      - 'list'
-      - 'watch'
+      - list
+      - watch
 
-  # Grafana Operator
+  # networking.k8s.io
+  # This is needed for handling Ingresses
   - apiGroups:
-      - ""
+      - networking.k8s.io
     resources:
-      - pods
-      - services
-      - endpoints
-      - persistentvolumeclaims
-      - configmaps
-      - secrets
-      - serviceaccounts
+      - ingresses
+      - ingresses/finalizers
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+      - ingresses/finalizers
     verbs:
       - get
       - list
@@ -259,183 +168,237 @@ rules:
       - delete
       - deletecollection
       - watch
+
+  # coordination.k8s.io
+  # This is needed for lease creation
   - apiGroups:
-      - ""
+      - coordination.k8s.io
     resources:
-      - events
+      - leases
+    verbs:
+      - create
+      - get
+      - update
+
+  ################################################ OpenShift API Groups ################################################
+
+  # config.openshift.io
+  # This is needed for handling ClusterVersion resources
+  - apiGroups:
+      - config.openshift.io
+    resources:
+      - clusterversions
     verbs:
       - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
-      - patch
-  - apiGroups:
-      - apps
-    resources:
-      - deployments
-      - daemonsets
-      - replicasets
-      - statefulsets
-    verbs:
-      - get
-      - list
-      - create
-      - update
-      - delete
-      - deletecollection
-      - watch
+
+  # route.openshift.io
+  # This is needed for handling Routes
   - apiGroups:
       - route.openshift.io
     resources:
       - routes
       - routes/custom-host
     verbs:
-      - get
-      - list
       - create
-      - update
       - delete
       - deletecollection
+      - get
+      - list
+      - update
       - watch
-      - create
+
+  ################################################## CRDs permissions ##################################################
+
+  # monitoring.netcracker.com
+  # This is needed for managing PlatformMonitoring custom resources
   - apiGroups:
-      - extensions
+      - monitoring.netcracker.com
     resources:
-      - ingresses
+      - platformmonitorings
+      - platformmonitorings/finalizers
+      - platformmonitorings/status
     verbs:
+      - create
+      - delete
       - get
       - list
-      - create
       - update
-      - delete
-      - deletecollection
       - watch
+
+  # integreatly.org
+  # This is needed for managing Grafana custom resources
   - apiGroups:
       - integreatly.org
     resources:
-      - grafanas
-      - grafanas/status
-      - grafanas/finalizers
-      - grafananotificationchannels
-      - grafananotificationchannels/status
       - grafanadashboards
       - grafanadashboards/status
       - grafanadatasources
       - grafanadatasources/status
       - grafanafolders
       - grafanafolders/status
+      - grafananotificationchannels
+      - grafananotificationchannels/status
+      - grafanas
+      - grafanas/finalizers
+      - grafanas/status
     verbs:
-      - get
-      - list
       - create
-      - update
       - delete
       - deletecollection
-      - watch
+      - get
+      - list
       - patch
-  # Permissions to handle Ingresses
+      - update
+      - watch
+
+  # monitoring.coreos.com
+  # This is needed for Prometheus Operator custom resources
   - apiGroups:
-      - networking.k8s.io
+      - monitoring.coreos.com
     resources:
-      - ingresses
+      - alertmanagerconfigs
+      - alertmanagerconfigs/finalizers
+      - alertmanagerconfigs/status
+      - alertmanagers
+      - alertmanagers/finalizers
+      - alertmanagers/status
+      - podmonitors
+      - podmonitors/finalizers
+      - podmonitors/status
+      - probes
+      - probes/finalizers
+      - probes/status
+      - prometheusagents
+      - prometheusagents/finalizers
+      - prometheusagents/status
+      - prometheuses
+      - prometheuses/finalizers
+      - prometheuses/status
+      - prometheusrules
+      - prometheusrules/finalizers
+      - prometheusrules/status
+      - scrapeconfigs
+      - scrapeconfigs/finalizers
+      - scrapeconfigs/status
+      - servicemonitors
+      - servicemonitors/finalizers
+      - servicemonitors/status
+      - thanosrulers
+      - thanosrulers/finalizers
+      - thanosrulers/status
     verbs:
-      - get
-      - list
-      - create
-      - update
-      - delete
-      - watch
-  # VictoriaMetrics operator
-  - verbs:
-      - create
-      - get
-      - update
-    apiGroups:
-      - coordination.k8s.io
-    resources:
-      - leases
-  - verbs:
       - create
       - delete
-      - deletecollection
       - get
       - list
       - patch
       - update
       - watch
-    apiGroups:
+
+  # operator.victoriametrics.com
+  # This is needed for managing VictoriaMetrics custom resources
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vmalertmanagerconfigs
+      - vmnodescrapes
+      - vmpodscrapes
+      - vmprobes
+      - vmrules
+      - vmscrapeconfigs
+      - vmservicescrapes
+      - vmstaticscrapes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
       - operator.victoriametrics.com
     resources:
       - vlagents
+      - vlclusters
+      - vlogs
+      - vlsingles
+      - vmagents
+      - vmalertmanagers
+      - vmalerts
+      - vmauths
+      - vmclusters
+      - vmdistributed
+      - vmsingles
+      - vmusers
+      - vtclusters
+      - vtsingles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
       - vlagents/finalizers
       - vlagents/status
-      - vlclusters
       - vlclusters/finalizers
       - vlclusters/status
-      - vlogs
       - vlogs/finalizers
       - vlogs/status
-      - vlsingles
       - vlsingles/finalizers
       - vlsingles/status
-      - vmagents
       - vmagents/finalizers
       - vmagents/status
-      - vmalertmanagerconfigs
       - vmalertmanagerconfigs/finalizers
       - vmalertmanagerconfigs/status
-      - vmalertmanagers
       - vmalertmanagers/finalizers
       - vmalertmanagers/status
-      - vmalerts
       - vmalerts/finalizers
       - vmalerts/status
       - vmanomalies
       - vmanomalies/finalizers
       - vmanomalies/status
-      - vmauths
       - vmauths/finalizers
       - vmauths/status
-      - vmclusters
       - vmclusters/finalizers
       - vmclusters/status
-      - vmnodescrapes
+      - vmdistributed/finalizers
+      - vmdistributed/status
       - vmnodescrapes/finalizers
       - vmnodescrapes/status
-      - vmpodscrapes
       - vmpodscrapes/finalizers
       - vmpodscrapes/status
-      - vmprobes
       - vmprobes/finalizers
       - vmprobes/status
-      - vmprobscrapes
-      - vmprobscrapes/finalizers
-      - vmprobscrapes/status
-      - vmrules
       - vmrules/finalizers
       - vmrules/status
-      - vmscrapeconfigs
       - vmscrapeconfigs/finalizers
       - vmscrapeconfigs/status
-      - vmservicescrapes
       - vmservicescrapes/finalizers
       - vmservicescrapes/status
-      - vmsingles
       - vmsingles/finalizers
       - vmsingles/status
-      - vmstaticscrapes
       - vmstaticscrapes/finalizers
       - vmstaticscrapes/status
-      - vmusers
       - vmusers/finalizers
       - vmusers/status
-      - vtclusters
       - vtclusters/finalizers
       - vtclusters/status
-      - vtsingles
       - vtsingles/finalizers
       - vtsingles/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+
 {{- end }}
 {{- end }}

@@ -1,17 +1,105 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: victoriametrics
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/managed-by: monitoring-operator
   name: monitoring-victoriametrics-operator
+  labels:
+    app.kubernetes.io/component: victoriametrics-operator
+    app.kubernetes.io/managed-by: monitoring-operator
+    app.kubernetes.io/part-of: monitoring
 rules:
+  ############################################### Kubernetes API Groups ################################################
+
+    # nonResourceURLs
+  # This is needed for metrics endpoint access
+  - nonResourceURLs:
+      - /metrics
+      - /metrics/resources
+      - /metrics/slis
+    verbs:
+      - get
+      - watch
+      - list
+
+  # core
+  # This is needed for pod, service, configmap, secret and pvc creation
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - configmaps/finalizers
+      - endpoints
+      - events
+      - persistentvolumeclaims
+      - persistentvolumeclaims/finalizers
+      - pods/eviction
+      - secrets
+      - secrets/finalizers
+      - serviceaccounts
+      - serviceaccounts/finalizers
+      - services
+      - services/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+      - namespaces
+      - nodes
+      - nodes/metrics
+      - nodes/proxy
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+
+  # apps
+  # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets/finalizers
+      - daemonsets/status
+      - deployments/finalizers
+      - deployments/status
+      - statefulsets/finalizers
+      - statefulsets/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+
+  # rbac.authorization.k8s.io
+  # This is needed for role and rolebinding creation
   - apiGroups:
       - rbac.authorization.k8s.io
     resources:
-      - clusterroles
       - clusterrolebindings
+      - clusterrolebindings/finalizers
+      - clusterroles
+      - clusterroles/finalizers
       - rolebindings
       - roles
     verbs:
@@ -22,140 +110,26 @@ rules:
       - patch
       - update
       - watch
+
+  # storage.k8s.io
+  # This is needed for persistent volume claim and storage class creation
   - apiGroups:
-      - networking.k8s.io
+      - storage.k8s.io
     resources:
-      - ingresses
+      - storageclasses
     verbs:
-      - get
       - list
+      - get
       - watch
-  - verbs:
-      - get
-      - list
-    apiGroups:
-      - apiextensions.k8s.io
-    resources:
-      - customresourcedefinitions
-  - verbs:
-      - get
-      - list
-      - watch
-    apiGroups:
-      - operator.victoriametrics.com
-    resources:
-      - vmprobscrapes
-  - verbs:
-      - get
-      - list
-      - watch
-      - update
-      - patch
-    apiGroups:
-      - operator.victoriametrics.com
-    resources:
-      - vmalertmanagerconfigs/status
-      - vmpodscrapes/status
-      - vmrules/status
-      - vmservicescrapes/status
-      - vmprobes/status
-      - vmnodescrapes/status
-      - vmstaticscrapes/status
-      - vmprobscrapes/status
-      - vmscrapeconfigs/status
-  - verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-    apiGroups:
-      - operator.victoriametrics.com
-    resources:
-      - vmalertmanagerconfigs/finalizers
-      - vmprobscrapes/finalizers
-      - vmprobes/finalizers
-      - vmservicescrapes/finalizers
-      - vmrules/finalizers
-      - vmpodscrapes/finalizers
-      - vmstaticscrapes/finalizers
-      - vmnodescrapes/finalizers
-      - vmscrapeconfigs/finalizers
-  - verbs:
-      - get
-      - list
-      - watch
-      - update
-      - create
-      - patch
-    apiGroups:
+
+  # policy
+  # This is needed for pod disruption budget creation
+  - apiGroups:
       - policy
     resources:
       - poddisruptionbudgets
       - poddisruptionbudgets/finalizers
-  - verbs:
-      - get
-      - list
-      - watch
-      - update
-    apiGroups:
-      - ''
-    resources:
-      - serviceaccounts
-      - persistentvolumeclaims
-  - verbs:
-      - get
-      - list
-      - watch
-      - update
-      - delete
-    apiGroups:
-      - 'autoscaling'
-    resources:
-      - horizontalpodautoscalers
-  - verbs:
-      - get
-      - list
-      - watch
-      - update
-    apiGroups:
-      - ''
-    resources:
-      - secrets
-      - namespaces
-      - configmaps
-      - services
-      - pods
-  - verbs:
-      - get
-      - list
-      - watch
-    apiGroups:
-      - apps
-    resources:
-      - deployments
-      - deployments/finalizers
-      - replicasets
-      - statefulsets
-      - statefulsets/finalizers
-      - statefulsets/status
-      - daemonsets
-  - verbs:
-      - get
-      - list
-      - watch
-    apiGroups:
-      - monitoring.coreos.com
-    resources:
-      - probes
-      - servicemonitors
-      - prometheusrules
-      - alertmanagerconfigs
-      - podmonitors
-      - scrapeconfigs
-  - verbs:
+    verbs:
       - create
       - delete
       - get
@@ -163,16 +137,89 @@ rules:
       - patch
       - update
       - watch
-    apiGroups:
+
+  # autoscaling
+  # This is needed for horizontal pod autoscaler creation
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # discovery.k8s.io
+  # This is needed for endpoints slice discovery
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+
+  # networking.k8s.io
+  # This is needed for ingress creation
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+      - ingresses/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+  # Permissions to handle Ingresses finalizers
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+      - ingresses/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+
+  # apiextensions.k8s.io
+  # This is needed for custom resource definition creation
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+
+  # monitoring.coreos.com
+  # This is needed for managing Prometheus, Alertmanager and related resources
+  - apiGroups:
       - monitoring.coreos.com
     resources:
+      - alertmanagerconfigs
+      - podmonitors
+      - probes
+      - prometheusrules
+      - scrapeconfigs
+      - servicemonitors
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - alertmanagerconfigs/finalizers
       - podmonitors/finalizers
       - probes/finalizers
       - prometheusrules/finalizers
       - servicemonitors/finalizers
-      - alertmanagerconfigs/finalizers
       - thanosrulers/finalizers
-  - verbs:
+    verbs:
       - create
       - delete
       - get
@@ -180,18 +227,36 @@ rules:
       - patch
       - update
       - watch
-    apiGroups:
+
+  ################################################ OpenShift API Groups ################################################
+
+  # image.openshift.io
+  # This is needed for managing image streams
+  - apiGroups:
+      - route.openshift.io
+      - image.openshift.io
+    resources:
+      - routers/metrics
+      - registry/metrics
+    verbs:
+      - get
+
+  ################################################## CRDs permissions ##################################################
+
+  # operator.victoriametrics.com
+  # This is needed for managing VictoriaMetrics custom resources
+  - apiGroups:
       - operator.victoriametrics.com
     resources:
-      - vmservicescrapes
-      - vmrules
-      - vmpodscrapes
-      - vmstaticscrapes
-      - vmnodescrapes
-      - vmprobes
       - vmalertmanagerconfigs
+      - vmnodescrapes
+      - vmpodscrapes
+      - vmprobes
+      - vmrules
       - vmscrapeconfigs
-  - verbs:
+      - vmservicescrapes
+      - vmstaticscrapes
+    verbs:
       - create
       - delete
       - get
@@ -199,48 +264,89 @@ rules:
       - patch
       - update
       - watch
-    apiGroups:
+  - apiGroups:
       - operator.victoriametrics.com
     resources:
       - vlagents
+      - vlclusters
+      - vlclusters
+      - vlogs
+      - vlsingles
+      - vmagents
+      - vmalertmanagers
+      - vmalerts
+      - vmanomalies
+      - vmauths
+      - vmclusters
+      - vmdistributed
+      - vmsingles
+      - vmusers
+      - vtclusters
+      - vtsingles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
       - vlagents/finalizers
       - vlagents/status
-      - vlclusters
+      - vlclusters/finalizers
       - vlclusters/finalizers
       - vlclusters/status
-      - vlogs
+      - vlclusters/status
       - vlogs/finalizers
       - vlogs/status
-      - vlsingles
       - vlsingles/finalizers
       - vlsingles/status
-      - vmagents
       - vmagents/finalizers
       - vmagents/status
-      - vmalertmanagers
+      - vmalertmanagerconfigs/finalizers
+      - vmalertmanagerconfigs/status
       - vmalertmanagers/finalizers
       - vmalertmanagers/status
-      - vmalerts
       - vmalerts/finalizers
       - vmalerts/status
-      - vmclusters
-      - vmclusters/finalizers
-      - vmclusters/status
-      - vmsingles
-      - vmsingles/finalizers
-      - vmsingles/status
-      - vmanomalies
       - vmanomalies/finalizers
       - vmanomalies/status
-      - vmauths
       - vmauths/finalizers
       - vmauths/status
-      - vmusers
+      - vmclusters/finalizers
+      - vmclusters/status
+      - vmdistributed/finalizers
+      - vmdistributed/status
+      - vmnodescrapes/finalizers
+      - vmnodescrapes/status
+      - vmpodscrapes/finalizers
+      - vmpodscrapes/status
+      - vmprobes/finalizers
+      - vmprobes/status
+      - vmrules/finalizers
+      - vmrules/status
+      - vmscrapeconfigs/finalizers
+      - vmscrapeconfigs/status
+      - vmservicescrapes/finalizers
+      - vmservicescrapes/status
+      - vmsingles/finalizers
+      - vmsingles/status
+      - vmstaticscrapes/finalizers
+      - vmstaticscrapes/status
       - vmusers/finalizers
       - vmusers/status
-      - vtclusters
       - vtclusters/finalizers
       - vtclusters/status
-      - vtsingles
       - vtsingles/finalizers
       - vtsingles/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch

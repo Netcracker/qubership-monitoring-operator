@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: victoriametrics-operator
   labels:
     app.kubernetes.io/name: victoriametrics-operator
-    app.kubernetes.io/component: victoriametrics
-    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/component: victoriametrics-operator
     app.kubernetes.io/managed-by: monitoring-operator
-  name: victoriametrics-operator
+    app.kubernetes.io/part-of: monitoring
 spec:
   clusterIP: None
   ports:
