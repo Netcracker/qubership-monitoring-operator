@@ -1,0 +1,77 @@
+name: Alerts-test-qubership-monitoring-operator
+on:
+  workflow_run:
+    workflows: ["Build Artifacts"]
+    types:
+      - completed
+  pull_request:
+    branches:
+      - all
+
+env:
+  kind_name: kind-cluster
+  kind_version: v0.27.0
+  vm_namespace: vm
+  max_attempts: 30
+  delay: 10
+
+permissions:
+  contents: read
+
+jobs:
+  Run-Alerts-Test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Check yq version
+        run: yq --version
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Check if alert rules are in helm template
+        id: check-helm
+        run: |
+          if [ -d "./charts/qubership-monitoring-operator/charts/prometheus-rules" ]; then
+            echo "file_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "file_exists=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+        continue-on-error: true
+
+
+      - name: Render rules file from helm chart
+        if: steps.check-helm.outputs.file_exists == 'true'  
+        run: |
+          echo "Alert rules are detected in helm chart, use them for test and ignore others"
+          helm template alertrules ./charts/qubership-monitoring-operator/charts/prometheus-rules -f ./test/alerts-tests/rendervalues.yaml > ./test/alerts-tests/rules.yaml
+          sed '1,7d' -i ./test/alerts-tests/rules.yaml
+
+      - name: Render rules file from assets
+        if: steps.check-helm.outputs.file_exists == 'false'  
+        run: |
+          echo "Alert rules are detected in assets, use them for test and ignore others"
+          cp ./controllers/prometheus-rules/assets/prometheus-rules.yaml ./test/alerts-tests/rules.yaml
+          sed '1,11d' -i ./test/alerts-tests/rules.yaml
+
+      - name: Check that all necessary tests exists
+        run: |
+          chmod +x ./test/alerts-tests/tests-checker.sh
+          cd ./test/alerts-tests/
+          ./tests-checker.sh       
+        continue-on-error: true
+
+      - name: Install vmalert-tool
+        run: |
+          wget -q https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v1.122.4/vmutils-linux-amd64-v1.122.4-enterprise.tar.gz
+          tar -xvf vmutils-linux-amd64-v1.122.4-enterprise.tar.gz
+          chmod +x vmalert-tool-prod
+
+      - name: Run test
+        run: |
+          ./vmalert-tool-prod unittest --files ./test/alerts-tests/test.yaml
