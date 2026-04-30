@@ -18,7 +18,10 @@ appVersion: 0.75.1
 dependencies:
   # Grafana
   - name: grafana
-    condition: grafana.install
+    # Enable the subchart when either the Grafana instance or only the Grafana Operator is enabled.
+    # This preserves backward compatibility and adds a new "operator-only" scenario
+    # controlled via grafana.operator.install.
+    condition: grafana.install, grafana.operator.install
     version: ~0
     repository: "file://charts/grafana-operator"
 

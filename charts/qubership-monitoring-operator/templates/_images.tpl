@@ -30,7 +30,7 @@ Image can be found from:
       {{- printf "%s" .Values.grafana.operator.image -}}
     {{- else -}}
       {{- /* # renovate: datasource=github-releases depName=grafana-operator/grafana-operator */ -}}
-      {{- print "quay.io/grafana-operator/grafana-operator:v4.9.0" -}}
+      {{- print "quay.io/grafana-operator/grafana-operator:v5.22.0" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
