@@ -42,6 +42,7 @@ rules:
     verbs:
       - create
       - delete
+      - deletecollection
       - get
       - list
       - patch
@@ -70,6 +71,7 @@ rules:
     verbs:
       - create
       - delete
+      - deletecollection
       - get
       - list
       - patch
@@ -164,6 +166,7 @@ rules:
       - create
       - update
       - delete
+      - deletecollection
       - watch
 
   # coordination.k8s.io
@@ -198,6 +201,7 @@ rules:
     verbs:
       - create
       - delete
+      - deletecollection
       - get
       - list
       - update
@@ -205,10 +209,10 @@ rules:
 
   ################################################## CRDs permissions ##################################################
 
-  # netcracker.com
+  # monitoring.netcracker.com
   # This is needed for managing PlatformMonitoring custom resources
   - apiGroups:
-      - netcracker.com
+      - monitoring.netcracker.com
     resources:
       - platformmonitorings
       - platformmonitorings/finalizers
@@ -240,6 +244,7 @@ rules:
     verbs:
       - create
       - delete
+      - deletecollection
       - get
       - list
       - patch
