@@ -1616,7 +1616,7 @@ spec:
                             type: string
                           token:
                             description: |-
-                              The secret's key that contains the registered application’s API token, see https://pushover.net/apps.
+                              The secret's key that contains the registered application's API token, see https://pushover.net/apps.
                               It must be at them same namespace as CRD
                             properties:
                               key:
@@ -1646,7 +1646,7 @@ spec:
                             type: string
                           user_key:
                             description: |-
-                              The secret's key that contains the recipient user’s user key.
+                              The secret's key that contains the recipient user's user key.
                               It must be at them same namespace as CRD
                             properties:
                               key:
@@ -3797,7 +3797,7 @@ spec:
                     type: string
                   matchers:
                     description: |-
-                      List of matchers that the alert’s labels should match. For the first
+                      List of matchers that the alert's labels should match. For the first
                       level route, the operator adds a namespace: "CRD_NS" matcher.
                       https://prometheus.io/docs/alerting/latest/configuration/#matcher
                     items:
@@ -3852,7 +3852,7 @@ spec:
                             type: string
                           months:
                             description: |-
-                              Months  defines list of calendar months identified by a case-insensitive name (e.g. ‘January’) or numeric 1.
+                              Months  defines list of calendar months identified by a case-insensitive name (e.g. 'January') or numeric 1.
                               For example, ['1:3', 'may:august', 'december']
                             items:
                               type: string
