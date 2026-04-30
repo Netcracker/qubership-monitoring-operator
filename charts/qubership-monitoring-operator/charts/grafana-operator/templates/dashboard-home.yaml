@@ -44,33 +44,44 @@ data:
                 {
                   "targetBlank": true,
                   "title": "Monitoring",
-                  "url": "http://${__data.fields.host}"
+                  "url": "http://${__field.labels.host}"
                 }
               ],
               "mappings": [
                 {
+                  "type": "range",
                   "options": {
                     "from": 0,
+                    "to": 0.9,
                     "result": {
                       "color": "red",
                       "index": 0,
                       "text": "Fail"
-                    },
-                    "to": 0.9
-                  },
-                  "type": "range"
+                    }
+                  }
                 },
                 {
+                  "type": "range",
                   "options": {
                     "from": 1,
+                    "to": 100,
                     "result": {
                       "color": "green",
                       "index": 1,
                       "text": "OK"
-                    },
-                    "to": 100
-                  },
-                  "type": "range"
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null+nan",
+                    "result": {
+                      "text": "No data",
+                      "color": "purple",
+                      "index": 2
+                    }
+                  }
                 }
               ],
               "thresholds": {
@@ -119,8 +130,7 @@ data:
               "disableTextWrap": false,
               "editorMode": "code",
               "exemplar": false,
-              "expr": "((min by (namespace) (kube_pod_container_status_running{namespace=\"$monitoring_ns\"})) * (sum by (namespace) (increase(kube_pod_container_status_restarts_total{namespace=\"$monitoring_ns\"}[5m]))<= bool 0) * (min by (namespace) (kube_deployment_spec_replicas{namespace=\"$monitoring_ns\"})) * (min by (namespace) (kube_statefulset_replicas{namespace=\"$monitoring_ns\"}))  * (max(increase(kube_events_warning_total{event_namespace=\"$monitoring_ns\"}[5m])))) * on(namespace) group_left(namespace, host) kube_ingress_path{namespace=\"$monitoring_ns\",kube_namespace=~\"$monitoring_ns\", service_name=\"vmauth-k8s\", ingress=~\".*vmalert.*\"}",
-              "format": "table",
+              "expr": "((min by (namespace) (kube_pod_container_status_running{namespace=\"$monitoring_ns\"})) * (sum by (namespace) (increase(kube_pod_container_status_restarts_total{namespace=\"$monitoring_ns\"}[5m]))<= bool 0) * (min by (namespace) (kube_deployment_spec_replicas{namespace=\"$monitoring_ns\"})) * (min by (namespace) (kube_statefulset_replicas{namespace=\"$monitoring_ns\"}))  * (max(increase(kube_events_warning_total{event_namespace=\"$monitoring_ns\"}[5m]))<= bool 0)) * on(namespace) group_left(namespace, host) kube_ingress_path{namespace=\"$monitoring_ns\",kube_namespace=~\"$monitoring_ns\", service_name=\"vmauth-k8s\", ingress=~\".*vmauth-k8s\"}",
               "fullMetaSearch": false,
               "hide": false,
               "includeNullMetadata": true,
@@ -149,33 +159,44 @@ data:
                 {
                   "targetBlank": true,
                   "title": "Monitoring",
-                  "url": "http://${__data.fields.host}"
+                  "url": "http://${__field.labels.host}"
                 }
               ],
               "mappings": [
                 {
+                  "type": "range",
                   "options": {
                     "from": 0,
+                    "to": 0.9,
                     "result": {
                       "color": "red",
                       "index": 0,
                       "text": "Fail"
-                    },
-                    "to": 0.9
-                  },
-                  "type": "range"
+                    }
+                  }
                 },
                 {
+                  "type": "range",
                   "options": {
                     "from": 1,
+                    "to": 100,
                     "result": {
                       "color": "green",
                       "index": 1,
                       "text": "OK"
-                    },
-                    "to": 100
-                  },
-                  "type": "range"
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null+nan",
+                    "result": {
+                      "text": "No data",
+                      "color": "purple",
+                      "index": 2
+                    }
+                  }
                 }
               ],
               "thresholds": {
@@ -224,8 +245,7 @@ data:
               "disableTextWrap": false,
               "editorMode": "code",
               "exemplar": false,
-              "expr": "min(kube_pod_container_status_running{namespace=\"$logging_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$logging_ns\"}[5m])) <= bool 0 ) * (min(kube_deployment_spec_replicas{namespace=\"$logging_ns\"})) * (min(kube_statefulset_replicas{namespace=\"$logging_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$logging_ns\"}[5m])))",
-              "format": "table",
+              "expr": "min(kube_pod_container_status_running{namespace=\"$logging_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$logging_ns\"}[5m])) <= bool 0 ) * (min(kube_deployment_spec_replicas{namespace=\"$logging_ns\"})) * (min(kube_statefulset_replicas{namespace=\"$logging_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$logging_ns\"}[5m])) <= bool 0)",
               "fullMetaSearch": false,
               "hide": false,
               "includeNullMetadata": true,
@@ -254,33 +274,44 @@ data:
                 {
                   "targetBlank": true,
                   "title": "Monitoring",
-                  "url": "http://${__data.fields.host}"
+                  "url": "http://${__field.labels.host}"
                 }
               ],
               "mappings": [
                 {
+                  "type": "range",
                   "options": {
                     "from": 0,
+                    "to": 0.9,
                     "result": {
                       "color": "red",
                       "index": 0,
                       "text": "Fail"
-                    },
-                    "to": 0.9
-                  },
-                  "type": "range"
+                    }
+                  }
                 },
                 {
+                  "type": "range",
                   "options": {
                     "from": 1,
+                    "to": 100,
                     "result": {
                       "color": "green",
                       "index": 1,
                       "text": "OK"
-                    },
-                    "to": 100
-                  },
-                  "type": "range"
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null+nan",
+                    "result": {
+                      "text": "No data",
+                      "color": "purple",
+                      "index": 2
+                    }
+                  }
                 }
               ],
               "thresholds": {
@@ -329,8 +360,7 @@ data:
               "disableTextWrap": false,
               "editorMode": "code",
               "exemplar": false,
-              "expr": "min(kube_pod_container_status_running{namespace=\"$tracing_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$tracing_ns\"}[5m])) <= bool 0 ) * (min(kube_deployment_spec_replicas{namespace=\"$tracing_ns\"})) * (min(kube_statefulset_replicas{namespace=\"$tracing_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$tracing_ns\"}[5m])))",
-              "format": "table",
+              "expr": "min(kube_pod_container_status_running{namespace=\"$tracing_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$tracing_ns\"}[5m])) <= bool 0 ) * (min(kube_deployment_spec_replicas{namespace=\"$tracing_ns\"})) * (min(kube_statefulset_replicas{namespace=\"$tracing_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$tracing_ns\"}[5m])) <= bool 0)",
               "fullMetaSearch": false,
               "hide": false,
               "includeNullMetadata": true,
@@ -359,33 +389,44 @@ data:
                 {
                   "targetBlank": true,
                   "title": "Monitoring",
-                  "url": "http://${__data.fields.host}"
+                  "url": "http://${__field.labels.host}"
                 }
               ],
               "mappings": [
                 {
+                  "type": "range",
                   "options": {
                     "from": 0,
+                    "to": 0.9,
                     "result": {
                       "color": "red",
                       "index": 0,
                       "text": "Fail"
-                    },
-                    "to": 0.9
-                  },
-                  "type": "range"
+                    }
+                  }
                 },
                 {
+                  "type": "range",
                   "options": {
                     "from": 1,
+                    "to": 100,
                     "result": {
                       "color": "green",
                       "index": 1,
                       "text": "OK"
-                    },
-                    "to": 100
-                  },
-                  "type": "range"
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null+nan",
+                    "result": {
+                      "text": "No data",
+                      "color": "purple",
+                      "index": 2
+                    }
+                  }
                 }
               ],
               "thresholds": {
@@ -434,8 +475,7 @@ data:
               "disableTextWrap": false,
               "editorMode": "code",
               "exemplar": false,
-              "expr": "min(kube_pod_container_status_running{namespace=\"$profiling_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$profiling_ns\"}[5m])) <= bool 0 ) * (min(kube_statefulset_replicas{namespace=\"$profiling_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$profiling_ns\"}[5m])))",
-              "format": "table",
+              "expr": "min(kube_pod_container_status_running{namespace=\"$profiling_ns\"}) * (sum(increase(kube_pod_container_status_restarts_total{namespace=\"$profiling_ns\"}[5m])) <= bool 0 ) * (min(kube_statefulset_replicas{namespace=\"$profiling_ns\"})) * (max(increase(kube_events_warning_total{event_namespace=\"$profiling_ns\"}[5m])) <= bool 0)",
               "fullMetaSearch": false,
               "hide": false,
               "includeNullMetadata": true,
@@ -663,7 +703,7 @@ data:
             "overrides": []
           },
           "gridPos": {
-            "h": 4,
+            "h": 8,
             "w": 8,
             "x": 0,
             "y": 8
@@ -695,7 +735,7 @@ data:
             "overrides": []
           },
           "gridPos": {
-            "h": 4,
+            "h": 8,
             "w": 8,
             "x": 8,
             "y": 8
@@ -727,7 +767,7 @@ data:
             "overrides": []
           },
           "gridPos": {
-            "h": 4,
+            "h": 8,
             "w": 8,
             "x": 16,
             "y": 8
@@ -1039,7 +1079,7 @@ data:
       },
       "timezone": "",
       "title": "Home Dashboard",
-      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `home-dashboard`) ) %}",
+      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `home-dashboard` ) }}",
       "version": 2
     }
 {{- end }}
