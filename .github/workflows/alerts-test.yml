@@ -46,14 +46,14 @@ jobs:
 
 
       - name: Render rules file from helm chart
-        if: steps.check-helm.outputs.file_exists == 'true'  
+        if: steps.check-helm.outputs.file_exists == 'true'
         run: |
           echo "Alert rules are detected in helm chart, use them for test and ignore others"
           helm template alertrules ./charts/qubership-monitoring-operator/charts/prometheus-rules -f ./test/alerts-tests/rendervalues.yaml > ./test/alerts-tests/rules.yaml
           sed '1,7d' -i ./test/alerts-tests/rules.yaml
 
       - name: Render rules file from assets
-        if: steps.check-helm.outputs.file_exists == 'false'  
+        if: steps.check-helm.outputs.file_exists == 'false'
         run: |
           echo "Alert rules are detected in assets, use them for test and ignore others"
           cp ./controllers/prometheus-rules/assets/prometheus-rules.yaml ./test/alerts-tests/rules.yaml
@@ -63,7 +63,7 @@ jobs:
         run: |
           chmod +x ./test/alerts-tests/tests-checker.sh
           cd ./test/alerts-tests/
-          ./tests-checker.sh       
+          ./tests-checker.sh
         continue-on-error: true
 
       - name: Install vmalert-tool
