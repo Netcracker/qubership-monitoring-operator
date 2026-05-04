@@ -138,7 +138,7 @@ monitoringOperator:
     # Mandatory: no
     # Default: false
     #
-    install: true
+    install: false
 
     # Type: integer
     # Mandatory: no
@@ -1701,3 +1701,113 @@ stackdriver_exporter:
 goldpingerExporter:
   # Disable by default
   install: false
+
+# Settings for a job to copy certificates from etcd to a secret
+etcdCertsJob:
+  # A name to use for the job and cronjob
+  # Type: string
+  # Mandatory: no
+  # Default: "etcd-certs-to-secret"
+  #
+  name: "etcd-certs-to-secret"
+
+  # Log level for the job and cronjob
+  # Type: string
+  # Mandatory: no
+  # Default: "info"
+  #
+  logLevel: "info"
+
+  # Schedule for the job and cronjob. More info: https://crontab.guru
+  # Type: string
+  # Mandatory: no
+  # Default: "0 0 1 * *"
+  #
+  schedule: "0 0 1 * *"
+
+  # Time to live for the job and cronjob after it is finished
+  # Type: integer
+  # Mandatory: no
+  # Default: 180
+  #
+  ttlSecondsAfterFinished: 180
+
+  # Names for rbac resources
+  rbac:
+    name: "etcd-certs-to-secret-scc"
+    serviceAccountName: "etcd-certs-to-secret-sa"
+    roleName: "etcd-certs-to-secret-read"
+    roleBindingName: "etcd-certs-to-secret-rb"
+    clusterRoleName: "etcd-certs-to-secret-clusterrole"
+    clusterRoleBindingName: "etcd-certs-to-secret-clusterrb"
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  annotations: {}
+
+  # A secrets list to use when pulling images from private registries
+  imagePullSecrets: []
+
+  # Image pull policy to use for etcd-certs-to-secret job and cronjob. Can be Always, Never, IfNotPresent
+  # Type: string
+  # Mandatory: no
+  # Default: IfNotPresent
+  #
+  imagePullPolicy: "IfNotPresent"
+
+  # Enable or disable automount service account token
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  automountServiceAccountToken: true
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # Mandatory: no
+  # Default: ""
+  #
+  priorityClassName: ""
+
+  # Node labels for etcd-certs-to-secret job and cronjob scheduling.
+  # The default targets master/control-plane nodes where etcd certificates are expected under /etc.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default:
+  #   node-role.kubernetes.io/control-plane: ""
+  #
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  # Tolerations for etcd-certs-to-secret job and cronjob scheduling.
+  # The default allows scheduling onto tainted master/control-plane nodes.
+  # Type: list
+  # Mandatory: no
+  #
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+      effect: NoSchedule
+    - operator: "Exists"
+      effect: "NoExecute"
+    - operator: "Exists"
+      effect: "NoSchedule"
+
+  # The resources describes the compute resource requests and limits for a single container.
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+      ephemeral-storage: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 16Mi
