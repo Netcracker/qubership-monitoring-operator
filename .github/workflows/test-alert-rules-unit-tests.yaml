@@ -1,0 +1,55 @@
+---
+name: Test Alert Rules Unit Tests
+
+on:
+  workflow_run:
+    workflows: ["Build Artifacts"]
+    types:
+      - completed
+  pull_request:
+    branches:
+      - all
+
+permissions:
+  contents: read
+
+env:
+  vmalert_tool_version: v1.142.0
+  source_alert_rules_file: controllers/prometheus-rules/assets/prometheus-rules.yaml
+  target_alert_rules_file: test/alerts-tests/rules.yaml
+
+jobs:
+  Run-Alerts-Test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: 'latest'
+
+      - name: Install vmalert-tool
+        run: |
+          wget --max-redirect=0 -q https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${vmalert_tool_version}/vmutils-linux-amd64-${vmalert_tool_version}.tar.gz
+          tar -xvf vmutils-linux-amd64-${vmalert_tool_version}.tar.gz
+          mv vmalert-tool-prod vmalert-tool
+          chmod +x vmalert-tool
+
+      - name: Render rules file from assets
+        run: |
+          echo "Alert rules are detected in assets, use them for test and ignore others"
+          cp ${source_alert_rules_file} ${target_alert_rules_file}
+          sed '1,11d' -i ${target_alert_rules_file}
+
+      - name: Check count of test cases for each alert rule
+        run: |
+          chmod +x ./test/alerts-tests/tests-checker.sh
+          ./test/alerts-tests/tests-checker.sh
+        continue-on-error: true
+
+      - name: Run test
+        run: |
+          ./vmalert-tool unittest --files ${target_alert_rules_file}
