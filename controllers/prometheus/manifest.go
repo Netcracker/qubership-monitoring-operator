@@ -55,15 +55,13 @@ func prometheusServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAcco
 				sa.Annotations[k] = v
 			}
 		}
-
-		if sa.Labels == nil && cr.Spec.Prometheus.ServiceAccount.Labels != nil {
-			sa.SetLabels(cr.Spec.Prometheus.ServiceAccount.Labels)
-		} else {
-			for k, v := range cr.Spec.Prometheus.ServiceAccount.Labels {
-				sa.Labels[k] = v
-			}
-		}
 	}
+
+	in := utils.BaseOnlyLabelInput(sa.GetName(), utils.PrometheusComponentName)
+	if cr.Spec.Prometheus != nil && cr.Spec.Prometheus.ServiceAccount != nil {
+		in.ComponentLabels = cr.Spec.Prometheus.ServiceAccount.Labels
+	}
+	utils.SetLabelsForResource(&sa, in, nil)
 
 	return &sa, nil
 }
@@ -76,6 +74,8 @@ func prometheusClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, e
 	//Set parameters
 	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
 	clusterRole.SetName(cr.GetNamespace() + "-" + utils.PrometheusComponentName)
+
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.PrometheusComponentName), nil)
 
 	return &clusterRole, nil
 }
@@ -96,6 +96,9 @@ func prometheusClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 		sub.Name = cr.GetNamespace() + "-" + utils.PrometheusComponentName
 		sub.Namespace = cr.GetNamespace()
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.PrometheusComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -116,9 +119,19 @@ func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 		// Set Prometheus image
 		prom.Spec.Image = &cr.Spec.Prometheus.Image
 
-		// Set labels
-		prom.Labels["app.kubernetes.io/instance"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
-		prom.Labels["app.kubernetes.io/version"] = utils.GetInstanceLabel(prom.GetName(), prom.GetNamespace())
+		// Set labels (resource + pod template) in one place
+		in := utils.LabelInput{
+			Name:      prom.GetName(),
+			Component: utils.PrometheusComponentName,
+			ComponentLabels: utils.MergeLabels(
+				map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+				cr.Spec.Prometheus.Labels,
+			),
+		}
+		utils.SetLabelsForResource(&prom, in, nil)
+		prom.Spec.PodMetadata = &promv1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		// Set Prometheus replicas
 		if cr.Spec.Prometheus.Replicas != nil {
@@ -366,26 +379,7 @@ func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 			prom.Spec.ServiceMonitorNamespaceSelector = cr.Spec.Prometheus.ServiceMonitorNamespaceSelector
 		}
 
-		// Set PodMetadata.Labels
-		prom.Spec.PodMetadata = &promv1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         "prometheus",
-			"app.kubernetes.io/name":       "prometheus",
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel("prometheus", prom.GetNamespace()),
-			"app.kubernetes.io/component":  "prometheus",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Prometheus.Image),
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-		}}
-
 		if prom.Spec.PodMetadata != nil {
-			if prom.Spec.PodMetadata.Labels == nil && cr.Spec.Prometheus.Labels != nil {
-				prom.Spec.PodMetadata.Labels = cr.Spec.Prometheus.Labels
-			} else {
-				for k, v := range cr.Spec.Prometheus.Labels {
-					prom.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if prom.Spec.PodMetadata.Annotations == nil && cr.Spec.Prometheus.Annotations != nil {
 				prom.Spec.PodMetadata.Annotations = cr.Spec.Prometheus.Annotations
 			} else {
@@ -539,15 +533,11 @@ func prometheusIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, e
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
-
-		for lKey, lValue := range cr.Spec.Prometheus.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.PrometheusComponentName)
+		if len(cr.Spec.Prometheus.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Prometheus.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -642,15 +632,11 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
-
-		for lKey, lValue := range cr.Spec.Prometheus.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.PrometheusComponentName)
+		if len(cr.Spec.Prometheus.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Prometheus.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -682,6 +668,16 @@ func prometheusPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, err
 		}
 		podMonitor.Spec.PodMetricsEndpoints = endpoints
 	}
+
+	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
+		Name:            podMonitor.GetName(),
+		Component:       utils.PrometheusComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
+
 	return &podMonitor, nil
 }
 

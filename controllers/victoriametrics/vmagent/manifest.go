@@ -32,6 +32,8 @@ func vmAgentServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmAgentComponentName)
 	sa.SetNamespace(cr.GetNamespace())
 
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmAgentComponentName), nil)
+
 	return &sa, nil
 }
 
@@ -56,9 +58,12 @@ func vmAgentClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rba
 			Resources:     []string{"securitycontextconstraints"},
 			Verbs:         []string{"use"},
 			APIGroups:     []string{"security.openshift.io"},
-			ResourceNames: []string{utils.VmOperatorComponentName},
-		})
+		ResourceNames: []string{utils.VmOperatorComponentName},
+	})
 	}
+
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAgentComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -78,6 +83,9 @@ func vmAgentClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRol
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAgentComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAgentComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -90,6 +98,8 @@ func vmAgentRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
 	role.SetName(cr.GetNamespace() + "-" + utils.VmAgentComponentName)
 	role.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmAgentComponentName), nil)
 
 	return &role, nil
 }
@@ -111,6 +121,9 @@ func vmAgentRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, erro
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAgentComponentName
 	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmAgentComponentName), nil)
+
 	return &roleBinding, nil
 }
 
@@ -330,27 +343,23 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 			vmagent.Spec.TerminationGracePeriodSeconds = cr.Spec.Victoriametrics.VmAgent.TerminationGracePeriodSeconds
 		}
 
-		// Set labels
-		vmagent.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmagent.GetName(), vmagent.GetNamespace())
-		vmagent.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAgent.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmagent.GetName(),
+			Component:       utils.VmAgentComponentName,
+			Instance:        utils.GetInstanceLabel(vmagent.GetName(), vmagent.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAgent.Image),
+			Technology:      "go",
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmagent, in, nil)
 
-		vmagent.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         utils.TruncLabel(vmagent.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(vmagent.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmagent.GetName(), vmagent.GetNamespace()),
-			"app.kubernetes.io/component":  "victoriametrics",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAgent.Image),
-		}}
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmagent.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		if vmagent.Spec.PodMetadata != nil {
-			if cr.Spec.Victoriametrics.VmAgent.Labels != nil {
-				for k, v := range cr.Spec.Victoriametrics.VmAgent.Labels {
-					vmagent.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if vmagent.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmAgent.Annotations != nil {
 				vmagent.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmAgent.Annotations
 			} else {
@@ -442,15 +451,12 @@ func vmAgentIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, erro
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAgent.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmAgent.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAgentComponentName)
+		if len(cr.Spec.Victoriametrics.VmAgent.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAgent.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -519,15 +525,12 @@ func vmAgentIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAgent.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmAgent.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAgentComponentName)
+		if len(cr.Spec.Victoriametrics.VmAgent.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAgent.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
