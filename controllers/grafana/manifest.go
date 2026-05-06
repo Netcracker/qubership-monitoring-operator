@@ -422,7 +422,7 @@ func grafanaIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, erro
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Grafana.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
@@ -488,7 +488,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Grafana.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Grafana.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())

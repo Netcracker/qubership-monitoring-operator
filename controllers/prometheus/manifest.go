@@ -502,7 +502,7 @@ func prometheusIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, e
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Prometheus.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Prometheus.Ingress.Annotations))
 
 		// Configure TLS if TLS secret name is set
 		if cr.Spec.Prometheus.Ingress.TLSSecretName != "" {
@@ -605,7 +605,7 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Prometheus.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Prometheus.Ingress.Annotations))
 
 		// Configure TLS if TLS secret name is set
 		if cr.Spec.Prometheus.Ingress.TLSSecretName != "" {

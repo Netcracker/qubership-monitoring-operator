@@ -44,6 +44,16 @@ spec:
   oAuthProxy:
     image: {{ template "oauth2proxy.image" . }}
   {{- end }}
+  {{- with .Values.gatewayApi }}
+  {{- if or .addIngressIgnoreAnnotation .parentRefs }}
+  gatewayApi:
+    addIngressIgnoreAnnotation: {{ .addIngressIgnoreAnnotation | default false }}
+    {{- if .parentRefs }}
+    parentRefs:
+      {{- toYaml .parentRefs | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   {{- if .Values.prometheus }}
   {{- if .Values.prometheus.install }}
   prometheus:
@@ -106,6 +116,10 @@ spec:
     {{- end }}
     ingress:
       {{ include "prometheus.ingress" . }}
+    {{- if .Values.prometheus.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.prometheus.httpRoute | nindent 6 }}
+    {{- end }}
     {{- if .Values.prometheus.alerting }}
     alerting:
       {{- toYaml .Values.prometheus.alerting | nindent 6 }}
@@ -405,6 +419,10 @@ spec:
       paused: {{ .Values.victoriametrics.vmSingle.paused | default false }}
       ingress:
         {{ include "vm.single.ingress" . }}
+      {{- if .Values.victoriametrics.vmSingle.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmSingle.httpRoute | nindent 8 }}
+      {{- end }}
       image: {{ template "vm.single.image" . }}
       retentionPeriod: {{ .Values.victoriametrics.vmSingle.retentionPeriod | default "14d" }}
       resources:
@@ -478,6 +496,10 @@ spec:
       paused: {{ .Values.victoriametrics.vmAgent.paused | default false }}
       ingress:
         {{ include "vm.agent.ingress" . }}
+      {{- if .Values.victoriametrics.vmAgent.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAgent.httpRoute | nindent 8 }}
+      {{- end }}
       image: {{ template "vm.agent.image" . }}
       resources:
         {{ include "vm.agent.resources" . }}
@@ -641,6 +663,10 @@ spec:
       replicas: {{ .Values.victoriametrics.vmAlertManager.replicas | default 1 }}
       ingress:
         {{ include "vm.alertmanager.ingress" . }}
+      {{- if .Values.victoriametrics.vmAlertManager.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.httpRoute | nindent 8 }}
+      {{- end }}
       resources:
         {{ include "vm.alertmanager.resources" . }}
       securityContext:
@@ -743,6 +769,10 @@ spec:
       replicas: {{ .Values.victoriametrics.vmAlert.replicas | default 1 }}
       ingress:
         {{ include "vm.alert.ingress" . }}
+      {{- if .Values.victoriametrics.vmAlert.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAlert.httpRoute | nindent 8 }}
+      {{- end }}
       {{- if .Values.victoriametrics.vmAlert.port }}
       port: {{ .Values.victoriametrics.vmAlert.port }}
       {{- end }}
@@ -866,6 +896,10 @@ spec:
         {{- toYaml .Values.victoriametrics.vmAuth.containers | nindent 8 }}
       ingress:
         {{ include "vm.auth.ingress" . }}
+      {{- if .Values.victoriametrics.vmAuth.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAuth.httpRoute | nindent 8 }}
+      {{- end }}
       {{- if .Values.victoriametrics.vmAuth.port }}
       port: {{ .Values.victoriametrics.vmAuth.port }}
       {{- end }}
@@ -987,6 +1021,10 @@ spec:
       vmSelectImage: {{ template "vm.select.image" . }}
       vmSelectIngress:
         {{ include "vm.select.ingress" . }}
+      {{- if .Values.victoriametrics.vmCluster.vmSelectHttpRoute }}
+      vmSelectHttpRoute:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmSelectHttpRoute | nindent 8 }}
+      {{- end }}
       vmSelectTlsConfig:
         {{- if .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret }}
         secretName: {{ .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret | quote }}
@@ -1080,6 +1118,10 @@ spec:
     {{- end }}
     ingress:
       {{ include "alertmanager.ingress" . }}
+    {{- if .Values.alertManager.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.alertManager.httpRoute | nindent 6 }}
+    {{- end }}
     containers:
       {{- toYaml .Values.alertManager.containers | nindent 6 }}
     resources:
@@ -1121,6 +1163,10 @@ spec:
     paused: {{ .Values.grafana.paused | default false }}
     ingress:
       {{ include "grafana.ingress" . }}
+    {{- if .Values.grafana.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.grafana.httpRoute | nindent 6 }}
+    {{- end }}
     config:
       {{- toYaml .Values.grafana.config | nindent 6 }}
     {{- if .Values.grafana.dataStorage }}
@@ -1395,6 +1441,10 @@ spec:
     port: {{ .Values.pushgateway.port}}
     ingress:
       {{ include "pushgateway.ingress" . }}
+    {{- if .Values.pushgateway.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.pushgateway.httpRoute | nindent 6 }}
+    {{- end }}
     paused: {{ .Values.pushgateway.paused | default false }}
     {{- if .Values.pushgateway.serviceMonitor }}
     serviceMonitor:

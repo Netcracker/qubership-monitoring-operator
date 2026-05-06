@@ -305,7 +305,7 @@ func alertmanagerIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress,
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.AlertManager.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.AlertManager.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
@@ -383,7 +383,7 @@ func alertmanagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress,
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.AlertManager.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.AlertManager.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())

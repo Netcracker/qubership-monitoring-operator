@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -91,6 +92,32 @@ func (r *PrometheusReconciler) Run(cr *monv1.PlatformMonitoring) error {
 						r.Log.Error(err, "Can not delete Ingress")
 					}
 				}
+			}
+			ingressHost := ""
+			if cr.Spec.Prometheus.Ingress != nil {
+				ingressHost = cr.Spec.Prometheus.Ingress.Host
+			}
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			serviceName := utils.PrometheusServiceName
+			servicePort := int32(utils.PrometheusServicePort)
+			if cr.Spec.Auth != nil && cr.Spec.OAuthProxy != nil {
+				serviceName = utils.PrometheusOAuthProxyServiceName
+				servicePort = int32(utils.OAuthProxyServicePort)
+			}
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.PrometheusComponentName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    serviceName,
+				ServicePort:    servicePort,
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.PrometheusComponentName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.PrometheusComponentName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.PrometheusComponentName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Prometheus.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Prometheus.HTTPRoute,
+			}); err != nil {
+				return err
 			}
 			// Reconcile PodMonitor if necessary
 			if cr.Spec.Prometheus.PodMonitor != nil && cr.Spec.Prometheus.PodMonitor.IsInstall() {
@@ -181,5 +208,23 @@ func (r *PrometheusReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err := r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Prometheus != nil {
+		componentRoute = cr.Spec.Prometheus.HTTPRoute
+	}
+	if err := gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.PrometheusComponentName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.PrometheusServiceName,
+		ServicePort:    int32(utils.PrometheusServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 }

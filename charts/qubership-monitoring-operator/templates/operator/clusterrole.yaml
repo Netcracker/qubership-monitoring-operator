@@ -148,6 +148,17 @@ rules:
       - 'list'
       - 'update'
       - 'watch'
+  - apiGroups:
+      - "gateway.networking.k8s.io"
+    resources:
+      - httproutes
+    verbs:
+      - 'create'
+      - 'delete'
+      - 'get'
+      - 'list'
+      - 'update'
+      - 'watch'
 
   - apiGroups: [""]
     resources: ["pods/exec"]

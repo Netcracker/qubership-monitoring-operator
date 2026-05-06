@@ -86,6 +86,72 @@ alertmanager:
     install: false  # Disable ingress for AlertManager
 ```
 
+## Gateway API Configuration
+
+You can expose UI endpoints using Gateway API HTTPRoutes. Gateway settings are configured once at the chart root,
+and each component can define its own `httpRoute` section with hostnames, parent references, matches, and filters.
+More info in [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec).
+
+The operator supports HTTPRoutes for Prometheus, AlertManager, Grafana, Pushgateway, VmSingle, VmSelect,
+VmAgent, VmAlertManager, VmAlert, and VmAuth.
+
+Supported `httpRoute` fields:
+
+| Field | Description |
+| ----- | ----------- |
+| `install` | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`. |
+| `hostnames` | Overrides generated hostnames. If omitted, the component ingress host is used. |
+| `parentRefs` | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
+| `rules[].matches` | Raw Gateway API HTTPRoute match blocks. |
+| `rules[].filters` | Raw Gateway API HTTPRoute filter blocks. |
+
+`backendRefs` are managed by the operator and cannot be configured through `httpRoute.rules`.
+When custom `rules` are set, the operator injects the component backend service and port into each rule,
+**unless** the rule contains a `RequestRedirect` or `URLRewrite` filter — those filters replace the
+backend destination, so `backendRefs` is omitted for those rules.
+
+The operator logs HTTPRoute status warnings when the Gateway controller reports unhealthy parent status,
+including empty `status.parents`, `Accepted=False`, or `ResolvedRefs=False`. These warnings do not fail
+component reconciliation.
+
+```yaml
+gatewayApi:
+  addIngressIgnoreAnnotation: true
+  parentRefs:
+    - name: gateway
+      namespace: gateway-infra
+      kind: Gateway
+      group: gateway.networking.k8s.io
+
+grafana:
+  httpRoute:
+    install: true
+    parentRefs:
+      - name: gateway
+        namespace: gateway-infra
+        sectionName: http
+    hostnames:
+      - grafana.example.com
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        filters:
+          - type: URLRewrite
+            urlRewrite:
+              path:
+                type: ReplacePrefixMatch
+                replacePrefixMatch: /
+
+victoriametrics:
+  vmSingle:
+    httpRoute:
+      install: true
+      hostnames:
+        - vmsingle.example.com
+```
+
 ## Deployment Examples
 
 ### Production Deployment
