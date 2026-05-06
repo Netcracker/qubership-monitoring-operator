@@ -147,13 +147,27 @@ Check Deployment State With Prerequisite
 
 Check Deployment State
     [Arguments]  ${name}
-    ${pods_in_namespace}=  Get Pods  ${namespace}
-    ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
     ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
+    ${pods_in_namespace}=  Get Pods  ${namespace}
+    ${pod_in_namespace}=  Get Pods Matching Deployment Selector  ${pods_in_namespace}  ${deployment}
     Check Pod's List Is Equals  ${pod_in_namespace}  ${deployment.spec.replicas}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
     RETURN  ${flag}
+
+Get Pods Matching Deployment Selector
+    [Arguments]  ${pods}  ${deployment}
+    ${selector}=  Set Variable  ${deployment.spec.selector.match_labels}
+    ${matched_pods}=  Create List
+    FOR  ${pod}  IN  @{pods}
+        ${pod_labels}=  Set Variable  ${pod.metadata.labels}
+        ${matches}=  Run Keyword And Return Status
+        ...  Dictionary Should Contain Sub Dictionary  ${pod_labels}  ${selector}
+        IF  ${matches}
+            Append To List  ${matched_pods}  ${pod}
+        END
+    END
+    RETURN  ${matched_pods}
 
 Check Stateful Set State With Prerequisite
     [Arguments]  ${name}  ${name-in-cr}  ${parentservice}=${None}

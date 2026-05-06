@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-operator.fullname" . }}
+  namespace: {{ include "grafana-operator.namespace" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator.name" .)) | nindent 4 }}
+    {{- if .Values.additionalLabels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.metricsService.type }}
+  ports:
+    - port: {{ .Values.metricsService.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    app.kubernetes.io/name: {{ include "grafana-operator.name" . }}

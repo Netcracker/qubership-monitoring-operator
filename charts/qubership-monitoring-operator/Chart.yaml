@@ -108,3 +108,8 @@ dependencies:
     condition: stackdriverExporter.install
     version: ~0
     repository: "file://charts/stackdriver-exporter"
+  # Grafana resources API converter
+  - name: qubership-grafana-operator-converter
+    condition: grafanaConverter.install
+    version: ~0
+    repository: "file://charts/grafana-operator-converter"
