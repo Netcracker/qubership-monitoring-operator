@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vmsingles.operator.victoriametrics.com
@@ -66,8 +66,7 @@ spec:
                   Containers property allows to inject additions sidecars or to patch existing containers.
                   It can be useful for proxies, backup, etc.
                 items:
-                  description: A single application container that you want to run
-                    within a pod.
+                  description: A single application container that you want to run within a pod.
                   required:
                   - name
                   type: object
@@ -111,8 +110,7 @@ spec:
                       Duplicated entries will be removed. Resolution options given in Options
                       will override those that appear in the base DNSPolicy.
                     items:
-                      description: PodDNSConfigOption defines DNS resolver options
-                        of a pod.
+                      description: PodDNSConfigOption defines DNS resolver options of a pod.
                       properties:
                         name:
                           description: |-
@@ -148,8 +146,7 @@ spec:
               extraEnvs:
                 description: ExtraEnvs that will be passed to the application container
                 items:
-                  description: EnvVar represents an environment variable present in
-                    a Container.
+                  description: EnvVar represents an environment variable present in a Container.
                   properties:
                     name:
                       description: |-
@@ -178,14 +175,13 @@ spec:
                   ExtraEnvsFrom defines source of env variables for the application container
                   could either be secret or configmap
                 items:
-                  description: EnvFromSource represents the source of a set of ConfigMaps
-                    or Secrets
+                  description: EnvFromSource represents the source of a set of ConfigMaps or Secrets
                   properties:
                     configMapRef:
                       description: The ConfigMap to select from
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -207,7 +203,7 @@ spec:
                       description: The Secret to select from
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -270,8 +266,7 @@ spec:
                   type: object
                 type: array
               hostNetwork:
-                description: HostNetwork controls whether the pod may use the node
-                  network namespace
+                description: HostNetwork controls whether the pod may use the node network namespace
                 type: boolean
               image:
                 description: |-
@@ -282,8 +277,7 @@ spec:
                     description: PullPolicy describes how to pull docker image
                     type: string
                   repository:
-                    description: Repository contains name of docker image + it's repository
-                      if needed
+                    description: Repository contains name of docker image + it's repository if needed
                     type: string
                   tag:
                     description: Tag contains desired docker image version
@@ -300,7 +294,7 @@ spec:
                     referenced object inside the same namespace.
                   properties:
                     name:
-                      default: ""
+                      default: ''
                       description: |-
                         Name of the referent.
                         This field is effectively required, but due to backwards compatibility is
@@ -317,8 +311,7 @@ spec:
                   Any errors during the execution of an initContainer will lead to a restart of the Pod.
                   More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
                 items:
-                  description: A single application container that you want to run
-                    within a pod.
+                  description: A single application container that you want to run within a pod.
                   required:
                   - name
                   type: object
@@ -355,15 +348,13 @@ spec:
                       To request a trial license, [go to](https://victoriametrics.com/products/enterprise/trial)
                     type: string
                   keyRef:
-                    description: KeyRef is reference to secret with license key for
-                      enterprise features.
+                    description: KeyRef is reference to secret with license key for enterprise features.
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -372,20 +363,18 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
                     type: object
                     x-kubernetes-map-type: atomic
                   reloadInterval:
-                    description: Interval to be used for checking for license key
-                      changes. Note that this is only applicable when using KeyRef.
+                    description: Interval to be used for checking for license key changes. Note that this is only applicable when using KeyRef.
                     type: string
                 type: object
               livenessProbe:
-                description: LivenessProbe that will be added CRD pod
+                description: LivenessProbe that will be added to CR pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               logFormat:
@@ -395,8 +384,7 @@ spec:
                 - json
                 type: string
               logLevel:
-                description: LogLevel for victoria metrics single to be configured
-                  with.
+                description: LogLevel for victoria metrics single to be configured with.
                 enum:
                 - INFO
                 - WARN
@@ -437,8 +425,7 @@ spec:
               nodeSelector:
                 additionalProperties:
                   type: string
-                description: NodeSelector Define which Nodes the Pods are scheduled
-                  on.
+                description: NodeSelector Define which Nodes the Pods are scheduled on.
                 type: object
               paused:
                 description: |-
@@ -446,8 +433,7 @@ spec:
                   going to be performed, except for delete actions.
                 type: boolean
               podMetadata:
-                description: PodMetadata configures Labels and Annotations which are
-                  propagated to the VMSingle pods.
+                description: PodMetadata configures Labels and Annotations which are propagated to the VMSingle pods.
                 properties:
                   annotations:
                     additionalProperties:
@@ -489,15 +475,14 @@ spec:
                   description: PodReadinessGate contains the reference to a pod condition
                   properties:
                     conditionType:
-                      description: ConditionType refers to a condition in the pod's
-                        condition list with matching type.
+                      description: ConditionType refers to a condition in the pod's condition list with matching type.
                       type: string
                   required:
                   - conditionType
                   type: object
                 type: array
               readinessProbe:
-                description: ReadinessProbe that will be added CRD pod
+                description: ReadinessProbe that will be added to CR pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               removePvcAfterDelete:
@@ -610,12 +595,10 @@ spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               serviceAccountName:
-                description: ServiceAccountName is the name of the ServiceAccount
-                  to use to run the pods
+                description: ServiceAccountName is the name of the ServiceAccount to use to run the pods
                 type: string
               serviceScrapeSpec:
-                description: ServiceScrapeSpec that will be added to vmsingle VMServiceScrape
-                  spec
+                description: ServiceScrapeSpec that will be added to vmsingle VMServiceScrape spec
                 required:
                 - endpoints
                 type: object
@@ -624,8 +607,7 @@ spec:
                 description: ServiceSpec that will be added to vmsingle service spec
                 properties:
                   metadata:
-                    description: EmbeddedObjectMetadata defines objectMeta for additional
-                      service.
+                    description: EmbeddedObjectMetadata defines objectMeta for additional service.
                     properties:
                       annotations:
                         additionalProperties:
@@ -670,7 +652,7 @@ spec:
                 - spec
                 type: object
               startupProbe:
-                description: StartupProbe that will be added to CRD pod
+                description: StartupProbe that will be added to CR pod
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               storage:
@@ -797,20 +779,17 @@ spec:
                         type: object
                     type: object
                   selector:
-                    description: selector is a label query over volumes to consider
-                      for binding.
+                    description: selector is a label query over volumes to consider for binding.
                     properties:
                       matchExpressions:
-                        description: matchExpressions is a list of label selector
-                          requirements. The requirements are ANDed.
+                        description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
                         items:
                           description: |-
                             A label selector requirement is a selector that contains values, a key, and an operator that
                             relates the key and values.
                           properties:
                             key:
-                              description: key is the label key that the selector
-                                applies to.
+                              description: key is the label key that the selector applies to.
                               type: string
                             operator:
                               description: |-
@@ -867,8 +846,7 @@ spec:
                       Value of Filesystem is implied when not included in claim spec.
                     type: string
                   volumeName:
-                    description: volumeName is the binding reference to the PersistentVolume
-                      backing this claim.
+                    description: volumeName is the binding reference to the PersistentVolume backing this claim.
                     type: string
                 type: object
               storageDataPath:
@@ -878,8 +856,7 @@ spec:
                   It requires to provide spec.volumes and spec.volumeMounts with at least 1 value
                 type: string
               storageMetadata:
-                description: StorageMeta defines annotations and labels attached to
-                  PVC for given vmsingle CR
+                description: StorageMeta defines annotations and labels attached to PVC for given vmsingle CR
                 properties:
                   annotations:
                     additionalProperties:
@@ -910,8 +887,7 @@ spec:
                     type: string
                 type: object
               streamAggrConfig:
-                description: StreamAggrConfig defines stream aggregation configuration
-                  for VMSingle
+                description: StreamAggrConfig defines stream aggregation configuration for VMSingle
                 properties:
                   configmap:
                     description: ConfigMap with stream aggregation rules
@@ -920,7 +896,7 @@ spec:
                         description: The key to select.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -929,40 +905,34 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the ConfigMap or its key must
-                          be defined
+                        description: Specify whether the ConfigMap or its key must be defined
                         type: boolean
                     required:
                     - key
                     type: object
                     x-kubernetes-map-type: atomic
                   dedupInterval:
-                    description: Allows setting different de-duplication intervals
-                      per each configured remote storage
+                    description: Allows setting different de-duplication intervals per each configured remote storage
                     type: string
                   dropInput:
                     description: Allow drop all the input samples after the aggregation
                     type: boolean
                   dropInputLabels:
-                    description: labels to drop from samples for aggregator before
-                      stream de-duplication and aggregation
+                    description: labels to drop from samples for aggregator before stream de-duplication and aggregation
                     items:
                       type: string
                     type: array
                   enableWindows:
-                    description: EnableWindows enables aggregating data in separate
-                      windows ( available from v0.54.0).
+                    description: EnableWindows enables aggregating data in separate windows ( available from v0.54.0).
                     type: boolean
                   ignoreFirstIntervals:
                     description: IgnoreFirstIntervals instructs to ignore first interval
                     type: integer
                   ignoreFirstSampleInterval:
-                    description: IgnoreFirstSampleInterval sets interval for total
-                      and prometheus_total during which first samples will be ignored
+                    description: IgnoreFirstSampleInterval sets interval for total and prometheus_total during which first samples will be ignored
                     type: string
                   ignoreOldSamples:
-                    description: IgnoreOldSamples instructs to ignore samples with
-                      old timestamps outside the current aggregation interval.
+                    description: IgnoreOldSamples instructs to ignore samples with old timestamps outside the current aggregation interval.
                     type: boolean
                   keepInput:
                     description: Allows writing both raw and aggregate data
@@ -970,8 +940,7 @@ spec:
                   rules:
                     description: Stream aggregation rules
                     items:
-                      description: StreamAggrRule defines the rule in stream aggregation
-                        config
+                      description: StreamAggrRule defines the rule in stream aggregation config
                       properties:
                         by:
                           description: |-
@@ -996,8 +965,7 @@ spec:
                             type: string
                           type: array
                         enable_windows:
-                          description: EnableWindows enables aggregating data in separate
-                            windows
+                          description: EnableWindows enables aggregating data in separate windows
                           type: boolean
                         flush_on_shutdown:
                           description: |-
@@ -1009,13 +977,10 @@ spec:
                         ignore_first_intervals:
                           type: integer
                         ignore_old_samples:
-                          description: IgnoreOldSamples instructs to ignore samples
-                            with old timestamps outside the current aggregation interval.
+                          description: IgnoreOldSamples instructs to ignore samples with old timestamps outside the current aggregation interval.
                           type: boolean
                         ignoreFirstSampleInterval:
-                          description: IgnoreFirstSampleInterval sets interval for
-                            total and prometheus_total during which first samples
-                            will be ignored
+                          description: IgnoreFirstSampleInterval sets interval for total and prometheus_total during which first samples will be ignored
                           type: string
                         input_relabel_configs:
                           description: |-
@@ -1027,26 +992,21 @@ spec:
                               More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                             properties:
                               action:
-                                description: Action to perform based on regex matching.
-                                  Default is 'replace'
+                                description: Action to perform based on regex matching. Default is 'replace'
                                 type: string
                               if:
-                                description: 'If represents metricsQL match expression
-                                  (or list of expressions): ''{__name__=~"foo_.*"}'''
+                                description: "If represents metricsQL match expression (or list of expressions): '{__name__=~\"foo_.*\"}'"
                                 x-kubernetes-preserve-unknown-fields: true
                               labels:
                                 additionalProperties:
                                   type: string
-                                description: 'Labels is used together with Match for
-                                  `action: graphite`'
+                                description: 'Labels is used together with Match for `action: graphite`'
                                 type: object
                               match:
-                                description: 'Match is used together with Labels for
-                                  `action: graphite`'
+                                description: 'Match is used together with Labels for `action: graphite`'
                                 type: string
                               modulus:
-                                description: Modulus to take of the hash of the source
-                                  label values.
+                                description: Modulus to take of the hash of the source label values.
                                 format: int64
                                 type: integer
                               regex:
@@ -1061,14 +1021,13 @@ spec:
                                   regular expression matches. Regex capture groups are available. Default is '$1'
                                 type: string
                               separator:
-                                description: Separator placed between concatenated
-                                  source label values. default is ';'.
+                                description: Separator placed between concatenated source label values. default is ';'.
                                 type: string
                               source_labels:
                                 description: |-
                                   UnderScoreSourceLabels - additional form of source labels source_labels
                                   for compatibility with original relabel config.
-                                  if set  both sourceLabels and source_labels, sourceLabels has priority.
+                                  if set both sourceLabels and source_labels, sourceLabels has priority.
                                   for details https://github.com/VictoriaMetrics/operator/issues/131
                                 items:
                                   type: string
@@ -1085,7 +1044,7 @@ spec:
                                 description: |-
                                   UnderScoreTargetLabel - additional form of target label - target_label
                                   for compatibility with original relabel config.
-                                  if set  both targetLabel and target_label, targetLabel has priority.
+                                  if set both targetLabel and target_label, targetLabel has priority.
                                   for details https://github.com/VictoriaMetrics/operator/issues/131
                                 type: string
                               targetLabel:
@@ -1099,8 +1058,7 @@ spec:
                           description: Interval is the interval between aggregations.
                           type: string
                         keep_metric_names:
-                          description: KeepMetricNames instructs to leave metric names
-                            as is for the output time series without adding any suffix.
+                          description: KeepMetricNames instructs to leave metric names as is for the output time series without adding any suffix.
                           type: boolean
                         match:
                           description: |-
@@ -1123,26 +1081,21 @@ spec:
                               More info: https://docs.victoriametrics.com/victoriametrics/#relabeling
                             properties:
                               action:
-                                description: Action to perform based on regex matching.
-                                  Default is 'replace'
+                                description: Action to perform based on regex matching. Default is 'replace'
                                 type: string
                               if:
-                                description: 'If represents metricsQL match expression
-                                  (or list of expressions): ''{__name__=~"foo_.*"}'''
+                                description: "If represents metricsQL match expression (or list of expressions): '{__name__=~\"foo_.*\"}'"
                                 x-kubernetes-preserve-unknown-fields: true
                               labels:
                                 additionalProperties:
                                   type: string
-                                description: 'Labels is used together with Match for
-                                  `action: graphite`'
+                                description: 'Labels is used together with Match for `action: graphite`'
                                 type: object
                               match:
-                                description: 'Match is used together with Labels for
-                                  `action: graphite`'
+                                description: 'Match is used together with Labels for `action: graphite`'
                                 type: string
                               modulus:
-                                description: Modulus to take of the hash of the source
-                                  label values.
+                                description: Modulus to take of the hash of the source label values.
                                 format: int64
                                 type: integer
                               regex:
@@ -1157,14 +1110,13 @@ spec:
                                   regular expression matches. Regex capture groups are available. Default is '$1'
                                 type: string
                               separator:
-                                description: Separator placed between concatenated
-                                  source label values. default is ';'.
+                                description: Separator placed between concatenated source label values. default is ';'.
                                 type: string
                               source_labels:
                                 description: |-
                                   UnderScoreSourceLabels - additional form of source labels source_labels
                                   for compatibility with original relabel config.
-                                  if set  both sourceLabels and source_labels, sourceLabels has priority.
+                                  if set both sourceLabels and source_labels, sourceLabels has priority.
                                   for details https://github.com/VictoriaMetrics/operator/issues/131
                                 items:
                                   type: string
@@ -1181,7 +1133,7 @@ spec:
                                 description: |-
                                   UnderScoreTargetLabel - additional form of target label - target_label
                                   for compatibility with original relabel config.
-                                  if set  both targetLabel and target_label, targetLabel has priority.
+                                  if set both targetLabel and target_label, targetLabel has priority.
                                   for details https://github.com/VictoriaMetrics/operator/issues/131
                                 type: string
                               targetLabel:
@@ -1240,8 +1192,7 @@ spec:
                     type: array
                 type: object
               terminationGracePeriodSeconds:
-                description: TerminationGracePeriodSeconds period for container graceful
-                  termination
+                description: TerminationGracePeriodSeconds period for container graceful termination
                 format: int64
                 type: integer
               tolerations:
@@ -1290,8 +1241,7 @@ spec:
                   such as regions, zones, nodes, and other user-defined topology domains
                   https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
                 items:
-                  description: TopologySpreadConstraint specifies how to spread matching
-                    pods among the given topology.
+                  description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
                   required:
                   - maxSkew
                   - topologyKey
@@ -1319,11 +1269,9 @@ spec:
                       AcceptEULA accepts enterprise feature usage, must be set to true.
                       otherwise backupmanager cannot be added to single/cluster version.
                       https://victoriametrics.com/legal/esa/
-                      Deprecated: use license.key or license.keyRef instead
                     type: boolean
                   concurrency:
-                    description: Defines number of concurrent workers. Higher concurrency
-                      may reduce backup duration (default 10)
+                    description: Defines number of concurrent workers. Higher concurrency may reduce backup duration (default 10)
                     format: int32
                     type: integer
                   credentialsSecret:
@@ -1332,11 +1280,10 @@ spec:
                       The secret is mounted into /etc/vm/creds.
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -1345,16 +1292,14 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
                     type: object
                     x-kubernetes-map-type: atomic
                   customS3Endpoint:
-                    description: Custom S3 endpoint for use with S3-compatible storages
-                      (e.g. MinIO). S3 is used if not set
+                    description: Custom S3 endpoint for use with S3-compatible storages (e.g. MinIO). S3 is used if not set
                     type: string
                   destination:
                     description: Defines destination for backup
@@ -1384,8 +1329,7 @@ spec:
                     type: object
                   extraEnvs:
                     items:
-                      description: EnvVar represents an environment variable present
-                        in a Container.
+                      description: EnvVar represents an environment variable present in a Container.
                       properties:
                         name:
                           description: |-
@@ -1405,8 +1349,7 @@ spec:
                             Defaults to "".
                           type: string
                         valueFrom:
-                          description: Source for the environment variable's value.
-                            Cannot be used if value is not empty.
+                          description: Source for the environment variable's value. Cannot be used if value is not empty.
                           properties:
                             configMapKeyRef:
                               description: Selects a key of a ConfigMap.
@@ -1415,7 +1358,7 @@ spec:
                                   description: The key to select.
                                   type: string
                                 name:
-                                  default: ""
+                                  default: ''
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
@@ -1424,8 +1367,7 @@ spec:
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                   type: string
                                 optional:
-                                  description: Specify whether the ConfigMap or its
-                                    key must be defined
+                                  description: Specify whether the ConfigMap or its key must be defined
                                   type: boolean
                               required:
                               - key
@@ -1437,12 +1379,10 @@ spec:
                                 spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
                               properties:
                                 apiVersion:
-                                  description: Version of the schema the FieldPath
-                                    is written in terms of, defaults to "v1".
+                                  description: Version of the schema the FieldPath is written in terms of, defaults to "v1".
                                   type: string
                                 fieldPath:
-                                  description: Path of the field to select in the
-                                    specified API version.
+                                  description: Path of the field to select in the specified API version.
                                   type: string
                               required:
                               - fieldPath
@@ -1476,8 +1416,7 @@ spec:
                                     Must be relative and may not contain the '..' path or start with '..'.
                                   type: string
                                 volumeName:
-                                  description: The name of the volume mount containing
-                                    the env file.
+                                  description: The name of the volume mount containing the env file.
                                   type: string
                               required:
                               - key
@@ -1491,15 +1430,13 @@ spec:
                                 (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.ephemeral-storage) are currently supported.
                               properties:
                                 containerName:
-                                  description: 'Container name: required for volumes,
-                                    optional for env vars'
+                                  description: 'Container name: required for volumes, optional for env vars'
                                   type: string
                                 divisor:
                                   anyOf:
                                   - type: integer
                                   - type: string
-                                  description: Specifies the output format of the
-                                    exposed resources, defaults to "1"
+                                  description: Specifies the output format of the exposed resources, defaults to "1"
                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                   x-kubernetes-int-or-string: true
                                 resource:
@@ -1510,15 +1447,13 @@ spec:
                               type: object
                               x-kubernetes-map-type: atomic
                             secretKeyRef:
-                              description: Selects a key of a secret in the pod's
-                                namespace
+                              description: Selects a key of a secret in the pod's namespace
                               properties:
                                 key:
-                                  description: The key of the secret to select from.  Must
-                                    be a valid secret key.
+                                  description: The key of the secret to select from.  Must be a valid secret key.
                                   type: string
                                 name:
-                                  default: ""
+                                  default: ''
                                   description: |-
                                     Name of the referent.
                                     This field is effectively required, but due to backwards compatibility is
@@ -1527,8 +1462,7 @@ spec:
                                     More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                   type: string
                                 optional:
-                                  description: Specify whether the Secret or its key
-                                    must be defined
+                                  description: Specify whether the Secret or its key must be defined
                                   type: boolean
                               required:
                               - key
@@ -1544,14 +1478,13 @@ spec:
                       ExtraEnvsFrom defines source of env variables for the application container
                       could either be secret or configmap
                     items:
-                      description: EnvFromSource represents the source of a set of
-                        ConfigMaps or Secrets
+                      description: EnvFromSource represents the source of a set of ConfigMaps or Secrets
                       properties:
                         configMapRef:
                           description: The ConfigMap to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -1573,7 +1506,7 @@ spec:
                           description: The Secret to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -1595,8 +1528,7 @@ spec:
                         description: PullPolicy describes how to pull docker image
                         type: string
                       repository:
-                        description: Repository contains name of docker image + it's
-                          repository if needed
+                        description: Repository contains name of docker image + it's repository if needed
                         type: string
                       tag:
                         description: Tag contains desired docker image version
@@ -1689,8 +1621,7 @@ spec:
                       Read [more](https://docs.victoriametrics.com/victoriametrics/vmbackupmanager/#restore-commands)
                     properties:
                       onStart:
-                        description: OnStart defines configuration for restore on
-                          pod start
+                        description: OnStart defines configuration for restore on pod start
                         properties:
                           enabled:
                             description: Enabled defines if restore on start enabled
@@ -1701,7 +1632,7 @@ spec:
                     description: SnapshotCreateURL overwrites url for snapshot create
                     type: string
                   snapshotDeleteURL:
-                    description: SnapShotDeleteURL overwrites url for snapshot delete
+                    description: SnapshotDeleteURL overwrites url for snapshot delete
                     type: string
                   volumeMounts:
                     description: |-
@@ -1709,8 +1640,7 @@ spec:
                       VolumeMounts specified will be appended to other VolumeMounts in the vmbackupmanager container,
                       that are generated as a result of StorageSpec objects.
                     items:
-                      description: VolumeMount describes a mounting of a Volume within
-                        a container.
+                      description: VolumeMount describes a mounting of a Volume within a container.
                       properties:
                         mountPath:
                           description: |-
@@ -1776,8 +1706,7 @@ spec:
                   VolumeMounts allows configuration of additional VolumeMounts on the output Deployment/StatefulSet definition.
                   VolumeMounts specified will be appended to other VolumeMounts in the Application container
                 items:
-                  description: VolumeMount describes a mounting of a Volume within
-                    a container.
+                  description: VolumeMount describes a mounting of a Volume within a container.
                   properties:
                     mountPath:
                       description: |-
@@ -1843,8 +1772,7 @@ spec:
                   Volumes specified will be appended to other volumes that are generated.
                   / +optional
                 items:
-                  description: Volume represents a named volume in a pod that may
-                    be accessed by any container in the pod.
+                  description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
                   required:
                   - name
                   type: object
@@ -1855,14 +1783,12 @@ spec:
             description: VMSingleStatus defines the observed state of VMSingle
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -1898,8 +1824,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:
@@ -1925,10 +1851,6 @@ spec:
                 type: integer
               reason:
                 description: Reason defines human readable error reason
-                type: string
-              singleStatus:
-                description: LegacyStatus is deprecated and will be removed at v0.52.0
-                  version
                 type: string
               updateStatus:
                 description: UpdateStatus defines a status for update rollout
