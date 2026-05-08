@@ -1,10 +1,12 @@
 #!/bin/bash
 
+expected_tests_count=2
+
 rules=()
 readarray -t rules < <(yq '.groups[].rules[].alert' ./rules.yaml)
 
 tests=()
-readarray -t tests < <(yq '.tests[].alert_rule_test[].alertname' ./test.yaml)
+readarray -t tests < <(yq '.tests[].alert_rule_test[].alertname' ./*-tests.yaml)
 
 errorrules=()
 errorcount=()
@@ -19,9 +21,9 @@ for item in "${rules[@]}"; do
         fi
     done
 
-    echo "Alert: $item, Tests found: $count"
+    echo "Passed: $item, Tests: $count / $expected_tests_count"
 
-    if [[ "$count" -lt 2 ]]; then
+    if [[ "$count" -lt $expected_tests_count ]]; then
         errorrules[i]="$item"
         errorcount[i]="$count"
         ((i++))
@@ -29,13 +31,14 @@ for item in "${rules[@]}"; do
 done
 
 if [[ "$i" -gt 0 ]]; then
-    echo "This alert rules don't have all required tests (minimum 2 tests per rule needed):"
+    echo "--------------------------------"
+    echo "Failed: Alert rules have less than ${expected_tests_count} tests (minimum ${expected_tests_count} tests per rule needed):"
     for k in "${!errorrules[@]}"; do
-        echo "Alert: ${errorrules[k]}, Tests found: ${errorcount[k]}"
+        echo "Failed: ${errorrules[k]}, Tests: ${errorcount[k]} / ${expected_tests_count}"
     done
     exit 1
 else
-    echo "All alert rules has required tests"
-    echo "All tests passed"
+    echo "--------------------------------"
+    echo "Passed: All alert rules have required tests"
     exit 0
 fi

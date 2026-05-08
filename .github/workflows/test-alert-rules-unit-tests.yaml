@@ -15,8 +15,9 @@ permissions:
 
 env:
   vmalert_tool_version: v1.142.0
+  tests_dir: test/alerts-tests
   source_alert_rules_file: controllers/prometheus-rules/assets/prometheus-rules.yaml
-  target_alert_rules_file: test/alerts-tests/rules.yaml
+  target_alert_rules_file: ${tests_dir}/rules.yaml
 
 jobs:
   Run-Alerts-Test:
@@ -46,10 +47,12 @@ jobs:
 
       - name: Check count of test cases for each alert rule
         run: |
-          chmod +x ./test/alerts-tests/tests-checker.sh
-          ./test/alerts-tests/tests-checker.sh
+          chmod +x ./${tests_dir}/tests-checker.sh
+          ./${tests_dir}/tests-checker.sh
         continue-on-error: true
 
       - name: Run test
         run: |
-          ./vmalert-tool unittest --files ${target_alert_rules_file}
+          FILES=$(find ${tests_dir} -name "*-tests.yaml" | sort | sed 's/^/--file /' | tr '\n' ' ')
+          ./vmalert-tool unittest ${FILES}
+

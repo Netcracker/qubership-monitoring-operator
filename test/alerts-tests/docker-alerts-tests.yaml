@@ -1,0 +1,112 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'container_last_seen'
+    values: "-61x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerKilled
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Container killed (instance )"
+        description: "A container has disappeared\n  VALUE = 361\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerKilled severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_last_seen'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerKilled
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_inodes_free'
+    values: "15x1440"
+  - series: 'container_fs_inodes_total'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeUsage
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Container Volume usage (instance )"
+        description: "Container Volume usage is above 80 percent\n  VALUE = 85\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerVolumeUsage severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_inodes_free'
+    values: "100x1440"
+  - series: 'container_fs_inodes_total'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeUsage
+    exp_alerts: []
+
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_io_current'
+    values: "0.85x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeIoUsage
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Container Volume IO usage (instance )"
+        description: "Container Volume IO usage is above 80 percent\n  VALUE = 85\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerVolumeIoUsage severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_fs_io_current'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DockerContainers
+    alertname: ContainerVolumeIoUsage
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'container_cpu_cfs_throttled_seconds_total'
+    values: "120+120x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: DockerContainers
+    alertname: ContainerHighThrottleRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Container high throttle rate (instance )"
+        description: "Container is being throttled\n  VALUE = 2\n  LABELS: map[alertgroup:DockerContainers alertname:ContainerHighThrottleRate severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_cpu_cfs_throttled_seconds_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: DockerContainers
+    alertname: ContainerHighThrottleRate
+    exp_alerts: []
