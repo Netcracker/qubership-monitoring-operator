@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vmusers.operator.victoriametrics.com
@@ -52,8 +52,7 @@ spec:
             description: VMUserSpec defines the desired state of VMUser
             properties:
               bearerToken:
-                description: BearerToken Authorization header value for accessing
-                  protected endpoint.
+                description: BearerToken Authorization header value for accessing protected endpoint.
                 type: string
               default_url:
                 description: |-
@@ -63,12 +62,10 @@ spec:
                   type: string
                 type: array
               disable_secret_creation:
-                description: DisableSecretCreation skips related secret creation for
-                  vmuser
+                description: DisableSecretCreation skips related secret creation for vmuser
                 type: boolean
               discover_backend_ips:
-                description: DiscoverBackendIPs instructs discovering URLPrefix backend
-                  IPs via DNS.
+                description: DiscoverBackendIPs instructs discovering URLPrefix backend IPs via DNS.
                 type: boolean
               drop_src_path_prefix_parts:
                 description: |-
@@ -121,6 +118,29 @@ spec:
                 - least_loaded
                 - first_available
                 type: string
+              managedMetadata:
+                description: |-
+                  ManagedMetadata defines metadata that will be added to the all objects
+                  created by operator for the given CustomResource
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Annotations is an unstructured key value map stored with a resource that may be
+                      set by external tools to store and retrieve arbitrary metadata. They are not
+                      queryable and should be preserved when modifying objects.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Labels Map of string keys and values that can be used to organize and categorize
+                      (scope and select) objects.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+                    type: object
+                type: object
               max_concurrent_requests:
                 description: |-
                   MaxConcurrentRequests defines max concurrent requests per user
@@ -129,26 +149,22 @@ spec:
               metric_labels:
                 additionalProperties:
                   type: string
-                description: MetricLabels - additional labels for metrics exported
-                  by vmauth for given user.
+                description: MetricLabels - additional labels for metrics exported by vmauth for given user.
                 type: object
               name:
                 description: Name of the VMUser object.
                 type: string
               password:
-                description: Password basic auth password for accessing protected
-                  endpoint.
+                description: Password basic auth password for accessing protected endpoint.
                 type: string
               passwordRef:
-                description: PasswordRef allows fetching password from user-create
-                  secret by its name and key.
+                description: PasswordRef allows fetching password from user-create secret by its name and key.
                 properties:
                   key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
+                    description: The key of the secret to select from.  Must be a valid secret key.
                     type: string
                   name:
-                    default: ""
+                    default: ''
                     description: |-
                       Name of the referent.
                       This field is effectively required, but due to backwards compatibility is
@@ -230,8 +246,7 @@ spec:
                       - namespace
                       type: object
                     discover_backend_ips:
-                      description: DiscoverBackendIPs instructs discovering URLPrefix
-                        backend IPs via DNS.
+                      description: DiscoverBackendIPs instructs discovering URLPrefix backend IPs via DNS.
                       type: boolean
                     drop_src_path_prefix_parts:
                       description: |-
@@ -266,6 +281,24 @@ spec:
                       items:
                         type: string
                       type: array
+                    query_args:
+                      description: QueryArgs appends list of query arguments to generated URL
+                      items:
+                        description: QueryArg defines item for query arguments
+                        properties:
+                          name:
+                            description: Name of query argument
+                            type: string
+                          values:
+                            description: Values of query argument
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - name
+                        - values
+                        type: object
+                      type: array
                     response_headers:
                       description: |-
                         ResponseHeaders represent additional http headers, that vmauth adds for request response
@@ -285,14 +318,12 @@ spec:
                         type: integer
                       type: array
                     src_headers:
-                      description: SrcHeaders is an optional list of headers, which
-                        must match request headers.
+                      description: SrcHeaders is an optional list of headers, which must match request headers.
                       items:
                         type: string
                       type: array
                     src_query_args:
-                      description: SrcQueryArgs is an optional list of query args,
-                        which must match request URL query args.
+                      description: SrcQueryArgs is an optional list of query args, which must match request URL query args.
                       items:
                         type: string
                       type: array
@@ -305,8 +336,7 @@ spec:
                           description: URL http url for given staticRef.
                           type: string
                         urls:
-                          description: URLs allows setting multiple urls for load-balancing
-                            at vmauth-side.
+                          description: URLs allows setting multiple urls for load-balancing at vmauth-side.
                           items:
                             type: string
                           type: array
@@ -318,8 +348,7 @@ spec:
                         it also may contain any url encoded params.
                       type: string
                     targetRefBasicAuth:
-                      description: TargetRefBasicAuth allow an target endpoint to
-                        authenticate over basic authentication
+                      description: TargetRefBasicAuth allow an target endpoint to authenticate over basic authentication
                       properties:
                         password:
                           description: |-
@@ -328,11 +357,10 @@ spec:
                             It must be at them same namespace as CRD
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must
-                                be a valid secret key.
+                              description: The key of the secret to select from.  Must be a valid secret key.
                               type: string
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -341,8 +369,7 @@ spec:
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must
-                                be defined
+                              description: Specify whether the Secret or its key must be defined
                               type: boolean
                           required:
                           - key
@@ -355,11 +382,10 @@ spec:
                             It must be at them same namespace as CRD
                           properties:
                             key:
-                              description: The key of the secret to select from.  Must
-                                be a valid secret key.
+                              description: The key of the secret to select from.  Must be a valid secret key.
                               type: string
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -368,8 +394,7 @@ spec:
                                 More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                               type: string
                             optional:
-                              description: Specify whether the Secret or its key must
-                                be defined
+                              description: Specify whether the Secret or its key must be defined
                               type: boolean
                           required:
                           - key
@@ -394,7 +419,7 @@ spec:
                             description: The key to select.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -403,8 +428,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the ConfigMap or its key
-                              must be defined
+                            description: Specify whether the ConfigMap or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -414,11 +438,10 @@ spec:
                         description: Secret containing data to use for the targets.
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -427,8 +450,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -436,8 +458,7 @@ spec:
                         x-kubernetes-map-type: atomic
                     type: object
                   caFile:
-                    description: Path to the CA cert in the container to use for the
-                      targets.
+                    description: Path to the CA cert in the container to use for the targets.
                     type: string
                   cert:
                     description: Struct containing the client cert file for the targets.
@@ -449,7 +470,7 @@ spec:
                             description: The key to select.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -458,8 +479,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the ConfigMap or its key
-                              must be defined
+                            description: Specify whether the ConfigMap or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -469,11 +489,10 @@ spec:
                         description: Secret containing data to use for the targets.
                         properties:
                           key:
-                            description: The key of the secret to select from.  Must
-                              be a valid secret key.
+                            description: The key of the secret to select from.  Must be a valid secret key.
                             type: string
                           name:
-                            default: ""
+                            default: ''
                             description: |-
                               Name of the referent.
                               This field is effectively required, but due to backwards compatibility is
@@ -482,8 +501,7 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                             type: string
                           optional:
-                            description: Specify whether the Secret or its key must
-                              be defined
+                            description: Specify whether the Secret or its key must be defined
                             type: boolean
                         required:
                         - key
@@ -491,25 +509,22 @@ spec:
                         x-kubernetes-map-type: atomic
                     type: object
                   certFile:
-                    description: Path to the client cert file in the container for
-                      the targets.
+                    description: Path to the client cert file in the container for the targets.
                     type: string
                   insecureSkipVerify:
                     description: Disable target certificate validation.
                     type: boolean
                   keyFile:
-                    description: Path to the client key file in the container for
-                      the targets.
+                    description: Path to the client key file in the container for the targets.
                     type: string
                   keySecret:
                     description: Secret containing the client key file for the targets.
                     properties:
                       key:
-                        description: The key of the secret to select from.  Must be
-                          a valid secret key.
+                        description: The key of the secret to select from.  Must be a valid secret key.
                         type: string
                       name:
-                        default: ""
+                        default: ''
                         description: |-
                           Name of the referent.
                           This field is effectively required, but due to backwards compatibility is
@@ -518,8 +533,7 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                         type: string
                       optional:
-                        description: Specify whether the Secret or its key must be
-                          defined
+                        description: Specify whether the Secret or its key must be defined
                         type: boolean
                     required:
                     - key
@@ -530,15 +544,13 @@ spec:
                     type: string
                 type: object
               tokenRef:
-                description: TokenRef allows fetching token from user-created secrets
-                  by its name and key.
+                description: TokenRef allows fetching token from user-created secrets by its name and key.
                 properties:
                   key:
-                    description: The key of the secret to select from.  Must be a
-                      valid secret key.
+                    description: The key of the secret to select from.  Must be a valid secret key.
                     type: string
                   name:
-                    default: ""
+                    default: ''
                     description: |-
                       Name of the referent.
                       This field is effectively required, but due to backwards compatibility is
@@ -555,7 +567,7 @@ spec:
                 x-kubernetes-map-type: atomic
               username:
                 description: |-
-                  UserName basic auth user name for accessing protected endpoint,
+                  Username basic auth user name for accessing protected endpoint,
                   will be replaced with metadata.name of VMUser if omitted.
                 type: string
             required:
@@ -565,14 +577,12 @@ spec:
             description: VMUserStatus defines the observed state of VMUser
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -608,8 +618,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:
