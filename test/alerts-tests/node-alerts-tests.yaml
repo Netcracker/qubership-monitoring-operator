@@ -1,0 +1,492 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'container_processes'
+    values: "9x1440"
+  - series: 'node_processes_max_processes'
+    values: "10x1440"
+  - series: 'node_processes_threads'
+    values: "1x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeProcesses
+    alertname: CountPidsAndThreadOutOfLimit
+    exp_alerts:
+    - exp_labels:
+        severity: high
+
+      exp_annotations:
+        summary: "Host high PIDs and Threads usage (instance )"
+        description: "Sum of node's pids and threads is filling up (< 20 percent left)\n  VALUE = 100\n  LABELS: map[alertgroup:NodeProcesses alertname:CountPidsAndThreadOutOfLimit severity:high]"
+
+- interval: 1m
+  input_series:
+  - series: 'container_processes'
+    values: "1x1440"
+  - series: 'node_processes_max_processes'
+    values: "100x1440"
+  - series: 'node_processes_threads'
+    values: "10x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeProcesses
+    alertname: CountPidsAndThreadOutOfLimit
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_memory_MemAvailable_bytes'
+    values: "1x1440"
+  - series: 'node_memory_MemTotal_bytes'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostOutOfMemory
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host out of memory (instance )"
+        description: "Node memory is filling up (< 10 percent left)\n  VALUE = 1\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfMemory severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_memory_MemAvailable_bytes'
+    values: "100x1440"
+  - series: 'node_memory_MemTotal_bytes'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostOutOfMemory
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_vmstat_pgmajfault'
+    values: "120000+120000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostMemoryUnderMemoryPressure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host memory under memory pressure (instance )"
+        description: "The node is under heavy memory pressure. High rate of major page faults\n  VALUE = 2000\n  LABELS: map[alertgroup:NodeExporters alertname:HostMemoryUnderMemoryPressure severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_vmstat_pgmajfault'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostMemoryUnderMemoryPressure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_receive_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputIn
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host unusual network throughput in (instance )"
+        description: "Host network interfaces are probably receiving too much data (> 100 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualNetworkThroughputIn severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_receive_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputIn
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_transmit_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputOut
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host unusual network throughput out (instance )"
+        description: "Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualNetworkThroughputOut severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_network_transmit_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualNetworkThroughputOut
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host unusual disk read rate (instance )"
+        description: "Disk is probably reading too much data (> 50 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskReadRate severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_written_bytes_total'
+    values: "12582912000+12582912000x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteRate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host unusual disk write rate (instance )"
+        description: "Disk is probably writing too much data (> 50 MB/s)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskWriteRate severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_written_bytes_total'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteRate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_avail_bytes{mountpoint="/"}'
+    values: "5x1440"
+  - series: 'node_filesystem_size_bytes{mountpoint="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostOutOfDiskSpace
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+        mountpoint: /
+      exp_annotations:
+        summary: "Host out of disk space (instance )"
+        description: "Disk is almost full (< 10 percent left)\n  VALUE = 5\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfDiskSpace mountpoint:/ severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_avail_bytes{mountpoint="/"}'
+    values: "100x1440"
+  - series: 'node_filesystem_size_bytes{mountpoint="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: NodeExporters
+    alertname: HostOutOfDiskSpace
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_free_bytes'
+    values: "-1x300"
+  - series: 'node_uname_info'
+    values: "1x300"
+  alert_rule_test:
+  - eval_time: 5h
+    groupname: NodeExporters
+    alertname: HostDiskWillFillIn4Hours
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host disk will fill in 4 hours (instance )"
+        description: "Disk will fill in 4 hours at current write rate\n  VALUE = -1\n  LABELS: map[alertgroup:NodeExporters alertname:HostDiskWillFillIn4Hours severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_free_bytes'
+    values: "1x300"
+  - series: 'node_uname_info'
+    values: "1x300"
+  alert_rule_test:
+  - eval_time: 5h
+    groupname: NodeExporters
+    alertname: HostDiskWillFillIn4Hours
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_files_free{mountpoint ="/"}'
+    values: "1x1440"
+  - series: 'node_filesystem_files{mountpoint ="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: HostOutOfInodes
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+        mountpoint: /
+      exp_annotations:
+        summary: "Host out of inodes (instance )"
+        description: "Disk is almost running out of available inodes (< 10 percent left)\n  VALUE = 1\n  LABELS: map[alertgroup:NodeExporters alertname:HostOutOfInodes mountpoint:/ severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_files_free{mountpoint ="/"}'
+    values: "100x1440"
+  - series: 'node_filesystem_files{mountpoint ="/"}'
+    values: "100x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: NodeExporters
+    alertname: HostOutOfInodes
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_time_seconds_total'
+    values: "24000+24000x1440"
+  - series: 'node_disk_reads_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadLatency
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host unusual disk read latency (instance )"
+        description: "Disk latency is growing (read operations > 100ms)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskReadLatency severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_read_time_seconds_total'
+    values: "240+240x1440"
+  - series: 'node_disk_reads_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskReadLatency
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_write_time_seconds_total'
+    values: "24000+24000x1440"
+  - series: 'node_disk_writes_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteLatency
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host unusual disk write latency (instance )"
+        description: "Disk latency is growing (write operations > 100ms)\n  VALUE = 200\n  LABELS: map[alertgroup:NodeExporters alertname:HostUnusualDiskWriteLatency severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_disk_write_time_seconds_total'
+    values: "240+240x1440"
+  - series: 'node_disk_writes_completed_total'
+    values: "120+120x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: HostUnusualDiskWriteLatency
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_cpu_seconds_total{mode="idle"}'
+    values: "0x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 1h
+    groupname: NodeExporters
+    alertname: HostHighCpuLoad
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Host high CPU load (instance )"
+        description: "CPU load is > 80 percent\n  VALUE = 100\n  LABELS: map[alertgroup:NodeExporters alertname:HostHighCpuLoad severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'node_cpu_seconds_total{mode="idle"}'
+    values: "300+300x1440"
+  - series: 'node_uname_info'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 1h
+    groupname: NodeExporters
+    alertname: HostHighCpuLoad
+    exp_alerts: []
+
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="xfs"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="xfs"}'
+    values: "15x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
+    values: "15x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanWarningThreshold
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        fstype: xfs
+      exp_annotations:
+        summary: "Disk usage on node > 70 percent (instance )"
+        description: "Node  disk usage of  is\n  VALUE = 85 percent"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="xfs"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="xfs"}'
+    values: "100x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanWarningThreshold
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="xfs"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="xfs"}'
+    values: "0x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanHighThreshold
+    exp_alerts:
+    - exp_labels:
+        severity: high
+        fstype: xfs
+      exp_annotations:
+        summary: "Disk usage on node > 90 percent (instance )"
+        description: "Node  disk usage of  is\n VALUE = 100 percent"
+
+- interval: 1m
+  input_series:
+  - series: 'node_filesystem_size_bytes{fstype="xfs"}'
+    values: "100x1440"
+  - series: 'node_filesystem_free_bytes{fstype="xfs"}'
+    values: "100x1440"
+  - series: 'node_filesystem_avail_bytes{fstype="xfs"}'
+    values: "100x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: NodeExporters
+    alertname: NodeDiskUsageIsMoreThanHighThreshold
+    exp_alerts: []

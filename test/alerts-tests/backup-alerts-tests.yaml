@@ -1,0 +1,29 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'backup_storage_last_failed'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: BackupAlerts
+    alertname: Last Backup Failed
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Last backup made by pod  in namespace  failed.\n  VALUE = 1\n  LABELS: map[__name__:backup_storage_last_failed alertgroup:BackupAlerts alertname:Last Backup Failed severity:warning]"
+        description: "Last backup made by pod  in namespace  failed.\n  VALUE = 1\n  LABELS: map[__name__:backup_storage_last_failed alertgroup:BackupAlerts alertname:Last Backup Failed severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'backup_storage_last_failed'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: BackupAlerts
+    alertname: Last Backup Failed
+    exp_alerts: []
