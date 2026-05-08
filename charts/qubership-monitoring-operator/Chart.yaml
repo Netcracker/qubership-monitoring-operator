@@ -1,18 +1,14 @@
 apiVersion: v2
 name: qubership-monitoring-operator
 description: A Helm chart for monitoring-operator
-
 # A chart can be either an 'application' or a 'library' chart.
 type: application
-
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
-version: 1.4.28
-
+version: 1.5.0
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
 appVersion: 0.88.0
-
 # ~0 is equivalent to >= 0, < 1 (i.e. >=0.x.x and < 1.x.x, where x may have any number)
 # Details https://github.com/Masterminds/semver#checking-version-constraints
 dependencies:
@@ -21,43 +17,36 @@ dependencies:
     condition: grafana.install
     version: ~0
     repository: "file://charts/grafana-operator"
-
   # Prometheus stack
   - name: prometheus
     condition: prometheus.install
     version: ~0
     repository: "file://charts/prometheus-operator"
-
   # VictoriaMetrics stack
   - name: victoriametrics
     condition: victoriametrics.vmOperator.install
     version: ~0
     repository: "file://charts/victoriametrics-operator"
-
   # Autoscaling / HPA support
   - name: prometheusAdapter
     condition: prometheusAdapter.install
     version: ~0
     repository: "file://charts/prometheus-adapter-operator"
-
   # Promxy (to use one backend link for some servers)
   - name: promxy
     condition: promxy.install
     version: ~0
     repository: "file://charts/promxy"
-
   # Common Dashboards
   - name: commonDashboards
     condition: commonDashboards.install
     version: ~0
     repository: "file://charts/common-dashboards"
-
   # Integration tools
   - name: graphite_remote_adapter
     condition: graphite_remote_adapter.install
     version: ~0
     repository: "file://charts/graphite-remote-adapter"
-
   # Exporters
   - name: blackboxExporter
     condition: blackboxExporter.install
@@ -87,8 +76,6 @@ dependencies:
     condition: goldpingerExporter.install
     version: ~0
     repository: "file://charts/goldpinger-exporter"
-
-
   # AWS CloudWatch exporter
   - name: cloudwatchExporter
     condition: cloudwatchExporter.install
