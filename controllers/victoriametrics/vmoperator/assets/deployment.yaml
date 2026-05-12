@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: victoriametrics-operator
   labels:
     app.kubernetes.io/name: victoriametrics-operator
-    app.kubernetes.io/instance: vm-operator
     app.kubernetes.io/component: victoriametrics
-    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/instance: vm-operator
     app.kubernetes.io/managed-by: monitoring-operator
+    app.kubernetes.io/part-of: monitoring
     platform.monitoring.app: victoriametrics-operator
-  name: victoriametrics-operator
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app.kubernetes.io/instance: vm-operator
       app.kubernetes.io/name: victoriametrics-operator
+      app.kubernetes.io/instance: vm-operator
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -25,11 +25,11 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/instance: vm-operator
         app.kubernetes.io/name: victoriametrics-operator
         app.kubernetes.io/component: victoriametrics
-        app.kubernetes.io/part-of: monitoring
+        app.kubernetes.io/instance: vm-operator
         app.kubernetes.io/managed-by: monitoring-operator
+        app.kubernetes.io/part-of: monitoring
     spec:
       containers:
       - args:
@@ -62,7 +62,7 @@ spec:
         - containerPort: 9443
           name: webhook
           protocol: TCP
-        resources: 
+        resources:
           limits:
             cpu: 200m
             memory: 200Mi

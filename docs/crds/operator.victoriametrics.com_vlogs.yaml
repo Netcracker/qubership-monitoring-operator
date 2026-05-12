@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vlogs.operator.victoriametrics.com
@@ -60,14 +60,12 @@ spec:
             description: VLogsStatus defines the observed state of VLogs
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -103,8 +101,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:

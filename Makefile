@@ -33,7 +33,7 @@ CRD_DOC_FOLDER=$(DOC_FOLDER)/crds
 
 # Set build version
 ARTIFACT_NAME="qubership-monitoring-operator"
-VERSION?=0.75.0
+VERSION?=0.88.0
 
 # Detect the build environment, local or Jenkins builder
 BUILD_DATE=$(shell date +"%Y%m%d-%T")
@@ -149,7 +149,7 @@ endif
 .PHONY: build-binary
 build-binary: generate fmt vet
 	echo "=> Build binary ..."
-	$(GO_BUILD_RECIPE) -o bin/manager main.go
+	$(GO_BUILD_RECIPE) -o bin/manager ./cmd/operator/
 
 # Run go fmt against code
 .PHONY: fmt
@@ -226,7 +226,7 @@ update-crds:
 .PHONY: run
 run: generate fmt vet
 	echo "=> Run ..."
-	go run ./main.go
+	go run ./cmd/operator/
 
 ############
 # Archives #

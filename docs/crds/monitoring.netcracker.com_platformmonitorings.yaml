@@ -4358,6 +4358,8 @@ spec:
                             type: boolean
                         type: object
                     type: object
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
                   dashboardLabelSelector:
                     description: DashboardLabelSelector allows to query over a set
                       of resources according to labels
@@ -4461,6 +4463,8 @@ spec:
                   dataStorage:
                     description: DataStorage provides a means to configure the grafana
                       data storage
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
                     properties:
                       accessModes:
                         items:
@@ -5383,6 +5387,14 @@ spec:
                           queryable and should be preserved when modifying objects.
                           More info: https://kubernetes.
                         type: object
+                      clusterDomain:
+                        description: ClusterDomain configures cluster domain for generated
+                          services.
+                        type: string
+                      enforceCacheLabels:
+                        description: EnforceCacheLabels configures operator cache
+                          behaviour (off|safe|all).
+                        type: string
                       image:
                         description: |-
                           Image to use for a `grafana-operator` deployment.
@@ -5401,14 +5413,26 @@ spec:
                           and services.
                           More info: https://kubernetes.io/docs/user-guide/labels
                         type: object
+                      leaderElect:
+                        description: LeaderElect enables leader election.
+                        type: boolean
                       logLevel:
                         description: |-
                           Zap log level (one of 'debug', 'info', 'error' or any integer value > 0) (default info)
                           More info: https://github.com/grafana-operator/grafana-operator/blob/master/documentation/deploy_grafana.md
                         type: string
+                      maxConcurrentReconciles:
+                        description: MaxConcurrentReconciles overrides concurrency
+                          per CR type.
+                        format: int32
+                        type: integer
+                      namespaceScope:
+                        description: NamespaceScope limits the operator to its own
+                          namespace when set true.
+                        type: boolean
                       namespaces:
-                        description: Namespaces to scope the interaction of the Grafana
-                          operator.
+                        description: Namespaces is deprecated. Use WatchNamespaces
+                          for comma-separated list or enable namespaceScope.
                         type: string
                       nodeSelector:
                         additionalProperties:
@@ -5799,6 +5823,18 @@ spec:
                               type: string
                           type: object
                         type: array
+                      watchLabelSelectors:
+                        description: WatchLabelSelectors defines CR label selectors
+                          to watch.
+                        type: string
+                      watchNamespaceSelector:
+                        description: WatchNamespaceSelector defines label selector
+                          for namespaces to watch.
+                        type: string
+                      watchNamespaces:
+                        description: WatchNamespaces defines comma separated namespaces
+                          to watch.
+                        type: string
                     required:
                     - image
                     - initContainerImage

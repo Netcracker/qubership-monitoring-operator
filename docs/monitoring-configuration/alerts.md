@@ -194,3 +194,20 @@ prometheusRules:
       severity: high
 ```
 
+## Alert test workflow
+
+Monitoring operator contains workflow to test alerts, so if alerts are added/modified you need to add/modify alerts tests for workflow to finish succesfully.
+For testing vmalert-tool is used, so test file should be written according to: https://docs.victoriametrics.com/victoriametrics/vmalert-tool/
+Many examples can be found in existing ./test/alerts-tests/test.yaml file.
+
+Test file is located in ./test/alerts-tests/test.yaml.
+This file should contain minimum 2 tests for each alert (one for alert to fire and one for alets not to fire). It`s checked by ./test/alerts-tests/tests-checker.sh script.
+If less than 2 tests for each alert exists - script will list such alerts in the workflow output and workflow will fail. However it will check configured alerts in the same run.
+
+Workflow support 2 points, where alerts can be located: 
+
+1. helm subchart: ./charts/qubership-monitoring-operator/charts/prometheus-rules
+2. assets: ./controllers/prometheus-rules/assets/prometheus-rules.yaml
+
+If helm subchart folder is detected - workflow will render alerts from it and ignore assets, otherwise it will use alerts from assets.
+```

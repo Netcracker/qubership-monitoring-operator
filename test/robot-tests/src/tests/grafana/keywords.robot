@@ -8,6 +8,7 @@ Library            PlatformLibrary                   managed_by_operator=true
 Library            MonitoringLibrary
 Resource           %{ROBOT_HOME}/tests/smoke-test/keywords.robot
 Library            %{ROBOT_HOME}/lib/CheckJsonObject.py
+Library            %{ROBOT_HOME}/lib/GrafanaDashboardLib.py
 
 *** Variables ***
 ${namespace}                %{NAMESPACE}
@@ -59,7 +60,13 @@ Attempt Login To Grafana
 Create Test Dashboard In Namespace
     [Arguments]  ${PATH_TO_DASHBOARD}
     ${body}=  Parse Yaml File  ${PATH_TO_DASHBOARD}
-    ${created_dashboard}=  Create Dashboard In Namespace  ${namespace}  ${body}
+    GrafanaDashboardLib.Create Dashboard  ${namespace}  ${body}
+
+Get Dashboard In Namespace
+    [Arguments]  ${namespace}  ${name}
+    ${object}=  Get Namespaced Custom Object Status
+    ...  grafana.integreatly.org  v1beta1  ${namespace}  grafanadashboards  ${name}
+    RETURN  ${object}
 
 Check That Dashboard Created Successfuly
     [Arguments]   ${dashboard_name}  ${namespace}
@@ -72,7 +79,7 @@ Check That Dashboard Created Successfuly
 Check Resource Status Success in Cloud
     [Arguments]  ${namespace}  ${accepted_names:plural}  ${object_name}
     ${object}=  Get Namespaced Custom Object Status
-    ...  integreatly.org  v1alpha1  ${namespace}  ${accepted_names:plural}  ${object_name}
+    ...  grafana.integreatly.org  v1beta1  ${namespace}  ${accepted_names:plural}  ${object_name}
     Should Not Be Equal  ${object}  ${NONE}
     RETURN  ${object}
 
@@ -110,13 +117,17 @@ Check Dashboard Is Appear In Grafana
 
 Delete Dashboard Via Cloud Rest
     [Arguments]  ${dashboard_name}
-    ${delete_status}=  Delete Dashboard In Namespace  ${namespace}  ${dashboard_name}
-    Should Be Equal As Strings  ${delete_status.get('status')}  Success
+    GrafanaDashboardLib.Delete Dashboard  ${namespace}  ${dashboard_name}
 
 Check Dashboard Is Deleted In Grafana
     [Arguments]  ${uid}
-    ${state}=  Run Keyword And Return Status  Find Dashboard  ${uid}
-    Should Be Equal As Strings  ${state}  False
+    ${status}  ${result}=  Run Keyword And Ignore Error  Find Dashboard  ${uid}
+    Run Keyword If  '${status}'=='PASS'  Should Be Equal  ${result}  ${NONE}
+    Run Keyword If  '${status}'=='FAIL'  Should Contain  ${result}  Dashboard not found
+
+Replace Dashboard In Namespace
+    [Arguments]  ${namespace}  ${dashboard_name}  ${updated_dashboard}
+    GrafanaDashboardLib.Replace Dashboard  ${namespace}  ${updated_dashboard}
 
 Prepare Data For Update Dashboard
     [Arguments]  ${PATH_TO_UPD_DASHBOARD}  ${namespace}  ${dashboard_name}
