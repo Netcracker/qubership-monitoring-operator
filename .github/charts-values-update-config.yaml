@@ -12,3 +12,4 @@ charts:
     image:
       - ghcr.io/${owner}/qubership-monitoring-operator:${tag}
       - ghcr.io/${owner}/qubership-monitoring-int-tests:${tag}
+      - ghcr.io/${owner}/qubership-etcd-certs-to-secret:${tag}

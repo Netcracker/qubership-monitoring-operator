@@ -149,7 +149,7 @@ endif
 .PHONY: build-binary
 build-binary: generate fmt vet
 	echo "=> Build binary ..."
-	$(GO_BUILD_RECIPE) -o bin/manager main.go
+	$(GO_BUILD_RECIPE) -o bin/manager ./cmd/operator/
 
 # Run go fmt against code
 .PHONY: fmt
@@ -226,7 +226,7 @@ update-crds:
 .PHONY: run
 run: generate fmt vet
 	echo "=> Run ..."
-	go run ./main.go
+	go run ./cmd/operator/
 
 ############
 # Archives #
