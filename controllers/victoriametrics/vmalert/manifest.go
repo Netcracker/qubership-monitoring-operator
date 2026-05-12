@@ -223,14 +223,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 						vmCluster.Spec.VMInsert.ExtraArgs = make(map[string]string)
 					}
 					maps.Copy(vmCluster.Spec.VMInsert.ExtraArgs, map[string]string{"tls": "true"})
-					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.VMInsertURL() + "/insert/0/prometheus"}
+					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus"}
 					vmalert.Spec.RemoteWrite.TLSConfig = &vmetricsv1b1.TLSConfig{
 						CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 						CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 						KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 					}
 				} else {
-					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.VMInsertURL() + "/insert/0/prometheus"}
+					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus"}
 				}
 			}
 		}
@@ -373,14 +373,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 						vmCluster.Spec.VMSelect.ExtraArgs = make(map[string]string)
 					}
 					maps.Copy(vmCluster.Spec.VMSelect.ExtraArgs, map[string]string{"tls": "true"})
-					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.VMSelectURL() + "/select/0/prometheus"}
+					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"}
 					vmalert.Spec.Datasource.TLSConfig = &vmetricsv1b1.TLSConfig{
 						CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 						CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 						KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 					}
 				} else {
-					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.VMSelectURL() + "/select/0/prometheus"}
+					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"}
 				}
 			}
 		}

@@ -1,0 +1,29 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: platform-monitoring-prometheus
+  labels:
+    name: platform-monitoring-prometheus
+    app.kubernetes.io/name: platform-monitoring-prometheus
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  datasource:
+    access: proxy
+    editable: true
+    isDefault: true
+    jsonData:
+      timeInterval: 30s
+      tlsSkipVerify: true
+    name: Platform Monitoring Prometheus
+    type: prometheus
+    url: 'http://prometheus-operated:9090'
+    version: 1
+# Note: In Grafana Operator v4, Promxy datasource was included in the same CR as spec.datasources[1]
+# In v5, each datasource must be a separate GrafanaDatasource CR (spec.datasource, not spec.datasources array)
+# Promxy datasource is now created as a separate CR via grafanaPromxyDataSource() function when promxy.install=true

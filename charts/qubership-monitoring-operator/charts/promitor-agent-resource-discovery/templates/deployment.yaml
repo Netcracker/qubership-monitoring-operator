@@ -1,18 +1,15 @@
 {{- if .Values.install }}
+{{- $image := include "promitor.agentResourceDiscovery.image" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: promitor-agent-resource-discovery
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promitor.agentResourceDiscovery.image" . }}
     app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    {{- if .Values.labels }}
-    {{ toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    app.kubernetes.io/technology: csharp
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -26,18 +23,14 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
+        {{- include "monitoring.labels" . | nindent 8 }}
         app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        app.kubernetes.io/component: promitor-agent-resource-discovery
-        app.kubernetes.io/part-of: monitoring
         app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-          {{ toYaml .Values.labels | nindent 8 }}
-        {{- end }}
-      {{- if empty .Values.azureAuthentication.identity.binding | not }}
+        app.kubernetes.io/technology: csharp
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+        {{- if empty .Values.azureAuthentication.identity.binding | not }}
         aadpodidbinding: {{ .Values.azureAuthentication.identity.binding }}
-      {{- end }}
+        {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- if .Values.secrets.createSecret }}

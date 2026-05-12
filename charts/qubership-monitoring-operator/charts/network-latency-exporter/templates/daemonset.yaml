@@ -4,17 +4,14 @@ kind: DaemonSet
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: network-latency-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
     app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    app.kubernetes.io/technology: go
     {{- if .Values.additionalLabels }}
-      {{- toYaml .Values.additionalLabels | nindent 4 }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
     {{- end }}
-    {{- if .Values.labels }}
-      {{- toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -30,15 +27,11 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Values.name }}
-        app.kubernetes.io/component: network-latency-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" . | nindent 8 }}
         app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
         app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-          {{- toYaml .Values.labels | nindent 8 }}
-        {{- end }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
       {{- if .Values.annotations }}
       annotations:
         {{- toYaml .Values.annotations | nindent 8 }}

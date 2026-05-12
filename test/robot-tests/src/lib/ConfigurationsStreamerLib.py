@@ -18,8 +18,8 @@ class ConfigurationsStreamerLib:
     external Grafana instances, and FTP server.
     """
 
-    DASHBOARD_GROUP = "integreatly.org"        # after grafana-operator update change to "grafana.integreatly.org"
-    DASHBOARD_VERSION = "v1alpha1"             # after grafana-operator update change to "v1beta1"
+    DASHBOARD_GROUP = "grafana.integreatly.org"
+    DASHBOARD_VERSION = "v1beta1"
     DASHBOARD_PLURAL = "grafanadashboards"
 
     PROMETHEUS_GROUP = "monitoring.coreos.com"

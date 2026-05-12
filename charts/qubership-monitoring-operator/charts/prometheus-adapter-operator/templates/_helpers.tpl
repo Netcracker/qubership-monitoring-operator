@@ -31,13 +31,10 @@ Image can be found from:
 {{- end -}}
 
 {{/*
-Create common labels for each resource which is creating by this chart.
+Operator image tag (workload version label).
 */}}
-{{- define "prometheusAdapter.commonLabels" -}}
-app.kubernetes.io/component: prometheus-adapter
-app.kubernetes.io/part-of: monitoring
-{{- $image := include "prometheusAdapter.operator.image" . }}
-app.kubernetes.io/version: {{ splitList ":" $image | last }}
+{{- define "prometheusAdapter.operator.version" -}}
+{{- splitList ":" (include "prometheusAdapter.operator.image" .) | last }}
 {{- end }}
 
 {{/*

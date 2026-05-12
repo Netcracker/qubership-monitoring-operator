@@ -23,11 +23,11 @@ image:
 rbac:
   create: true
   clusterscoped: true
-  name: goldpinger-exporter-rbac
+  # name: goldpinger-exporter-rbac
 
 serviceAccount:
   create: true
-  # name: goldpinger-exporter-service-account
+  # name: goldpinger-exporter
 
 goldpinger:
   port: 8080

@@ -5,11 +5,7 @@ kind: Certificate
 metadata:
   name: vmsingle-tls-certificate
   labels:
-    app.kubernetes.io/name: vmsingle-tls-certificate
-    app.kubernetes.io/instance: {{ cat "vmsingle-tls-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: vmSingle
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "vmsingle-tls-certificate" "component" "vmSingle") | nindent 4 }}
 spec:
   secretName: {{ default "vmsingle-tls-secret" .Values.vmSingle.tlsConfig.generateCerts.secretName }}
   duration: {{ default 365 .Values.vmSingle.tlsConfig.generateCerts.duration | mul 24 }}h

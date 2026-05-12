@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
-    operator.victoriametrics.com/version: v0.65.0
+    controller-gen.kubebuilder.io/version: v0.20.0
+    operator.victoriametrics.com/version: v0.68.4
     helm.sh/hook: crd-install
     helm.sh/hook-weight: '-5'
   name: vlclusters.operator.victoriametrics.com
@@ -83,7 +83,7 @@ spec:
                     referenced object inside the same namespace.
                   properties:
                     name:
-                      default: ""
+                      default: ''
                       description: |-
                         Name of the referent.
                         This field is effectively required, but due to backwards compatibility is
@@ -94,6 +94,45 @@ spec:
                   type: object
                   x-kubernetes-map-type: atomic
                 type: array
+              license:
+                description: |-
+                  License allows to configure license key to be used for enterprise features.
+                  See [here](https://docs.victoriametrics.com/victoriametrics/enterprise/#victorialogs-enterprise-features)
+                properties:
+                  forceOffline:
+                    description: Enforce offline verification of the license key.
+                    type: boolean
+                  key:
+                    description: |-
+                      Enterprise license key. This flag is available only in [VictoriaMetrics enterprise](https://docs.victoriametrics.com/victoriametrics/enterprise/).
+                      To request a trial license, [go to](https://victoriametrics.com/products/enterprise/trial)
+                    type: string
+                  keyRef:
+                    description: KeyRef is reference to secret with license key for enterprise features.
+                    properties:
+                      key:
+                        description: The key of the secret to select from.  Must be a valid secret key.
+                        type: string
+                      name:
+                        default: ''
+                        description: |-
+                          Name of the referent.
+                          This field is effectively required, but due to backwards compatibility is
+                          allowed to be empty. Instances of this type with an empty value here are
+                          almost certainly wrong.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        type: string
+                      optional:
+                        description: Specify whether the Secret or its key must be defined
+                        type: boolean
+                    required:
+                    - key
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  reloadInterval:
+                    description: Interval to be used for checking for license key changes. Note that this is only applicable when using KeyRef.
+                    type: string
+                type: object
               managedMetadata:
                 description: |-
                   ManagedMetadata defines metadata that will be added to the all objects
@@ -154,8 +193,7 @@ spec:
                   drops not needed security permissions
                 type: boolean
               vlinsert:
-                description: VLInsert defines vlinsert component configuration at
-                  victoria-logs cluster
+                description: VLInsert defines vlinsert component configuration at victoria-logs cluster
                 properties:
                   affinity:
                     description: Affinity If specified, the pod's scheduling constraints.
@@ -174,8 +212,7 @@ spec:
                       Containers property allows to inject additions sidecars or to patch existing containers.
                       It can be useful for proxies, backup, etc.
                     items:
-                      description: A single application container that you want to
-                        run within a pod.
+                      description: A single application container that you want to run within a pod.
                       required:
                       - name
                       type: object
@@ -219,8 +256,7 @@ spec:
                           Duplicated entries will be removed. Resolution options given in Options
                           will override those that appear in the base DNSPolicy.
                         items:
-                          description: PodDNSConfigOption defines DNS resolver options
-                            of a pod.
+                          description: PodDNSConfigOption defines DNS resolver options of a pod.
                           properties:
                             name:
                               description: |-
@@ -254,11 +290,9 @@ spec:
                       for example remoteWrite.tmpDataPath: /tmp
                     type: object
                   extraEnvs:
-                    description: ExtraEnvs that will be passed to the application
-                      container
+                    description: ExtraEnvs that will be passed to the application container
                     items:
-                      description: EnvVar represents an environment variable present
-                        in a Container.
+                      description: EnvVar represents an environment variable present in a Container.
                       properties:
                         name:
                           description: |-
@@ -287,14 +321,13 @@ spec:
                       ExtraEnvsFrom defines source of env variables for the application container
                       could either be secret or configmap
                     items:
-                      description: EnvFromSource represents the source of a set of
-                        ConfigMaps or Secrets
+                      description: EnvFromSource represents the source of a set of ConfigMaps or Secrets
                       properties:
                         configMapRef:
                           description: The ConfigMap to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -316,7 +349,7 @@ spec:
                           description: The Secret to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -379,8 +412,7 @@ spec:
                       type: object
                     type: array
                   hostNetwork:
-                    description: HostNetwork controls whether the pod may use the
-                      node network namespace
+                    description: HostNetwork controls whether the pod may use the node network namespace
                     type: boolean
                   hpa:
                     description: Configures horizontal pod autoscaling.
@@ -395,8 +427,7 @@ spec:
                         description: PullPolicy describes how to pull docker image
                         type: string
                       repository:
-                        description: Repository contains name of docker image + it's
-                          repository if needed
+                        description: Repository contains name of docker image + it's repository if needed
                         type: string
                       tag:
                         description: Tag contains desired docker image version
@@ -413,7 +444,7 @@ spec:
                         referenced object inside the same namespace.
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -430,15 +461,14 @@ spec:
                       Any errors during the execution of an initContainer will lead to a restart of the Pod.
                       More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
                     items:
-                      description: A single application container that you want to
-                        run within a pod.
+                      description: A single application container that you want to run within a pod.
                       required:
                       - name
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
                   livenessProbe:
-                    description: LivenessProbe that will be added CRD pod
+                    description: LivenessProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   logFormat:
@@ -468,8 +498,7 @@ spec:
                   nodeSelector:
                     additionalProperties:
                       type: string
-                    description: NodeSelector Define which Nodes the Pods are scheduled
-                      on.
+                    description: NodeSelector Define which Nodes the Pods are scheduled on.
                     type: object
                   paused:
                     description: |-
@@ -520,8 +549,7 @@ spec:
                         type: string
                     type: object
                   podMetadata:
-                    description: PodMetadata configures Labels and Annotations which
-                      are propagated to the VLSelect pods.
+                    description: PodMetadata configures Labels and Annotations which are propagated to the VLSelect pods.
                     properties:
                       annotations:
                         additionalProperties:
@@ -560,19 +588,17 @@ spec:
                   readinessGates:
                     description: ReadinessGates defines pod readiness gates
                     items:
-                      description: PodReadinessGate contains the reference to a pod
-                        condition
+                      description: PodReadinessGate contains the reference to a pod condition
                       properties:
                         conditionType:
-                          description: ConditionType refers to a condition in the
-                            pod's condition list with matching type.
+                          description: ConditionType refers to a condition in the pod's condition list with matching type.
                           type: string
                       required:
                       - conditionType
                       type: object
                     type: array
                   readinessProbe:
-                    description: ReadinessProbe that will be added CRD pod
+                    description: ReadinessProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   replicaCount:
@@ -708,19 +734,16 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   serviceScrapeSpec:
-                    description: ServiceScrapeSpec that will be added to vlselect
-                      VMServiceScrape spec
+                    description: ServiceScrapeSpec that will be added to vlselect VMServiceScrape spec
                     required:
                     - endpoints
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   serviceSpec:
-                    description: ServiceSpec that will be added to vlselect service
-                      spec
+                    description: ServiceSpec that will be added to vlselect service spec
                     properties:
                       metadata:
-                        description: EmbeddedObjectMetadata defines objectMeta for
-                          additional service.
+                        description: EmbeddedObjectMetadata defines objectMeta for additional service.
                         properties:
                           annotations:
                             additionalProperties:
@@ -765,18 +788,16 @@ spec:
                     - spec
                     type: object
                   startupProbe:
-                    description: StartupProbe that will be added to CRD pod
+                    description: StartupProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   syslogSpec:
                     description: SyslogSpec defines syslog listener configuration
                     properties:
                       tcpListeners:
-                        description: TCPListeners defines syslog server TCP listener
-                          configuration
+                        description: TCPListeners defines syslog server TCP listener configuration
                         items:
-                          description: SyslogTCPListener defines configuration for
-                            TCP syslog server listen
+                          description: SyslogTCPListener defines configuration for TCP syslog server listen
                           properties:
                             compressMethod:
                               description: |-
@@ -809,8 +830,7 @@ spec:
                                 see https://docs.victoriametrics.com/victorialogs/data-ingestion/syslog/#multiple-configs
                               type: string
                             tlsConfig:
-                              description: TLSServerConfig defines VictoriaMetrics
-                                TLS configuration for the application's server
+                              description: TLSServerConfig defines VictoriaMetrics TLS configuration for the application's server
                               properties:
                                 certFile:
                                   description: |-
@@ -823,11 +843,10 @@ spec:
                                     mutually exclusive with CertFile
                                   properties:
                                     key:
-                                      description: The key of the secret to select
-                                        from.  Must be a valid secret key.
+                                      description: The key of the secret to select from.  Must be a valid secret key.
                                       type: string
                                     name:
-                                      default: ""
+                                      default: ''
                                       description: |-
                                         Name of the referent.
                                         This field is effectively required, but due to backwards compatibility is
@@ -836,8 +855,7 @@ spec:
                                         More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                       type: string
                                     optional:
-                                      description: Specify whether the Secret or its
-                                        key must be defined
+                                      description: Specify whether the Secret or its key must be defined
                                       type: boolean
                                   required:
                                   - key
@@ -854,11 +872,10 @@ spec:
                                     mutually exclusive with KeyFile
                                   properties:
                                     key:
-                                      description: The key of the secret to select
-                                        from.  Must be a valid secret key.
+                                      description: The key of the secret to select from.  Must be a valid secret key.
                                       type: string
                                     name:
-                                      default: ""
+                                      default: ''
                                       description: |-
                                         Name of the referent.
                                         This field is effectively required, but due to backwards compatibility is
@@ -867,8 +884,7 @@ spec:
                                         More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                       type: string
                                     optional:
-                                      description: Specify whether the Secret or its
-                                        key must be defined
+                                      description: Specify whether the Secret or its key must be defined
                                       type: boolean
                                   required:
                                   - key
@@ -880,11 +896,9 @@ spec:
                           type: object
                         type: array
                       udpListeners:
-                        description: UDPListeners defines syslog server UDP listener
-                          configuration
+                        description: UDPListeners defines syslog server UDP listener configuration
                         items:
-                          description: SyslogUDPListener defines configuration for
-                            UDP syslog server listen
+                          description: SyslogUDPListener defines configuration for UDP syslog server listen
                           properties:
                             compressMethod:
                               description: |-
@@ -922,8 +936,7 @@ spec:
                         type: array
                     type: object
                   terminationGracePeriodSeconds:
-                    description: TerminationGracePeriodSeconds period for container
-                      graceful termination
+                    description: TerminationGracePeriodSeconds period for container graceful termination
                     format: int64
                     type: integer
                   tolerations:
@@ -972,8 +985,7 @@ spec:
                       such as regions, zones, nodes, and other user-defined topology domains
                       https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
                     items:
-                      description: TopologySpreadConstraint specifies how to spread
-                        matching pods among the given topology.
+                      description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
                       required:
                       - maxSkew
                       - topologyKey
@@ -1004,8 +1016,7 @@ spec:
                       VolumeMounts allows configuration of additional VolumeMounts on the output Deployment/StatefulSet definition.
                       VolumeMounts specified will be appended to other VolumeMounts in the Application container
                     items:
-                      description: VolumeMount describes a mounting of a Volume within
-                        a container.
+                      description: VolumeMount describes a mounting of a Volume within a container.
                       properties:
                         mountPath:
                           description: |-
@@ -1071,17 +1082,149 @@ spec:
                       Volumes specified will be appended to other volumes that are generated.
                       / +optional
                     items:
-                      description: Volume represents a named volume in a pod that
-                        may be accessed by any container in the pod.
+                      description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
                       required:
                       - name
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
+                  vpa:
+                    description: Configures vertical pod autoscaling.
+                    properties:
+                      recommenders:
+                        description: Recommenders specifies custom VPA recommender names.
+                        items:
+                          description: |-
+                            VerticalPodAutoscalerRecommenderSelector points to a specific Vertical Pod Autoscaler recommender.
+                            In the future it might pass parameters to the recommender.
+                          properties:
+                            name:
+                              description: Name of the recommender responsible for generating recommendation for this object.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                      resourcePolicy:
+                        description: ResourcePolicy controls how the autoscaler computes recommended resources per container.
+                        properties:
+                          containerPolicies:
+                            description: Per-container resource policies.
+                            items:
+                              description: |-
+                                ContainerResourcePolicy controls how autoscaler computes the recommended
+                                resources for a specific container.
+                              properties:
+                                containerName:
+                                  description: |-
+                                    Name of the container or DefaultContainerResourcePolicy, in which
+                                    case the policy is used by the containers that don't have their own
+                                    policy specified.
+                                  type: string
+                                controlledResources:
+                                  description: |-
+                                    Specifies the type of recommendations that will be computed
+                                    (and possibly applied) by VPA.
+                                    If not specified, the default of [ResourceCPU, ResourceMemory] will be used.
+                                  items:
+                                    description: ResourceName is the name identifying various resources in a ResourceList.
+                                    type: string
+                                  type: array
+                                controlledValues:
+                                  description: |-
+                                    Specifies which resource values should be controlled.
+                                    The default is "RequestsAndLimits".
+                                  enum:
+                                  - RequestsAndLimits
+                                  - RequestsOnly
+                                  type: string
+                                maxAllowed:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description: |-
+                                    Specifies the maximum amount of resources that will be recommended
+                                    for the container. The default is no maximum.
+                                  type: object
+                                minAllowed:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description: |-
+                                    Specifies the minimal amount of resources that will be recommended
+                                    for the container. The default is no minimum.
+                                  type: object
+                                mode:
+                                  description: Whether autoscaler is enabled for the container. The default is "Auto".
+                                  enum:
+                                  - Auto
+                                  - Off
+                                  type: string
+                              type: object
+                            type: array
+                        type: object
+                      updatePolicy:
+                        description: UpdatePolicy controls how the autoscaler applies changes to pod resources.
+                        properties:
+                          evictionRequirements:
+                            description: |-
+                              EvictionRequirements is a list of EvictionRequirements that need to
+                              evaluate to true in order for a Pod to be evicted. If more than one
+                              EvictionRequirement is specified, all of them need to be fulfilled to allow eviction.
+                            items:
+                              description: |-
+                                EvictionRequirement defines a single condition which needs to be true in
+                                order to evict a Pod
+                              properties:
+                                changeRequirement:
+                                  description: EvictionChangeRequirement refers to the relationship between the new target recommendation for a Pod and its current requests, what kind of change is necessary for the Pod to be evicted
+                                  enum:
+                                  - TargetHigherThanRequests
+                                  - TargetLowerThanRequests
+                                  type: string
+                                resources:
+                                  description: |-
+                                    Resources is a list of one or more resources that the condition applies
+                                    to. If more than one resource is given, the EvictionRequirement is fulfilled
+                                    if at least one resource meets `changeRequirement`.
+                                  items:
+                                    description: ResourceName is the name identifying various resources in a ResourceList.
+                                    type: string
+                                  type: array
+                              required:
+                              - changeRequirement
+                              - resources
+                              type: object
+                            type: array
+                          minReplicas:
+                            description: |-
+                              Minimal number of replicas which need to be alive for Updater to attempt
+                              pod eviction (pending other checks like PDB). Only positive values are
+                              allowed. Overrides global '--min-replicas' flag.
+                            format: int32
+                            type: integer
+                          updateMode:
+                            description: |-
+                              Controls when autoscaler applies changes to the pod resources.
+                              The default is 'Auto'.
+                            enum:
+                            - Off
+                            - Initial
+                            - Recreate
+                            - InPlaceOrRecreate
+                            - Auto
+                            type: string
+                        type: object
+                    type: object
                 type: object
               vlselect:
-                description: VLSelect defines vlselect component configuration at
-                  victoria-logs cluster
+                description: VLSelect defines vlselect component configuration at victoria-logs cluster
                 properties:
                   affinity:
                     description: Affinity If specified, the pod's scheduling constraints.
@@ -1100,8 +1243,7 @@ spec:
                       Containers property allows to inject additions sidecars or to patch existing containers.
                       It can be useful for proxies, backup, etc.
                     items:
-                      description: A single application container that you want to
-                        run within a pod.
+                      description: A single application container that you want to run within a pod.
                       required:
                       - name
                       type: object
@@ -1145,8 +1287,7 @@ spec:
                           Duplicated entries will be removed. Resolution options given in Options
                           will override those that appear in the base DNSPolicy.
                         items:
-                          description: PodDNSConfigOption defines DNS resolver options
-                            of a pod.
+                          description: PodDNSConfigOption defines DNS resolver options of a pod.
                           properties:
                             name:
                               description: |-
@@ -1180,11 +1321,9 @@ spec:
                       for example remoteWrite.tmpDataPath: /tmp
                     type: object
                   extraEnvs:
-                    description: ExtraEnvs that will be passed to the application
-                      container
+                    description: ExtraEnvs that will be passed to the application container
                     items:
-                      description: EnvVar represents an environment variable present
-                        in a Container.
+                      description: EnvVar represents an environment variable present in a Container.
                       properties:
                         name:
                           description: |-
@@ -1213,14 +1352,13 @@ spec:
                       ExtraEnvsFrom defines source of env variables for the application container
                       could either be secret or configmap
                     items:
-                      description: EnvFromSource represents the source of a set of
-                        ConfigMaps or Secrets
+                      description: EnvFromSource represents the source of a set of ConfigMaps or Secrets
                       properties:
                         configMapRef:
                           description: The ConfigMap to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -1242,7 +1380,7 @@ spec:
                           description: The Secret to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -1258,11 +1396,9 @@ spec:
                       type: object
                     type: array
                   extraStorageNodes:
-                    description: ExtraStorageNodes - defines additional storage nodes
-                      to VLSelect
+                    description: ExtraStorageNodes - defines additional storage nodes to VLSelect
                     items:
-                      description: VLStorageNode defines slice of additional vlstorage
-                        nodes
+                      description: VLStorageNode defines slice of additional vlstorage nodes
                       properties:
                         addr:
                           description: Addr defines storage node address
@@ -1319,8 +1455,7 @@ spec:
                       type: object
                     type: array
                   hostNetwork:
-                    description: HostNetwork controls whether the pod may use the
-                      node network namespace
+                    description: HostNetwork controls whether the pod may use the node network namespace
                     type: boolean
                   hpa:
                     description: Configures horizontal pod autoscaling.
@@ -1335,8 +1470,7 @@ spec:
                         description: PullPolicy describes how to pull docker image
                         type: string
                       repository:
-                        description: Repository contains name of docker image + it's
-                          repository if needed
+                        description: Repository contains name of docker image + it's repository if needed
                         type: string
                       tag:
                         description: Tag contains desired docker image version
@@ -1353,7 +1487,7 @@ spec:
                         referenced object inside the same namespace.
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -1370,15 +1504,14 @@ spec:
                       Any errors during the execution of an initContainer will lead to a restart of the Pod.
                       More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
                     items:
-                      description: A single application container that you want to
-                        run within a pod.
+                      description: A single application container that you want to run within a pod.
                       required:
                       - name
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
                   livenessProbe:
-                    description: LivenessProbe that will be added CRD pod
+                    description: LivenessProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   logFormat:
@@ -1408,8 +1541,7 @@ spec:
                   nodeSelector:
                     additionalProperties:
                       type: string
-                    description: NodeSelector Define which Nodes the Pods are scheduled
-                      on.
+                    description: NodeSelector Define which Nodes the Pods are scheduled on.
                     type: object
                   paused:
                     description: |-
@@ -1460,8 +1592,7 @@ spec:
                         type: string
                     type: object
                   podMetadata:
-                    description: PodMetadata configures Labels and Annotations which
-                      are propagated to the VLSelect pods.
+                    description: PodMetadata configures Labels and Annotations which are propagated to the VLSelect pods.
                     properties:
                       annotations:
                         additionalProperties:
@@ -1500,19 +1631,17 @@ spec:
                   readinessGates:
                     description: ReadinessGates defines pod readiness gates
                     items:
-                      description: PodReadinessGate contains the reference to a pod
-                        condition
+                      description: PodReadinessGate contains the reference to a pod condition
                       properties:
                         conditionType:
-                          description: ConditionType refers to a condition in the
-                            pod's condition list with matching type.
+                          description: ConditionType refers to a condition in the pod's condition list with matching type.
                           type: string
                       required:
                       - conditionType
                       type: object
                     type: array
                   readinessProbe:
-                    description: ReadinessProbe that will be added CRD pod
+                    description: ReadinessProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   replicaCount:
@@ -1648,19 +1777,16 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   serviceScrapeSpec:
-                    description: ServiceScrapeSpec that will be added to vlselect
-                      VMServiceScrape spec
+                    description: ServiceScrapeSpec that will be added to vlselect VMServiceScrape spec
                     required:
                     - endpoints
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   serviceSpec:
-                    description: ServiceSpec that will be added to vlselect service
-                      spec
+                    description: ServiceSpec that will be added to vlselect service spec
                     properties:
                       metadata:
-                        description: EmbeddedObjectMetadata defines objectMeta for
-                          additional service.
+                        description: EmbeddedObjectMetadata defines objectMeta for additional service.
                         properties:
                           annotations:
                             additionalProperties:
@@ -1705,12 +1831,11 @@ spec:
                     - spec
                     type: object
                   startupProbe:
-                    description: StartupProbe that will be added to CRD pod
+                    description: StartupProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   terminationGracePeriodSeconds:
-                    description: TerminationGracePeriodSeconds period for container
-                      graceful termination
+                    description: TerminationGracePeriodSeconds period for container graceful termination
                     format: int64
                     type: integer
                   tolerations:
@@ -1759,8 +1884,7 @@ spec:
                       such as regions, zones, nodes, and other user-defined topology domains
                       https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
                     items:
-                      description: TopologySpreadConstraint specifies how to spread
-                        matching pods among the given topology.
+                      description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
                       required:
                       - maxSkew
                       - topologyKey
@@ -1791,8 +1915,7 @@ spec:
                       VolumeMounts allows configuration of additional VolumeMounts on the output Deployment/StatefulSet definition.
                       VolumeMounts specified will be appended to other VolumeMounts in the Application container
                     items:
-                      description: VolumeMount describes a mounting of a Volume within
-                        a container.
+                      description: VolumeMount describes a mounting of a Volume within a container.
                       properties:
                         mountPath:
                           description: |-
@@ -1858,28 +1981,158 @@ spec:
                       Volumes specified will be appended to other volumes that are generated.
                       / +optional
                     items:
-                      description: Volume represents a named volume in a pod that
-                        may be accessed by any container in the pod.
+                      description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
                       required:
                       - name
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
+                  vpa:
+                    description: Configures vertical pod autoscaling.
+                    properties:
+                      recommenders:
+                        description: Recommenders specifies custom VPA recommender names.
+                        items:
+                          description: |-
+                            VerticalPodAutoscalerRecommenderSelector points to a specific Vertical Pod Autoscaler recommender.
+                            In the future it might pass parameters to the recommender.
+                          properties:
+                            name:
+                              description: Name of the recommender responsible for generating recommendation for this object.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                      resourcePolicy:
+                        description: ResourcePolicy controls how the autoscaler computes recommended resources per container.
+                        properties:
+                          containerPolicies:
+                            description: Per-container resource policies.
+                            items:
+                              description: |-
+                                ContainerResourcePolicy controls how autoscaler computes the recommended
+                                resources for a specific container.
+                              properties:
+                                containerName:
+                                  description: |-
+                                    Name of the container or DefaultContainerResourcePolicy, in which
+                                    case the policy is used by the containers that don't have their own
+                                    policy specified.
+                                  type: string
+                                controlledResources:
+                                  description: |-
+                                    Specifies the type of recommendations that will be computed
+                                    (and possibly applied) by VPA.
+                                    If not specified, the default of [ResourceCPU, ResourceMemory] will be used.
+                                  items:
+                                    description: ResourceName is the name identifying various resources in a ResourceList.
+                                    type: string
+                                  type: array
+                                controlledValues:
+                                  description: |-
+                                    Specifies which resource values should be controlled.
+                                    The default is "RequestsAndLimits".
+                                  enum:
+                                  - RequestsAndLimits
+                                  - RequestsOnly
+                                  type: string
+                                maxAllowed:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description: |-
+                                    Specifies the maximum amount of resources that will be recommended
+                                    for the container. The default is no maximum.
+                                  type: object
+                                minAllowed:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description: |-
+                                    Specifies the minimal amount of resources that will be recommended
+                                    for the container. The default is no minimum.
+                                  type: object
+                                mode:
+                                  description: Whether autoscaler is enabled for the container. The default is "Auto".
+                                  enum:
+                                  - Auto
+                                  - Off
+                                  type: string
+                              type: object
+                            type: array
+                        type: object
+                      updatePolicy:
+                        description: UpdatePolicy controls how the autoscaler applies changes to pod resources.
+                        properties:
+                          evictionRequirements:
+                            description: |-
+                              EvictionRequirements is a list of EvictionRequirements that need to
+                              evaluate to true in order for a Pod to be evicted. If more than one
+                              EvictionRequirement is specified, all of them need to be fulfilled to allow eviction.
+                            items:
+                              description: |-
+                                EvictionRequirement defines a single condition which needs to be true in
+                                order to evict a Pod
+                              properties:
+                                changeRequirement:
+                                  description: EvictionChangeRequirement refers to the relationship between the new target recommendation for a Pod and its current requests, what kind of change is necessary for the Pod to be evicted
+                                  enum:
+                                  - TargetHigherThanRequests
+                                  - TargetLowerThanRequests
+                                  type: string
+                                resources:
+                                  description: |-
+                                    Resources is a list of one or more resources that the condition applies
+                                    to. If more than one resource is given, the EvictionRequirement is fulfilled
+                                    if at least one resource meets `changeRequirement`.
+                                  items:
+                                    description: ResourceName is the name identifying various resources in a ResourceList.
+                                    type: string
+                                  type: array
+                              required:
+                              - changeRequirement
+                              - resources
+                              type: object
+                            type: array
+                          minReplicas:
+                            description: |-
+                              Minimal number of replicas which need to be alive for Updater to attempt
+                              pod eviction (pending other checks like PDB). Only positive values are
+                              allowed. Overrides global '--min-replicas' flag.
+                            format: int32
+                            type: integer
+                          updateMode:
+                            description: |-
+                              Controls when autoscaler applies changes to the pod resources.
+                              The default is 'Auto'.
+                            enum:
+                            - Off
+                            - Initial
+                            - Recreate
+                            - InPlaceOrRecreate
+                            - Auto
+                            type: string
+                        type: object
+                    type: object
                 type: object
               vlstorage:
-                description: VLStorage defines vlstorage component configuration at
-                  victoria-logs cluster
+                description: VLStorage defines vlstorage component configuration at victoria-logs cluster
                 properties:
                   affinity:
                     description: Affinity If specified, the pod's scheduling constraints.
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   claimTemplates:
-                    description: ClaimTemplates allows adding additional VolumeClaimTemplates
-                      for StatefulSet
+                    description: ClaimTemplates allows adding additional VolumeClaimTemplates for StatefulSet
                     items:
-                      description: PersistentVolumeClaim is a user's request for and
-                        claim to a persistent volume
+                      description: PersistentVolumeClaim is a user's request for and claim to a persistent volume
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
@@ -1896,8 +2149,7 @@ spec:
                       Containers property allows to inject additions sidecars or to patch existing containers.
                       It can be useful for proxies, backup, etc.
                     items:
-                      description: A single application container that you want to
-                        run within a pod.
+                      description: A single application container that you want to run within a pod.
                       required:
                       - name
                       type: object
@@ -1941,8 +2193,7 @@ spec:
                           Duplicated entries will be removed. Resolution options given in Options
                           will override those that appear in the base DNSPolicy.
                         items:
-                          description: PodDNSConfigOption defines DNS resolver options
-                            of a pod.
+                          description: PodDNSConfigOption defines DNS resolver options of a pod.
                           properties:
                             name:
                               description: |-
@@ -1976,11 +2227,9 @@ spec:
                       for example remoteWrite.tmpDataPath: /tmp
                     type: object
                   extraEnvs:
-                    description: ExtraEnvs that will be passed to the application
-                      container
+                    description: ExtraEnvs that will be passed to the application container
                     items:
-                      description: EnvVar represents an environment variable present
-                        in a Container.
+                      description: EnvVar represents an environment variable present in a Container.
                       properties:
                         name:
                           description: |-
@@ -2009,14 +2258,13 @@ spec:
                       ExtraEnvsFrom defines source of env variables for the application container
                       could either be secret or configmap
                     items:
-                      description: EnvFromSource represents the source of a set of
-                        ConfigMaps or Secrets
+                      description: EnvFromSource represents the source of a set of ConfigMaps or Secrets
                       properties:
                         configMapRef:
                           description: The ConfigMap to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -2038,7 +2286,7 @@ spec:
                           description: The Secret to select from
                           properties:
                             name:
-                              default: ""
+                              default: ''
                               description: |-
                                 Name of the referent.
                                 This field is effectively required, but due to backwards compatibility is
@@ -2107,9 +2355,601 @@ spec:
                       type: object
                     type: array
                   hostNetwork:
-                    description: HostNetwork controls whether the pod may use the
-                      node network namespace
+                    description: HostNetwork controls whether the pod may use the node network namespace
                     type: boolean
+                  hpa:
+                    description: |-
+                      Configures horizontal pod autoscaling.
+                      Note, downscaling is not supported.
+                    properties:
+                      behaviour:
+                        description: |-
+                          HorizontalPodAutoscalerBehavior configures the scaling behavior of the target
+                          in both Up and Down directions (scaleUp and scaleDown fields respectively).
+                        properties:
+                          scaleDown:
+                            description: |-
+                              scaleDown is scaling policy for scaling Down.
+                              If not set, the default value is to allow to scale down to minReplicas pods, with a
+                              300 second stabilization window (i.e., the highest recommendation for
+                              the last 300sec is used).
+                            properties:
+                              policies:
+                                description: |-
+                                  policies is a list of potential scaling polices which can be used during scaling.
+                                  If not set, use the default values:
+                                  - For scale up: allow doubling the number of pods, or an absolute change of 4 pods in a 15s window.
+                                  - For scale down: allow all pods to be removed in a 15s window.
+                                items:
+                                  description: HPAScalingPolicy is a single policy which must hold true for a specified past interval.
+                                  properties:
+                                    periodSeconds:
+                                      description: |-
+                                        periodSeconds specifies the window of time for which the policy should hold true.
+                                        PeriodSeconds must be greater than zero and less than or equal to 1800 (30 min).
+                                      format: int32
+                                      type: integer
+                                    type:
+                                      description: type is used to specify the scaling policy.
+                                      type: string
+                                    value:
+                                      description: |-
+                                        value contains the amount of change which is permitted by the policy.
+                                        It must be greater than zero
+                                      format: int32
+                                      type: integer
+                                  required:
+                                  - periodSeconds
+                                  - type
+                                  - value
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              selectPolicy:
+                                description: |-
+                                  selectPolicy is used to specify which policy should be used.
+                                  If not set, the default value Max is used.
+                                type: string
+                              stabilizationWindowSeconds:
+                                description: |-
+                                  stabilizationWindowSeconds is the number of seconds for which past recommendations should be
+                                  considered while scaling up or scaling down.
+                                  StabilizationWindowSeconds must be greater than or equal to zero and less than or equal to 3600 (one hour).
+                                  If not set, use the default values:
+                                  - For scale up: 0 (i.e. no stabilization is done).
+                                  - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
+                                format: int32
+                                type: integer
+                              tolerance:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                description: |-
+                                  tolerance is the tolerance on the ratio between the current and desired
+                                  metric value under which no updates are made to the desired number of
+                                  replicas (e.g. 0.01 for 1%). Must be greater than or equal to zero. If not
+                                  set, the default cluster-wide tolerance is applied (by default 10%).
+
+                                  For example, if autoscaling is configured with a memory consumption target of 100Mi,
+                                  and scale-down and scale-up tolerances of 5% and 1% respectively, scaling will be
+                                  triggered when the actual consumption falls below 95Mi or exceeds 101Mi.
+
+                                  This is an alpha field and requires enabling the HPAConfigurableTolerance
+                                  feature gate.
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                            type: object
+                          scaleUp:
+                            description: |-
+                              scaleUp is scaling policy for scaling Up.
+                              If not set, the default value is the higher of:
+                                * increase no more than 4 pods per 60 seconds
+                                * double the number of pods per 60 seconds
+                              No stabilization is used.
+                            properties:
+                              policies:
+                                description: |-
+                                  policies is a list of potential scaling polices which can be used during scaling.
+                                  If not set, use the default values:
+                                  - For scale up: allow doubling the number of pods, or an absolute change of 4 pods in a 15s window.
+                                  - For scale down: allow all pods to be removed in a 15s window.
+                                items:
+                                  description: HPAScalingPolicy is a single policy which must hold true for a specified past interval.
+                                  properties:
+                                    periodSeconds:
+                                      description: |-
+                                        periodSeconds specifies the window of time for which the policy should hold true.
+                                        PeriodSeconds must be greater than zero and less than or equal to 1800 (30 min).
+                                      format: int32
+                                      type: integer
+                                    type:
+                                      description: type is used to specify the scaling policy.
+                                      type: string
+                                    value:
+                                      description: |-
+                                        value contains the amount of change which is permitted by the policy.
+                                        It must be greater than zero
+                                      format: int32
+                                      type: integer
+                                  required:
+                                  - periodSeconds
+                                  - type
+                                  - value
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              selectPolicy:
+                                description: |-
+                                  selectPolicy is used to specify which policy should be used.
+                                  If not set, the default value Max is used.
+                                type: string
+                              stabilizationWindowSeconds:
+                                description: |-
+                                  stabilizationWindowSeconds is the number of seconds for which past recommendations should be
+                                  considered while scaling up or scaling down.
+                                  StabilizationWindowSeconds must be greater than or equal to zero and less than or equal to 3600 (one hour).
+                                  If not set, use the default values:
+                                  - For scale up: 0 (i.e. no stabilization is done).
+                                  - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
+                                format: int32
+                                type: integer
+                              tolerance:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                description: |-
+                                  tolerance is the tolerance on the ratio between the current and desired
+                                  metric value under which no updates are made to the desired number of
+                                  replicas (e.g. 0.01 for 1%). Must be greater than or equal to zero. If not
+                                  set, the default cluster-wide tolerance is applied (by default 10%).
+
+                                  For example, if autoscaling is configured with a memory consumption target of 100Mi,
+                                  and scale-down and scale-up tolerances of 5% and 1% respectively, scaling will be
+                                  triggered when the actual consumption falls below 95Mi or exceeds 101Mi.
+
+                                  This is an alpha field and requires enabling the HPAConfigurableTolerance
+                                  feature gate.
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                            type: object
+                        type: object
+                      maxReplicas:
+                        format: int32
+                        type: integer
+                      metrics:
+                        items:
+                          description: |-
+                            MetricSpec specifies how to scale based on a single metric
+                            (only `type` and one other matching field should be set at once).
+                          properties:
+                            containerResource:
+                              description: |-
+                                containerResource refers to a resource metric (such as those specified in
+                                requests and limits) known to Kubernetes describing a single container in
+                                each pod of the current scale target (e.g. CPU or memory). Such metrics are
+                                built in to Kubernetes, and have special scaling options on top of those
+                                available to normal per-pod metrics using the "pods" source.
+                              properties:
+                                container:
+                                  description: container is the name of the container in the pods of the scaling target
+                                  type: string
+                                name:
+                                  description: name is the name of the resource in question.
+                                  type: string
+                                target:
+                                  description: target specifies the target value for the given metric
+                                  properties:
+                                    averageUtilization:
+                                      description: |-
+                                        averageUtilization is the target value of the average of the
+                                        resource metric across all relevant pods, represented as a percentage of
+                                        the requested value of the resource for the pods.
+                                        Currently only valid for Resource metric source type
+                                      format: int32
+                                      type: integer
+                                    averageValue:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: |-
+                                        averageValue is the target value of the average of the
+                                        metric across all relevant pods (as a quantity)
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                    type:
+                                      description: type represents whether the metric type is Utilization, Value, or AverageValue
+                                      type: string
+                                    value:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: value is the target value of the metric (as a quantity).
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                  required:
+                                  - type
+                                  type: object
+                              required:
+                              - container
+                              - name
+                              - target
+                              type: object
+                            external:
+                              description: |-
+                                external refers to a global metric that is not associated
+                                with any Kubernetes object. It allows autoscaling based on information
+                                coming from components running outside of cluster
+                                (for example length of queue in cloud messaging service, or
+                                QPS from loadbalancer running outside of cluster).
+                              properties:
+                                metric:
+                                  description: metric identifies the target metric by name and selector
+                                  properties:
+                                    name:
+                                      description: name is the name of the given metric
+                                      type: string
+                                    selector:
+                                      description: |-
+                                        selector is the string-encoded form of a standard kubernetes label selector for the given metric
+                                        When set, it is passed as an additional parameter to the metrics server for more specific metrics scoping.
+                                        When unset, just the metricName will be used to gather metrics.
+                                      properties:
+                                        matchExpressions:
+                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          items:
+                                            description: |-
+                                              A label selector requirement is a selector that contains values, a key, and an operator that
+                                              relates the key and values.
+                                            properties:
+                                              key:
+                                                description: key is the label key that the selector applies to.
+                                                type: string
+                                              operator:
+                                                description: |-
+                                                  operator represents a key's relationship to a set of values.
+                                                  Valid operators are In, NotIn, Exists and DoesNotExist.
+                                                type: string
+                                              values:
+                                                description: |-
+                                                  values is an array of string values. If the operator is In or NotIn,
+                                                  the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                                  the values array must be empty. This array is replaced during a strategic
+                                                  merge patch.
+                                                items:
+                                                  type: string
+                                                type: array
+                                                x-kubernetes-list-type: atomic
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                          x-kubernetes-list-type: atomic
+                                        matchLabels:
+                                          additionalProperties:
+                                            type: string
+                                          description: |-
+                                            matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                            map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                            operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                          type: object
+                                      type: object
+                                      x-kubernetes-map-type: atomic
+                                  required:
+                                  - name
+                                  type: object
+                                target:
+                                  description: target specifies the target value for the given metric
+                                  properties:
+                                    averageUtilization:
+                                      description: |-
+                                        averageUtilization is the target value of the average of the
+                                        resource metric across all relevant pods, represented as a percentage of
+                                        the requested value of the resource for the pods.
+                                        Currently only valid for Resource metric source type
+                                      format: int32
+                                      type: integer
+                                    averageValue:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: |-
+                                        averageValue is the target value of the average of the
+                                        metric across all relevant pods (as a quantity)
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                    type:
+                                      description: type represents whether the metric type is Utilization, Value, or AverageValue
+                                      type: string
+                                    value:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: value is the target value of the metric (as a quantity).
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                  required:
+                                  - type
+                                  type: object
+                              required:
+                              - metric
+                              - target
+                              type: object
+                            object:
+                              description: |-
+                                object refers to a metric describing a single kubernetes object
+                                (for example, hits-per-second on an Ingress object).
+                              properties:
+                                describedObject:
+                                  description: describedObject specifies the descriptions of a object,such as kind,name apiVersion
+                                  properties:
+                                    apiVersion:
+                                      description: apiVersion is the API version of the referent
+                                      type: string
+                                    kind:
+                                      description: 'kind is the kind of the referent; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                                      type: string
+                                    name:
+                                      description: 'name is the name of the referent; More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                                      type: string
+                                  required:
+                                  - kind
+                                  - name
+                                  type: object
+                                metric:
+                                  description: metric identifies the target metric by name and selector
+                                  properties:
+                                    name:
+                                      description: name is the name of the given metric
+                                      type: string
+                                    selector:
+                                      description: |-
+                                        selector is the string-encoded form of a standard kubernetes label selector for the given metric
+                                        When set, it is passed as an additional parameter to the metrics server for more specific metrics scoping.
+                                        When unset, just the metricName will be used to gather metrics.
+                                      properties:
+                                        matchExpressions:
+                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          items:
+                                            description: |-
+                                              A label selector requirement is a selector that contains values, a key, and an operator that
+                                              relates the key and values.
+                                            properties:
+                                              key:
+                                                description: key is the label key that the selector applies to.
+                                                type: string
+                                              operator:
+                                                description: |-
+                                                  operator represents a key's relationship to a set of values.
+                                                  Valid operators are In, NotIn, Exists and DoesNotExist.
+                                                type: string
+                                              values:
+                                                description: |-
+                                                  values is an array of string values. If the operator is In or NotIn,
+                                                  the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                                  the values array must be empty. This array is replaced during a strategic
+                                                  merge patch.
+                                                items:
+                                                  type: string
+                                                type: array
+                                                x-kubernetes-list-type: atomic
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                          x-kubernetes-list-type: atomic
+                                        matchLabels:
+                                          additionalProperties:
+                                            type: string
+                                          description: |-
+                                            matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                            map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                            operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                          type: object
+                                      type: object
+                                      x-kubernetes-map-type: atomic
+                                  required:
+                                  - name
+                                  type: object
+                                target:
+                                  description: target specifies the target value for the given metric
+                                  properties:
+                                    averageUtilization:
+                                      description: |-
+                                        averageUtilization is the target value of the average of the
+                                        resource metric across all relevant pods, represented as a percentage of
+                                        the requested value of the resource for the pods.
+                                        Currently only valid for Resource metric source type
+                                      format: int32
+                                      type: integer
+                                    averageValue:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: |-
+                                        averageValue is the target value of the average of the
+                                        metric across all relevant pods (as a quantity)
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                    type:
+                                      description: type represents whether the metric type is Utilization, Value, or AverageValue
+                                      type: string
+                                    value:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: value is the target value of the metric (as a quantity).
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                  required:
+                                  - type
+                                  type: object
+                              required:
+                              - describedObject
+                              - metric
+                              - target
+                              type: object
+                            pods:
+                              description: |-
+                                pods refers to a metric describing each pod in the current scale target
+                                (for example, transactions-processed-per-second).  The values will be
+                                averaged together before being compared to the target value.
+                              properties:
+                                metric:
+                                  description: metric identifies the target metric by name and selector
+                                  properties:
+                                    name:
+                                      description: name is the name of the given metric
+                                      type: string
+                                    selector:
+                                      description: |-
+                                        selector is the string-encoded form of a standard kubernetes label selector for the given metric
+                                        When set, it is passed as an additional parameter to the metrics server for more specific metrics scoping.
+                                        When unset, just the metricName will be used to gather metrics.
+                                      properties:
+                                        matchExpressions:
+                                          description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                                          items:
+                                            description: |-
+                                              A label selector requirement is a selector that contains values, a key, and an operator that
+                                              relates the key and values.
+                                            properties:
+                                              key:
+                                                description: key is the label key that the selector applies to.
+                                                type: string
+                                              operator:
+                                                description: |-
+                                                  operator represents a key's relationship to a set of values.
+                                                  Valid operators are In, NotIn, Exists and DoesNotExist.
+                                                type: string
+                                              values:
+                                                description: |-
+                                                  values is an array of string values. If the operator is In or NotIn,
+                                                  the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                                  the values array must be empty. This array is replaced during a strategic
+                                                  merge patch.
+                                                items:
+                                                  type: string
+                                                type: array
+                                                x-kubernetes-list-type: atomic
+                                            required:
+                                            - key
+                                            - operator
+                                            type: object
+                                          type: array
+                                          x-kubernetes-list-type: atomic
+                                        matchLabels:
+                                          additionalProperties:
+                                            type: string
+                                          description: |-
+                                            matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                            map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                            operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                          type: object
+                                      type: object
+                                      x-kubernetes-map-type: atomic
+                                  required:
+                                  - name
+                                  type: object
+                                target:
+                                  description: target specifies the target value for the given metric
+                                  properties:
+                                    averageUtilization:
+                                      description: |-
+                                        averageUtilization is the target value of the average of the
+                                        resource metric across all relevant pods, represented as a percentage of
+                                        the requested value of the resource for the pods.
+                                        Currently only valid for Resource metric source type
+                                      format: int32
+                                      type: integer
+                                    averageValue:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: |-
+                                        averageValue is the target value of the average of the
+                                        metric across all relevant pods (as a quantity)
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                    type:
+                                      description: type represents whether the metric type is Utilization, Value, or AverageValue
+                                      type: string
+                                    value:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: value is the target value of the metric (as a quantity).
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                  required:
+                                  - type
+                                  type: object
+                              required:
+                              - metric
+                              - target
+                              type: object
+                            resource:
+                              description: |-
+                                resource refers to a resource metric (such as those specified in
+                                requests and limits) known to Kubernetes describing each pod in the
+                                current scale target (e.g. CPU or memory). Such metrics are built in to
+                                Kubernetes, and have special scaling options on top of those available
+                                to normal per-pod metrics using the "pods" source.
+                              properties:
+                                name:
+                                  description: name is the name of the resource in question.
+                                  type: string
+                                target:
+                                  description: target specifies the target value for the given metric
+                                  properties:
+                                    averageUtilization:
+                                      description: |-
+                                        averageUtilization is the target value of the average of the
+                                        resource metric across all relevant pods, represented as a percentage of
+                                        the requested value of the resource for the pods.
+                                        Currently only valid for Resource metric source type
+                                      format: int32
+                                      type: integer
+                                    averageValue:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: |-
+                                        averageValue is the target value of the average of the
+                                        metric across all relevant pods (as a quantity)
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                    type:
+                                      description: type represents whether the metric type is Utilization, Value, or AverageValue
+                                      type: string
+                                    value:
+                                      anyOf:
+                                      - type: integer
+                                      - type: string
+                                      description: value is the target value of the metric (as a quantity).
+                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                      x-kubernetes-int-or-string: true
+                                  required:
+                                  - type
+                                  type: object
+                              required:
+                              - name
+                              - target
+                              type: object
+                            type:
+                              description: |-
+                                type is the type of metric source.  It should be one of "ContainerResource", "External",
+                                "Object", "Pods" or "Resource", each mapping to a matching field in the object.
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        type: array
+                      minReplicas:
+                        format: int32
+                        type: integer
+                    type: object
                   image:
                     description: |-
                       Image - docker image settings
@@ -2119,8 +2959,7 @@ spec:
                         description: PullPolicy describes how to pull docker image
                         type: string
                       repository:
-                        description: Repository contains name of docker image + it's
-                          repository if needed
+                        description: Repository contains name of docker image + it's repository if needed
                         type: string
                       tag:
                         description: Tag contains desired docker image version
@@ -2137,7 +2976,7 @@ spec:
                         referenced object inside the same namespace.
                       properties:
                         name:
-                          default: ""
+                          default: ''
                           description: |-
                             Name of the referent.
                             This field is effectively required, but due to backwards compatibility is
@@ -2154,15 +2993,14 @@ spec:
                       Any errors during the execution of an initContainer will lead to a restart of the Pod.
                       More info: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
                     items:
-                      description: A single application container that you want to
-                        run within a pod.
+                      description: A single application container that you want to run within a pod.
                       required:
                       - name
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
                   livenessProbe:
-                    description: LivenessProbe that will be added CRD pod
+                    description: LivenessProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   logFormat:
@@ -2174,8 +3012,7 @@ spec:
                     - json
                     type: string
                   logIngestedRows:
-                    description: Whether to log all the ingested log entries; this
-                      can be useful for debugging of data ingestion; see https://docs.victoriametrics.com/victorialogs/data-ingestion/
+                    description: Whether to log all the ingested log entries; this can be useful for debugging of data ingestion; see https://docs.victoriametrics.com/victorialogs/data-ingestion/
                     type: boolean
                   logLevel:
                     description: LogLevel for VLStorage to be configured with.
@@ -2187,9 +3024,7 @@ spec:
                     - PANIC
                     type: string
                   logNewStreams:
-                    description: LogNewStreams Whether to log creation of new streams;
-                      this can be useful for debugging of high cardinality issues
-                      with log streams; see https://docs.victoriametrics.com/victorialogs/keyconcepts/#stream-fields
+                    description: LogNewStreams Whether to log creation of new streams; this can be useful for debugging of high cardinality issues with log streams; see https://docs.victoriametrics.com/victorialogs/keyconcepts/#stream-fields
                     type: boolean
                   maintenanceInsertNodeIDs:
                     description: |-
@@ -2201,9 +3036,7 @@ spec:
                       type: integer
                     type: array
                   maintenanceSelectNodeIDs:
-                    description: MaintenanceInsertNodeIDs - excludes given node ids
-                      from select requests routing, must contain pod suffixes - for
-                      pod-0, id will be 0 and etc.
+                    description: MaintenanceSelectNodeIDs - excludes given node ids from select requests routing, must contain pod suffixes - for pod-0, id will be 0 and etc.
                     items:
                       format: int32
                       type: integer
@@ -2218,8 +3051,7 @@ spec:
                   nodeSelector:
                     additionalProperties:
                       type: string
-                    description: NodeSelector Define which Nodes the Pods are scheduled
-                      on.
+                    description: NodeSelector Define which Nodes the Pods are scheduled on.
                     type: object
                   paused:
                     description: |-
@@ -2227,8 +3059,7 @@ spec:
                       going to be performed, except for delete actions.
                     type: boolean
                   persistentVolumeClaimRetentionPolicy:
-                    description: PersistentVolumeClaimRetentionPolicy allows configuration
-                      of PVC retention policy
+                    description: PersistentVolumeClaimRetentionPolicy allows configuration of PVC retention policy
                     properties:
                       whenDeleted:
                         description: |-
@@ -2290,8 +3121,7 @@ spec:
                         type: string
                     type: object
                   podMetadata:
-                    description: PodMetadata configures Labels and Annotations which
-                      are propagated to the VLStorage pods.
+                    description: PodMetadata configures Labels and Annotations which are propagated to the VLStorage pods.
                     properties:
                       annotations:
                         additionalProperties:
@@ -2330,19 +3160,17 @@ spec:
                   readinessGates:
                     description: ReadinessGates defines pod readiness gates
                     items:
-                      description: PodReadinessGate contains the reference to a pod
-                        condition
+                      description: PodReadinessGate contains the reference to a pod condition
                       properties:
                         conditionType:
-                          description: ConditionType refers to a condition in the
-                            pod's condition list with matching type.
+                          description: ConditionType refers to a condition in the pod's condition list with matching type.
                           type: string
                       required:
                       - conditionType
                       type: object
                     type: array
                   readinessProbe:
-                    description: ReadinessProbe that will be added CRD pod
+                    description: ReadinessProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   replicaCount:
@@ -2476,19 +3304,16 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   serviceScrapeSpec:
-                    description: ServiceScrapeSpec that will be added to vlselect
-                      VMServiceScrape spec
+                    description: ServiceScrapeSpec that will be added to vlselect VMServiceScrape spec
                     required:
                     - endpoints
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   serviceSpec:
-                    description: ServiceSpec that will be added to vlselect service
-                      spec
+                    description: ServiceSpec that will be added to vlselect service spec
                     properties:
                       metadata:
-                        description: EmbeddedObjectMetadata defines objectMeta for
-                          additional service.
+                        description: EmbeddedObjectMetadata defines objectMeta for additional service.
                         properties:
                           annotations:
                             additionalProperties:
@@ -2533,17 +3358,12 @@ spec:
                     - spec
                     type: object
                   startupProbe:
-                    description: StartupProbe that will be added to CRD pod
+                    description: StartupProbe that will be added to CR pod
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   storage:
                     description: Storage configures persistent volume for VLStorage
                     properties:
-                      disableMountSubPath:
-                        description: |-
-                          Deprecated: subPath usage will be disabled by default in a future release, this option will become unnecessary.
-                          DisableMountSubPath allows to remove any subPath usage in volume mounts.
-                        type: boolean
                       emptyDir:
                         description: |-
                           EmptyDirVolumeSource to be used by the Prometheus StatefulSets. If specified, used in place of any volumeClaimTemplate. More
@@ -2579,8 +3399,7 @@ spec:
                     description: StorageDataPath - path to storage data
                     type: string
                   terminationGracePeriodSeconds:
-                    description: TerminationGracePeriodSeconds period for container
-                      graceful termination
+                    description: TerminationGracePeriodSeconds period for container graceful termination
                     format: int64
                     type: integer
                   tolerations:
@@ -2629,8 +3448,7 @@ spec:
                       such as regions, zones, nodes, and other user-defined topology domains
                       https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
                     items:
-                      description: TopologySpreadConstraint specifies how to spread
-                        matching pods among the given topology.
+                      description: TopologySpreadConstraint specifies how to spread matching pods among the given topology.
                       required:
                       - maxSkew
                       - topologyKey
@@ -2655,8 +3473,7 @@ spec:
                       VolumeMounts allows configuration of additional VolumeMounts on the output Deployment/StatefulSet definition.
                       VolumeMounts specified will be appended to other VolumeMounts in the Application container
                     items:
-                      description: VolumeMount describes a mounting of a Volume within
-                        a container.
+                      description: VolumeMount describes a mounting of a Volume within a container.
                       properties:
                         mountPath:
                           description: |-
@@ -2722,27 +3539,158 @@ spec:
                       Volumes specified will be appended to other volumes that are generated.
                       / +optional
                     items:
-                      description: Volume represents a named volume in a pod that
-                        may be accessed by any container in the pod.
+                      description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
                       required:
                       - name
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
+                  vpa:
+                    description: Configures vertical pod autoscaling.
+                    properties:
+                      recommenders:
+                        description: Recommenders specifies custom VPA recommender names.
+                        items:
+                          description: |-
+                            VerticalPodAutoscalerRecommenderSelector points to a specific Vertical Pod Autoscaler recommender.
+                            In the future it might pass parameters to the recommender.
+                          properties:
+                            name:
+                              description: Name of the recommender responsible for generating recommendation for this object.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                      resourcePolicy:
+                        description: ResourcePolicy controls how the autoscaler computes recommended resources per container.
+                        properties:
+                          containerPolicies:
+                            description: Per-container resource policies.
+                            items:
+                              description: |-
+                                ContainerResourcePolicy controls how autoscaler computes the recommended
+                                resources for a specific container.
+                              properties:
+                                containerName:
+                                  description: |-
+                                    Name of the container or DefaultContainerResourcePolicy, in which
+                                    case the policy is used by the containers that don't have their own
+                                    policy specified.
+                                  type: string
+                                controlledResources:
+                                  description: |-
+                                    Specifies the type of recommendations that will be computed
+                                    (and possibly applied) by VPA.
+                                    If not specified, the default of [ResourceCPU, ResourceMemory] will be used.
+                                  items:
+                                    description: ResourceName is the name identifying various resources in a ResourceList.
+                                    type: string
+                                  type: array
+                                controlledValues:
+                                  description: |-
+                                    Specifies which resource values should be controlled.
+                                    The default is "RequestsAndLimits".
+                                  enum:
+                                  - RequestsAndLimits
+                                  - RequestsOnly
+                                  type: string
+                                maxAllowed:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description: |-
+                                    Specifies the maximum amount of resources that will be recommended
+                                    for the container. The default is no maximum.
+                                  type: object
+                                minAllowed:
+                                  additionalProperties:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  description: |-
+                                    Specifies the minimal amount of resources that will be recommended
+                                    for the container. The default is no minimum.
+                                  type: object
+                                mode:
+                                  description: Whether autoscaler is enabled for the container. The default is "Auto".
+                                  enum:
+                                  - Auto
+                                  - Off
+                                  type: string
+                              type: object
+                            type: array
+                        type: object
+                      updatePolicy:
+                        description: UpdatePolicy controls how the autoscaler applies changes to pod resources.
+                        properties:
+                          evictionRequirements:
+                            description: |-
+                              EvictionRequirements is a list of EvictionRequirements that need to
+                              evaluate to true in order for a Pod to be evicted. If more than one
+                              EvictionRequirement is specified, all of them need to be fulfilled to allow eviction.
+                            items:
+                              description: |-
+                                EvictionRequirement defines a single condition which needs to be true in
+                                order to evict a Pod
+                              properties:
+                                changeRequirement:
+                                  description: EvictionChangeRequirement refers to the relationship between the new target recommendation for a Pod and its current requests, what kind of change is necessary for the Pod to be evicted
+                                  enum:
+                                  - TargetHigherThanRequests
+                                  - TargetLowerThanRequests
+                                  type: string
+                                resources:
+                                  description: |-
+                                    Resources is a list of one or more resources that the condition applies
+                                    to. If more than one resource is given, the EvictionRequirement is fulfilled
+                                    if at least one resource meets `changeRequirement`.
+                                  items:
+                                    description: ResourceName is the name identifying various resources in a ResourceList.
+                                    type: string
+                                  type: array
+                              required:
+                              - changeRequirement
+                              - resources
+                              type: object
+                            type: array
+                          minReplicas:
+                            description: |-
+                              Minimal number of replicas which need to be alive for Updater to attempt
+                              pod eviction (pending other checks like PDB). Only positive values are
+                              allowed. Overrides global '--min-replicas' flag.
+                            format: int32
+                            type: integer
+                          updateMode:
+                            description: |-
+                              Controls when autoscaler applies changes to the pod resources.
+                              The default is 'Auto'.
+                            enum:
+                            - Off
+                            - Initial
+                            - Recreate
+                            - InPlaceOrRecreate
+                            - Auto
+                            type: string
+                        type: object
+                    type: object
                 type: object
             type: object
           status:
             description: VLClusterStatus defines the observed state of VLCluster
             properties:
               conditions:
-                description: 'Known .status.conditions.type are: "Available", "Progressing",
-                  and "Degraded"'
+                description: 'Known .status.conditions.type are: "Available", "Progressing", and "Degraded"'
                 items:
                   description: Condition defines status condition of the resource
                   properties:
                     lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another.
+                      description: lastTransitionTime is the last time the condition transitioned from one status to another.
                       format: date-time
                       type: string
                     lastUpdateTime:
@@ -2778,8 +3726,8 @@ spec:
                     status:
                       description: status of the condition, one of True, False, Unknown.
                       enum:
-                      - "True"
-                      - "False"
+                      - 'True'
+                      - 'False'
                       - Unknown
                       type: string
                     type:

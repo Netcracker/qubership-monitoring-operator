@@ -1,30 +1,31 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
-
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
 
 categories:
-  - title: '💥 Breaking Changes'
+  - title: "💥 Breaking Changes"
     labels:
       - breaking-change
-  - title: '💡 New Features'
+  - title: "💡 New Features"
     labels:
-      - feature
       - enhancement
-  - title: '🐞 Bug Fixes'
+  - title: "🐞 Bug Fixes"
     labels:
-      - bug
       - fix
-      - bugfix
-  - title: '⚙️ Technical Debt'
-    labels:
-      - refactor
-  - title: '📝 Documentation'
+  - title: "📝 Documentation"
     labels:
       - documentation
+  - title: "⚙️ Technical Debt"
+    labels:
+      - refactor
+  - title: "🧰 Maintenance"
+    label: chore
+  - title: "⬆️ Dependencies"
+    collapse-after: 8
+    labels:
+      - dependencies
 
-change-template: "- (#$NUMBER) $TITLE by @$AUTHOR"
-
-no-changes-template: 'No significant changes'
+change-template: "- $TITLE (#$NUMBER) by @$AUTHOR"
+no-changes-template: "No significant changes"
 
 template: |
   ## 🚀 Release
@@ -32,9 +33,7 @@ template: |
   ### What's Changed
   $CHANGES
 
-  ---
-
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Contributors:** $CONTRIBUTORS
 
 version-resolver:
   major:
@@ -47,3 +46,34 @@ version-resolver:
     labels:
       - patch
   default: patch
+
+# See https://github.com/release-drafter/release-drafter#autolabeler
+# This is more like a reference, since auto-labeling PRs seems to require too many privileges
+autolabeler:
+  - label: 'dependencies'
+    files:
+      - 'go.*'
+    title:
+      - '/^fix\(deps\)/i'
+      - '/^chore:\s*bump/i'
+  - label: 'chore'
+    files:
+      - '.github/**'
+    branch:
+      - '/docs{0,1}\/.+/'
+    title:
+      - '/^chore/i'
+  - label: 'documentation'
+    files:
+      - '*.md'
+      - 'docs/**'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+    title:
+      - '/^fix/i'
+  - label: 'enhancement'
+    branch:
+      - '/feature\/.+/'
+    title:
+      - '/^feat/i'

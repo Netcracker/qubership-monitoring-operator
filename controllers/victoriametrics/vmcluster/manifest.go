@@ -124,13 +124,13 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMSelect.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMSelect.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
+			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect), vmcluster.GetNamespace())
 			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
 
 			vmcluster.Spec.VMSelect.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
+				"name":                         utils.TruncLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect)),
+				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect)),
+				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect), vmcluster.GetNamespace()),
 				"app.kubernetes.io/component":  "victoriametrics",
 				"app.kubernetes.io/part-of":    "monitoring",
 				"app.kubernetes.io/managed-by": "monitoring-operator",
@@ -154,13 +154,13 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMStorage.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMStorage.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
+			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect), vmcluster.GetNamespace())
 			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage)
 
 			vmcluster.Spec.VMStorage.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
+				"name":                         utils.TruncLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentStorage)),
+				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentStorage)),
+				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentStorage), vmcluster.GetNamespace()),
 				"app.kubernetes.io/component":  "victoriametrics",
 				"app.kubernetes.io/part-of":    "monitoring",
 				"app.kubernetes.io/managed-by": "monitoring-operator",
@@ -184,13 +184,13 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMInsert.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMInsert.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
+			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentInsert), vmcluster.GetNamespace())
 			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage)
 
 			vmcluster.Spec.VMInsert.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
+				"name":                         utils.TruncLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentInsert)),
+				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentInsert)),
+				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentInsert), vmcluster.GetNamespace()),
 				"app.kubernetes.io/component":  "victoriametrics",
 				"app.kubernetes.io/part-of":    "monitoring",
 				"app.kubernetes.io/managed-by": "monitoring-operator",
