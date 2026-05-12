@@ -1701,6 +1701,11 @@ stackdriver_exporter:
 goldpingerExporter:
   # Disable by default
   install: false
+  
+# Exporter to check SSL certificates
+sslExporter:
+  # Enable for testing
+  install: false
 
 # Settings for a job to copy certificates from etcd to a secret
 etcdCertsJob:

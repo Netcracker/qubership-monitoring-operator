@@ -1,0 +1,107 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'probe_success'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: ProbeFailed
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "Probe failed (instance: )"
+        description: "Probe failed\n  VALUE = 0\n  LABELS: map[__name__:probe_success alertgroup:DRAlerts alertname:ProbeFailed severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'probe_success'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: ProbeFailed
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'probe_duration_seconds'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: SlowProbe
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Slow probe (instance: )"
+        description: "Blackbox probe took more than 1s to complete\n  VALUE = 2\n  LABELS: map[__name__:probe_duration_seconds alertgroup:DRAlerts alertname:SlowProbe severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'probe_duration_seconds'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: SlowProbe
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_status_code'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpStatusCode
+    exp_alerts:
+    - exp_labels:
+        severity: high
+
+      exp_annotations:
+        summary: "HTTP Status Code (instance: )"
+        description: "HTTP status code is not 200-399\n  VALUE = 0\n  LABELS: map[__name__:probe_http_status_code alertgroup:DRAlerts alertname:HttpStatusCode severity:high]"
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_status_code'
+    values: "200x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpStatusCode
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_duration_seconds'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpSlowRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "HTTP slow requests (instance: )"
+        description: "HTTP request took more than 1s\n  VALUE = 2\n  LABELS: map[__name__:probe_http_duration_seconds alertgroup:DRAlerts alertname:HttpSlowRequests severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'probe_http_duration_seconds'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: DRAlerts
+    alertname: HttpSlowRequests
+    exp_alerts: []

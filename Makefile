@@ -33,7 +33,7 @@ CRD_DOC_FOLDER=$(DOC_FOLDER)/crds
 
 # Set build version
 ARTIFACT_NAME="qubership-monitoring-operator"
-VERSION?=0.75.0
+VERSION?=0.88.0
 
 # Detect the build environment, local or Jenkins builder
 BUILD_DATE=$(shell date +"%Y%m%d-%T")
