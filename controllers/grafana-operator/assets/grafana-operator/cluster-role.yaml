@@ -16,6 +16,7 @@ rules:
       - grafanadatasources/status
       - grafanas
       - grafanas/status
+      - grafanas/finalizers
       - grafanamanifests
       - grafanamanifests/status
       - grafanafolders

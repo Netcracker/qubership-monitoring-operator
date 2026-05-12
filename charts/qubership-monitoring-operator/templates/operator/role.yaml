@@ -230,6 +230,9 @@ rules:
   - apiGroups:
       - grafana.integreatly.org
     resources:
+      - grafanas
+      - grafanas/status
+      - grafanas/finalizers
       - grafanadashboards
       - grafanadashboards/status
       - grafanadatasources

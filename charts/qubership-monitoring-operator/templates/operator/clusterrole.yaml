@@ -452,6 +452,9 @@ rules:
   - apiGroups:
       - grafana.integreatly.org
     resources:
+      - grafanas
+      - grafanas/status
+      - grafanas/finalizers
       - grafanamanifests
       - grafanamanifests/status
       - grafanadashboards
