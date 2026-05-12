@@ -249,6 +249,7 @@ rules:
       - operator.victoriametrics.com
     resources:
       - vmalertmanagerconfigs
+      - vmdistributed
       - vmnodescrapes
       - vmpodscrapes
       - vmprobes

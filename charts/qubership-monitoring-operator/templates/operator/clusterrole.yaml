@@ -279,6 +279,7 @@ rules:
       - update
       - delete
       - watch
+      - patch
   # Permissions to handle Ingresses finalizers
   - apiGroups:
       - extensions
@@ -450,19 +451,35 @@ rules:
   # integreatly.org
   # This is needed for managing Grafana custom resources
   - apiGroups:
-      - integreatly.org
+      - grafana.integreatly.org
     resources:
+      - grafanas
+      - grafanas/status
+      - grafanas/finalizers
+      - grafanamanifests
+      - grafanamanifests/status
       - grafanadashboards
       - grafanadashboards/status
       - grafanadatasources
       - grafanadatasources/status
       - grafanafolders
       - grafanafolders/status
-      - grafananotificationchannels
-      - grafananotificationchannels/status
-      - grafanas
-      - grafanas/finalizers
-      - grafanas/status
+      - grafanacontactpoints
+      - grafanacontactpoints/status
+      - grafanaalertrulegroups
+      - grafanaalertrulegroups/status
+      - grafananotificationpolicies
+      - grafananotificationpolicies/status
+      - grafananotificationtemplates
+      - grafananotificationtemplates/status
+      - grafanamutetimings
+      - grafanamutetimings/status
+      - grafananotificationpolicyroutes
+      - grafananotificationpolicyroutes/status
+      - grafanalibrarypanels
+      - grafanalibrarypanels/status
+      - grafanaserviceaccounts
+      - grafanaserviceaccounts/status
     verbs:
       - create
       - delete
@@ -471,6 +488,7 @@ rules:
       - list
       - patch
       - update
+      - patch
       - watch
 
   # monitoring.coreos.com
@@ -552,6 +570,8 @@ rules:
       - vmauths
       - vmclusters
       - vmdistributed
+      - vmdistributed
+      - vmdistributed/finalizers
       - vmsingles
       - vmusers
       - vtclusters

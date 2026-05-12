@@ -14,19 +14,58 @@ have no auth inside the Cloud.
 
 ## Grafana deploy
 
-To specify Grafana user and password in the deployment parameters you need to add following
-in the deployment parameters:
+In current versions the **single source of truth** for Grafana admin credentials is the
+`grafana-admin-credentials` Secret. The Grafana pod reads admin user and password from
+environment variables:
+
+- `GF_SECURITY_ADMIN_USER`
+- `GF_SECURITY_ADMIN_PASSWORD`
+
+These variables are populated from the Secret.
+
+During deployment you can configure these credentials via `values.yaml`:
 
 ```yaml
 grafana:
+  # Main way to specify admin credentials for Grafana.
+  # These values are used to render the grafana-admin-credentials Secret when
+  # grafana.disableDefaultAdminSecret=false (default).
   security:
     admin_user: admin
     admin_password: admin
 ```
 
-This parameter allows configuring the Grafana admin user that grafana-operator uses to provision
-Grafana, dashboards, data sources and other settings. Grafana operator creates `grafana-admin-credentials` by default,
-but with a random password. We override these values during deployment using above configuration.
+Behaviour:
+
+- By default `admin_user` and `admin_password` are set to `admin/admin`.
+- If you set any of them to an empty string `""`, Monitoring Operator will:
+    - on first installation: generate a random value and store it in the Secret;
+    - on subsequent upgrades: keep the existing value from the Secret.
+- For backward compatibility, if the old section
+  `grafana.config.security.admin_user` / `grafana.config.security.admin_password`
+  is specified, its non-empty values override `grafana.security.*` **only when
+  rendering the Secret**. New configurations should use `grafana.security.*`.
+
+The `grafana.disableDefaultAdminSecret` flag controls who is responsible for creating
+the admin credentials Secret:
+
+```yaml
+grafana:
+  # false (default): Helm renders grafana-admin-credentials from grafana.security.*
+  #                  and passes it to Grafana via environment variables.
+  # true:            user is fully responsible for creating the Secret
+  #                  {grafana-name}-admin-credentials with the required keys:
+  #                  GF_SECURITY_ADMIN_USER and GF_SECURITY_ADMIN_PASSWORD.
+  disableDefaultAdminSecret: false
+```
+
+- When `disableDefaultAdminSecret=false` (default), Helm always creates/updates
+  the `grafana-admin-credentials` Secret based on values from `grafana.security.*`
+  (or legacy `config.security.*`, if present).
+- When `disableDefaultAdminSecret=true`, Helm does **not** create the Secret.
+  Grafana and Grafana Operator read credentials from the Secret only if it exists.
+  If the Secret is absent, Grafana falls back to its built-in default (`admin/admin`),
+  so login is still possible.
 
 Other external users and their passwords can't be set during deploy. During deploy you can specify
 only which auth provides will use in Grafana.
