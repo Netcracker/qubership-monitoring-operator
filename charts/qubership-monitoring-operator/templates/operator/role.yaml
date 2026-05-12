@@ -155,6 +155,7 @@ rules:
       - update
       - delete
       - watch
+      - patch
   - apiGroups:
       - extensions
     resources:

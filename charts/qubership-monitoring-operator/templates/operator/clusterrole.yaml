@@ -279,6 +279,7 @@ rules:
       - update
       - delete
       - watch
+      - patch
   # Permissions to handle Ingresses finalizers
   - apiGroups:
       - extensions

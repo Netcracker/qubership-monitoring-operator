@@ -76,6 +76,7 @@ rules:
       - update
       - delete
       - watch
+      - patch
   - apiGroups:
       - grafana.integreatly.org
     resources:
