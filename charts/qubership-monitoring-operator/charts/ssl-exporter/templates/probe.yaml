@@ -1,0 +1,39 @@
+{{- if and .Values.install .Values.probes.enabled }}
+{{- range .Values.probes.targets }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: {{ printf "%s-%s" $.Values.name .name | nospace | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "monitoring.labels" $ | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if not (empty $.Values.probes.defaults.labels) }}
+    {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" $.Values.probes.defaults.labels) | nindent 4 }}
+    {{- end }}
+spec:
+  jobName: {{ printf "%s-%s" $.Values.name .name | nospace | trunc 63 | trimSuffix "-" }}
+  interval: {{ .interval | default $.Values.probes.defaults.interval }}
+  scrapeTimeout: {{ .scrapeTimeout | default $.Values.probes.defaults.scrapeTimeout }}
+  module: {{ .module | quote }}
+  prober:
+    url: {{ printf "%s.%s.svc:%v" $.Values.name $.Release.Namespace ($.Values.service.port | default 9219) | quote }}
+    scheme: {{ $.Values.probes.scheme }}
+    path: {{ $.Values.probes.path }}
+  targets:
+    staticConfig:
+      static:
+        - {{ .url | quote }}
+  metricRelabelings:
+    - sourceLabels: [instance]
+      targetLabel: instance
+      replacement: {{ .url | quote }}
+    - targetLabel: target
+      replacement: {{ .name | quote }}
+    {{- if .additionalMetricsRelabels }}
+{{ toYaml .additionalMetricsRelabels | nindent 4 }}
+    {{- else if $.Values.probes.defaults.additionalMetricsRelabels }}
+{{ toYaml $.Values.probes.defaults.additionalMetricsRelabels | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}
