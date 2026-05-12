@@ -16,7 +16,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -173,35 +172,6 @@ func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 		if err = r.UpdateResource(checkObj); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func (r *GrafanaReconciler) handleIngressV1beta1(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
 	}
 	return nil
 }
@@ -496,25 +466,6 @@ func (r *GrafanaReconciler) deleteGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 		return err
 	}
 	r.Log.Info("Successful deleting", "resource", "GrafanaDatasource", "name", m.GetName())
-	return nil
-}
-
-func (r *GrafanaReconciler) deleteIngressV1beta1(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if err = r.DeleteResource(e); err != nil {
-		return err
-	}
 	return nil
 }
 

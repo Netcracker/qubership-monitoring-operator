@@ -89,13 +89,6 @@ func TestGrafanaManifests(t *testing.T) {
 			assert.Contains(t, m.Spec.Datasource.URL, "promxy")
 		}
 	})
-	t.Run("Test Ingress v1beta1 manifest", func(t *testing.T) {
-		m, err := grafanaIngressV1beta1(cr)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.NotNil(t, m, "Ingress v1beta1 manifest should not be empty")
-	})
 	t.Run("Test Ingress v1 manifest", func(t *testing.T) {
 		m, err := grafanaIngressV1(cr)
 		if err != nil {

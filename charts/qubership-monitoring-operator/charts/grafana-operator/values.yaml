@@ -95,7 +95,25 @@ ingress: {}
   # Mandatory: no
   # Default: ""
   #
-# tlsSecretName: ""
+  # tlsSecretName: ""
+
+  # Set of rules for Ingress
+  # Allows to customize routing rules for grafana ingress.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+  # Type: array
+  # Mandatory: no
+  #
+  # Default: []
+  # rules: []
+  #
+
+  # Set of secrets used for TLS termination per group of hostnames
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+  # Type: array
+  # Mandatory: no
+  #
+  # Default: []
+  # tls: []
 
 # Allows set configuration for grafana. The properties used to generate grafana.ini.
 # Ref: https://grafana.com/docs/grafana/latest/administration/configuration/

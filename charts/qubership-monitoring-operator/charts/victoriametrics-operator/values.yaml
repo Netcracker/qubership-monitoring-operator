@@ -329,6 +329,24 @@ vmSingle:
     #
     # tlsSecretName: ""
 
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmsingle ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
   # Set paused to reconciliation for vmSingle
   # Type: boolean
   # Mandatory: no
@@ -535,6 +553,24 @@ vmAgent:
     # Default: ""
     #
     # tlsSecretName: ""
+
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmagent ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
 
   # Set paused to reconciliation for vmAgent
   # Type: boolean
@@ -835,6 +871,23 @@ vmAlertManager:
     # Default: ""
     #
     # tlsSecretName: ""
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmalertmanager ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
 
   # Set paused to reconciliation for vmAlertManager
   # Type: boolean
@@ -1291,6 +1344,25 @@ vmAuth:
   #
   ingress: {}
 
+    
+    # Set of rules for Ingress
+    # Allows to customize routing rules for grafana ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
   # Set paused to reconciliation for vmAlert
   # Type: boolean
   # Mandatory: no
@@ -1638,6 +1710,60 @@ vmCluster:
   # Default: {}
   #
   vmSelectIngress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmselect ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
 
   vmSelectTlsConfig:
     # TLS configuration from existing secret
