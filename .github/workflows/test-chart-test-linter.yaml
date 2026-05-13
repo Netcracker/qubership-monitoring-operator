@@ -1,20 +1,23 @@
-name: Lint and Test Helm Charts
+---
+name: "Tests: Lint and Test Helm Charts"
 
 permissions:
   contents: read
 
 on:
-  pull_request:
-    branches:
-      - 'main'
-    paths:
-      - 'charts/**'
+  workflow_dispatch: {}
   push:
     branches:
       - main
+    tags:
+      - 'v*'
     paths:
       - 'charts/**'
-  workflow_dispatch: null
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - 'charts/**'
 
 jobs:
   lint-test:

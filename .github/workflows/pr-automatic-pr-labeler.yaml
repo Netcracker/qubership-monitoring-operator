@@ -1,18 +1,14 @@
 ---
-
-# The workflow template for automatic PR labeler.
-# It requires to have a configuration file with labels and conditions to apply them.
-# The configuration file should be placed in the .github folder and named auto-labeler-config.yaml.
-# Example file can be found there:
-# https://github.com/Netcracker/.github/blob/main/config/examples/auto-labeler-config.yaml
-
-name: Automatic PR Labeler
+name: "PR: Automatic PR Labeler"
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
     types:
-      [opened, reopened, synchronize]
+      - opened
+      - reopened
+      - synchronize
 
 permissions:
   pull-requests: write

@@ -1,20 +1,12 @@
 ---
-# This workflow executes several linters on changed files based on languages used in your code base whenever
-# you push a code or open a pull request.
-#
-# You can adjust the behavior by modifying this file.
-# For more information, see:
-# https://github.com/super-linter/super-linter
-# Configuration file for super-linter example:
-# .github/super-linter.env
-# Configuration files for individual linters should be placed in .github/linters
-
-name: Lint Code Base
+name: "Lint: Run Super-Linter"
 
 on:
   push:
     branches:
-      - '**'
+      - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - '**'
@@ -25,6 +17,7 @@ on:
         default: false
         required: false
         description: "Lint all codebase"
+
 permissions:
   contents: read
 
@@ -95,4 +88,3 @@ jobs:
         # To report GitHub Actions status checks
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref || github.event.push.ref }}
-

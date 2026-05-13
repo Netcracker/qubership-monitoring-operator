@@ -1,11 +1,14 @@
 ---
 name: Build Artifacts
+
 on:
   release:
     types: [created]
   push:
     branches:
-    - '**'
+    - main
+    tags:
+    - 'v*'
     paths:
     - '**'
     - '!.github/**'
@@ -122,7 +125,7 @@ jobs:
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
         push: >-
-          ${{ 
+          ${{
             (github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]') &&
             (
             (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||

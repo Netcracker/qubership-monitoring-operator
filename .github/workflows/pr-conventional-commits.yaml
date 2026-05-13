@@ -1,6 +1,5 @@
 ---
-
-name: Conventional Commits PR Check
+name: "PR: Conventional Commits PR Check"
 
 on:
   pull_request:
@@ -11,6 +10,7 @@ on:
 
 permissions:
   pull-requests: read
+
 jobs:
   build:
     name: Conventional Commits

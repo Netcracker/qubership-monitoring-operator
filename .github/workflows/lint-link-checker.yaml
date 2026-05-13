@@ -1,7 +1,8 @@
 ---
-name: Link Checker
+name: "Lint: Link Checker"
 
 on:
+  workflow_dispatch: null
   pull_request:
     branches:
       - main
@@ -18,7 +19,7 @@ on:
     paths:
         - 'docs/**'
         - '*.md'
-  workflow_dispatch: null
+
 permissions:
   contents: read
 

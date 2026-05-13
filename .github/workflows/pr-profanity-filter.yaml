@@ -1,5 +1,5 @@
 ---
-name: Profanity filter
+name: "PR: Profanity filter"
 
 on:
   issue_comment:
