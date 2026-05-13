@@ -26,7 +26,7 @@ Image can be found from:
     {{- printf "%s" .Values.configmapReload.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=jimmidyson/configmap-reload versioning=semver */ -}}
-    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.14.0" -}}
+    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.15.0" -}}
   {{- end -}}
 {{- end -}}
 

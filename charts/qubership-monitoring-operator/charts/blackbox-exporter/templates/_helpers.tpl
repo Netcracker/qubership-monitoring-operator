@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus/blackbox_exporter */ -}}
-    {{- print "docker.io/prom/blackbox-exporter:v0.27.0" -}}
+    {{- print "docker.io/prom/blackbox-exporter:v0.28.0" -}}
   {{- end -}}
 {{- end -}}
 

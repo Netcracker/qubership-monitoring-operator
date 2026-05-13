@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=joe-elliott/cert-exporter */ -}}
-    {{- print "docker.io/joeelliott/cert-exporter:v2.14.0" -}}
+    {{- print "docker.io/joeelliott/cert-exporter:v3.15.0" -}}
   {{- end -}}
 {{- end -}}
 
