@@ -31,7 +31,7 @@ ENV USER_UID=2001 \
 WORKDIR /
 COPY --from=builder --chown=${USER_UID} /workspace/etcd-certs /etcd-certs
 
-RUN chmod 0555 /etcd \
+RUN chmod 0555 /etcd-certs \
     && addgroup "${GROUP_NAME}" && adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
 USER ${USER_UID}
 
