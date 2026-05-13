@@ -1,16 +1,15 @@
 {{- if and .Values.install .Values.grafanaDashboard }}
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "blackboxExporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
 spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
   json: >
     {
       "annotations": {
@@ -150,7 +149,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "probe_duration_seconds{cluster=~\"$cluster\", namespace=\"$namespace\", pod=~\"$pod\"}",
+              "expr": "probe_duration_seconds{cluster=~\"$cluster\", namespace=~\"$namespace|\"}",
               "format": "time_series",
               "interval": "$interval",
               "intervalFactor": 1,
@@ -298,7 +297,7 @@ spec:
                   },
                   "editorMode": "code",
                   "exemplar": false,
-                  "expr": "probe_ssl_earliest_cert_expiry{cluster=~\"$cluster\", namespace=\"$namespace\", pod=~\"$pod\"} - time()",
+                  "expr": "probe_ssl_earliest_cert_expiry{cluster=~\"$cluster\", namespace=~\"$namespace|\"} - time()",
                   "format": "table",
                   "instant": true,
                   "interval": "$interval",
@@ -408,7 +407,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "time() - blackbox_exporter_config_last_reload_success_timestamp_seconds{cluster=\"$cluster\", namespace=\"$blackbox_namespace\", pod=~\"$pod\"}",
+              "expr": "time() - blackbox_exporter_config_last_reload_success_timestamp_seconds{cluster=\"$cluster\", namespace=\"$blackbox_namespace\"}",
               "format": "time_series",
               "instant": true,
               "legendFormat": "{{ `{{` }} pod {{ `}}` }}",
@@ -474,7 +473,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "blackbox_exporter_build_info{cluster=\"$cluster\", namespace=\"$blackbox_namespace\", pod=~\"$pod\"}",
+              "expr": "blackbox_exporter_build_info{cluster=\"$cluster\", namespace=\"$blackbox_namespace\"}",
               "instant": true,
               "legendFormat": "{{ `{{` }} version {{ `}}` }}",
               "range": false,
@@ -539,7 +538,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "blackbox_exporter_build_info{cluster=\"$cluster\", namespace=\"$blackbox_namespace\", pod=~\"$pod\"}",
+              "expr": "blackbox_exporter_build_info{cluster=\"$cluster\", namespace=\"$blackbox_namespace\"}",
               "instant": true,
               "legendFormat": "{{ `{{` }} goversion {{ `}}` }}",
               "range": false,
@@ -637,7 +636,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "idelta(blackbox_module_unknown_total{cluster=\"$cluster\", namespace=\"$blackbox_namespace\", pod=~\"$pod\"}[1m])",
+              "expr": "idelta(blackbox_module_unknown_total{cluster=\"$cluster\", namespace=\"$blackbox_namespace\"}[1m])",
               "instant": false,
               "legendFormat": "{{ `{{` }} pod {{ `}}` }}",
               "range": true,
@@ -731,7 +730,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "blackbox_exporter_config_last_reload_successful{cluster=\"$cluster\", namespace=\"$blackbox_namespace\", pod=~\"$pod\"}",
+              "expr": "blackbox_exporter_config_last_reload_successful{cluster=\"$cluster\", namespace=\"$blackbox_namespace\"}",
               "instant": false,
               "legendFormat": "{{ `{{` }} pod {{ `}}` }}",
               "range": true,
@@ -745,7 +744,7 @@ spec:
           "collapsed": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "${datasource}"
           },
           "gridPos": {
             "h": 1,
@@ -760,7 +759,7 @@ spec:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "${datasource}"
               },
               "refId": "A"
             }
@@ -861,7 +860,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "min_over_time(probe_success{cluster=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$target\", pod=~\"$pod\"}[$interval])",
+              "expr": "min_over_time(probe_success{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"}[$interval])",
               "format": "time_series",
               "instant": false,
               "interval": "$interval",
@@ -966,7 +965,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "probe_http_duration_seconds{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"}",
+              "expr": "probe_http_duration_seconds{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"}",
               "format": "time_series",
               "interval": "$interval",
               "intervalFactor": 1,
@@ -1067,7 +1066,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": true,
-              "expr": "probe_duration_seconds{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"}",
+              "expr": "probe_duration_seconds{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"}",
               "format": "time_series",
               "interval": "$interval",
               "intervalFactor": 1,
@@ -1178,7 +1177,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "min_over_time(probe_http_status_code{cluster=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$target\", pod=~\"$pod\"}[$interval])",
+              "expr": "min_over_time(probe_http_status_code{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"}[$interval])",
               "format": "time_series",
               "instant": false,
               "interval": "$interval",
@@ -1263,7 +1262,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "probe_http_version{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"}",
+              "expr": "probe_http_version{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"}",
               "format": "time_series",
               "instant": true,
               "interval": "",
@@ -1365,7 +1364,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "probe_ssl_earliest_cert_expiry{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"} - time()",
+              "expr": "probe_ssl_earliest_cert_expiry{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"} - time()",
               "format": "time_series",
               "instant": true,
               "interval": "$interval",
@@ -1450,7 +1449,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "avg(probe_duration_seconds{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"})",
+              "expr": "avg(probe_duration_seconds{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"})",
               "format": "time_series",
               "instant": false,
               "interval": "$interval",
@@ -1536,7 +1535,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "avg(probe_dns_lookup_time_seconds{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"})",
+              "expr": "avg(probe_dns_lookup_time_seconds{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"})",
               "format": "time_series",
               "hide": false,
               "instant": false,
@@ -1635,7 +1634,7 @@ spec:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "probe_http_ssl{cluster=~\"$cluster\", namespace=\"$namespace\", instance=~\"$target\", pod=~\"$pod\"}",
+              "expr": "probe_http_ssl{cluster=~\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"}",
               "format": "time_series",
               "instant": true,
               "interval": "$interval",
@@ -1659,9 +1658,7 @@ spec:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "default",
-              "value": "default"
+              "text": "Platform Monitoring Prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -1676,12 +1673,7 @@ spec:
             "type": "datasource"
           },
           {
-            "current": {
-              "isNone": true,
-              "selected": false,
-              "text": "None",
-              "value": ""
-            },
+            "current": {},
             "datasource": {
               "type": "prometheus",
               "uid": "${datasource}"
@@ -1729,11 +1721,7 @@ spec:
             "type": "query"
           },
           {
-            "current": {
-              "selected": false,
-              "text": "monitoring",
-              "value": "monitoring"
-            },
+            "current": {},
             "datasource": {
               "type": "prometheus",
               "uid": "${datasource}"
@@ -1756,15 +1744,7 @@ spec:
             "type": "query"
           },
           {
-            "current": {
-              "selected": true,
-              "text": [
-                "blackbox-exporter-7l8dg"
-              ],
-              "value": [
-                "blackbox-exporter-7l8dg"
-              ]
-            },
+            "current": {},
             "datasource": {
               "type": "prometheus",
               "uid": "${datasource}"
@@ -1914,7 +1894,7 @@ spec:
               "type": "prometheus",
               "uid": "${datasource}"
             },
-            "definition": "query_result(probe_success{cluster=\"$cluster\", namespace=~\"$namespace\", instance=~\"$target\"})",
+            "definition": "query_result(probe_success{cluster=\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"})",
             "hide": 0,
             "includeAll": false,
             "label": "legend label",
@@ -1922,7 +1902,7 @@ spec:
             "name": "label",
             "options": [],
             "query": {
-              "query": "query_result(probe_success{cluster=\"$cluster\", namespace=~\"$namespace\", instance=~\"$target\"})",
+              "query": "query_result(probe_success{cluster=\"$cluster\", namespace=~\"$namespace|\", instance=~\"$target\"})",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
@@ -1968,3 +1948,4 @@ spec:
       "weekStart": ""
     }
 {{- end }}
+

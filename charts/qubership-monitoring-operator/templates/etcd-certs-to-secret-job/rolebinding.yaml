@@ -1,0 +1,20 @@
+{{- if eq .Values.publicCloudName "" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.etcdCertsJob.rbac.roleBindingName }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.roleBindingName }}
+    app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.etcdCertsJob.rbac.serviceAccountName }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.etcdCertsJob.rbac.roleName }}
+{{- end }}

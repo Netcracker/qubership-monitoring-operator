@@ -1,0 +1,181 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "description": "Schema for graphite-remote-adapter Helm values",
+    "properties": {
+        "additionalGraphiteConfig": {
+            "type": "object",
+            "description": "Additional Graphite Config",
+            "default": {},
+            "examples": [
+                {
+                    "web": {
+                        "telemetry_path": "/metrics"
+                    },
+                    "write": {
+                        "timeout": "5m"
+                    },
+                    "read": {
+                        "timeout": "5m",
+                        "delay": "1h",
+                        "ignore_error": true
+                    },
+                    "graphite": {
+                        "write": {
+                            "carbon_transport": "tcp",
+                            "carbon_reconnect_interval": "5m",
+                            "enable_paths_cache": true,
+                            "paths_cache_ttl": "4h",
+                            "paths_cache_purge_interval": "4h",
+                            "template_data": {
+                                "var1": {
+                                    "foo": "bar"
+                                },
+                                "var2": "foobar"
+                            }
+                        }
+                    }
+
+                }
+            ]
+        },
+        "affinity": {
+            "type": "object",
+            "description": "If specified, the pod's scheduling constraints",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+            "default": {}
+        },
+        "defaultPrefix": {
+            "type": "string",
+            "description": "The prefix to prepend to all metrics exported to Graphite",
+            "default": ""
+        },
+        "enableTags": {
+            "type": "boolean",
+            "description": "Enable using Graphite tags",
+            "default": true
+        },
+        "grafanaDashboard": {
+            "type": "boolean",
+            "description": "Allows to create Grafana dashboard for graphite-remote-adapter",
+            "default": true
+        },
+        "image": {
+            "type": "string",
+            "description": "Graphite remote adapter image to deploy.\nDefault: ghcr.io/netcracker/qubership-graphite-remote-adapter:main"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable deploy graphite-remote-adapter",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+            "default": {}
+        },
+        "name": {
+            "type": "string",
+            "description": "A name of a microservice to deploy with. This name will be used as name of the microservice deployment and in labels",
+            "default": "graphite-remote-adapter"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow define which Nodes the Pods are scheduled on",
+            "default": {}
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the Pods to prevent them from evicting. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+        },
+        "readUrl": {
+            "type": "string",
+            "description": "The URL of the remote Graphite Web server to send samples to",
+            "default": "http://guest:guest@localhost:8080"
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Number of created pods",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for single Pod. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "The maximum amount of compute resources allowed. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#meaning-of-cpu-and-memory-resource-requests-and-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The maximum amount of CPU allowed. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The maximum amount of memory allowed. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "The minimum amount of compute resources required. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#meaning-of-cpu-and-memory-resource-requests-and-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The minimum amount of CPU required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The minimum amount of memory required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for Openshift cluster",
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod. If unset, the Kubelet will not modify the ownership and permissions of any volume."
+                }
+            },
+            "default": {}
+        },
+        "servicePort": {
+            "type": "integer",
+            "description": "Port for graphite-remote-adapter service",
+            "default": 9201
+        },
+        "servicemonitor": {
+            "type": "object",
+            "description": "Service monitor settings for graphite-remote-adapter",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to disable create ServiceMonitor CR for graphite-remote-adapter during deploy",
+                    "default": true
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints",
+            "default": []
+        },
+        "writeCarbonAddress": {
+            "type": "string",
+            "description": "The host:port of the Graphite server to send samples to",
+            "default": "localhost:9999"
+        }
+    }
+}

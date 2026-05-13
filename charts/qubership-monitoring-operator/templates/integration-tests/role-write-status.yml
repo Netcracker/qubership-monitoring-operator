@@ -1,15 +1,12 @@
 {{- if .Values.integrationTests.install }}
 {{- if eq (.Values.integrationTests.statusWriting.enabled | toString) "true" }}
+{{- $writeStatusRole := printf "%s-write-status" .Values.integrationTests.name -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ .Values.integrationTests.name }}-write-status
+  name: {{ $writeStatusRole }}
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}-write-status
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" $writeStatusRole "component" "platform-monitoring-tests") | nindent 4 }}
 rules:
 - apiGroups:
   - {{ template "integrationTests.apigroup_custom_resource" . }}

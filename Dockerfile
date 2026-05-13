@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine3.22 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine3.22 AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -15,7 +15,7 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY main.go main.go
+COPY cmd/operator/main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
 

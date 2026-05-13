@@ -43,7 +43,7 @@ config:
   # Type: list[object]
   # Mandatory: yes
   #
-  serverGroups:
+  # serverGroups:
   #  - address: "prometheus-operated:9090"
   #    label: "k8s-1"
   #  - address: "prometheus.k8s-2.cloud.com"

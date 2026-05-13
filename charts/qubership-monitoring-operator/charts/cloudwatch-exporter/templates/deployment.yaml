@@ -4,14 +4,11 @@ kind: Deployment
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: cloudwatch-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/instance: {{ template "cloudwatch-exporter.instance" . }}
     app.kubernetes.io/version: {{ template "cloudwatch-exporter.version" . }}
-    {{- if .Values.labels }}
-      {{ toYaml .Values.labels | nindent 4 }}
-    {{- end }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -25,15 +22,11 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
-        app.kubernetes.io/name: {{ .Values.name }}
-        app.kubernetes.io/component: cloudwatch-exporter
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" . | nindent 8 }}
         app.kubernetes.io/instance: {{ template "cloudwatch-exporter.instance" . }}
         app.kubernetes.io/version: {{ template "cloudwatch-exporter.version" . }}
-        app.kubernetes.io/managed-by: Helm
-        {{- if .Values.labels }}
-          {{ toYaml .Values.labels | nindent 8 }}
-        {{- end }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
       annotations:
         checksum/config: {{ .Files.Get "templates/cloudwatch-exporter/configmap.yaml" | sha256sum }}
         checksum/secrets: {{ .Files.Get "templates/cloudwatch-exporter/secrets.yaml" | sha256sum }}

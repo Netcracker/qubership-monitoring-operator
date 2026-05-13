@@ -10,6 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
+    {{- /* # renovate: datasource=docker depName=ghcr.io/tomkerkhove/promitor-agent-scraper */ -}}
     {{- print "ghcr.io/tomkerkhove/promitor-agent-scraper:2.13.0" -}}
   {{- end -}}
 {{- end -}}

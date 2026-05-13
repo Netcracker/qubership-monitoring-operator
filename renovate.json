@@ -1,0 +1,108 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "schedule:weekly"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "ignorePaths": [
+    "**/examples/**",
+    "**/tests/**"
+  ],
+  "pip_requirements": {
+    "managerFilePatterns": [
+      "/(^|/)[\\w-]*requirements([-.][\\w]+)?\\.(txt|pip)$/",
+      "/(^|/)[\\w-]*requirements_[\\w]+\\.txt$/"
+    ]
+  },
+  "prConcurrentLimit": 20,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update versions via inline renovate annotation comments",
+      "managerFilePatterns": [
+        "/charts/qubership-monitoring-operator/templates/_images\\.tpl/",
+        "/charts/.+/templates/_helpers?\\.tpl/",
+        "/.github/workflows/integration-tests\\.yaml/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
+      ],
+      "extractVersionTemplate": "(?<version>[0-9][^:]*$)"
+    },
+    {
+      "customType": "regex",
+      "description": "Update go install tool versions in Makefile",
+      "managerFilePatterns": ["/Makefile/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*@v(?<currentValue>[0-9][^\\s\\n\\\\]*)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Group all go module updates",
+      "matchManagers": ["gomod"],
+      "groupName": "go-dependencies"
+    },
+    {
+      "description": "Group Kubernetes-related go modules (overrides go-dependencies group)",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "k8s.io/{/,}**",
+        "sigs.k8s.io/{/,}**",
+        "github.com/prometheus-operator/prometheus-operator{/,}**",
+        "github.com/VictoriaMetrics/{/,}**"
+      ],
+      "groupName": "k8s-go-modules"
+    },
+    {
+      "description": "Group controller-gen Makefile tool into k8s-go-modules",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["kubernetes-sigs/controller-tools"],
+      "groupName": "k8s-go-modules"
+    },
+    {
+      "description": "Group all GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "separateMajorMinor": false
+    },
+    {
+      "description": "Group all third-party docker images, base images, and pip packages",
+      "matchManagers": ["custom.regex", "dockerfile", "pip", "helm-values"],
+      "groupName": "third-party-images",
+      "separateMajorMinor": false
+    },
+    {
+      "description": "Group Netcracker reusable workflows and GitHub Actions (overrides github-actions group)",
+      "matchManagers": ["github-actions", "custom.regex"],
+      "matchPackageNames": [
+        "Netcracker/qubership-test-pipelines",
+        "Netcracker/qubership-workflow-hub",
+        "netcracker/qubership-workflow-hub",
+        "Netcracker/qubership-core-infra"
+      ],
+      "groupName": "netcracker-workflows",
+      "separateMajorMinor": false
+    },
+    {
+      "description": "Group Netcracker docker images (overrides third-party-images group)",
+      "matchManagers": ["custom.regex", "dockerfile"],
+      "matchPackageNames": [
+        "Netcracker/qubership-grafana-plugins-init",
+        "Netcracker/qubership-kube-events-reader",
+        "Netcracker/qubership-graphite-remote-adapter",
+        "Netcracker/qubership-network-latency-exporter",
+        "Netcracker/qubership-prometheus-adapter-operator",
+        "Netcracker/qubership-version-exporter",
+        "ghcr.io/netcracker/qubership-docker-integration-tests"
+      ],
+      "groupName": "netcracker-images",
+      "separateMajorMinor": false,
+      "ignoreUnstable": false
+    }
+  ]
+}

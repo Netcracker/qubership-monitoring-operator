@@ -1,0 +1,289 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'haproxy_up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "HAProxy down (instance )"
+        description: "HAProxy down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_up alertgroup:HAproxy alertname:HaproxyDown severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_connection_errors_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyBackendConnectionErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "HAProxy backend connection errors (instance )"
+        description: "Too many connection errors to / backend (> 10 req/s). Request throughput may be to high.\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyBackendConnectionErrors severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_connection_errors_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyBackendConnectionErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_response_errors_total'
+    values: "600+600x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerResponseErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "HAProxy server response errors (instance )"
+        description: "Too many response errors to  server (> 5 req/s).\n  VALUE = 10\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyServerResponseErrors severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_response_errors_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerResponseErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_connection_errors_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerConnectionErrors
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "HAProxy server connection errors (instance )"
+        description: "Too many connection errors to  server (> 10 req/s). Request throughput may be to high.\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyServerConnectionErrors severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_connection_errors_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 6m
+    groupname: HAproxy
+    alertname: HaproxyServerConnectionErrors
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_current_queue'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyPendingRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "HAProxy pending requests (instance )"
+        description: "Some HAProxy requests are pending on / backend\n  VALUE = 1\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyPendingRequests severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_current_queue'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyPendingRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_http_total_time_average_seconds'
+    values: "3x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyHttpSlowingDown
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "HAProxy HTTP slowing down (instance )"
+        description: "Average request time is increasing\n  VALUE = 3\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyHttpSlowingDown severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_http_total_time_average_seconds'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyHttpSlowingDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_retry_warnings_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyRetryHigh
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "HAProxy retry high (instance )"
+        description: "High rate of retry on / backend\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyRetryHigh severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_retry_warnings_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyRetryHigh
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_frontend_requests_denied_total'
+    values: "1200+1200x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyFrontendSecurityBlockedRequests
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "HAProxy frontend security blocked requests (instance )"
+        description: "HAProxy is blocking requests for security reason\n  VALUE = 20\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyFrontendSecurityBlockedRequests severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_frontend_requests_denied_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: HAproxy
+    alertname: HaproxyFrontendSecurityBlockedRequests
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyBackendDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "HAProxy backend down (instance )"
+        description: "HAProxy backend is down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_backend_up alertgroup:HAproxy alertname:HaproxyBackendDown severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_backend_up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyBackendDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerDown
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "HAProxy server down (instance )"
+        description: "HAProxy server is down\n  VALUE = 0\n  LABELS: map[__name__:haproxy_server_up alertgroup:HAproxy alertname:HaproxyServerDown severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerDown
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_check_failures_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerHealthcheckFailure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "HAProxy server healthcheck failure (instance )"
+        description: "Some server healthcheck are failing on \n  VALUE = 5\n  LABELS: map[alertgroup:HAproxy alertname:HaproxyServerHealthcheckFailure severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'haproxy_server_check_failures_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAproxy
+    alertname: HaproxyServerHealthcheckFailure
+    exp_alerts: []

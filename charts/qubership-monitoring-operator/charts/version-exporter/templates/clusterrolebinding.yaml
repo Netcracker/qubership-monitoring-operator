@@ -4,12 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ template "version-exporter.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "version-exporter.rbac.fullname" . }}
-    app.kubernetes.io/instance: {{ cat .Release.Namespace "-" .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: version-exporter
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "version-exporter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "version-exporter.rbac.fullname" .)) | nindent 4 }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.serviceAccount.name }}
