@@ -5,7 +5,9 @@ on:
     types: [created]
   push:
     branches:
-    - '**'
+    - main
+    tags:
+    - 'v*'
     paths:
     - '**'
     - '!.github/**'
