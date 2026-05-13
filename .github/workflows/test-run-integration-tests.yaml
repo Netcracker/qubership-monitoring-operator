@@ -1,4 +1,5 @@
-name: Run Monitoring Pipeline
+---
+name: "Tests: Run integration test pipeline"
 
 on:
   push:

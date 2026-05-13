@@ -1,11 +1,21 @@
-name: Go test with Sonar
+---
+name: "Tests: Go test with Sonar"
+
 on:
-  push: {}
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: read
+
 jobs:
   prepare:
     runs-on: ubuntu-latest

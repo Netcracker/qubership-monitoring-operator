@@ -1,7 +1,15 @@
 ---
-name: Check Go Modules Licenses
+name: "PR: Check Go Modules Licenses"
+
 on:
   push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   check-license:

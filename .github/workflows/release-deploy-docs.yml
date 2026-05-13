@@ -1,4 +1,5 @@
-name: Deploy Documentation
+---
+name: "Release: Deploy Documentation"
 
 on:
   push:
@@ -100,4 +101,4 @@ jobs:
           pip install -r requirements_mkdocs.txt
 
       - name: Test build
-        run: mkdocs build --verbose --strict 
+        run: mkdocs build --verbose --strict
