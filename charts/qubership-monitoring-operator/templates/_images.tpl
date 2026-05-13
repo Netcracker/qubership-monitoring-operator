@@ -46,7 +46,7 @@ Image can be found from:
     {{- printf "%s" .Values.grafana.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=grafana/grafana */ -}}
-    {{- print "docker.io/grafana/grafana:13.0.1+security-01" -}}
+    {{- print "docker.io/grafana/grafana:12.4.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -142,7 +142,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmOperator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator */ -}}
-    {{- print "docker.io/victoriametrics/operator:v0.69.0" -}}
+    {{- print "docker.io/victoriametrics/operator:v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -157,7 +157,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmOperator.configReloaderImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.69.0" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -187,7 +187,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAgent.configReloadImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.91.0" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -277,7 +277,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmSelectImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics */ -}}
-    {{- print "docker.io/victoriametrics/vmselect:v1.143.0" -}}
+    {{- print "docker.io/victoriametrics/vmselect:v1.143.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -292,7 +292,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmStorageImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics */ -}}
-    {{- print "docker.io/victoriametrics/vmstorage:v1.143.0" -}}
+    {{- print "docker.io/victoriametrics/vmstorage:v1.143.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -307,7 +307,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmInsertImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics */ -}}
-    {{- print "docker.io/victoriametrics/vminsert:v1.143.0" -}}
+    {{- print "docker.io/victoriametrics/vminsert:v1.143.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -322,7 +322,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAuth.configReloadImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.91.0" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -417,7 +417,7 @@ Image can be found from:
     {{- printf "%s" .Values.oAuthProxy.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=oauth2-proxy/oauth2-proxy */ -}}
-    {{- print "quay.io/oauth7.15.2" -}}
+    {{- print "quay.io/oauth2-proxy/oauth2-proxy:7.15.2" -}}
   {{- end -}}
 {{- end -}}
 
