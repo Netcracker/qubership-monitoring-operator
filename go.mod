@@ -133,4 +133,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/google/gnostic => github.com/google/gnostic v0.6.9
+replace github.com/google/gnostic => github.com/google/gnostic v0.7.1
