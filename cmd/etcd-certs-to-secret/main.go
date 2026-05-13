@@ -55,7 +55,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := run(context.TODO(), opts, log); err != nil {
+	clients, err := newKubeClients()
+	if err != nil {
+		log.Error("failed to initialize Kubernetes clients", "error", err)
+		os.Exit(1)
+	}
+
+	if err := run(context.TODO(), clients, opts, log); err != nil {
 		log.Error("etcd certificates synchronization failed", "error", err)
 		os.Exit(1)
 	}
@@ -110,12 +116,7 @@ func newLogger(level slog.Level) *slog.Logger {
 	}))
 }
 
-func run(ctx context.Context, opts appOptions, log *slog.Logger) error {
-	clients, err := newKubeClients()
-	if err != nil {
-		return err
-	}
-
+func run(ctx context.Context, clients *kubeClients, opts appOptions, log *slog.Logger) error {
 	isOpenshiftV4, err := hasOpenshiftSecurityAPI(clients.discoveryClient)
 	if err != nil {
 		return fmt.Errorf("couldn't probe OpenShift API: %w", err)
