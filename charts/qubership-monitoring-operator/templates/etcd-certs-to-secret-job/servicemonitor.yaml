@@ -1,0 +1,48 @@
+{{- if eq .Values.publicCloudName "" }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Namespace }}-etcd
+  labels:
+    name: {{ .Release.Namespace }}-etcd
+    app.kubernetes.io/name: {{ .Release.Namespace }}-etcd
+    app.kubernetes.io/component: etcd-certs-to-secret
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+spec:
+  jobLabel: etcd
+  selector:
+    matchLabels:
+      k8s-app: etcd
+  namespaceSelector:
+    matchNames:
+    {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+      - openshift-etcd
+    {{- else }}
+      - kube-system
+    {{- end }}
+  endpoints:
+    - interval: 30s
+      scrapeTimeout: 10s
+      scheme: https
+      {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+      port: etcd-metrics
+      {{- else }}
+      port: metrics
+      {{- end }}
+      tlsConfig:
+        serverName: ""
+        ca:
+          secret:
+            name: kube-etcd-client-certs
+            key: etcd-client-ca.crt
+        cert:
+          secret:
+            name: kube-etcd-client-certs
+            key: etcd-client.crt
+        keySecret:
+          name: kube-etcd-client-certs
+          key: etcd-client.key
+{{- end }}

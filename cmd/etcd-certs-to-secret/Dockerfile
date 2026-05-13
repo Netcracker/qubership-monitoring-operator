@@ -1,5 +1,6 @@
-# Build the manager binary
-FROM --platform=$BUILDPLATFORM golang:1.24.4-alpine3.21 AS builder
+# Build the etcd-certs-to-secret binary
+# Build context must be the repository root.
+FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine3.22 AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -7,21 +8,21 @@ ARG TARGETARCH
 WORKDIR /workspace
 
 # Copy the Go Modules manifests
-COPY go.mod go.sum ./
+COPY go.mod go.mod
+COPY go.sum go.sum
 
-# Cache deps before building and copying source so that we don't need to re-download as much
-# and so that source changes don't invalidate our downloaded layer
+# Cache deps before copying source
 RUN go mod download
 
-COPY assets/ assets/
 # Copy the go source
-COPY main.go main.go
+COPY cmd/etcd-certs-to-secret/ cmd/etcd-certs-to-secret/
 
 # Build
-RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" GO111MODULE=on go build -a -o etcd main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on \
+    go build -a -o etcd ./cmd/etcd-certs-to-secret
 
 # Use alpine base container
-FROM alpine:3.22.0
+FROM alpine:3.23.3
 
 ENV USER_UID=2001 \
     USER_NAME=monitoring-operator \
