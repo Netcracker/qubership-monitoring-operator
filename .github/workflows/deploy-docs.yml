@@ -67,7 +67,7 @@ jobs:
           pip install -r site/requirements.txt
 
       - name: Build docs
-        run: mkdocs build -f site/mkdocs.yml
+        run: zensical build -f site/mkdocs.yml --clean
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
@@ -100,4 +100,4 @@ jobs:
           pip install -r site/requirements.txt
 
       - name: Test build
-        run: mkdocs build -f site/mkdocs.yml --verbose --strict
+        run: zensical build -f site/mkdocs.yml --verbose --strict --clean
