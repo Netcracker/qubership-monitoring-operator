@@ -62,7 +62,10 @@ jobs:
         component:
         - name: qubership-monitoring-operator
           description: Qubership Monitoring Operator image
-          file: Dockerfile
+          file: cmd/operator/Dockerfile
+          context: .
+        - name: qubership-etcd-certs-to-secret
+          file: cmd/etcd-certs-to-secret/Dockerfile
           context: .
         - name: qubership-monitoring-transfer
           description: Qubership Monitoring documentation and helm charts image
@@ -72,9 +75,6 @@ jobs:
           description: Qubership Monitoring integration tests image
           file: test/robot-tests/Dockerfile
           context: test/robot-tests
-        - name: qubership-etcd-certs-to-secret
-          file: cmd/etcd-certs-to-secret/Dockerfile
-          context: .
     runs-on: ubuntu-latest
     name: ${{ matrix.component.name }}
     steps:
@@ -124,7 +124,7 @@ jobs:
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
         push: >-
-          ${{ 
+          ${{
             (github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]') &&
             (
             (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
