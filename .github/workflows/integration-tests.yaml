@@ -46,7 +46,7 @@ jobs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
       - name: Wait for build.yaml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@d11baa8a4b42d1a931808c0766ee23eb344c47dd # v2.2.0
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@6a2de8d62ac5b6998e30f923613c998c263ea9f2 # v2.2.2
         id: wait
         with:
           workflow: build.yaml
@@ -60,7 +60,7 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@5e867049c9bc60651f53611cdcf167dc0c7f8ff4 #v1.7.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@247c69038e00f2a9e283412e902555f84b16dab2 # v1.8.0
     with:
       service_branch: ${{ github.sha }}
       pipeline_branch: '5e867049c9bc60651f53611cdcf167dc0c7f8ff4' #this value must match the value after '@' in 'uses'
