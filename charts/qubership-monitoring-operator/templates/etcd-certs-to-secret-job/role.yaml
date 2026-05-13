@@ -7,47 +7,28 @@ metadata:
     app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.roleName }}
     app.kubernetes.io/component: monitoring-etcd-certs-to-secret
     app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
 rules:
-  - verbs:
-      - create
-      - update
-      - patch
-      - get
-      - list
-      - watch
-    apiGroups:
+  - apiGroups:
       - ''
     resources:
       - secrets
-  - verbs:
-      - get
-      - list
-    apiGroups:
-      - ''
-    resources:
-      - pods
-  - verbs:
-      - get
-      - list
-      - watch
+    verbs:
       - create
       - update
       - patch
-      - delete
-    apiGroups:
-      - monitoring.coreos.com
-    resources:
-      - servicemonitors
-  - verbs:
       - get
       - list
       - watch
-    apiGroups:
-      - monitoring.netcracker.com
+  - apiGroups:
+      - ''
     resources:
-      - platformmonitorings
+      - pods
+    verbs:
+      - get
+      - list
   {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
   - apiGroups:
       - "security.openshift.io"

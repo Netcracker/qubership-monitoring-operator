@@ -5,49 +5,51 @@ metadata:
   name: {{ .Values.etcdCertsJob.rbac.clusterRoleName }}
   labels:
     app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.clusterRoleName }}
-    app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+    app.kubernetes.io/component: etcd-certs-to-secret
     app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
 rules:
-  - verbs:
+  - apiGroups:
+      - ''
+    resources:
+      - services
+    verbs:
+      - create
+      - get
+      - list
+      - update
+      - patch
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
       - get
       - list
       - watch
-    apiGroups:
+  - apiGroups:
       - ''
     resources:
       - secrets
     resourceNames:
-      - "etcd-metric-client"
-      - "etcd-client"
-  - verbs:
+      - etcd-metric-client
+      - etcd-client
+    verbs:
       - get
       - list
       - watch
-    apiGroups:
+  - apiGroups:
       - ''
     resources:
       - configmaps
     resourceNames:
-      - "etcd-metric-serving-ca"
-      - "etcd-serving-ca"
-  - verbs:
+      - etcd-metric-serving-ca
+      - etcd-serving-ca
+    verbs:
       - get
       - list
       - watch
-      - update
-      - create
-    apiGroups:
-      - ''
-    resources:
-      - services
-  - verbs:
-      - get
-      - list
-      - watch
-    apiGroups:
-      - ''
-    resources:
-      - pods
 {{- end }}

@@ -6,27 +6,28 @@ metadata:
   name: {{ .Values.etcdCertsJob.rbac.name }}
   labels:
     app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.name }}
-    app.kubernetes.io/component: cert-exporter
+    app.kubernetes.io/component: etcd-certs-to-secret
     app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version:  {{ template "monitoring.operator.version" . }}
-priority: 0
-users: []
+allowHostDirVolumePlugin: true
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
 groups: []
+priority: 0
 readOnlyRootFilesystem: true
 requiredDropCapabilities: []
-defaultAddCapabilities: []
-allowedCapabilities: []
 runAsUser:
   type: RunAsAny
 seLinuxContext:
   type: RunAsAny
-allowPrivilegedContainer: false
-allowHostDirVolumePlugin: true
-allowHostNetwork: false
-allowHostPID: false
-allowHostPorts: false
-allowHostIPC: false
+users: []
 volumes:
 - '*'
 {{- end }}

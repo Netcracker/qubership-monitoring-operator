@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM golang:1.26.3-alpine3.22 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.3-alpine3.23 AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -20,7 +20,8 @@ COPY api/ api/
 COPY controllers/ controllers/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" GO111MODULE=on \
+    go build -a -o manager main.go
 
 # Use alpine base container
 FROM alpine:3.23.4
@@ -30,7 +31,7 @@ ENV USER_UID=2001 \
     GROUP_NAME=monitoring-operator
 
 WORKDIR /
-COPY --from=builder --chown=${USER_UID} /workspace/manager .
+COPY --from=builder --chown=${USER_UID} --chmod=0555 /workspace/manager .
 
 RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
 USER ${USER_UID}
