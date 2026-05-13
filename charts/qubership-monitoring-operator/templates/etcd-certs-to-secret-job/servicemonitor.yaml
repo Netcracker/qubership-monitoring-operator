@@ -2,10 +2,9 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Namespace }}-etcd
+  name: etcd
   labels:
-    name: {{ .Release.Namespace }}-etcd
-    app.kubernetes.io/name: {{ .Release.Namespace }}-etcd
+    app.kubernetes.io/name: etcd
     app.kubernetes.io/component: etcd-certs-to-secret
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: Helm

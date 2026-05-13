@@ -1,6 +1,6 @@
 # Build the etcd-certs-to-secret binary
 # Build context must be the repository root.
-FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine3.22 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.3-alpine3.23 AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -18,22 +18,21 @@ RUN go mod download
 COPY cmd/etcd-certs-to-secret/ cmd/etcd-certs-to-secret/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on \
-    go build -a -o etcd ./cmd/etcd-certs-to-secret
+RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" GO111MODULE=on \
+    go build -a -o etcd-certs ./cmd/etcd-certs-to-secret
 
 # Use alpine base container
 FROM alpine:3.23.3
 
 ENV USER_UID=2001 \
-    USER_NAME=monitoring-operator \
-    GROUP_NAME=monitoring-operator
+    USER_NAME=etcd-certs \
+    GROUP_NAME=etcd-certs
 
 WORKDIR /
-COPY --from=builder /workspace/etcd /etcd
+COPY --from=builder --chown=${USER_UID} /workspace/etcd-certs /etcd-certs
 
-RUN chmod 0555 /etcd && \
-    addgroup "${GROUP_NAME}" && \
-    adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
+RUN chmod 0555 /etcd \
+    && addgroup "${GROUP_NAME}" && adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
 USER ${USER_UID}
 
-ENTRYPOINT ["/etcd"]
+ENTRYPOINT ["/etcd-certs"]

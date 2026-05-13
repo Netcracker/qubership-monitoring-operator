@@ -5,8 +5,9 @@ metadata:
   name: {{ .Values.etcdCertsJob.name }}
   labels:
     app.kubernetes.io/name: {{ .Values.etcdCertsJob.name }}
-    app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+    app.kubernetes.io/component: etcd-certs-to-secret
     app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
 spec:
@@ -26,7 +27,7 @@ spec:
         metadata:
           labels:
             name: {{ .Values.etcdCertsJob.name }}
-            app.kubernetes.io/component: monitoring-etcd-certs-to-secret
+            app.kubernetes.io/component: etcd-certs-to-secret
             app.kubernetes.io/name: {{ .Values.etcdCertsJob.name }}
             app.kubernetes.io/part-of: monitoring
             app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
@@ -60,10 +61,6 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
-                - name: POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
               resources:
                 {{- toYaml .Values.etcdCertsJob.resources | nindent 16 }}
               volumeMounts:

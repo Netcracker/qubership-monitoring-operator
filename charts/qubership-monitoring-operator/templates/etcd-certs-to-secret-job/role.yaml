@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.roleName }}
     app.kubernetes.io/component: monitoring-etcd-certs-to-secret
     app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
 rules:
