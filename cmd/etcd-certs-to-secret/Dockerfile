@@ -29,10 +29,9 @@ ENV USER_UID=2001 \
     GROUP_NAME=etcd-certs
 
 WORKDIR /
-COPY --from=builder --chown=${USER_UID} /workspace/etcd-certs /etcd-certs
+COPY --from=builder --chown=${USER_UID} --chmod=0555 /workspace/etcd-certs .
 
-RUN chmod 0555 /etcd-certs \
-    && addgroup "${GROUP_NAME}" && adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
+RUN addgroup "${GROUP_NAME}" && adduser -D -G "${GROUP_NAME}" -u "${USER_UID}" "${USER_NAME}"
 USER ${USER_UID}
 
 ENTRYPOINT ["/etcd-certs"]

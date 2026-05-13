@@ -31,7 +31,7 @@ ENV USER_UID=2001 \
     GROUP_NAME=monitoring-operator
 
 WORKDIR /
-COPY --from=builder --chown=${USER_UID} /workspace/manager .
+COPY --from=builder --chown=${USER_UID} --chmod=0555 /workspace/manager .
 
 RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
 USER ${USER_UID}
