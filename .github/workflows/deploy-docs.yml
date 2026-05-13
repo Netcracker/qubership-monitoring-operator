@@ -6,16 +6,16 @@ on:
       - main
     paths:
       - 'docs/**'
-      - 'mkdocs.yml'
-      - 'requirements_mkdocs.txt'
+      - 'site/mkdocs.yml'
+      - 'site/requirements.txt'
       - '.github/workflows/deploy-docs.yml'
   pull_request:
     branches:
       - '**'
     paths:
       - 'docs/**'
-      - 'mkdocs.yml'
-      - 'requirements_mkdocs.txt'
+      - 'site/mkdocs.yml'
+      - 'site/requirements.txt'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
@@ -64,10 +64,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements_mkdocs.txt
+          pip install -r site/requirements.txt
 
       - name: Build docs
-        run: mkdocs build
+        run: mkdocs build -f site/mkdocs.yml
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
@@ -75,7 +75,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: 'site'
+          path: 'public'
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -97,7 +97,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements_mkdocs.txt
+          pip install -r site/requirements.txt
 
       - name: Test build
-        run: mkdocs build --verbose --strict 
+        run: mkdocs build -f site/mkdocs.yml --verbose --strict

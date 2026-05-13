@@ -40,7 +40,5 @@ __pycache__/
 venv/
 *.pyc
 
-#mkdocs
-site/
-
+# agents
 .claude/
