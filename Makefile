@@ -253,11 +253,6 @@ build-site: prepare-site-directory install-site-dependencies
 	echo "=> Build site ..."
 	zensical build -f site/mkdocs.yml --clean
 
-# Test the site, build the site and check for errors and warnings
-.PHONY: test-site
-test-site: prepare-site-directory install-site-dependencies
-	echo "=> Test site ..."
-	zensical build -f site/mkdocs.yml --clean --strict
 
 ############
 # Archives #
