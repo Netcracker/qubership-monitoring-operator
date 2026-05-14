@@ -245,12 +245,18 @@ prepare-site-directory:
 	echo "=> Prepare site directory ..."
 	rm -rf $(SITE_FOLDER)/docs
 	mkdir -p $(SITE_FOLDER)
-	cp -r $(DOC_FOLDER)/docs $(SITE_FOLDER)/
+	cp -r $(DOC_FOLDER) $(SITE_FOLDER)/
 
 # Build the docs
 .PHONY: build-site
 build-site: prepare-site-directory install-site-dependencies
 	echo "=> Build site ..."
+	zensical build -f site/mkdocs.yml --clean
+
+# Test the site, build the site and check for errors and warnings
+.PHONY: test-site
+test-site: prepare-site-directory install-site-dependencies
+	echo "=> Test site ..."
 	zensical build -f site/mkdocs.yml --clean --strict
 
 ############
