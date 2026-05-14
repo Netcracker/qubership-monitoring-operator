@@ -47,3 +47,4 @@ venv/
 # mkdocs/zensical build output
 site/docs/
 site/public/
+site/.cache/
