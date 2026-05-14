@@ -29,6 +29,7 @@ VM_CRD_FOLDER=$(HELM_FOLDER)/charts/victoriametrics-operator/crds
 
 # Documents folders
 DOC_FOLDER := docs
+SITE_FOLDER := site
 CRD_DOC_FOLDER=$(DOC_FOLDER)/crds
 
 # Set build version
@@ -227,6 +228,30 @@ update-crds:
 run: generate fmt vet
 	echo "=> Run ..."
 	go run ./cmd/operator/
+
+#################
+# Building docs #
+#################
+
+# Install the dependencies
+.PHONY: install-site-dependencies
+install-site-dependencies:
+	echo "=> Install site dependencies ..."
+	pip install -r site/requirements.txt
+
+# Prepare the docs directory
+.PHONY: prepare-site-directory
+prepare-site-directory:
+	echo "=> Prepare site directory ..."
+	rm -rf $(SITE_FOLDER)/docs
+	mkdir -p $(SITE_FOLDER)
+	cp -r $(DOC_FOLDER)/docs $(SITE_FOLDER)/
+
+# Build the docs
+.PHONY: build-site
+build-site: prepare-site-directory install-site-dependencies
+	echo "=> Build site ..."
+	zensical build -f site/mkdocs.yml --clean --strict
 
 ############
 # Archives #

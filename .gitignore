@@ -38,7 +38,12 @@ deployments
 .idea/
 __pycache__/
 venv/
+.venv/
 *.pyc
 
 # agents
 .claude/
+
+# mkdocs/zensical build output
+site/docs/
+site/public/

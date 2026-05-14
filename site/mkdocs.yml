@@ -2,9 +2,9 @@ site_name: Qubership Monitoring Operator
 site_description: Comprehensive monitoring solution for Kubernetes
 site_url: https://netcracker.github.io/qubership-monitoring-operator
 
-# Paths (config lives in site/, content lives in ../docs/, build output goes to ../public/)
-docs_dir: ../docs
-site_dir: ../public
+# Paths (config lives in site/, content lives in docs/, build output goes to public/)
+docs_dir: docs
+site_dir: public
 
 # Repository
 repo_name: Netcracker/qubership-monitoring-operator
