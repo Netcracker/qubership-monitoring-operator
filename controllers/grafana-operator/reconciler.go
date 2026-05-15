@@ -4,8 +4,8 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
