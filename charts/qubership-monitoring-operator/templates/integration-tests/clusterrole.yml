@@ -23,6 +23,21 @@ rules:
       - "delete"
       - "create"
   - apiGroups:
+      - "grafana.integreatly.org"
+    resources:
+      - grafanadashboards
+      - grafanadashboards/status
+      - grafanas
+      - grafanas/status
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "update"
+      - "patch"
+      - "delete"
+      - "create"
+  - apiGroups:
       - "custom.metrics.k8s.io"
     resources:
       - "*"

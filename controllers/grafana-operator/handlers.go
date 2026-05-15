@@ -1,14 +1,19 @@
 package grafana_operator
 
 import (
+	"context"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana-operator/grafana-operator/v4/api/integreatly/v1alpha1"
+	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/util/retry"
 )
 
 func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -194,10 +199,22 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 		return err
 	}
 
+	// Deployment.spec.selector is immutable; keep the selector already stored in the
+	// API server and merge template labels so matchLabels stay satisfied (upgrades / Helm).
+	var preservedSelector *metav1.LabelSelector
+	if e.Spec.Selector != nil {
+		preservedSelector = e.Spec.Selector.DeepCopy()
+	}
+
 	//Set parameters
 	e.SetLabels(m.GetLabels())
-	e.Spec.Selector = m.Spec.Selector
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
+	if preservedSelector != nil {
+		e.Spec.Selector = preservedSelector
+	} else {
+		e.Spec.Selector = m.Spec.Selector
+	}
+	e.Spec.Template.Labels = deploymentTemplateLabelsForUpdate(
+		e.Spec.Template.Labels, m.Spec.Template.Labels, e.Spec.Selector)
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
@@ -217,25 +234,27 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
+	// Retry on conflict: the grafana-operator (and other actors) write status/finalizers
+	// on GrafanaDashboard objects concurrently, so a Get-mutate-Update window can race.
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used.
+		// Required for Grafana Operator v5 migration from integreatly.org/v1alpha1.
+		checkObj := &grafv1.GrafanaDashboard{}
+		checkObj.SetName(m.GetName())
+		checkObj.SetNamespace(m.GetNamespace())
+		checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+		if err := r.GetResource(checkObj); err != nil {
+			if errors.IsNotFound(err) {
+				return r.CreateResource(cr, m)
 			}
-			return nil
+			return err
 		}
-		return err
-	}
 
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+		checkObj.SetLabels(m.GetLabels())
+		checkObj.Spec = m.Spec
 
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+		return r.UpdateResource(checkObj)
+	})
 }
 
 func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -300,16 +319,25 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	e := &grafv1.GrafanaDashboard{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Check if resource exists first
+	// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used
+	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
+	checkObj := &grafv1.GrafanaDashboard{}
+	checkObj.SetName(m.GetName())
+	checkObj.SetNamespace(m.GetNamespace())
+	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	// Use the manifest object (which has correct type) for deletion
+	// The manifest object already has GVK set correctly
+	if err = r.Client.Delete(context.TODO(), m); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", "resource", "GrafanaDashboard", "name", m.GetName())
 	return nil
 }
 
@@ -330,4 +358,30 @@ func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *monv1.PlatformMonitorin
 		return err
 	}
 	return nil
+}
+
+func mergeStringStringMaps(base, overlay map[string]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range base {
+		out[k] = v
+	}
+	for k, v := range overlay {
+		out[k] = v
+	}
+	return out
+}
+
+// deploymentTemplateLabelsForUpdate merges desired template labels into existing ones and
+// forces keys from spec.selector.matchLabels so the pod template stays valid for the API.
+func deploymentTemplateLabelsForUpdate(existing, desired map[string]string, sel *metav1.LabelSelector) map[string]string {
+	merged := mergeStringStringMaps(existing, desired)
+	if sel != nil {
+		for k, v := range sel.MatchLabels {
+			merged[k] = v
+		}
+	}
+	if len(merged) == 0 {
+		return nil
+	}
+	return merged
 }

@@ -25,7 +25,7 @@ spec:
             - --collector.textfile.directory=/var/spool/monitoring
             - --path.procfs=/host/proc
             - --path.sysfs=/host/sys
-            - --path.rootfs=/host/root
+            - --path.rootfs=/host
             - --path.udev.data=/host/run
             - --web.listen-address=:9900
           imagePullPolicy: IfNotPresent
@@ -36,7 +36,7 @@ spec:
               hostPort: 9900
               name: metrics
           volumeMounts:
-            - mountPath: /host/root
+            - mountPath: /host
               mountPropagation: HostToContainer
               name: root
               readOnly: true

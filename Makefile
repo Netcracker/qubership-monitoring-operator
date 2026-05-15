@@ -22,18 +22,19 @@ CRDS_DIR=$(BUILD_DIR)/_crds
 
 # CRDs inside the subcharts
 MON_CRD_FOLDER=$(HELM_FOLDER)/crds
-GRAFANA_CRD_FODLER=$(HELM_FOLDER)/charts/grafana-operator/crds
+GRAFANA_CRD_FOLDER=$(HELM_FOLDER)/charts/grafana-operator/crds
 PROM_OPER_CRD_FOLDER=$(HELM_FOLDER)/charts/prometheus-operator/crds
 PROM_ADAPTER_CRD_FOLDER=$(HELM_FOLDER)/charts/prometheus-adapter-operator/crds
 VM_CRD_FOLDER=$(HELM_FOLDER)/charts/victoriametrics-operator/crds
 
 # Documents folders
 DOC_FOLDER := docs
+SITE_FOLDER := site
 CRD_DOC_FOLDER=$(DOC_FOLDER)/crds
 
 # Set build version
 ARTIFACT_NAME="qubership-monitoring-operator"
-VERSION?=0.75.0
+VERSION?=0.88.0
 
 # Detect the build environment, local or Jenkins builder
 BUILD_DATE=$(shell date +"%Y%m%d-%T")
@@ -76,7 +77,15 @@ pkgs = $(shell go list ./... | grep -v /test/envtests)
 # Container name
 CONTAINER_CLI?=docker
 CONTAINER_NAME="qubership-monitoring-operator"
-DOCKERFILE=Dockerfile
+DOCKERFILE=cmd/operator/Dockerfile
+
+# CRD update tool and operator versions (override on the command line, e.g.
+# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.90.1`)
+CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
+PYTHON?=python3
+PROMETHEUS_OPERATOR_VERSION?=0.90.1
+VICTORIAMETRICS_OPERATOR_VERSION?=0.66.0
+GRAFANA_OPERATOR_VERSION?=5.21.0
 
 ###########
 # Generic #
@@ -149,7 +158,7 @@ endif
 .PHONY: build-binary
 build-binary: generate fmt vet
 	echo "=> Build binary ..."
-	$(GO_BUILD_RECIPE) -o bin/manager main.go
+	$(GO_BUILD_RECIPE) -o bin/manager ./cmd/operator/
 
 # Run go fmt against code
 .PHONY: fmt
@@ -203,7 +212,7 @@ docs/crd/v1:
 	echo "=> Copy CRDs from charts to documentation ..."
 	rm -rf $(CRD_DOC_FOLDER)/*.yaml
 	cp $(MON_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
-	cp $(GRAFANA_CRD_FODLER)/* $(CRD_DOC_FOLDER)/
+	cp $(GRAFANA_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
 	cp $(PROM_OPER_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
 	cp $(PROM_ADAPTER_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
 	cp $(VM_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
@@ -218,6 +227,42 @@ update-crds:
 	echo "=> Update CRDs in dedicated Helm chart ..."
 	find $(CRD_DOC_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
 
+###############
+# CRD update #
+###############
+
+# Download upstream CRDs for managed operators and write them into the
+# corresponding subchart `crds/` folders. Versions can be overridden via
+# PROMETHEUS_OPERATOR_VERSION / VICTORIAMETRICS_OPERATOR_VERSION /
+# GRAFANA_OPERATOR_VERSION variables.
+# Note: Grafana CRDs are not updated currently because we are using old version of the operator.
+.PHONY: update-operators-crds
+update-operators-crds: update-prometheus-crds update-victoriametrics-crds
+
+.PHONY: update-prometheus-crds
+update-prometheus-crds:
+	echo "=> Update prometheus-operator CRDs (v$(PROMETHEUS_OPERATOR_VERSION)) ..."
+	$(PYTHON) $(CRD_UPDATE_TOOL) \
+		--operator prometheus \
+		--version $(PROMETHEUS_OPERATOR_VERSION) \
+		--output-dir $(PROM_OPER_CRD_FOLDER)
+
+.PHONY: update-victoriametrics-crds
+update-victoriametrics-crds:
+	echo "=> Update victoriametrics-operator CRDs (v$(VICTORIAMETRICS_OPERATOR_VERSION)) ..."
+	$(PYTHON) $(CRD_UPDATE_TOOL) \
+		--operator victoriametrics \
+		--version $(VICTORIAMETRICS_OPERATOR_VERSION) \
+		--output-dir $(VM_CRD_FOLDER)
+
+.PHONY: update-grafana-crds
+update-grafana-crds:
+	echo "=> Update grafana-operator CRDs (v$(GRAFANA_OPERATOR_VERSION)) ..."
+	$(PYTHON) $(CRD_UPDATE_TOOL) \
+		--operator grafana \
+		--version $(GRAFANA_OPERATOR_VERSION) \
+		--output-dir $(GRAFANA_CRD_FOLDER)
+
 ###################
 # Running locally #
 ###################
@@ -226,7 +271,32 @@ update-crds:
 .PHONY: run
 run: generate fmt vet
 	echo "=> Run ..."
-	go run ./main.go
+	go run ./cmd/operator/
+
+#################
+# Building docs #
+#################
+
+# Install the dependencies
+.PHONY: install-site-dependencies
+install-site-dependencies:
+	echo "=> Install site dependencies ..."
+	pip install -r site/requirements.txt
+
+# Prepare the docs directory
+.PHONY: prepare-site-directory
+prepare-site-directory:
+	echo "=> Prepare site directory ..."
+	rm -rf $(SITE_FOLDER)/docs
+	mkdir -p $(SITE_FOLDER)
+	cp -r $(DOC_FOLDER) $(SITE_FOLDER)/
+
+# Build the docs
+.PHONY: build-site
+build-site: prepare-site-directory install-site-dependencies
+	echo "=> Build site ..."
+	zensical build -f site/mkdocs.yml --clean
+
 
 ############
 # Archives #

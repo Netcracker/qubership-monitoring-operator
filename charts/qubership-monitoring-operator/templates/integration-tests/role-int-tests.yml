@@ -88,6 +88,21 @@ rules:
       - patch
       - update
   - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+      - grafanadashboards/status
+      - grafanas
+      - grafanas/status
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
       - monitoring.netcracker.com
       - autoscaling
       - pods/prometheus_example_app_load

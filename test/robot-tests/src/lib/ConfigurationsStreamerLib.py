@@ -18,8 +18,8 @@ class ConfigurationsStreamerLib:
     external Grafana instances, and FTP server.
     """
 
-    DASHBOARD_GROUP = "integreatly.org"        # after grafana-operator update change to "grafana.integreatly.org"
-    DASHBOARD_VERSION = "v1alpha1"             # after grafana-operator update change to "v1beta1"
+    DASHBOARD_GROUP = "grafana.integreatly.org"
+    DASHBOARD_VERSION = "v1beta1"
     DASHBOARD_PLURAL = "grafanadashboards"
 
     PROMETHEUS_GROUP = "monitoring.coreos.com"
@@ -56,7 +56,7 @@ class ConfigurationsStreamerLib:
         self.ip_ftp_server = self._get_variable("${IP_FTP_SERVER}")
         self.ssh_key = self._get_variable("${SSH_KEY}")
         self.ftp_vm_user = self._get_variable("${FTP_VM_USER}")
-        
+
         self.grafana_basic_url = f"https://{self.ip_grafana_creds}/grafana"
         self.grafana_org_url = f"https://{self.ip_grafana_token}/grafana"
         self.grafana_org_token = ""
@@ -89,7 +89,8 @@ class ConfigurationsStreamerLib:
         self.built_in.log("Grafana Org Token has been set.", level="INFO")
 
     def get_cloud_dashboards(self, use_cr_name=False):
-        """Retrieves the list of dashboards from the cloud. Uses CR name (metadata.name) if use_cr_name=True, otherwise title."""
+        """Retrieves the list of dashboards from the cloud. Uses CR name (metadata.name)
+        if use_cr_name=True, otherwise title."""
         try:
             dashboards_cr = self.custom_api.list_cluster_custom_object(
                 group=self.DASHBOARD_GROUP,
@@ -129,7 +130,8 @@ class ConfigurationsStreamerLib:
     def compare_dashboards(self):
         """Compares dashboards between the cloud and two Grafana instances."""
         cloud_dashboards = self.get_cloud_dashboards()
-        basic_dashboards = self.get_grafana_dashboards(self.grafana_basic_url, auth=(self.grafana_basic_user, self.grafana_basic_pass))
+        basic_dashboards = self.get_grafana_dashboards(
+            self.grafana_basic_url, auth=(self.grafana_basic_user, self.grafana_basic_pass))
         org_dashboards = self.get_grafana_dashboards(self.grafana_org_url, token=self.grafana_org_token)
 
         missing_in_basic = set(cloud_dashboards) - set(basic_dashboards)
@@ -144,15 +146,17 @@ class ConfigurationsStreamerLib:
         """Checks that all dashboards are available in Grafana."""
         result = self.compare_dashboards()
         missing_messages = []
-        
+
         if result["missing_in_basic"]:
-            missing_messages.append(f"Missing in Grafana (Basic Auth) {self.grafana_basic_url}: {', '.join(result['missing_in_basic'])}")
+            missing_messages.append(
+                f"Missing in Grafana (Basic Auth) {self.grafana_basic_url}: {', '.join(result['missing_in_basic'])}")
         if result["missing_in_org"]:
-            missing_messages.append(f"Missing in Grafana (Org Token) {self.grafana_org_url}: {', '.join(result['missing_in_org'])}")
-        
+            missing_messages.append(
+                f"Missing in Grafana (Org Token) {self.grafana_org_url}: {', '.join(result['missing_in_org'])}")
+
         if missing_messages:
             self.built_in.fail("\n".join(missing_messages))
-        
+
         self.built_in.log("All dashboards are available in external Grafana.", level="INFO")
         return "All dashboards are available."
 
@@ -166,7 +170,8 @@ class ConfigurationsStreamerLib:
                 plural=self.DASHBOARD_PLURAL,
                 body=body
             )
-            self.built_in.log(f"Dashboard {body['metadata']['name']} created successfully in namespace {namespace}.", level="INFO")
+            self.built_in.log(
+                f"Dashboard {body['metadata']['name']} created successfully in namespace {namespace}.", level="INFO")
         except Exception as e:
             self.built_in.fail(f"Error creating dashboard in namespace {namespace}: {e}")
 
@@ -197,7 +202,8 @@ class ConfigurationsStreamerLib:
                 body=dashboard
             )
 
-            self.built_in.log(f"Dashboard '{dashboard_name}' updated successfully with new title '{new_title}'.", level="INFO")
+            self.built_in.log(
+                f"Dashboard '{dashboard_name}' updated successfully with new title '{new_title}'.", level="INFO")
 
         except Exception as e:
             self.built_in.fail(f"Error updating dashboard '{dashboard_name}': {e}")
@@ -212,13 +218,15 @@ class ConfigurationsStreamerLib:
                 plural=self.DASHBOARD_PLURAL,
                 name=dashboard_name
             )
-            self.built_in.log(f"Dashboard {dashboard_name} deleted successfully from namespace {namespace}.", level="INFO")
+            self.built_in.log(
+                f"Dashboard {dashboard_name} deleted successfully from namespace {namespace}.", level="INFO")
         except Exception as e:
             self.built_in.fail(f"Error deleting dashboard {dashboard_name} in namespace {namespace}: {e}")
 
     def check_dashboard_existence(self, title):
         """Checks if a specific Grafana Dashboard exists in external Grafana instances."""
-        basic_dashboards = self.get_grafana_dashboards(self.grafana_basic_url, auth=(self.grafana_basic_user, self.grafana_basic_pass))
+        basic_dashboards = self.get_grafana_dashboards(
+            self.grafana_basic_url, auth=(self.grafana_basic_user, self.grafana_basic_pass))
         org_dashboards = self.get_grafana_dashboards(self.grafana_org_url, token=self.grafana_org_token)
 
         missing_in_basic = title not in basic_dashboards
@@ -255,12 +263,12 @@ class ConfigurationsStreamerLib:
         ssh_client = self._create_ssh_connection(self.ip_ftp_server)
         ftp_dashboards = {}
         missing_paths = []
-        
+
         try:
             for path in self.FTP_PATHS:
                 command = f"ls {path} 2>/dev/null"
                 status, output = self._execute_command_on_vm(ssh_client, command)
-                
+
                 if status == 0 and output.strip():
                     files = [f.split("]")[-1] for f in output.strip().split("\n")]
                     ftp_dashboards[path] = files
@@ -269,27 +277,29 @@ class ConfigurationsStreamerLib:
                     missing_paths.append(path)
         finally:
             ssh_client.close()
-        
+
         return ftp_dashboards, missing_paths
 
     def compare_ftp_dashboards(self):
         """Compares dashboards between the cloud and the FTP server using CR name."""
         cloud_dashboards = self.get_cloud_dashboards(use_cr_name=True)
         ftp_dashboards, missing_paths = self.get_ftp_dashboards()
-        
+
         missing_on_ftp = {}
         for path, files in ftp_dashboards.items():
             missing_files = [dashboard for dashboard in cloud_dashboards if f"{dashboard}.json" not in files]
             if missing_files:
                 missing_on_ftp[path] = missing_files
-        
+
         if missing_on_ftp:
-            error_messages = [f"Missing dashboards in {path}: {', '.join(missing)}" for path, missing in missing_on_ftp.items()]
+            error_messages = [
+                f"Missing dashboards in {path}: {', '.join(missing)}" for path, missing in missing_on_ftp.items()
+            ]
             self.built_in.fail("\n".join(error_messages))
-        
+
         if missing_paths:
             self.built_in.fail(f"Missing or empty FTP directories: {', '.join(missing_paths)}")
-        
+
         self.built_in.log("All cloud dashboards are present on FTP.", level="INFO")
         return "All dashboards are available on FTP."
 
@@ -298,29 +308,29 @@ class ConfigurationsStreamerLib:
         ssh_client = self._create_ssh_connection(self.ip_ftp_server)
         missing_or_empty_files = []
         missing_paths = []
-        
+
         try:
             for path in self.ALERTMANAGER_PATHS:
                 file_path = f"{path}/{self.REQUIRED_ALERTMANAGER_FILE}"
                 command = f"test -s {file_path} || echo {file_path}"
                 status, output = self._execute_command_on_vm(ssh_client, command)
-                
+
                 if output.strip():
                     missing_or_empty_files.append(output.strip())
-                
+
                 command = f"ls {path} 2>/dev/null"
                 status, output = self._execute_command_on_vm(ssh_client, command)
                 if status != 0 or not output.strip():
                     missing_paths.append(path)
         finally:
             ssh_client.close()
-        
+
         if missing_paths:
             self.built_in.fail(f"Missing or empty Alertmanager directories: {', '.join(missing_paths)}")
-        
+
         if missing_or_empty_files:
             self.built_in.fail(f"Missing or empty Alertmanager files: {', '.join(missing_or_empty_files)}")
-        
+
         self.built_in.log("All required Alertmanager files are present and non-empty.", level="INFO")
         return "All Alertmanager files verified successfully."
 
@@ -384,11 +394,14 @@ class ConfigurationsStreamerLib:
             self.ip_grafana_creds: set(cloud_rules.keys()) - set(rules_server1.keys()),
             self.ip_grafana_token: set(cloud_rules.keys()) - set(rules_server2.keys())
         }
-        
+
         errors = [f"Missing on {server}: {', '.join(missing)}" for server, missing in missing_rules.items() if missing]
-        
+
         if errors:
             self.built_in.fail("\n".join(errors))
-        
-        self.built_in.log("All PrometheusRules from monitoring and cert-manager namespaces are present on both servers.", level="INFO")
+
+        self.built_in.log(
+            "All PrometheusRules from monitoring and cert-manager namespaces are present on both servers.",
+            level="INFO"
+        )
         return "All PrometheusRules verified successfully."

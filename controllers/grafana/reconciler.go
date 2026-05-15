@@ -13,6 +13,17 @@ import (
 
 var isSecretUpdated = false
 
+// isManageAdminSecret returns true when Helm (and therefore this operator) manages
+// the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
+// When the flag is true the user is responsible for the secret; we skip validation.
+func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
+	if cr.Spec.Grafana == nil {
+		return false
+	}
+	// We manage the secret when disableDefaultAdminSecret is explicitly false or not set.
+	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil || !*cr.Spec.Grafana.DisableDefaultAdminSecret
+}
+
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
 	config     *rest.Config
@@ -42,8 +53,10 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
-				return err
+			if isManageAdminSecret(cr) {
+				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
+					return err
+				}
 			}
 			// Reconcile resources with creation and update
 			if err := r.handleGrafana(cr); err != nil {
@@ -52,20 +65,17 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if err := r.handleGrafanaDataSource(cr); err != nil {
 				return err
 			}
-
-			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
-			// This API unavailable in k8s v1.22+
-			if r.HasIngressV1beta1Api() {
-				if cr.Spec.Grafana.Ingress != nil && cr.Spec.Grafana.Ingress.IsInstall() {
-					if err := r.handleIngressV1beta1(cr); err != nil {
-						return err
-					}
-				} else {
-					if err := r.deleteIngressV1beta1(cr); err != nil {
-						r.Log.Error(err, "Can not delete Ingress")
-					}
+			// Reconcile Promxy datasource only when Promxy is installed (otherwise Grafana hangs on missing service)
+			if cr.Spec.Promxy != nil && cr.Spec.Promxy.IsInstall() {
+				if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
+					return err
+				}
+			} else {
+				if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
+					r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
 				}
 			}
+
 			// Reconcile Ingress (version v1) if necessary and the cluster is has such API
 			// This API available in k8s v1.19+
 			if r.HasIngressV1Api() {
@@ -109,13 +119,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// Reset Grafana Credentials
-			if isSecretUpdated {
-				if err := r.resetGrafanaCredentials(cr); err != nil {
-					r.Log.Error(err, "Can not reset Grafana Credentials")
-					return err
-				}
-			}
+			// To apply a manually changed secret value, restart the Grafana pod (new env var values
+			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
+			// available but not triggered automatically; it can be invoked for in-place credential updates.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
@@ -137,15 +143,11 @@ func (r *GrafanaReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if err := r.deleteGrafanaDataSource(cr); err != nil {
 		r.Log.Error(err, "Can not delete GrafanaDataSource")
 	}
+	if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
+		r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
+	}
 	if err := r.deletePodMonitor(cr); err != nil {
 		r.Log.Error(err, "Can not delete PodMonitor")
-	}
-	// Try to delete Ingress (version v1beta1) is there is such API
-	// This API unavailable in k8s v1.22+
-	if r.HasIngressV1beta1Api() {
-		if err := r.deleteIngressV1beta1(cr); err != nil {
-			r.Log.Error(err, "Can not delete Ingress")
-		}
 	}
 	// Try to delete Ingress (version v1) is there is such API
 	// This API available in k8s v1.19+

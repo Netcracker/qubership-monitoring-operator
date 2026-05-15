@@ -72,12 +72,12 @@ spec:
             - name: GRAFANA_HOST
               {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
               value: {{ .Values.grafana.ingress.host | quote }}
-              {{- else if and .Values.NAMESPACE .Values.CLOUD_PUBLIC_HOST }}
-              value: grafana-{{ .Values.NAMESPACE }}.{{ .Values.CLOUD_PUBLIC_HOST}}
+              {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
+              value: {{ (index .Values.grafana.ingress.rules 0).host }}
               {{- else if and .Values.grafana.httpRoute.install .Values.grafana.httpRoute.hostnames }}
               value: {{ .Values.grafana.httpRoute.hostnames | first | quote }}
               {{- else }}
-              value: ''
+              value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
               {{- end }}
             {{- else }}
             - name: GRAFANA

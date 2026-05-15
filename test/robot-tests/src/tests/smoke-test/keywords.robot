@@ -258,12 +258,31 @@ Check Target And Metrics Are Ready
     Check Target Is UP  ${target}  ${all_active_targets}
     Check Job Metrics Are Written  ${target}  ${metrics}
 
+Check Target And Metrics Are Ready Refreshing
+    [Arguments]  ${target}  ${targets_session}  ${metrics_session}
+    ${all_active_targets}=  Get All Active Targets  ${targets_session}
+    ${metrics}=             Get All Metrics From Api  ${metrics_session}
+    ${json_target}=  Get Prometheus Target  ${all_active_targets}  ${target}
+    Run Keyword If  ${json_target}==${False}
+    ...  Fail  Target ${target} missing from ${targets_session} active targets
+    ${is_up}=  Target State And Not Empty  ${json_target}  up
+    Run Keyword If  not ${is_up}
+    ...  Log  Target ${target} not UP yet (session=${targets_session}): ${json_target}  level=WARN
+    Should Be Equal As Strings  ${is_up}  True
+    ${job_metrics}=  Get Metrics By Job  ${metrics}  ${target}
+    Run Keyword If  ${job_metrics}==${False}
+    ...  Log  Job ${target} metrics not present in ${metrics_session} yet (up query result has no matching job)  level=WARN
+    Run Keyword If  ${job_metrics}==${False}
+    ...  Fail  Error! In ${metrics_session} metrics of ${target} don't exist
+    ${status}=  Check Metrics Is Not Empty  ${job_metrics}
+    Should Be Equal As Strings  ${status}  True
+
 Check Vmagent Target Metrics With Retry
     [Arguments]  ${target}  ${all_active_targets}  ${metrics}
     ${flag}=  Wait Until Keyword Succeeds
     ...  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Target And Metrics Are Ready
-    ...  ${target}  ${all_active_targets}  ${metrics}
+    ...  Check Target And Metrics Are Ready Refreshing
+    ...  ${target}  vmagentsession  vmsinglessession
     RETURN  ${flag}
 
 Check Kube State Metrics Are Ready

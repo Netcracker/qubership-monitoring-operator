@@ -129,9 +129,6 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 						Name:      "k8s",
 						Namespace: cr.GetNamespace(),
 					},
-					Static: &vmetricsv1b1.StaticRef{
-						URL: vmAlert.AsURL(),
-					},
 					Paths: vmAlertPaths(),
 				}
 				vmSPaths = vmSinglePaths()
