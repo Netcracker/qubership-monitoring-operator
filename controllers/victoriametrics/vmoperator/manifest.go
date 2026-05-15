@@ -291,8 +291,8 @@ func vmKubeletService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	return &service, nil
 }
 
-func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
@@ -317,8 +317,8 @@ func vmKubeSchedulerService(cr *monv1.PlatformMonitoring) (*corev1.Service, erro
 	return &service, nil
 }
 
-func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
@@ -342,8 +342,8 @@ func vmKubeControllerManagerService(cr *monv1.PlatformMonitoring) (*corev1.Servi
 	return &service, nil
 }
 
-func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}

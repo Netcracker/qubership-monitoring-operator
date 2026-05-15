@@ -322,7 +322,7 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
-	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
+	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked separately.
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, eps); err != nil {
@@ -407,7 +407,7 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.Pla
 	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
-	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
+	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked separately.
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, eps); err != nil {
@@ -491,7 +491,7 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *m
 	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
-	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
+	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked separately.
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, eps); err != nil {
