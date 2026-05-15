@@ -2,6 +2,10 @@ site_name: Qubership Monitoring Operator
 site_description: Comprehensive monitoring solution for Kubernetes
 site_url: https://netcracker.github.io/qubership-monitoring-operator
 
+# Paths (config lives in site/, content lives in docs/, build output goes to public/)
+docs_dir: docs
+site_dir: public
+
 # Repository
 repo_name: Netcracker/qubership-monitoring-operator
 repo_url: https://github.com/Netcracker/qubership-monitoring-operator
@@ -19,7 +23,7 @@ theme:
       primary: indigo
       accent: amber
       toggle:
-        icon: material/brightness-auto
+        icon: lucide/sun-moon
         name: Switch to light mode
 
     # Light theme option
@@ -28,7 +32,7 @@ theme:
       primary: indigo
       accent: amber
       toggle:
-        icon: material/brightness-7
+        icon: lucide/sun
         name: Switch to dark mode
 
     # Dark theme option (default)
@@ -37,7 +41,7 @@ theme:
       primary: indigo
       accent: amber
       toggle:
-        icon: material/brightness-4
+        icon: lucide/moon
         name: Switch to system preference
 
   # Advanced features
@@ -65,10 +69,6 @@ theme:
     edit: material/pencil
     view: material/eye
 
-  font:
-    text: Roboto
-    code: Roboto Mono
-
 # Extensions with all requested features
 markdown_extensions:
   # Basic extensions
@@ -93,7 +93,7 @@ markdown_extensions:
       noclasses: false
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      base_path: docs
+      base_path: ../docs
 
   # Mermaid diagrams support
   - pymdownx.superfences:
