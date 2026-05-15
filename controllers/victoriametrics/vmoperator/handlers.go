@@ -296,54 +296,25 @@ func (r *VmOperatorReconciler) handleKubeletService(cr *monv1.PlatformMonitoring
 }
 
 func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) error {
-	eps, err := vmKubeletServiceEndpoints(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Service manifest")
-		return err
-	}
-
 	nodes, err := r.KubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		r.Log.Error(err, "Failed to retrieve nodes to get addresses")
 		return errs.Wrap(err, "Failed to list nodes to get addresses")
 	}
-
-	endpointEntries, ers := getNodeEndpoints(nodes)
-	if len(ers) > 0 {
-		for _, err = range ers {
-			r.Log.Error(err, "")
+	if r.HasApi(discoveryv1.SchemeGroupVersion, "EndpointSlice") {
+		eps, err := vmKubeletServiceEndpointSlice(cr)
+		if err != nil {
+			r.Log.Error(err, "Failed creating EndpointSlice manifest")
+			return err
 		}
+		return r.upsertNodeEndpointSlice(cr, eps, nodes)
 	}
-
-	eps.Endpoints = endpointEntries
-
-	// Set labels
-	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
-	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
-	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, eps); err != nil {
-				return err
-			}
-			return nil
-		}
+	eps, err := vmKubeletServiceEndpoints(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Endpoints manifest")
 		return err
 	}
-
-	//Set parameters
-	e.SetLabels(eps.GetLabels())
-	e.AddressType = eps.AddressType
-	e.Ports = eps.Ports
-	e.Endpoints = eps.Endpoints
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return r.upsertNodeEndpoints(cr, eps, nodes)
 }
 
 func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *monv1.PlatformMonitoring) error {
@@ -382,55 +353,26 @@ func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *monv1.PlatformMoni
 }
 
 func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) error {
-	eps, err := vmKubeSchedulerServiceEndpoints(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Service manifest")
-		return err
-	}
-
 	allNodes, err := r.KubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		r.Log.Error(err, "Failed to retrieve nodes to get addresses")
 		return errs.Wrap(err, "Failed to list nodes to get addresses")
 	}
-
 	cpNodes := filterNodes(allNodes, isControlPlaneNode)
-	endpointEntries, ers := getNodeEndpoints(cpNodes)
-	if len(ers) > 0 {
-		for _, err = range ers {
-			r.Log.Error(err, "")
+	if r.HasApi(discoveryv1.SchemeGroupVersion, "EndpointSlice") {
+		eps, err := vmKubeSchedulerServiceEndpointSlice(cr)
+		if err != nil {
+			r.Log.Error(err, "Failed creating EndpointSlice manifest")
+			return err
 		}
+		return r.upsertNodeEndpointSlice(cr, eps, cpNodes)
 	}
-
-	eps.Endpoints = endpointEntries
-
-	// Set labels
-	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
-	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
-	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, eps); err != nil {
-				return err
-			}
-			return nil
-		}
+	eps, err := vmKubeSchedulerServiceEndpoints(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Endpoints manifest")
 		return err
 	}
-
-	//Set parameters
-	e.SetLabels(eps.GetLabels())
-	e.AddressType = eps.AddressType
-	e.Ports = eps.Ports
-	e.Endpoints = eps.Endpoints
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return r.upsertNodeEndpoints(cr, eps, cpNodes)
 }
 func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmKubeControllerManagerService(cr)
@@ -468,55 +410,26 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *monv1.Plat
 }
 
 func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) error {
-	eps, err := vmKubeControllerManagerServiceEndpoints(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Service manifest")
-		return err
-	}
-
 	allNodes, err := r.KubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		r.Log.Error(err, "Failed to retrieve nodes to get addresses")
 		return errs.Wrap(err, "Failed to list nodes to get addresses")
 	}
-
 	cpNodes := filterNodes(allNodes, isControlPlaneNode)
-	endpointEntries, ers := getNodeEndpoints(cpNodes)
-	if len(ers) > 0 {
-		for _, err = range ers {
-			r.Log.Error(err, "")
+	if r.HasApi(discoveryv1.SchemeGroupVersion, "EndpointSlice") {
+		eps, err := vmKubeControllerManagerServiceEndpointSlice(cr)
+		if err != nil {
+			r.Log.Error(err, "Failed creating EndpointSlice manifest")
+			return err
 		}
+		return r.upsertNodeEndpointSlice(cr, eps, cpNodes)
 	}
-
-	eps.Endpoints = endpointEntries
-
-	// Set labels
-	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/name"] = utils.TruncLabel(eps.GetName())
-	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
-	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-
-	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, eps); err != nil {
-				return err
-			}
-			return nil
-		}
+	eps, err := vmKubeControllerManagerServiceEndpoints(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Endpoints manifest")
 		return err
 	}
-
-	//Set parameters
-	e.SetLabels(eps.GetLabels())
-	e.AddressType = eps.AddressType
-	e.Ports = eps.Ports
-	e.Endpoints = eps.Endpoints
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return r.upsertNodeEndpoints(cr, eps, cpNodes)
 }
 
 func filterNodes(nodes *corev1.NodeList, predicate func(corev1.Node) bool) *corev1.NodeList {
@@ -557,6 +470,82 @@ func nodeAddress(node corev1.Node) (string, map[corev1.NodeAddressType][]string,
 		return addresses[0], m, nil
 	}
 	return "", m, fmt.Errorf("host address unknown")
+}
+
+// upsertNodeEndpoints creates or updates a legacy v1 Endpoints object populated from the given nodes.
+// Kept for clusters that don't serve discovery.k8s.io/v1 EndpointSlice; new clusters take the upsertNodeEndpointSlice path.
+func (r *VmOperatorReconciler) upsertNodeEndpoints(cr *monv1.PlatformMonitoring, eps *corev1.Endpoints, nodes *corev1.NodeList) error { //nolint:staticcheck // SA1019: see manifest.go.
+	addresses, ers := getNodeAddresses(nodes)
+	for _, err := range ers {
+		r.Log.Error(err, "")
+	}
+	eps.Subsets[0].Addresses = addresses
+
+	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
+	eps.Labels["app.kubernetes.io/name"] = utils.TruncLabel(eps.GetName())
+	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
+	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
+
+	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: see above.
+	if err := r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			return r.CreateResource(cr, eps)
+		}
+		return err
+	}
+	e.SetLabels(eps.GetLabels())
+	e.Subsets = eps.Subsets
+	return r.UpdateResource(e)
+}
+
+func (r *VmOperatorReconciler) upsertNodeEndpointSlice(cr *monv1.PlatformMonitoring, eps *discoveryv1.EndpointSlice, nodes *corev1.NodeList) error {
+	endpointEntries, ers := getNodeEndpoints(nodes)
+	for _, err := range ers {
+		r.Log.Error(err, "")
+	}
+	eps.Endpoints = endpointEntries
+
+	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
+	eps.Labels["app.kubernetes.io/name"] = utils.TruncLabel(eps.GetName())
+	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
+	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
+
+	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
+	if err := r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			return r.CreateResource(cr, eps)
+		}
+		return err
+	}
+	e.SetLabels(eps.GetLabels())
+	e.AddressType = eps.AddressType
+	e.Ports = eps.Ports
+	e.Endpoints = eps.Endpoints
+	return r.UpdateResource(e)
+}
+
+func getNodeAddresses(nodes *corev1.NodeList) ([]corev1.EndpointAddress, []error) { //nolint:staticcheck // SA1019: legacy code path kept for clusters without discovery.k8s.io/v1 EndpointSlice support.
+	addresses := make([]corev1.EndpointAddress, 0) //nolint:staticcheck // SA1019: see above.
+	ers := make([]error, 0)
+
+	for _, n := range nodes.Items {
+		address, _, err := nodeAddress(n)
+		if err != nil {
+			ers = append(ers, errs.Wrapf(err, "failed to determine hostname for node (%s)", n.Name))
+			continue
+		}
+		addresses = append(addresses, corev1.EndpointAddress{ //nolint:staticcheck // SA1019: see above.
+			IP: address,
+			TargetRef: &corev1.ObjectReference{
+				Kind:       "Node",
+				Name:       n.Name,
+				UID:        n.UID,
+				APIVersion: n.APIVersion,
+			},
+		})
+	}
+
+	return addresses, ers
 }
 
 func getNodeEndpoints(nodes *corev1.NodeList) ([]discoveryv1.Endpoint, []error) {

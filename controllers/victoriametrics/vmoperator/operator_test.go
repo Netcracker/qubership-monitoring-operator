@@ -124,6 +124,13 @@ func TestVmOperatorManifests(t *testing.T) {
 		}
 		assert.NotNil(t, m, "Kubelet service manifest should not be empty")
 	})
+	t.Run("Test Kubelet service endpointslice manifest", func(t *testing.T) {
+		m, err := vmKubeletServiceEndpointSlice(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "Kubelet service endpointslice manifest should not be empty")
+	})
 	t.Run("Test KubeScheduler service manifest", func(t *testing.T) {
 		m, err := vmKubeSchedulerService(cr)
 		if err != nil {
@@ -138,6 +145,13 @@ func TestVmOperatorManifests(t *testing.T) {
 		}
 		assert.NotNil(t, m, "KubeScheduler service manifest should not be empty")
 	})
+	t.Run("Test KubeScheduler service endpointslice manifest", func(t *testing.T) {
+		m, err := vmKubeSchedulerServiceEndpointSlice(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "KubeScheduler service endpointslice manifest should not be empty")
+	})
 	t.Run("Test KubeControllerManager service manifest", func(t *testing.T) {
 		m, err := vmKubeControllerManagerService(cr)
 		if err != nil {
@@ -151,6 +165,13 @@ func TestVmOperatorManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "KubeControllerManager service manifest should not be empty")
+	})
+	t.Run("Test KubeControllerManager service endpointslice manifest", func(t *testing.T) {
+		m, err := vmKubeControllerManagerServiceEndpointSlice(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "KubeControllerManager service endpointslice manifest should not be empty")
 	})
 	// t.Run("Test PodMonitor manifest", func(t *testing.T) {
 	// 	m, err := vmOperatorPodMonitor(cr)

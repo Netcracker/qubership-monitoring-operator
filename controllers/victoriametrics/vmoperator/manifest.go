@@ -292,9 +292,22 @@ func vmKubeletService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	return &service, nil
 }
 
-func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
-	endpoints := discoveryv1.EndpointSlice{}
+func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck // SA1019: legacy code path kept for clusters without discovery.k8s.io/v1 EndpointSlice support.
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: see above.
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeletName)
+	endpoints.SetNamespace(cr.GetNamespace())
+
+	return &endpoints, nil
+}
+
+func vmKubeletServiceEndpointSlice(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
+	endpoints := discoveryv1.EndpointSlice{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceEndpointSliceAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
 	//Set parameters
@@ -318,9 +331,22 @@ func vmKubeSchedulerService(cr *monv1.PlatformMonitoring) (*corev1.Service, erro
 	return &service, nil
 }
 
-func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
-	endpoints := discoveryv1.EndpointSlice{}
+func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck // SA1019: legacy code path kept for clusters without discovery.k8s.io/v1 EndpointSlice support.
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: see above.
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeSchedulerName)
+	endpoints.SetNamespace(cr.GetNamespace())
+
+	return &endpoints, nil
+}
+
+func vmKubeSchedulerServiceEndpointSlice(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
+	endpoints := discoveryv1.EndpointSlice{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceEndpointSliceAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
 	//Set parameters
@@ -343,9 +369,22 @@ func vmKubeControllerManagerService(cr *monv1.PlatformMonitoring) (*corev1.Servi
 	return &service, nil
 }
 
-func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
-	endpoints := discoveryv1.EndpointSlice{}
+func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck // SA1019: legacy code path kept for clusters without discovery.k8s.io/v1 EndpointSlice support.
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: see above.
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeControllerManagerName)
+	endpoints.SetNamespace(cr.GetNamespace())
+
+	return &endpoints, nil
+}
+
+func vmKubeControllerManagerServiceEndpointSlice(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
+	endpoints := discoveryv1.EndpointSlice{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceEndpointSliceAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
 	//Set parameters
