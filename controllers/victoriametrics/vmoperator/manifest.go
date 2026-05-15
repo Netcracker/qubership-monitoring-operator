@@ -371,7 +371,7 @@ func vmOperatorServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMoni
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 		for i := range sm.Spec.Endpoints {
-			sm.Spec.Endpoints[i].Scheme = "https"
+			sm.Spec.Endpoints[i].Scheme = ptr.To(promv1.Scheme("https"))
 			sm.Spec.Endpoints[i].TLSConfig = &promv1.TLSConfig{
 				SafeTLSConfig: promv1.SafeTLSConfig{
 					InsecureSkipVerify: ptr.To(true),
