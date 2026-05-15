@@ -4,6 +4,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,6 +32,7 @@ func NewGrafanaOperatorReconciler(c client.Client, s *runtime.Scheme, dc discove
 func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
+	var dashboardErrs []error
 	restrictedDashboards := make(map[string]bool)
 	if cr.Spec.PublicCloudName != "" {
 		if pcMap, ok := utils.PublicCloudDashboardsEnabled[cr.Spec.PublicCloudName]; ok {
@@ -206,7 +208,8 @@ func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				}
 
 				if err = r.handleGrafanaDashboard(mResource, cr); err != nil {
-					return err
+					r.Log.Error(err, "Can not reconcile GrafanaDashboard", "name", mResource)
+					dashboardErrs = append(dashboardErrs, err)
 				}
 			} else {
 				if err = r.deleteGrafanaDashboard(mResource, cr); err != nil {
@@ -266,6 +269,9 @@ func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 		r.Log.Info("Uninstalling component if exists")
 		r.uninstall(cr)
 		r.Log.Info("Component reconciled")
+	}
+	if len(dashboardErrs) > 0 {
+		return utilerrors.NewAggregate(dashboardErrs)
 	}
 	return nil
 }

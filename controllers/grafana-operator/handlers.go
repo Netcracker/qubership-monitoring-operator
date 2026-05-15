@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/util/retry"
 )
 
 func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -233,31 +234,27 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	// Check if resource exists first
-	// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used
-	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
-	checkObj := &grafv1.GrafanaDashboard{}
-	checkObj.SetName(m.GetName())
-	checkObj.SetNamespace(m.GetNamespace())
-	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
-	if err = r.GetResource(checkObj); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
+	// Retry on conflict: the grafana-operator (and other actors) write status/finalizers
+	// on GrafanaDashboard objects concurrently, so a Get-mutate-Update window can race.
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used.
+		// Required for Grafana Operator v5 migration from integreatly.org/v1alpha1.
+		checkObj := &grafv1.GrafanaDashboard{}
+		checkObj.SetName(m.GetName())
+		checkObj.SetNamespace(m.GetNamespace())
+		checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+		if err := r.GetResource(checkObj); err != nil {
+			if errors.IsNotFound(err) {
+				return r.CreateResource(cr, m)
 			}
-			return nil
+			return err
 		}
-		return err
-	}
 
-	// Set parameters
-	checkObj.SetLabels(m.GetLabels())
-	checkObj.Spec = m.Spec
+		checkObj.SetLabels(m.GetLabels())
+		checkObj.Spec = m.Spec
 
-	if err = r.UpdateResource(checkObj); err != nil {
-		return err
-	}
-	return nil
+		return r.UpdateResource(checkObj)
+	})
 }
 
 func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
