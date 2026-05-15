@@ -76,7 +76,7 @@ pkgs = $(shell go list ./... | grep -v /test/envtests)
 # Container name
 CONTAINER_CLI?=docker
 CONTAINER_NAME="qubership-monitoring-operator"
-DOCKERFILE=Dockerfile
+DOCKERFILE=cmd/operator/Dockerfile
 
 ###########
 # Generic #

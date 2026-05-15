@@ -22,10 +22,10 @@ const (
 	etcdSourceConfigmapOpenshiftV4 = "etcd-metric-serving-ca"
 	etcdSourceSecretOpenshiftV4    = "etcd-metric-client"
 
-	etcdServiceName                = "etcd"
-	etcdServiceNamespace           = "kube-system"
-	etcdPodLabelSelector           = "component=etcd"
-	openshiftSecurityAPIGroup      = "security.openshift.io"
+	etcdServiceName           = "etcd"
+	etcdServiceNamespace      = "kube-system"
+	etcdPodLabelSelector      = "component=etcd"
+	openshiftSecurityAPIGroup = "security.openshift.io"
 )
 
 type appOptions struct {

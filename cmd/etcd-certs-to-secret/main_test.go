@@ -74,13 +74,13 @@ func TestNewLoggerDefaultsToInfoWhenConfigured(t *testing.T) {
 
 func TestParseOptions(t *testing.T) {
 	tests := []struct {
-		name        string
-		args        []string
-		env         map[string]string
-		wantNS      string
-		wantSecret  string
-		wantLevel   slog.Level
-		wantErr     bool
+		name       string
+		args       []string
+		env        map[string]string
+		wantNS     string
+		wantSecret string
+		wantLevel  slog.Level
+		wantErr    bool
 	}{
 		{
 			name:       "defaults fall back to monitoring",
