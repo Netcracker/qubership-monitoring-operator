@@ -255,14 +255,19 @@ rules:
       - watch
 
   # discovery.k8s.io
-  # This is needed for endpoints slice discovery
+  # This is needed for endpoints slice discovery and for managing EndpointSlices
+  # for kubelet/kube-scheduler/kube-controller-manager monitoring
   - apiGroups:
       - discovery.k8s.io
     resources:
       - endpointslices
     verbs:
+      - create
+      - delete
       - get
       - list
+      - patch
+      - update
       - watch
 
   # networking.k8s.io

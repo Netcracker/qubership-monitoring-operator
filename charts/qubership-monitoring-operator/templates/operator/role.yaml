@@ -170,6 +170,21 @@ rules:
       - deletecollection
       - watch
 
+  # discovery.k8s.io
+  # This is needed for managing EndpointSlices for kubelet/kube-scheduler/kube-controller-manager monitoring
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+
   # coordination.k8s.io
   # This is needed for lease creation
   - apiGroups:

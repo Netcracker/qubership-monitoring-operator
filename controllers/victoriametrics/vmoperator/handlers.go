@@ -14,6 +14,7 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -307,14 +308,14 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 		return errs.Wrap(err, "Failed to list nodes to get addresses")
 	}
 
-	addresses, ers := getNodeAddresses(nodes)
+	endpointEntries, ers := getNodeEndpoints(nodes)
 	if len(ers) > 0 {
 		for _, err = range ers {
 			r.Log.Error(err, "")
 		}
 	}
 
-	eps.Subsets[0].Addresses = addresses
+	eps.Endpoints = endpointEntries
 
 	// Set labels
 	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
@@ -322,7 +323,7 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
-	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
+	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, eps); err != nil {
@@ -335,7 +336,9 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 
 	//Set parameters
 	e.SetLabels(eps.GetLabels())
-	e.Subsets = eps.Subsets
+	e.AddressType = eps.AddressType
+	e.Ports = eps.Ports
+	e.Endpoints = eps.Endpoints
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -392,14 +395,14 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.Pla
 	}
 
 	cpNodes := filterNodes(allNodes, isControlPlaneNode)
-	addresses, ers := getNodeAddresses(cpNodes)
+	endpointEntries, ers := getNodeEndpoints(cpNodes)
 	if len(ers) > 0 {
 		for _, err = range ers {
 			r.Log.Error(err, "")
 		}
 	}
 
-	eps.Subsets[0].Addresses = addresses
+	eps.Endpoints = endpointEntries
 
 	// Set labels
 	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
@@ -407,7 +410,7 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.Pla
 	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
-	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
+	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, eps); err != nil {
@@ -420,7 +423,9 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.Pla
 
 	//Set parameters
 	e.SetLabels(eps.GetLabels())
-	e.Subsets = eps.Subsets
+	e.AddressType = eps.AddressType
+	e.Ports = eps.Ports
+	e.Endpoints = eps.Endpoints
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -476,14 +481,14 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *m
 	}
 
 	cpNodes := filterNodes(allNodes, isControlPlaneNode)
-	addresses, ers := getNodeAddresses(cpNodes)
+	endpointEntries, ers := getNodeEndpoints(cpNodes)
 	if len(ers) > 0 {
 		for _, err = range ers {
 			r.Log.Error(err, "")
 		}
 	}
 
-	eps.Subsets[0].Addresses = addresses
+	eps.Endpoints = endpointEntries
 
 	// Set labels
 	eps.Labels["name"] = utils.TruncLabel(eps.GetName())
@@ -491,7 +496,7 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *m
 	eps.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(eps.GetName(), eps.GetNamespace())
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
-	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta}
+	e := &discoveryv1.EndpointSlice{ObjectMeta: eps.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			if err = r.CreateResource(cr, eps); err != nil {
@@ -504,7 +509,9 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *m
 
 	//Set parameters
 	e.SetLabels(eps.GetLabels())
-	e.Subsets = eps.Subsets
+	e.AddressType = eps.AddressType
+	e.Ports = eps.Ports
+	e.Endpoints = eps.Endpoints
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -552,18 +559,22 @@ func nodeAddress(node corev1.Node) (string, map[corev1.NodeAddressType][]string,
 	return "", m, fmt.Errorf("host address unknown")
 }
 
-func getNodeAddresses(nodes *corev1.NodeList) ([]corev1.EndpointAddress, []error) {
-	addresses := make([]corev1.EndpointAddress, 0)
+func getNodeEndpoints(nodes *corev1.NodeList) ([]discoveryv1.Endpoint, []error) {
+	endpoints := make([]discoveryv1.Endpoint, 0)
 	ers := make([]error, 0)
 
+	ready := true
 	for _, n := range nodes.Items {
 		address, _, err := nodeAddress(n)
 		if err != nil {
 			ers = append(ers, errs.Wrapf(err, "failed to determine hostname for node (%s)", n.Name))
 			continue
 		}
-		addresses = append(addresses, corev1.EndpointAddress{
-			IP: address,
+		endpoints = append(endpoints, discoveryv1.Endpoint{
+			Addresses: []string{address},
+			Conditions: discoveryv1.EndpointConditions{
+				Ready: &ready,
+			},
 			TargetRef: &corev1.ObjectReference{
 				Kind:       "Node",
 				Name:       n.Name,
@@ -573,7 +584,7 @@ func getNodeAddresses(nodes *corev1.NodeList) ([]corev1.EndpointAddress, []error
 		})
 	}
 
-	return addresses, ers
+	return endpoints, ers
 }
 
 func (r *VmOperatorReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {

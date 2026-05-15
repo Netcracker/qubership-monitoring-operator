@@ -11,6 +11,7 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -291,13 +292,13 @@ func vmKubeletService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	return &service, nil
 }
 
-func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
+	endpoints := discoveryv1.EndpointSlice{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
 	//Set parameters
-	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "discovery.k8s.io", Version: "v1", Kind: "EndpointSlice"})
 	endpoints.SetName(utils.VmKubeletName)
 	endpoints.SetNamespace(cr.GetNamespace())
 
@@ -317,13 +318,13 @@ func vmKubeSchedulerService(cr *monv1.PlatformMonitoring) (*corev1.Service, erro
 	return &service, nil
 }
 
-func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
+	endpoints := discoveryv1.EndpointSlice{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
 	//Set parameters
-	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "discovery.k8s.io", Version: "v1", Kind: "EndpointSlice"})
 	endpoints.SetName(utils.VmKubeSchedulerName)
 	endpoints.SetNamespace(cr.GetNamespace())
 
@@ -342,13 +343,13 @@ func vmKubeControllerManagerService(cr *monv1.PlatformMonitoring) (*corev1.Servi
 	return &service, nil
 }
 
-func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*discoveryv1.EndpointSlice, error) {
+	endpoints := discoveryv1.EndpointSlice{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
 	//Set parameters
-	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "discovery.k8s.io", Version: "v1", Kind: "EndpointSlice"})
 	endpoints.SetName(utils.VmKubeControllerManagerName)
 	endpoints.SetNamespace(cr.GetNamespace())
 
