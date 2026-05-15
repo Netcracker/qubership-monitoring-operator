@@ -15,7 +15,7 @@
 | labels                                        | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                                                                                                                                             | map[string]string                                                                                                            |
 | annotations                                   | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value"                                                                                                                       | map[string]string                                                                                                            |
 | ingress                                       | Ingress allows to create Ingress for the vmagent UI.                                                                                                                                                                                                                                                                                         | *[Ingress](#ingress)                                                                                                         |
-| httpRoute                                     | HTTPRoute allows to create Gateway API HTTPRoute for the vmagent UI.                                                                                                                                                                                                                                                                          | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec)                                               |
+| httpRoute                                     | HTTPRoute allows to create Gateway API HTTPRoute for the vmagent UI.                                                                                                                                                                                                                                                                          | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                               |
 | scrapeInterval                                | Defines how often scrape targets by default.                                                                                                                                                                                                                                                                                                 | string                                                                                                                       |
 | additionalScrape                              | The additionalScrape allows you to monitor hosts outside the cloud (balancers, graylog server, jenkins...)                                                                                                                                                                                                                                   | *v1.SecretKeySelector, [Victoria Metrics Config](https://docs.victoriametrics.com/operator/additional-scrape.html)           |
 | vmAgentExternalLabelName                      | Name of vmAgent external label used to denote VmAgent instance name. Defaults to the value of `vmagent`. External label will _not_ be added when value is set to empty string (`""`).                                                                                                                                                        | string                                                                                                                       |
@@ -87,7 +87,7 @@ Example:
           insecureSkipVerify: true
         urlRelabelConfig:
           name: "vmagent-relabel"
-          key: "target-1-relabel.yaml"          
+          key: "target-1-relabel.yaml"
         inlineUrlRelabelConfig:
           - source_labels: [__name__]
             separator: ;
@@ -104,7 +104,7 @@ Example:
           insecureSkipVerify: true
         urlRelabelConfig:
           name: "vmagent-relabel"
-          key: "target-1-relabel.yaml"          
+          key: "target-1-relabel.yaml"
         inlineUrlRelabelConfig:
           - source_labels: [__name__]
             separator: ;
@@ -175,7 +175,7 @@ victoriametrics:
           insecureSkipVerify: true
         urlRelabelConfig:
           name: "vmagent-relabel"
-          key: "target-1-relabel.yaml"          
+          key: "target-1-relabel.yaml"
         inlineUrlRelabelConfig:
           - source_labels: [__name__]
             separator: ;

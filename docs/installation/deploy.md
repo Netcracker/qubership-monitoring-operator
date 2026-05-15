@@ -90,7 +90,7 @@ alertmanager:
 
 You can expose UI endpoints using Gateway API HTTPRoutes. Gateway settings are configured once at the chart root,
 and each component can define its own `httpRoute` section with hostnames, parent references, matches, and filters.
-More info in [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec).
+More info in [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute).
 
 The operator supports HTTPRoutes for Prometheus, AlertManager, Grafana, Pushgateway, VmSingle, VmSelect,
 VmAgent, VmAlertManager, VmAlert, and VmAuth.
@@ -155,7 +155,7 @@ victoriametrics:
 ### Customizing Ingress Routing and TLS Rules
 
 You can define custom ingress routing rules for individual components using the `ingress.rules` parameter.
-Refer the ingress description in 
+Refer the ingress description in
 (official documentation)[https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules].
 For example:
 
@@ -325,7 +325,7 @@ victoriametrics:
 
 cloudwatchExporter:
   install: true
-  
+
 # Use AWS Load Balancer Controller
 grafana:
   ingress:
@@ -496,4 +496,4 @@ After successful deployment:
 1. **[Post-Deploy Checks](post-deploy-checks.md)** - Verify installation
 2. **[Configuration](../configuration.md)** - Customize your setup
 3. **[Storage](storage.md)** - Configure persistent storage
-4. **[Component Configuration](components/)** - Fine-tune individual components 
+4. **[Component Configuration](components/)** - Fine-tune individual components

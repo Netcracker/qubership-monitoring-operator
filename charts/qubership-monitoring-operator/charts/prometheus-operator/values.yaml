@@ -258,7 +258,7 @@ ingress: {}
 # Mandatory: no
 # Default: {}
 # HTTPRoute spec reference:
-# https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec
+# https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute
 # Example:
 # httpRoute:
 #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
@@ -616,7 +616,7 @@ operator:
   # Default: not set
   #
   nodeSelector: {}
-  
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
   # Type: object

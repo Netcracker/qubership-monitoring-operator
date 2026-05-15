@@ -58,7 +58,7 @@ podMonitor:
 # Mandatory: no
 # Default: {}
 # HTTPRoute spec reference:
-# https://gateway-api.sigs.k8s.io/reference/spec/#httproutespec
+# https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute
 # Example:
 # httpRoute:
 #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
