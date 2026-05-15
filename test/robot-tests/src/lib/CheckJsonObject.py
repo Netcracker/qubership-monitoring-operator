@@ -14,11 +14,13 @@ def get_object_data(response):
 def get_prometheus_target(response, target_name):
     json_object = get_object_data(response)
     matched_targets = [
-        item for item in json_object.get('activeTargets', []) 
+        item for item in json_object.get('activeTargets', [])
         if target_name in item.get('labels', {}).get('job', '')
     ]
+
     def get_path(target):
         return urlparse(target.get("scrapeUrl", "")).path
+
     for target in matched_targets:
         if get_path(target) == "/probe":
             return target

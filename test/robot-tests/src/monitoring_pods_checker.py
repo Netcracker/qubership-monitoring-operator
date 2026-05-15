@@ -28,6 +28,7 @@ def check_statefulsets_are_ready(service, label):
     else:
         return 0
 
+
 def check_vmagent_targets():
     try:
         pods = k8s_lib.get_pod_names_by_selector(namespace, selector={'app.kubernetes.io/name': 'vmagent'})
@@ -38,7 +39,8 @@ def check_vmagent_targets():
         return 0
     pod_name = pods[0]
     try:
-        last_log = k8s_lib.get_pod_logs(pod_name=pod_name, namespace=namespace, container_name='vmagent', tail_lines=200)
+        last_log = k8s_lib.get_pod_logs(pod_name=pod_name, namespace=namespace,
+                                        container_name='vmagent', tail_lines=200)
     except Exception as e:
         print(f'Failed to get {pod_name} pod logs: {e}')
         return 0
@@ -54,7 +56,7 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
         exit(1)
-    print('Checking deployments/statefulsets are ready')
+    print('Checking deployments/StatefulSets are ready')
     enabled_services = dict()
     if operator == 'prometheus-operator':
         print('Checking prometheus-operator')
@@ -67,14 +69,14 @@ if __name__ == '__main__':
         print('Checking vmagent-k8s')
         enabled_services['vmagent'] = dict(ready=0, label='app.kubernetes.io/name', kind='deployment')
     else:
-        print(f'Prometheus or victoriametrics operator is not found!')
+        print('Prometheus or victoriametrics operator is not found!')
         exit(1)
     if grafana_operator == 'true':
         print('Checking grafana')
         enabled_services['grafana'] = dict(ready=0, label='app', kind='deployment')
 
     timeout_start = time.time()
-    
+
     all_ready = False
     while time.time() < timeout_start + timeout:
         try:
