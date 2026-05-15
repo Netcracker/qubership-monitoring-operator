@@ -115,11 +115,53 @@ def get_list_length(list_for_check):
 
 
 def get_dashboard_from_status(dictionary, namespace, name):
-    status = dictionary.get('status')
-    dashboards = status.get('dashboards')
+    # grafana-operator v5 emits status.dashboards as a list of strings of the
+    # form "<namespace>/<name>/<uid>" (v4 used a list of dicts with explicit
+    # namespace/name/uid keys). Normalize both shapes to a dict so callers
+    # can keep using .get('uid'), .get('namespace'), .get('name').
+    status = dictionary.get('status') or {}
+    dashboards = status.get('dashboards') or []
     for i in dashboards:
-        if (i.get('namespace') == namespace) and (i.get('name') == name):
-            return i
+        if isinstance(i, dict):
+            if i.get('namespace') == namespace and i.get('name') == name:
+                return i
+            continue
+        if isinstance(i, str):
+            parts = i.split('/')
+            if len(parts) >= 2 and parts[0] == namespace and parts[1] == name:
+                uid = parts[2] if len(parts) >= 3 else None
+                return {'namespace': namespace, 'name': name, 'uid': uid}
+    return None
+
+
+def is_resource_ready_from_conditions(obj):
+    """True iff the resource is in a ready/success state.
+
+    Checks the grafana-operator v5 schema first (status.conditions[] with at
+    least one entry whose status == "True"), then falls back to the v4 schema
+    (status.message == "success") for backward compatibility.
+    """
+    status = (obj or {}).get('status') or {}
+    for cond in status.get('conditions') or []:
+        if str(cond.get('status')) == 'True':
+            return True
+    if status.get('message') == 'success':
+        return True
+    return False
+
+
+def is_grafana_cr_ready(obj):
+    """True iff the Grafana CR reports success.
+
+    v5: status.stageStatus == "success" (with status.stage == "complete").
+    v4 fallback: status.message == "success".
+    """
+    status = (obj or {}).get('status') or {}
+    if status.get('stageStatus') == 'success':
+        return True
+    if status.get('message') == 'success':
+        return True
+    return False
 
 
 def parse_yaml_file(file_path):

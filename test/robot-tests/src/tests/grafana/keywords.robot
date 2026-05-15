@@ -71,9 +71,16 @@ Get Dashboard In Namespace
 Check That Dashboard Created Successfuly
     [Arguments]   ${dashboard_name}  ${namespace}
     ${object}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Resource Status Success in Cloud  ${namespace}  grafanadashboards  ${dashboard_name}
-    ${status}=   Set Variable  ${object.get("status")}
-    Run Keyword If  ${status} != None  Should Be Equal As Strings  ${status.get('message')}   success
+    ...  Check Dashboard Ready In Cloud  ${namespace}  ${dashboard_name}
+    RETURN  ${object}
+
+Check Dashboard Ready In Cloud
+    [Arguments]  ${namespace}  ${dashboard_name}
+    ${object}=  Check Resource Status Success in Cloud  ${namespace}  grafanadashboards  ${dashboard_name}
+    # Check v5 (status.conditions[].status == True) first, fall back to v4
+    # (status.message == "success") for backward compatibility.
+    ${ready}=  Is Resource Ready From Conditions  ${object}
+    Should Be True  ${ready}  GrafanaDashboard ${dashboard_name} is not ready (no v5 condition with status=True and no v4 status.message=success)
     RETURN  ${object}
 
 Check Resource Status Success in Cloud
@@ -85,16 +92,18 @@ Check Resource Status Success in Cloud
 
 Check That Grafana CR Includes Test Dashboard
     [Arguments]   ${dashboard_name}  ${namespace}
-    ${object}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ${dashboard_status}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Dashboards Includes Name, Namespace  ${namespace}  ${dashboard_name}
-    ${status}=   Set Variable  ${object.get("status")}
-    Run Keyword If  ${status} != None  Should Be Equal As Strings  ${status.get('message')}  success
-    RETURN  ${object}
+    RETURN  ${dashboard_status}
 
 Check Status Of Dashboards Includes Name, Namespace
     [Arguments]  ${namespace}  ${name}
-    ${grafana_CR_status}=   Check Resource Status Success in Cloud  ${namespace}  grafanas  grafana
-    ${dashboard_status}=  Get Dashboard From Status  ${grafana_CR_status}  ${namespace}  ${name}
+    ${grafana_CR}=   Check Resource Status Success in Cloud  ${namespace}  grafanas  grafana
+    # v5: status.stageStatus == "success" (with status.stage == "complete").
+    # v4 fallback: status.message == "success".
+    ${ready}=  Is Grafana CR Ready  ${grafana_CR}
+    Should Be True  ${ready}  Grafana CR is not ready (no v5 status.stageStatus=success and no v4 status.message=success)
+    ${dashboard_status}=  Get Dashboard From Status  ${grafana_CR}  ${namespace}  ${name}
     Run Keyword If  ${dashboard_status} == None
     ...  Fail  Error! Dashboard with following name not found in namespace
     RETURN  ${dashboard_status}
