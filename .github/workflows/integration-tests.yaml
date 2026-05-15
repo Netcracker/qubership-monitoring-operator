@@ -1,31 +1,34 @@
-name: Run Monitoring Pipeline
+name: 'Tests: Run monitoring integration tests'
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    tags:
+      - v*
     paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
+      - .github/workflows/integration-tests.yaml
+      - .github/expected-vm-cr-statuses.json
+      - api/**
+      - charts/**
+      - cmd/**
+      - controllers/**
+      - test/robot-tests/**
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+    branches:
+      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
+      - .github/workflows/integration-tests.yaml
+      - .github/expected-vm-cr-statuses.json
+      - api/**
+      - charts/**
+      - cmd/**
+      - controllers/**
+      - test/robot-tests/**
   workflow_dispatch: {}
 
 permissions:
@@ -63,6 +66,6 @@ jobs:
     uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@247c69038e00f2a9e283412e902555f84b16dab2 # v1.8.0
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: '5e867049c9bc60651f53611cdcf167dc0c7f8ff4' #this value must match the value after '@' in 'uses'
+      pipeline_branch: '5e867049c9bc60651f53611cdcf167dc0c7f8ff4' # this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
