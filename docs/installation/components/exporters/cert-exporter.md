@@ -202,5 +202,3 @@ certExporter:
       - '--secrets-include-glob=*.pem'
   ...
 ```
-
-

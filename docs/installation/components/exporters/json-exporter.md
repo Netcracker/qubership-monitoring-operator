@@ -20,55 +20,55 @@ target configurations.
 ## Configuration Parameters
 
 <!-- markdownlint-disable line-length -->
-| Field                                   | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| install                                 | Allows to enable or disable deployment of json-exporter.                                                                                                                                                              | bool                                                                                                                         |
-| name                                    | A name of the microservice to deploy with. Used in deployment name and labels.                                                                                                                                        | string                                                                                                                       |
-| image                                   | Docker image for json-exporter.                                                                                                                                                                                       | string                                                                                                                       |
-| imagePullPolicy                         | Image pull policy for json-exporter deployment.                                                                                                                                                                       | string                                                                                                                       |
-| imagePullSecrets                        | Reference to secrets for pulling images from private registries.                                                                                                                                                      | list[object]                                                                                                                 |
-| containerPort                           | Port number that the json-exporter container listens on.                                                                                                                                                              | int                                                                                                                          |
-| replicaCount                            | Number of json-exporter pods to create.                                                                                                                                                                               | int                                                                                                                          |
-| service                                 | Service configuration for json-exporter.                                                                                                                                                                              | object                                                                                                                       |
-| service.type                            | Type of Kubernetes service (ClusterIP, NodePort, LoadBalancer).                                                                                                                                                       | string                                                                                                                       |
-| service.port                            | Port number for the service.                                                                                                                                                                                          | int                                                                                                                          |
-| service.name                            | Port name used in the service.                                                                                                                                                                                        | string                                                                                                                       |
-| service.labels                          | Additional labels for the service.                                                                                                                                                                                    | map[string]string                                                                                                            |
-| serviceMonitor                          | ServiceMonitor configuration for metrics scraping.                                                                                                                                                                    | object                                                                                                                       |
-| serviceMonitor.enabled                  | Enable ServiceMonitor creation for automatic metrics scraping.                                                                                                                                                        | bool                                                                                                                         |
-| serviceMonitor.scheme                   | HTTP scheme to use for scraping (http/https).                                                                                                                                                                         | string                                                                                                                       |
-| serviceMonitor.defaults                 | Default scrape interval/timeout/labels for the self-metrics ServiceMonitor (`/metrics`).                                                                                                                                 | object                                                                                                                       |
-| serviceMonitor.defaults.interval        | Default scraping interval.                                                                                                                                                                                            | string                                                                                                                       |
-| serviceMonitor.defaults.scrapeTimeout   | Default scrape timeout.                                                                                                                                                                                               | string                                                                                                                       |
-| serviceMonitor.defaults.labels          | Default labels for the ServiceMonitor.                                                                                                                                                                                | map[string]string                                                                                                            |
-| serviceMonitor.defaults.additionalMetricsRelabels | Default metric relabeling rules.                                                                                                                                                                                  | map[string]string                                                                                                            |
-| config                                  | Configuration of json-exporter modules and metrics extraction rules.                                                                                                                                                  | object                                                                                                                       |
-| config.modules                          | Map of module configurations for different scraping scenarios.                                                                                                                                                        | map[string]object                                                                                                            |
-| config.modules[name].metrics            | List of metrics to extract from JSON responses.                                                                                                                                                                       | list[object]                                                                                                                 |
-| config.modules[name].metrics[N].name    | Prometheus metric name.                                                                                                                                                                                               | string                                                                                                                       |
-| config.modules[name].metrics[N].path    | JSONPath expression to extract the value.                                                                                                                                                                             | string                                                                                                                       |
-| config.modules[name].metrics[N].help    | Metric description.                                                                                                                                                                                                    | string                                                                                                                       |
-| config.modules[name].metrics[N].type    | Metric type (gauge, counter, etc.).                                                                                                                                                                                   | string                                                                                                                       |
-| config.modules[name].metrics[N].labels  | Static and dynamic labels for the metric.                                                                                                                                                                             | map[string]string                                                                                                            |
-| config.modules[name].metrics[N].values  | For object-type metrics, map of value names to JSONPath expressions.                                                                                                                                                  | map[string]string                                                                                                            |
-| config.modules[name].headers            | HTTP headers to send with requests.                                                                                                                                                                                   | map[string]string                                                                                                            |
-| config.modules[name].body               | HTTP body configuration for POST requests.                                                                                                                                                                            | object                                                                                                                       |
-| config.modules[name].http_client_config | HTTP client configuration (TLS, auth, etc.).                                                                                                                                                                          | object                                                                                                                       |
-| resources                               | Resource requests and limits for the container.                                                                                                                                                                       | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core) |
-| securityContext                         | Pod-level security context.                                                                                                                                                                                           | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)    |
-| containerSecurityContext               | Container-level security context.                                                                                                                                                                                     | [*v1.SecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#securitycontext-v1-core)         |
-| nodeSelector                            | Node selector for pod scheduling.                                                                                                                                                                                     | map[string]string                                                                                                            |
-| tolerations                             | Tolerations for pod scheduling.                                                                                                                                                                                       | []v1.Toleration                                                                                                              |
-| affinity                                | Affinity rules for pod scheduling.                                                                                                                                                                                    | *v1.Affinity                                                                                                                 |
-| annotations                             | Annotations to add to pods.                                                                                                                                                                                           | map[string]string                                                                                                            |
-| labels                                  | Labels to add to pods.                                                                                                                                                                                                | map[string]string                                                                                                            |
-| priorityClassName                       | Priority class name for pod scheduling.                                                                                                                                                                               | string                                                                                                                       |
-| serviceAccount                          | ServiceAccount configuration.                                                                                                                                                                                         | object                                                                                                                       |
-| serviceAccount.install                  | Whether to create a ServiceAccount.                                                                                                                                                                                   | bool                                                                                                                         |
-| serviceAccount.annotations              | Annotations for the ServiceAccount.                                                                                                                                                                                   | map[string]string                                                                                                            |
-| serviceAccount.name                     | Name of the ServiceAccount to use.                                                                                                                                                                                    | string                                                                                                                       |
-| additionalVolumes                       | Additional volumes to mount.                                                                                                                                                                                           | list[object]                                                                                                                 |
-| additionalVolumeMounts                  | Additional volume mounts for the container.                                                                                                                                                                           | list[object]                                                                                                                 |
+| Field                                             | Description                                                                              | Scheme                                                                                                                       |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| install                                           | Allows to enable or disable deployment of json-exporter.                                 | bool                                                                                                                         |
+| name                                              | A name of the microservice to deploy with. Used in deployment name and labels.           | string                                                                                                                       |
+| image                                             | Docker image for json-exporter.                                                          | string                                                                                                                       |
+| imagePullPolicy                                   | Image pull policy for json-exporter deployment.                                          | string                                                                                                                       |
+| imagePullSecrets                                  | Reference to secrets for pulling images from private registries.                         | list[object]                                                                                                                 |
+| containerPort                                     | Port number that the json-exporter container listens on.                                 | int                                                                                                                          |
+| replicaCount                                      | Number of json-exporter pods to create.                                                  | int                                                                                                                          |
+| service                                           | Service configuration for json-exporter.                                                 | object                                                                                                                       |
+| service.type                                      | Type of Kubernetes service (ClusterIP, NodePort, LoadBalancer).                          | string                                                                                                                       |
+| service.port                                      | Port number for the service.                                                             | int                                                                                                                          |
+| service.name                                      | Port name used in the service.                                                           | string                                                                                                                       |
+| service.labels                                    | Additional labels for the service.                                                       | map[string]string                                                                                                            |
+| serviceMonitor                                    | ServiceMonitor configuration for metrics scraping.                                       | object                                                                                                                       |
+| serviceMonitor.enabled                            | Enable ServiceMonitor creation for automatic metrics scraping.                           | bool                                                                                                                         |
+| serviceMonitor.scheme                             | HTTP scheme to use for scraping (http/https).                                            | string                                                                                                                       |
+| serviceMonitor.defaults                           | Default scrape interval/timeout/labels for the self-metrics ServiceMonitor (`/metrics`). | object                                                                                                                       |
+| serviceMonitor.defaults.interval                  | Default scraping interval.                                                               | string                                                                                                                       |
+| serviceMonitor.defaults.scrapeTimeout             | Default scrape timeout.                                                                  | string                                                                                                                       |
+| serviceMonitor.defaults.labels                    | Default labels for the ServiceMonitor.                                                   | map[string]string                                                                                                            |
+| serviceMonitor.defaults.additionalMetricsRelabels | Default metric relabeling rules.                                                         | map[string]string                                                                                                            |
+| config                                            | Configuration of json-exporter modules and metrics extraction rules.                     | object                                                                                                                       |
+| config.modules                                    | Map of module configurations for different scraping scenarios.                           | map[string]object                                                                                                            |
+| config.modules[name].metrics                      | List of metrics to extract from JSON responses.                                          | list[object]                                                                                                                 |
+| config.modules[name].metrics[N].name              | Prometheus metric name.                                                                  | string                                                                                                                       |
+| config.modules[name].metrics[N].path              | JSONPath expression to extract the value.                                                | string                                                                                                                       |
+| config.modules[name].metrics[N].help              | Metric description.                                                                      | string                                                                                                                       |
+| config.modules[name].metrics[N].type              | Metric type (gauge, counter, etc.).                                                      | string                                                                                                                       |
+| config.modules[name].metrics[N].labels            | Static and dynamic labels for the metric.                                                | map[string]string                                                                                                            |
+| config.modules[name].metrics[N].values            | For object-type metrics, map of value names to JSONPath expressions.                     | map[string]string                                                                                                            |
+| config.modules[name].headers                      | HTTP headers to send with requests.                                                      | map[string]string                                                                                                            |
+| config.modules[name].body                         | HTTP body configuration for POST requests.                                               | object                                                                                                                       |
+| config.modules[name].http_client_config           | HTTP client configuration (TLS, auth, etc.).                                             | object                                                                                                                       |
+| resources                                         | Resource requests and limits for the container.                                          | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core) |
+| securityContext                                   | Pod-level security context.                                                              | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)    |
+| containerSecurityContext                          | Container-level security context.                                                        | [*v1.SecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#securitycontext-v1-core)          |
+| nodeSelector                                      | Node selector for pod scheduling.                                                        | map[string]string                                                                                                            |
+| tolerations                                       | Tolerations for pod scheduling.                                                          | []v1.Toleration                                                                                                              |
+| affinity                                          | Affinity rules for pod scheduling.                                                       | *v1.Affinity                                                                                                                 |
+| annotations                                       | Annotations to add to pods.                                                              | map[string]string                                                                                                            |
+| labels                                            | Labels to add to pods.                                                                   | map[string]string                                                                                                            |
+| priorityClassName                                 | Priority class name for pod scheduling.                                                  | string                                                                                                                       |
+| serviceAccount                                    | ServiceAccount configuration.                                                            | object                                                                                                                       |
+| serviceAccount.install                            | Whether to create a ServiceAccount.                                                      | bool                                                                                                                         |
+| serviceAccount.annotations                        | Annotations for the ServiceAccount.                                                      | map[string]string                                                                                                            |
+| serviceAccount.name                               | Name of the ServiceAccount to use.                                                       | string                                                                                                                       |
+| additionalVolumes                                 | Additional volumes to mount.                                                             | list[object]                                                                                                                 |
+| additionalVolumeMounts                            | Additional volume mounts for the container.                                              | list[object]                                                                                                                 |
 <!-- markdownlint-enable line-length -->
 
 ## Endpoints
@@ -104,7 +104,7 @@ Monitor a simple JSON API endpoint:
 jsonExporter:
   install: true
   name: json-exporter
-  
+
   # Configure module for API monitoring
   config:
     modules:
@@ -121,7 +121,7 @@ jsonExporter:
             type: gauge
         headers:
           User-Agent: "json-exporter/1.0"
-  
+
   serviceMonitor:
     enabled: true
 ```
@@ -142,7 +142,7 @@ jsonExporter:
             path: "{ .stats.total_requests }"
             help: Total number of requests
             type: counter
-            
+
           # Extract metrics from array of services
           - name: service_status
             type: object
@@ -155,13 +155,13 @@ jsonExporter:
             values:
               status: '{.status == "healthy" ? 1 : 0}'
               uptime_seconds: '{.uptime}'
-              
+
           # Extract timestamped metric
           - name: last_update
             path: "{ .last_update }"
             epochTimestamp: "{ .timestamp }"
             help: Last update timestamp
-  
+
   serviceMonitor:
     enabled: true
 ```
@@ -189,7 +189,7 @@ jsonExporter:
               "query": "SELECT COUNT(*) FROM users WHERE active = true",
               "format": "json"
             }
-  
+
   serviceMonitor:
     enabled: true
 ```
@@ -215,7 +215,7 @@ jsonExporter:
           basic_auth:
             username: monitoring_user
             password_file: /etc/secrets/password
-            
+
   # Mount secrets for authentication
   additionalVolumes:
     - name: auth-secret
@@ -224,7 +224,7 @@ jsonExporter:
     - name: ca-cert
       configMap:
         name: ca-certificates
-        
+
   additionalVolumeMounts:
     - name: auth-secret
       mountPath: /etc/secrets
@@ -232,7 +232,7 @@ jsonExporter:
     - name: ca-cert
       mountPath: /etc/ssl/certs
       readOnly: true
-  
+
   serviceMonitor:
     enabled: true
 ```
@@ -259,7 +259,7 @@ jsonExporter:
               "duration": "{{ duration `300` }}"
             }
           templatize: true
-  
+
   serviceMonitor:
     enabled: true
 ```
@@ -275,13 +275,13 @@ jsonExporter:
   image: prometheuscommunity/json-exporter:v0.7.0
   imagePullPolicy: IfNotPresent
   replicaCount: 2
-  
+
   # Service configuration
   service:
     type: ClusterIP
     port: 7979
     name: http
-  
+
   # Resource management
   resources:
     limits:
@@ -290,37 +290,37 @@ jsonExporter:
     requests:
       cpu: 100m
       memory: 128Mi
-  
+
   # Security context
   securityContext:
     runAsNonRoot: true
     runAsUser: 65534
     fsGroup: 65534
-  
+
   containerSecurityContext:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
-  
+
   # Scheduling
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
-    
+
   tolerations:
     - key: "monitoring"
       operator: "Equal"
       value: "true"
       effect: "NoSchedule"
-  
+
   # ServiceAccount
   serviceAccount:
     install: true
     name: json-exporter
     annotations:
       description: "ServiceAccount for JSON Exporter"
-  
+
   # Modules configuration
   config:
     modules:
@@ -336,7 +336,7 @@ jsonExporter:
             path: "{ .response_time / 1000 }"
             help: API response time in seconds
             type: gauge
-      
+
       business_metrics:
         metrics:
           - name: active_users_total
@@ -349,7 +349,7 @@ jsonExporter:
             type: counter
         headers:
           Authorization: "Bearer {{ .token }}"
-  
+
   serviceMonitor:
     enabled: true
     scheme: http
@@ -358,12 +358,12 @@ jsonExporter:
       scrapeTimeout: 10s
       labels:
         monitoring: "json-exporter"
-  
+
   # Pod labels and annotations
   labels:
     component: monitoring
     tier: exporters
-    
+
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "7979"
@@ -390,14 +390,14 @@ Common JSONPath expressions for extracting data:
 ```
 
 <!-- markdownlint-disable line-length -->
-| JSONPath | Description | Result |
-|----------|-------------|---------|
-| `{ .status }` | Root level field | "ok" |
-| `{ .data.count }` | Nested field | 42 |
-| `{ .data.items[0].value }` | Array element field | 10 |
-| `{ .data.items[*].value }` | All array elements | [10, 20] |
-| `{ .data.items[?(@.value > 15)].name }` | Filtered array | ["item2"] |
-| `{ .meta.timestamp }` | Timestamp field | 1640995200 |
+| JSONPath                                | Description         | Result     |
+| --------------------------------------- | ------------------- | ---------- |
+| `{ .status }`                           | Root level field    | "ok"       |
+| `{ .data.count }`                       | Nested field        | 42         |
+| `{ .data.items[0].value }`              | Array element field | 10         |
+| `{ .data.items[*].value }`              | All array elements  | [10, 20]   |
+| `{ .data.items[?(@.value > 15)].name }` | Filtered array      | ["item2"]  |
+| `{ .meta.timestamp }`                   | Timestamp field     | 1640995200 |
 <!-- markdownlint-enable line-length -->
 
 ## Troubleshooting

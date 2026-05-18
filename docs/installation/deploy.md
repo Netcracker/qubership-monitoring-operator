@@ -3,13 +3,16 @@
 This guide covers the deployment process for the Qubership Monitoring Operator using Helm.
 
 !!! warning "Legacy Kubernetes Support"
-    If you want to deploy the `monitoring-operator` into **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower, you must work with _v1beta1_ CRDs manually. For more information see [Maintenance Guide: Work with legacy CRDs](../maintenance.md#work-with-legacy-crds).
+    If you want to deploy the `monitoring-operator` into **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower,
+    you must work with _v1beta1_ CRDs manually. For more information see [Maintenance Guide: Work with legacy CRDs](../maintenance.md#work-with-legacy-crds).
 
 ## Overview
 
-This chart installs Monitoring Operator which can create/configure/manage Prometheus/VictoriaMetrics and related components in Kubernetes/OpenShift.
+This chart installs Monitoring Operator which can create/configure/manage Prometheus/VictoriaMetrics
+and related components in Kubernetes/OpenShift.
 
-The default installation includes VictoriaMetrics Operator, AlertManager, Exporters, and configuration for scraping the Kubernetes/OpenShift infrastructure.
+The default installation includes VictoriaMetrics Operator, AlertManager, Exporters, and configuration
+for scraping the Kubernetes/OpenShift infrastructure.
 
 ## Quick Start
 
@@ -54,6 +57,7 @@ NAMESPACE: <monitoring>
 Ingress `host` will be set as `<component>-{{ .Values.NAMESPACE }}.{{ .Values.CLOUD_PUBLIC_URL }}`.
 
 Examples:
+
 - grafana-monitoring.public_url.com
 - victoriametrics-monitoring.public_url.com
 - alertmanager-monitoring.public_url.com
@@ -97,13 +101,13 @@ VmAgent, VmAlertManager, VmAlert, and VmAuth.
 
 Supported `httpRoute` fields:
 
-| Field | Description |
-| ----- | ----------- |
-| `install` | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`. |
-| `hostnames` | Overrides generated hostnames. If omitted, the component ingress host is used. |
-| `parentRefs` | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
-| `rules[].matches` | Raw Gateway API HTTPRoute match blocks. |
-| `rules[].filters` | Raw Gateway API HTTPRoute filter blocks. |
+| Field             | Description                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `install`         | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`.                                           |
+| `hostnames`       | Overrides generated hostnames. If omitted, the component ingress host is used.                                                      |
+| `parentRefs`      | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
+| `rules[].matches` | Raw Gateway API HTTPRoute match blocks.                                                                                             |
+| `rules[].filters` | Raw Gateway API HTTPRoute filter blocks.                                                                                            |
 
 `backendRefs` are managed by the operator and cannot be configured through `httpRoute.rules`.
 When custom `rules` are set, the operator injects the component backend service and port into each rule,
@@ -156,7 +160,8 @@ victoriametrics:
 
 You can define custom ingress routing rules for individual components using the `ingress.rules` parameter.
 Refer the ingress description in
-(official documentation)[https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules].
+[official documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
+
 For example:
 
 ```yaml
@@ -177,9 +182,12 @@ grafana:
 ```
 
 #### Configuring an Empty Host
-It is also possible to configure an empty host value by specifying an empty string for either the `ingress.host` parameter or within `ingress.rules[].host`:
+
+It is also possible to configure an empty host value by specifying an empty string for either
+the `ingress.host` parameter or within `ingress.rules[].host`:
 
 **Option 1:**
+
 ```yaml
 grafana:
   ingress:
@@ -188,6 +196,7 @@ grafana:
 ```
 
 **Option 2:**
+
 ```yaml
 grafana:
   ingress:
@@ -197,6 +206,7 @@ grafana:
 ```
 
 #### Specifying Multiple TLS Secrets
+
 To configure different TLS secrets for multiple hosts, use the `tls` parameter as shown below:
 
 ```yaml
@@ -416,7 +426,8 @@ helm uninstall monitoring-operator
 ```
 
 !!! warning "CRD Cleanup Required"
-    This command removes all Kubernetes components associated with the chart but **does not remove CRDs**. Deleting CRDs causes the deletion of all resources of their type, including resources from other applications.
+    This command removes all Kubernetes components associated with the chart but **does not remove CRDs**
+    Deleting CRDs causes the deletion of all resources of their type, including resources from other applications.
 
 ### Manual CRD Cleanup
 

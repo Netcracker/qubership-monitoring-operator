@@ -27,5 +27,3 @@ prometheus:
 The full list of parameters can be viewed at:
 
 * [Prometheus](#prometheus)
-
-

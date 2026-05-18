@@ -35,5 +35,3 @@ prometheusRules:
   annotations:
     annotation.key: annotation-value
 ```
-
-

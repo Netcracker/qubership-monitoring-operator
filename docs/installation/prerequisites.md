@@ -23,6 +23,7 @@ Verify the following requirements before installation:
 * For OpenShift deployments, verify the namespace has an empty `node-selector`
 
 Example OpenShift namespace check:
+
 ```bash
 $ oc describe namespace <namespace>
 Name:         <namespace>
@@ -89,6 +90,7 @@ Components that require ClusterRole creation:
 ### Restricted Deployment
 
 The monitoring-operator supports deployment with restricted privileges:
+
 - Access limited to resources within the namespace
 - Restricted access to cluster-scoped resources
 - Manual privilege grants required for cluster-scoped resources and other namespaces
@@ -112,6 +114,7 @@ See [AWS EBS Volume Types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/e
     **Prometheus does NOT support** non-POSIX compliant storages like AWS EFS. Avoid EFS for Prometheus deployments.
 
 VictoriaMetrics supports EFS but requires proper throughput planning:
+
 - Avoid "Bursting" throughput mode
 - Use "Provisioned Throughput" (minimum 10 MB/s) or "Elastic Throughput"
 
@@ -158,4 +161,4 @@ After verifying prerequisites:
 
 1. Review [Basic Components](basic-components.md) to understand what will be installed
 2. Configure [Storage](storage.md) for persistent data
-3. Proceed with [Deployment](deploy.md) 
+3. Proceed with [Deployment](deploy.md)

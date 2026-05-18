@@ -76,3 +76,4 @@ Example:
 ```yaml
 postgres_collector:
   connections:
+```

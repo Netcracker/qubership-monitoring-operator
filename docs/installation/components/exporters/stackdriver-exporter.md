@@ -114,5 +114,3 @@ stackdriverExporter:
   priorityClassName: priority-class
 ```
 <!-- markdownlint-enable line-length -->
-
-

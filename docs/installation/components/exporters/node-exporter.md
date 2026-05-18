@@ -49,10 +49,8 @@ nodeExporter:
   collectorTextfileDirectory: /var/spool/monitoring
   extraArgs:
     - --collector.systemd
-  
+
   serviceMonitor:
     interval: 60s
     ...
 ```
-
-

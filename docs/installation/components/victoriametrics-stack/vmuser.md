@@ -124,5 +124,3 @@ Here is the config example.
 Default paths for vmselect:
 
 * `/select/.*`
-
-

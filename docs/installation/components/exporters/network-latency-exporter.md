@@ -96,5 +96,3 @@ networkLatencyExporter:
     enabled: true
     interval: 30s
 ```
-
-
