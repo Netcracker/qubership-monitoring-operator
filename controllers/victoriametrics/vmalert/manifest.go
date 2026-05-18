@@ -644,7 +644,7 @@ func vmAlertIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 			ingress.Spec.IngressClassName = cr.Spec.Victoriametrics.VmAlert.Ingress.IngressClassName
 		}
 
-		vmAlertAnnotations := cr.Spec.Victoriametrics.VmAlert.Ingress.Annotations
+		vmAlertAnnotations := utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmAlert.Ingress.Annotations)
 		// If VMAuth is enabled, add "nginx.ingress.kubernetes.io/app-root: /vmalert" annotation
 		// to make ONLY VMAlert UI available from this Ingress
 		if cr.Spec.Victoriametrics.VmAuth.IsInstall() {

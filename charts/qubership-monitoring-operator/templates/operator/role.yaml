@@ -208,6 +208,20 @@ rules:
       - update
       - watch
 
+  # gateway.networking.k8s.io
+  # This is needed for managing HTTPRoutes
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
   ################################################## CRDs permissions ##################################################
 
   # monitoring.netcracker.com

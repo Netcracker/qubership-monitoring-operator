@@ -413,7 +413,7 @@ func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, 
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Pushgateway.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Pushgateway.Ingress.Annotations))
 
 		// Set labels with saving default labels
 		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())

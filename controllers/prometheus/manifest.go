@@ -626,7 +626,7 @@ func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, e
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Prometheus.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Prometheus.Ingress.Annotations))
 		if tlsConfigured {
 			if ingress.Annotations == nil {
 				ingress.SetAnnotations(map[string]string{"nginx.ingress.kubernetes.io/backend-protocol": "HTTPS"})

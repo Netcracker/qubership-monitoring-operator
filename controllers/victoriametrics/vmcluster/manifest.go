@@ -365,7 +365,7 @@ func vmSelectIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)

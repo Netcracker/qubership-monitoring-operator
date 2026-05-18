@@ -59,7 +59,9 @@ type PlatformMonitoringSpec struct {
 	Promxy             *Promxy            `json:"promxy,omitempty"`
 	Pushgateway        *Pushgateway       `json:"pushgateway,omitempty"`
 	PublicCloudName    string             `json:"publicCloudName,omitempty"`
-	Victoriametrics    *Victoriametrics   `json:"victoriametrics,omitempty"`
+	// GatewayAPI configures Gateway API defaults and ingress annotations for all components.
+	GatewayAPI      *GatewayAPI      `json:"gatewayApi,omitempty"`
+	Victoriametrics *Victoriametrics `json:"victoriametrics,omitempty"`
 }
 
 // AlertManager defines the desired state for some part of prometheus-operator deployment
@@ -84,6 +86,8 @@ type AlertManager struct {
 	Containers []v1.Container `json:"containers,omitempty"`
 	// Ingress allows to create Ingress for AlertManager UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Set paused to reconsilation
 	Paused bool `json:"paused,omitempty"`
 	// Set replicas
@@ -160,6 +164,8 @@ type Grafana struct {
 	Resources v1.ResourceRequirements `json:"resources,omitempty"`
 	// Ingress allows to create Ingress for Grafana UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Config allows to override Config for Grafana.
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Config *runtime.RawExtension `json:"config,omitempty"`
@@ -339,6 +345,8 @@ type Prometheus struct {
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// Ingress allows to create Ingress for Prometheus UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Retention policy by time
 	Retention string `json:"retention,omitempty"`
 	// Retention policy by size [EXPERIMENTAL]
@@ -533,6 +541,70 @@ type Victoriametrics struct {
 	//VmCluster      VmCluster      `json:"vmCluster,omitempty"`	//TODO: Revert this line when vmCluster is actualized
 	VmCluster VmCluster `json:"-"`
 }
+
+type GatewayAPI struct {
+	// AddIngressIgnoreAnnotation adds `gateway-api-converter.netcracker.com/ignore: "true"` to operator-managed ingresses.
+	AddIngressIgnoreAnnotation bool `json:"addIngressIgnoreAnnotation,omitempty"`
+	// ParentRefs defines the default route parent references to Gateway/listener for all routes.
+	ParentRefs []GatewayParentRef `json:"parentRefs,omitempty"`
+}
+
+type GatewayParentRef struct {
+	// Group defines the target gateway API group, default is `gateway.networking.k8s.io`.
+	Group string `json:"group,omitempty"`
+	// Name defines the target Gateway resource name.
+	Name string `json:"name,omitempty"`
+	// Namespace defines the target Gateway namespace.
+	Namespace string `json:"namespace,omitempty"`
+	// Kind defines the target gateway kind, default is `Gateway`.
+	Kind string `json:"kind,omitempty"`
+	// SectionName defines target listener section name.
+	SectionName string `json:"sectionName,omitempty"`
+}
+
+type GatewayJSON struct {
+	Raw []byte `json:"-"`
+}
+
+func (j *GatewayJSON) UnmarshalJSON(b []byte) error {
+	if j == nil {
+		return nil
+	}
+	if string(b) == "null" {
+		j.Raw = nil
+		return nil
+	}
+	j.Raw = append(j.Raw[:0], b...)
+	return nil
+}
+
+func (j GatewayJSON) MarshalJSON() ([]byte, error) {
+	if len(j.Raw) == 0 {
+		return []byte("null"), nil
+	}
+	return j.Raw, nil
+}
+
+type GatewayHTTPRouteRule struct {
+	// Matches is raw Gateway API HTTPRoute match blocks.
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Matches []GatewayJSON `json:"matches,omitempty"`
+	// Filters is raw Gateway API HTTPRoute filter blocks.
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Filters []GatewayJSON `json:"filters,omitempty"`
+}
+
+type GatewayHTTPRoute struct {
+	// Install indicates whether HTTPRoute should be reconciled independently from ingress.
+	Install *bool `json:"install,omitempty"`
+	// ParentRefs defines route parent references to Gateway/listener.
+	ParentRefs []GatewayParentRef `json:"parentRefs,omitempty"`
+	// Hostnames overrides generated hostnames if specified.
+	Hostnames []string `json:"hostnames,omitempty"`
+	// Rules defines custom HTTPRoute rules. BackendRefs are still managed by operator.
+	Rules []GatewayHTTPRouteRule `json:"rules,omitempty"`
+}
+
 type VmOperator struct {
 	// Install indicates is victoriametrics-operator will be installed.
 	// Can be changed for already deployed service and the service
@@ -629,6 +701,8 @@ type VmSingle struct {
 	Containers []v1.Container `json:"containers,omitempty"`
 	// Ingress allows to create Ingress for VmSingle UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// RetentionPeriod for the stored metrics
 	// Note VictoriaMetrics has data/ and indexdb/ folders
 	// metrics from data/ removed eventually as soon as partition leaves retention period
@@ -725,6 +799,8 @@ type VmAgent struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Ingress allows to create Ingress for VM UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// ScrapeInterval defines how often scrape targets by default
 	// +optional
 	// +kubebuilder:validation:Pattern:="[0-9]+(ms|s|m|h)"
@@ -815,6 +891,8 @@ type VmAlertManager struct {
 	Image string `json:"image"`
 	// Ingress allows to create Ingress for VM UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Secrets is a list of Secrets in the same namespace as the VMAlertmanager
 	// object, which shall be mounted into the VMAlertmanager Pods.
 	// The Secrets are mounted into /etc/vm/secrets/<secret-name>
@@ -940,6 +1018,8 @@ type VmAlert struct {
 	Image string `json:"image"`
 	// Ingress allows to create Ingress for VM UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Secrets is a list of Secrets in the same namespace as the VMAlert
 	// object, which shall be mounted into the VMAlert Pods.
 	// The Secrets are mounted into /etc/vm/secrets/<secret-name>.
@@ -1153,6 +1233,8 @@ type VmAuth struct {
 	ExtraEnvs []v1.EnvVar `json:"extraEnvs,omitempty"`
 	// Ingress enables ingress configuration for VMAuth.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
 	// and services.
@@ -1260,6 +1342,8 @@ type VmCluster struct {
 	VmSelectTLSConfig *VmTLSConfig `json:"vmSelectTlsConfig,omitempty"`
 	// Ingress enables ingress configuration for VMSelect.
 	VmSelectIngress *Ingress `json:"vmSelectIngress,omitempty"`
+	// HTTPRoute allows to configure Gateway API HTTPRoute for VMSelect.
+	VmSelectHTTPRoute *GatewayHTTPRoute `json:"vmSelectHttpRoute,omitempty"`
 	// +optional
 	VmInsert *vmetricsv1b1.VMInsert `json:"vminsert,omitempty"`
 	//Image for VMInsert
@@ -1376,6 +1460,8 @@ type Pushgateway struct {
 	Port int32 `json:"port"`
 	// Ingress allows to create Ingress.
 	Ingress *Ingress `json:"ingress,omitempty"`
+	// HTTPRoute allows to configure component-specific Gateway API HTTPRoute.
+	HTTPRoute *GatewayHTTPRoute `json:"httpRoute,omitempty"`
 	// Resources defines resources requests and limits for single Pods
 	Resources v1.ResourceRequirements `json:"resources,omitempty"`
 	// SecurityContext holds pod-level security attributes.

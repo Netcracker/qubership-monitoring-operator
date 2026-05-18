@@ -545,7 +545,7 @@ func vmAgentIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmAgent.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmAgent.Ingress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)

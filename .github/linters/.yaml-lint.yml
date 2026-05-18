@@ -3,8 +3,9 @@
 # Rules: https://yamllint.readthedocs.io/en/stable/rules.html
 
 # Exclude not required files
-ignore-from-file:
-- .gitignore
+ignore:
+  - charts/
+  - docs/crds/
 
 rules:
   braces:

@@ -1,22 +1,6 @@
 //go:build envtest
 
-/*
-Copyright 2021.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
-package bdd_tests
+package envtests
 
 import (
 	"context"
@@ -24,6 +8,7 @@ import (
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -67,7 +52,8 @@ var _ = BeforeSuite(func() {
 			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "grafana-operator", "crds"),
 			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-adapter-operator", "crds"),
 			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-operator", "crds"),
-			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds")},
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds"),
+			filepath.Join("..", "..", "test", "envtests", "assets", "gatewayapi")},
 	}
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
@@ -83,6 +69,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = grafv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = vmetricsv1b1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = v1beta1ext.AddToScheme(scheme.Scheme)

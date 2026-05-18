@@ -74,6 +74,8 @@ spec:
               value: {{ .Values.grafana.ingress.host | quote }}
               {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
               value: {{ (index .Values.grafana.ingress.rules 0).host }}
+              {{- else if and .Values.grafana.httpRoute.install .Values.grafana.httpRoute.hostnames }}
+              value: {{ .Values.grafana.httpRoute.hostnames | first | quote }}
               {{- else }}
               value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
               {{- end }}
