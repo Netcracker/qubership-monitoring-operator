@@ -28,9 +28,9 @@
         "/.github/workflows/integration-tests\\.yaml/"
       ],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*:(?<currentValue>[^\\s\"'\\n]+)"
       ],
-      "extractVersionTemplate": "(?<version>[0-9][^:]*$)"
+      "extractVersionTemplate": "^(?:config-reloader-)?v?(?<version>\\d+(?:\\.\\d+)*)"
     },
     {
       "customType": "regex",
@@ -87,6 +87,18 @@
       ],
       "groupName": "netcracker-workflows",
       "separateMajorMinor": false
+    },
+    {
+      "description": "VictoriaMetrics cluster images use -cluster docker tag suffix (vmselect, vmstorage, vminsert)",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "victoriametrics/vmselect",
+        "victoriametrics/vmstorage",
+        "victoriametrics/vminsert"
+      ],
+      "versionCompatibility": "^(?<version>v\\d+\\.\\d+\\.\\d+)(?<compatibility>-cluster)$",
+      "versioning": "docker"
     },
     {
       "description": "Group Netcracker docker images (overrides third-party-images group)",
