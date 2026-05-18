@@ -72,7 +72,7 @@ Run it:
 `vmalert-tool` expects the **bare** rules YAML - the same shape Prometheus
 itself loads, i.e. starting at the `groups:` key. If your rules live inside a
 Kubernetes `PrometheusRule` CR, strip the wrapper before running tests. In this
-repo the source is at
+repository the source is at
 [`controllers/prometheus-rules/assets/prometheus-rules.yaml`](../controllers/prometheus-rules/assets/prometheus-rules.yaml)
 and CI renders it via:
 
@@ -93,7 +93,7 @@ yq '{"groups": .spec.groups}' prometheus-rules.yaml > rules.yaml
 ## 2. Generic recommendations
 
 These are the rules of thumb we landed on after writing tests for dozens of
-alerts in this repo. Most of them push back against a tempting shortcut that
+alerts in this repository. Most of them push back against a tempting shortcut that
 silently produces a green-but-useless test.
 
 ### 2.1 Every alert rule needs at least two tests
@@ -274,7 +274,7 @@ harmless template tweak forces test churn.
 
 Two reasonable strategies:
 
-- **Strict (used in this repo):** copy the full rendered string into
+- **Strict (used in this repository):** copy the full rendered string into
   `exp_annotations`. You catch every accidental template change, at the cost
   of edits when you intentionally reword.
 - **Minimal:** only assert on the parts you care about (e.g. `summary` only,
@@ -482,5 +482,5 @@ When adding a new alert rule, before you open the PR:
 - [vmalert-tool official docs](https://docs.victoriametrics.com/victoriametrics/vmalert-tool/)
 - [Prometheus unit testing for alerting rules](https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/)
 - [Prometheus `histogram_quantile()`](https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_quantile)
-- Working example in this repo: [`test/alerts-tests/`](../test/alerts-tests/)
+- Working example in this repository: [`test/alerts-tests/`](../test/alerts-tests/)
   and [`.github/workflows/test-alert-rules-unit-tests.yaml`](../.github/workflows/test-alert-rules-unit-tests.yaml)
