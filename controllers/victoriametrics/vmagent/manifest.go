@@ -55,8 +55,8 @@ func vmAgentClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rba
 			Resources:     []string{"securitycontextconstraints"},
 			Verbs:         []string{"use"},
 			APIGroups:     []string{"security.openshift.io"},
-		ResourceNames: []string{utils.VmOperatorComponentName},
-	})
+			ResourceNames: []string{utils.VmOperatorComponentName},
+		})
 	}
 
 	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAgentComponentName), nil)

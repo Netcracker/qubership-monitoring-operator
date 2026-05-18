@@ -12,9 +12,9 @@ type objWithLabels struct {
 	metav1.ObjectMeta
 }
 
-func (o *objWithLabels) GetLabels() map[string]string              { return o.Labels }
-func (o *objWithLabels) SetLabels(labels map[string]string)          { o.Labels = labels }
-func (o *objWithLabels) GetAnnotations() map[string]string           { return o.Annotations }
+func (o *objWithLabels) GetLabels() map[string]string                 { return o.Labels }
+func (o *objWithLabels) SetLabels(labels map[string]string)           { o.Labels = labels }
+func (o *objWithLabels) GetAnnotations() map[string]string            { return o.Annotations }
 func (o *objWithLabels) SetAnnotations(annotations map[string]string) { o.Annotations = annotations }
 
 func TestCommonLabels(t *testing.T) {

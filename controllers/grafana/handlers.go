@@ -589,4 +589,3 @@ func sortServices(services []corev1.Service) {
 		return strings.Compare(a.Name, b.Name)
 	})
 }
-

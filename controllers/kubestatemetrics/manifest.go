@@ -226,8 +226,8 @@ func kubeStateMetricsServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.Servi
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.KubestatemetricsComponentName,
+		Name:      sm.GetName(),
+		Component: utils.KubestatemetricsComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
 			cr.GetLabels(),

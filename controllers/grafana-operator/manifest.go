@@ -412,8 +412,8 @@ func grafanaOperatorPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor
 	}
 
 	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
-		Name:            podMonitor.GetName(),
-		Component:       utils.GrafanaOperatorComponentName,
+		Name:      podMonitor.GetName(),
+		Component: utils.GrafanaOperatorComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
 			cr.GetLabels(),

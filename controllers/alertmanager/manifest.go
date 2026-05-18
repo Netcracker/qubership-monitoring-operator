@@ -439,8 +439,8 @@ func alertmanagerPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, e
 	}
 
 	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
-		Name:            podMonitor.GetName(),
-		Component:       utils.AlertManagerComponentName,
+		Name:      podMonitor.GetName(),
+		Component: utils.AlertManagerComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
 			cr.GetLabels(),

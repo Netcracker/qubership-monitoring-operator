@@ -214,8 +214,8 @@ func nodeExporterServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMo
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.NodeExporterComponentName,
+		Name:      sm.GetName(),
+		Component: utils.NodeExporterComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
 			cr.GetLabels(),

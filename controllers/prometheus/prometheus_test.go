@@ -106,7 +106,7 @@ func TestPrometheusManifests(t *testing.T) {
 	t.Run("Test PodMonitor manifest", func(t *testing.T) {
 		crWithLabels := &monv1.PlatformMonitoring{
 			ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring", Labels: map[string]string{labelKey: labelValue}},
-			Spec:      monv1.PlatformMonitoringSpec{Prometheus: &monv1.Prometheus{}},
+			Spec:       monv1.PlatformMonitoringSpec{Prometheus: &monv1.Prometheus{}},
 		}
 		m, err := prometheusPodMonitor(crWithLabels)
 		if err != nil {

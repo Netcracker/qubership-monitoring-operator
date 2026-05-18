@@ -687,8 +687,8 @@ func prometheusPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, err
 	}
 
 	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
-		Name:            podMonitor.GetName(),
-		Component:       utils.PrometheusComponentName,
+		Name:      podMonitor.GetName(),
+		Component: utils.PrometheusComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
 			cr.GetLabels(),

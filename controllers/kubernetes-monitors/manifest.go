@@ -33,8 +33,8 @@ func kubernetesMonitorsApiServerServiceMonitor(cr *monv1.PlatformMonitoring) (*p
 
 	// Set labels via centralized API (ServiceMonitor: base-only per spec)
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.KubernetesMonitorsComponentName,
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
 			cr.GetLabels(),
@@ -126,7 +126,6 @@ func kubernetesMonitorsSchedulerServiceMonitor(cr *monv1.PlatformMonitoring) (*p
 	return &sm, nil
 }
 
-
 func kubernetesMonitorsKubeletServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
 	sm := promv1.ServiceMonitor{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubeletServiceMonitorAsset), 100).Decode(&sm); err != nil {
@@ -146,8 +145,8 @@ func kubernetesMonitorsKubeletServiceMonitor(cr *monv1.PlatformMonitoring) (*pro
 
 	// Set labels via centralized API (ServiceMonitor: base-only per spec)
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.KubernetesMonitorsComponentName,
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
 			cr.GetLabels(),
@@ -190,8 +189,8 @@ func kubernetesMonitorsCoreDnsServiceMonitor(cr *monv1.PlatformMonitoring, isOpe
 
 	// Set labels via centralized API (ServiceMonitor: base-only per spec)
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.KubernetesMonitorsComponentName,
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
 			cr.GetLabels(),
@@ -227,8 +226,8 @@ func kubernetesMonitorsNginxIngressPodMonitor(cr *monv1.PlatformMonitoring) (*pr
 
 	// Set labels via centralized API (PodMonitor: base-only per spec)
 	utils.SetLabelsForResource(&pm, utils.LabelInput{
-		Name:            pm.GetName(),
-		Component:       utils.KubernetesMonitorsComponentName,
+		Name:      pm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
 			cr.GetLabels(),
@@ -268,8 +267,8 @@ func openshiftServiceMonitor(cr *monv1.PlatformMonitoring,
 
 	// Set labels via centralized API (ServiceMonitor: base-only per spec)
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.KubernetesMonitorsComponentName,
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
 			cr.GetLabels(),

@@ -46,7 +46,7 @@ func TestPushgatewayManifests(t *testing.T) {
 	t.Run("Test ServiceMonitor manifest", func(t *testing.T) {
 		crWithLabels := &monv1.PlatformMonitoring{
 			ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring", Labels: map[string]string{labelKey: labelValue}},
-			Spec:      monv1.PlatformMonitoringSpec{Pushgateway: &monv1.Pushgateway{}},
+			Spec:       monv1.PlatformMonitoringSpec{Pushgateway: &monv1.Pushgateway{}},
 		}
 		m, err := pushgatewayServiceMonitor(crWithLabels)
 		if err != nil {

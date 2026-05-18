@@ -109,9 +109,9 @@ func prometheusRules(cr *monv1.PlatformMonitoring) (*promv1.PrometheusRule, erro
 			crLabels = make(map[string]string)
 		}
 		in := utils.LabelInput{
-			Name:            rules.GetName(),
-			Component:       utils.PrometheusRulesComponentName,
-			Instance:        utils.GetInstanceLabel(rules.GetName(), rules.GetNamespace()),
+			Name:      rules.GetName(),
+			Component: utils.PrometheusRulesComponentName,
+			Instance:  utils.GetInstanceLabel(rules.GetName(), rules.GetNamespace()),
 			ComponentLabels: utils.MergeLabels(
 				map[string]string{"app.kubernetes.io/processed-by-operator": utils.OperatorDeploymentName},
 				crLabels,
