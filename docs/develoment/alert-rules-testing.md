@@ -147,12 +147,10 @@ releases. Pin `vmalert-tool` to a specific tag and bump it deliberately.
 ### 2.5 Keep `evaluation_interval` and `interval` aligned with reality
 
 Real Prometheus typically scrapes at 15–30 s and evaluates rules at 30 s–1 min.
-Tests should not use absurdly short intervals (e.g. `1s`) to "speed things up"
-- some rules use `rate()` or `increase()` over windows like `5m` and need a
+Tests should not use absurdly short intervals (e.g. `1s`) to "speed things up" -
+some rules use `rate()` or `increase()` over windows like `5m` and need a
 realistic step to behave the way they will in production. `1m` for both is a
 safe default.
-
----
 
 ## 3. Writing test data - the hard part
 
@@ -318,8 +316,6 @@ A common silent failure: the test "passes" but actually didn't run because
 | Restart loop (`changes()`)                | Use `1+1xN` - each step increments the value  |
 | Missing data / scrape failure             | Use `_` in the values string                  |
 
----
-
 ## 4. Recommended layout for a project
 
 ```bash
@@ -332,8 +328,6 @@ test/alerts-tests/
 
 The `rules.yaml` file is a build artifact - generate it in CI rather than
 committing it, so it can't drift from the source.
-
----
 
 ## 5. CI integration
 
@@ -364,7 +358,7 @@ env:
   target_alert_rules_file: test/alerts-tests/rules.yaml
 
 jobs:
-  Run-Alerts-Test:
+  alert-rules-unit-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -439,8 +433,8 @@ alert-rules-unit-tests:
         - test/alerts-tests/**/*
 ```
 
-The `changes:` filter limits the job to PRs that actually touch rules or tests
-- useful in monorepos where most pipelines should skip it.
+The `changes:` filter limits the job to PRs that actually touch rules or tests -
+useful in monorepos where most pipelines should skip it.
 
 ### 5.3 Caching the binary
 
@@ -466,8 +460,6 @@ For local debugging, run a single file: `./vmalert-tool unittest --file
 test/alerts-tests/etcd-alerts-tests.yaml`. The output is the same as in CI but
 without the noise of unrelated groups.
 
----
-
 ## 6. Quick reference checklist
 
 When adding a new alert rule, before you open the PR:
@@ -484,8 +476,6 @@ When adding a new alert rule, before you open the PR:
 - [ ] `exp_annotations` either matches the template output exactly, or is
       asserted on a stable subset.
 - [ ] `tests-checker.sh` (or equivalent) passes locally.
-
----
 
 ## 7. Further reading
 
