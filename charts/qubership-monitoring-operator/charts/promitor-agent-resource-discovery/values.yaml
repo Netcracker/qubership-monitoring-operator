@@ -57,7 +57,8 @@ azureAuthentication:
     #
     id: ""
     # Secret of the Azure AD entity to authenticate with.
-    # Sets the environment variable PROMITOR_AUTH_APPKEY through the secrets.appKeySecret field in the Secret.
+    # Mounted from Kubernetes Secret to /etc/promitor/secrets/appkey and referenced
+    # in runtime.yaml via authentication.secretFilePath/secretFileName.
     # Type: string
     # Mandatory: yes
     # Default: not set

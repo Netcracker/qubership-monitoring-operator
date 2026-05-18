@@ -30,7 +30,7 @@
                         },
                         "key": {
                             "type": "string",
-                            "description": "Secret of the Azure AD entity to authenticate with. Sets the environment variable PROMITOR_AUTH_APPKEY through the secrets.appKeySecret field in the Secret.",
+                            "description": "Secret of the Azure AD entity to authenticate with. Mounted from Kubernetes Secret to /etc/promitor/secrets/appkey and referenced through authentication.secretFilePath/secretFileName.",
                             "default": ""
                         }
                     }

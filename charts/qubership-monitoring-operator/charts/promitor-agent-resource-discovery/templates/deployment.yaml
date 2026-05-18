@@ -68,16 +68,6 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-  {{- if or (or .Values.azureAuthentication.identity.key .Values.azureAuthentication.appKey (eq .Values.secrets.createSecret false)) }}
-          env:
-  {{- if or .Values.azureAuthentication.identity.key .Values.azureAuthentication.appKey (eq .Values.secrets.createSecret false) }}
-          - name: PROMITOR_AUTH_APPKEY
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.secrets.secretName }}
-                key: {{ .Values.secrets.appKeySecret }}
-        {{- end }}
-        {{- end }}
           resources:
             {{ include "promitor.agentResourceDiscovery.resources" $ }}
           {{- if .Values.containerSecurityContext.enabled }}
@@ -86,6 +76,11 @@ spec:
           volumeMounts:
           - name: config
             mountPath: /config/
+          {{- if or .Values.azureAuthentication.identity.key .Values.azureAuthentication.appKey (eq .Values.secrets.createSecret false) }}
+          - name: azure-auth-secret
+            mountPath: /etc/promitor/secrets
+            readOnly: true
+          {{- end }}
           {{- if and .Values.containerSecurityContext.enabled .Values.containerSecurityContext.readOnlyRootFilesystem }}
           - name: tmp
             mountPath: /tmp/
@@ -121,6 +116,14 @@ spec:
         - name: config
           configMap:
             name: {{ .Values.name }}
+        {{- if or .Values.azureAuthentication.identity.key .Values.azureAuthentication.appKey (eq .Values.secrets.createSecret false) }}
+        - name: azure-auth-secret
+          secret:
+            secretName: {{ .Values.secrets.secretName }}
+            items:
+              - key: {{ .Values.secrets.appKeySecret }}
+                path: appkey
+        {{- end }}
         {{- if and .Values.containerSecurityContext.enabled .Values.containerSecurityContext.readOnlyRootFilesystem }}
         - emptyDir: {}
           name: tmp

@@ -20,6 +20,10 @@ data:
     {{- else if .Values.azureAuthentication.appId }}
         identityId: {{ .Values.azureAuthentication.appId }}
     {{- end }}
+    {{- if or .Values.azureAuthentication.identity.key .Values.azureAuthentication.appKey (eq .Values.secrets.createSecret false) }}
+        secretFilePath: /etc/promitor/secrets
+        secretFileName: appkey
+    {{- end }}
       cache:
         enabled: {{ .Values.cache.enabled | quote }}
         durationInMinutes: {{ .Values.cache.durationInMinutes | quote }}

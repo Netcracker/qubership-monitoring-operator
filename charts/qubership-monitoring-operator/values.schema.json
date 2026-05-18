@@ -151,6 +151,10 @@
                     "type": "string",
                     "description": "OAuth Client Secret used to authenticate the client application"
                 },
+                "cookieSecret": {
+                    "type": "string",
+                    "description": "Secret used by oauth2-proxy for cookie encryption/signing"
+                },
                 "loginUrl": {
                     "type": "string",
                     "description": "Authentication (authorization) endpoint URL of the IDP"
