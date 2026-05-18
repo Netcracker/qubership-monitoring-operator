@@ -55,7 +55,7 @@ jobs:
           workflow: build.yaml
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  Monitoring-Pipeline:
+  Hardening-Tests:
     needs: [Wait-for-images]
     if: |
       needs.Wait-for-images.outputs.conclusion == 'success' &&
