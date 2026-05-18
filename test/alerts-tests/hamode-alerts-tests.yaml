@@ -1,0 +1,159 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas_available'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentAvailableReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Not HA mode: Deployment Available Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes Deployment has less than 2 available replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_deployment_status_replicas_available alertgroup:HAmode alertname:NotHAKubernetesDeploymentAvailableReplicas severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas_available'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentAvailableReplicas
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas_available'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetAvailableReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Not HA mode: StatefulSet Available Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes StatefulSet has less than 2 available replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_statefulset_status_replicas_available alertgroup:HAmode alertname:NotHAKubernetesStatefulSetAvailableReplicas severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas_available'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetAvailableReplicas
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentDesiredReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Not HA mode: Deployment Desired Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes Deployment has less than 2 desired replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_deployment_status_replicas alertgroup:HAmode alertname:NotHAKubernetesDeploymentDesiredReplicas severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_deployment_status_replicas'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentDesiredReplicas
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetDesiredReplicas
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Not HA mode: StatefulSet Desired Replicas < 2 (instance )"
+        description: "Not HA mode: Kubernetes StatefulSet has less than 2 desired replicas\n  VALUE = 1\n  LABELS: map[__name__:kube_statefulset_status_replicas alertgroup:HAmode alertname:NotHAKubernetesStatefulSetDesiredReplicas severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_statefulset_status_replicas'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetDesiredReplicas
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="ReplicaSet", created_by_name="test"}'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentMultiplePodsPerNode
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Not HA mode: Deployment Has Multiple Pods per Node (instance )"
+        description: "Not HA mode: Kubernetes Deployment has 2 or more replicas on the same node\n  VALUE = 1\n  LABELS: map[alertgroup:HAmode alertname:NotHAKubernetesDeploymentMultiplePodsPerNode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="ReplicaSet", created_by_name="test"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesDeploymentMultiplePodsPerNode
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="StatefulSet", created_by_name="test"}'
+    values: "2x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetMultiplePodsPerNode
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "Not HA mode: StatefulSet Has Multiple Pods per Node (instance )"
+        description: "Not HA mode: Kubernetes StatefulSet has 2 or more replicas on the same node\n  VALUE = 1\n  LABELS: map[alertgroup:HAmode alertname:NotHAKubernetesStatefulSetMultiplePodsPerNode severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'kube_pod_info{namespace="test", node="test", created_by_kind="StatefulSet", created_by_name="test"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: HAmode
+    alertname: NotHAKubernetesStatefulSetMultiplePodsPerNode
+    exp_alerts: []

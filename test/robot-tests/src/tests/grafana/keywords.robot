@@ -8,6 +8,7 @@ Library            PlatformLibrary                   managed_by_operator=true
 Library            MonitoringLibrary
 Resource           %{ROBOT_HOME}/tests/smoke-test/keywords.robot
 Library            %{ROBOT_HOME}/lib/CheckJsonObject.py
+Library            %{ROBOT_HOME}/lib/GrafanaDashboardLib.py
 
 *** Variables ***
 ${namespace}                %{NAMESPACE}
@@ -59,35 +60,50 @@ Attempt Login To Grafana
 Create Test Dashboard In Namespace
     [Arguments]  ${PATH_TO_DASHBOARD}
     ${body}=  Parse Yaml File  ${PATH_TO_DASHBOARD}
-    ${created_dashboard}=  Create Dashboard In Namespace  ${namespace}  ${body}
+    GrafanaDashboardLib.Create Dashboard  ${namespace}  ${body}
+
+Get Dashboard In Namespace
+    [Arguments]  ${namespace}  ${name}
+    ${object}=  Get Namespaced Custom Object Status
+    ...  grafana.integreatly.org  v1beta1  ${namespace}  grafanadashboards  ${name}
+    RETURN  ${object}
 
 Check That Dashboard Created Successfuly
     [Arguments]   ${dashboard_name}  ${namespace}
     ${object}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Resource Status Success in Cloud  ${namespace}  grafanadashboards  ${dashboard_name}
-    ${status}=   Set Variable  ${object.get("status")}
-    Run Keyword If  ${status} != None  Should Be Equal As Strings  ${status.get('message')}   success
+    ...  Check Dashboard Ready In Cloud  ${namespace}  ${dashboard_name}
+    RETURN  ${object}
+
+Check Dashboard Ready In Cloud
+    [Arguments]  ${namespace}  ${dashboard_name}
+    ${object}=  Check Resource Status Success in Cloud  ${namespace}  grafanadashboards  ${dashboard_name}
+    # Check v5 (status.conditions[].status == True) first, fall back to v4
+    # (status.message == "success") for backward compatibility.
+    ${ready}=  Is Resource Ready From Conditions  ${object}
+    Should Be True  ${ready}  GrafanaDashboard ${dashboard_name} is not ready (no v5 condition with status=True and no v4 status.message=success)
     RETURN  ${object}
 
 Check Resource Status Success in Cloud
     [Arguments]  ${namespace}  ${accepted_names:plural}  ${object_name}
     ${object}=  Get Namespaced Custom Object Status
-    ...  integreatly.org  v1alpha1  ${namespace}  ${accepted_names:plural}  ${object_name}
+    ...  grafana.integreatly.org  v1beta1  ${namespace}  ${accepted_names:plural}  ${object_name}
     Should Not Be Equal  ${object}  ${NONE}
     RETURN  ${object}
 
 Check That Grafana CR Includes Test Dashboard
     [Arguments]   ${dashboard_name}  ${namespace}
-    ${object}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ${dashboard_status}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Dashboards Includes Name, Namespace  ${namespace}  ${dashboard_name}
-    ${status}=   Set Variable  ${object.get("status")}
-    Run Keyword If  ${status} != None  Should Be Equal As Strings  ${status.get('message')}  success
-    RETURN  ${object}
+    RETURN  ${dashboard_status}
 
 Check Status Of Dashboards Includes Name, Namespace
     [Arguments]  ${namespace}  ${name}
-    ${grafana_CR_status}=   Check Resource Status Success in Cloud  ${namespace}  grafanas  grafana
-    ${dashboard_status}=  Get Dashboard From Status  ${grafana_CR_status}  ${namespace}  ${name}
+    ${grafana_CR}=   Check Resource Status Success in Cloud  ${namespace}  grafanas  grafana
+    # v5: status.stageStatus == "success" (with status.stage == "complete").
+    # v4 fallback: status.message == "success".
+    ${ready}=  Is Grafana CR Ready  ${grafana_CR}
+    Should Be True  ${ready}  Grafana CR is not ready (no v5 status.stageStatus=success and no v4 status.message=success)
+    ${dashboard_status}=  Get Dashboard From Status  ${grafana_CR}  ${namespace}  ${name}
     Run Keyword If  ${dashboard_status} == None
     ...  Fail  Error! Dashboard with following name not found in namespace
     RETURN  ${dashboard_status}
@@ -110,13 +126,17 @@ Check Dashboard Is Appear In Grafana
 
 Delete Dashboard Via Cloud Rest
     [Arguments]  ${dashboard_name}
-    ${delete_status}=  Delete Dashboard In Namespace  ${namespace}  ${dashboard_name}
-    Should Be Equal As Strings  ${delete_status.get('status')}  Success
+    GrafanaDashboardLib.Delete Dashboard  ${namespace}  ${dashboard_name}
 
 Check Dashboard Is Deleted In Grafana
     [Arguments]  ${uid}
-    ${state}=  Run Keyword And Return Status  Find Dashboard  ${uid}
-    Should Be Equal As Strings  ${state}  False
+    ${status}  ${result}=  Run Keyword And Ignore Error  Find Dashboard  ${uid}
+    Run Keyword If  '${status}'=='PASS'  Should Be Equal  ${result}  ${NONE}
+    Run Keyword If  '${status}'=='FAIL'  Should Contain  ${result}  Dashboard not found
+
+Replace Dashboard In Namespace
+    [Arguments]  ${namespace}  ${dashboard_name}  ${updated_dashboard}
+    GrafanaDashboardLib.Replace Dashboard  ${namespace}  ${updated_dashboard}
 
 Prepare Data For Update Dashboard
     [Arguments]  ${PATH_TO_UPD_DASHBOARD}  ${namespace}  ${dashboard_name}

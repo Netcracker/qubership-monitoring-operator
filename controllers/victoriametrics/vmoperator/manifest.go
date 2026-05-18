@@ -309,8 +309,8 @@ func vmKubeletService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 	return &service, nil
 }
 
-func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) {
-	endpoints := corev1.Endpoints{}
+func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeletServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
 		return nil, err
 	}
@@ -320,6 +320,57 @@ func vmKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints,
 	endpoints.SetNamespace(cr.GetNamespace())
 
 	utils.SetLabelsForResource(&endpoints, utils.BaseOnlyLabelInput(endpoints.GetName(), utils.VmOperatorComponentName), nil)
+
+	return &endpoints, nil
+}
+
+func vmKubeSchedulerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
+	service := corev1.Service{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceAsset), 100).Decode(&service); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	service.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Service"})
+	service.SetName(utils.VmKubeSchedulerName)
+	service.SetNamespace(cr.GetNamespace())
+
+	return &service, nil
+}
+
+func vmKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeSchedulerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeSchedulerName)
+	endpoints.SetNamespace(cr.GetNamespace())
+
+	return &endpoints, nil
+}
+func vmKubeControllerManagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
+	service := corev1.Service{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceAsset), 100).Decode(&service); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	service.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Service"})
+	service.SetName(utils.VmKubeControllerManagerName)
+	service.SetNamespace(cr.GetNamespace())
+
+	return &service, nil
+}
+
+func vmKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) (*corev1.Endpoints, error) { //nolint:staticcheck
+	endpoints := corev1.Endpoints{} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmKubeControllerManagerServiceEndpointsAsset), 100).Decode(&endpoints); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	endpoints.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Endpoints"})
+	endpoints.SetName(utils.VmKubeControllerManagerName)
+	endpoints.SetNamespace(cr.GetNamespace())
 
 	return &endpoints, nil
 }
@@ -340,7 +391,7 @@ func vmOperatorServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMoni
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 		for i := range sm.Spec.Endpoints {
-			sm.Spec.Endpoints[i].Scheme = "https"
+			sm.Spec.Endpoints[i].Scheme = ptr.To(promv1.Scheme("https"))
 			sm.Spec.Endpoints[i].TLSConfig = &promv1.TLSConfig{
 				SafeTLSConfig: promv1.SafeTLSConfig{
 					InsecureSkipVerify: ptr.To(true),

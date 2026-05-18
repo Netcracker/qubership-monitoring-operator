@@ -1,0 +1,588 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: vm_data_size_bytes
+    values: "0x1440"
+  - series: vm_free_disk_space_bytes
+    values: "10x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpace
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: vm_data_size_bytes
+    values: "0x1440"
+  - series: vm_free_disk_space_bytes
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: SelfMonitoring
+    alertname: DiskRunsOutOfSpace
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'test'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusJobMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus job missing (instance )"
+        description: "A Prometheus job has disappeared\n  VALUE = 1\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusJobMissing severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'up{job="prometheus-pod-monitor"}'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusJobMissing
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetMissing
+    exp_alerts:
+    - exp_labels:
+        severity: high
+      exp_annotations:
+        summary: "Prometheus target missing (instance )"
+        description: "A Prometheus target has disappeared. An exporter might be crashed.\n  VALUE = 0\n  LABELS: map[__name__:up alertgroup:SelfMonitoring alertname:PrometheusTargetMissing severity:high]"
+
+- interval: 1m
+  input_series:
+  - series: 'up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetMissing
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'up'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusAllTargetsMissing
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus all targets missing (job )"
+        description: "A Prometheus job does not have living target anymore.\n  VALUE = 1\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusAllTargetsMissing severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'up'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusAllTargetsMissing
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_config_last_reload_successful'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusConfigurationReloadFailure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus configuration reload failure (instance )"
+        description: "Prometheus configuration reload error\n  VALUE = 0\n  LABELS: map[__name__:prometheus_config_last_reload_successful alertgroup:SelfMonitoring alertname:PrometheusConfigurationReloadFailure severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_config_last_reload_successful'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusConfigurationReloadFailure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'process_start_time_seconds{job="prometheus-pod-monitor"}'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTooManyRestarts
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        job: prometheus-pod-monitor
+      exp_annotations:
+        summary: "Prometheus too many restarts (instance )"
+        description: "Prometheus has restarted more than twice in the last 15 minutes. It might be crashlooping.\n  VALUE = 15\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTooManyRestarts job:prometheus-pod-monitor severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'process_start_time_seconds{job="prometheus-pod-monitor"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTooManyRestarts
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_rule_evaluation_failures_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusRuleEvaluationFailures
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus rule evaluation failures (instance )"
+        description: "Prometheus encountered 3 rule evaluation failures, leading to potentially ignored alerts.\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusRuleEvaluationFailures severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_rule_evaluation_failures_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusRuleEvaluationFailures
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_template_text_expansion_failures_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTemplateTextExpansionFailures
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus template text expansion failures (instance )"
+        description: "Prometheus encountered 3 template text expansion failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTemplateTextExpansionFailures severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_template_text_expansion_failures_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTemplateTextExpansionFailures
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_rule_group_last_duration_seconds'
+    values: "2x1440"
+  - series: 'prometheus_rule_group_interval_seconds'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusRuleEvaluationSlow
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus rule evaluation slow (instance )"
+        description: "Prometheus rule evaluation took more time than the scheduled interval. I indicates a slower storage backend access or too complex query.\n  VALUE = 2\n  LABELS: map[__name__:prometheus_rule_group_last_duration_seconds alertgroup:SelfMonitoring alertname:PrometheusRuleEvaluationSlow severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_rule_group_last_duration_seconds'
+    values: "1x1440"
+  - series: 'prometheus_rule_group_interval_seconds'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusRuleEvaluationSlow
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_notifications_queue_length'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusNotificationsBacklog
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus notifications backlog (instance )"
+        description: "The Prometheus notification queue has not been empty for 10 minutes\n  VALUE = 1\n  LABELS: map[__name__:prometheus_notifications_queue_length alertgroup:SelfMonitoring alertname:PrometheusNotificationsBacklog severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_notifications_queue_length'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusNotificationsBacklog
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_sd_discovered_targets'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetEmpty
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus target empty (instance )"
+        description: "Prometheus has no target in service discovery\n  VALUE = 0\n  LABELS: map[__name__:prometheus_sd_discovered_targets alertgroup:SelfMonitoring alertname:PrometheusTargetEmpty severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_sd_discovered_targets'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetEmpty
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_interval_length_seconds{interval="2m0s", quantile="0.9"}'
+    values: "140x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapingSlowTwoMinutes
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        interval: "2m0s"
+        quantile: "0.9"
+      exp_annotations:
+        summary: "Prometheus target scraping slow (instance ) for 2 minutes"
+        description: "Prometheus is scraping exporters slowly\n  VALUE = 140\n  LABELS: map[__name__:prometheus_target_interval_length_seconds alertgroup:SelfMonitoring alertname:PrometheusTargetScrapingSlowTwoMinutes interval:2m0s quantile:0.9 severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_interval_length_seconds{interval="2m0s", quantile="0.9"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapingSlowTwoMinutes
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_interval_length_seconds{interval="1m0s", quantile="0.9"}'
+    values: "80x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapingSlowOneMinute
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        interval: "1m0s"
+        quantile: "0.9"
+      exp_annotations:
+        summary: "Prometheus target scraping slow (instance ) for 1 minute"
+        description: "Prometheus is scraping exporters slowly\n  VALUE = 80\n  LABELS: map[__name__:prometheus_target_interval_length_seconds alertgroup:SelfMonitoring alertname:PrometheusTargetScrapingSlowOneMinute interval:1m0s quantile:0.9 severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_interval_length_seconds{interval="1m0s", quantile="0.9"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapingSlowOneMinute
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_interval_length_seconds{interval="30s", quantile="0.9"}'
+    values: "50x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapingSlowThirtySeconds
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        interval: "30s"
+        quantile: "0.9"
+      exp_annotations:
+        summary: "Prometheus target scraping slow (instance ) for 30 seconds"
+        description: "Prometheus is scraping exporters slowly\n  VALUE = 50\n  LABELS: map[__name__:prometheus_target_interval_length_seconds alertgroup:SelfMonitoring alertname:PrometheusTargetScrapingSlowThirtySeconds interval:30s quantile:0.9 severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_interval_length_seconds{interval="30s", quantile="0.9"}'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapingSlowThirtySeconds
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_scrapes_exceeded_sample_limit_total'
+    values: "0+2x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusLargeScrape
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus large scrape (instance )"
+        description: "Prometheus has many scrapes that exceed the sample limit\n  VALUE = 20\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusLargeScrape severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_scrapes_exceeded_sample_limit_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusLargeScrape
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_scrapes_sample_duplicate_timestamp_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapeDuplicate
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus target scrape duplicate (instance )"
+        description: "Prometheus has many samples rejected due to duplicate timestamps but different values\n  VALUE = 5\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTargetScrapeDuplicate severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_target_scrapes_sample_duplicate_timestamp_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTargetScrapeDuplicate
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_checkpoint_creations_failed_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbCheckpointCreationFailures
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB checkpoint creation failures (instance )"
+        description: "Prometheus encountered 3 checkpoint creation failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbCheckpointCreationFailures severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_checkpoint_creations_failed_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbCheckpointCreationFailures
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_checkpoint_deletions_failed_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbCheckpointDeletionFailures
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB checkpoint deletion failures (instance )"
+        description: "Prometheus encountered 3 checkpoint deletion failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbCheckpointDeletionFailures severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_checkpoint_deletions_failed_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbCheckpointDeletionFailures
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_compactions_failed_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbCompactionsFailed
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB compactions failed (instance )"
+        description: "Prometheus encountered 3 TSDB compactions failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbCompactionsFailed severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_compactions_failed_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbCompactionsFailed
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_head_truncations_failed_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbHeadTruncationsFailed
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB head truncations failed (instance )"
+        description: "Prometheus encountered 3 TSDB head truncation failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbHeadTruncationsFailed severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_head_truncations_failed_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbHeadTruncationsFailed
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_reloads_failures_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbReloadFailures
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB reload failures (instance )"
+        description: "Prometheus encountered 3 TSDB reload failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbReloadFailures severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_reloads_failures_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbReloadFailures
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_wal_corruptions_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbWalCorruptions
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB WAL corruptions (instance )"
+        description: "Prometheus encountered 3 TSDB WAL corruptions\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbWalCorruptions severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_wal_corruptions_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbWalCorruptions
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_wal_truncations_failed_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbWalTruncationsFailed
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus TSDB WAL truncations failed (instance )"
+        description: "Prometheus encountered 3 TSDB WAL truncation failures\n  VALUE = 3\n  LABELS: map[alertgroup:SelfMonitoring alertname:PrometheusTsdbWalTruncationsFailed severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_tsdb_wal_truncations_failed_total'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: SelfMonitoring
+    alertname: PrometheusTsdbWalTruncationsFailed
+    exp_alerts: []

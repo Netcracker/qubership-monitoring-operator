@@ -48,7 +48,7 @@ spec:
             - /bin/sh
             - -c
             - >
-              kubectl scale deployment --replicas=0 --selector app.kubernetes.io/component=monitoring-operator;
+              kubectl scale deployment --replicas=0 --selector app.kubernetes.io/component=qubership-monitoring-operator;
               sleep {{ .Values.cleanup.hook.timeout | default "10" }};
               kubectl delete vmusers --all --ignore-not-found=true;
               kubectl delete vmauths --all --ignore-not-found=true;

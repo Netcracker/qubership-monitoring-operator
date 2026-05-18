@@ -2,9 +2,9 @@
 apiVersion: monitoring.netcracker.com/v1
 kind: CustomScaleMetricRule
 metadata:
-  name: kubelet-custom-metric-rule
+  name: kubelet-custom
   labels:
-    {{- include "monitoring.labels" (dict "ctx" . "name" "kubelet-custom-metric-rule" "component" "monitoring") | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "kubelet-custom" "component" "monitoring") | nindent 4 }}
     app.kubernetes.io/processed-by-operator: prometheus-adapter-operator
 spec:
   rules:

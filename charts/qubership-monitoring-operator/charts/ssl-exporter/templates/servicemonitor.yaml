@@ -1,0 +1,22 @@
+{{- if and .Values.install .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if not (empty .Values.serviceMonitor.labels) }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.serviceMonitor.labels) | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+    - port: {{ .Values.service.name | default "http" }}
+      path: /metrics
+      scheme: {{ .Values.serviceMonitor.scheme }}
+      interval: {{ .Values.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

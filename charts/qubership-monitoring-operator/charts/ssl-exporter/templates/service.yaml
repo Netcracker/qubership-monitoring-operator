@@ -1,0 +1,20 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- if not (empty .Values.service.labels) }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.service.labels) | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.service.port | default 9219 }}
+      targetPort: {{ .Values.service.targetPort | default 9219 }}
+      protocol: {{ .Values.service.protocol | default "TCP" }}
+      name: {{ .Values.service.name | default "http" }}
+  selector:
+    app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

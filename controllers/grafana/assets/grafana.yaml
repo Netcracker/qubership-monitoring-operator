@@ -1,4 +1,4 @@
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
 metadata:
   name: grafana
@@ -10,17 +10,10 @@ metadata:
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
 spec:
-  ingress:
-    enabled: false
-  livenessProbeSpec:
-    initialDelaySeconds: 60
-    timeoutSeconds: 30
-    periodSeconds: 10
-    successThreshold: 1
-    failureThreshold: 10
-  readinessProbeSpec:
-    initialDelaySeconds: 10
-    timeoutSeconds: 10
-    periodSeconds: 30
-    successThreshold: 1
-    failureThreshold: 10
+  # Ingress: do not set spec.ingress here. In grafana-operator v5, there's no "enabled" field.
+  # If spec.ingress is present (even with empty spec), Grafana Operator creates a catch-all (*) Ingress.
+  # We manage Ingress via monitoring-operator (grafana.ingress) only.
+  # Note: livenessProbeSpec and readinessProbeSpec were removed in v5 migration
+  # In v5, probes are configured via spec.deployment.spec.template.spec.containers[index].livenessProbe
+  # and spec.deployment.spec.template.spec.containers[index].readinessProbe
+  # These are handled programmatically in manifest.go via ensurePodSpecInitialized() if needed

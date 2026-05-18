@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     {{- if .Values.service.labels }}
     {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.service.labels) | nindent 4 }}
     {{- end }}
@@ -20,7 +20,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ include "goldpinger.name" . }}
+    app.kubernetes.io/name: {{ .Values.name }}
   {{- if .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- toYaml .Values.service.loadBalancerSourceRanges | nindent 4 }}

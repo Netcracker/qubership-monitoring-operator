@@ -1,4 +1,6 @@
-package bdd_tests
+//go:build envtest
+
+package envtests
 
 import (
 	"context"

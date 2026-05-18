@@ -4,7 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     app.kubernetes.io/processed-by-operator: victoriametrics-operator
     {{- range $key, $value := .Values.serviceMonitor.selector }}
     {{ $key }}: {{ $value | quote }}
@@ -26,5 +26,5 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "goldpinger.name" . }}
+      app.kubernetes.io/name: {{ .Values.name }}
 {{- end -}}

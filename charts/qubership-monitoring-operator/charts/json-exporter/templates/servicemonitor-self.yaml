@@ -1,9 +1,10 @@
+{{- if and .Values.install .Values.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: json-exporter-self-service-monitor
+  name: json-exporter-self
   labels:
-    {{- include "monitoring.labels" (dict "ctx" . "name" "json-exporter-self-service-monitor" "component" "monitoring") | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "json-exporter-self" "component" "monitoring") | nindent 4 }}
     app.kubernetes.io/processed-by-operator: victoriametrics-operator
 spec:
   endpoints:
@@ -19,3 +20,4 @@ spec:
         operator: In
         values:
           - {{ .Values.name }}
+{{- end }}

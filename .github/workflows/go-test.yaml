@@ -1,6 +1,10 @@
 name: Go test with Sonar
 on:
-  push: {}
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
   pull_request:
     types: [ opened, synchronize, reopened ]
 
@@ -38,7 +42,7 @@ jobs:
     with:
       go-module-dir: '.'
       sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
-      cover-packages: './controllers/...,./api/...'
+      cover-packages: './api/...,./cmd/...,./controllers/...'
       install-envtest: true
       kube-version: '1.30.0'
       envtest-version: 'release-0.19'

@@ -4,9 +4,9 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ .name }}-prometheus-rules
+  name: {{ .name }}
   labels:
-    {{- include "monitoring.labels" (dict "ctx" $ "name" (printf "%s-prometheus-rules" .name) "component" "monitoring") | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" $ "component" "monitoring") | nindent 4 }}
     app.kubernetes.io/processed-by-operator: prometheus-operator
 spec:
   groups:

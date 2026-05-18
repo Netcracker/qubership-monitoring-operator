@@ -5,21 +5,21 @@ monitoringOperator:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 
 # Grafana
 grafana:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
   operator:
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
 
 # VictoriaMetrics stack
 victoriametrics:
@@ -27,63 +27,63 @@ victoriametrics:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
   vmAgent:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
   vmSingle:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
   vmAlertManager:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
   vmAlert:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
   vmAuth:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
   vmUser:
     install: true
     serviceAccount:
       annotations:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/annotation: value
+        description: "some description"
 
 # Exporters
 kubeStateMetrics:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 nodeExporter:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
 
 # Integrations tests
 integrationTests:
   install: true
   serviceAccount:
     annotations:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/annotation: value
+      description: "some description"
