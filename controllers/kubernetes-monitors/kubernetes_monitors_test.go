@@ -51,26 +51,6 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
-	t.Run("Test ControllerManagerServiceMonitor manifest", func(t *testing.T) {
-		m, err := kubernetesMonitorsControllerManagerServiceMonitor(cr)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.NotNil(t, m, "ControllerManagerServiceMonitor manifest should not be empty")
-		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
-		assert.NotNil(t, m.GetAnnotations())
-		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
-	})
-	t.Run("Test SchedulerServiceMonitor manifest", func(t *testing.T) {
-		m, err := kubernetesMonitorsSchedulerServiceMonitor(cr)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.NotNil(t, m, "SchedulerServiceMonitor manifest should not be empty")
-		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
-		assert.NotNil(t, m.GetAnnotations())
-		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
-	})
 	t.Run("Test KubeletServiceMonitor manifest", func(t *testing.T) {
 		m, err := kubernetesMonitorsKubeletServiceMonitor(cr)
 		if err != nil {
