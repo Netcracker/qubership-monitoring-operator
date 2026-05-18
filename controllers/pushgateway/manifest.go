@@ -10,6 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -436,8 +437,8 @@ func pushgatewayServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMon
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 
 	utils.SetLabelsForResource(&sm, utils.LabelInput{
-		Name:            sm.GetName(),
-		Component:       utils.PushgatewayComponentName,
+		Name:      sm.GetName(),
+		Component: utils.PushgatewayComponentName,
 		ComponentLabels: utils.MergeLabels(
 			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
 			cr.GetLabels(),
