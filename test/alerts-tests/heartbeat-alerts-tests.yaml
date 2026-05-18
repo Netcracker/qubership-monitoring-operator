@@ -1,0 +1,37 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: test
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: Heartbeat
+    alertname: DeadMansSwitch
+    exp_alerts:
+    - exp_labels:
+        severity: information
+        alertgroup: Heartbeat
+        alertname: DeadMansSwitch
+      exp_annotations:
+        summary: "An always-firing Dead Man's Switch alert (instance )"
+        description: "This is an alert meant to ensure that the entire alerting pipeline is functional. This alert should always be firing.\n  VALUE = 1\n  LABELS: map[alertgroup:Heartbeat alertname:DeadMansSwitch severity:information]"
+
+- interval: 1m
+  input_series:
+  - series: test
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: Heartbeat
+    alertname: DeadMansSwitch
+    exp_alerts:
+    - exp_labels:
+        severity: information
+        alertgroup: Heartbeat
+        alertname: DeadMansSwitch
+      exp_annotations:
+        summary: "An always-firing Dead Man's Switch alert (instance )"
+        description: "This is an alert meant to ensure that the entire alerting pipeline is functional. This alert should always be firing.\n  VALUE = 1\n  LABELS: map[alertgroup:Heartbeat alertname:DeadMansSwitch severity:information]"

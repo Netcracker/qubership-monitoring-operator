@@ -23,9 +23,15 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 	vmuser.SetNamespace(cr.GetNamespace())
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmUser.IsInstall() && cr.Spec.Victoriametrics.VmAuth.IsInstall() {
 
-		// Set labels
-		vmuser.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmuser.GetName(), vmuser.GetNamespace())
-		vmuser.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmUser.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmuser.GetName(),
+			Component:       utils.VmUserComponentName,
+			Instance:        utils.GetInstanceLabel(vmuser.GetName(), vmuser.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmUser.Image),
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmuser, in, nil)
 
 		if cr.Spec.Victoriametrics.VmUser.Name != nil {
 			vmuser.Spec.Name = cr.Spec.Victoriametrics.VmUser.Name
@@ -129,9 +135,6 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 						Name:      "k8s",
 						Namespace: cr.GetNamespace(),
 					},
-					Static: &vmetricsv1b1.StaticRef{
-						URL: vmAlert.AsURL(),
-					},
 					Paths: vmAlertPaths(),
 				}
 				vmSPaths = vmSinglePaths()
@@ -180,13 +183,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 	}
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
-		vmuser.Spec.UserConfigOption = vmetricsv1b1.UserConfigOption{
-			TLSConfig: &vmetricsv1b1.TLSConfig{
-				InsecureSkipVerify: false,
-				CAFile:             "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/ca.crt",
-				CertFile:           "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.crt",
-				KeyFile:            "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.key",
-			},
+		vmuser.Spec.TLSConfig = &vmetricsv1b1.TLSConfig{
+			InsecureSkipVerify: false,
+			CAFile:             "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/ca.crt",
+			CertFile:           "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.crt",
+			KeyFile:            "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.key",
 		}
 	}
 

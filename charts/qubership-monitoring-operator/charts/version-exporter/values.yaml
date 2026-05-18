@@ -43,7 +43,7 @@ serviceAccount:
   name: "version-exporter"
   # Annotations to add to the service account
   annotations: {}
-  # Annotations to add to the service account
+  # Labels to add to the service account
   labels: {}
 
 ## The resources describe compute resource requests and limits for single Pod.

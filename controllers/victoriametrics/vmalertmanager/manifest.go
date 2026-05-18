@@ -2,7 +2,6 @@ package vmalertmanager
 
 import (
 	"embed"
-	"errors"
 	"strings"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -11,7 +10,6 @@ import (
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -30,6 +28,8 @@ func vmAlertManagerServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.Service
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
 	sa.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmAlertManagerComponentName), nil)
 
 	return &sa, nil
 }
@@ -59,6 +59,8 @@ func vmAlertManagerClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -78,6 +80,9 @@ func vmAlertManagerClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clu
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -90,6 +95,9 @@ func vmAlertManagerRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
 	role.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
 	role.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &role, nil
 }
 
@@ -110,6 +118,9 @@ func vmAlertManagerRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBindin
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
 	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &roleBinding, nil
 }
 
@@ -300,27 +311,23 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 			vmalertmgr.Spec.TerminationGracePeriodSeconds = cr.Spec.Victoriametrics.VmAlertManager.TerminationGracePeriodSeconds
 		}
 
-		// Set labels
-		vmalertmgr.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace())
-		vmalertmgr.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmalertmgr.GetName(),
+			Component:       utils.VmAlertManagerComponentName,
+			Instance:        utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image),
+			Technology:      "go",
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmalertmgr, in, nil)
 
-		vmalertmgr.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         utils.TruncLabel(vmalertmgr.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(vmalertmgr.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace()),
-			"app.kubernetes.io/component":  "victoriametrics",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image),
-		}}
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmalertmgr.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		if vmalertmgr.Spec.PodMetadata != nil {
-			if cr.Spec.Victoriametrics.VmAlertManager.Labels != nil {
-				for k, v := range cr.Spec.Victoriametrics.VmAlertManager.Labels {
-					vmalertmgr.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if vmalertmgr.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmAlertManager.Annotations != nil {
 				vmalertmgr.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmAlertManager.Annotations
 			} else {
@@ -346,80 +353,10 @@ func vmAlertmanagerSecret(cr *monv1.PlatformMonitoring) (*corev1.Secret, error) 
 	//Set parameters
 	secret.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Secret"})
 	secret.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&secret, utils.BaseOnlyLabelInput(secret.GetName(), utils.VmAlertManagerComponentName), nil)
+
 	return &secret, nil
-}
-
-func vmAlertManagerIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
-	ingress := v1beta1.Ingress{}
-	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
-		return nil, err
-	}
-	//Set parameters
-	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1beta1", Kind: "Ingress"})
-	ingress.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerServiceName)
-	ingress.SetNamespace(cr.GetNamespace())
-
-	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlertManager.Ingress != nil && cr.Spec.Victoriametrics.VmAlertManager.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
-		// Add rule for vmagent UI
-		rule := v1beta1.IngressRule{Host: cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host}
-		serviceName := utils.VmAlertManagerServiceName
-		servicePort := intstr.FromInt(utils.VmAlertManagerServicePort)
-
-		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
-			Paths: []v1beta1.HTTPIngressPath{
-				{
-					Path: "/",
-					Backend: v1beta1.IngressBackend{
-						ServiceName: serviceName,
-						ServicePort: servicePort,
-					},
-				},
-			},
-		}
-		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
-
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []v1beta1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host},
-					SecretName: cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName,
-				},
-			}
-		}
-
-		if cr.Spec.Victoriametrics.VmAlertManager.Ingress.IngressClassName != nil {
-			ingress.Spec.IngressClassName = cr.Spec.Victoriametrics.VmAlertManager.Ingress.IngressClassName
-		}
-
-		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Annotations)
-		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
-			if ingress.GetAnnotations() == nil {
-				annotation := make(map[string]string)
-				annotation["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
-				ingress.SetAnnotations(annotation)
-			} else {
-				ingress.GetAnnotations()["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
-			}
-		}
-
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
-		}
-	}
-	return &ingress, nil
 }
 
 func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
@@ -427,46 +364,159 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
-	//Set parameters
+	//Set metadata
 	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1", Kind: "Ingress"})
 	ingress.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerServiceName)
 	ingress.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlertManager.Ingress != nil && cr.Spec.Victoriametrics.VmAlertManager.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
+		var rules []networkingv1.IngressRule
 		pathType := networkingv1.PathTypePrefix
-		// Add rule for vmagent UI
-		rule := networkingv1.IngressRule{Host: cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host}
-		rule.HTTP = &networkingv1.HTTPIngressRuleValue{
-			Paths: []networkingv1.HTTPIngressPath{
-				{
-					Path:     "/",
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: &networkingv1.IngressServiceBackend{
-							Name: utils.VmAlertManagerServiceName,
-							Port: networkingv1.ServiceBackendPort{
-								Number: int32(utils.VmAlertManagerServicePort),
+		ing := cr.Spec.Victoriametrics.VmAlertManager.Ingress
+
+		switch {
+		// 1. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &monv1.HTTPIngressRuleValue{
+						Paths: []monv1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: monv1.IngressPathBackend{
+									Service: monv1.IngressPathBackendService{
+										Name: utils.VmAlertManagerServiceName,
+										Port: monv1.ServiceBackendPort{
+											Number: utils.VmAlertManagerServicePort,
+										},
+									},
+								},
 							},
 						},
+					}
+				}
+
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAlertManagerPath(pathType)},
 					},
 				},
-			},
-		}
+			})
 
-		ingress.Spec.Rules = []networkingv1.IngressRule{rule}
-
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host},
-					SecretName: cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName,
+		// 3. fallback: if no custom ingress rules or Host provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAlertManagerPath(pathType)},
+					},
 				},
+			})
+		}
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				// fallback: if secretName is empty - use ingress TLSSecretName only
+				secret := hostgroup.SecretName
+				if secret == "" {
+					secret = cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure tls if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host != "" {
+			secret := cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
+			for _, rule := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
 			}
 		}
 
@@ -475,7 +525,7 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmAlertManager.Ingress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)
@@ -486,15 +536,27 @@ func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingres
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAlertManagerComponentName)
+		if len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
+}
+
+func defaultVmAlertManagerPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.VmAlertManagerServiceName,
+				Port: networkingv1.ServiceBackendPort{
+					Number: utils.VmAlertManagerServicePort,
+				},
+			},
+		},
+	}
 }

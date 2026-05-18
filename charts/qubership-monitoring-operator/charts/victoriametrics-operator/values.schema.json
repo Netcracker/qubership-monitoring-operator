@@ -1,0 +1,1977 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "cleanup": {
+            "type": "object",
+            "properties": {
+                "deleteCRs": {
+                    "type": "boolean",
+                    "description": "Enable of disable pre-delete cleanup job that should remove victoriametrics-operator Custom Resources (CRs).\nThis job allow to correct remove VM CRs with processing it remove by victoriametrics-operator.\nType: boolean\nMandatory: yes",
+                    "default": true
+                },
+                "hook": {
+                    "type": "object",
+                    "properties": {
+                        "affinity": {
+                            "type": "object",
+                            "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no"
+                        },
+                        "containerSecurityContext": {
+                            "description": "ContainerSecurityContext holds container-level security attributes. Parameters set to support deploy with\n\"restricted\" PSS.\nType: object\nMandatory: no",
+                            "type": "object",
+                            "properties": {
+                                "allowPrivilegeEscalation": {
+                                    "type": "boolean",
+                                    "default": false
+                                },
+                                "capabilities": {
+                                    "default": {
+                                        "drop": [
+                                            "ALL"
+                                        ]
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "image": {
+                            "type": "string",
+                            "description": "The container image for cleanup job.\nType: string\nMandatory: no\nDefault: docker.io/rancher/kuberlr-kubectl:v6.0.0"
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name of cleanup job\nType: string\nMandatory: no",
+                            "default": "cleanup-hook"
+                        },
+                        "nodeSelector": {
+                            "type": "object",
+                            "description": "Allow define which Nodes the Pods are scheduled on.\nType: map[string]string\nMandatory: no"
+                        },
+                        "resources": {
+                            "type": "object",
+                            "properties": {
+                                "limits": {
+                                    "type": "object",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string",
+                                            "default": "500m"
+                                        },
+                                        "memory": {
+                                            "type": "string",
+                                            "default": "256Mi"
+                                        }
+                                    }
+                                },
+                                "requests": {
+                                    "type": "object",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string",
+                                            "default": "100m"
+                                        },
+                                        "memory": {
+                                            "type": "string",
+                                            "default": "56Mi"
+                                        }
+                                    }
+                                }
+                            },
+                            "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no"
+                        },
+                        "securityContext": {
+                            "type": "object",
+                            "description": "SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled  for Openshift cluster.\nType: object\nMandatory: no"
+                        },
+                        "timeout": {
+                            "type": "integer",
+                            "description": "Timeout between scale and delete commands in cleanup job. can be specified without units or with units.\nIf you want yo use units, check which units support the Linux command \"sleep\"\nType: string\nMandatory: no",
+                            "default": 10
+                        },
+                        "tolerations": {
+                            "type": "object",
+                            "description": "Tolerations allow the pods to schedule onto nodes with matching taints.\nType: object\nMandatory: no"
+                        }
+                    }
+                }
+            },
+            "description": "Configurations of pre-delete cleanup hook"
+        },
+        "clusterIssuerName": {
+            "type": "string",
+            "description": "The name of the CA ClusterIssuer.\nMust be configured if tlsConfig is enabled for victoriametrics components.\nType: string\nMandatory: If tlsEnabled is set to true, clusterIssuerName is mandatory.",
+            "default": ""
+        },
+        "tlsEnabled": {
+            "type": "boolean",
+            "description": "Enable/Disable TLS for victoriametrics components.\nType: boolean\nDefault: false",
+            "default": false
+        },
+        "vmAgent": {
+            "type": "object",
+            "properties": {
+                "additionalScrape": {
+                    "type": "object",
+                    "description": "The additionalScrape allows you to monitor hosts outside the cloud (balancers, graylog server, jenkins...)\nExample:\nadditionalScrape:\n- job_name: \"balancer_check\"\n   metrics_path: /metrics\n   static_configs:\n   - targets:\n     - \"cloud-name-balancer-1.example.com:9100\"\n     - \"cloud-name-balancer-2.example.com:9100\""
+                },
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                },
+                "containers": {
+                    "type": "array",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core",
+                    "default": []
+                },
+                "externalLabels": {
+                    "type": "object",
+                    "description": "The labels to add to all the metrics before sending them to -remoteWrite.url\nType: map[string]string\nMandatory: no\nDefault: {}"
+                },
+                "extraArgs": {
+                    "type": "object",
+                    "properties": {
+                        "promscrape.maxScrapeSize": {
+                            "type": "string",
+                            "default": "256MiB"
+                        },
+                        "promscrape.streamParse": {
+                            "type": "string",
+                            "default": "true"
+                        }
+                    },
+                    "description": "Additional vmAgent container arguments.\nType: map[string]string\nMandatory: no"
+                },
+                "extraEnvs": {
+                    "type": "array",
+                    "description": "Allows set extra system environment variables for vmagent.\nType: list[object]\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "extraVarsSecret": {
+                    "type": "object",
+                    "description": "Allows set extra system environment variables for vmAgent remote write into the Secret.\nType: object\nMandatory: no\nDefault: {}"
+                },
+                "image": {
+                    "type": "string",
+                    "description": "The container image for vmAgent.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/vmagent:v1.130.0"
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "Allows create Ingress for vmAgent UI via monitoring-operator\nType: object\nMandatory: no\nDefault: {}",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Allows to enable deploy vmAgent ingress via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "FQDN of ingress host"
+                        },
+                        "annotations": {
+                            "type": "object",
+                            "description": "Set of annotations for Ingress. Allows to set up authorization e.g. via ingress-nginx."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Set of labels for Ingress. Default monitoring-operator labels can be overwritten."
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist"
+                        }
+                    }
+                },
+                "maxScrapeInterval": {
+                    "type": "string",
+                    "description": "MaxScrapeInterval allows limiting maximum scrape interval for VMServiceScrape, VMPodScrape and other scrapes.\n# Type: string\nType: string\nMandatory: no\nnDefault: 30s"
+                },
+                "minScrapeInterval": {
+                    "type": "string",
+                    "description": "MinScrapeInterval allows limiting minimal scrape interval for VMServiceScrape, VMPodScrape and other scrapes.\nType: string\nMandatory: no\nDefault: 10s"
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy vmAgent via monitoring-operator.\nIf vmAgent was not deploy during deploy via helm it can deploy via change custom\nresource PlatformMonitoring.\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allow define which Nodes the Pods are scheduled on.\nType: map[string]string\nMandatory: no\nDefault: not set"
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmAgent\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "podMonitorNamespaceSelector": {
+                    "type": "object",
+                    "description": "Namespace's labels to match for PodMonitor, ServiceMonitor discovery. Labels selector requirements use matchExpressions. All specified requirements are combined using a logical AND.\nType: map[string]string\nMandatory: no"
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the Pods to prevent vmAgent pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                },
+                "replicas": {
+                    "type": "integer",
+                    "description": "Replicas expected size of the vmagent cluster\nType: integer\nMandatory: no",
+                    "default": 1
+                },
+                "remoteWrite": {
+                    "type": "array",
+                    "description": "The remoteWrite  list of victoria metrics /some other remote write system for vm it must looks like:\nhttp://victoria-metrics-single:8429/api/v1/write\n or for cluster different url.\nType: array[object]\nMandatory: no\nDefault: []"
+                },
+                "remoteWriteSettings": {
+                    "type": "array",
+                    "description": "RemoteWriteSettings defines global settings for all remoteWrite urls.\nType: list[object]\nMandatory: no\nDefault: []"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "secretName": {
+                    "type": "string",
+                    "description": "# A name of a microservice secret to deploy with.\nThis name will be used as name of the microservice secret deployment.",
+                    "default": "vmagent-secret"
+                },
+                "secrets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "default": [
+                            "kube-etcd-client-certs"
+                        ]
+                    },
+                    "description": "Secrets is a list of Secrets in the same namespace as the vmAgent object, which shall be mounted into the vmAgent Pods. The Secrets are mounted into /etc/vm/secrets/<secret-name>.\nType: array\nMandatory: no\nDefault: []",
+                    "default": [
+                        "kube-etcd-client-certs"
+                    ]
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "# SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled\nfor Openshift cluster.\nType: object\nMandatory: no",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no\nDefault: 2000"
+                        }
+                    }
+                },
+                "serviceMonitorNamespaceSelector": {
+                    "type": "object",
+                    "description": "Namespace's labels to match for ServiceMonitor discovery. Labels selector requirements use matchExpressions. All specified requirements are combined using a logical AND.\nType: map[string]string\nMandatory: no"
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates. Do not use createSecret if you use generateCerts. Will be ignored if existingSecret is already specified.",
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            }
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints.\nType: list[object]\nMandatory: no",
+                    "default": []
+                },
+                "volumeMounts": {
+                    "type": "object",
+                    "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.\nVolumeMounts specified will be appended to other VolumeMounts in the prometheus container,\nthat are generated as a result of StorageSpec objects.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core\nType: object\nMandatory: no\nDefault: not set",
+                    "default": {}
+                },
+                "volumes": {
+                    "type": "object",
+                    "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition.\nVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core\nType: object\nMandatory: no\nDefault: not set",
+                    "default": {}
+                }
+            },
+            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+        },
+        "vmAlert": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                },
+                "containers": {
+                    "type": "array",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core",
+                    "default": []
+                },
+                "externalLabels": {
+                    "type": "object",
+                    "description": "The labels to add to any time series or alerts when communicating with\nexternal systems (federation, remote storage, Alertmanager).\nType: object\nMandatory: no\nDefault: {}",
+                    "default": {}
+                },
+                "extraArgs": {
+                    "type": "object",
+                    "description": "Additional vmAlert container arguments.\nType: map[string]string\nMandatory: no\nDefault: {}",
+                    "default": {}
+                },
+                "extraEnvs": {
+                    "type": "array",
+                    "description": "Allows set extra system environment variables for vmAlert.\nType: list[object]\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "image": {
+                    "type": "string",
+                    "description": "The container image for vmAlert.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/vmalert:v1.130.0"
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "Allows create Ingress for vmAlert UI via monitoring-operator\nType: object\nMandatory: no\nDefault: {}",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Allows to enable deploy vmAlert ingress via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "FQDN of ingress host"
+                        },
+                        "annotations": {
+                            "type": "object",
+                            "description": "Set of annotations for Ingress. Allows to set up authorization e.g. via ingress-nginx."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Set of labels for Ingress. Default monitoring-operator labels can be overwritten."
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist"
+                        }
+                    }
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy vmAlert via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allows to define which Nodes the Pods are scheduled on.\nType: map[string]string\nMandatory: no\nDefault: not set"
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmAlert\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "remoteWrite": {
+                    "type": "object",
+                    "description": "RemoteWrite Optional URL to remote-write compatible storage to persist vmalert state and rule results to.\nRule results will be persisted according to each rule. Alerts state will be persisted in the form of time series\n named ALERTS and ALERTS_FOR_STATE. See -remoteWrite.url docs in vmalerts for details.\nType: object\nMandatory: no\nDefault: []"
+                },
+                "remoteRead": {
+                    "type": "object",
+                    "description": "RemoteRead Optional URL to read vmalert state (persisted via RemoteWrite) This configuration only makes sense\nif alerts state has been successfully persisted (via RemoteWrite) before. See -remoteRead.url docs in vmalerts for details.\nType: object\nMandatory: no\nDefault: []"
+                },
+                "replicas": {
+                    "type": "integer",
+                    "description": "Replicas expected size of the vmAlert cluster\nType: integer\nMandatory: no",
+                    "default": 1
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"  
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"  
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "ruleNamespaceSelector": {
+                    "type": "object",
+                    "description": "RuleNamespaceSelector to be selected for VMRules discovery.\nWorks in combination with Selector.\nIf both nil - behaviour controlled by selectAllByDefault\nNamespaceSelector nil - only objects at VMAlert namespace.\nType: map[string]string\nMandatory: no",
+                    "default": {}
+                },
+                "rulePath": {
+                    "type": "array",
+                    "description": "RulePath to the file with alert rules. Supports patterns. Flag can be specified multiple times.\nExamples: -rule /path/to/file. Path to a single file with alerting rules\n-rule dir/*.yaml -rule /*.yaml. Relative path to all .yaml files in folder, absolute path to all .yaml files in root.\n by default operator adds /etc/vmalert/configs/base/vmalert.yaml\nType: list[string]\nMandatory: no\nDefault: /rules"
+                },
+                "ruleSelector": {
+                    "type": "object",
+                    "description": "RuleSelector selector to select which VMRules to mount for loading alerting\nrules from.\nWorks in combination with NamespaceSelector.\nIf both nil - behaviour controlled by selectAllByDefault\nNamespaceSelector nil - only objects at VMAlert namespace.\nType: map[string]string\nMandatory: no",
+                    "default": {}
+                },
+                "secrets": {
+                    "type": "array",
+                    "description": "Secrets is a list of Secrets in the same namespace as the vmAlert object, which shall be mounted\n into the vmAlert Pods. The Secrets are mounted into /etc/vm/secrets/<secret-name>.Type: array\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "# SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled\nfor Openshift cluster.\nType: object\nMandatory: no",
+                    "default": {},
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no\nDefault: 2000"
+                        }
+                    }
+                },
+                "selectAllByDefault": {
+                    "type": "boolean",
+                    "description": "SelectAllByDefault changes default behavior for empty CRD selectors, such RuleSelector.\nwith selectAllByDefault: true and empty serviceScrapeSelector and RuleNamespaceSelector\nOperator selects all exist serviceScrapes\nwith selectAllByDefault: false - selects nothing\nType: boolean\nMandatory: no\nDefault: true",
+                    "default": true
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates. Do not use createSecret if you use generateCerts. Will be ignored if existingSecret is already specified.",
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            }
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "Name of existing secret with TLS certificates. The secret must exist before vmAlert deployment. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    },
+                    "description": "PriorityClassName assigned to the Pods to prevent vmAlert pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints.\nType: object\nMandatory: no",
+                    "default": []
+                }
+            },
+            "description": "Web configuration for HTTPS settings.\nSee https://prometheus.io/docs/alerting/latest/https/\nwebConfig: {}\ngossipConfig: {}"
+        },
+        "vmAlertManager": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                },
+                "configNamespaceSelector": {
+                    "type": "object",
+                    "description": "ConfigNamespaceSelector defines namespace selector for VMAlertmanagerConfig.\nWorks in combination with Selector.\nNamespaceSelector nil - only objects at VMAlertmanager namespace.\nSelector nil - only objects at NamespaceSelector namespaces.\nIf both nil - behaviour controlled by selectAllByDefault\nType: object\nMandatory: no\nDefault: {}",
+                    "default": {}
+                },
+                "configSecret": {
+                    "type": "object",
+                    "description": "configSecret is the name of a Kubernetes Secret in the same namespace as the VMAlertManager object, which contains configuration for this VMAlertManager\nType: object\nMandatory: no\nDefault: {}"
+                },
+                "configSelector": {
+                    "type": "object",
+                    "description": "ConfigSelector defines selector for VMAlertmanagerConfig, result config will be merged with with Raw or Secret config.\nWorks in combination with NamespaceSelector.\nNamespaceSelector nil - only objects at VMAlertmanager namespace.\nSelector nil - only objects at NamespaceSelector namespaces.\nIf both nil - behaviour controlled by selectAllByDefault\nType: object\nMandatory: no\nDefault: {}"
+                },
+                "containers": {
+                    "type": "array",
+                    "description": "Containers allows injecting additional containers or modifying operator generated containers.\nThis can be used to allow adding an authentication proxy to a VMAlertmanager pod or to change\nthe behavior of an operator generated container.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core",
+                    "default": []
+                },
+                "disableNamespaceMatcher": {
+                    "type": "boolean",
+                    "description": "DisableNamespaceMatcher disables top route namespace label matcher for VMAlertmanagerConfig\nIt may be useful if alert doesn't have namespace label for some reason\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "extraArgs": {
+                    "type": "object",
+                    "description": "Additional vmAlertManager container arguments.\nType: map[string]string\nMandatory: no\nDefault: {}",
+                    "default": {}
+                },
+                "extraEnvs": {
+                    "type": "array",
+                    "description": "Allows set extra system environment variables for vmAlertManager.\nType: list[object]\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "image": {
+                    "type": "string",
+                    "description": "The container image for vmAlertManager.\nType: string\nMandatory: no\nDefault: docker.io/prom/alertmanager:v0.28.1"
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "Allows create Ingress for vmAlertManager UI via monitoring-operator\nType: object\nMandatory: no\nDefault: {}",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Allows to enable deploy vmAlertManager ingress via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "FQDN of ingress host"
+                        },
+                        "annotations": {
+                            "type": "object",
+                            "description": "Set of annotations for Ingress. Allows to set up authorization e.g. via ingress-nginx."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Set of labels for Ingress. Default monitoring-operator labels can be overwritten."
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist"
+                        }
+                    }
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy vmAlertManager via monitoring-operator.\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmAlertManager\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "replicas": {
+                    "type": "integer",
+                    "description": "Replicas expected size of the alertmanager cluster\nType: integer\nMandatory: no",
+                    "default": 1
+                },
+                "retention": {
+                    "type": "string",
+                    "description": "Retention defines how long alertmanager should keep alerts in storage.\nType: string\nMandatory: no\nDefault: 120h"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "secrets": {
+                    "type": "array",
+                    "description": "Secrets is a list of Secrets in the same namespace as the vmAlertManager object, which shall be mounted into the vmAlertmanager Pods. The Secrets are mounted into /etc/vm/secrets/<secret-name>.Type: array\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "# SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled\nfor Openshift cluster.\nType: object\nMandatory: no",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no\nDefault: 2000"
+                        }
+                    }
+                },
+                "selectAllByDefault": {
+                    "type": "boolean",
+                    "description": "SelectAllByDefault changes default behavior for empty CRD selectors, such ConfigSelector.\nwith selectAllScrapes: true and undefined ConfigSelector and ConfigNamespaceSelector\nOperator selects all exist alertManagerConfigs\nwith selectAllScrapes: false - selects nothing\nType: boolean\nMandatory: no\nDefault: true",
+                    "default": true
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmalertmanager-tls-secret\""
+                                }
+                            }
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "Name of existing secret with TLS certificates. The secret must exist before deploying vmAlertManager. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    },
+                    "description": "PriorityClassName assigned to the Pods to prevent vmAlertManager pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints.\nType: object\nMandatory: no",
+                    "default": []
+                }
+            },
+            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+        },
+        "vmAuth": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                },
+                "configMaps": {
+                    "type": "array",
+                    "description": "A list of config maps in the same namespace as the vmAuth object, which shall be mounted\n into the vmAuth Pods.Type: array\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "containers": {
+                    "type": "array",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core",
+                    "default": []
+                },
+                "extraArgs": {
+                    "type": "object",
+                    "description": "Additional vmAuth container arguments.\nType: map[string]string\nMandatory: no\nDefault: {}"
+                },
+                "extraEnvs": {
+                    "type": "array",
+                    "description": "Allows set extra system environment variables for vmAuth.\nType: list[object]\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "extraVarsSecret": {
+                    "type": "object",
+                    "description": "Allows set extra system environment variables for vmAuth into the Secret.\nType: object\nMandatory: no\nDefault: {}",
+                    "default": {}
+                },
+                "image": {
+                    "type": "string",
+                    "description": "The container image for vmAuth.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/vmauth:v1.130.0"
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "Allows to create Ingress for vmAuth UI via monitoring-operator\nhttps://docs.victoriametrics.com/operator/api.html#vmauthspec\nhttps://docs.victoriametrics.com/operator/api.html#embeddedingress\nType: object\nMandatory: no\nDefault: {}",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Allows to enable deploy vmAuth ingress via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "FQDN of ingress host"
+                        },
+                        "annotations": {
+                            "type": "object",
+                            "description": "Set of annotations for Ingress. Allows to set up authorization e.g. via ingress-nginx."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Set of labels for Ingress. Default monitoring-operator labels can be overwritten."
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist"
+                        }
+                    }
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy vmAuth via monitoring-operator.\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allow define which Nodes the Pods are scheduled on.\nType: map[string]string\nMandatory: no\nDefault: not set"
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmAuth\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "port": {
+                    "type": "string",
+                    "description": "Listen port. Default value is set by operator.\nType: string\nMandatory: no\nDefault: 8427"
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the Pods to prevent vmAuth pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                },
+                "replicaCount": {
+                    "type": "integer",
+                    "description": "Replicas expected size of the vmAuth cluster",
+                    "default": 1
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "secretName": {
+                    "type": "string",
+                    "description": "A name of a microservice secret to deploy with.\nThis name will be used as name of the microservice secret deployment.",
+                    "default": "vmauth-secret"
+                },
+                "secrets": {
+                    "type": "array",
+                    "description": "Secrets is a list of config maps in the same namespace as the vmAuth object, which shall be mounted\n into the vmAuth Pods.Type: array\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "# SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled\nfor Openshift cluster.\nType: object\nMandatory: no",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no\nDefault: 2000"
+                        }
+                    }
+                },
+                "selectAllByDefault": {
+                    "type": "boolean",
+                    "description": "SelectAllByDefault changes default behavior for empty CRD selectors, such userSelector.\n\twith selectAllByDefault: true and empty userSelector and userNamespaceSelector\n\tOperator selects all exist users with selectAllByDefault: false - selects nothing\nType: boolean\nMandatory: no\nDefault: true",
+                    "default": true
+                },
+                "terminationGracePeriodSeconds": {
+                    "type": "integer",
+                    "description": "Optional duration in seconds the pod needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period will be used instead. The default grace period can be set using the --grace-period flag when deleting a pod. If the --grace-period flag is not set, the default grace period will be 30 seconds."
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates. Do not use createSecret if you use generateCerts. Will be ignored if existingSecret is already specified.",
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmAuth-tls-secret\""
+                                }
+                            }
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "Name of existing secret with TLS certificates. The secret must exist before deploying vmAuth. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    },
+                    "description": "PriorityClassName assigned to the Pods to prevent vmAuth pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints.\nType: object\nMandatory: no",
+                    "default": []
+                },
+                "userNamespaceSelector": {
+                    "type": "object",
+                    "description": "UserNamespaceSelector Namespaces to be selected for VMAuth discovery.\nWorks in combination with Selector.\nNamespaceSelector nil - only objects at VMAuth namespace.\nSelector nil - only objects at NamespaceSelector namespaces.\nIf both nil - behaviour controlled by selectAllByDefault\nType: object\nMandatory: no\nDefault: {}",
+                    "default": {}
+                },
+                "userSelector": {
+                    "type": "object",
+                    "description": "UserSelector defines VMUser to be selected for config file generation.\nWorks in combination with NamespaceSelector.\nNamespaceSelector nil - only objects at VMAuth namespace.\nSelector nil - only objects at NamespaceSelector namespaces.\nIf both nil - behaviour controlled by selectAllByDefault\nType: object\nMandatory: no\nDefault: {}",
+                    "default": {}
+                }
+            },
+            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+        },
+        "vmCluster": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Enable deployment of vmcluster component",
+                    "default": false
+                },
+                "replicationFactor": {
+                    "type": "integer",
+                    "description": "ReplicationFactor defines how many copies of data make among\ndistinct storage nodes",
+                    "default": 2
+                },
+                "retentionPeriod": {
+                    "type": "string",
+                    "description": "RetentionPeriod for the stored metrics\nNote VictoriaMetrics has data/ and indexdb/ folders\nmetrics from data/ removed eventually as soon as partition leaves retention period\nreverse index data at indexdb rotates once at the half of configured retention period\nhttps://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention",
+                    "default": "14d"
+                },
+                "vmInsert": {
+                    "type": "object",
+                    "properties": {
+                        "affinity": {
+                            "type": "object",
+                            "description": "Pod affinity",
+                            "examples": [{"podAntiAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": [{"labelSelector":{"matchExpressions":[{"key": "app.kubernetes.io/name", "operator": "In", "values": ["vmselect"]}]},"topologyKey": "kubernetes.io/hostname"}]}}]
+                        },
+                        "extraArgs": {
+                            "type": "object",
+                            "properties": {
+                                "envflag.enable": {
+                                    "type": "string",
+                                    "default": "true"
+                                },
+                                "envflag.prefix": {
+                                    "type": "string",
+                                    "default": "VM_"
+                                },
+                                "loggerFormat": {
+                                    "type": "string",
+                                    "default": "json"
+                                }
+                            },
+                            "description": "Extra command line arguments for vminsert component"
+                        },
+                        "nodeSelector": {
+                            "type": "object",
+                            "description": "Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)"
+                        },
+                        "priorityClassName": {
+                            "type": "string",
+                            "description": "PriorityClassName assigned to the Pods to prevent vmInsert pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                        },
+                        "replicaCount": {
+                            "type": "integer",
+                            "description": "Count of vminsert pods",
+                            "default": 2
+                        },
+                        "resources": {
+                            "type": "object",
+                            "description": "Resource object",
+                            "properties": {
+                                "limits": {
+                                    "type": "object",
+                                    "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string"  
+                                        },
+                                        "memory": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "requests": {
+                                    "type": "object",
+                                    "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string"  
+                                        },
+                                        "memory": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "securityContext": {
+                            "type": "object",
+                            "description": "Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)"
+                        },
+                        "topologySpreadConstraints": {
+                            "type": "array",
+                            "description": "Pod topologySpreadConstraints",
+                            "default": []
+                        }
+                    },
+                    "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+                },
+                "vmInsertImage": {
+                    "type": "string",
+                    "description": "Container image for vmInsert component.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/vminsert:v1.130.0-cluster"
+                },
+                "vmInsertTlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified."
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "TLS configuration from existing secret. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    }
+                },
+                "vmSelect": {
+                    "type": "object",
+                    "properties": {
+                        "affinity": {
+                            "type": "object",
+                            "description": "Pod affinity",
+                            "examples": [{"podAntiAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": [{"labelSelector":{"matchExpressions":[{"key": "app.kubernetes.io/name", "operator": "In", "values": ["vmselect"]}]},"topologyKey": "kubernetes.io/hostname"}]}}]
+                        },
+                        "cacheMountPath": {
+                            "type": "string",
+                            "description": "Cache root folder",
+                            "default": "/cache"
+                        },
+                        "extraArgs": {
+                            "type": "object",
+                            "properties": {
+                                "dedup.minScrapeInterval": {
+                                    "type": "string",
+                                    "description": "See https://docs.victoriametrics.com/cluster-victoriametrics/#deduplication and\nhttps://docs.victoriametrics.com/cluster-victoriametrics/#replication-and-data-safety",
+                                    "default": "30s"
+                                },
+                                "envflag.enable": {
+                                    "type": "string",
+                                    "default": "true"
+                                },
+                                "envflag.prefix": {
+                                    "type": "string",
+                                    "default": "VM_"
+                                },
+                                "loggerFormat": {
+                                    "type": "string",
+                                    "default": "json"
+                                }
+                            },
+                            "description": "Extra command line arguments for vmselect component"
+                        },
+                        "nodeSelector": {
+                            "type": "object",
+                            "description": "Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)"
+                        },
+                        "replicaCount": {
+                            "type": "integer",
+                            "description": "Count of vmselect pods",
+                            "default": 2
+                        },
+                        "resources": {
+                            "type": "object",
+                            "description": "Resource object",
+                            "properties": {
+                                "limits": {
+                                    "type": "object",
+                                    "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string"  
+                                        },
+                                        "memory": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "requests": {
+                                    "type": "object",
+                                    "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string"  
+                                        },
+                                        "memory": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "securityContext": {
+                            "type": "object",
+                            "description": "Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+                            "default": {}
+                        },
+                        "topologySpreadConstraints": {
+                            "type": "array",
+                            "description": "Pod topologySpreadConstraints",
+                            "default": []
+                        }
+                    },
+                    "description": "vmInsertImage: victoriametrics/vminsert:v1.73.1-cluster"
+                },
+                "vmSelectImage": {
+                    "type": "string",
+                    "description": "Container image for vmSelect component.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/vmselect:v1.130.0-cluster"
+                },
+                "vmSelectIngress": {
+                    "type": "object",
+                    "description": "Allows to create Ingress for vmSelect UI via monitoring-operator\nhttps://docs.victoriametrics.com/operator/api.html#embeddedingress\nType: object\nMandatory: no\nDefault: {}",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Allows to enable deploy vmSelect ingress via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "FQDN of ingress host"
+                        },
+                        "annotations": {
+                            "type": "object",
+                            "description": "Set of annotations for Ingress. Allows to set up authorization e.g. via ingress-nginx."
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Set of labels for Ingress. Default monitoring-operator labels can be overwritten."
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist"
+                        }
+                    }
+                },
+                "vmSelectTlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified."
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "TLS configuration from existing secret. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    }
+                },
+                "vmStorage": {
+                    "type": "object",
+                    "properties": {
+                        "affinity": {
+                            "type": "object",
+                            "description": "Pod affinity",
+                            "examples": [{"podAntiAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": [{"labelSelector":{"matchExpressions":[{"key": "app.kubernetes.io/name", "operator": "In", "values": ["vmselect"]}]},"topologyKey": "kubernetes.io/hostname"}]}}]
+                        },
+                        "extraArgs": {
+                            "type": "object",
+                            "properties": {
+                                "dedup.minScrapeInterval": {
+                                    "type": "string",
+                                    "description": "See https://docs.victoriametrics.com/cluster-victoriametrics/#deduplication\nand https://docs.victoriametrics.com/cluster-victoriametrics/#replication-and-data-safety",
+                                    "default": "30s"
+                                },
+                                "envflag.enable": {
+                                    "type": "string",
+                                    "default": "true"
+                                },
+                                "envflag.prefix": {
+                                    "type": "string",
+                                    "default": "VM_"
+                                },
+                                "loggerFormat": {
+                                    "type": "string",
+                                    "default": "json"
+                                }
+                            },
+                            "description": "Additional vmstorage container arguments. Extra command line arguments for vmstorage component"
+                        },
+                        "nodeSelector": {
+                            "type": "object",
+                            "description": "Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)"
+                        },
+                        "priorityClassName": {
+                            "type": "string",
+                            "description": "Name of Priority Class",
+                            "default": ""
+                        },
+                        "replicaCount": {
+                            "type": "integer",
+                            "description": "Count of vmstorage pods",
+                            "default": 2
+                        },
+                        "resources": {
+                            "type": "object",
+                            "description": "Resource object. Ref: [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)",
+                            "properties": {
+                                "limits": {
+                                    "type": "object",
+                                    "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string"  
+                                        },
+                                        "memory": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "requests": {
+                                    "type": "object",
+                                    "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                                    "properties": {
+                                        "cpu": {
+                                            "type": "string"  
+                                        },
+                                        "memory": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "securityContext": {
+                            "type": "object",
+                            "description": "Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)",
+                            "default": {}
+                        },
+                        "terminationGracePeriodSeconds": {
+                            "description": "Optional duration in seconds the pod needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer.",
+                            "type": "integer",
+                            "default": 60
+                        },
+                        "topologySpreadConstraints": {
+                            "type": "array",
+                            "description": "Pod topologySpreadConstraints",
+                            "default": []
+                        }
+                    },
+                    "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+                },
+                "vmStorageImage": {
+                    "type": "string",
+                    "description": "Container image for vmStorage component.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/vmstorage:v1.130.0-cluster"
+                },
+                "vmStorageTlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified."
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "TLS configuration from existing secret. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    }
+                }
+            }
+        },
+        "vmOperator": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                },
+                "containerSecurityContext": {
+                    "type": "object",
+                    "description": "Security Context for a container.\nType: object\nMandatory: no"
+                },
+                "extraEnvs": {
+                    "type": "array",
+                    "description": "Allows set extra system environment variables for vmoperator.\nRef: https://docs.victoriametrics.com/operator/vars.html\nType: object\nMandatory: no",
+                    "default": []
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Container image for vmOperator.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/operator:v0.65.0"
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy vmOperator via monitoring-operator.\nIf vmSingle was not deploy during deploy via helm it can deploy via change custom\nresource PlatformMonitoring.\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allow define which Nodes the Pods are scheduled on.\nType: map[string]string\nMandatory: no\nDefault: not set"
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmOperator\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the Pods to prevent vmOperator pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                },
+                "replicas": {
+                    "type": "integer",
+                    "description": "Replicas expected size of the vmOperator cluster\nType: integer\nMandatory: no",
+                    "default": 1
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "default": "400m"   
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "default": "200Mi"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "default": "200m"   
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "default": "100Mi"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "# SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled\nfor Openshift cluster.\nType: object\nMandatory: no",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no\nDefault: 2000"
+                        }
+                    }
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Install serviceMonitor.\nType: boolean\nMandatory: no",
+                            "default": true
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Allow change metrics scrape interval.\nType: string\nMandatory: no",
+                            "default": "30s"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion",
+                            "default": []
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Set relabelings for the ServiceMonitor, use to apply to samples before scraping",
+                            "default": []
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Please note that scrapeTimeout must be less the interval",
+                            "default": "30s"
+                        }
+                    }
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified."
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "TLS configuration from existing secret. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period.\n Type: integer\nMandatory: false\nDefault: 365"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "A number of days before certificate expires when to request a new certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "default": "",
+                                    "description": "Name of secret to store TLS certificates generated by cert-manager.\nType: string\nMandatory: no\nDefault: \"vmoperator-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    },
+                    "description": "TLS Configuration for victoriametrics-operator"
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints.\nType: object\nMandatory: no",
+                    "default": []
+                }
+            },
+            "description": "Deploy a Victoriametrics stack"
+        },
+        "vmReplicas": {
+            "type": "integer",
+            "description": "Replicas expected size of the vmSingle cluster\nType: integer\nMandatory: no"
+        },
+        "vmSingle": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                },
+                "containers": {
+                    "type": "array",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core",
+                    "default": []
+                },
+                "extraArgs": {
+                    "type": "object",
+                    "properties": {
+                        "maxLabelsPerTimeseries": {
+                            "type": "string",
+                            "default": "40"
+                        }
+                    },
+                    "description": "Additional vmSingle container arguments.\nType: map[string]string\nMandatory: no\nDefault: {}"
+                },
+                "extraEnvs": {
+                    "type": "array",
+                    "description": "Allows set extra system environment variables for vmSingle.\nType: list[object]\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Container image for vmSingle.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/victoria-metrics:v1.130.0"
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "Allows create Ingress for vmSingle UI via monitoring-operator\nType: object\nMandatory: no\nDefault: {}",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations for the Ingress resource.\nType: map[string]string\nMandatory: no\nDefault: not set"
+                        },
+                        "host": {
+                            "type": "string",
+                            "description": "Host for the Ingress resource.\nType: string\nMandatory: no\nDefault: not set"
+                        },
+                        "install": {
+                            "type": "boolean",
+                            "description": "Allows to enable deploy Ingress for vmSingle UI via monitoring-operator.\nType: boolean\nMandatory: no\nDefault: false"
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Labels for the Ingress resource.\nType: map[string]string\nMandatory: no\nDefault: not set"
+                        },
+                        "tlsSecretName": {
+                            "type": "string",
+                            "description": "Name of the secret containing TLS certificates for the Ingress resource.\nType: string\nMandatory: no\nDefault: not set"
+                        }
+                    }
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allows to enable deploy vmSingle via monitoring-operator.\nIf vmSingle was not deploy during deploy via helm it can deploy via change custom\nresource PlatformMonitoring.\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmSingle\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods.\nRef: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "default": "1000m"   
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "default": "2000Mi"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "default": "500m"   
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "default": "1000Mi"
+                                }
+                            }
+                        }
+                    }
+                },
+                "retentionPeriod": {
+                    "type": "string",
+                    "description": "RetentionPeriod for the stored metrics\nNote VictoriaMetrics has data/ and indexdb/ folders\nmetrics from data/ removed eventually as soon as partition leaves retention period\nreverse index data at indexdb rotates once at the half of configured retention period\nhttps://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention",
+                    "default": "14d"
+                },
+                "secrets": {
+                    "type": "array",
+                    "description": "Secrets is a list of Secrets in the same namespace as the vmSingle object, which shall be mounted into the vmSingle Pods.\nType: array\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "# SecurityContext holds pod-level security attributes.\nThe parameters are required if a Pod Security Policy is enabled\nfor Kubernetes cluster and required if a Security Context Constraints is enabled\nfor Openshift cluster.\nType: object\nMandatory: no",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "runAsGroup": {
+                            "type": "integer",
+                            "description": "The GID to run the entrypoint of the container process.\nType: integer\nMandatory: no\nDefault: 2000"
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no\nDefault: 2000"
+                        }
+                    }
+                },
+                "storage": {
+                    "type": "object",
+                    "description": "PVC spec for VmSingle.\nType: object\nMandatory: no\nDefault: not set",
+                    "properties": {
+                        "accessModes": {
+                            "type": "array",
+                            "description": "Access modes for the PVC.\nType: array[string]\nMandatory: no\nDefault: [\"ReadWriteOnce\"]"
+                        },
+                        "resources": {
+                            "type": "object",
+                            "description": "Resource requests for the PVC.\nType: object\nMandatory: no\nDefault: not set",
+                            "properties": {
+                                "requests": {
+                                    "type": "object",
+                                    "description": "Resource requests for the PVC.\nType: object\nMandatory: no\nDefault: not set",
+                                    "properties": {
+                                        "storage": {
+                                            "type": "string",
+                                            "description": "Storage request for the PVC.\nType: string\nMandatory: no\nDefault: not set"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "storageClassName": {
+                            "type": "string",
+                            "description": "Storage class name for the PVC.\nType: string\nMandatory: no\nDefault: not set"
+                        }
+                    }
+                },
+                "tlsConfig": {
+                    "type": "object",
+                    "properties": {
+                        "createSecret": {
+                            "type": "object",
+                            "properties": {
+                                "cert": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "ca": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS CA cert.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "PEM encoded TLS key.\nType: string\nMandatory: no\nDefault: \"\""
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Name of secret to store TLS certificates.\nType: string\nMandatory: no\nDefault: \"vmsingle-tls-secret\""
+                                }
+                            },
+                            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified."
+                        },
+                        "existingSecret": {
+                            "type": "string",
+                            "description": "TLS configuration from existing secret. If specified, all subsequent parameters in tls section are ignored.\nType: string\nMandatory: no\nDefault: \"\""
+                        },
+                        "generateCerts": {
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "type": "integer",
+                                    "default": 365,
+                                    "description": "Certificate validity period."
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Allows to enable certs generation using cert-manager. \nType: boolean\nMandatory: no\n Default: true"
+                                },
+                                "renewBefore": {
+                                    "type": "integer",
+                                    "default": 15,
+                                    "description": "Time in days before expiration to renew the certificate."
+                                },
+                                "secretName": {
+                                    "type": "string",
+                                    "description": "Secret name which will contain generated certificates.\nType: string\nMandatory: no\nDefault: \"vmsingle-tls-secret\""
+                                }
+                            },
+                            "description": "Use generateCerts section if you want cert-manager to generate secret.\nWill be ignored if existingSecret is already specified."
+                        }
+                    },
+                    "description": "PriorityClassName assigned to the Pods to prevent vmSingle pods from evicting.\nType: string\npriorityClassName: \"priorityClassName\""
+                }
+            },
+            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+        },
+        "vmUser": {
+            "type": "object",
+            "properties": {
+                "bearerToken": {
+                    "type": "string",
+                    "description": "Authorization header value for accessing protected endpoint\nType: string\nMandatory: no",
+                    "default": ""
+                },
+                "generatePassword": {
+                    "type": "boolean",
+                    "description": "Instructs operator to generate password for user if spec.password if empty.\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy vmUser via monitoring-operator.\nType: boolean\nMandatory: no",
+                    "default": true
+                },
+                "password": {
+                    "type": "string",
+                    "description": "Set basic auth password for accessing protected endpoint\nType: string\nMandatory: no",
+                    "default": "admin"
+                },
+                "passwordRef": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "default": "password",
+                            "description": "A key name in the secret storing the password for accessing protected endpoint."
+                        },
+                        "name": {
+                            "type": "string",
+                            "default": "vmuser-secret",
+                            "description": "A secret name with the password for accessing protected endpoint."
+                        }
+                    },
+                    "description": "Allows fetching password from user-create secret by its name and key for accessing protected endpoint\nType: object\nMandatory: no"
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for vmUser\nType: boolean\nMandatory: no",
+                    "default": false
+                },
+                "targetRefs": {
+                    "type": "array",
+                    "description": "Reference to endpoints, which user may access.\nType: list[object]\nMandatory: no\nDefault: []",
+                    "default": []
+                },
+                "tokenRef": {
+                    "type": "object",
+                    "description": "Allows fetching token from user-create secret by its name and key for accessing protected endpoint\nType: object\nMandatory: no",
+                    "default": {}
+                },
+                "username": {
+                    "type": "string",
+                    "description": "Set basic auth username for accessing protected endpoint\nType: string\nMandatory: no",
+                    "default": "admin"
+                }
+            },
+            "description": "Use createSecret section to create secret with already known content of TLS certificates.\nDo not use createSecret if you use generateCerts\nWill be ignored if existingSecret is already specified.\ncreateSecret:\n  secretName: \"\"\n  ca: \"\"\n  key: \"\"\n  cert: \"\""
+        }
+    }
+}

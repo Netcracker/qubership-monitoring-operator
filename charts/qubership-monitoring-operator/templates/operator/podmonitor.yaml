@@ -4,11 +4,8 @@ kind: PodMonitor
 metadata:
   name: monitoring-operator
   labels:
-    app.kubernetes.io/name: monitoring-operator
-    app.kubernetes.io/component: monitoring-operator
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
-    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-operator") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
 spec:
   podMetricsEndpoints:
   - interval: {{ .Values.monitoringOperator.podMonitor.interval }}

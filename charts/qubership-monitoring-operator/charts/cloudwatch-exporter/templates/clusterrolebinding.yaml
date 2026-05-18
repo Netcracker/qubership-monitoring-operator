@@ -4,9 +4,7 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ template "cloudwatch-exporter.rbac.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "cloudwatch-exporter.rbac.fullname" . }}
-    app.kubernetes.io/component: cloudwatch-exporter
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "cloudwatch-exporter.rbac.fullname" .)) | nindent 4 }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.serviceAccount.name }}

@@ -39,7 +39,7 @@ Check URL Accessibility
     Evaluate  __import__("logging").getLogger("urllib3").setLevel(40)
     Create Session  temp_session  ${url}  auth=${auth}
     ${response}=  GET On Session  temp_session  /
-    Delete All Sessions
+    Delete Session  temp_session
     Should Be Equal As Integers  ${response.status_code}  200
     RETURN  True
 

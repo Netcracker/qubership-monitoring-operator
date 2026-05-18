@@ -60,6 +60,7 @@ available to collect from some tools.
 * Cert-exporter
 * [JSON-exporter](exporters/json-exporter.md)
 * Network-latency-exporter
+* [SSL-exporter](exporters/ssl-exporter.md)
 * Version-exporter
 
 ### Public Cloud Exporters

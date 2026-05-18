@@ -8,7 +8,7 @@ metadata:
   name: monitoring-nginx-ingress-pod-monitor
 spec:
   jobLabel: k8s-app
-  namespaceSelector: 
+  namespaceSelector:
     any: true
   podMetricsEndpoints:
     - interval: 30s
@@ -20,7 +20,7 @@ spec:
           replacement: $1
           sourceLabels: ['__meta_kubernetes_pod_node_name']
           targetLabel: node
-      port: prometheus
+      port: metrics
       scheme: http
   selector:
     matchLabels:

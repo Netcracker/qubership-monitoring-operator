@@ -4,7 +4,10 @@ kind: DaemonSet
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "goldpinger.labels" . | nindent 4 }}
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/technology: go
 spec:
   {{- with .Values.updateStrategy }}
   updateStrategy:
@@ -12,7 +15,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "goldpinger.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ .Values.name }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -20,7 +23,10 @@ spec:
         {{ toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "goldpinger.selectorLabels" . | nindent 8 }}
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+        app.kubernetes.io/technology: go
       {{- with .Values.podLabels }}
       {{ toYaml . | nindent 8 }}
       {{- end }}
@@ -52,7 +58,7 @@ spec:
             - name: PORT
               value: "{{ .Values.goldpinger.port }}"
             - name: LABEL_SELECTOR
-              value: "app.kubernetes.io/name={{ include "goldpinger.name" . }}"
+              value: "app.kubernetes.io/name={{ .Values.name }}"
             {{- if .Values.extraEnv -}}
             {{ toYaml .Values.extraEnv | nindent 12 }}
             {{- end }}
@@ -82,7 +88,7 @@ spec:
       volumes:
         - name: zap
           configMap:
-            name: {{ .Values.name }}-zap
+            name: {{ .Values.name }}
       {{- range $k := .Values.extraEnv }}
       {{- if and (eq $k.name "USE_HOST_IP") (eq $k.value "true") }}
       hostNetwork: true

@@ -4,11 +4,10 @@ apiVersion: apps/v1
 metadata:
   name: {{ .Values.integrationTests.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.integrationTests.name }}
-    app.kubernetes.io/component: platform-monitoring-tests
-    app.kubernetes.io/part-of: monitoring
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.integrationTests.name "component" "platform-monitoring-tests") | nindent 4 }}
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    app.kubernetes.io/technology: python
     {{- if .Values.integrationTests.labels }}
       {{- toYaml .Values.integrationTests.labels | nindent 4 }}
     {{- end }}
@@ -26,13 +25,10 @@ spec:
   template:
     metadata:
       labels:
-        name: {{ .Values.integrationTests.name }}
-        app.kubernetes.io/name: {{ .Values.integrationTests.name }}
-        app.kubernetes.io/component: platform-monitoring-tests
-        app.kubernetes.io/part-of: monitoring
+        {{- include "monitoring.labels" (dict "ctx" . "name" .Values.integrationTests.name "component" "platform-monitoring-tests") | nindent 8 }}
         app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
         app.kubernetes.io/version: {{ template "integrationTests.version" . }}
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/technology: python
         {{- if .Values.integrationTests.labels }}
           {{- toYaml .Values.integrationTests.labels | nindent 8 }}
         {{- end }}
@@ -74,11 +70,15 @@ spec:
             - name: GRAFANA
               value: "true"
             - name: GRAFANA_HOST
-            {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
+              {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
               value: {{ .Values.grafana.ingress.host | quote }}
-            {{- else }}
-              value: grafana-{{ .Values.NAMESPACE }}.{{ .Values.CLOUD_PUBLIC_HOST}}
-            {{- end }}
+              {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
+              value: {{ (index .Values.grafana.ingress.rules 0).host }}
+              {{- else if and .Values.grafana.httpRoute.install .Values.grafana.httpRoute.hostnames }}
+              value: {{ .Values.grafana.httpRoute.hostnames | first | quote }}
+              {{- else }}
+              value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
+              {{- end }}
             {{- else }}
             - name: GRAFANA
               value: "false"

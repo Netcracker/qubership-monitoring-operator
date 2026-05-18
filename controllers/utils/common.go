@@ -6,6 +6,7 @@ import (
 	"embed"
 	"fmt"
 	"io"
+	"reflect"
 	"strconv"
 	"strings"
 	"text/template"
@@ -71,6 +72,36 @@ func (r *ComponentReconciler) HasApi(groupVersion schema.GroupVersion, kind stri
 	return hasApi
 }
 
+// HasApiGroupKind checks if API exists for a group/kind regardless of version.
+func (r *ComponentReconciler) HasApiGroupKind(group, kind string) bool {
+	_, ok := r.GetApiVersionForKind(group, kind)
+	return ok
+}
+
+// GetApiVersionForKind returns apiVersion for the first matching group/kind found by discovery.
+func (r *ComponentReconciler) GetApiVersionForKind(group, kind string) (string, bool) {
+	_, apiLists, err := r.Dc.ServerGroupsAndResources()
+	if err != nil {
+		r.Log.Error(err, "Error while check hasAPI")
+		return "", false
+	}
+	for _, apiList := range apiLists {
+		gv, err := schema.ParseGroupVersion(apiList.GroupVersion)
+		if err != nil {
+			continue
+		}
+		if gv.Group != group {
+			continue
+		}
+		for _, resource := range apiList.APIResources {
+			if resource.Kind == kind {
+				return apiList.GroupVersion, true
+			}
+		}
+	}
+	return "", false
+}
+
 // ResourceExists returns true if the given resource kind exists
 // in the given api groupversion
 func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
@@ -88,6 +119,27 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 		}
 	}
 	return false, nil
+}
+
+// WorkloadNeedsSelectorReplace returns true if the workload's selector changed.
+// For Deployment, DaemonSet, and StatefulSet, spec.selector is immutable; Update
+// would fail. Callers should Delete+Create instead.
+func WorkloadNeedsSelectorReplace(existing, desired client.Object) bool {
+	switch e := existing.(type) {
+	case *appsv1.Deployment:
+		if d, ok := desired.(*appsv1.Deployment); ok {
+			return !reflect.DeepEqual(e.Spec.Selector, d.Spec.Selector)
+		}
+	case *appsv1.DaemonSet:
+		if d, ok := desired.(*appsv1.DaemonSet); ok {
+			return !reflect.DeepEqual(e.Spec.Selector, d.Spec.Selector)
+		}
+	case *appsv1.StatefulSet:
+		if d, ok := desired.(*appsv1.StatefulSet); ok {
+			return !reflect.DeepEqual(e.Spec.Selector, d.Spec.Selector)
+		}
+	}
+	return false
 }
 
 func (r *ComponentReconciler) CreateResource(cr *monv1.PlatformMonitoring, o K8sResource, setRefOptional ...bool) error {
@@ -228,18 +280,6 @@ func ParseTemplate(fileContent, filePath, leftDelim, rightDelim string, paramete
 func GetTagFromImage(image string) string {
 	partsOfImage := strings.Split(image, ":")
 	return partsOfImage[len(partsOfImage)-1]
-}
-
-func GetInstanceLabel(name, namespace string) string {
-	label := fmt.Sprintf("%s-%s", name, namespace)
-	return TruncLabel(label)
-}
-
-func TruncLabel(label string) string {
-	if len(label) >= 63 {
-		return strings.Trim(label[:63], "-")
-	}
-	return strings.Trim(label, "-")
 }
 
 const defaultPodsPendingTimeout = time.Minute * 5

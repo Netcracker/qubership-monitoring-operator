@@ -50,24 +50,6 @@ func (r *KubernetesMonitorsReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				r.Log.Error(err, "Can not delete ApiServerServiceMonitor")
 			}
 		}
-		if IsMonitorInstall(cr, utils.KubeControllerManagerServiceMonitorName) {
-			if err = r.handleControllerManagerServiceMonitor(cr); err != nil {
-				return err
-			}
-		} else {
-			if err = r.deleteControllerManagerServiceMonitor(cr); err != nil {
-				r.Log.Error(err, "Can not delete ControllerManagerServiceMonitor")
-			}
-		}
-		if IsMonitorInstall(cr, utils.KubeSchedulerServiceMonitorName) {
-			if err = r.handleSchedulerServiceMonitor(cr); err != nil {
-				return err
-			}
-		} else {
-			if err = r.deleteSchedulerServiceMonitor(cr); err != nil {
-				r.Log.Error(err, "Can not delete SchedulerServiceMonitor")
-			}
-		}
 		if IsMonitorInstall(cr, utils.KubeletServiceMonitorName) {
 			if err = r.handleKubeletServiceMonitor(cr); err != nil {
 				return err
@@ -181,12 +163,6 @@ func (r *KubernetesMonitorsReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 
 	if err = r.deleteApiServerServiceMonitor(cr); err != nil {
 		r.Log.Error(err, "Can not delete ApiServerServiceMonitor")
-	}
-	if err = r.deleteControllerManagerServiceMonitor(cr); err != nil {
-		r.Log.Error(err, "Can not delete ControllerManagerServiceMonitor")
-	}
-	if err = r.deleteSchedulerServiceMonitor(cr); err != nil {
-		r.Log.Error(err, "Can not delete SchedulerServiceMonitor")
 	}
 	if err = r.deleteKubeletServiceMonitor(cr); err != nil {
 		r.Log.Error(err, "Can not delete KubeletServiceMonitor")

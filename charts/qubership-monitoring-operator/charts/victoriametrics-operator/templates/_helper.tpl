@@ -25,7 +25,8 @@ Image can be found from:
   {{- if .Values.cleanup.hook.image -}}
     {{- printf "%s" .Values.cleanup.hook.image -}}
   {{- else -}}
-    {{- print  "docker.io/rancher/kuberlr-kubectl:v6.0.0" -}}
+    {{- /* # renovate: datasource=docker depName=rancher/kuberlr-kubectl */ -}}
+    {{- print  "docker.io/rancher/kuberlr-kubectl:v8.0.0" -}}
   {{- end -}}
 {{- end -}}
 

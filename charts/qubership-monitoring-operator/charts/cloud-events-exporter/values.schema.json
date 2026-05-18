@@ -1,0 +1,208 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects.",
+            "default": {}
+        },
+        "extraArgs": {
+            "type": "array",
+            "description": "Additional cloud-events-exporter container arguments.",
+            "default": []
+        },
+        "extraEnvs": {
+            "type": "object",
+            "description": "Allows set extra system environment variables for cloud-events-exporter container.",
+            "default": {}
+        },
+        "filtering": {
+            "type": "object",
+            "description": "Cloud events filtering configuration.",
+            "properties": {
+                "exclude": {
+                    "type": "array",
+                    "description": "Array of filters to exclude events.",
+                    "default": [],
+                    "examples": [
+                        [
+                            {"type":"Warning","kind":"Pod|Deployment","reason": "","message": "","namespace": "","reportingController": "","reportingInstance": ""}
+                        ]
+                    ]
+                },
+                "match": {
+                    "type": "array",
+                    "description": "Array of filters to match events.",
+                    "default": [],
+                    "examples": [
+                        [
+                            {"type":"Normal","message":".*image.*","namespace": "","reason":"Completed|Pulled|Started"}
+                        ]
+                    ]
+                }
+            }
+        },
+        "image": {
+            "type": "string",
+            "description": "Image to use for cloud-events-exporter deployment.\nDefaults: ghcr.io/netcracker/qubership-kube-events-reader:main"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to disable create cloud-events-exporter during deploy.",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services.",
+            "default": {}
+        },
+        "name": {
+            "type": "string",
+            "description": "Provide a name in place of cloud-events-exporter for labels.",
+            "default": "cloud-events-exporter"
+        },
+        "namespaces": {
+            "type": "array",
+            "description": "List of namespaces to monitor for events.",
+            "default": []
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allows to define which Nodes the Pods are scheduled on.",
+            "default": {},
+            "examples": [{"region": "databases"}]
+        },
+        "port": {
+            "type": "integer",
+            "description": "Port to scrape cloud events metrics.",
+            "default": 9999
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the Pods to prevent them from evicting."
+        },
+        "rbac": {
+            "type": "object",
+            "description": "Role-based access control configuration.",
+            "properties": {
+                "createClusterRole": {
+                    "type": "boolean",
+                    "description": "Allow creating ClusterRole. If set to false, ClusterRole must be created manually.",
+                    "default": true
+                },
+                "createClusterRoleBinding": {
+                    "type": "boolean",
+                    "description": "Allow creating ClusterRoleBinding. If set to false, ClusterRoleBinding must be created manually.",
+                    "default": true
+                }
+            }
+        },
+        "resources": {
+            "type": "object",
+            "description": "Define resources requests and limits for single Pods.",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu-and-memory",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource limit. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu-and-memory"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource limit. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu-and-memory"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu-and-memory",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource request. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu-and-memory"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource request. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu-and-memory"
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for Openshift cluster.",
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process.\nDefaults to user specified in image metadata if unspecified."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                }
+            },
+            "default": {}
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "Service account for cloud-events-exporter to use.",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata.",
+                    "default": {}
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Specifies whether a ServiceAccount should be created.",
+                    "default": true
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize objects. May match selectors of replication controllers and services.",
+                    "default": {}
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "Service monitor for scraping Cloud events as metrics.",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Specifies whether a ServiceMonitor should be created.",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Interval at which to scrape the metrics.",
+                    "default": "30s"
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "description": "MetricRelabelings to apply to samples before ingestion.",
+                    "default": []
+                },
+                "relabelings": {
+                    "type": "array",
+                    "description": "Relabelings to apply to the scrape request before scraping.",
+                    "default": []
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Timeout for scraping metrics. Note that scrapeTimeout must be less than the interval.",
+                    "default": "10s"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints.",
+            "default": []
+        }
+    }
+}

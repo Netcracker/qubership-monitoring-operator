@@ -20,15 +20,19 @@ const (
 	AlertmanagerServicePort           = 9093
 	AlertmanagerOAuthProxyServiceName = "alertmanager-oauth2-proxy"
 	OAuthProxyServicePortName         = "oauth-proxy"
+	OAuthProxyServicePort             = 9092
 
 	StackdriverPrometheusSidecarName = "stackdriver-prometheus"
 	PrometheusServiceName            = "prometheus-operated"
 	PrometheusServicePort            = 9090
 	PrometheusOAuthProxyServiceName  = "prometheus-oauth2-proxy"
 
-	GrafanaServiceName     = "grafana-service"
-	GrafanaServicePort     = 3000
-	GrafanaExtraVarsSecret = "grafana-extra-vars-secret"
+	GrafanaServiceName          = "grafana-service"
+	GrafanaServicePort          = 3000
+	GrafanaExtraVarsSecret      = "grafana-extra-vars-secret"
+	GrafanaConfigConfigMapName  = "grafana-config"
+	GrafanaDatasourcesConfigMap = "grafana-datasources"
+	GrafanaAdminCredentialsName = "grafana-admin-credentials"
 
 	ClickHouseServiceName = "clickhouse-cluster"
 	ClickHouseSecret      = "clickhouse-operator-credentials"
@@ -64,6 +68,8 @@ const (
 
 	VmClusterComponentName = "vmcluster"
 	VmSelectComponentName  = "vmselect"
+
+	VmUserComponentName = "vmuser"
 
 	NginxIngressAppRootAnnotation = "nginx.ingress.kubernetes.io/app-root"
 
@@ -102,23 +108,30 @@ var (
 	PrometheusIngressAsset            = BasePath + "ingress.yaml"
 	PrometheusPodMonitorAsset         = BasePath + "pod-monitor.yaml"
 
-	PrometheusRulesAsset = "assets/prometheus-rules.yaml"
+	PrometheusRulesAsset         = "assets/prometheus-rules.yaml"
+	PrometheusRulesComponentName = "prometheus-rules"
 
 	// VmOperatorComponentName contains name of victoriametrics-operator pod
-	VmOperatorComponentName                   = "victoriametrics-operator"
-	VmKubeletName                             = "kubelet"
-	VmOperatorClusterRoleAsset                = BasePath + "cluster-role.yaml"
-	VmOperatorRoleAsset                       = BasePath + "role.yaml"
-	VmOperatorClusterRoleBindingAsset         = BasePath + "cluster-role-binding.yaml"
-	VmOperatorRoleBindingAsset                = BasePath + "role-binding.yaml"
-	VmOperatorServiceAccountAsset             = BasePath + "service-account.yaml"
-	VmOperatorDeploymentAsset                 = BasePath + "deployment.yaml"
-	VmOperatorServiceAsset                    = BasePath + "service.yaml"
-	VmKubeletServiceAsset                     = BasePath + "kubelet-service.yaml"
-	VmKubeletServiceEndpointsAsset            = BasePath + "kubelet-endpoints.yaml"
-	VmOperatorServiceMonitorAsset             = BasePath + "service-monitor.yaml"
-	VmOperatorPodSecurityPolicyAsset          = BasePath + "podsecuritypolicy.yaml"
-	VmOperatorSecurityContextConstraintsAsset = BasePath + "securitycontextconstraints.yaml"
+	VmOperatorComponentName                      = "victoriametrics-operator"
+	VmKubeletName                                = "kubelet"
+	VmKubeSchedulerName                          = "kube-scheduler"
+	VmKubeControllerManagerName                  = "kube-controller-manager"
+	VmOperatorClusterRoleAsset                   = BasePath + "cluster-role.yaml"
+	VmOperatorRoleAsset                          = BasePath + "role.yaml"
+	VmOperatorClusterRoleBindingAsset            = BasePath + "cluster-role-binding.yaml"
+	VmOperatorRoleBindingAsset                   = BasePath + "role-binding.yaml"
+	VmOperatorServiceAccountAsset                = BasePath + "service-account.yaml"
+	VmOperatorDeploymentAsset                    = BasePath + "deployment.yaml"
+	VmOperatorServiceAsset                       = BasePath + "service.yaml"
+	VmKubeletServiceAsset                        = BasePath + "kubelet-service.yaml"
+	VmKubeletServiceEndpointsAsset               = BasePath + "kubelet-endpoints.yaml"
+	VmKubeSchedulerServiceAsset                  = BasePath + "kube-scheduler-service.yaml"
+	VmKubeSchedulerServiceEndpointsAsset         = BasePath + "kube-scheduler-endpoints.yaml"
+	VmKubeControllerManagerServiceAsset          = BasePath + "kube-controller-manager-service.yaml"
+	VmKubeControllerManagerServiceEndpointsAsset = BasePath + "kube-controller-manager-endpoints.yaml"
+	VmOperatorServiceMonitorAsset                = BasePath + "service-monitor.yaml"
+	VmOperatorPodSecurityPolicyAsset             = BasePath + "podsecuritypolicy.yaml"
+	VmOperatorSecurityContextConstraintsAsset    = BasePath + "securitycontextconstraints.yaml"
 
 	VmSingleAsset                   = BasePath + "vmsingle.yaml"
 	VmSingleIngressAsset            = BasePath + "ingress.yaml"
@@ -268,12 +281,16 @@ var (
 	GrafanaOperatorPodMonitorAsset         = BasePath + GrafanaOperatorComponentName + "/pod-monitor.yaml"
 
 	// GrafanaComponentName contains name of alertmanager pod
-	GrafanaComponentName   = "grafana"
-	GrafanaAsset           = BasePath + "grafana.yaml"
-	GrafanaDataSourceAsset = BasePath + "grafana-datasource.yaml"
-	GrafanaIngressAsset    = BasePath + "ingress.yaml"
-	GrafanaPodMonitorAsset = BasePath + "pod-monitor.yaml"
-	GrafanaDeploymentName  = "grafana-deployment"
+	GrafanaComponentName         = "grafana"
+	GrafanaAsset                 = BasePath + "grafana.yaml"
+	GrafanaDataSourceAsset       = BasePath + "grafana-datasource-prometheus.yaml"
+	GrafanaPromxyDataSourceAsset = BasePath + "grafana-datasource-promxy.yaml"
+	GrafanaIngressAsset          = BasePath + "ingress.yaml"
+	GrafanaPodMonitorAsset       = BasePath + "pod-monitor.yaml"
+	GrafanaDeploymentName        = "grafana-deployment"
+
+	// KubernetesMonitorsComponentName contains name for kubernetes-monitors resources
+	KubernetesMonitorsComponentName = "kubernetes-monitors"
 
 	// JaegerServiceLabels contains labels for Jaeger Service label selector
 	JaegerServiceLabels = map[string]string{
@@ -388,8 +405,8 @@ var (
 		"node-details":                         "node-details",
 		"openshift-apiserver":                  "os-apiserver",
 		"openshift-cluster-version-operator":   "os-cluster-version-operator",
-		"openshift-state-metrics":              "os-state-metrics",
 		"openshift-haproxy":                    "os-haproxy",
+		"openshift-state-metrics":              "os-state-metrics",
 		"operators-overview":                   "operators-overview",
 		"overall-platform-health":              "overall-platform-health",
 		"prometheus-cardinality-explorer":      "prom-cardinality",

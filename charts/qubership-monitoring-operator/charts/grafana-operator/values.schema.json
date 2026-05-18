@@ -1,0 +1,669 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object",
+            "description": "If specified, the pod's scheduling constraints",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+            "default": {}
+        },
+        "backupDaemonDashboard": {
+            "type": "boolean",
+            "description": "Enables Backup Daemon Dashboard installation",
+            "default": true
+        },
+        "config": {
+            "type": "object",
+            "description": "Allows set configuration for grafana. The properties used to generate grafana.ini. Ref: https://grafana.com/docs/grafana/latest/administration/configuration/",
+            "properties": {
+                "analytics": {
+                    "type": "object",
+                    "properties": {
+                        "check_for_updates": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable Grafana plugin update checks"
+                        },
+                        "reporting_enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable anonymous usage reporting"
+                        }
+                    },
+                    "description": "Grafana analytics settings"
+                },
+                "auth": {
+                    "type": "object",
+                    "properties": {
+                        "disable_login_form": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Disable Grafana login form"
+                        },
+                        "disable_signout_menu": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Disable Grafana sign out menu"
+                        }
+                    },
+                    "description": "Grafana authentication settings"
+                },
+                "auth.anonymous": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable anonymous access"
+                        }
+                    },
+                    "description": "Grafana anonymous authentication settings"
+                },
+                "live": {
+                    "type": "object",
+                    "properties": {
+                        "max_connections": {
+                            "type": "integer",
+                            "default": 0,
+                            "description": "Maximum number of live connections"
+                        }
+                    },
+                    "description": "Grafana live streaming settings"
+                },
+                "log": {
+                    "type": "object",
+                    "properties": {
+                        "level": {
+                            "type": "string",
+                            "default": "warn",
+                            "description": "Grafana log level"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "default": "console",
+                            "description": "Grafana log output mode"
+                        }
+                    },
+                    "description": "Grafana logging settings"
+                }
+            }
+        },
+        "dashboardLabelSelector": {
+            "type": "array",
+            "description": "dashboardLabelSelector allows to query over a set of resources according to labels. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects. The parameter is an array of labelSelector objects. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta",
+            "items": {
+                "type": "object",
+                "description": "Selector object for dashboard label selection"
+            },
+            "default": [
+                {}
+            ]
+        },
+        "dashboardNamespaceSelector": {
+            "type": "object",
+            "description": "dashboardNamespaceSelector allows to query over a set of resources in namespaces that fits label selector. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects. The parameter is labelSelector object type. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta"
+        },
+        "dataStorage": {
+            "type": "object",
+            "description": "Provides a means to configure the grafana data storage.",
+            "properties": {
+                "accessModes": {
+                    "type": "array",
+                    "description": "Access modes for the persistent volume claim used for grafana data storage",
+                    "items": {
+                        "type": "string",
+                        "description": "Access mode for the persistent volume claim used for grafana data storage"
+                    },
+                    "examples": [
+                        [
+                            "ReadWriteOnce",
+                            "ReadOnlyMany",
+                            "ReadWriteMany"
+                        ]
+                    ]
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects"
+                },
+                "size": {
+                    "type": "string",
+                    "description": "Size of the persistent volume claim used for grafana data storage"
+                },
+                "class": {
+                    "type": "string",
+                    "description": "Storage class name for the persistent volume claim used for grafana data storage"
+                }
+            }
+        },
+        "extraVars": {
+            "type": "object",
+            "description": "Allows set extra system environment variables for grafana. The properties used to override values from grafana.ini. Ref: https://grafana.com/docs/grafana/latest/administration/configuration/#configure-with-environment-variables",
+            "properties": {
+                "GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable plugin update checks for Grafana analytics"
+                },
+                "GF_AUTH_ANONYMOUS_HIDE_VERSION": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Hide Grafana version when anonymous access is enabled"
+                },
+                "GF_AUTH_LOGIN_COOKIE_NAME": {
+                    "type": "string",
+                    "default": "__Host-grafana_session",
+                    "description": "Name of the Grafana login cookie"
+                },
+                "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": {
+                    "type": "string",
+                    "default": "/etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json",
+                    "description": "Path to the default Grafana home dashboard file"
+                },
+                "GF_LIVE_ALLOWED_ORIGINS": {
+                    "type": "string",
+                    "default": "*",
+                    "description": "Allowed origins for Grafana live streaming"
+                },
+                "GF_SECURITY_ANGULAR_SUPPORT_ENABLED": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable Angular support security settings in Grafana"
+                },
+                "GF_SECURITY_CONTENT_SECURITY_POLICY": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable Grafana content security policy"
+                },
+                "GF_SECURITY_COOKIE_SAMESITE": {
+                    "type": "string",
+                    "default": "strict",
+                    "description": "SameSite setting for Grafana cookies"
+                },
+                "GF_SECURITY_COOKIE_SECURE": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Require secure Grafana cookies"
+                },
+                "GF_SERVER_ENFORCE_DOMAIN": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enforce Grafana server domain"
+                }
+            }
+        },
+        "extraVarsSecret": {
+            "type": "object",
+            "description": "Allows set extra system environment variables for Grafana like an extraVars, but set variables into the Secret instead of ConfigMap. If extraVars and ExtraVarsSecret have variables with equals keys, value will be taken from the Secret",
+            "default": {}
+        },
+        "grafanaHomeDashboard": {
+            "type": "boolean",
+            "description": "Allows set custom home dashboard for grafana",
+            "default": true
+        },
+        "image": {
+            "type": "string",
+            "description": "Grafana image to deploy.\nDefault: docker.io/grafana/grafana:11.6.5"
+        },
+        "imageRenderer": {
+            "type": "object",
+            "description": "Allows rendering panels and dashboards to PNGs using a headless browser",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "The pod's scheduling constraints"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+                    "default": {}
+                },
+                "extraEnvs": {
+                    "type": "object",
+                    "description": "Extra environment variables",
+                    "properties": {
+                        "IGNORE_HTTPS_ERRORS": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Ignore HTTPS errors in the Grafana image renderer"
+                        },
+                        "LOG_LEVEL": {
+                            "type": "string",
+                            "default": "info",
+                            "description": "Log level for the Grafana image renderer"
+                        },
+                        "RENDERING_ARGS": {
+                            "type": "string",
+                            "default": "--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--disable-gpu,--window-size=1280x758",
+                            "description": "Command line arguments passed to the Grafana image renderer"
+                        }
+                    }
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Grafana image renderer image to deploy.\nDefault: docker.io/grafana/grafana-image-renderer:3.12.9"
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy grafana image renderer",
+                    "default": false
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+                    "default": {}
+                },
+                "name": {
+                    "type": "string",
+                    "description": "A name of the microservice to deploy with. This name is used as the name of the microservice deployment and in labels",
+                    "default": "grafana-image-renderer"
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allow define which Nodes the Pods are scheduled on"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port for grafana-image-renderer service",
+                    "default": 8282
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "If specified, the pod's priorityClassName. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describe the maximum amount of compute resources allowed",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource limit for Grafana image renderer container"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource limit for Grafana image renderer container"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describe the minimum amount of compute resources required",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource request for Grafana image renderer container"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource request for Grafana image renderer container"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "SecurityContext holds pod-level security attributes",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process.\nDefaults to user specified in image metadata if unspecified."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod. If unset, the Kubelet will not modify the ownership and permissions of any volume."
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints",
+                    "default": []
+                }
+            }
+        },
+        "ingress": {
+            "type": "object",
+            "description": "Allows create Ingress for Grafana UI via monitoring-operator",
+            "properties": {
+                "install:": {
+                    "type": "boolean",
+                    "description": "Allow to enable deploy Ingress for Grafana UI"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects"
+                },
+                "host": {
+                    "type": "string",
+                    "description": "FQDN of ingress host"
+                },
+                "tlsSecretName": {
+                    "type": "string",
+                    "description": "Name of the secret with TLS configs for Ingress: tls.crt and tls.key. The secret must exist in the same namespace as Grafana deployment."
+                }
+            },
+            "default": {}
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable deploy grafana",
+            "default": true
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+            "default": {}
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow define which Nodes the Pods are scheduled on",
+            "default": {}
+        },
+        "operator": {
+            "type": "object",
+            "description": "Manages Grafana component",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+                    "default": {}
+                },
+                "image": {
+                    "type": "string",
+                    "description": "Grafana operator image to deploy.\nDefault: quay.io/grafana-operator/grafana-operator:v4.9.0"
+                },
+                "initContainerImage": {
+                    "type": "string",
+                    "description": "A docker image to use for grafana-plugins-init container.\nDefault: ghcr.io/netcracker/qubership-grafana-plugins-init:main"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+                    "default": {}
+                },
+                "logLevel": {
+                    "type": "string",
+                    "description": "Allow specification of log level",
+                    "default": "info"
+                },
+                "namespaces": {
+                    "type": "string",
+                    "description": "Comma separated list of namespaces to monitor in non-privileged mode.\nThis parameter is unnecessary if the grafana-operator has ClusterRole on all namespaces."
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allow define which Nodes the Pods are scheduled on",
+                    "default": {}
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for grafana-operator",
+                    "default": false
+                },
+                "podMonitor": {
+                    "type": "object",
+                    "description": "Pod monitor for self-monitoring",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Install the grafana-operator pod monitor"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "default": "30s",
+                            "description": "Scrape interval for the grafana-operator pod monitor"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "description": "Metric relabeling rule object"
+                            },
+                            "description": "Metric relabeling rules for the grafana-operator pod monitor"
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "default": [],
+                            "description": "Endpoint relabeling rules for the grafana-operator pod monitor",
+                            "items": {
+                                "type": "object",
+                                "description": "Endpoint relabeling rule object"
+                            }
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Please note that scrapeTimeout must be less the interval",
+                            "default": "10s"
+                        }
+                    }
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "If specified, the pod's priorityClassName. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describe the maximum amount of compute resources allowed",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource limit for Grafana container"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource limit for Grafana container"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describe the minimum amount of compute resources required",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource request for Grafana container"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource request for Grafana container"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "SecurityContext holds pod-level security attributes",
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod. If unset, the Kubelet will not modify the ownership and permissions of any volume."
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "description": "Service account for monitoring-operator to use. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata"
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the pods to schedule onto nodes with matching taints",
+                    "default": []
+                }
+            }
+        },
+        "paused": {
+            "type": "boolean",
+            "description": "Set paused to reconciliation for grafana",
+            "default": false
+        },
+        "podMonitor": {
+            "type": "object",
+            "description": "Pod monitor for self-monitoring",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Install the Grafana pod monitor"
+                },
+                "interval": {
+                    "type": "string",
+                    "default": "30s",
+                    "description": "Scrape interval for the Grafana pod monitor"
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Metric relabeling rules for the Grafana pod monitor"
+                },
+                "relabelings": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Endpoint relabeling rules for the Grafana pod monitor"
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Please note that scrapeTimeout must be less the interval",
+                    "default": "10s"
+                }
+            }
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "If specified, the pod's priorityClassName. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Number of created pods",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Limits describes the maximum amount of compute resources allowed. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#resource-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource limit for Grafana container"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource limit for Grafana container"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#resource-requests",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource request for Grafana container"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource request for Grafana container"
+                        }
+                    }
+                }
+            }
+        },
+        "security": {
+            "type": "object",
+            "properties": {
+                "admin_password": {
+                    "type": "string",
+                    "default": "admin",
+                    "description": "Grafana admin password"
+                },
+                "admin_user": {
+                    "type": "string",
+                    "default": "admin",
+                    "description": "Grafana admin username"
+                }
+            },
+            "description": "Grafana security settings"
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for Openshift cluster",
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod. If unset, the Kubelet will not modify the ownership and permissions of any volume."
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "Service account for monitoring-operator to use. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+                    "examples": [
+                        {"eks.amazonaws.com/role-arn": "<IAM_PROXY_PROMETHEUS_ROLE_ARN>"}
+                    ]
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints",
+            "default": []
+        }
+    }
+}
