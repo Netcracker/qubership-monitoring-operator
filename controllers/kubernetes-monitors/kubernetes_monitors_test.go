@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -24,12 +25,13 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test ApiServerServiceMonitor manifest with nil labels and annotation", func(t *testing.T) {
-		m, err := kubernetesMonitorsApiServerServiceMonitor(cr)
+		crNil := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+		m, err := kubernetesMonitorsApiServerServiceMonitor(crNil)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ApiServerServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", nil)
 		assert.Nil(t, m.GetAnnotations())
 	})
 	cr = &monv1.PlatformMonitoring{
@@ -45,8 +47,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ApiServerServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -56,8 +57,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "KubeletServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -67,8 +67,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "CoreDnsServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -78,8 +77,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "CoreDnsServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -89,8 +87,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "NginxIngressPodMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -101,8 +98,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "OpenshiftApiserverServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -113,8 +109,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "OpenshiftApiserverOperatorServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -125,8 +120,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "OpenshiftClusterVersionOperatorServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})
@@ -137,8 +131,7 @@ func TestKubernetesMonitorsManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "openshiftStatemetricsServiceMonitor manifest should not be empty")
-		assert.NotNil(t, m.GetLabels())
-		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
+		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.KubernetesMonitorsComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 	})

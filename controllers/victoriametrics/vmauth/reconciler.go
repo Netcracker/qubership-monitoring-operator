@@ -4,6 +4,7 @@ import (
 	"context"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
@@ -80,6 +81,26 @@ func (r *VmAuthReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitoring
 					}
 				}
 			}
+			ingressHost := ""
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			if cr.Spec.Victoriametrics.VmAuth.Ingress != nil {
+				ingressHost = cr.Spec.Victoriametrics.VmAuth.Ingress.Host
+			}
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.VmAuthServiceName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    utils.VmAuthServiceName,
+				ServicePort:    int32(utils.VmAuthServicePort),
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmAuthServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmAuthServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmAuthServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Victoriametrics.VmAuth.HTTPRoute,
+			}); err != nil {
+				return err
+			}
 
 			r.Log.Info("Component reconciled")
 		} else {
@@ -128,6 +149,24 @@ func (r *VmAuthReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		if err = r.deleteIngress(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Victoriametrics != nil {
+		componentRoute = cr.Spec.Victoriametrics.VmAuth.HTTPRoute
+	}
+	if err = gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.VmAuthServiceName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.VmAuthServiceName,
+		ServicePort:    int32(utils.VmAuthServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 
 	if err := r.deleteServiceAccount(cr); err != nil {

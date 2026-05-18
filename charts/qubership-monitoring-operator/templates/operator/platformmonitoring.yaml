@@ -44,6 +44,16 @@ spec:
   oAuthProxy:
     image: {{ template "oauth2proxy.image" . }}
   {{- end }}
+  {{- with .Values.gatewayApi }}
+  {{- if or .addIngressIgnoreAnnotation .parentRefs }}
+  gatewayApi:
+    addIngressIgnoreAnnotation: {{ .addIngressIgnoreAnnotation | default false }}
+    {{- if .parentRefs }}
+    parentRefs:
+      {{- toYaml .parentRefs | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   {{- if .Values.prometheus }}
   {{- if .Values.prometheus.install }}
   prometheus:
@@ -107,6 +117,10 @@ spec:
     {{- if and .Values.prometheus.ingress (eq (toString .Values.prometheus.ingress.install) "true") }}
     ingress:
       {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.prometheus.ingress "hostPrefix" "prometheus") | nindent 6 }}
+    {{- if .Values.prometheus.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.prometheus.httpRoute | nindent 6 }}
+    {{- end }}
     {{- end }}
     {{- if .Values.prometheus.alerting }}
     alerting:
@@ -410,6 +424,10 @@ spec:
       {{- if and .Values.victoriametrics.vmSingle.ingress (eq (toString .Values.victoriametrics.vmSingle.ingress.install) "true") }}
       ingress:
         {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmSingle.ingress "hostPrefix" "vmsingle") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmSingle.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmSingle.httpRoute | nindent 8 }}
+      {{- end }}
       {{- end }}
       image: {{ template "vm.single.image" . }}
       retentionPeriod: {{ .Values.victoriametrics.vmSingle.retentionPeriod | default "14d" }}
@@ -487,6 +505,10 @@ spec:
       {{- if and .Values.victoriametrics.vmAgent.ingress (eq (toString .Values.victoriametrics.vmAgent.ingress.install) "true") }}
       ingress:
         {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAgent.ingress "hostPrefix" "vmagent") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAgent.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAgent.httpRoute | nindent 8 }}
+      {{- end }}
       {{- end }}
       image: {{ template "vm.agent.image" . }}
       resources:
@@ -654,6 +676,10 @@ spec:
       {{- if and .Values.victoriametrics.vmAlertManager.ingress (eq (toString .Values.victoriametrics.vmAlertManager.ingress.install) "true") }}
       ingress:
         {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAlertManager.ingress "hostPrefix" "vmalertmanager") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAlertManager.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.httpRoute | nindent 8 }}
+      {{- end }}
       {{- end }}
       resources:
         {{ include "vm.alertmanager.resources" . }}
@@ -760,6 +786,10 @@ spec:
       {{- if and .Values.victoriametrics.vmAlert.ingress (eq (toString .Values.victoriametrics.vmAlert.ingress.install) "true") }}
       ingress:
         {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAlert.ingress "hostPrefix" "vmalert") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAlert.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAlert.httpRoute | nindent 8 }}
+      {{- end }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAlert.port }}
       port: {{ .Values.victoriametrics.vmAlert.port }}
@@ -887,6 +917,10 @@ spec:
       {{- if and .Values.victoriametrics.vmAuth.ingress (eq (toString .Values.victoriametrics.vmAuth.ingress.install) "true") }}
       ingress:
         {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAuth.ingress "hostPrefix" "vmauth") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAuth.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAuth.httpRoute | nindent 8 }}
+      {{- end }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAuth.port }}
       port: {{ .Values.victoriametrics.vmAuth.port }}
@@ -1012,7 +1046,11 @@ spec:
       {{- if and .Values.victoriametrics.vmCluster.vmSelectIngress (eq (toString .Values.victoriametrics.vmCluster.vmSelectIngress.install) "true") }}
       vmSelectIngress:
         {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmCluster.vmSelectIngress "hostPrefix" "vmselect") | nindent 8 }}
-        {{- end }}
+      {{- if .Values.victoriametrics.vmCluster.vmSelectHttpRoute }}
+      vmSelectHttpRoute:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmSelectHttpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.victoriametrics.tlsEnabled }}
       vmSelectTlsConfig:
         {{- if .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret }}
@@ -1113,6 +1151,10 @@ spec:
     {{- if and .Values.alertManager.ingress (eq (toString .Values.alertManager.ingress.install) "true") }}
     ingress:
       {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.alertManager.ingress "hostPrefix" "alertmanager") | nindent 6 }}
+    {{- if .Values.alertManager.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.alertManager.httpRoute | nindent 6 }}
+    {{- end }}
     {{- end }}
     containers:
       {{- toYaml .Values.alertManager.containers | nindent 6 }}
@@ -1161,6 +1203,10 @@ spec:
     {{- if and .Values.grafana.ingress (eq (toString .Values.grafana.ingress.install) "true") }}
     ingress:
       {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.grafana.ingress "hostPrefix" "grafana") | nindent 6 }}
+    {{- if .Values.grafana.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.grafana.httpRoute | nindent 6 }}
+    {{- end }}
     {{- end }}
     config:
       {{- toYaml .Values.grafana.config | nindent 6 }}
@@ -1443,6 +1489,10 @@ spec:
     {{- if and .Values.pushgateway.ingress (eq (toString .Values.pushgateway.ingress.install) "true") }}
     ingress:
       {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.pushgateway.ingress "hostPrefix" "pushgateway") | nindent 6 }}
+    {{- if .Values.pushgateway.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.pushgateway.httpRoute | nindent 6 }}
+    {{- end }}
     {{- end }}
     paused: {{ .Values.pushgateway.paused | default false }}
     {{- if .Values.pushgateway.serviceMonitor }}

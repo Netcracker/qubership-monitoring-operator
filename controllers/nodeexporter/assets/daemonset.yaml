@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
-    platform.monitoring.app: node-exporter
+    app.kubernetes.io/name: node-exporter
     app.kubernetes.io/component: node-exporter
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
@@ -10,11 +10,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      platform.monitoring.app: node-exporter
+      app.kubernetes.io/name: node-exporter
   template:
     metadata:
       labels:
-        platform.monitoring.app: node-exporter
+        app.kubernetes.io/name: node-exporter
         app.kubernetes.io/component: node-exporter
         app.kubernetes.io/part-of: monitoring
         app.kubernetes.io/managed-by: monitoring-operator

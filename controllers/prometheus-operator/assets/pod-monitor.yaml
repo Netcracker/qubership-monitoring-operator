@@ -3,6 +3,7 @@ kind: PodMonitor
 metadata:
   name: prometheus-operator-pod-monitor
   labels:
+    app.kubernetes.io/name: prometheus-operator
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
@@ -15,4 +16,4 @@ spec:
   namespaceSelector: {}
   selector:
     matchLabels:
-      platform.monitoring.app: prometheus-operator
+      app.kubernetes.io/name: prometheus-operator

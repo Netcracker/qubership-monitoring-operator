@@ -38,15 +38,13 @@ func alertmanagerServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAc
 				sa.Annotations[k] = v
 			}
 		}
-
-		if sa.Labels == nil && cr.Spec.AlertManager.ServiceAccount.Labels != nil {
-			sa.SetLabels(cr.Spec.AlertManager.ServiceAccount.Labels)
-		} else {
-			for k, v := range cr.Spec.AlertManager.ServiceAccount.Labels {
-				sa.Labels[k] = v
-			}
-		}
 	}
+
+	in := utils.BaseOnlyLabelInput(sa.GetName(), utils.AlertManagerComponentName)
+	if cr.Spec.AlertManager != nil && cr.Spec.AlertManager.ServiceAccount != nil {
+		in.ComponentLabels = cr.Spec.AlertManager.ServiceAccount.Labels
+	}
+	utils.SetLabelsForResource(&sa, in, nil)
 
 	return &sa, nil
 }
@@ -59,6 +57,8 @@ func alertmanagerSecret(cr *monv1.PlatformMonitoring) (*corev1.Secret, error) {
 	//Set parameters
 	secret.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Secret"})
 	secret.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&secret, utils.BaseOnlyLabelInput(secret.GetName(), utils.AlertManagerComponentName), nil)
 
 	return &secret, nil
 }
@@ -77,9 +77,19 @@ func alertmanager(cr *monv1.PlatformMonitoring) (*promv1.Alertmanager, error) {
 	if cr.Spec.AlertManager != nil {
 		am.Spec.Image = &cr.Spec.AlertManager.Image
 
-		// Set labels
-		am.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.AlertManager.Image)
-		am.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(am.GetName(), am.GetNamespace())
+		// Set labels (resource + pod template) in one place
+		in := utils.LabelInput{
+			Name:      am.GetName(),
+			Component: utils.AlertManagerComponentName,
+			ComponentLabels: utils.MergeLabels(
+				map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+				cr.Spec.AlertManager.Labels,
+			),
+		}
+		utils.SetLabelsForResource(&am, in, nil)
+		am.Spec.PodMetadata = &promv1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		// Set Alertmanager replicas
 		if cr.Spec.AlertManager.Replicas != nil {
@@ -187,23 +197,6 @@ func alertmanager(cr *monv1.PlatformMonitoring) (*promv1.Alertmanager, error) {
 			am.Spec.Affinity = cr.Spec.AlertManager.Affinity
 		}
 
-		// Set PodMetadata.Labels
-		am.Spec.PodMetadata = &promv1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         "alertmanager",
-			"app.kubernetes.io/name":       "alertmanager",
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel("alertmanager", am.GetNamespace()),
-			"app.kubernetes.io/component":  "alertmanager",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.AlertManager.Image),
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-		}}
-
-		if cr.Spec.AlertManager.Labels != nil {
-			for k, v := range cr.Spec.AlertManager.Labels {
-				am.Spec.PodMetadata.Labels[k] = v
-			}
-		}
-
 		if am.Spec.PodMetadata.Annotations == nil && cr.Spec.AlertManager.Annotations != nil {
 			am.Spec.PodMetadata.Annotations = cr.Spec.AlertManager.Annotations
 		} else {
@@ -247,6 +240,9 @@ func alertmanagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) 
 			service.Spec.Ports = append(service.Spec.Ports, port)
 		}
 	}
+
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.AlertManagerComponentName), nil)
+
 	return &service, nil
 }
 
@@ -416,17 +412,14 @@ func alertmanagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress,
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.AlertManager.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.AlertManager.Ingress.Annotations))
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.AlertManager.Image)
-
-		for lKey, lValue := range cr.Spec.AlertManager.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.AlertManagerComponentName)
+		if len(cr.Spec.AlertManager.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.AlertManager.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -444,6 +437,15 @@ func alertmanagerPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, e
 	if cr.Spec.AlertManager != nil && cr.Spec.AlertManager.PodMonitor != nil && cr.Spec.AlertManager.PodMonitor.IsInstall() {
 		cr.Spec.AlertManager.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
+
+	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
+		Name:      podMonitor.GetName(),
+		Component: utils.AlertManagerComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
 
 	return &podMonitor, nil
 }

@@ -8,6 +8,7 @@
 #
 tlsEnabled: false
 
+
 # Replicas expected size of the all VM components in cluster mode
 # Type: integer
 #
@@ -347,6 +348,57 @@ vmSingle:
     # Default: []
     # tls: []
 
+  # Allows create HTTPRoute for vmSingle UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmsingle.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
   # Set paused to reconciliation for vmSingle
   # Type: boolean
   # Mandatory: no
@@ -571,6 +623,57 @@ vmAgent:
     #
     # Default: []
     # tls: []
+
+  # Allows create HTTPRoute for vmAgent UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmagent.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
 
   # Set paused to reconciliation for vmAgent
   # Type: boolean
@@ -889,6 +992,57 @@ vmAlertManager:
     # Default: []
     # tls: []
 
+  # Allows create HTTPRoute for vmAlertManager UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmalertmanager.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
   # Set paused to reconciliation for vmAlertManager
   # Type: boolean
   # Mandatory: no
@@ -1127,6 +1281,56 @@ vmAlert:
     #
     # tlsSecretName: ""
 
+  # Allows create HTTPRoute for vmAlert UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmalert.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
   # Set paused to reconciliation for vmAlert
   # Type: boolean
   # Mandatory: no
@@ -1344,7 +1548,6 @@ vmAuth:
   #
   ingress: {}
 
-    
     # Set of rules for Ingress
     # Allows to customize routing rules for grafana ingress.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
@@ -1362,6 +1565,57 @@ vmAuth:
     #
     # Default: []
     # tls: []
+
+  # Allows create HTTPRoute for vmAuth UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmauth.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
 
   # Set paused to reconciliation for vmAlert
   # Type: boolean
@@ -1764,6 +2018,50 @@ vmCluster:
     #
     # Default: []
     # tls: []
+
+  # Allows create HTTPRoute for vmSelect UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # vmSelectHttpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmselect.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #
+  vmSelectHttpRoute: {}
 
   vmSelectTlsConfig:
     # TLS configuration from existing secret

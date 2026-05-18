@@ -20,15 +20,19 @@ const (
 	AlertmanagerServicePort           = 9093
 	AlertmanagerOAuthProxyServiceName = "alertmanager-oauth2-proxy"
 	OAuthProxyServicePortName         = "oauth-proxy"
+	OAuthProxyServicePort             = 9092
 
 	StackdriverPrometheusSidecarName = "stackdriver-prometheus"
 	PrometheusServiceName            = "prometheus-operated"
 	PrometheusServicePort            = 9090
 	PrometheusOAuthProxyServiceName  = "prometheus-oauth2-proxy"
 
-	GrafanaServiceName     = "grafana-service"
-	GrafanaServicePort     = 3000
-	GrafanaExtraVarsSecret = "grafana-extra-vars-secret"
+	GrafanaServiceName          = "grafana-service"
+	GrafanaServicePort          = 3000
+	GrafanaExtraVarsSecret      = "grafana-extra-vars-secret"
+	GrafanaConfigConfigMapName  = "grafana-config"
+	GrafanaDatasourcesConfigMap = "grafana-datasources"
+	GrafanaAdminCredentialsName = "grafana-admin-credentials"
 
 	ClickHouseServiceName = "clickhouse-cluster"
 	ClickHouseSecret      = "clickhouse-operator-credentials"
@@ -64,6 +68,8 @@ const (
 
 	VmClusterComponentName = "vmcluster"
 	VmSelectComponentName  = "vmselect"
+
+	VmUserComponentName = "vmuser"
 
 	NginxIngressAppRootAnnotation = "nginx.ingress.kubernetes.io/app-root"
 
@@ -102,7 +108,8 @@ var (
 	PrometheusIngressAsset            = BasePath + "ingress.yaml"
 	PrometheusPodMonitorAsset         = BasePath + "pod-monitor.yaml"
 
-	PrometheusRulesAsset = "assets/prometheus-rules.yaml"
+	PrometheusRulesAsset         = "assets/prometheus-rules.yaml"
+	PrometheusRulesComponentName = "prometheus-rules"
 
 	// VmOperatorComponentName contains name of victoriametrics-operator pod
 	VmOperatorComponentName                      = "victoriametrics-operator"
@@ -193,10 +200,8 @@ var (
 	OpenshiftStatemetrics           = "openshift-state-metrics-service-monitor"
 	OpenshiftHAProxy                = "openshift-haproxy-service-monitor"
 
-	ApiServerServiceMonitorAsset             = BasePath + "service-monitor-apiserver.yaml"
-	KubeControllerManagerServiceMonitorAsset = BasePath + "service-monitor-kube-controller-manager.yaml"
-	KubeSchedulerServiceMonitorAsset         = BasePath + "service-monitor-kube-scheduler.yaml"
-	KubeletServiceMonitorAsset               = BasePath + "service-monitor-kubelet.yaml"
+	ApiServerServiceMonitorAsset = BasePath + "service-monitor-apiserver.yaml"
+	KubeletServiceMonitorAsset   = BasePath + "service-monitor-kubelet.yaml"
 	CoreDnsServiceMonitorAssetK8s            = BasePath + "service-monitor-core-dns-k8s.yaml"
 	CoreDnsServiceMonitorAssetOs4            = BasePath + "service-monitor-core-dns-os4.yaml"
 	NginxIngressPodMonitorAsset              = BasePath + "pod-monitor-nginx-ingress.yaml"
@@ -218,10 +223,6 @@ var (
 	EtcdServiceMonitorName = "etcdServiceMonitor"
 	// ApiserverServiceMonitorName contains the name of k8s apiserver service monitor
 	ApiserverServiceMonitorName = "apiserverServiceMonitor"
-	// KubeControllerManagerServiceMonitorName contains the name of  kube controller manager service monitor
-	KubeControllerManagerServiceMonitorName = "kubeControllerManagerServiceMonitor"
-	// KubeSchedulerServiceMonitorName contains the name of  kube scheduler service monitor
-	KubeSchedulerServiceMonitorName = "kubeSchedulerServiceMonitor"
 	// KubeletServiceMonitorName contains the name of kubelet service monitor
 	KubeletServiceMonitorName = "kubeletServiceMonitor"
 	// KubeEtcdClientCertsSecretName contains the name of etcd client certificate
@@ -281,6 +282,9 @@ var (
 	GrafanaIngressAsset          = BasePath + "ingress.yaml"
 	GrafanaPodMonitorAsset       = BasePath + "pod-monitor.yaml"
 	GrafanaDeploymentName        = "grafana-deployment"
+
+	// KubernetesMonitorsComponentName contains name for kubernetes-monitors resources
+	KubernetesMonitorsComponentName = "kubernetes-monitors"
 
 	// JaegerServiceLabels contains labels for Jaeger Service label selector
 	JaegerServiceLabels = map[string]string{
