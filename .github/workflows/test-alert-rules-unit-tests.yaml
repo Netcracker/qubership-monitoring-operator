@@ -2,13 +2,26 @@
 name: "Tests: Alert rules unit-tests"
 
 on:
-  workflow_run:
-    workflows: ["Build Artifacts"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+    paths:
+      - .github/workflows/test-alert-rules-unit-tests.yaml
+      - controllers/prometheus-rules/**
+      - test/alerts-tests/**
   pull_request:
     branches:
-      - all
+      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/test-alert-rules-unit-tests.yaml
+      - controllers/prometheus-rules/**
+      - test/alerts-tests/**
 
 permissions:
   contents: read
@@ -48,5 +61,9 @@ jobs:
 
       - name: Run test
         run: |
-          FILES=$(find ${{ env.tests_dir }} -name "*-tests.yaml" | sort | sed 's/^/--file /' | tr '\n' ' ')
-          ./vmalert-tool unittest ${FILES}
+          mapfile -t test_files < <(find ${{ env.tests_dir }} -name "*-tests.yaml" | sort)
+          args=()
+          for f in "${test_files[@]}"; do
+            args+=(--files "$f")
+          done
+          ./vmalert-tool unittest "${args[@]}"
