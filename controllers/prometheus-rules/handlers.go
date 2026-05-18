@@ -2,7 +2,6 @@ package prometheus_rules
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
@@ -12,12 +11,6 @@ func (r *PrometheusRulesReconciler) handlePrometheusRules(cr *monv1.PlatformMoni
 	if err != nil {
 		r.Log.Error(err, "Failed creating PrometheusRules manifest")
 		return err
-	}
-
-	// Set labels
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	if label, ok := cr.Labels["app.kubernetes.io/version"]; ok {
-		m.Labels["app.kubernetes.io/version"] = label
 	}
 
 	e := &promv1.PrometheusRule{ObjectMeta: m.ObjectMeta}

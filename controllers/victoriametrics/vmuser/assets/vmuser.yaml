@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/component: victoriametrics
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
+    app.kubernetes.io/managed-by-operator: monitoring-operator
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
   name: k8s
 spec:
   generatePassword: false

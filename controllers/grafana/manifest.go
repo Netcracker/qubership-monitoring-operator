@@ -791,18 +791,12 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 		// Set annotations
 		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Grafana.Ingress.Annotations))
 
-		// Set labels with saving default labels
-		// Initialize Labels map if it's nil to avoid nil pointer dereference
-		if ingress.Labels == nil {
-			ingress.Labels = make(map[string]string)
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.GrafanaComponentName)
+		if len(cr.Spec.Grafana.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Grafana.Ingress.Labels
 		}
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-		for lKey, lValue := range cr.Spec.Grafana.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
-		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	} else {
 		// Ingress not configured: do not leave the asset rule with host: "" (catch-all).
 		ingress.Spec.Rules = nil
@@ -823,6 +817,16 @@ func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error)
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.PodMonitor != nil && cr.Spec.Grafana.PodMonitor.IsInstall() {
 		cr.Spec.Grafana.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
+
+	utils.SetLabelsForResource(&podMonitor, utils.LabelInput{
+		Name:      podMonitor.GetName(),
+		Component: utils.GrafanaComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
+
 	return &podMonitor, nil
 }
 

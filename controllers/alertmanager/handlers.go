@@ -2,7 +2,6 @@ package alertmanager
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -15,12 +14,6 @@ func (r *AlertManagerReconciler) handleServiceAccount(cr *monv1.PlatformMonitori
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.AlertManager.Image)
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -47,10 +40,6 @@ func (r *AlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) erro
 		r.Log.Error(err, "Failed creating Secret manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.AlertManager.Image)
 
 	e := &corev1.Secret{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -104,12 +93,6 @@ func (r *AlertManagerReconciler) handleService(cr *monv1.PlatformMonitoring) err
 		r.Log.Error(err, "Failed creating Service manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.AlertManager.Image)
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -167,12 +150,6 @@ func (r *AlertManagerReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) 
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.AlertManager.Image)
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {

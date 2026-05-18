@@ -2,7 +2,6 @@ package vmauth
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -16,12 +15,6 @@ func (r *VmAuthReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) er
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -49,12 +42,6 @@ func (r *VmAuthReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -85,12 +72,6 @@ func (r *VmAuthReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
-
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -117,12 +98,6 @@ func (r *VmAuthReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 		r.Log.Error(err, "Failed creating Role manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
 
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -152,12 +127,6 @@ func (r *VmAuthReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error
 		r.Log.Error(err, "Failed creating RoleBinding manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
 
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    platform.monitoring.app: prometheus-operator
+    app.kubernetes.io/name: prometheus-operator
     app.kubernetes.io/component: prometheus
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
@@ -14,4 +14,4 @@ spec:
       port: 8080
       targetPort: http
   selector:
-    platform.monitoring.app: prometheus-operator
+    app.kubernetes.io/name: prometheus-operator

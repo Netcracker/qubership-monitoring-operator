@@ -17,12 +17,6 @@ func (r *NodeExporterReconciler) handleServiceAccount(cr *monv1.PlatformMonitori
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
-
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -49,11 +43,8 @@ func (r *NodeExporterReconciler) handleClusterRole(cr *monv1.PlatformMonitoring)
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
+	in := utils.BaseOnlyLabelInput(m.GetName(), utils.NodeExporterComponentName)
+	utils.SetLabelsForResource(m, in, nil)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -84,11 +75,8 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
+	in := utils.BaseOnlyLabelInput(m.GetName(), utils.NodeExporterComponentName)
+	utils.SetLabelsForResource(m, in, nil)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -125,6 +113,12 @@ func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) e
 		}
 		return err
 	}
+	if utils.WorkloadNeedsSelectorReplace(e, m) {
+		if err := r.DeleteResource(e); err != nil {
+			return err
+		}
+		return r.CreateResource(cr, m)
+	}
 	//Set parameters
 	e.SetLabels(m.GetLabels())
 	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
@@ -143,11 +137,7 @@ func (r *NodeExporterReconciler) handleService(cr *monv1.PlatformMonitoring) err
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
+	m.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.NodeExporterComponentName)}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -177,12 +167,6 @@ func (r *NodeExporterReconciler) handleServiceMonitor(cr *monv1.PlatformMonitori
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.NodeExporter.Image)
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
