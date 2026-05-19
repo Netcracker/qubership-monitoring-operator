@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 -->
+﻿<!-- markdownlint-disable MD013 -->
 This section describes the types introduced by the Prometheus Adapter Operator.
 
 
@@ -26,7 +26,7 @@ CustomScaleMetricRule is the Schema for the customscalemetricrules API.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta) | false |
+| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta) | false |
 | spec |  | [CustomScaleMetricRuleSpec](#customscalemetricrulespec) | false |
 | status |  | CustomScaleMetricRuleStatus | false |
 
@@ -39,7 +39,7 @@ CustomScaleMetricRuleList contains a list of CustomScaleMetricRule.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#listmeta-v1-meta) | false |
+| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#listmeta-v1-meta) | false |
 | items |  | \[\][CustomScaleMetricRule](#customscalemetricrule) | true |
 
 

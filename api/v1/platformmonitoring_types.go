@@ -98,7 +98,7 @@ type AlertManager struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -183,7 +183,7 @@ type Grafana struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -256,7 +256,7 @@ type GrafanaOperator struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -327,7 +327,7 @@ type Prometheus struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Resources defines resources requests and limits for single Pods.
 	Resources v1.ResourceRequirements `json:"resources,omitempty"`
@@ -336,12 +336,12 @@ type Prometheus struct {
 	Storage *promv1.StorageSpec `json:"storage,omitempty"`
 	// Volumes allows configuration of additional volumes on the output StatefulSet definition.
 	// Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
 	Volumes []v1.Volume `json:"volumes,omitempty"`
 	// VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
 	// VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
 	// that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// Ingress allows to create Ingress for Prometheus UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
@@ -454,7 +454,7 @@ type KubeStateMetrics struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Service monitor for pulling metrics
 	ServiceMonitor *Monitor `json:"serviceMonitor,omitempty"`
@@ -499,7 +499,7 @@ type PrometheusOperator struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -633,7 +633,7 @@ type VmOperator struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -682,7 +682,7 @@ type VmSingle struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -783,7 +783,7 @@ type VmAgent struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -1397,7 +1397,7 @@ type NodeExporter struct {
 	// Tolerations allow the pods to schedule onto nodes with matching taints.
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -1445,12 +1445,12 @@ type Pushgateway struct {
 	ExtraArgs []string `json:"extraArgs,omitempty"`
 	// Volumes allows configuration of additional volumes on the output StatefulSet definition.
 	// Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
 	Volumes []v1.Volume `json:"volumes,omitempty"`
 	// VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
 	// VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
 	// that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// PVC spec for Pushgateway. If specified, also adds flags
 	// --persistence.file and --persistence.interval with default values,
@@ -1469,7 +1469,7 @@ type Pushgateway struct {
 	// NodeSelector select nodes for deploy
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Set paused to reconsilation
 	Paused bool `json:"paused,omitempty"`

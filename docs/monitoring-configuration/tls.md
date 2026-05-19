@@ -1,4 +1,4 @@
-This document describes how to configure TLS for Monitoring components and how to integrate them with the Cert-manager.
+﻿This document describes how to configure TLS for Monitoring components and how to integrate them with the Cert-manager.
 
 # Overview
 
@@ -63,7 +63,7 @@ For more information, refer to
 <!-- markdownlint-disable line-length -->
 | Field          | Description                                                                                                                                                                                                                                      | Scheme |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core)                                             | object |
+| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core)                                             | object |
 | cert           | Contains the TLS certificate for the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap)                                     | object |
 | client_ca      | Contains the CA certificate for client certificate authentication to the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap) | object |
 | clientAuthType | Server policy for client authentication. Maps to ClientAuth Policies. For more detail on clientAuth options: [https://golang.org/pkg/crypto/tls/#ClientAuthType](https://golang.org/pkg/crypto/tls/#ClientAuthType)                              | string |

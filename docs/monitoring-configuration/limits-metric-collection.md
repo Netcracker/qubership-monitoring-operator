@@ -1,4 +1,4 @@
-This document describes how to configure Monitoring to collect metrics (user metrics or all metrics) from a specific
+﻿This document describes how to configure Monitoring to collect metrics (user metrics or all metrics) from a specific
 list of namespaces.
 
 # Types of metrics
@@ -123,7 +123,7 @@ How to use matchLabels and `matchExpressions` you can read:
 
 * [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels)
 * [https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/](https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/)
-* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)
+* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)
 
 There are two approaches how to use label selectors:
 
@@ -207,7 +207,7 @@ How to use matchLabels and `matchExpressions` you can read:
 
 * [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels)
 * [https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/](https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/)
-* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)
+* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)
 
 There are two approaches how to use namespaceSelectors:
 

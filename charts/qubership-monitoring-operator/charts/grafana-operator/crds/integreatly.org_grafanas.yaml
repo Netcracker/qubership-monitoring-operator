@@ -1,4 +1,4 @@
----
+﻿---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -3996,7 +3996,7 @@ spec:
                   description: HTTPRoute customizes the GatewayAPI HTTPRoute Object. It will not be created if this is not set
                   properties:
                     metadata:
-                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       properties:
                         annotations:
                           additionalProperties:
@@ -7135,7 +7135,7 @@ spec:
                   description: Ingress sets how the ingress object should look like with your grafana instance.
                   properties:
                     metadata:
-                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       properties:
                         annotations:
                           additionalProperties:
@@ -7437,7 +7437,7 @@ spec:
                   description: PersistentVolumeClaim creates a PVC if you need to attach one to your grafana instance.
                   properties:
                     metadata:
-                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       properties:
                         annotations:
                           additionalProperties:
@@ -7624,7 +7624,7 @@ spec:
                   description: Route sets how the ingress object should look like with your grafana instance, this only works in Openshift.
                   properties:
                     metadata:
-                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       properties:
                         annotations:
                           additionalProperties:
@@ -7804,7 +7804,7 @@ spec:
                   description: Service sets how the service object should look like with your grafana instance, contains a number of defaults.
                   properties:
                     metadata:
-                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       properties:
                         annotations:
                           additionalProperties:
@@ -8179,7 +8179,7 @@ spec:
                         x-kubernetes-map-type: atomic
                       type: array
                     metadata:
-                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      description: ObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       properties:
                         annotations:
                           additionalProperties:

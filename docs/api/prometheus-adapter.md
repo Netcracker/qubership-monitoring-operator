@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 -->
+﻿<!-- markdownlint-disable MD013 -->
 This section describes the types introduced by the Prometheus Adapter Operator.
 
 
@@ -11,7 +11,7 @@ PrometheusAdapter is the Schema for the prometheusadapters API.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta) | false |
+| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta) | false |
 | spec |  | [PrometheusAdapterSpec](#prometheusadapterspec) | false |
 | status |  | PrometheusAdapterStatus | false |
 
@@ -24,7 +24,7 @@ PrometheusAdapterList contains a list of PrometheusAdapter.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#listmeta-v1-meta) | false |
+| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#listmeta-v1-meta) | false |
 | items |  | [PrometheusAdapter](#prometheusadapter) | true |
 
 
@@ -41,8 +41,8 @@ PrometheusAdapterSpec defines the desired state of PrometheusAdapter.
 | metricsRelistInterval | MetricsRelistInterval is the interval at which to update the cache of available metrics from Prometheus | string | false |
 | enableResourceMetrics | Enable adapter for `metrics.k8s.io`. By default - `false` | boolean | false |
 | enableCustomMetrics   | Enable adapter for `custom.metrics.k8s.io`. By default - `true` | boolean | false |
-| customScaleMetricRulesSelector | CustomScaleMetricRulesSelector defines label selectors to select CustomScaleMetricRule resources across the cluster. | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#labelselector-v1-meta) | false |
-| resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
+| customScaleMetricRulesSelector | CustomScaleMetricRulesSelector defines label selectors to select CustomScaleMetricRule resources across the cluster. | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta) | false |
+| resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core) | false |
 | securityContext | SecurityContext holds pod-level security attributes. | *[SecurityContext](#securitycontext) | false |
 | nodeSelector | Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
 | labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |

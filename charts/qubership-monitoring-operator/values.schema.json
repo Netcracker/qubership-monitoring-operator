@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
@@ -370,7 +370,7 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "The pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core"
+                    "description": "The pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core"
                 },
                 "annotations": {
                     "type": "object"
@@ -1296,7 +1296,7 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core"
+                    "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core"
                 },
                 "annotations": {
                     "type": "object",
@@ -1481,7 +1481,7 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core"
+                    "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core"
                 },
                 "annotations": {
                     "type": "object",
@@ -1861,14 +1861,14 @@
                     "items": {
                         "type":"object"
                     },
-                    "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core"
+                    "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core"
                 },
                 "volumes": {
                     "type": "array",
                     "items": {
                         "type":"object"
                     },
-                    "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core"
+                    "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core"
                 }
             }
         },

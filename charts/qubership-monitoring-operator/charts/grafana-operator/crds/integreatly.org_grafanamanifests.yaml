@@ -1,4 +1,4 @@
----
+﻿---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -215,7 +215,7 @@ spec:
                       rule: self == oldSelf
                   metadata:
                     description: |-
-                      RequiredObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta).
+                      RequiredObjectMeta contains only a [subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta).
                       It requires `name` to be set
                     properties:
                       annotations:

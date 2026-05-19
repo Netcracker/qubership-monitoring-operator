@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
@@ -95,7 +95,7 @@
         },
         "dashboardLabelSelector": {
             "type": "array",
-            "description": "dashboardLabelSelector allows to query over a set of resources according to labels. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects. The parameter is an array of labelSelector objects. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta",
+            "description": "dashboardLabelSelector allows to query over a set of resources according to labels. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects. The parameter is an array of labelSelector objects. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta",
             "items": {
                 "type": "object",
                 "description": "Selector object for dashboard label selection"
@@ -106,7 +106,7 @@
         },
         "dashboardNamespaceSelector": {
             "type": "object",
-            "description": "dashboardNamespaceSelector allows to query over a set of resources in namespaces that fits label selector. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects. The parameter is labelSelector object type. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta"
+            "description": "dashboardNamespaceSelector allows to query over a set of resources in namespaces that fits label selector. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects. The parameter is labelSelector object type. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta"
         },
         "dataStorage": {
             "type": "object",
