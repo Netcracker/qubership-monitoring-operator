@@ -5,7 +5,8 @@
 !**/*.sum
 .git
 .github
-delivery
-assets
+.qubership
+scripts
+site
 test
 tools
