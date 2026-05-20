@@ -11,7 +11,7 @@ cluster then prometheus will already be scraping this data due to the scrape ann
 
 ## Panels
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Controller Request Volume | Show number of requests per second | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
@@ -26,4 +26,4 @@ cluster then prometheus will already be scraping this data due to the scrape ann
 | CPU Usage | Show CPU usage  |  |  |
 | Ingress Percentile Response Times and Transfer Rates | Show the requests processing time in milliseconds (le = 0.5, 09, 0.99) an requests size by ingress | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Ingress Certificate Expiry | Shows time until the SSL Certificate expires |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->

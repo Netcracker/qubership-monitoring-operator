@@ -11,7 +11,7 @@ There is no description on this dashboard
 
 ### Overview
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Nodes Overview | Shows cluster nodes overview: <br/>  * Node Uptime<br/>  * Total available CPU and RAM on node<br/>  * Overall resources usage on node<br/>  * Can be grouped by node_label<br/><br/>! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
@@ -20,13 +20,13 @@ There is no description on this dashboard
 | Overall Disk Usage | Shows overall disk space usage for all nodes  against total available disk space on all nodes<br/>  * Can be grouped by node_label<br/><br/>! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes |  |  |
 | Disk I/O utilization  per node | Shows data  read/write per node<br/>  * Can be grouped by node_label<br/><br/>! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes |  |  |
 | IOps per node | Count of writes/reads completed<br/>  * Can be grouped by node_label<br/><br/>! This panel doesn't work in restricted mode if kube-state-metrics doesn't have permission to scrape the following resources: nodes |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Node: $node
 
 **Row Node: $node is multiplied by parameter `node`**
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Uptime | Show the node uptime | Default:<br/>Mode: absolute<br/>Level 1: 1<br/>Level 2: 3<br/><br/> |  |
@@ -52,4 +52,4 @@ There is no description on this dashboard
 | I/O Usage Times | Total seconds spent doing I/Os |  |  |
 | PIDs Number and Limit | Shows amount of used processes (PIDs) and process limit on node |  |  |
 | Threads Number and Limit | Shows amount of used threads and threads limit on node |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->

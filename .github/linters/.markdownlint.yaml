@@ -11,6 +11,8 @@ MD013:
 # MD024/no-duplicate-header - Multiple headers with the same content
 MD024:
   siblings_only: true
+MD033:
+  allowed_elements: ['a', 'img', 'br', 'details', 'summary', 'blockquote', 'p', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 # MD036/no-emphasis-as-heading - Emphasis used instead of a heading
 MD036: false
 # MD041/first-line-heading - First line in a file should be a top-level heading

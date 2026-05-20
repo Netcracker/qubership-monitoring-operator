@@ -12,7 +12,7 @@ Overview for VictoriaMetrics vmagent v1.80.0 or higher
 
 ### Overview
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name                                             | Description                                                                                                                                                                                                                                                                                                                                                                                                                  | Thresholds                                                  | Repeat |
 | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ |
 | Samples scraped/s                                | Shows the rate of samples scraped from configured targets.                                                                                                                                                                                                                                                                                                                                                                   |                                                             |        |
@@ -31,11 +31,11 @@ Overview for VictoriaMetrics vmagent v1.80.0 or higher
 | Persistent queue dropped rate ($instance)        | Shows rate of dropped samples from persistent queue. VMagent drops samples from queue if in-memory and on-disk queues are full and it is unable to flush them to remote storage.<br/>The max size of on-disk queue is configured by `-remoteWrite.maxDiskUsagePerURL` flag.                                                                                                                                                  |                                                             |        |
 | Rows dropped by relabeling ($instance) to ($URL) | Shows the rate of dropped samples due to relabeling. <br/>Metric tracks drops for `-remoteWrite.relabelConfig` configuration only.                                                                                                                                                                                                                                                                                           |                                                             |        |
 | Logging rate ($instance)                         | Shows the rate of logging the messages by their level. Unexpected spike in rate is a good reason to check logs.                                                                                                                                                                                                                                                                                                              |                                                             |        |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Scraping
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name                             | Description                                                              | Thresholds | Repeat |
 | -------------------------------- | ------------------------------------------------------------------------ | ---------- | ------ |
 | Scrape targets UP                | *TODO: Fill panel description*                                           |            |        |
@@ -44,22 +44,22 @@ Overview for VictoriaMetrics vmagent v1.80.0 or higher
 | Scrape fails  ($instance)        | *TODO: Fill panel description*                                           |            |        |
 | Scrape response size ($instance) | *TODO: Fill panel description*                                           |            |        |
 | Scrape duration ($instance)      | This panel uses MetricsQL and works only when VM is used as a datasource |            |        |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Ingestion
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name                          | Description                                                                                                                                     | Thresholds | Repeat |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
 | Requests rate  ($instance)    | Shows the rate of write requests served by ingestserver (UDP, TCP connections) and HTTP server.                                                 |            |        |
 | Error rate  ($instance)       | Shows the rate of write errors in ingestserver (UDP, TCP connections) and HTTP server.                                                          |            |        |
 | Rows rate ($instance)         | Shows the rate of parsed rows from write or scrape requests.                                                                                    |            |        |
 | Invalid rows rate ($instance) | Tracks the rate of dropped invalid rows because of errors while unmarshaling write requests. The exact errors messages will be printed in logs. |            |        |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Remote write
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name                                           | Description                                                                                                                                                                                                                                                                                                                                                                                              | Thresholds | Repeat |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
 | Requests rate ($instance) to ($URL)            | Shows the rate of requests to configured remote write endpoints by URL and status code.<br/><br/>Remote write URLs are hidden by default but might be unveiled once `-remoteWrite.showURL` is set to true.<br/><br/>                                                                                                                                                                                     |            |        |
@@ -72,22 +72,22 @@ Overview for VictoriaMetrics vmagent v1.80.0 or higher
 | Block size bytes ($instance)                   | Shows the remote write request block size distribution in bytes.                                                                                                                                                                                                                                                                                                                                         |            |        |
 | Hourly series limit                            | Shows the current limit usage of unique series over an hourly period. Vmagent will start to drop series once the limit is reached.<br/><br/>Please note, panel will be blank if `remoteWrite.maxHourlySeries` is not set.                                                                                                                                                                                |            |        |
 | Daily series limit                             | Shows the current limit usage of unique series over a daily period. Vmagent will start to drop series once the limit is reached.<br/><br/>Please note, panel will be blank if `remoteWrite.maxDailySeries` is not set.                                                                                                                                                                                   |            |        |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Troubleshooting
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name                                          | Description                                                                                                                                                                                                                                                                                    | Thresholds | Repeat |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
 | Top 5 jobs by unique samples                  | Shows top 5 job by the number of new series registered by vmagent over the 5min range. These jobs generate the most of the churn rate.                                                                                                                                                         |            |        |
 | Top 5 instances by unique samples             | Shows top 5 instances by the number of new series registered by vmagent over the 5min range. These instances generate the most of the churn rate.                                                                                                                                              |            |        |
 | Persistent queue write saturation ($instance) | Shows saturation persistent queue for writes. If the threshold of 0.9sec is reached, then persistent is saturated by more than 90% and vmagent won't be able to keep up with flushing data on disk. In this case, consider to decrease load on the vmagent or improve the disk throughput.     |            |        |
 | Persistent queue read saturation ($instance)  | Shows saturation persistent queue for reads. If the threshold of 0.9sec is reached, then persistent is saturated by more than 90% and vmagent won't be able to keep up with reading data from the disk. In this case, consider to decrease load on the vmagent or improve the disk throughput. |            |        |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Resource usage
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name                          | Description                                                                                                                                                                                                                                                                                                                                                                                                       | Thresholds | Repeat |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
 | CPU ($instance)               | Shows the CPU usage percentage per vmagent instance. <br/>If you think that usage is abnormal or unexpected, pls file an issue and attach CPU profile if possible.                                                                                                                                                                                                                                                |            |        |
@@ -98,4 +98,4 @@ Overview for VictoriaMetrics vmagent v1.80.0 or higher
 | Goroutines ($instance)        | *TODO: Fill panel description*                                                                                                                                                                                                                                                                                                                                                                                    |            |        |
 | GC duration ($instance)       | *TODO: Fill panel description*                                                                                                                                                                                                                                                                                                                                                                                    |            |        |
 | Threads ($instance)           | *TODO: Fill panel description*                                                                                                                                                                                                                                                                                                                                                                                    |            |        |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->

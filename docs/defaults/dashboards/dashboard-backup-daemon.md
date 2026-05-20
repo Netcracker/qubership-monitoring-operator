@@ -10,7 +10,7 @@ Backup Information Dashboard.
 
 ### Backup Daemon Overview
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Status | Shows Backup Adapter status | Default:<br/>Mode: absolute<br/>Level 1: 1<br/><br/> |  |
@@ -23,4 +23,4 @@ Backup Information Dashboard.
 | Dumps count | Current number of dumps |  |  |
 | Storage Space Usage | Shows used by backups space against total space |  |  |
 | Storage Inodes Usage | Shows inodes usage |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->

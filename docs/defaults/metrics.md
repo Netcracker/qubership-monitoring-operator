@@ -95,15 +95,15 @@
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 73 | 312 | 1.53 | 60 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | alertmanager_alerts | gauge | How many alerts by state. |
@@ -179,21 +179,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Core DNS service (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 59 | 366 | 2.93 | 71 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | coredns_build_info | gauge | A metric with a constant '1' value labeled by version, revision, and goversion from which CoreDNS was built. |
@@ -255,21 +255,21 @@
 | process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Grafana (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 158 | 1110 | 2.62 | 269 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | access_evaluation_duration | histogram | Histogram for the runtime of evaluation function. |
@@ -430,21 +430,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_template_text_expansion_failures | counter | The total number of template text expansion failures. |
 | prometheus_template_text_expansions | counter | The total number of template text expansions. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Grafana-operator (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 49 | 1580 | 2.54 | 178 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | controller_runtime_active_workers | gauge | Number of currently used workers per controller |
@@ -496,21 +496,21 @@
 | workqueue_retries | counter | Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | How many seconds of work has been done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Kube-apiserver (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 119 | 44198 | 7.5 | 1091 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | aggregator_openapi_v2_regeneration_count | counter | ALPHA Counter of OpenAPI v2 spec regeneration count broken down by causing APIService name and reason. |
@@ -632,21 +632,21 @@
 | workqueue_retries | counter | ALPHA Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | ALPHA How many seconds of work has done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | ALPHA How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Kube-state-metrics (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 220 | 34425 | 3.1 | 5441 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | kube_configmap_annotations | gauge | Kubernetes annotations converted to Prometheus labels. |
@@ -869,21 +869,21 @@
 | kube_storageclass_created | gauge | Unix creation timestamp |
 | kube_storageclass_annotations | gauge | Kubernetes annotations converted to Prometheus labels. |
 | kube_storageclass_labels | gauge | Kubernetes labels converted to Prometheus labels. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Kubelet (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 90 | 1866 | 2.98 | 319 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | apiserver_audit_event | counter | ALPHA Counter of audit events generated and sent to the audit backend. |
@@ -976,21 +976,21 @@
 | workqueue_retries | counter | ALPHA Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | ALPHA How many seconds of work has done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | ALPHA How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## cAdvisor (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 66 | 5975 | 6.86 | 359 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | cadvisor_version_info | gauge | A metric with a constant '1' value labeled by kernel version, OS version, Docker version, cadvisor version & cadvisor revision. |
@@ -1059,21 +1059,21 @@
 | machine_nvm_avg_power_budget_watts | gauge | NVM power budget. |
 | machine_nvm_capacity | gauge | NVM capacity value labeled by NVM mode (memory mode or app direct mode). |
 | machine_scrape_error | gauge | 1 if there was an error while getting machine metrics, 0 otherwise. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## NGINX ingress (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 59 | 4597 | 11.6 | 126 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
@@ -1135,21 +1135,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Node-exporter (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 321 | 2692 | 1.42 | 416 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
@@ -1473,21 +1473,21 @@
 | promhttp_metric_handler_errors | counter | Total number of internal errors encountered by the promhttp metric handler. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Prometheus (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 247 | 2718 | 1.39 | 429 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_cycles_automatic_gc_cycles | counter | Count of completed GC cycles generated by the Go runtime. |
@@ -1737,21 +1737,21 @@
 | prometheus_web_federation_warnings | counter | Total number of warnings that occurred while sending federation responses. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Prometheus-operator (Kubernetes v1.21)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 87 | 1824 | 1.01 | 851 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_cycles_automatic_gc_cycles | counter | Count of completed GC cycles generated by the Go runtime. |
@@ -1841,21 +1841,21 @@
 | prometheus_operator_triggered | counter | Number of times a Kubernetes object add, delete or update event triggered the Prometheus Operator to reconcile an object |
 | prometheus_operator_watch_operations_failed | counter | Total number of watch operations that failed |
 | prometheus_operator_watch_operations | counter | Total number of watch operations |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## AlertManager (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 73 | 312 | 1.53 | 60 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | alertmanager_alerts | gauge | How many alerts by state. |
@@ -1931,21 +1931,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Core DNS service (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 63 | 322 | 2.53 | 80 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | coredns_build_info | gauge | A metric with a constant '1' value labeled by version, revision, and goversion from which CoreDNS was built. |
@@ -2011,21 +2011,21 @@
 | process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Grafana (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 147 | 777 | 2.08 | 238 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | access_evaluation_duration | histogram | Histogram for the runtime of evaluation function. |
@@ -2175,21 +2175,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_template_text_expansion_failures | counter | The total number of template text expansion failures. |
 | prometheus_template_text_expansions | counter | The total number of template text expansions. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Grafana-operator (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 49 | 1476 | 2.52 | 170 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | controller_runtime_active_workers | gauge | Number of currently used workers per controller |
@@ -2241,21 +2241,21 @@
 | workqueue_retries | counter | Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | How many seconds of work has been done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Kube-apiserver (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 144 | 49025 | 7.16 | 1151 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | aggregator_openapi_v2_regeneration_count | counter | ALPHA Counter of OpenAPI v2 spec regeneration count broken down by causing APIService name and reason. |
@@ -2402,21 +2402,21 @@
 | workqueue_retries | counter | ALPHA Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | ALPHA How many seconds of work has done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | ALPHA How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Kube-state-metrics (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 220 | 28072 | 3.15 | 5043 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | kube_configmap_annotations | gauge | Kubernetes annotations converted to Prometheus labels. |
@@ -2639,21 +2639,21 @@
 | kube_storageclass_created | gauge | Unix creation timestamp |
 | kube_storageclass_annotations | gauge | Kubernetes annotations converted to Prometheus labels. |
 | kube_storageclass_labels | gauge | Kubernetes labels converted to Prometheus labels. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Kubelet (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 104 | 2373 | 2.99 | 432 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | apiserver_audit_event | counter | ALPHA Counter of audit events generated and sent to the audit backend. |
@@ -2760,21 +2760,21 @@
 | workqueue_retries | counter | ALPHA Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | ALPHA How many seconds of work has done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | ALPHA How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## cAdvisor (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 66 | 13057 | 6.77 | 679 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | cadvisor_version_info | gauge | A metric with a constant '1' value labeled by kernel version, OS version, Docker version, cadvisor version & cadvisor revision. |
@@ -2843,21 +2843,21 @@
 | machine_nvm_avg_power_budget_watts | gauge | NVM power budget. |
 | machine_nvm_capacity | gauge | NVM capacity value labeled by NVM mode (memory mode or app direct mode). |
 | machine_scrape_error | gauge | 1 if there was an error while getting machine metrics, 0 otherwise. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## NGINX ingress (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 52 | 64 | 1.17 | 21 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
@@ -2912,21 +2912,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Node-exporter (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 320 | 3461 | 1.55 | 542 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
@@ -3249,21 +3249,21 @@
 | promhttp_metric_handler_errors | counter | Total number of internal errors encountered by the promhttp metric handler. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Prometheus (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 219 | 1542 | 1.27 | 286 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_cycles_automatic_gc_cycles | counter | Count of completed GC cycles generated by the Go runtime. |
@@ -3485,21 +3485,21 @@
 | prometheus_web_federation_warnings | counter | Total number of warnings that occurred while sending federation responses. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Prometheus-operator (Kubernetes v1.23)
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 87 | 1822 | 1.0 | 850 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_cycles_automatic_gc_cycles | counter | Count of completed GC cycles generated by the Go runtime. |
@@ -3589,12 +3589,12 @@
 | prometheus_operator_triggered | counter | Number of times a Kubernetes object add, delete or update event triggered the Prometheus Operator to reconcile an object |
 | prometheus_operator_watch_operations_failed | counter | Total number of watch operations that failed |
 | prometheus_operator_watch_operations | counter | Total number of watch operations |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Operator-sdk
 
 ### Metrics
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | controller_runtime_active_workers | gauge | Number of currently used workers per controller |
@@ -3603,21 +3603,21 @@
 | controller_runtime_reconcile_time_seconds | histogram | Length of time per reconciliation per controller |
 | controller_runtime_reconcile_total | counter | Total number of reconciliations per controller |
 | controller_runtime_reconcile_total | counter | Total number of reconciliations per controller |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Openshift-state-metrics
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 68 | 124 | 0.42 | 28 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_cgo_go_to_c_calls_calls | counter | Count of calls made from Go to C by the current process. |
@@ -3688,21 +3688,21 @@
 | process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Openshift-api-server
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 152 | 6528 | 6.41 | 326 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | aggregator_openapi_v2_regeneration_count | counter | ALPHA Counter of OpenAPI v2 spec regeneration count broken down by causing APIService name and reason. |
@@ -3857,21 +3857,21 @@
 | workqueue_retries | counter | ALPHA Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | ALPHA How many seconds of work has done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | ALPHA How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Openshift-api-server-operator
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 114 | 709 | 1.67 | 177 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | apiserver_audit_event | counter | ALPHA Counter of audit events generated and sent to the audit backend. |
@@ -3988,21 +3988,21 @@
 | workqueue_retries | counter | ALPHA Total number of retries handled by workqueue |
 | workqueue_unfinished_work_seconds | gauge | ALPHA How many seconds of work has done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases. |
 | workqueue_work_duration_seconds | histogram | ALPHA How long in seconds processing an item from workqueue takes. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Cluster-version-operator
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 79 | 360 | 1.95 | 132 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | cluster_installer | gauge | Reports info about the installation process and, if applicable, the install tool. The type is either 'openshift-install', indicating that openshift-install was used to install the cluster, or 'other', indicating that an unknown process installed the cluster. The invoker is 'user' by default, but it may be overridden by a consuming tool. The version reported is that of the openshift-install that was used to generate the manifests and, if applicable, provision the infrastructure. |
@@ -4084,21 +4084,21 @@
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
 | promhttp_metric_handler_requests | counter | Total number of scrapes by HTTP status code. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ## Openshift-HAProxy
 
 ### Statistics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Number of metrics families | Number of time series | Average number of labels per time series | Number of unique label pairs |
 | -------------------------- | --------------------- | ---------------------------------------- | ---------------------------- |
 | 92 | 1821 | 4.2 | 199 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->
 
 ### Metrics
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
@@ -4193,4 +4193,4 @@
 | template_router_reload_failure | gauge | Metric to track the status of the most recent HAProxy reload |
 | template_router_reload_seconds | summary | Measures the time spent reloading the router in seconds. |
 | template_router_write_config_seconds | summary | Measures the time spent writing out the router configuration to disk in seconds. |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style -->

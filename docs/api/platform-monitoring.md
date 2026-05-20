@@ -1,4 +1,4 @@
-<!-- markdownlint-disable line-length table-column-style first-line-heading -->
+<!-- markdownlint-disable line-length table-column-style first-line-heading no-multiple-blanks no-inline-html -->
 This section describes the types introduced by the Monitoring Operator.
 
 

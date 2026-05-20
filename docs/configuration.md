@@ -405,7 +405,7 @@ metadata:
   name: monitoring-nginx-ingress-pod-monitor
 spec:
   jobLabel: k8s-app
-  namespaceSelector: 
+  namespaceSelector:
     any: true
   podMetricsEndpoints:
     - interval: 30s
@@ -435,8 +435,8 @@ For more information about all available fields in `PodMonitor`, refer to the of
 The `ScrapeConfig` Custom Resource (CR) allows to specify scraping settings for monitoring using different scraping
 settings supported by VictoriaMetrics or Prometheus.
 
-This Custom Resource exists because other CRs like ServiceMonitor, PodMonitor, and Probe allow to provide discovery and scrape
-settings only for specific types of discovery configuration.
+This Custom Resource exists because other CRs like ServiceMonitor, PodMonitor, and Probe allow to provide discovery
+and scrape settings only for specific types of discovery configuration.
 
 Unlike these CRs, the `ScrapeConfig` allows to specify which discovery method should be used to discover endpoints using
 different supported ways, such as static targets, DNS service discovery, Kubernetes service discovery, or cloud-specific
@@ -1136,7 +1136,7 @@ metadata:
   name: monitoring-nginx-ingress-pod-monitor
 spec:
   jobLabel: k8s-app
-  namespaceSelector: 
+  namespaceSelector:
     any: true
   podMetricsEndpoints:
     - interval: 30s
