@@ -1,4 +1,4 @@
-﻿This document describes how to configure TLS for Monitoring components and how to integrate them with the Cert-manager.
+This document describes how to configure TLS for Monitoring components and how to integrate them with the Cert-manager.
 
 # Overview
 

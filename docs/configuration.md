@@ -765,7 +765,7 @@ You can use the following options to provide the dashboard using the GrafanaDash
 
 * [JSON inline into CR](#inline-json)
 * [GrafanaDashboard refer to ConfigMap which contains JSON](#dashboard-in-configmap)
-* [GrafanaDashboard contains dashboard id from grafana.com](#dashboard-from-grafana-official-site)
+* [GrafanaDashboard contains dashboard ID from grafana.com](#dashboard-from-grafana-official-site)
 * [GrafanaDashboard contains URL for download dashboard](#dashboard-by-url)
 
 ##### GrafanaDashboard Known Issues

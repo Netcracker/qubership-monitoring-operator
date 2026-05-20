@@ -26,7 +26,7 @@ spec:
 
 ## Route With TLS
 
-`Edge` Termination Type route will be auto generated alongwith Ingress, try to access route url.
+`Edge` Termination Type route will be auto generated alongwith Ingress, try to access route URL.
 
 To run `Reencrypt` routes please deploy monitoring without `Ingress` e.g.
 `victoriametrics.vmAuth.ingress.install: false` (similarly for all ingresses)

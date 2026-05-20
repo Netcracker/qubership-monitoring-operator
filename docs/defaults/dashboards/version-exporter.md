@@ -47,7 +47,7 @@ There is no description on this dashboard
 <!-- markdownlint-disable line-length -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
-| Golang | Shows go info. | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
+| Go | Shows go info. | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Python | Shows python info. | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | JVM | Shows jvm info. | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 <!-- markdownlint-enable line-length -->

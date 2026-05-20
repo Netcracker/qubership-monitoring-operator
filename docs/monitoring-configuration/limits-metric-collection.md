@@ -1,4 +1,4 @@
-﻿This document describes how to configure Monitoring to collect metrics (user metrics or all metrics) from a specific
+This document describes how to configure Monitoring to collect metrics (user metrics or all metrics) from a specific
 list of namespaces.
 
 # Types of metrics
@@ -8,7 +8,7 @@ All metrics collected by Monitoring can be classified into next categories:
 * Kubernetes node metrics (VM specific, like node CPU, Memory, FS, Disk)
 * Kubernetes components metrics (metrics from `kube-apiserver`, `etcd`, and so on)
 * Kubernetes microservices metrics (metrics about pods, containers, deployments and so on)
-* Metrics about microservice runtime (like JVM, and Golang runtime)
+* Metrics about microservice runtime (like JVM, and Go runtime)
 * Microservice metrics (how microservice do any work)
 * Custom metrics (for example, from any VMs outside the Cloud)
 

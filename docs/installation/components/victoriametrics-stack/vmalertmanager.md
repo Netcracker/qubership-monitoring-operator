@@ -1,4 +1,4 @@
-﻿#### vmalertmanager
+#### vmalertmanager
 
 <!-- markdownlint-disable line-length -->
 | Field                         | Description                                                                                                                                                                                                                                                                                        | Scheme                                                                                                                       |

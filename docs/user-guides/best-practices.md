@@ -96,7 +96,7 @@ If you create dashboard, you should add some tags that will be described, what y
 The tags below should be added to dashboard, if it satisfies the following conditions:
 
 * tag `k8s` - if the dashboard shows data about Kubernetes cluster;
-* tag `prometheus` - if the dashboard shows information about services (e.g. kafka, postgresql, mongodb, etc.);
+* tag `prometheus` - if the dashboard shows information about services (e.g. kafka, PostgreSQL, MongoDB, etc.);
 * tag `standalone` - if the dashboard shows information about standalone hosts (e.g. Graylog, balancers, etc.);
 * tag `self-monitor` - if the dashboard shows information about the monitoring system.
 

@@ -118,7 +118,7 @@ Prometheus node exporter sample dashboard
 | Context Switches / Interrupts | Show how much context switches or interrupts operations occurred in system on selected node |  |  |
 | System Load | Show load average of system for last `1m`, `5m`, `15m`.  Load average calculated by Linux kernel based on CPU load, I/O operation and count/state of processes.  |  |  |
 | Interrupts Detail | Show detailed information about system interrupts if metrics collection interrupts enabled. Disabled by default and should be enable in `node_exporter`. |  |  |
-| Schedule timeslices executed by each cpu | Show the number of slices of time that were used to schedule process to running  |  |  |
+| Schedule timeslices executed by each CPU | Show the number of slices of time that were used to schedule process to running  |  |  |
 | Entropy | Show the size of available entropy in bytes. Entropy use in such random sources as `/dev/random` or `/dev/urandom`. In its turn these sources use in various random generators in various program languages. Depends on entropy size you can have not enough data to correct work random. |  |  |
 | CPU time spent in user and system contexts | Show how much time in seconds CPU spent in user and system contexts |  |  |
 | File Descriptors | Show mow much file descriptors use and limit by them on selected node. File descriptors use to create processes (even create SSH sessions). So not enough count of file descriptors can affect work of system.   |  |  |
@@ -151,10 +151,10 @@ Prometheus node exporter sample dashboard
 | Disk IOps Completed | Show how much reads/writes in second were completed by device on selected node |  |  |
 | Disk R/W Data | Show how much data were read/write in bytes per second by device on selected node |  |  |
 | Disk R/W Time | Show how much time were spent to read/write on disk by devices on selected node |  |  |
-| Disk IOs Weighted | Show weighted time in seconds spent doing I/O operations. This value is incremented at each I/O start, I/O completion, I/O merge, or read of these stats by the number of I/Os in progress times the number of seconds spent doing I/O since the<br/>last update of this value. This can provide an easy measure of both I/O completion time and the backlog that may be accumulating. |  |  |
+| Disk iOS Weighted | Show weighted time in seconds spent doing I/O operations. This value is incremented at each I/O start, I/O completion, I/O merge, or read of these stats by the number of I/Os in progress times the number of seconds spent doing I/O since the<br/>last update of this value. This can provide an easy measure of both I/O completion time and the backlog that may be accumulating. |  |  |
 | Disk R/W Merged | Show the total number of reads and writes merged |  |  |
 | Time Spent Doing I/Os | Show how much time in seconds were spent on doing I/O operations |  |  |
-| Disk IOs Current in Progress | Show how much I/O operations per second were in progress on moment collect metric value on selected node |  |  |
+| Disk iOS Current in Progress | Show how much I/O operations per second were in progress on moment collect metric value on selected node |  |  |
 | Disk IOps Discards completed / merged | Show the total number of discards completed successfully and discards merged. |  |  |
 <!-- markdownlint-enable line-length -->
 

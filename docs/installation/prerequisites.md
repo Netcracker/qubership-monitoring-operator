@@ -9,7 +9,7 @@ Verify the following requirements before installation:
 ### System Requirements
 
 * **Kubernetes**: Version 1.19+ or OpenShift 3.11+
-* **CLI Tools**: `kubectl` 1.19+ or `oc` 3.11+
+* **Command-line tools**: `kubectl` 1.19+ or `oc` 3.11+
 * **Package Manager**: Helm 3.0+
 * **Namespace**: Target namespace must be created before installation
 * **Permissions**: Sufficient rights to deploy in the target project (see [Permissions](#permissions))

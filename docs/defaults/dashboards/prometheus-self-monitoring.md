@@ -17,7 +17,7 @@ There is no description on this dashboard
 | Last Successful Config Reload | Show last successful config reload |  |  |
 | CPU usage | Shows CPU usage for the prometheus instance | Default:<br/>Mode: absolute<br/>Level 1: 0.85<br/>Level 2: 1.2<br/>Level 3: 2<br/><br/> |  |
 | Resident memory | The amount of memory the Prometheus process is using from the kernel | Default:<br/>Mode: absolute<br/>Level 1: 6442450944<br/>Level 2: 9663676416<br/><br/> |  |
-| Data | The number of bytes that are currently used for local storage by all blocks |  |  |
+| Data | The number of bytes that are currently used for localStorage by all blocks |  |  |
 | Oldest data | Show the earliest saved data |  |  |
 | Count of Jobs | Shows the number of active jobs | Default:<br/>Mode: absolute<br/>Level 1: 300<br/>Level 2: 500<br/><br/> |  |
 | Series | Shows the number of active time series | Default:<br/>Mode: absolute<br/>Level 1: 500000<br/>Level 2: 1000000<br/><br/> |  |
@@ -91,7 +91,7 @@ There is no description on this dashboard
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Oldest data | Show the earliest saved data |  |  |
-| Size of the storage | The number of bytes that are currently used for local storage by all blocks |  |  |
+| Size of the storage | The number of bytes that are currently used for localStorage by all blocks |  |  |
 <!-- markdownlint-enable line-length -->
 
 ### Query engine & API

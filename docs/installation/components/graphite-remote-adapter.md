@@ -1,4 +1,4 @@
-﻿### graphite-remote-adapter
+### graphite-remote-adapter
 
 <!-- markdownlint-disable line-length -->
 | Field                    | Description                                                                                                                                                                                                                | Scheme                                                                                                                       |

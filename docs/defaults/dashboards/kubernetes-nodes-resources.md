@@ -47,7 +47,7 @@ There is no description on this dashboard
 | Disk R/W Data (bytes / sec) | Shows per second disk read / write bytes on the node |  |  |
 | Open  File Descriptor / Context switches | Shows current amount of opened filed descriptors and context switches for the node |  |  |
 | Time Spent Doing I/Os | Shows time spent on I/O in the natural time of each second |  |  |
-| Disk IOps | Shows amount of physical IOs (reads and writes) on different devices. |  |  |
+| Disk IOps | Shows amount of physical iOS (reads and writes) on different devices. |  |  |
 | I/O Usage Read / Write | Shows the volume of disks operations (read and write) |  |  |
 | I/O Usage Times | Total seconds spent doing I/Os |  |  |
 | PIDs Number and Limit | Shows amount of used processes (PIDs) and process limit on node |  |  |

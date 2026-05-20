@@ -1,4 +1,4 @@
-﻿### blackbox-exporter
+### blackbox-exporter
 
 Blackbox exporter allow to execute probe to URL (static or for Ingress) as to black box and meter state of answer,
 code and response time. Also Blackbox exporter check SSL certificate state (if probe configure for URL

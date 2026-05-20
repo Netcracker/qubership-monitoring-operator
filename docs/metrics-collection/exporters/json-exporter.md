@@ -13,7 +13,7 @@ Alertmanager already exposes its metrics in Prometheus format and doesn't requir
 
 This exporter can be use and be useful in the following cases.
 
-First, you have any json structure that contains any useful information in metrics.
+First, you have any JSON structure that contains any useful information in metrics.
 
 For example, if you have a catalog with items and them versions in the catalog. And you want to track
 items from the catalog and them versions as metrics.

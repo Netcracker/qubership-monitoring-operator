@@ -29,7 +29,7 @@ therefore you should pay attention if you want to use alerts disabled by default
 | NodeExporters      | ✓ Yes              |
 | DockerContainers   | ✓ Yes              |
 | HAmode             | ✗ No               |
-| HAproxy            | ✗ No               |
+| HAProxy            | ✗ No               |
 | Etcd               | ✓ Yes              |
 | NginxIngressAlerts | ✓ Yes              |
 | CoreDnsAlerts      | ✓ Yes              |
@@ -38,7 +38,7 @@ therefore you should pay attention if you want to use alerts disabled by default
 
 Full list of all alerts can be found in the [alerts-oob document](../defaults/alerts.md).
 
-If you want to enable alerts for HAmode or HAproxy,
+If you want to enable alerts for HAmode or HAProxy,
 you should add `HAmode` or `HAproxy` respectively to `prometheusRules.ruleGroups` parameter.
 
 If you want to enable Dead Man's Switch (Heartbeat) alert, you should add `Heartbeat` to `prometheusRules.ruleGroups`
@@ -54,7 +54,7 @@ the critical monitoring and/or alerting components have failed.
 
 Platform Monitoring's Dead Man's Switch alert is placed in the `Heartbeat` alert group and called `DeadMansSwitch`.
 It uses the simplest expression possible under the hood: `vector(1)`, and the lowest severity: `information`.
-Even the simplest expressions are calculated on the monitoring back-end (Prometheus/VMSingle),
+Even the simplest expressions are calculated on the monitoring backend (Prometheus/VMSingle),
 so the alert checks that side of the monitoring. The alert has `for: 0s`, so it should start fire immediately since
 all base monitoring and alerting components are installed.
 

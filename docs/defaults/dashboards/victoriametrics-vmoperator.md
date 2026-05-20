@@ -30,7 +30,7 @@ Overview for operator VictoriaMetrics v0.25.0 or higher
 | reconcile errors by controller | Non zero metrics indicates about error with CR object definition (typos or incorrect values) or errors with kubernetes API connection. |  |  |
 | throttled reconcilation events | Operator limits number of reconcilation events to 5 events per 2 seconds.<br/> For now, this limit is applied only for vmalert and vmagent controllers.<br/> It should reduce load at kubernetes cluster and increase operator performance. |  |  |
 | Wokring queue depth | Number of objects waiting in the queue for reconciliation. Non-zero values indicate that operator cannot process CR objects changes with the given resources. |  |  |
-| Reconcilation latency by controller |  For controllers with StatefulSet it's ok to see latency greater then 3 seconds. It could be vmalertmanager,vmcluster or vmagent in statefulMode.<br/><br/> For other controllers, latency greater then 1 second may indicate issues with kubernetes cluster or operator's performance.<br/>  |  |  |
+| Reconcilation latency by controller |  For controllers with StatefulSet it's OK to see latency greater then 3 seconds. It could be vmalertmanager,vmcluster or vmagent in statefulMode.<br/><br/> For other controllers, latency greater then 1 second may indicate issues with kubernetes cluster or operator's performance.<br/>  |  |  |
 <!-- markdownlint-enable line-length -->
 
 ### Resources

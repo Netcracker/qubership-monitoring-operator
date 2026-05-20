@@ -174,7 +174,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
@@ -219,7 +219,7 @@
 | coredns_panics | counter | A metrics that counts the number of panics. |
 | coredns_plugin_enabled | gauge | A metric that indicates whether a plugin is enabled on per server and zone basis. |
 | coredns_reload_failed | counter | Counter of the number of failed reload attempts. |
-| coredns_template_matches | counter | Counter of template regex matches. |
+| coredns_template_matches | counter | Counter of template regular expression matches. |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
 | go_goroutines | gauge | Number of goroutines that currently exist. |
 | go_info | gauge | Information about the Go environment. |
@@ -252,7 +252,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 <!-- markdownlint-enable line-length -->
@@ -343,7 +343,7 @@
 | grafana_alerting_request_duration_seconds | histogram | Histogram of requests to the Alerting API |
 | grafana_alerting_schedule_periodic_duration_seconds | histogram | The time taken to run the scheduler. |
 | grafana_alerting_scheduler_behind_seconds | gauge | The total number of seconds the scheduler is behind. |
-| grafana_api_admin_user_created | counter | api admin user created counter |
+| grafana_api_admin_user_created | counter | API admin user created counter |
 | grafana_api_dashboard_get_milliseconds | summary | summary for dashboard get duration |
 | grafana_api_dashboard_save_milliseconds | summary | summary for dashboard save duration |
 | grafana_api_dashboard_search_milliseconds | summary | summary for dashboard search duration |
@@ -351,12 +351,12 @@
 | grafana_api_dashboard_snapshot_external | counter | external dashboard snapshots created |
 | grafana_api_dashboard_snapshot_get | counter | loaded dashboards |
 | grafana_api_dataproxy_request_all_milliseconds | summary | summary for dataproxy request duration |
-| grafana_api_login_oauth | counter | api login oauth counter |
-| grafana_api_login_post | counter | api login post counter |
-| grafana_api_login_saml | counter | api login saml counter |
+| grafana_api_login_oauth | counter | API login oauth counter |
+| grafana_api_login_post | counter | API login post counter |
+| grafana_api_login_saml | counter | API login SAML counter |
 | grafana_api_models_dashboard_insert | counter | dashboards inserted |
-| grafana_api_org_create | counter | api org created counter |
-| grafana_api_response_status | counter | api http response status |
+| grafana_api_org_create | counter | API org created counter |
+| grafana_api_response_status | counter | API http response status |
 | grafana_api_user_signup_completed | counter | amount of users who completed the signup flow |
 | grafana_api_user_signup_invite | counter | amount of users who have been invited |
 | grafana_api_user_signup_started | counter | amount of users who started the signup flow |
@@ -368,11 +368,11 @@
 | grafana_datasource_request_in_flight | gauge | A gauge of outgoing datasource requests currently being sent by Grafana |
 | grafana_datasource_request | counter | A counter for outgoing requests for a datasource |
 | grafana_datasource_response_size_bytes | summary | summary of datasource response sizes returned to Grafana |
-| grafana_db_datasource_query_by_id | counter | counter for getting datasource by id |
+| grafana_db_datasource_query_by_id | counter | counter for getting datasource by ID |
 | grafana_emails_sent_failed | counter | Number of emails Grafana failed to send |
 | grafana_emails_sent | counter | Number of emails sent by Grafana |
 | grafana_feature_toggles_info | gauge | info metric that exposes what feature toggles are enabled or not |
-| grafana_frontend_boot_css_time_seconds | histogram | Frontend boot initial css load |
+| grafana_frontend_boot_css_time_seconds | histogram | Frontend boot initial CSS load |
 | grafana_frontend_boot_first_contentful_paint_time_seconds | histogram | Frontend boot first contentful paint |
 | grafana_frontend_boot_first_paint_time_seconds | histogram | Frontend boot first paint |
 | grafana_frontend_boot_js_done_time_seconds | histogram | Frontend boot initial js load |
@@ -425,7 +425,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_template_text_expansion_failures | counter | The total number of template text expansion failures. |
@@ -484,7 +484,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | rest_client_request_latency_seconds | histogram | Request latency in seconds. Broken down by verb and URL. |
@@ -604,13 +604,13 @@
 | grpc_client_started | counter | Total number of RPCs started on the client. |
 | kube_apiserver_pod_logs_pods_logs_backend_tls_failure | counter | ALPHA Total number of requests for pods/logs that failed due to kubelet server TLS verification |
 | kube_apiserver_pod_logs_pods_logs_insecure_backend | counter | ALPHA Total number of requests for pods/logs sliced by usage type: enforce_tls, skip_tls_allowed, skip_tls_denied |
-| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, git version, git commit, git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
+| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, Git version, Git commit, Git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
 | node_authorizer_graph_actions_duration_seconds | histogram | ALPHA Histogram of duration of graph actions in node authorizer. |
 | process_cpu_seconds | counter | Total user and system CPU time spent in seconds. |
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | rest_client_exec_plugin_certificate_rotation_age | histogram | ALPHA Histogram of the number of seconds the last auth exec plugin client certificate lived before being rotated. If auth exec plugin client certificates are unused, histogram will contain no data. |
@@ -620,8 +620,8 @@
 | serviceaccount_legacy_tokens | counter | ALPHA Cumulative legacy service account tokens used |
 | serviceaccount_stale_tokens | counter | ALPHA Cumulative stale projected service account tokens used |
 | serviceaccount_valid_tokens | counter | ALPHA Cumulative valid projected service account tokens used |
-| ssh_tunnel_open_count | counter | ALPHA Counter of ssh tunnel total open attempts |
-| ssh_tunnel_open_fail_count | counter | ALPHA Counter of ssh tunnel failed open attempts |
+| ssh_tunnel_open_count | counter | ALPHA Counter of SSH tunnel total open attempts |
+| ssh_tunnel_open_fail_count | counter | ALPHA Counter of SSH tunnel failed open attempts |
 | watch_cache_capacity | gauge | ALPHA Total capacity of watch cache broken by resource type. |
 | watch_cache_capacity_decrease | counter | ALPHA Total number of watch cache capacity decrease events broken by resource type. |
 | watch_cache_capacity_increase | counter | ALPHA Total number of watch cache capacity increase events broken by resource type. |
@@ -775,11 +775,11 @@
 | kube_poddisruptionbudget_status_pod_disruptions_allowed | gauge | Number of pod disruptions that are currently allowed |
 | kube_poddisruptionbudget_status_expected_pods | gauge | Total number of pods counted by this disruption budget |
 | kube_poddisruptionbudget_status_observed_generation | gauge | Most recent generation observed when updating this PDB status |
-| kube_pod_completion_time | gauge | Completion time in unix timestamp for a pod. |
+| kube_pod_completion_time | gauge | Completion time in Unix timestamp for a pod. |
 | kube_pod_container_info | gauge | Information about a container in a pod. |
 | kube_pod_container_resource_limits | gauge | The number of requested limit resource by a container. |
 | kube_pod_container_resource_requests | gauge | The number of requested request resource by a container. |
-| kube_pod_container_state_started | gauge | Start time in unix timestamp for a pod container. |
+| kube_pod_container_state_started | gauge | Start time in Unix timestamp for a pod container. |
 | kube_pod_container_status_last_terminated_reason | gauge | Describes the last reason the container was in terminated state. |
 | kube_pod_container_status_ready | gauge | Describes whether the containers readiness check succeeded. |
 | kube_pod_container_status_restarts | counter | The number of container restarts per container. |
@@ -804,14 +804,14 @@
 | kube_pod_init_container_status_waiting_reason | gauge | Describes the reason the init container is currently in waiting state. |
 | kube_pod_annotations | gauge | Kubernetes annotations converted to Prometheus labels. |
 | kube_pod_labels | gauge | Kubernetes labels converted to Prometheus labels. |
-| kube_pod_overhead_cpu_cores | gauge | The pod overhead in regards to cpu cores associated with running a pod. |
+| kube_pod_overhead_cpu_cores | gauge | The pod overhead in regards to CPU cores associated with running a pod. |
 | kube_pod_overhead_memory_bytes | gauge | The pod overhead in regards to memory associated with running a pod. |
 | kube_pod_owner | gauge | Information about the Pod's owner. |
 | kube_pod_restart_policy | gauge | Describes the restart policy in use by this pod. |
 | kube_pod_runtimeclass_name_info | gauge | The runtimeclass associated with the pod. |
 | kube_pod_spec_volumes_persistentvolumeclaims_info | gauge | Information about persistentvolumeclaim volumes in a pod. |
 | kube_pod_spec_volumes_persistentvolumeclaims_readonly | gauge | Describes whether a persistentvolumeclaim is mounted read only. |
-| kube_pod_start_time | gauge | Start time in unix timestamp for a pod. |
+| kube_pod_start_time | gauge | Start time in Unix timestamp for a pod. |
 | kube_pod_status_phase | gauge | The pods current phase. |
 | kube_pod_status_ready | gauge | Describes whether the pod is ready to serve requests. |
 | kube_pod_status_reason | gauge | The pod status reasons |
@@ -953,12 +953,12 @@
 | kubelet_runtime_operations_duration_seconds | histogram | ALPHA Duration in seconds of runtime operations. Broken down by operation type. |
 | kubelet_runtime_operations_errors | counter | ALPHA Cumulative number of runtime operation errors by operation type. |
 | kubelet_runtime_operations | counter | ALPHA Cumulative number of runtime operations by operation type. |
-| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, git version, git commit, git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
+| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, Git version, Git commit, Git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
 | process_cpu_seconds | counter | Total user and system CPU time spent in seconds. |
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | rest_client_exec_plugin_certificate_rotation_age | histogram | ALPHA Histogram of the number of seconds the last auth exec plugin client certificate lived before being rotated. If auth exec plugin client certificates are unused, histogram will contain no data. |
@@ -993,15 +993,15 @@
 <!-- markdownlint-disable line-length -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
-| cadvisor_version_info | gauge | A metric with a constant '1' value labeled by kernel version, OS version, docker version, cadvisor version & cadvisor revision. |
+| cadvisor_version_info | gauge | A metric with a constant '1' value labeled by kernel version, OS version, Docker version, cadvisor version & cadvisor revision. |
 | container_blkio_device_usage | counter | Blkio Device bytes usage |
 | container_cpu_cfs_periods | counter | Number of elapsed enforcement period intervals. |
 | container_cpu_cfs_throttled_periods | counter | Number of throttled period intervals. |
 | container_cpu_cfs_throttled_seconds | counter | Total time duration the container has been throttled. |
-| container_cpu_load_average_10s | gauge | Value of container cpu load average over the last 10 seconds. |
-| container_cpu_system_seconds | counter | Cumulative system cpu time consumed in seconds. |
-| container_cpu_usage_seconds | counter | Cumulative cpu time consumed in seconds. |
-| container_cpu_user_seconds | counter | Cumulative user cpu time consumed in seconds. |
+| container_cpu_load_average_10s | gauge | Value of container CPU load average over the last 10 seconds. |
+| container_cpu_system_seconds | counter | Cumulative system CPU time consumed in seconds. |
+| container_cpu_usage_seconds | counter | Cumulative CPU time consumed in seconds. |
+| container_cpu_user_seconds | counter | Cumulative user CPU time consumed in seconds. |
 | container_file_descriptors | gauge | Number of open file descriptors for the container. |
 | container_fs_inodes_free | gauge | Number of available Inodes |
 | container_fs_inodes_total | gauge | Number of Inodes |
@@ -1047,7 +1047,7 @@
 | container_spec_memory_limit_bytes | gauge | Memory limit for the container. |
 | container_spec_memory_reservation_limit_bytes | gauge | Memory reservation limit for the container. |
 | container_spec_memory_swap_limit_bytes | gauge | Memory swap limit for the container. |
-| container_start_time_seconds | gauge | Start time of the container since unix epoch in seconds. |
+| container_start_time_seconds | gauge | Start time of the container since Unix epoch in seconds. |
 | container_tasks_state | gauge | Number of tasks in given state |
 | container_threads | gauge | Number of threads running inside the container |
 | container_threads_max | gauge | Maximum number of threads allowed inside the container, infinity if value is zero |
@@ -1112,7 +1112,7 @@
 | nginx_ingress_controller_ingress_upstream_latency_seconds | summary | Upstream service latency per Ingress |
 | nginx_ingress_controller_nginx_process_connections | gauge | current number of client connections with state {active, reading, writing, waiting} |
 | nginx_ingress_controller_nginx_process_connections | counter | total number of connections with state {accepted, handled} |
-| nginx_ingress_controller_nginx_process_cpu_seconds | counter | Cpu usage in seconds |
+| nginx_ingress_controller_nginx_process_cpu_seconds | counter | CPU usage in seconds |
 | nginx_ingress_controller_nginx_process_num_procs | gauge | number of processes |
 | nginx_ingress_controller_nginx_process_oldest_start_time_seconds | gauge | start time in seconds since 1970/01/01 |
 | nginx_ingress_controller_nginx_process_read_bytes | counter | number of bytes read |
@@ -1130,7 +1130,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
@@ -1356,7 +1356,7 @@
 | node_nfs_rpc_authentication_refreshes | counter | Number of RPC authentication refreshes performed. |
 | node_nfs_rpc_retransmissions | counter | Number of RPC transmissions performed. |
 | node_nfs_rpcs | counter | Total number of RPCs performed. |
-| node_os_info | gauge | A metric with a constant '1' value labeled by build_id, id, id_like, image_id, image_version, name, pretty_name, variant, variant_id, version, version_codename, version_id. |
+| node_os_info | gauge | A metric with a constant '1' value labeled by build_id, ID, id_like, image_id, image_version, name, pretty_name, variant, variant_id, version, version_codename, version_id. |
 | node_os_version | gauge | Metric containing the major.minor part of the OS version. |
 | node_processes_max_processes | gauge | Number of max PIDs limit |
 | node_processes_max_threads | gauge | Limit of threads in the system |
@@ -1441,7 +1441,7 @@
 | node_xfs_block_mapping_writes | counter | Number of block map for write operations for a filesystem. |
 | node_xfs_directory_operation_create | counter | Number of times a new directory entry was created for a filesystem. |
 | node_xfs_directory_operation_getdents | counter | Number of times the directory getdents operation was performed for a filesystem. |
-| node_xfs_directory_operation_lookup | counter | Number of file name directory lookups which miss the operating systems directory name lookup cache. |
+| node_xfs_directory_operation_lookup | counter | Number of filename directory lookups which miss the operating systems directory name lookup cache. |
 | node_xfs_directory_operation_remove | counter | Number of times an existing directory entry was created for a filesystem. |
 | node_xfs_extent_allocation_blocks_allocated | counter | Number of blocks allocated for a filesystem. |
 | node_xfs_extent_allocation_blocks_freed | counter | Number of blocks freed for a filesystem. |
@@ -1467,7 +1467,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_errors | counter | Total number of internal errors encountered by the promhttp metric handler. |
@@ -1557,7 +1557,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_api_remote_read_queries | gauge | The current number of remote read queries being executed or waiting. |
@@ -1715,7 +1715,7 @@
 | prometheus_tsdb_retention_limit_bytes | gauge | Max number of bytes to be retained in the tsdb blocks, configured 0 means disabled |
 | prometheus_tsdb_size_retentions | counter | The number of times that blocks were deleted because the maximum number of bytes was exceeded. |
 | prometheus_tsdb_snapshot_replay_error | counter | Total number snapshot replays that failed. |
-| prometheus_tsdb_storage_blocks_bytes | gauge | The number of bytes that are currently used for local storage by all blocks. |
+| prometheus_tsdb_storage_blocks_bytes | gauge | The number of bytes that are currently used for localStorage by all blocks. |
 | prometheus_tsdb_symbol_table_size_bytes | gauge | Size of symbol table in memory for loaded blocks |
 | prometheus_tsdb_time_retentions | counter | The number of times that blocks were deleted because the maximum time limit was exceeded. |
 | prometheus_tsdb_tombstone_cleanup_seconds | histogram | The time taken to recompact blocks to remove tombstones. |
@@ -1815,7 +1815,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_operator_alertmanager_config_validation_errors | counter | Number of errors that occurred while validating a alertmanagerconfig object |
@@ -1926,7 +1926,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
@@ -1970,12 +1970,12 @@
 | coredns_health_request_failures | counter | The number of times the health check failed. |
 | coredns_hosts_entries | gauge | The combined number of entries in hosts and Corefile. |
 | coredns_hosts_reload_timestamp_seconds | gauge | The timestamp of the last reload of hosts file. |
-| coredns_kubernetes_dns_programming_duration_seconds | histogram | Histogram of the time (in seconds) it took to program a dns instance. |
+| coredns_kubernetes_dns_programming_duration_seconds | histogram | Histogram of the time (in seconds) it took to program a DNS instance. |
 | coredns_local_localhost_requests | counter | Counter of localhost.<domain> requests. |
 | coredns_panics | counter | A metrics that counts the number of panics. |
 | coredns_plugin_enabled | gauge | A metric that indicates whether a plugin is enabled on per server and zone basis. |
 | coredns_reload_failed | counter | Counter of the number of failed reload attempts. |
-| coredns_template_matches | counter | Counter of template regex matches. |
+| coredns_template_matches | counter | Counter of template regular expression matches. |
 | go_gc_duration_seconds | summary | A summary of the pause duration of garbage collection cycles. |
 | go_goroutines | gauge | Number of goroutines that currently exist. |
 | go_info | gauge | Information about the Go environment. |
@@ -2008,7 +2008,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 <!-- markdownlint-enable line-length -->
@@ -2098,7 +2098,7 @@
 | grafana_alerting_get_alert_rules_duration_seconds | histogram | The time taken to get all alert rules. |
 | grafana_alerting_schedule_periodic_duration_seconds | histogram | The time taken to run the scheduler. |
 | grafana_alerting_scheduler_behind_seconds | gauge | The total number of seconds the scheduler is behind. |
-| grafana_api_admin_user_created | counter | api admin user created counter |
+| grafana_api_admin_user_created | counter | API admin user created counter |
 | grafana_api_dashboard_get_milliseconds | summary | summary for dashboard get duration |
 | grafana_api_dashboard_save_milliseconds | summary | summary for dashboard save duration |
 | grafana_api_dashboard_search_milliseconds | summary | summary for dashboard search duration |
@@ -2106,12 +2106,12 @@
 | grafana_api_dashboard_snapshot_external | counter | external dashboard snapshots created |
 | grafana_api_dashboard_snapshot_get | counter | loaded dashboards |
 | grafana_api_dataproxy_request_all_milliseconds | summary | summary for dataproxy request duration |
-| grafana_api_login_oauth | counter | api login oauth counter |
-| grafana_api_login_post | counter | api login post counter |
-| grafana_api_login_saml | counter | api login saml counter |
+| grafana_api_login_oauth | counter | API login oauth counter |
+| grafana_api_login_post | counter | API login post counter |
+| grafana_api_login_saml | counter | API login SAML counter |
 | grafana_api_models_dashboard_insert | counter | dashboards inserted |
-| grafana_api_org_create | counter | api org created counter |
-| grafana_api_response_status | counter | api http response status |
+| grafana_api_org_create | counter | API org created counter |
+| grafana_api_response_status | counter | API http response status |
 | grafana_api_user_signup_completed | counter | amount of users who completed the signup flow |
 | grafana_api_user_signup_invite | counter | amount of users who have been invited |
 | grafana_api_user_signup_started | counter | amount of users who started the signup flow |
@@ -2119,11 +2119,11 @@
 | grafana_aws_cloudwatch_get_metric_statistics | counter | counter for getting metric statistics from aws |
 | grafana_aws_cloudwatch_list_metrics | counter | counter for getting list of metrics from aws |
 | grafana_build_info | gauge | A metric with a constant '1' value labeled by version, revision, branch, and goversion from which Grafana was built |
-| grafana_db_datasource_query_by_id | counter | counter for getting datasource by id |
+| grafana_db_datasource_query_by_id | counter | counter for getting datasource by ID |
 | grafana_emails_sent_failed | counter | Number of emails Grafana failed to send |
 | grafana_emails_sent | counter | Number of emails sent by Grafana |
 | grafana_feature_toggles_info | gauge | info metric that exposes what feature toggles are enabled or not |
-| grafana_frontend_boot_css_time_seconds | histogram | Frontend boot initial css load |
+| grafana_frontend_boot_css_time_seconds | histogram | Frontend boot initial CSS load |
 | grafana_frontend_boot_first_contentful_paint_time_seconds | histogram | Frontend boot first contentful paint |
 | grafana_frontend_boot_first_paint_time_seconds | histogram | Frontend boot first paint |
 | grafana_frontend_boot_js_done_time_seconds | histogram | Frontend boot initial js load |
@@ -2170,7 +2170,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_template_text_expansion_failures | counter | The total number of template text expansion failures. |
@@ -2229,7 +2229,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | rest_client_request_latency_seconds | histogram | Request latency in seconds. Broken down by verb and URL. |
@@ -2374,7 +2374,7 @@
 | kube_apiserver_clusterip_allocator_available_ips | gauge | ALPHA Gauge measuring the number of available IPs for Services |
 | kube_apiserver_pod_logs_pods_logs_backend_tls_failure | counter | ALPHA Total number of requests for pods/logs that failed due to kubelet server TLS verification |
 | kube_apiserver_pod_logs_pods_logs_insecure_backend | counter | ALPHA Total number of requests for pods/logs sliced by usage type: enforce_tls, skip_tls_allowed, skip_tls_denied |
-| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, git version, git commit, git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
+| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, Git version, Git commit, Git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
 | node_authorizer_graph_actions_duration_seconds | histogram | ALPHA Histogram of duration of graph actions in node authorizer. |
 | pod_security_evaluations | counter | ALPHA Number of policy evaluations that occurred, not counting ignored or exempt requests. |
 | pod_security_exemptions | counter | ALPHA Number of exempt requests, not counting ignored or out of scope requests. |
@@ -2382,7 +2382,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | rest_client_exec_plugin_certificate_rotation_age | histogram | ALPHA Histogram of the number of seconds the last auth exec plugin client certificate lived before being rotated. If auth exec plugin client certificates are unused, histogram will contain no data. |
@@ -2545,11 +2545,11 @@
 | kube_poddisruptionbudget_status_pod_disruptions_allowed | gauge | Number of pod disruptions that are currently allowed |
 | kube_poddisruptionbudget_status_expected_pods | gauge | Total number of pods counted by this disruption budget |
 | kube_poddisruptionbudget_status_observed_generation | gauge | Most recent generation observed when updating this PDB status |
-| kube_pod_completion_time | gauge | Completion time in unix timestamp for a pod. |
+| kube_pod_completion_time | gauge | Completion time in Unix timestamp for a pod. |
 | kube_pod_container_info | gauge | Information about a container in a pod. |
 | kube_pod_container_resource_limits | gauge | The number of requested limit resource by a container. |
 | kube_pod_container_resource_requests | gauge | The number of requested request resource by a container. |
-| kube_pod_container_state_started | gauge | Start time in unix timestamp for a pod container. |
+| kube_pod_container_state_started | gauge | Start time in Unix timestamp for a pod container. |
 | kube_pod_container_status_last_terminated_reason | gauge | Describes the last reason the container was in terminated state. |
 | kube_pod_container_status_ready | gauge | Describes whether the containers readiness check succeeded. |
 | kube_pod_container_status_restarts | counter | The number of container restarts per container. |
@@ -2574,14 +2574,14 @@
 | kube_pod_init_container_status_waiting_reason | gauge | Describes the reason the init container is currently in waiting state. |
 | kube_pod_annotations | gauge | Kubernetes annotations converted to Prometheus labels. |
 | kube_pod_labels | gauge | Kubernetes labels converted to Prometheus labels. |
-| kube_pod_overhead_cpu_cores | gauge | The pod overhead in regards to cpu cores associated with running a pod. |
+| kube_pod_overhead_cpu_cores | gauge | The pod overhead in regards to CPU cores associated with running a pod. |
 | kube_pod_overhead_memory_bytes | gauge | The pod overhead in regards to memory associated with running a pod. |
 | kube_pod_owner | gauge | Information about the Pod's owner. |
 | kube_pod_restart_policy | gauge | Describes the restart policy in use by this pod. |
 | kube_pod_runtimeclass_name_info | gauge | The runtimeclass associated with the pod. |
 | kube_pod_spec_volumes_persistentvolumeclaims_info | gauge | Information about persistentvolumeclaim volumes in a pod. |
 | kube_pod_spec_volumes_persistentvolumeclaims_readonly | gauge | Describes whether a persistentvolumeclaim is mounted read only. |
-| kube_pod_start_time | gauge | Start time in unix timestamp for a pod. |
+| kube_pod_start_time | gauge | Start time in Unix timestamp for a pod. |
 | kube_pod_status_phase | gauge | The pods current phase. |
 | kube_pod_status_ready | gauge | Describes whether the pod is ready to serve requests. |
 | kube_pod_status_reason | gauge | The pod status reasons |
@@ -2738,17 +2738,17 @@
 | kubelet_volume_stats_inodes_free | gauge | ALPHA Number of free inodes in the volume |
 | kubelet_volume_stats_inodes_used | gauge | ALPHA Number of used inodes in the volume |
 | kubelet_volume_stats_used_bytes | gauge | ALPHA Number of used bytes in the volume |
-| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, git version, git commit, git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
+| kubernetes_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, Git version, Git commit, Git tree state, build date, Go version, and compiler from which Kubernetes was built, and platform on which it is running. |
 | process_cpu_seconds | counter | Total user and system CPU time spent in seconds. |
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | rest_client_exec_plugin_certificate_rotation_age | histogram | ALPHA Histogram of the number of seconds the last auth exec plugin client certificate lived before being rotated. If auth exec plugin client certificates are unused, histogram will contain no data. |
 | rest_client_exec_plugin_ttl_seconds | gauge | ALPHA Gauge of the shortest TTL (time-to-live) of the client certificate(s) managed by the auth exec plugin. The value is in seconds until certificate expiry (negative if already expired). If auth exec plugins are unused or manage no TLS certificates, the value will be +INF. |
-| rest_client_rate_limiter_duration_seconds | histogram | ALPHA Client side rate limiter latency in seconds. Broken down by verb and URL. |
+| rest_client_rate_limiter_duration_seconds | histogram | ALPHA client-side rate limiter latency in seconds. Broken down by verb and URL. |
 | rest_client_request_duration_seconds | histogram | ALPHA Request latency in seconds. Broken down by verb and URL. |
 | rest_client_requests | counter | ALPHA Number of HTTP requests, partitioned by status code, method, and host. |
 | storage_operation_duration_seconds | histogram | ALPHA Storage operation duration |
@@ -2777,15 +2777,15 @@
 <!-- markdownlint-disable line-length -->
 | Name | Type, Unit | Description |
 | ---- | ---------- | ----------- |
-| cadvisor_version_info | gauge | A metric with a constant '1' value labeled by kernel version, OS version, docker version, cadvisor version & cadvisor revision. |
+| cadvisor_version_info | gauge | A metric with a constant '1' value labeled by kernel version, OS version, Docker version, cadvisor version & cadvisor revision. |
 | container_blkio_device_usage | counter | Blkio Device bytes usage |
 | container_cpu_cfs_periods | counter | Number of elapsed enforcement period intervals. |
 | container_cpu_cfs_throttled_periods | counter | Number of throttled period intervals. |
 | container_cpu_cfs_throttled_seconds | counter | Total time duration the container has been throttled. |
-| container_cpu_load_average_10s | gauge | Value of container cpu load average over the last 10 seconds. |
-| container_cpu_system_seconds | counter | Cumulative system cpu time consumed in seconds. |
-| container_cpu_usage_seconds | counter | Cumulative cpu time consumed in seconds. |
-| container_cpu_user_seconds | counter | Cumulative user cpu time consumed in seconds. |
+| container_cpu_load_average_10s | gauge | Value of container CPU load average over the last 10 seconds. |
+| container_cpu_system_seconds | counter | Cumulative system CPU time consumed in seconds. |
+| container_cpu_usage_seconds | counter | Cumulative CPU time consumed in seconds. |
+| container_cpu_user_seconds | counter | Cumulative user CPU time consumed in seconds. |
 | container_file_descriptors | gauge | Number of open file descriptors for the container. |
 | container_fs_inodes_free | gauge | Number of available Inodes |
 | container_fs_inodes_total | gauge | Number of Inodes |
@@ -2831,7 +2831,7 @@
 | container_spec_memory_limit_bytes | gauge | Memory limit for the container. |
 | container_spec_memory_reservation_limit_bytes | gauge | Memory reservation limit for the container. |
 | container_spec_memory_swap_limit_bytes | gauge | Memory swap limit for the container. |
-| container_start_time_seconds | gauge | Start time of the container since unix epoch in seconds. |
+| container_start_time_seconds | gauge | Start time of the container since Unix epoch in seconds. |
 | container_tasks_state | gauge | Number of tasks in given state |
 | container_threads | gauge | Number of threads running inside the container |
 | container_threads_max | gauge | Maximum number of threads allowed inside the container, infinity if value is zero |
@@ -2894,7 +2894,7 @@
 | nginx_ingress_controller_config_last_reload_successful_timestamp_seconds | gauge | Timestamp of the last successful configuration reload. |
 | nginx_ingress_controller_nginx_process_connections | gauge | current number of client connections with state {active, reading, writing, waiting} |
 | nginx_ingress_controller_nginx_process_connections | counter | total number of connections with state {accepted, handled} |
-| nginx_ingress_controller_nginx_process_cpu_seconds | counter | Cpu usage in seconds |
+| nginx_ingress_controller_nginx_process_cpu_seconds | counter | CPU usage in seconds |
 | nginx_ingress_controller_nginx_process_num_procs | gauge | number of processes |
 | nginx_ingress_controller_nginx_process_oldest_start_time_seconds | gauge | start time in seconds since 1970/01/01 |
 | nginx_ingress_controller_nginx_process_read_bytes | counter | number of bytes read |
@@ -2907,7 +2907,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
@@ -3132,7 +3132,7 @@
 | node_nfs_rpc_authentication_refreshes | counter | Number of RPC authentication refreshes performed. |
 | node_nfs_rpc_retransmissions | counter | Number of RPC transmissions performed. |
 | node_nfs_rpcs | counter | Total number of RPCs performed. |
-| node_os_info | gauge | A metric with a constant '1' value labeled by build_id, id, id_like, image_id, image_version, name, pretty_name, variant, variant_id, version, version_codename, version_id. |
+| node_os_info | gauge | A metric with a constant '1' value labeled by build_id, ID, id_like, image_id, image_version, name, pretty_name, variant, variant_id, version, version_codename, version_id. |
 | node_os_version | gauge | Metric containing the major.minor part of the OS version. |
 | node_processes_max_processes | gauge | Number of max PIDs limit |
 | node_processes_max_threads | gauge | Limit of threads in the system |
@@ -3217,7 +3217,7 @@
 | node_xfs_block_mapping_writes | counter | Number of block map for write operations for a filesystem. |
 | node_xfs_directory_operation_create | counter | Number of times a new directory entry was created for a filesystem. |
 | node_xfs_directory_operation_getdents | counter | Number of times the directory getdents operation was performed for a filesystem. |
-| node_xfs_directory_operation_lookup | counter | Number of file name directory lookups which miss the operating systems directory name lookup cache. |
+| node_xfs_directory_operation_lookup | counter | Number of filename directory lookups which miss the operating systems directory name lookup cache. |
 | node_xfs_directory_operation_remove | counter | Number of times an existing directory entry was created for a filesystem. |
 | node_xfs_extent_allocation_blocks_allocated | counter | Number of blocks allocated for a filesystem. |
 | node_xfs_extent_allocation_blocks_freed | counter | Number of blocks freed for a filesystem. |
@@ -3243,7 +3243,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_errors | counter | Total number of internal errors encountered by the promhttp metric handler. |
@@ -3333,7 +3333,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_api_remote_read_queries | gauge | The current number of remote read queries being executed or waiting. |
@@ -3467,7 +3467,7 @@
 | prometheus_tsdb_retention_limit_bytes | gauge | Max number of bytes to be retained in the tsdb blocks, configured 0 means disabled |
 | prometheus_tsdb_size_retentions | counter | The number of times that blocks were deleted because the maximum number of bytes was exceeded. |
 | prometheus_tsdb_snapshot_replay_error | counter | Total number snapshot replays that failed. |
-| prometheus_tsdb_storage_blocks_bytes | gauge | The number of bytes that are currently used for local storage by all blocks. |
+| prometheus_tsdb_storage_blocks_bytes | gauge | The number of bytes that are currently used for localStorage by all blocks. |
 | prometheus_tsdb_symbol_table_size_bytes | gauge | Size of symbol table in memory for loaded blocks |
 | prometheus_tsdb_time_retentions | counter | The number of times that blocks were deleted because the maximum time limit was exceeded. |
 | prometheus_tsdb_tombstone_cleanup_seconds | histogram | The time taken to recompact blocks to remove tombstones. |
@@ -3563,7 +3563,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | prometheus_operator_alertmanager_config_validation_errors | counter | Number of errors that occurred while validating a alertmanagerconfig object |
@@ -3685,7 +3685,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 <!-- markdownlint-enable line-length -->
@@ -3838,13 +3838,13 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | registered_metric | counter | ALPHA The count of registered metrics broken by stability level and deprecation version. |
 | rest_client_exec_plugin_certificate_rotation_age | histogram | ALPHA Histogram of the number of seconds the last auth exec plugin client certificate lived before being rotated. If auth exec plugin client certificates are unused, histogram will contain no data. |
 | rest_client_exec_plugin_ttl_seconds | gauge | ALPHA Gauge of the shortest TTL (time-to-live) of the client certificate(s) managed by the auth exec plugin. The value is in seconds until certificate expiry (negative if already expired). If auth exec plugins are unused or manage no TLS certificates, the value will be +INF. |
-| rest_client_rate_limiter_duration_seconds | histogram | ALPHA Client side rate limiter latency in seconds. Broken down by verb, and host. |
+| rest_client_rate_limiter_duration_seconds | histogram | ALPHA client-side rate limiter latency in seconds. Broken down by verb, and host. |
 | rest_client_request_duration_seconds | histogram | ALPHA Request latency in seconds. Broken down by verb, and host. |
 | rest_client_request_size_bytes | histogram | ALPHA Request size in bytes. Broken down by verb and host. |
 | rest_client_requests | counter | ALPHA Number of HTTP requests, partitioned by status code, method, and host. |
@@ -3965,18 +3965,18 @@
 | go_sched_latencies_seconds | histogram | Distribution of the time goroutines have spent in the scheduler in a runnable state before actually running. |
 | go_threads | gauge | Number of OS threads created. |
 | hidden_metric | counter | ALPHA The count of hidden metrics. |
-| openshift_apiserver_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, git version, git commit, git tree state, build date, Go version, and compiler from which check-endpoints was built, and platform on which it is running. |
+| openshift_apiserver_build_info | gauge | ALPHA A metric with a constant '1' value labeled by major, minor, Git version, Git commit, Git tree state, build date, Go version, and compiler from which check-endpoints was built, and platform on which it is running. |
 | process_cpu_seconds | counter | Total user and system CPU time spent in seconds. |
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | registered_metric | counter | ALPHA The count of registered metrics broken by stability level and deprecation version. |
 | rest_client_exec_plugin_certificate_rotation_age | histogram | ALPHA Histogram of the number of seconds the last auth exec plugin client certificate lived before being rotated. If auth exec plugin client certificates are unused, histogram will contain no data. |
 | rest_client_exec_plugin_ttl_seconds | gauge | ALPHA Gauge of the shortest TTL (time-to-live) of the client certificate(s) managed by the auth exec plugin. The value is in seconds until certificate expiry (negative if already expired). If auth exec plugins are unused or manage no TLS certificates, the value will be +INF. |
-| rest_client_rate_limiter_duration_seconds | histogram | ALPHA Client side rate limiter latency in seconds. Broken down by verb, and host. |
+| rest_client_rate_limiter_duration_seconds | histogram | ALPHA client-side rate limiter latency in seconds. Broken down by verb, and host. |
 | rest_client_request_duration_seconds | histogram | ALPHA Request latency in seconds. Broken down by verb, and host. |
 | rest_client_request_size_bytes | histogram | ALPHA Request size in bytes. Broken down by verb and host. |
 | rest_client_requests | counter | ALPHA Number of HTTP requests, partitioned by status code, method, and host. |
@@ -4079,7 +4079,7 @@
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |
@@ -4159,7 +4159,7 @@
 | haproxy_process_cpu_seconds | counter | Total user and system CPU time spent in seconds. |
 | haproxy_process_max_fds | gauge | Maximum number of open file descriptors. |
 | haproxy_process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| haproxy_process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| haproxy_process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | haproxy_process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | haproxy_process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | haproxy_server_bytes_in_total | gauge | Current total of incoming bytes. |
@@ -4180,12 +4180,12 @@
 | haproxy_server_max_sessions | gauge | Maximum observed number of active sessions. |
 | haproxy_server_response_errors_total | gauge | Total of response errors. |
 | haproxy_server_up | gauge | Current health status of the server (1 = UP, 0 = DOWN). |
-| haproxy_up | gauge | Was the last scrape of haproxy successful. |
+| haproxy_up | gauge | Was the last scrape of HAProxy successful. |
 | process_cpu_seconds | counter | Total user and system CPU time spent in seconds. |
 | process_max_fds | gauge | Maximum number of open file descriptors. |
 | process_open_fds | gauge | Number of open file descriptors. |
 | process_resident_memory_bytes | gauge | Resident memory size in bytes. |
-| process_start_time_seconds | gauge | Start time of the process since unix epoch in seconds. |
+| process_start_time_seconds | gauge | Start time of the process since Unix epoch in seconds. |
 | process_virtual_memory_bytes | gauge | Virtual memory size in bytes. |
 | process_virtual_memory_max_bytes | gauge | Maximum amount of virtual memory available in bytes. |
 | promhttp_metric_handler_requests_in_flight | gauge | Current number of scrapes being served. |

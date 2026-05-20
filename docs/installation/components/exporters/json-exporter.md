@@ -1,4 +1,4 @@
-﻿# JSON Exporter
+# JSON Exporter
 
 The JSON Exporter allows you to scrape arbitrary JSON endpoints and convert them
 into Prometheus metrics. This is useful for monitoring APIs, services that expose
@@ -392,7 +392,7 @@ Common JSONPath expressions for extracting data:
 <!-- markdownlint-disable line-length -->
 | JSONPath | Description | Result |
 |----------|-------------|---------|
-| `{ .status }` | Root level field | "ok" |
+| `{ .status }` | Root level field | "OK" |
 | `{ .data.count }` | Nested field | 42 |
 | `{ .data.items[0].value }` | Array element field | 10 |
 | `{ .data.items[*].value }` | All array elements | [10, 20] |
@@ -418,7 +418,7 @@ Common JSONPath expressions for extracting data:
 3. **Invalid JSON responses**
    - Check if target returns valid JSON
    - Verify content-type headers
-   - Use curl to test endpoints manually
+   - Use cURL to test endpoints manually
 
 ### Debug Commands
 

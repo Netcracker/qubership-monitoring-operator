@@ -1,4 +1,4 @@
-﻿### alertmanager
+### alertmanager
 
 AlertManager is a specification of the desired behavior of the AlertManager cluster.
 

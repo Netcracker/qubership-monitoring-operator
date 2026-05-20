@@ -24,7 +24,7 @@ Custom resource which allow declaratively specify rules for AlertManager for ale
 
 ### GrafanaDashboard
 
-Custom resource which allow specifying grafana dashboard json with name and list of plugins (or link to download this
+Custom resource which allow specifying grafana dashboard JSON with name and list of plugins (or link to download this
 dashboard). The Grafana Operator automatically import all found dashboards to Grafana.
 
 ### GrafanaDataSource

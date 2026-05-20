@@ -70,7 +70,7 @@ some condition is observed to be true.
 
 Prometheus's main distinguishing features as compared to other monitoring systems are:
 
-* A multi-dimensional data model (timeseries defined by metric name and set of key/value dimensions).
+* A multi-dimensional data model (timeseries defined by metric name and set of key-value dimensions).
 * PromQL, a powerful and flexible query language to leverage this dimensionality.
 * No dependency on distributed storage; single server nodes are autonomous.
 * Timeseries collection happens through a pull model over HTTP.
@@ -152,7 +152,7 @@ Operators into monitoring deploy introduces several custom resource definitions 
   automatically generates Prometheus scrape configuration based on the current state of the objects in the API server.
 * `PrometheusRule` - Allows to define a desired set of Prometheus alerting and/or recording rules. The Prometheus
   Operator generates a rule file, which can be used by Prometheus instances.
-* `GrafanaDashboard` - Allows to specify the Grafana dashboard as a json config which should be added into Grafana. The
+* `GrafanaDashboard` - Allows to specify the Grafana dashboard as a JSON config which should be added into Grafana. The
   Grafana Operator automatically creates a dashboard into Grafana.
 
 All the above CRs have a namespaced scope and should have unique names only into one namespace.

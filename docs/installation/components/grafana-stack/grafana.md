@@ -1,4 +1,4 @@
-﻿### grafana
+### grafana
 
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                                                |

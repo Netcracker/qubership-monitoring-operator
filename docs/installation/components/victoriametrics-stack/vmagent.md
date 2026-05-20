@@ -1,4 +1,4 @@
-﻿#### vmagent
+#### vmagent
 
 <!-- markdownlint-disable line-length -->
 | Field                                         | Description                                                                                                                                                                                                                                                                                                                                  | Scheme                                                                                                                       |

@@ -33,7 +33,7 @@ For OpenShift compatibility, refer to the equivalent Kubernetes version. For exa
 Ensure you have the following prerequisites in place before installation:
 
 - Kubernetes 1.19+ or OpenShift 3.11+ cluster
-- `kubectl` 1.19+ or `oc` 3.11+ CLI tools
+- `kubectl` 1.19+ or `oc` 3.11+ command-line tools
 - Helm 3.0+
 - Pre-created namespace for installation
 - Appropriate permissions for deployment

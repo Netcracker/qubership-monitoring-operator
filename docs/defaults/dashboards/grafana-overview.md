@@ -31,7 +31,7 @@ Dashboards shows extended statistics about Grafana, including time of searching,
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Total Response Statuses | Shoms total amount of http response status grouped by code and type | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
-| Login Counts | Shows api login counters | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
+| Login Counts | Shows API login counters | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | RPS | Shows requests per second grouped by status code | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Request Latency | Shows requests latency include percentile  | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 <!-- markdownlint-enable line-length -->

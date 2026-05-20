@@ -1,4 +1,4 @@
-﻿### prometheus
+### prometheus
 
 <!-- markdownlint-disable line-length -->
 | Field                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Scheme                                                                                                                          |

@@ -1,4 +1,4 @@
-﻿<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable MD013 -->
 This section describes the types introduced by the Prometheus Adapter Operator.
 
 
@@ -46,7 +46,7 @@ PrometheusAdapterSpec defines the desired state of PrometheusAdapter.
 | securityContext | SecurityContext holds pod-level security attributes. | *[SecurityContext](#securitycontext) | false |
 | nodeSelector | Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
 | labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
-| annotations | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
+| annotations | Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. More info: [https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration) | []v1.Toleration | false |
 
 

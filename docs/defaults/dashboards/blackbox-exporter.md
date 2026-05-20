@@ -32,7 +32,7 @@ time, and latency. Also it check certificates on URLs and expiration date of cer
 | ---- | ----------- | ---------- | ------ |
 | Last successful config reload | Show last successful config reload |  |  |
 | Version | Show Blackbox exporter version |  |  |
-| Go Version | Show Golang version which use to compile Blackbox exporter |  |  |
+| Go Version | Show Go version which use to compile Blackbox exporter |  |  |
 | Unknown modules | Show count of unknown modules. This metric increase in case when Probe or Job try to execute probe with using unknown module name.<br/>`0` is a good value. |  |  |
 | Config loaded state | Show state of config reload. `1` means that config was successfully reloaded. `0` means that config contains errors and wasn't reload. |  |  |
 <!-- markdownlint-enable line-length -->

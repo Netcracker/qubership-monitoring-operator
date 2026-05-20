@@ -1,4 +1,4 @@
-﻿#### vmoperator
+#### vmoperator
 
 <!-- markdownlint-disable line-length -->
 | Field                            | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |

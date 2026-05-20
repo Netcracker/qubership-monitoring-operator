@@ -1,4 +1,4 @@
-﻿#### vmauth
+#### vmauth
 
 <!-- markdownlint-disable line-length -->
 | Field                         | Description                                                                                                                                                                                                                                                  | Scheme                                                                                                                       | Required |

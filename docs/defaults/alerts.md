@@ -10,7 +10,7 @@
     * [NodeExporters](#nodeexporters)
     * [DockerContainers](#dockercontainers)
     * [HAmode](#hamode)
-    * [HAproxy](#haproxy)
+    * [HAProxy](#haproxy)
     * [Etcd](#etcd)
     * [NginxIngressAlerts](#nginxingressalerts)
     * [CoreDnsAlerts](#corednsalerts)
@@ -173,7 +173,7 @@
 | NotHAKubernetesStatefulSetMultiplePodsPerNode | Not HA mode: StatefulSet Has Multiple Pods per Node (instance {{ $labels.instance }}) | 5m | warning | `count(sum(kube_pod_info{node=\~".\+", created_by_kind="StatefulSet"}) by (namespace, node, created_by_name) \> 1) \> 0` | Not HA mode: Kubernetes StatefulSet has 2 or more replicas on the same node<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 <!-- markdownlint-enable line-length -->
 
-### HAproxy
+### HAProxy
 
 #### Alerting rules
 
@@ -203,9 +203,9 @@
 | EtcdInsufficientMembers | Etcd insufficient Members (instance {{ $labels.instance }}) | 5m | critical | count(etcd_server_id{job="etcd"}) % 2 == 0 | Etcd cluster should have an odd number of members<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdNoLeader | Etcd no Leader (instance {{ $labels.instance }}) | 5m | critical | etcd_server_has_leader == 0 | Etcd cluster have no leader<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdHighNumberOfLeaderChanges | Etcd high number of leader changes (instance {{ $labels.instance }}) | 5m | warning | increase(etcd_server_leader_changes_seen_total[1h]) \> 3 | Etcd leader changed more than 3 times during last hour<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-| EtcdHighNumberOfFailedGrpcRequests | Etcd high number of failed GRPC requests (instance {{ $labels.instance }}) | 5m | warning | sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) \> 0.01 | More than 1% GRPC request failure detected in Etcd for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-| EtcdHighNumberOfFailedGrpcRequests | Etcd high number of failed GRPC requests (instance {{ $labels.instance }}) | 5m | critical | sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) \> 0.05 | More than 5% GRPC request failure detected in Etcd for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-| EtcdGrpcRequestsSlow | Etcd GRPC requests slow (instance {{ $labels.instance }}) | 5m | warning | histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job="etcd",grpc_type="unary"}[5m])) by (grpc_service, grpc_method, le)) \> 0.15 | GRPC requests slowing down, 99th percentil is over 0.15s for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
+| EtcdHighNumberOfFailedGrpcRequests | Etcd high number of failed gRPC requests (instance {{ $labels.instance }}) | 5m | warning | sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) \> 0.01 | More than 1% gRPC request failure detected in Etcd for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
+| EtcdHighNumberOfFailedGrpcRequests | Etcd high number of failed gRPC requests (instance {{ $labels.instance }}) | 5m | critical | sum(rate(grpc_server_handled_total{job="etcd",grpc_code!="OK"}[5m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method) \> 0.05 | More than 5% gRPC request failure detected in Etcd for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
+| EtcdGrpcRequestsSlow | Etcd gRPC requests slow (instance {{ $labels.instance }}) | 5m | warning | histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{job="etcd",grpc_type="unary"}[5m])) by (grpc_service, grpc_method, le)) \> 0.15 | GRPC requests slowing down, 99th percentil is over 0.15s for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdMemberCommunicationSlow | Etcd member communication slow (instance {{ $labels.instance }}) | 5m | warning | histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{job="etcd"}[5m])) \> 0.15 | Etcd member communication slowing down, 99th percentil is over 0.15s for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdHighNumberOfFailedProposals | Etcd high number of failed proposals (instance {{ $labels.instance }}) | 5m | warning | increase(etcd_server_proposals_failed_total[1h]) \> 5 | Etcd server got more than 5 failed proposals past hour<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdHighFsyncDurations | Etcd high fsync durations (instance {{ $labels.instance }}) | 5m | warning | histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m])) \> 0.5 | Etcd WAL fsync duration increasing, 99th percentil is over 0.5s for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
