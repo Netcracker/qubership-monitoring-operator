@@ -1,15 +1,33 @@
-name: Go test with Sonar
+---
+name: "Tests: Go test with Sonar"
+
 on:
   push:
     branches:
       - main
     tags:
       - 'v*'
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
 
 permissions:
   contents: read
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
