@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable line-length table-column-style first-line-heading -->
 This section describes the types introduced by the Prometheus Adapter Operator.
 
 

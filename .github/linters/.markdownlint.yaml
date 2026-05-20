@@ -1,0 +1,21 @@
+# MD013/line-length - Line length
+MD013:
+  line_length: 120
+  heading_line_length: 120
+  code_block_line_length: 120
+  code_blocks: false
+  tables: false
+  headings: true
+  strict: false
+  stern: false
+# MD024/no-duplicate-header - Multiple headers with the same content
+MD024:
+  siblings_only: true
+# MD036/no-emphasis-as-heading - Emphasis used instead of a heading
+MD036: false
+# MD041/first-line-heading - First line in a file should be a top-level heading
+MD041: false
+# MD060/Table column style - Allow any style and aligned delimiters
+MD060:
+  style: any
+  aligned_delimiter: true
