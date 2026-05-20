@@ -46,7 +46,7 @@ Image can be found from:
     {{- printf "%s" .Values.grafana.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=grafana/grafana */ -}}
-    {{- print "docker.io/grafana/grafana:12.4.3" -}}
+    {{- print "docker.io/grafana/grafana:13.1.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -125,7 +125,7 @@ Image can be found from:
     {{- printf "%s" .Values.prometheus.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/prometheus */ -}}
-    {{- print "docker.io/prom/prometheus:v3.11.3" -}}
+    {{- print "docker.io/prom/prometheus:3.12.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -142,7 +142,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmOperator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
-    {{- print "docker.io/victoriametrics/operator:v0.68.4" -}}
+    {{- print "docker.io/victoriametrics/operator:0.70.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -354,7 +354,7 @@ Image can be found from:
     {{- printf "%s" .Values.kubeStateMetrics.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=kubernetes/kube-state-metrics */ -}}
-    {{- print "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.17.0" -}}
+    {{- print "registry.k8s.io/kube-state-metrics/kube-state-metrics:2.18.0" -}}
   {{- end -}}
 {{- end -}}
 
