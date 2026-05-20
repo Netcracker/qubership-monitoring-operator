@@ -16,8 +16,8 @@ docs:
   <https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/#series>
 
 A working example using everything described here lives under
-[`test/alerts-tests/`](../test/alerts-tests/) and is wired into CI via
-[`.github/workflows/test-alert-rules-unit-tests.yaml`](../.github/workflows/test-alert-rules-unit-tests.yaml).
+[`test/alerts-tests/`](../../test/alerts-tests/) and is wired into CI via
+[`.github/workflows/test-alert-rules-unit-tests.yaml`](../../.github/workflows/test-alert-rules-unit-tests.yaml).
 
 ## 1. Getting started
 
@@ -73,7 +73,7 @@ Run it:
 itself loads, i.e. starting at the `groups:` key. If your rules live inside a
 Kubernetes `PrometheusRule` CR, strip the wrapper before running tests. In this
 repository the source is at
-[`controllers/prometheus-rules/assets/prometheus-rules.yaml`](../controllers/prometheus-rules/assets/prometheus-rules.yaml)
+[`controllers/prometheus-rules/assets/prometheus-rules.yaml`](../../controllers/prometheus-rules/assets/prometheus-rules.yaml)
 and CI renders it via:
 
 ```bash
@@ -104,7 +104,7 @@ have no signal that the threshold is meaningful - a rule like
 change it to `up >= 0`.
 
 This is enforced in CI by
-[`tests-checker.sh`](../test/alerts-tests/tests-checker.sh):
+[`tests-checker.sh`](../../test/alerts-tests/tests-checker.sh):
 
 ```bash
 expected_tests_count=2
@@ -222,7 +222,7 @@ and `0/0` evaluates to `NaN` (no alert), which is the behavior you want.
 non-decreasing counts across `le` buckets. If you put a higher count in a
 smaller bucket, you get nonsense quantiles.
 
-Pattern that works (from [`etcd-alerts-tests.yaml`](../test/alerts-tests/etcd-alerts-tests.yaml)):
+Pattern that works (from [`etcd-alerts-tests.yaml`](../../test/alerts-tests/etcd-alerts-tests.yaml)):
 
 ```yaml
 # Most samples are above 0.15 → quantile lands in the slow bucket
@@ -337,7 +337,7 @@ file, run `vmalert-tool unittest` over a glob of test files.
 ### 5.1 GitHub Actions
 
 A full working example lives at
-[`.github/workflows/test-alert-rules-unit-tests.yaml`](../.github/workflows/test-alert-rules-unit-tests.yaml).
+[`.github/workflows/test-alert-rules-unit-tests.yaml`](../../.github/workflows/test-alert-rules-unit-tests.yaml).
 The essentials:
 
 ```yaml
@@ -482,5 +482,5 @@ When adding a new alert rule, before you open the PR:
 - [vmalert-tool official docs](https://docs.victoriametrics.com/victoriametrics/vmalert-tool/)
 - [Prometheus unit testing for alerting rules](https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/)
 - [Prometheus `histogram_quantile()`](https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_quantile)
-- Working example in this repository: [`test/alerts-tests/`](../test/alerts-tests/)
-  and [`.github/workflows/test-alert-rules-unit-tests.yaml`](../.github/workflows/test-alert-rules-unit-tests.yaml)
+- Working example in this repository: [`test/alerts-tests/`](../../test/alerts-tests/)
+  and [`.github/workflows/test-alert-rules-unit-tests.yaml`](../../.github/workflows/test-alert-rules-unit-tests.yaml)
