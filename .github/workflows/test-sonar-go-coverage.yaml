@@ -1,15 +1,33 @@
-name: Go test with Sonar
+---
+name: "Tests: Go test with Sonar"
+
 on:
   push:
     branches:
       - main
     tags:
       - 'v*'
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
 
 permissions:
   contents: read
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -17,6 +35,9 @@ jobs:
       sonar-project-key: ${{ steps.config.outputs.sonar-project-key }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
       - name: Resolve sonar project key based on restricted actors
         id: config
         env:
