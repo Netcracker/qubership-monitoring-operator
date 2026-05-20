@@ -150,8 +150,8 @@ func (r *ComponentReconciler) CreateResource(cr *monv1.PlatformMonitoring, o K8s
 	}
 	if setRef {
 		if err := controllerutil.SetControllerReference(cr, o, r.Scheme); err != nil {
-			if !(strings.Contains(err.Error(), "cluster-scoped resource must not have a namespace-scoped owner") ||
-				strings.Contains(err.Error(), "cross-namespace owner references are disallowed")) {
+			if !strings.Contains(err.Error(), "cluster-scoped resource must not have a namespace-scoped owner") &&
+				!strings.Contains(err.Error(), "cross-namespace owner references are disallowed") {
 				return err
 			}
 		}
