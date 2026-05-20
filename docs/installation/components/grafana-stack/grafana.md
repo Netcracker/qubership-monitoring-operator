@@ -1,5 +1,11 @@
 ### grafana
 
+Sensitive parameters are configured via files mounted from Kubernetes Secrets:
+
+- `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD` are read from `/{grafana-name}-admin-credentials` Secret using Grafana file provider (`$__file{...}`).
+- `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` is read from `grafana-oauth-client-secret` Secret using Grafana file provider (`$__file{...}`).
+- `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` remains a non-sensitive value and may stay in environment variables.
+
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                                                |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
