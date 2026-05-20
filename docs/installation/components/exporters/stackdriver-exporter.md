@@ -1,4 +1,4 @@
-### stackdriver-exporter
+# stackdriver-exporter
 
 <!-- markdownlint-disable line-length -->
 | Field                               | Description                                                                                                                                                                                                                                                  | Scheme                                                                                                                       |
@@ -114,5 +114,3 @@ stackdriverExporter:
   priorityClassName: priority-class
 ```
 <!-- markdownlint-enable line-length -->
-
-

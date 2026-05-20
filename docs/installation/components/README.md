@@ -7,7 +7,7 @@ This section contains detailed configuration documentation for all monitoring co
 ### Core Monitoring Stack
 
 * **[AlertManager](prometheus-stack/alertmanager.md)** - Alert routing, grouping, and notification management
-* **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform 
+* **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform
 * **[VictoriaMetrics](victoriametrics-stack/victoriametrics.md)** - Time series database and storage
 
 ### Prometheus Stack
@@ -59,6 +59,7 @@ This section contains detailed configuration documentation for all monitoring co
 <!-- Components can be configured with TLS certificates for secure communication. See [TLS Configuration](../monitoring-configuration/tls.md). -->
 
 ### Resource Management
+
 All components support resource requests and limits configuration:
 
 ```yaml
@@ -72,6 +73,7 @@ resources:
 ```
 
 ### Ingress Configuration
+
 Web-based components (Grafana, AlertManager, VictoriaMetrics) can be exposed via ingress:
 
 ```yaml
@@ -83,6 +85,7 @@ ingress:
 ```
 
 ### Security Context
+
 Components can run with specific security contexts:
 
 ```yaml
@@ -96,4 +99,4 @@ securityContext:
 
 1. Review component-specific configuration files above
 2. See [Examples](../../examples/) for complete configuration examples
-3. Check [Configuration Best Practices](../../user-guides/best-practices.md) 
+3. Check [Configuration Best Practices](../../user-guides/best-practices.md)

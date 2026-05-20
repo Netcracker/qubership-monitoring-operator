@@ -1,4 +1,4 @@
-### node-exporter
+# node-exporter
 
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |
@@ -49,10 +49,8 @@ nodeExporter:
   collectorTextfileDirectory: /var/spool/monitoring
   extraArgs:
     - --collector.systemd
-  
+
   serviceMonitor:
     interval: 60s
     ...
 ```
-
-

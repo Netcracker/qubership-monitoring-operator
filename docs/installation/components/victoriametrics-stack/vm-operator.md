@@ -1,4 +1,4 @@
-#### vmoperator
+# vmoperator
 
 <!-- markdownlint-disable line-length -->
 | Field                            | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |
@@ -86,4 +86,3 @@ victoriametrics:
         renewBefore: 15
         secretName: "vmoperator-tls-secret"
 ```
-

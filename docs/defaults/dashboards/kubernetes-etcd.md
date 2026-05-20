@@ -9,7 +9,7 @@ Etcd Dashboard for Prometheus metrics scraper
 
 ## Panels
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Etcd has a leader? | Indicates whether the members have a leader.<br/><br/>Yes - all members have a leader.<br/>No - one or more members haven't a leader. | Default:<br/>Mode: absolute<br/>Level 1: 1<br/><br/> |  |
@@ -38,4 +38,4 @@ Etcd Dashboard for Prometheus metrics scraper
 | Snapshot Duration | Abnormally high snapshot duration (snapshot_save_total_duration_seconds) indicates disk issues and might cause the cluster to be unstable. |  |  |
 | Snapshot Fsync Duration | The latency distributions of fsync called by snap |  |  |
 | Snapshot DB File Duration | The latency distributions of saving and fsyncing `.snap.db` files.  |  |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

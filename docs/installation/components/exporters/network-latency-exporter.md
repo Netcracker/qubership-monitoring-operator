@@ -1,4 +1,4 @@
-### network-latency-exporter
+# network-latency-exporter
 
 **Important**: In some cases, TCP and UDP probes can show large packet loss not due to network problems, but due to system
 settings. The `net.ipv4.icmp_ratelimit` kernel parameter with a default value of `1000` prevents a node from sending "
@@ -96,5 +96,3 @@ networkLatencyExporter:
     enabled: true
     interval: 30s
 ```
-
-

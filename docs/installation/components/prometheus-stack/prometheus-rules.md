@@ -1,4 +1,4 @@
-### prometheus-rules
+# prometheus-rules
 
 <!-- markdownlint-disable line-length -->
 | Field       | Description                                                                                                                                                                                                            | Scheme            |
@@ -35,5 +35,3 @@ prometheusRules:
   annotations:
     annotation.key: annotation-value
 ```
-
-

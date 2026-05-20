@@ -1,4 +1,4 @@
-### cloudwatch-exporter
+# cloudwatch-exporter
 
 cloudwatchExporter is a specification of the desired deployment of cloudwatch-exporter.
 
@@ -120,3 +120,4 @@ cloudwatchExporter:
     aws_access_key_id: <access_key_id>
     aws_secret_access_key: <secret_access_key>
   config: |-
+```

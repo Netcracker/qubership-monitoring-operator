@@ -8,7 +8,7 @@ There are no tags on this dashboard
 
 ## Panels
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | *TODO: Add panel name* | *TODO: Fill panel description* |  |  |
@@ -21,4 +21,4 @@ There are no tags on this dashboard
 | Favorite | Show your favorite dashboards |  |  |
 | Standalone hosts | Show dashboard with "standalone" tag |  |  |
 | Kubernetes | Show dashboards with "k8s" tag |  |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

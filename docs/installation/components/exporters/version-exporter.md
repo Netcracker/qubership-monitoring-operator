@@ -1,6 +1,5 @@
-### version-exporter
+# version-exporter
 
-#### install parameters
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                                                                  | Scheme                                                                                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -28,7 +27,7 @@
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                                                        | string                                                                                                                                     |
 <!-- markdownlint-enable line-length -->
 
-#### arguments
+## arguments
 
 <!-- markdownlint-disable line-length -->
 | Name                   | Description                                                  | Default value                             |
@@ -41,12 +40,12 @@
 | `--config.watch`       | Directory for watching change config map events.             | /config ("" means watching is turned off) |
 <!-- markdownlint-enable line-length -->
 
-#### postgres collector parameters
+## postgres collector parameters
 
 <!-- markdownlint-disable line-length -->
 | Field                        | Description                                                                                                                                                                                     | Scheme       |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| host                         | Postgres hostname or ip to connect to. A part of postgres URL. Must be unique.                                                                                                                 | string       |
+| host                         | Postgres hostname or ip to connect to. A part of postgres URL. Must be unique.                                                                                                                  | string       |
 | port                         | Postgres port number to connect to at the server host.                                                                                                                                          | string       |
 | credentials.username.key     | Credentials for basic authentication. Secret key                                                                                                                                                | string       |
 | credentials.username.name    | Credentials for basic authentication. Secret name                                                                                                                                               | string       |
@@ -76,3 +75,4 @@ Example:
 ```yaml
 postgres_collector:
   connections:
+```

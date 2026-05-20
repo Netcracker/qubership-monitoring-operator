@@ -24,17 +24,17 @@
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | DeadMansSwitch | An always-firing Dead Man's Switch alert (instance {{ $labels.instance }}) | 3m | information | vector(1) | This is an alert meant to ensure that the entire alerting pipeline is functional. This alert should always be firing.<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### SelfMonitoring
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | PrometheusJobMissing | Prometheus job missing (instance {{ $labels.instance }}) | 5m | warning | absent(up{job=\~".\*prometheus\-pod\-monitor"}) | A Prometheus job has disappeared<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
@@ -59,25 +59,25 @@
 | PrometheusTsdbReloadFailures | Prometheus TSDB reload failures (instance {{ $labels.instance }}) | 5m | critical | increase(prometheus_tsdb_reloads_failures_total[3m]) \> 0 | Prometheus encountered {{ $value }} TSDB reload failures<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | PrometheusTsdbWalCorruptions | Prometheus TSDB WAL corruptions (instance {{ $labels.instance }}) | 5m | critical | increase(prometheus_tsdb_wal_corruptions_total[3m]) \> 0 | Prometheus encountered {{ $value }} TSDB WAL corruptions<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | PrometheusTsdbWalTruncationsFailed | Prometheus TSDB WAL truncations failed (instance {{ $labels.instance }}) | 5m | critical | increase(prometheus_tsdb_wal_truncations_failed_total[3m]) \> 0 | Prometheus encountered {{ $value }} TSDB WAL truncation failures<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### AlertManager
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | PrometheusAlertmanagerConfigurationReloadFailure | Prometheus AlertManager configuration reload failure (instance {{ $labels.instance }}) | 5m | warning | alertmanager_config_last_reload_successful != 1 | AlertManager configuration reload error<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | PrometheusNotConnectedToAlertmanager | Prometheus not connected to alertmanager (instance {{ $labels.instance }}) | 5m | critical | prometheus_notifications_alertmanagers_discovered < 1 | Prometheus cannot connect the alertmanager<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | PrometheusAlertmanagerNotificationFailing | Prometheus AlertManager notification failing (instance {{ $labels.instance }}) | 5m | high | rate(alertmanager_notifications_failed_total[2m]) \> 0 | Alertmanager is failing sending notifications<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### KubernetesAlerts
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | KubernetesNodeReady | Kubernetes Node ready (instance {{ $labels.instance }}) | 5m | critical | kube_node_status_condition{condition="Ready",status="true"} == 0 | Node {{ $labels.node }} has been unready for a long time<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
@@ -110,23 +110,23 @@
 | KubernetesApiClientErrors | Kubernetes API client errors (instance {{ $labels.instance }}) | 5m | critical | (sum(rate(rest_client_requests_total{code=\~"(4&#124;5).."}[2m])) by (instance, job) / sum(rate(rest_client_requests_total[2m])) by (instance, job)) \* 100 \> 5 | Kubernetes API client is experiencing high error rate<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | KubernetesClientCertificateExpiresNextWeek | Kubernetes client certificate expires next week (instance {{ $labels.instance }}) | 5m | warning | (apiserver_client_certificate_expiration_seconds_count{job="kubelet"}) \> 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubelet"}[5m]))) < 604800 | A client certificate used to authenticate to the apiserver is expiring next week.<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | KubernetesClientCertificateExpiresSoon | Kubernetes client certificate expires soon (instance {{ $labels.instance }}) | 5m | critical | (apiserver_client_certificate_expiration_seconds_count{job="kubelet"}) \> 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubelet"}[5m]))) < 86400 | A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours.<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### NodeProcesses
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | CountPidsAndThreadOutOfLimit | Host high PIDs and Threads usage (instance {{ $labels.instance }}) | 5m | high | (sum(container_processes) by (node) \+  on (node) label_replace(node_processes_threads \* on(instance) group_left(nodename) (node_uname_info), "node", "$1", "nodename", "(.\+)")) / on (node) label_replace(node_processes_max_processes \* on(instance) group_left(nodename) (node_uname_info), "node", "$1", "nodename", "(.\+)") \* 100 \> 80 | Sum of node's pids and threads is filling up (< 20% left)<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### NodeExporters
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | NodeDiskUsageIsMoreThanThreshold | Disk usage on node > 70% (instance {{ $labels.node }}) | 5m | warning | (node_filesystem_size_bytes{fstype=\~"ext.\*&#124;xfs", mountpoint !\~".\*pod.\*"} \- node_filesystem_free_bytes{fstype=\~"ext.\*&#124;xfs", mountpoint !\~".\*pod.\*"}) \* 100 / (node_filesystem_avail_bytes{fstype=\~"ext.\*&#124;xfs", mountpoint !\~".\*pod.\*"} \+ (node_filesystem_size_bytes{fstype=\~"ext.\*&#124;xfs", mountpoint !\~".\*pod.\*"} \- node_filesystem_free_bytes{fstype=\~"ext.\*&#124;xfs", mountpoint !\~".\*pod.\*"})) \> 70 | Node {{ $labels.node }} disk usage of {{ $labels.mountpoint }} is<br/>  VALUE = {{ $value }}% | {} | {} |
@@ -143,26 +143,26 @@
 | HostUnusualDiskReadLatency | Host unusual disk read latency (instance {{ $labels.instance }}) | 5m | warning | (rate(node_disk_read_time_seconds_total[2m]) / rate(node_disk_reads_completed_total[2m])) \* on(instance) group_left(nodename) node_uname_info \> 100 | Disk latency is growing (read operations \> 100ms)<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | HostUnusualDiskWriteLatency | Host unusual disk write latency (instance {{ $labels.instance }}) | 5m | warning | (rate(node_disk_write_time_seconds_total[2m]) / rate(node_disk_writes_completed_total[2m])) \* on(instance) group_left(nodename) node_uname_info \> 100 | Disk latency is growing (write operations \> 100ms)<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | HostHighCpuLoad | Host high CPU load (instance {{ $labels.instance }}) | 5m | warning | 100 \- ((avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) \* 100) \* on (instance) group_left (nodename) node_uname_info) \> 80 | CPU load is \> 80%<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### DockerContainers
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | ContainerKilled | Container killed (instance {{ $labels.instance }}) | 5m | warning | time() \- container_last_seen \> 60 | A container has disappeared<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | ContainerVolumeUsage | Container Volume usage (instance {{ $labels.instance }}) | 5m | warning | (1 \- (sum(container_fs_inodes_free) BY (node) / sum(container_fs_inodes_total) BY (node))) \* 100 \> 80 | Container Volume usage is above 80%<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | ContainerVolumeIoUsage | Container Volume IO usage (instance {{ $labels.instance }}) | 5m | warning | (sum(container_fs_io_current) BY (node, name) \* 100) \> 80 | Container Volume IO usage is above 80%<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | ContainerHighThrottleRate | Container high throttle rate (instance {{ $labels.instance }}) | 5m | warning | rate(container_cpu_cfs_throttled_seconds_total[3m]) \> 1 | Container is being throttled<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### HAmode
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | NotHAKubernetesDeploymentAvailableReplicas | Not HA mode: Deployment Available Replicas < 2 (instance {{ $labels.instance }}) | 5m | warning | `kube_deployment_status_replicas_available < 2` | Not HA mode: Kubernetes Deployment has less than 2 available replicas<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
@@ -171,13 +171,13 @@
 | NotHAKubernetesStatefulSetDesiredReplicas | Not HA mode: StatefulSet Desired Replicas < 2 (instance {{ $labels.instance }}) | 5m | warning | `kube_statefulset_status_replicas < 2` | Not HA mode: Kubernetes StatefulSet has less than 2 desired replicas<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | NotHAKubernetesDeploymentMultiplePodsPerNode | Not HA mode: Deployment Has Multiple Pods per Node (instance {{ $labels.instance }}) | 5m | warning | `count(sum(kube_pod_info{node=\~".\+", created_by_kind="ReplicaSet"}) by (namespace, node, created_by_name) \> 1) \> 0` | Not HA mode: Kubernetes Deployment has 2 or more replicas on the same node<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | NotHAKubernetesStatefulSetMultiplePodsPerNode | Not HA mode: StatefulSet Has Multiple Pods per Node (instance {{ $labels.instance }}) | 5m | warning | `count(sum(kube_pod_info{node=\~".\+", created_by_kind="StatefulSet"}) by (namespace, node, created_by_name) \> 1) \> 0` | Not HA mode: Kubernetes StatefulSet has 2 or more replicas on the same node<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### HAProxy
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | HaproxyDown | HAProxy down (instance {{ $labels.instance }}) | 5m | critical | haproxy_up == 0 | HAProxy down<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
@@ -191,13 +191,13 @@
 | HaproxyServerDown | HAProxy server down (instance {{ $labels.instance }}) | 5m | critical | haproxy_server_up == 0 | HAProxy server is down<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | HaproxyFrontendSecurityBlockedRequests | HAProxy frontend security blocked requests (instance {{ $labels.instance }}) | 5m | warning | sum by (frontend) (rate(haproxy_frontend_requests_denied_total[5m])) \> 10 | HAProxy is blocking requests for security reason<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | HaproxyServerHealthcheckFailure | HAProxy server healthcheck failure (instance {{ $labels.instance }}) | 5m | warning | increase(haproxy_server_check_failures_total[5m]) \> 0 | Some server healthcheck are failing on {{ $labels.server }}<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Etcd
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | EtcdInsufficientMembers | Etcd insufficient Members (instance {{ $labels.instance }}) | 5m | critical | count(etcd_server_id{job="etcd"}) % 2 == 0 | Etcd cluster should have an odd number of members<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
@@ -210,24 +210,24 @@
 | EtcdHighNumberOfFailedProposals | Etcd high number of failed proposals (instance {{ $labels.instance }}) | 5m | warning | increase(etcd_server_proposals_failed_total[1h]) \> 5 | Etcd server got more than 5 failed proposals past hour<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdHighFsyncDurations | Etcd high fsync durations (instance {{ $labels.instance }}) | 5m | warning | histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m])) \> 0.5 | Etcd WAL fsync duration increasing, 99th percentil is over 0.5s for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
 | EtcdHighCommitDurations | Etcd high commit durations (instance {{ $labels.instance }}) | 5m | warning | histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[5m])) \> 0.25 | Etcd commit duration increasing, 99th percentil is over 0.25s for 5 minutes<br/>  VALUE = {{ $value }}<br/>  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### NginxIngressAlerts
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | NginxHighHttp4xxErrorRate | Nginx high HTTP 4xx error rate (node: {{ $labels.node }}, namespace: {{ $labels.exported_namespace }}, ingress: {{ $labels.ingress }}) | 1m | high | sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests{status=\~"^4.."}[2m])) / sum by (ingress, exported_namespace, node)(rate(nginx_ingress_controller_requests[2m])) \* 100 \> 5 | Too many HTTP requests with status 4xx (\> 5%)<br/>  VALUE = {{ $value }}<br/>  LABELS = {{ $labels }} | {} | {} |
 | NginxHighHttp5xxErrorRate | Nginx high HTTP 5xx error rate (node: {{ $labels.node }}, namespace: {{ $labels.exported_namespace }}, ingress: {{ $labels.ingress }}) | 1m | high | sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests{status=\~"^5.."}[2m])) / sum by (ingress, exported_namespace, node) (rate(nginx_ingress_controller_requests[2m])) \* 100 \> 5 | Too many HTTP requests with status 5xx (\> 5%)<br/>  VALUE = {{ $value }}<br/>  LABELS = {{ $labels }} | {} | {} |
 | NginxLatencyHigh | Nginx latency high (node: {{ $labels.node }}, host: {{ $labels.host }}) | 2m | warning | histogram_quantile(0.99, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket[2m])) by (host, node, le)) \> 3 | Nginx p99 latency is higher than 3 seconds<br/>  VALUE = {{ $value }}<br/>  LABELS = {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### CoreDnsAlerts
 
 #### Alerting rules
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | CorednsPanicCount | CoreDNS Panic Count (instance {{ $labels.instance }}) | 0m | critical | increase(coredns_panics_total[1m]) \> 0 | Number of CoreDNS panics encountered<br/>  VALUE = {{ $value }}<br/>  LABELS = {{ $labels }} | {} | {} |
@@ -239,30 +239,30 @@
 | CoreDNSForwardLatencyHigh | CoreDNS has 99th percentile latency for forwarding requests | 5m | critical | histogram_quantile(0.99, sum(rate(coredns_forward_request_duration_seconds_bucket[2m])) by(to, le)) \> 3 | CoreDNS has 99th percentile latency of {{ $value }} seconds forwarding requests to {{ $labels.to }} | {} | {} |
 | CoreDNSForwardErrorsHigh | CoreDNS is returning SERVFAIL for forward requests | 5m | critical | sum(rate(coredns_forward_responses_total{rcode="SERVFAIL"}[2m])) / sum(rate(coredns_forward_responses_total[2m])) \> 0.03 | CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of forward requests to {{ $labels.to }} | {} |
 | CoreDNSForwardErrorsHigh | CoreDNS is returning SERVFAIL for forward requests | 5m | warning | sum(rate(coredns_forward_responses_total{rcode="SERVFAIL"}[2m])) / sum(rate(coredns_forward_responses_total[2m])) \> 0.01 | CoreDNS is returning SERVFAIL for {{ $value | humanizePercentage }} of forward requests to {{ $labels.to }} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### DRAlerts
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | ProbeFailed | Probe failed (instance: {{ $labels.instance }}) | 5m | critical | probe_success == 0 | Probe failed\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }} | {} | {} |
 | SlowProbe | Slow probe (instance: {{ $labels.instance }}) | 5m | warning | avg_over_time(probe_duration_seconds[1m]) > 1 | Blackbox probe took more than 1s to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }} | {} | {} |
 | HttpStatusCode | HTTP Status Code (instance: {{ $labels.instance }}) | 5m | high | probe_http_status_code <= 199 OR probe_http_status_code >= 400 | HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }} | {} | {} |
 | HttpSlowRequests | HTTP slow requests (instance: {{ $labels.instance }}) | 5m | warning | avg_over_time(probe_http_duration_seconds[1m]) > 1 | HTTP request took more than 1s\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### BackupAlerts
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | Last Backup Failed | Last backup made by pod {{ $labels.pod }} in namespace {{ $labels.namespace }} failed. | 1m | warning | backup_storage_last_failed != 0 | Last backup made by pod {{ $labels.pod }} in namespace {{ $labels.namespace }} failed.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }} | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ## Cert-exporter
 
@@ -270,7 +270,7 @@
 
 #### Alerting rules
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Summary | For | Severity | Expression | Description | Other labels | Other annotations |
 | ---- | ------- | --- | -------- | ---------- | ----------- | ------------ | ----------------- |
 | FileCerts30DaysRemaining | Certificates from files expire within 30 days | 10m | warning | count(86400 \* 7 < cert_exporter_cert_expires_in_seconds <= 86400 \* 30) \> 0 | Some certificates from files expire within 30 days. | {} | {} |
@@ -282,4 +282,4 @@
 | SecretCerts30DaysRemaining | Certificates from secrets expire within 30 days | 10m | warning | count(86400 \* 7 < cert_exporter_secret_expires_in_seconds <= 86400 \* 30) \> 0 | Some certificates from secrets expire within 30 days. | {} | {} |
 | SecretCerts7DaysRemaining | Certificates from secrets expire within 7 days | 10m | high | count(0 < cert_exporter_secret_expires_in_seconds <= 86400 \* 7) \> 0 | Some certificates from secrets expire within 7 days. | {} | {} |
 | SecretCertsExpired | Certificates from secrets expired | 10m | critical | count(cert_exporter_secret_expires_in_seconds <= 0) \> 0 | Some certificates from secrets already expired. | {} | {} |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

@@ -10,7 +10,7 @@ A dashboard for the CoreDNS DNS server.
 
 ## Panels
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Requests (total) | Shows total requests by protocol (udp, tcp) | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
@@ -26,4 +26,4 @@ A dashboard for the CoreDNS DNS server.
 | Requests (size, udp/tcp) | Request size for "udp/tcp" protocol | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Cache (hitrate) | Counter of cache hits by cache type. | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Cache (count) | Total elements in the cache by cache type. | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

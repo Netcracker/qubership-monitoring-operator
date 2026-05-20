@@ -12,7 +12,7 @@ Overview for VictoriaMetrics vmalert v1.73.0 or higher
 
 ### General ($instance)
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name                                    | Description                                                                                                                                                                       | Thresholds                                            | Repeat |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------ |
 | Config error                            | Shows if the last configuration update was successful. "Not OK" means there was an unsuccessful attempt to update the configuration due to some error. Check the log for details. |                                                       |        |
@@ -25,11 +25,11 @@ Overview for VictoriaMetrics vmalert v1.73.0 or higher
 | Groups avg evaluation duration ($group) | Average evaluation duration by group. Basically  means how long it takes to execute all the rules per each group.                                                                 |                                                       |        |
 | Rules execution rate ($instance)        | Shows how many requests (executions) per second vmalert sends to the configured datasource.                                                                                       |                                                       |        |
 | Rules execution errors ($instance)      | Shows the error rate while executing configured rules. Non-zero value means there are some issues with existing rules. Check the logs to get more details.                        |                                                       |        |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Alerting rules ($instance)
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name                                   | Description                                                                                                                                                                                                                             | Thresholds | Repeat |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
 | Active ($group)                        | Shows the current active (firing) alerting rules per group.                                                                                                                                                                             |            |        |
@@ -37,25 +37,25 @@ Overview for VictoriaMetrics vmalert v1.73.0 or higher
 | Pending ($group)                       | Shows the current pending alerting rules per group.<br/>By pending means the rule which remains active less than configured `for` parameter.                                                                                            |            |        |
 | Requests rate to Alertmanager ($group) | Shows how many alerts are sent to Alertmanager per second. Only active alerts are sent.                                                                                                                                                 |            |        |
 | Errors rate to Alertmanager ($group)   | Shows the error rate for the attempts to send alerts to Alertmanager. If not zero it means there issues on attempt to send notification to Alertmanager and some alerts may be not delivered properly. Check the logs for more details. |            |        |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Recording rules ($instance)
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name                                      | Description                                                                                                                                                                                                                                                                                       | Thresholds                                            | Repeat |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------ |
 | Top 10 rules by produced samples ($group) | Shows the top 10 recording rules which generate the most of samples. Each generated sample is basically a time series which then ingested into configured remote storage. Rules with high numbers may cause the most pressure on the remote database and become a source of too high cardinality. |                                                       |        |
 | Rules with 0 produced samples ($group)    | Shows the rules which do not produce any samples during the evaluation. Usually it means that such rules are misconfigured, since they give no output during the evaluation.<br/>Please check if rule's expression is correct and it is working as expected.                                      | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |        |
 | Errors ($group)                           | *TODO: Fill panel description*                                                                                                                                                                                                                                                                    |                                                       |        |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Resource usage
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name                     | Description                                                                                                                                                                                                                                                                                                                                                                                   | Thresholds | Repeat |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
 | CPU ($instance)          | Shows the CPU usage percentage per vmalert instance. <br/>If you think that usage is abnormal or unexpected pls file an issue and attach CPU profile if possible.                                                                                                                                                                                                                             |            |        |
 | Memory usage ($instance) | Amount of used memory<br/><br/>Resident memory shows share which can be freed by OS when needed.<br/><br/>Anonymous shows share for memory allocated by the process itself. This share cannot be freed by the OS, so it must be taken into account by OOM killer.<br/><br/>If you think that usage is abnormal or unexpected, please file an issue and attach memory profile if possible.     |            |        |
 | Open FDs ($instance)     | Panel shows the percentage of open file descriptors in the OS.<br/>Reaching the limit of open files can cause various issues and must be prevented.<br/><br/>See how to change limits here [https://medium.com/@muhammadtriwibowo/set-permanently-ulimit-n-open-files-in-ubuntu-4d61064429a](https://medium.com/@muhammadtriwibowo/set-permanently-ulimit-n-open-files-in-ubuntu-4d61064429a) |            |        |
 | Goroutines ($instance)   | *TODO: Fill panel description*                                                                                                                                                                                                                                                                                                                                                                |            |        |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

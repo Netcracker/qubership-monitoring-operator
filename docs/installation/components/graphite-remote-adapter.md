@@ -1,4 +1,4 @@
-### graphite-remote-adapter
+# graphite-remote-adapter
 
 <!-- markdownlint-disable line-length -->
 | Field                    | Description                                                                                                                                                                                                                | Scheme                                                                                                                       |
@@ -11,7 +11,7 @@
 | securityContext          | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                         | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podsecuritycontext-v1-core)    |
 | tolerations              | Tolerations allow the pods to schedule onto nodes with matching taints.                                                                                                                                                    | []v1.Toleration                                                                                                              |
 | nodeSelector             | Defines which nodes the pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                                         | map[string]string                                                                                                            |
-| affinity                                            | If specified, the pod's scheduling constraints                                                                                                                                                                                      | *v1.Affinity                                                                                                                   |
+| affinity                 | If specified, the pod's scheduling constraints                                                                                                                                                                             | *v1.Affinity                                                                                                                 |
 | annotations              | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value"     | map[string]string                                                                                                            |
 | labels                   | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                           | map[string]string                                                                                                            |
 | servicemonitor           | ServiceMonitor holds configuration attributes for graphite-remote-adapter.                                                                                                                                                 | object                                                                                                                       |
@@ -45,7 +45,7 @@ graphite_remote_adapter:
   name: graphite-remote-adapter
   image: ghcr.io/netcracker/qubership-graphite-remote-adapter:latest
   replicas: 1
-  
+
     limits:
       cpu: 200m
       memory: 200Mi
@@ -104,5 +104,3 @@ graphite_remote_adapter:
             foo: bar
           var2: foobar
 ```
-
-

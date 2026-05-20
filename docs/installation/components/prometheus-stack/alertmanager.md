@@ -1,4 +1,4 @@
-### alertmanager
+# alertmanager
 
 AlertManager is a specification of the desired behavior of the AlertManager cluster.
 
@@ -9,9 +9,9 @@ AlertManager is a specification of the desired behavior of the AlertManager clus
 | paused            | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                         |
 | image             | A Docker image to use for AlertManager deployment.                                                                                                                                                                     | string                                                                                                                       |
 | ingress           | Ingress allows to create Ingress for the AlertManager UI.                                                                                                                                                              | *[Ingress](#ingress)                                                                                                         |
-| httpRoute         | HTTPRoute allows to create Gateway API HTTPRoute for the AlertManager UI.                                                                                                                                             | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                               |
+| httpRoute         | HTTPRoute allows to create Gateway API HTTPRoute for the AlertManager UI.                                                                                                                                              | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                     |
 | nodeSelector      | Defines which nodes the pods are scheduled on. Specified just as map[string]string. For example: "type: compute"                                                                                                       | map[string]string                                                                                                            |
-| affinity                                            | If specified, the pod's scheduling constraints                                                                                                                                                                                      | *v1.Affinity                                                                                                                   |
+| affinity          | If specified, the pod's scheduling constraints                                                                                                                                                                         | *v1.Affinity                                                                                                                 |
 | annotations       | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value" | map[string]string                                                                                                            |
 | labels            | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                       | map[string]string                                                                                                            |
 | port              | The port for AlertManager service.                                                                                                                                                                                     | int                                                                                                                          |
@@ -52,4 +52,3 @@ alertManager:
   podMonitor:
     ...see example by link...
 ```
-

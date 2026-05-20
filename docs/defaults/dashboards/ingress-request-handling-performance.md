@@ -10,7 +10,7 @@ There is no description on this dashboard
 
 ## Panels
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Total request handling time | Total time taken for nginx and upstream servers to process a request and send a response |  |  |
@@ -22,4 +22,4 @@ There is no description on this dashboard
 | Response error volume by Path | Show request errors with 4xx, 5xx codes by path |  |  |
 | Average response size by Path | Show average response size by path |  |  |
 | Upstream service latency | Show average upstream service latency |  |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

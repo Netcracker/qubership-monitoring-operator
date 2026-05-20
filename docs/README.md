@@ -6,24 +6,28 @@ Production-ready monitoring stack for Kubernetes in a single Custom Resource.
 
 * **One-Click Stack** – deploy metrics storage, dashboards and alerting with a single `PlatformMonitoring` object.
 * **Backend Choice** – pick **VictoriaMetrics** or **Prometheus** depending on scale & preferences.
-* **Open-Source Exporters Included** – 20+ exporters wired out of the box: node, kube-state, blackbox, cert, JSON, network-latency, Pushgateway, and more.
-* **Public-Cloud Ready** – native integrations with **AWS CloudWatch**, **Azure Monitor / Promitor**, **Google Cloud Operations (Stackdriver)**.
+* **Open-Source Exporters Included** – 20+ exporters wired out of the box: node, kube-state, blackbox,
+  cert, JSON, network-latency, Pushgateway, and more.
+* **Public-Cloud Ready** – native integrations with **AWS CloudWatch**, **Azure Monitor / Promitor**,
+  **Google Cloud Operations (Stackdriver)**.
 * **Pre-built Dashboards & Alerts** – Grafana dashboards and alert rules for Kubernetes, infrastructure and common services.
 * **HA & Zero-Downtime** – supports rolling upgrades, replication and persistent storage.
 * **Operator Pattern** – automatic reconciliation, drift protection, GitOps-friendly.
 
 ## Core Modules
 
-| Module | Purpose |
-| --- | --- |
-| Monitoring Operator | Reconciles the entire stack from the `PlatformMonitoring` CR |
-| VictoriaMetrics / Prometheus | Scalable time-series database |
-| Grafana & Grafana Operator | Visualization, dashboards, data-sources |
-| AlertManager / VMAlert | Alert routing & notifications |
-| Exporters | node-exporter, kube-state-metrics, blackbox-exporter, cert-exporter, json-exporter, network-latency-exporter, version-exporter, etc. |
-| Cloud Exporters | cloudwatch-exporter, promitor-agent, stackdriver-exporter |
-| Prometheus Adapter | Custom & external metrics for HPA/KEDA |
-| Optional Tools | promxy, graphite-remote-adapter, Pushgateway |
+<!-- markdownlint-disable line-length -->
+| Module                       | Purpose                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Monitoring Operator          | Reconciles the entire stack from the `PlatformMonitoring` CR                                                                         |
+| VictoriaMetrics / Prometheus | Scalable time-series database                                                                                                        |
+| Grafana & Grafana Operator   | Visualization, dashboards, data-sources                                                                                              |
+| AlertManager / VMAlert       | Alert routing & notifications                                                                                                        |
+| Exporters                    | node-exporter, kube-state-metrics, blackbox-exporter, cert-exporter, json-exporter, network-latency-exporter, version-exporter, etc. |
+| Cloud Exporters              | cloudwatch-exporter, promitor-agent, stackdriver-exporter                                                                            |
+| Prometheus Adapter           | Custom & external metrics for HPA/KEDA                                                                                               |
+| Optional Tools               | promxy, graphite-remote-adapter, Pushgateway                                                                                         |
+<!-- markdownlint-enable line-length -->
 
 ## Get Started in 3 Steps
 
@@ -65,5 +69,4 @@ kubectl port-forward svc/monitoring-grafana -n monitoring 3000:3000
 
 ---
 
-
-Start monitoring your cluster in minutes with **Qubership Monitoring Operator**! 
+Start monitoring your cluster in minutes with **Qubership Monitoring Operator**!

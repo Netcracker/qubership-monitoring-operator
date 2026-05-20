@@ -23,7 +23,7 @@ dashboards with the same names have equal UIDs.
 UIDs for OOB monitoring dashboards (managed by monitoring-operator):
 
 | Dashboard name                       | UID (namespace + short name)              |
-|--------------------------------------|-------------------------------------------|
+| ------------------------------------ | ----------------------------------------- |
 | alertmanager-overview                | `<namespace>-alertmanager-overview`       |
 | alerts-overview                      | `<namespace>-alerts-overview`             |
 | core-dns-dashboard                   | `<namespace>-core-dns`                    |
@@ -67,7 +67,7 @@ in both places: in the grafana-operator Helm chart as a ConfigMap and together w
 the operator:
 
 | Dashboard title                      | Helm subchart            | UID (namespace + short name)           |
-|--------------------------------------|--------------------------|----------------------------------------|
+| ------------------------------------ | ------------------------ | -------------------------------------- |
 | Blackbox Probes                      | blackbox-exporter        | `<namespace>-blackbox-probes`          |
 | SSL/TLS Certificates                 | cert-exporter            | `<namespace>-ssl-tls-certs`            |
 | Kafka Java Clients Monitoring        | common-dashboards        | `<namespace>-kafka-java-clients`       |

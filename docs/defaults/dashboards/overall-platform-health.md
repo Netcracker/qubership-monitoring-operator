@@ -12,7 +12,7 @@ applications are deployed out of cloud.
 
 ### Kubernetes overview
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | API server status | Shows status of Kubernetes API server. | Default:<br/>Mode: absolute<br/>Level 1: 1<br/><br/> |  |
@@ -40,20 +40,20 @@ applications are deployed out of cloud.
 | Nodes Unavailable | Shows number of unavailable nodes. | Default:<br/>Mode: absolute<br/>Level 1: 1<br/><br/> |  |
 | Running Pods | Shows the total number of running pods in cluster. Show only pods with `status = ready` |  |  |
 | Running containers | Shows the total number of running containers in pods. |  |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Node health
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Node State | Show running state of all nodes in selected cloud | Default:<br/>Mode: absolute<br/>Level 1: 1<br/>Level 2: 2<br/><br/> |  |
 | Nodes Overview | Shows cluster nodes overview: <br/>  * Node Uptime<br/>  * Total available CPU and RAM on node<br/>  * Overall resources usage on node<br/>  * Can be grouped by node_label | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Applications health
 
-<!-- markdownlint-disable line-length table-column-style -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Total pods | Shows the total number of pods in cluster. |  |  |
@@ -62,4 +62,4 @@ applications are deployed out of cloud.
 | Help | Show information about panels in current section |  |  |
 | Not Healthy Pods | Show information about the reason the container is currently in waiting or terminated state | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Last Terminated Status | Show information about the last reason the container was in terminated state | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
-<!-- markdownlint-enable line-length table-column-style -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
