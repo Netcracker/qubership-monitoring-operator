@@ -1,4 +1,4 @@
-### cloudwatch-exporter
+# Cloudwatch-exporter
 
 cloudwatchExporter is a specification of the desired deployment of cloudwatch-exporter.
 
