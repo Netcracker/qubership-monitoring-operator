@@ -1,4 +1,4 @@
-# Default values for prometheus-adapter-operator.
+﻿# Default values for prometheus-adapter-operator.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -186,7 +186,7 @@ labels: {}
 nodeSelector: {}
 
 # If specified, the pod's scheduling constraints
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 # Type: object
 # Mandatory: no
 # Default: set
@@ -304,7 +304,7 @@ operator:
     # Settings for TLS
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: set

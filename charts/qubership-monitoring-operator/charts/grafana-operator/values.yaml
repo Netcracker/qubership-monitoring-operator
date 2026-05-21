@@ -1,4 +1,4 @@
-# Default values for grafana.
+﻿# Default values for grafana.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -292,7 +292,7 @@ backupDaemonDashboard: true
 ## The result of matchLabels and matchExpressions are ANDed.
 ## An empty label selector matches all objects. A null label selector matches no objects.
 ## The parameter is an array of labelSelector objects
-## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta
+## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta
 # Type: []object
 #
 dashboardLabelSelector: [{}]
@@ -301,7 +301,7 @@ dashboardLabelSelector: [{}]
 ## The result of matchLabels and matchExpressions are ANDed.
 ## An empty label selector matches all objects. A null label selector matches no objects.
 ## The parameter is labelSelector object type
-## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta
+## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta
 # Type: object
 #
 dashboardNamespaceSelector:
@@ -364,7 +364,7 @@ tolerations: []
 nodeSelector: {}
 
 # If specified, the pod's scheduling constraints
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 # Type: object
 # Mandatory: no
 # Default: not set
@@ -530,7 +530,7 @@ operator:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -651,7 +651,7 @@ imageRenderer:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set

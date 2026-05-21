@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
@@ -50,7 +50,7 @@
         },
         "affinity": {
             "type": "object",
-            "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core",
             "default": {}
         },
         "alerting": {
@@ -591,12 +591,12 @@
         },
         "volumeMounts": {
             "type": "object",
-            "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core",
+            "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core",
             "default": {}
         },
         "volumes": {
             "type": "object",
-            "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core",
+            "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core",
             "default": {}
         },
         "auth": {}

@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
@@ -20,7 +20,7 @@
         },
         "affinity": {
             "type": "object",
-            "description": "If specified, the pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "description": "If specified, the pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core",
             "default": {
                 "podAntiAffinity": {
                     "requiredDuringSchedulingIgnoredDuringExecution": [

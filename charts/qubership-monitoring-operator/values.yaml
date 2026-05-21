@@ -1,4 +1,4 @@
-# Default values for monitoring-operator.
+﻿# Default values for monitoring-operator.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -240,7 +240,7 @@ monitoringOperator:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -368,7 +368,7 @@ alertManager:
   # This can be used to allow adding an authentication proxy to a AlertManager pod or to change
   # the behavior of an operator generated container.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   # Replicas spec configuration for Alertmanager
@@ -511,7 +511,7 @@ alertManager:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -685,7 +685,7 @@ kubeStateMetrics:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -871,7 +871,7 @@ nodeExporter:
   tolerations: []
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1402,7 +1402,7 @@ pushgateway:
 
   # Volumes allows configuration of additional volumes on the output StatefulSet definition.
   # Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1412,7 +1412,7 @@ pushgateway:
   # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
   # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
   # that are generated as a result of StorageSpec objects.
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1546,7 +1546,7 @@ pushgateway:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1674,7 +1674,7 @@ integrationTests:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set

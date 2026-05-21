@@ -59,7 +59,6 @@ of CR/CRD. The main part of components in this group it is operators. Operators 
 * [prometheus-operator](#prometheus-operator)
 * [prometheus-adapter-operator](#prometheus-adapter-operator)
 * [vmOperator](#vmoperator)
-* [configuration-streamer](#configuration-streamer)
 
 ### 4. Count of users/requests
 

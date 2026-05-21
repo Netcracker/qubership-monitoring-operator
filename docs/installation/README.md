@@ -1,10 +1,13 @@
 # Installation
 
-This page provides comprehensive instructions for installing the Qubership Monitoring Operator into Kubernetes or OpenShift environments. The documentation covers prerequisites, supported versions, installation procedures, and post-installation verification.
+This page provides comprehensive instructions for installing the Qubership Monitoring Operator into Kubernetes
+or OpenShift environments. The documentation covers prerequisites, supported versions, installation procedures,
+and post-installation verification.
 
 ## Supported Versions
 
-The Qubership Monitoring Operator follows the N±2 Kubernetes version support policy. Currently, the recommended Kubernetes version is 1.26.x.
+The Qubership Monitoring Operator follows the N±2 Kubernetes version support policy.
+Currently, the recommended Kubernetes version is 1.26.x.
 
 | Kubernetes version   | Support Status     |
 | -------------------- | ------------------ |
@@ -14,7 +17,8 @@ The Qubership Monitoring Operator follows the N±2 Kubernetes version support po
 | 1.27.x               | Forward compatible |
 | 1.28.x               | Forward compatible |
 
-For OpenShift compatibility, refer to the equivalent Kubernetes version. For example, OpenShift 4.12 is based on Kubernetes 1.25.0.
+For OpenShift compatibility, refer to the equivalent Kubernetes version.
+For example, OpenShift 4.12 is based on Kubernetes 1.25.0.
 
 **Cloud Platform Support:**
 
@@ -33,7 +37,7 @@ For OpenShift compatibility, refer to the equivalent Kubernetes version. For exa
 Ensure you have the following prerequisites in place before installation:
 
 - Kubernetes 1.19+ or OpenShift 3.11+ cluster
-- `kubectl` 1.19+ or `oc` 3.11+ CLI tools
+- `kubectl` 1.19+ or `oc` 3.11+ command-line tools
 - Helm 3.0+
 - Pre-created namespace for installation
 - Appropriate permissions for deployment
@@ -58,7 +62,8 @@ The monitoring operator requires cluster-level permissions to create and manage 
 - cert-exporter
 - Various exporters and monitors
 
-A ClusterRole must be granted to the monitoring-operator service account with all required permissions. Alternatively, the operator can be deployed with restricted privileges, but additional manual setup is required.
+A ClusterRole must be granted to the monitoring-operator service account with all required permissions.
+Alternatively, the operator can be deployed with restricted privileges, but additional manual setup is required.
 
 ## Hardware Requirements
 
@@ -104,6 +109,7 @@ For detailed information about components, see [Components](components/).
 ### Using Helm
 
 1. **Add the Helm repository:**
+
    ```bash
    helm repo add qubership-monitoring https://your-repo.com/
    helm repo update
@@ -112,6 +118,7 @@ For detailed information about components, see [Components](components/).
 2. **Create values file (values.yaml)** with your customizations or use the default values.
 
 3. **Install the chart:**
+
    ```bash
    helm install monitoring qubership-monitoring/monitoring-operator \
      --namespace monitoring \
@@ -120,6 +127,7 @@ For detailed information about components, see [Components](components/).
    ```
 
 4. **Upgrading the chart:**
+
    ```bash
    helm upgrade monitoring qubership-monitoring/monitoring-operator \
      --namespace monitoring \
@@ -127,6 +135,7 @@ For detailed information about components, see [Components](components/).
    ```
 
 5. **Uninstalling the chart:**
+
    ```bash
    helm uninstall monitoring --namespace monitoring
    ```
@@ -139,27 +148,31 @@ For detailed information about components, see [Components](components/).
 After installing the monitoring operator, verify that all components are running correctly:
 
 1. **Check pod status:**
+
    ```bash
    kubectl get pods -n monitoring
    ```
 
 2. **Verify the operator deployment:**
+
    ```bash
    kubectl get deployment monitoring-operator -n monitoring
    ```
 
 3. **Check Custom Resources:**
+
    ```bash
    kubectl get crd | grep monitoring
    ```
 
 4. **Access Grafana dashboard:**
-   
+
    If ingress is configured, access via URL. Otherwise, use port-forwarding:
+
    ```bash
    kubectl port-forward svc/grafana 3000:3000 -n monitoring
    ```
-   
+
    Default login for Grafana is typically admin/admin unless configured otherwise.
 
 For complete verification procedures, see [Post-Deploy Checks](post-deploy-checks.md).
@@ -173,4 +186,4 @@ After successful installation, you can:
 - Configure monitoring parameters, see [Configuration](../configuration.md)
 - Configure authentication and security, see [Authentication](../monitoring-configuration/authentication.md)
 - Set up alerting rules, see [Troubleshooting](../troubleshooting.md)
-- Review maintenance procedures, see [Maintenance](../maintenance.md) 
+- Review maintenance procedures, see [Maintenance](../maintenance.md)

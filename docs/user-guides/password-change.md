@@ -151,7 +151,7 @@ data:
 type: Opaque
 ```
 
-Update Base64 encoded password and save the file. Close the editor to update the secret.
+Update base64 encoded password and save the file. Close the editor to update the secret.
 Following message confirms the secret was edited successfully.
 
 ```bash

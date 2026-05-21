@@ -33,8 +33,6 @@ rules:
     level: warning
   document-end: disable
   document-start: disable
-  # level: warning
-  # present: false
   empty-lines:
     level: warning
     max: 2
@@ -52,9 +50,6 @@ rules:
   key-duplicates: enable
   key-ordering: disable
   line-length: disable
-  # max: 100
-  # allow-non-breakable-words: true
-  # allow-non-breakable-inline-mappings: true
   new-line-at-end-of-file: disable
   new-lines:
     type: unix

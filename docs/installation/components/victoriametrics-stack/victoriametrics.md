@@ -1,4 +1,4 @@
-#### VictoriaMetrics
+# VictoriaMetrics
 
 For integration with VictoriaMetrics into Monitoring, the chart has the ability to specify RemoteWrite settings.
 
@@ -27,5 +27,3 @@ prometheus:
 The full list of parameters can be viewed at:
 
 * [Prometheus](#prometheus)
-
-

@@ -1,6 +1,5 @@
-### version-exporter
+# version-exporter
 
-#### install parameters
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                                                                  | Scheme                                                                                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -13,8 +12,8 @@
 | serviceAccount.create      | Allow to disable create ServiceAccount during deploy.                                                                                                                                                                                                        | bool                                                                                                                                       |
 | serviceAccount.annotations | Annotations to add to the ServiceAccount during deploy.                                                                                                                                                                                                      | map[string]string                                                                                                                          |
 | serviceAccount.name        | Provide a name of ServiceAccount to use.                                                                                                                                                                                                                     | bool                                                                                                                                       |
-| resources                  | The resources that describe computed resource requests and limits for single pods.                                                                                                                                                                           | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core)               |
-| securityContext            | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                                                           | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)                  |
+| resources                  | The resources that describe computed resource requests and limits for single pods.                                                                                                                                                                           | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core)               |
+| securityContext            | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                                                           | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podsecuritycontext-v1-core)                  |
 | extraArgs                  | Additional arguments for version-exporter container.                                                                                                                                                                                                         | [arguments](#arguments)                                                                                                                    |
 | extraVarsSecret            | Allows set extra system environment variables for Version-exporter into the Secret.                                                                                                                                                                          | list[string]                                                                                                                               |
 | serviceMonitor.enabled     | If true, a ServiceMonitor CRD is created for version-exporter.                                                                                                                                                                                               | boolean                                                                                                                                    |
@@ -22,13 +21,13 @@
 | exporterConfig             | Config for exporters.                                                                                                                                                                                                                                        | [postgres collector parameters](#postgres-collector-parameters)  [http requests collector parameters](#http-requests-collector-parameters) |
 | tolerations                | Tolerations allow the pods to schedule onto nodes with matching taints.                                                                                                                                                                                      | []v1.Toleration                                                                                                                            |
 | nodeSelector               | Defines which nodes the pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                                                                           | map[string]string                                                                                                                          |
-| affinity                   | It specifies the pod's scheduling constraints. For more information, refer to [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core) | *v1.Affinity                                                                                                                               |
+| affinity                   | It specifies the pod's scheduling constraints. For more information, refer to [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core) | *v1.Affinity                                                                                                                               |
 | annotations                | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value"                                       | map[string]string                                                                                                                          |
 | labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                                                             | map[string]string                                                                                                                          |
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                                                        | string                                                                                                                                     |
 <!-- markdownlint-enable line-length -->
 
-#### arguments
+## arguments
 
 <!-- markdownlint-disable line-length -->
 | Name                   | Description                                                  | Default value                             |
@@ -41,12 +40,12 @@
 | `--config.watch`       | Directory for watching change config map events.             | /config ("" means watching is turned off) |
 <!-- markdownlint-enable line-length -->
 
-#### postgres collector parameters
+## postgres collector parameters
 
 <!-- markdownlint-disable line-length -->
 | Field                        | Description                                                                                                                                                                                     | Scheme       |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| host                         | Postgres host name or ip to connect to. A part of postgres url. Must be unique.                                                                                                                 | string       |
+| host                         | Postgres hostname or ip to connect to. A part of postgres URL. Must be unique.                                                                                                                  | string       |
 | port                         | Postgres port number to connect to at the server host.                                                                                                                                          | string       |
 | credentials.username.key     | Credentials for basic authentication. Secret key                                                                                                                                                | string       |
 | credentials.username.name    | Credentials for basic authentication. Secret name                                                                                                                                               | string       |
@@ -54,13 +53,13 @@
 | credentials.password.name    | Credentials for basic authentication. Secret name                                                                                                                                               | string       |
 | db                           | The database name.                                                                                                                                                                              | string       |
 | timeout                      | Max connection life time is the duration since creation after which a connection will be automatically closed.                                                                                  | string       |
-| requests.sql                 | Postgres sql request. Read-Only operations are exclusively supported. To avoid prometheus client errors about metric value duplicate use "select distinct" to selects only the distinct values. | string       |
+| requests.sql                 | Postgres SQL request. Read-Only operations are exclusively supported. To avoid prometheus client errors about metric value duplicate use "select distinct" to selects only the distinct values. | string       |
 | requests.metricName          | Name of new Prometheus metric.                                                                                                                                                                  | string       |
 | requests.description         | Description of new Prometheus metric. Limit 100 symbols.                                                                                                                                        | string       |
-| requests.metrics             | List of the field returned by sql request that is to be used in the metric. The "metrics" list fields will be included into the prometheus metric only.                                         | list[Metric] |
-| requests.metrics.fieldName   | Name of the field returned by sql request that is to be used in the metric. It is to be unique.                                                                                                 | string       |
+| requests.metrics             | List of the field returned by SQL request that is to be used in the metric. The "metrics" list fields will be included into the prometheus metric only.                                         | list[Metric] |
+| requests.metrics.fieldName   | Name of the field returned by SQL request that is to be used in the metric. It is to be unique.                                                                                                 | string       |
 | requests.metrics.label       | Name of new Prometheus metric label. It is to be unique if defined.                                                                                                                             | string       |
-| requests.metrics.valueRegexp | Regular expression applied to results of sql request                                                                                                                                            | string       |
+| requests.metrics.valueRegexp | Regular expression applied to results of SQL request                                                                                                                                            | string       |
 <!-- markdownlint-enable line-length -->
 
 If some requests.sql query is incorrect(e.g. request to non-existent table)
@@ -68,11 +67,12 @@ the appropriate error will be printed and no queries will be executed.
 
 If requests.metrics.label is not defined, use as labels:
 
-1. Named group of regexp
-2. Column name of sql request results
+1. Named group of regular expression
+2. Column name of SQL request results
 
 Example:
 
 ```yaml
 postgres_collector:
   connections:
+```

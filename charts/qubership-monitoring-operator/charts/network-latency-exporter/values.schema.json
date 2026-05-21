@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "description": "Schema for network-latency-exporter Helm values",
@@ -9,7 +9,7 @@
         },
         "affinity": {
             "type": "object",
-            "description": "The pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "description": "The pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core",
             "default": {}
         },
         "annotations": {

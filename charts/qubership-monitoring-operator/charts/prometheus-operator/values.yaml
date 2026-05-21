@@ -1,4 +1,4 @@
-# Default values for prometheus.
+﻿# Default values for prometheus.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -171,7 +171,7 @@ replicas: 1
 # This can be used to allow adding an authentication proxy to a Prometheus pod or to change
 # the behavior of an operator generated container.
 # Each item of the list should be described as standard Kubernetes container:
-# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
 containers: []
 
 # Secrets is a list of Secrets in the same namespace as the Prometheus object, which shall be mounted
@@ -326,7 +326,7 @@ labels: {}
 #  label-key: label-value
 
 # If specified, the pod's scheduling constraints
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 # Type: object
 # Mandatory: no
 # Default: not set
@@ -335,7 +335,7 @@ affinity: {}
 
 # Volumes allows configuration of additional volumes on the output StatefulSet definition.
 # Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
 # Type: object
 # Mandatory: no
 # Default: not set
@@ -345,7 +345,7 @@ volumes: {}
 # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
 # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
 # that are generated as a result of StorageSpec objects.
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
 # Type: object
 # Mandatory: no
 # Default: not set
@@ -618,7 +618,7 @@ operator:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set

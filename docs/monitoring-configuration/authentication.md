@@ -487,7 +487,7 @@ data:
 ```
 
 **Note:** You can change Secret data using UI (ex. Kubernetes Dashboard). But also you can
-edit it using CLI tools such as `kubectl` if secrets edit in UI is not available.
+edit it using command-line tools such as `kubectl` if secrets edit in UI is not available.
 
 For example:
 

@@ -1,4 +1,4 @@
-{
+﻿{
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "description": "Schema for json-exporter Helm values",
@@ -15,7 +15,7 @@
         },
         "affinity": {
             "type": "array",
-            "description": "If specified, the pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "description": "If specified, the pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core",
             "default": []
         },
         "annotations": {
@@ -51,7 +51,7 @@
                 },
                 "capabilities": {
                     "type": "object",
-                    "description": "The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Capabilities should be added to or removed from the default set based on the specific needs of the container. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#capabilities-v1-core"
+                    "description": "The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Capabilities should be added to or removed from the default set based on the specific needs of the container. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#capabilities-v1-core"
                 }
             },
             "default": {}

@@ -21,7 +21,7 @@ In Monitoring stack, we are using the following main tools to collect, analyze, 
 
 Prometheus's main features are:
 
-* A multi-dimensional data model with time series data identified by metric name and key/value pairs.
+* A multi-dimensional data model with time series data identified by metric name and key-value pairs.
 * PromQL, a flexible query language to leverage this dimensionality.
 * No reliance on distributed storage; single server nodes are autonomous.
 * Time series collection happens through a pull model over HTTP.

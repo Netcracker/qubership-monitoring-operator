@@ -70,7 +70,7 @@ AWS CLI Reference at [https://awscli.amazonaws.com/v2/documentation/api/latest/r
 | ElastiCache                                 | AWS/Elasticache     | [https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheMetrics.Redis.html](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheMetrics.Redis.html)                                                         |
 | Elastic Compute Cloud (EC2)                 | AWS/EC2             | [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html)                                               |
 | Elastic File System                         | AWS/EFS             | [https://docs.aws.amazon.com/efs/latest/ug/efs-metrics.html](https://docs.aws.amazon.com/efs/latest/ug/efs-metrics.html)                                                                                                           |
-| ElasticSearch                               | AWS/ES              | [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html) |
+| Elasticsearch                               | AWS/ES              | [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html) |
 | Kinesis Data Stream                         | AWS/Kinesis         | [https://docs.aws.amazon.com/streams/latest/dev/monitoring-with-cloudwatch.html](https://docs.aws.amazon.com/streams/latest/dev/monitoring-with-cloudwatch.html)                                                                   |
 | Network Firewall                            | AWS/NetworkFirewall | [https://docs.aws.amazon.com/network-firewall/latest/developerguide/monitoring-cloudwatch.html](https://docs.aws.amazon.com/network-firewall/latest/developerguide/monitoring-cloudwatch.html)                                     |
 | NAT Gateway                                 | AWS/NATGateway      | [https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway-cloudwatch.html](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway-cloudwatch.html)                                                               |
@@ -406,7 +406,7 @@ To create a user:
 
 1. Open IAM, and select Users.
 2. Click `Add Users`.
-3. Enter the user name and do not forget to set `Access key - Programmatic access` to generate the access key.
+3. Enter the username and do not forget to set `Access key - Programmatic access` to generate the access key.
 4. Select the earlier created group or permissions.
 5. Create the user and save the `Access Key ID` and `Secret Access Key`.
 
@@ -1347,7 +1347,7 @@ apply external labels on all instances of a high-availability group, so that
 Amazon Managed Service for Prometheus can identify them. Also, set the
 `replicaExternalLabelName` and `externalLabels` parameters for Monitoring deployment.
 
-For example, in the following yaml, `cluster` is added to `externalLabel` to identify a Prometheus
+For example, in the following YAML, `cluster` is added to `externalLabel` to identify a Prometheus
 instance agent as part of a high-availability group, and `replicaExternalLabels` identifies
 each replica in the group.
 

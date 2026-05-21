@@ -82,7 +82,7 @@ Step 1. Make Prometheus snapshot
 
 TSDB Admin APIs allows doing snapshots. You should to send POST request on Prometheus endpoint
 `/api/v1/admin/tsdb/snapshot`. The request can be sent from local host via Kubernetes ingress
-(connected with Prometheus) or from Kubernetes pod that has a tool that allows to do POST request (e.g. curl).
+(connected with Prometheus) or from Kubernetes pod that has a tool that allows to do POST request (e.g. cURL).
 
 ```shell
 curl -XPOST http://<your_prometheus_URL>/api/v1/admin/tsdb/snapshot
