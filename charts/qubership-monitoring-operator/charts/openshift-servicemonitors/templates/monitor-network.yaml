@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/part-of: monitoring
     name: monitor-network
   name: monitor-network
-  namespace: monitoring
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

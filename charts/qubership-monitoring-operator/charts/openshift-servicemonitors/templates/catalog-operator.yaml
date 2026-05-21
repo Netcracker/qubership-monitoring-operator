@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: monitoring
   name: catalog-operator
-  namespace: monitoring
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

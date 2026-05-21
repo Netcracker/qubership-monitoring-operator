@@ -6,7 +6,6 @@ metadata:
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: monitoring
   name: package-server-manager-metrics
-  namespace: monitoring
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

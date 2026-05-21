@@ -6,8 +6,6 @@ metadata:
     app: olm-operator
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: monitoring
-  name: olm-operator
-  namespace: monitoring
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
