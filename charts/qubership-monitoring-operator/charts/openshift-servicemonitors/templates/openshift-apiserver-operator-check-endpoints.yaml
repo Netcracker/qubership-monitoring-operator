@@ -1,0 +1,25 @@
+{{- if and .Values.install .Values.installOpenshiftApiserverOperatorCheckEndpoints }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+    include.release.openshift.io/self-managed-high-availability: "true"
+    include.release.openshift.io/single-node-developer: "true"
+  name: openshift-apiserver-operator-check-endpoints
+  namespace: monitoring
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    port: check-endpoints
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - openshift-apiserver
+  selector:
+    matchLabels:
+      prometheus: openshift-apiserver-check-endpoints
+{{- end }}
