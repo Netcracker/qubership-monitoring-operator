@@ -17,3 +17,4 @@ spec:
     - openshift-dns
   selector: {}
 {{- end }}
+
