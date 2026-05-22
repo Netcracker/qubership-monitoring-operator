@@ -19,6 +19,6 @@ spec:
     matchLabels:
       name: dns-operator
   namespaceSelector:
-    matchNames: 
+    matchNames:
     - openshift-dns-operator
 {{- end }}
