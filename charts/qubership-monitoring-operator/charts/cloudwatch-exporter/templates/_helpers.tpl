@@ -51,3 +51,28 @@ Adding 9 to 26 truncation of monitoring.fullname
 {{- define "cloudwatch-exporter.version" -}}
   {{- splitList ":" (include "cloudwatch-exporter.image" .) | last }}
 {{- end -}}
+
+{{/*
+True when static AWS credentials are configured — either via chart values or an external Secret.
+When only IRSA / instance profile is used, leave aws.secret.name and keys unset.
+*/}}
+{{- define "cloudwatch-exporter.awsCredentialsEnabled" -}}
+{{- if or ((.Values.aws.secret).name) (and .Values.aws.aws_access_key_id .Values.aws.aws_secret_access_key) -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Name of the Secret that contains the credentials file.
+*/}}
+{{- define "cloudwatch-exporter.awsCredentialsSecretName" -}}
+{{- if ((.Values.aws.secret).name) -}}{{ .Values.aws.secret.name }}{{- else -}}{{ .Values.name }}{{- end -}}
+{{- end -}}
+
+{{/*
+Build INI content for the chart-managed Secret (aws_access_key_id / aws_secret_access_key in values).
+The rendered text becomes the value of the 'credentials' key in the Secret.
+*/}}
+{{- define "cloudwatch-exporter.awsCredentialsIni" -}}
+[default]
+aws_access_key_id = {{ .Values.aws.aws_access_key_id }}
+aws_secret_access_key = {{ .Values.aws.aws_secret_access_key }}
+{{- end -}}

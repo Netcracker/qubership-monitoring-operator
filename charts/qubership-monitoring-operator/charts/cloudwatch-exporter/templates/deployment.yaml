@@ -39,38 +39,6 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.name }}
-          {{- if .Values.aws.secret.name }}
-          env:
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  key: access_key
-                  name: {{ .Values.aws.secret.name }}
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: secret_key
-                  name: {{ .Values.aws.secret.name }}
-            {{- if .Values.aws.secret.includesSessionToken }}
-            - name: AWS_SESSION_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: security_token
-                  name: {{ .Values.aws.secret.name }}
-            {{- end }}
-          {{- else if and .Values.aws.aws_secret_access_key .Values.aws.aws_access_key_id }}
-          env:
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  key: aws_access_key_id
-                  name: {{ .Values.name }}
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: aws_secret_access_key
-                  name:  {{ .Values.name }}
-          {{- end }}
           image: {{ template "cloudwatch-exporter.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.command }}
@@ -103,6 +71,11 @@ spec:
           volumeMounts:
             - name: vol-cloudwatch-exporter
               mountPath: /config
+            {{- if include "cloudwatch-exporter.awsCredentialsEnabled" . }}
+            - name: aws-credentials
+              mountPath: /root
+              readOnly: true
+            {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{ toYaml . | nindent 8 }}
@@ -126,4 +99,13 @@ spec:
           defaultMode: 420
           name: {{ .Values.name }}
         name: vol-cloudwatch-exporter
+      {{- if include "cloudwatch-exporter.awsCredentialsEnabled" . }}
+      - name: aws-credentials
+        secret:
+          secretName: {{ include "cloudwatch-exporter.awsCredentialsSecretName" . }}
+          defaultMode: 256
+          items:
+            - key: credentials
+              path: .aws/credentials
+      {{- end }}
 {{- end }}
