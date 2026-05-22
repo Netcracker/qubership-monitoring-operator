@@ -988,6 +988,12 @@ auth: {}
   # Mandatory: yes
   # clientSecret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+  # Secret used by oauth2-proxy for cookie encryption/signing.
+  # Type: string
+  # Mandatory: no
+  # Default: Z0lKZ64IEMCv8XQM9smEDw==
+  # cookieSecret: XXXXXXXXXXXXXXXXXXXXXX==
+
   # Authentication endpoint.
   # Type: string
   # Mandatory: yes
