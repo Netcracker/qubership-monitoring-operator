@@ -241,7 +241,7 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 - **[Service Monitoring](https://netcracker.github.io/qubership-monitoring-operator/examples/)** - Monitor your applications
 - **[Cloud Watch Integration](https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/)** - Cloud provider integrations
 
-### Architecture
+### Architecture Overview
 
 - **[Architecture Overview](https://netcracker.github.io/qubership-monitoring-operator/architecture/)** - Detailed system architecture
 
