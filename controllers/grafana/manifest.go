@@ -23,12 +23,17 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func getGrafanaRootURL(protocol string, host string) string {
-	if protocol == "" {
-		protocol = "http"
-	}
-	return fmt.Sprintf("%v://%v/", protocol, host)
-}
+// TODO(#377): getGrafanaRootURL — to be used when spec.grafana.config propagation is implemented.
+// Once spec.grafana.config is properly forwarded to Grafana CR spec.config, this helper can be
+// used to automatically populate server.root_url from spec.grafana.ingress.host as a convenience
+// default (users can override via grafana.config in values).
+//
+// func getGrafanaRootURL(protocol string, host string) string {
+// 	if protocol == "" {
+// 		protocol = "http"
+// 	}
+// 	return fmt.Sprintf("%v://%v/", protocol, host)
+// }
 
 // configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
 // without GF_SECURITY_ADMIN_* environment variables (admin credentials are file-based in Grafana).
@@ -152,14 +157,11 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// We explicitly set it to nil for safety (though it should already be nil after decoding the asset).
 		graf.Spec.Ingress = nil
 
-		// Config is now runtime.RawExtension in grafana-operator v5
-		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
-		configProvidedAsRawExtension := cr.Spec.Grafana.Config != nil
-		if configProvidedAsRawExtension {
-			// Config is runtime.RawExtension, but graf.Spec.Config expects map[string]map[string]string
-			// We need to unmarshal RawExtension to set Config properly
-			// For now, skip setting Config if provided as RawExtension - it will be handled by grafana-operator
-		}
+		// TODO(#377): spec.grafana.config (runtime.RawExtension) is not yet propagated to Grafana CR
+		// spec.config (map[string]map[string]string). When implemented, user-provided config keys
+		// should be merged after operator defaults so they can override them (e.g. server.root_url).
+		// The configProvidedAsRawExtension gate (below) should also be restored to allow users to
+		// opt out of operator-managed config sections when providing their own full config.
 		// DataStorage removed in grafana-operator v5
 		// EnvFrom configuration moved to container-level in v5
 		if cr.Spec.Grafana.Replicas != nil {
@@ -329,14 +331,11 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Only configure Config fields if Config was not provided as RawExtension
-		// Note: In v5, Config is map[string]map[string]string or runtime.RawExtension
-		// We need to work with Config as runtime.RawExtension and marshal/unmarshal JSON
-		if cr.Spec.Auth != nil && !configProvidedAsRawExtension {
-			// In grafana-operator v5, Config structure changed significantly
-			// OAuth configuration needs to be handled via runtime.RawExtension or removed
-			// Note: This functionality may need to be reimplemented for v5 API
-		}
+		// TODO(#376): cr.Spec.Auth OAuth fields (LoginURL, TokenURL, UserInfoURL, TLSConfig) are not
+		// yet applied to Grafana CR spec.config["auth.generic_oauth"]. In grafana-operator v4 these
+		// were mapped to graf.Spec.Config.AuthGenericOauth. In v5 the target is
+		// spec.config["auth.generic_oauth"][key] = value. Needs reimplementation.
+		// TLS secrets (CASecret, CertSecret, KeySecret) also require volume mounts.
 		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
@@ -566,10 +565,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 
 		// ServiceAccount in v5 uses different structure - Annotations and Labels may be in different location
 		// Note: ServiceAccount configuration may need to be handled differently in v5
-		if graf.Spec.ServiceAccount != nil && cr.Spec.Grafana.ServiceAccount != nil {
-			// In v5, ServiceAccountV1 structure changed - handle accordingly
-			// Annotations and Labels may need to be set via ServiceAccount metadata
-		}
+		// TODO: investigate ServiceAccountV1 structure in grafana-operator v5 and implement
+		// propagation of cr.Spec.Grafana.ServiceAccount annotations/labels if still applicable.
 	}
 	return &graf, nil
 }
