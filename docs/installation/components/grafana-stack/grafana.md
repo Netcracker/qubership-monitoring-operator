@@ -107,7 +107,7 @@ grafana:
 ```
 
 
-#### grafana-operator
+## grafana-operator
 
 <!-- markdownlint-disable line-length -->
 | Field              | Description                                                                                                                                                                                                            | Scheme                                                                                                                        |
@@ -152,7 +152,7 @@ grafana:
 ```
 
 
-#### grafana-image-renderer
+## grafana-image-renderer
 
 <!-- markdownlint-disable line-length -->
 **Warning**: The grafana-image-renderer requires two extra environment variables in Grafana:
