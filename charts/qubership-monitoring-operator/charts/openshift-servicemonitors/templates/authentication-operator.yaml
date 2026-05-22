@@ -1,0 +1,27 @@
+{{- if and .Values.install .Values.installAuthenticationOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: authentication-operator
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: authentication-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-authentication-operator
+{{- end }}
