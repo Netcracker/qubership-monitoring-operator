@@ -1790,7 +1790,7 @@ type Promxy struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&PlatformMonitoring{}, &PlatformMonitoringList{})
+	objectTypes = append(objectTypes, &PlatformMonitoring{}, &PlatformMonitoringList{})
 }
 
 // IsInstall check if AlertManager should be installed
