@@ -337,7 +337,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmSingle.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/victoria-metrics */ -}}
-    {{- print  "docker.io/victoriametrics/victoria-metrics:v1.143.0" -}}
+    {{- print "docker.io/victoriametrics/victoria-metrics:v1.143.0" -}}
   {{- end -}}
 {{- end -}}
 
