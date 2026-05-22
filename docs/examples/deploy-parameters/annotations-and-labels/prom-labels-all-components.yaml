@@ -5,49 +5,50 @@ monitoringOperator:
   install: true
   serviceAccount:
     labels:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/label: value
+      environment: test
 
 # Grafana
 grafana:
   install: true
   serviceAccount:
     labels:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/label: value
+      environment: test
   operator:
     serviceAccount:
       labels:
-        app.netcracker.com/name: grafana
-        app.netcracker.com/version: 1.2.3
+        example.io/label: value
+        environment: test
 
 # Prometheus stack
 prometheus:
   install: true
   serviceAccount:
     labels:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/label: value
+      environment: test
+
 alertManager:
   install: true
   serviceAccount:
     labels:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/label: value
+      environment: test
 
 # Exporters
 kubeStateMetrics:
   install: true
   serviceAccount:
     labels:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/label: value
+      environment: test
 nodeExporter:
   install: true
   serviceAccount:
     labels:
-      app.netcracker.com/name: grafana
-      app.netcracker.com/version: 1.2.3
+      example.io/label: value
+      environment: test
 
 # Integrations tests
 integrationTests:

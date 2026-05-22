@@ -1,0 +1,605 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "additionalAlertManager": {
+            "type": "object",
+            "description": "The additionalAlertManager allows you to use AlertManager outside the cloud",
+            "default": {},
+            "examples": [
+                [
+                    {
+                        "tls_config": {
+                            "insecure_skip_verify": true
+                        },
+                        "scheme": "https",
+                        "static_configs": [
+                            {
+                                "targets": [
+                                    "alertmanager-operated-prometheus-operator.example.com"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            ]
+        },
+        "additionalAlertRelabel": {
+            "type": "object",
+            "description": "The additionalAlertRelabel allows you to set additional Prometheus alert relabel configurations",
+            "default": {}
+        },
+        "additionalScrape": {
+            "type": "object",
+            "description": "The additionalScrape allows you to monitor hosts outside the cloud",
+            "default": {},
+            "examples": [
+                {
+                    "job_name": "balancer_check",
+                    "metrics_path": "/metrics",
+                    "static_configs": [
+                        {
+                            "targets": [
+                                "cloud-name-balancer-1.example.com:9100",
+                                "cloud-name-balancer-2.example.com:9100"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "affinity": {
+            "type": "object",
+            "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "default": {}
+        },
+        "alerting": {
+            "type": "object",
+            "description": "Define details regarding alerting",
+            "default": {}
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+            "default": {}
+        },
+        "containers": {
+            "type": "array",
+            "description": "Containers allows injecting additional containers or modifying operator generated containers",
+            "default": []
+        },
+        "enableAdminAPI": {
+            "type": "boolean",
+            "description": "Enable access to prometheus web admin API. Enabling this exposes mutating endpoints and should be used with care",
+            "default": true
+        },
+        "enableFeatures": {
+            "type": "array",
+            "description": "Enable access to Prometheus disabled features.\nEnabling disabled features is entirely outside the scope of what the maintainers will support and by doing so,\nyou accept that this behavior may break at any time without notice.",
+            "default": []
+        },
+        "evaluationInterval": {
+            "type": "string",
+            "description": "Interval between consecutive evaluations",
+            "default": "30s"
+        },
+        "externalLabels": {
+            "type": "object",
+            "description": "The labels to add to any time series or alerts when communicating with external systems",
+            "default": {}
+        },
+        "externalUrl": {
+            "type": "string",
+            "description": "Prometheus instances will be available under this URL, necessary to generate correct URLs when Prometheus is not served from root",
+            "default": ""
+        },
+        "image": {
+            "type": "object",
+            "description": "A docker image to use for prometheus deployment\nDefault: docker.io/prom/prometheus:v3.2.1",
+            "default": {}
+        },
+        "ingress": {
+            "type": "object",
+            "description": "Allows create Ingress for Prometheus UI via monitoring-operator",
+            "default": {},
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Allow to create Ingress for Prometheus UI"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations for the Prometheus Ingress. Allows to set up authorization e.g. via ingress-nginx"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels for the Prometheus Ingress. Default monitoring-operator labels can be overwritten"
+                },
+                "host": {
+                    "type": "string",
+                    "description": "Host for the Prometheus Ingress"
+                },
+                "tlsSecretName": {
+                    "type": "string",
+                    "description": "Name of secret with TLS configs: tls.crt and tls.key. The secret must exist."
+                }
+            }
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to disable deploy prometheus",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+            "default": {}
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow define which Nodes the Pods are scheduled on",
+            "default": {}
+        },
+        "operator": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "object",
+                    "description": "If specified, the pod's scheduling constraints for the operator",
+                    "default": {}
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+                    "default": {}
+                },
+                "image": {
+                    "type": "string",
+                    "description": "A docker image to use for prometheus operator deployment\nDefault: quay.io/prometheus-operator/prometheus-operator:v0.80.1"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize objects",
+                    "default": {}
+                },
+                "namespaces": {
+                    "type": "string",
+                    "description": "Comma separated list of namespaces the interaction of the Prometheus Operator and the apiserver in non-privileged mode.\nThis parameter is unnecessary if the prometheus-operator has ClusterRole on all namespaces."
+                },
+                "nodeSelector": {
+                    "type": "object",
+                    "description": "Allow define which Nodes the operator Pods are scheduled on",
+                    "default": {}
+                },
+                "paused": {
+                    "type": "boolean",
+                    "description": "Set paused to reconciliation for prometheus-operator",
+                    "default": false
+                },
+                "podMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "install": {
+                            "type": "boolean",
+                            "description": "Install operator pod monitor to collect self-metrics",
+                            "default": true
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Allow change metrics scrape interval for the operator pod monitor",
+                            "default": "30s"
+                        },
+                        "metricRelabelings": {
+                            "type": "array",
+                            "description": "Metric relabeling configurations for the operator pod monitor",
+                            "default": []
+                        },
+                        "relabelings": {
+                            "type": "array",
+                            "description": "Relabeling configurations for the operator pod monitor",
+                            "default": []
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Allow change metrics scrape timeout for the operator pod monitor. Please note scrapeTimeout must be less than interval",
+                            "default": "10s"
+                        }
+                    },
+                    "description": "Pod monitor for self-monitoring of the operator"
+                },
+                "priorityClassName": {
+                    "type": "string",
+                    "description": "PriorityClassName assigned to the Pods to prevent them from evicting. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass"
+                },
+                "resources": {
+                    "type": "object",
+                    "description": "The resources describes the compute resource requests and limits for operator Pods",
+                    "default": {},
+                    "properties": {
+                        "limits": {
+                            "type": "object",
+                            "description": "Limits describes the maximum amount of compute resources allowed",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                                }
+                            }
+                        },
+                        "requests": {
+                            "type": "object",
+                            "description": "Requests describes the minimum amount of compute resources required",
+                            "properties": {
+                                "cpu": {
+                                    "type": "string",
+                                    "description": "CPU resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                                },
+                                "memory": {
+                                    "type": "string",
+                                    "description": "Memory resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                                }
+                            }
+                        }
+                    }
+                },
+                "securityContext": {
+                    "type": "object",
+                    "description": "SecurityContext holds pod-level security attributes for the operator",
+                    "default": {},
+                    "properties": {
+                        "runAsUser": {
+                            "type": "integer",
+                            "description": "The UID to run the entrypoint of the container process. Defaults to user specified in the container image metadata if unspecified. May also be set in the security context of individual containers. If set in both SecurityContext and container, the value specified in SecurityContext takes precedence."
+                        },
+                        "fsGroup": {
+                            "type": "integer",
+                            "description": "A special supplemental group that applies to all containers in a pod."
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations for the operator service account",
+                            "default": {}
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Labels for the operator service account",
+                            "default": {}
+                        }
+                    },
+                    "description": "Service account settings for the operator"
+                },
+                "tolerations": {
+                    "type": "array",
+                    "description": "Tolerations allow the operator pods to schedule onto nodes with matching taints",
+                    "default": []
+                }
+            },
+            "description": "Manages Prometheus and Alertmanager components"
+        },
+        "paused": {
+            "type": "boolean",
+            "description": "Set paused to reconcilation for prometheus",
+            "default": false
+        },
+        "podMonitor": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Install podMonitor to collect self-metrics from Prometheus",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Allow change metrics scrape interval",
+                    "default": "30s"
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "description": "Metric relabeling is applied to samples as the last step before ingestion. It has the same configuration\n format and actions as target relabeling. Metric relabeling does not apply to automatically\ngenerated timeseries such as up.\nRef: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs",
+                    "default": []
+                },
+                "relabelings": {
+                    "type": "array",
+                    "description": "The configuration which allows to dynamically rewrite the label set of a target before it gets scraped.",
+                    "default": []
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Allow change metrics scrape timeout. Please note that scrapeTimeout must be less than interval.\n Ref: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config",
+                    "default": "10s"
+                }
+            },
+            "description": "Pod monitor for self-monitoring",
+            "default": {}
+        },
+        "podMonitorNamespaceSelector": {
+            "type": "object",
+            "description": "The namespace selector for pod monitors. Namespace's labels to match PodMonitor discovery. Labels selector requirements use matchExpressions. The requirements are combined with a logical 'AND'"
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName sets the priority class name for the Prometheus Pods. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass"
+        },
+        "query": {
+            "type": "object",
+            "properties": {
+                "lookbackDelta": {
+                    "type": "string",
+                    "description": "The delta difference allowed for retrieving metrics during expression evaluations",
+                    "default": "2m"
+                },
+                "maxConcurrency": {
+                    "type": "integer",
+                    "description": "The maximum number of queries that can be executed concurrently"
+                },
+                "maxSamples": {
+                    "type": "integer",
+                    "description": "The maximum number of samples that can be processed in a single query"
+                },
+                "timeout": {
+                    "type": "string",
+                    "description": "The maximum time a query can take before being aborted"
+                }
+            },
+            "description": "QuerySpec defines the query command line flags when starting Prometheus"
+        },
+        "remoteRead": {
+            "type": "array",
+            "description": "Remote read endpoints for Prometheus",
+            "default": []
+        },
+        "remoteWrite": {
+            "type": "array",
+            "description": "Remote write endpoints for Prometheus",
+            "default": []
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Replicas spec configuration for Prometheus",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+            "default": {},
+            "properties": {
+                "requests": {
+                    "type": "object",
+                    "description": "The minimum compute resources required by a single container. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#requests-and-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource request. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                        }
+                    }
+                },
+                "limits": {
+                    "type": "object",
+                    "description": "The maximum compute resources allowed for a single container. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#requests-and-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory resource limit. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#memory"
+                        }
+                    }
+                }
+            }
+        },
+        "retention": {
+            "type": "string",
+            "description": "Retention determines when to remove old data",
+            "default": "24h"
+        },
+        "retentionsize": {
+            "type": "object",
+            "description": "RetentionSize determines the maximum number of bytes that storage blocks can use",
+            "default": {}
+        },
+        "ruleNamespaceSelector": {
+            "type": "object",
+            "description": "The namespace selector for rules. Namespace's labels to match Rule discovery. Labels selector requirements use matchExpressions. The requirements are combined with a logical 'AND'"
+        },
+        "scrapeInterval": {
+            "type": "string",
+            "description": "Interval between consecutive scrapes",
+            "default": "30s"
+        },
+        "scrapeTimeout": {
+            "type": "string",
+            "description": "Number of seconds to wait for target to respond before erroring",
+            "default": "10s"
+        },
+        "secrets": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "description": "No description available"
+            },
+            "description": "Secrets to mount into the Prometheus Pods",
+            "default": [
+                "kube-etcd-client-certs"
+            ]
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes",
+            "default": {},
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in the container image metadata if unspecified. May also be set in the security context of individual containers. If set in both SecurityContext and container, the value specified in SecurityContext takes precedence."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+                    "default": {}
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize objects",
+                    "default": {}
+                }
+            },
+            "description": "Service account for monitoring-operator to use",
+            "default": {}
+        },
+        "serviceMonitorNamespaceSelector": {
+            "type": "object",
+            "description": "The namespace selector for service monitors. Namespace's labels to match ServiceMonitor discovery. Labels selector requirements use matchExpressions. The requirements are combined with a logical 'AND'"
+        },
+        "storage": {
+            "type": "object",
+            "description": "Storage spec to specify how storage shall be used.\nMore info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#storagespec",
+            "default": {}
+        },
+        "tlsConfig": {
+            "type": "object",
+            "description": "TLS configuration for prometheus",
+            "default": {},
+            "properties": {
+                "createSecret": {
+                    "type": "object",
+                    "description": "Create TLS secret with provided configuration",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "The name of the secret to create with the provided TLS configuration"
+                        },
+                        "ca": {
+                            "type": "string",
+                            "description": "The CA certificate to use for TLS communication"
+                        },
+                        "key": {
+                            "type": "string",
+                            "description": "The private key to use for TLS communication"
+                        },
+                        "cert": {
+                            "type": "string",
+                            "description": "The certificate to use for TLS communication"
+                        }
+                    }
+                },
+                "generateCerts": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Generate TLS certs using cert-manager. This will create a Certificate resource with the provided configuration and a self-signed ClusterIssuer"
+                        },
+                        "secretName": {
+                            "type": "string",
+                            "description": "The name of the secret where the generated TLS certs will be stored"
+                        },
+                        "clusterIssuerName": {
+                            "type": "string",
+                            "description": "The name of the cluster issuer to use for generating TLS certs"
+                        },
+                        "duration" :{
+                            "type": "string",
+                            "description": "The duration of the generated TLS certs"
+                        },
+                        "renewBefore": {
+                            "type": "string",
+                            "description": "The time before the TLS certs expire to renew them"
+                        }
+                },
+                "webTLSConfig": {
+                    "type": "object",
+                    "description": "TLS configuration for Prometheus web endpoint",
+                    "properties": {
+                        "keySecret": {
+                            "object": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "The name of the secret containing the TLS private key for the Prometheus web endpoint"
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "description": "The key in the secret containing the TLS private key for the Prometheus web endpoint"
+                                }
+                            },
+                            "description": "The secret containing the TLS private key for the Prometheus web endpoint"
+                        },
+                        "cert": {
+                            "type": "object",
+                            "description": "The certificate to use for TLS communication on the Prometheus web endpoint",
+                            "properties": {
+                                "secret": {
+                                    "type": "object",
+                                    "description": "The secret containing the TLS certificate for the Prometheus web endpoint",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "The name of the secret containing the TLS certificate for the Prometheus web endpoint"
+                                        },
+                                        "key": {
+                                            "type": "string",
+                                            "description": "The key in the secret containing the TLS certificate for the Prometheus web endpoint"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "client_ca": {
+                            "type": "object",
+                            "description": "The client CA configuration for TLS communication on the Prometheus web endpoint",
+                            "properties": {
+                                "secret": {
+                                    "type": "object",
+                                    "description": "The secret containing the client CA certificate for the Prometheus web endpoint",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "The name of the secret containing the client CA certificate for the Prometheus web endpoint"
+                                        },
+                                        "key": {
+                                            "type": "string",
+                                            "description": "The key in the secret containing the client CA certificate for the Prometheus web endpoint"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "volumeMounts": {
+            "type": "object",
+            "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core",
+            "default": {}
+        },
+        "volumes": {
+            "type": "object",
+            "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core",
+            "default": {}
+        },
+        "auth": {}
+    },
+    "description": "Schema for prometheus-operator Helm values"
+}

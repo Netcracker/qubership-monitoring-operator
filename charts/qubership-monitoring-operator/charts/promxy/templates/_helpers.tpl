@@ -10,6 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
+    {{- /* # renovate: datasource=github-releases depName=jacksontj/promxy */ -}}
     {{- print "quay.io/jacksontj/promxy:v0.0.93" -}}
   {{- end -}}
 {{- end -}}
@@ -24,7 +25,8 @@ Image can be found from:
   {{- if .Values.configmapReload.image -}}
     {{- printf "%s" .Values.configmapReload.image -}}
   {{- else -}}
-    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.14.0" -}}
+    {{- /* # renovate: datasource=github-releases depName=jimmidyson/configmap-reload versioning=semver */ -}}
+    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.15.0" -}}
   {{- end -}}
 {{- end -}}
 

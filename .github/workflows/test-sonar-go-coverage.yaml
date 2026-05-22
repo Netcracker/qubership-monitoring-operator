@@ -1,0 +1,75 @@
+---
+name: "Tests: Go test with Sonar"
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      sonar-project-key: ${{ steps.config.outputs.sonar-project-key }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Resolve sonar project key based on restricted actors
+        id: config
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          restricted=$(python3 -c "
+          import yaml, os
+          with open('.github/config/build-config.yaml') as f:
+              config = yaml.safe_load(f)
+          actors = config.get('restricted-actors', [])
+          print('true' if os.environ['ACTOR'] in actors else 'false')
+          ")
+          if [ "$restricted" = "true" ]; then
+            echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
+          else
+            echo "sonar-project-key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    needs: prepare
+    name: Build and test with coverage
+    uses: Netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@bc2a0bd082147e23b4091616c608a21cc2957728 # v2.4.1
+    with:
+      go-module-dir: '.'
+      sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
+      cover-packages: './api/...,./cmd/...,./controllers/...'
+      install-envtest: true
+      kube-version: '1.30.0'
+      envtest-version: 'release-0.19'
+      skip-docker: true
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
+      packages: write

@@ -10,7 +10,7 @@
 install: false
 
 # A name of a microservice to deploy with.
-# This name will be used as name of the microservice deployment and in labels.
+# Used for resource metadata.name and for app.kubernetes.io/name label.
 name: blackbox-exporter
 
 # A Docker image to deploy the blackbox-exporter.
@@ -59,6 +59,8 @@ config:
         valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
         no_follow_redirects: false
         preferred_ip_protocol: "ip4"
+        tls_config:
+          insecure_skip_verify: true
     icmp:
       prober: icmp
       timeout: 5s
@@ -119,7 +121,7 @@ extraArgs: []
 #  - "--web.route-prefix=/example/path"
 
 serviceMonitor:
-  # If true, a ServiceMonitor CRD is created for a prometheus operator.
+  # If true, a ServiceMonitor is created for the exporter self-metrics (`/metrics`). For `/probe` targets use Prometheus Operator `Probe` CRs, not this chart.
   # Type: boolean
   # Mandatory: no
   # Default: true
@@ -145,31 +147,6 @@ serviceMonitor:
   # Default: http
   #
   scheme: http
-
-  # DEPRECATED! Please use Probe CR instead.
-  # Default values that will be used for all ServiceMonitors created by `targets`.
-  # Type: object
-  # Mandatory: no
-  #
-  defaults:
-    additionalMetricsRelabels: {}
-    interval: 30s
-    # Please note that scrapeTimeout must be less the interval
-    scrapeTimeout: 30s
-    module: http_2xx
-
-  # DEPRECATED! Please use Probe CR instead.
-  # Parameters for each targets that will be created.
-  # Type: list[object]
-  # Mandatory: yes
-  #
-  targets: []
-  #  - name: example                    # Human readable URL that will appear in Prometheus / AlertManager
-  #    url: http://example.com/healthz  # The URL that blackbox will scrape
-  #    interval: 60s                    # Scraping interval. Overrides value set in `defaults`
-  #    scrapeTimeout: 60s               # Scrape timeout. Overrides value set in `defaults`. Must be less than interval
-  #    module: http_2xx                 # Module used for scraping. Overrides value set in `defaults`
-  #    additionalMetricsRelabels: {}    # Map of metric labels and values to add
 
 # Allows to create Grafana dashboard for blackbox-exporter.
 # Type: boolean

@@ -4,14 +4,9 @@ kind: Service
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: promitor-agent-resource-discovery
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "promitor.agentResourceDiscovery.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" . | nindent 4 }}
     {{- if .Values.service.labels }}
-      {{ toYaml .Values.service.labels | nindent 4 }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.service.labels) | nindent 4 }}
     {{- end }}
 {{- if and (eq .Values.service.type "LoadBalancer") .Values.service.azureLoadBalancer }}
   annotations:

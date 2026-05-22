@@ -1,0 +1,254 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "description": "Schema for json-exporter Helm values",
+    "properties": {
+        "additionalVolumeMounts": {
+            "type": "array",
+            "description": "Additional volume mounts for the json-exporter pods",
+            "default": []
+        },
+        "additionalVolumes": {
+            "type": "array",
+            "description": "Additional volumes for the json-exporter pods",
+            "default": []
+        },
+        "affinity": {
+            "type": "array",
+            "description": "If specified, the pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core",
+            "default": []
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata",
+            "default": {}
+        },
+        "config": {
+            "type": "object",
+            "description": "Configuration of json-exporter modules. Ref: https://github.com/prometheus-community/json_exporter/tree/master/examples",
+            "default": {}
+        },
+        "containerPort": {
+            "type": "integer",
+            "description": "Container port for json-exporter",
+            "default": 7979
+        },
+        "containerSecurityContext": {
+            "type": "object",
+            "description": "Security Context for a container",
+            "properties": {
+                "readOnlyRootFilesystem": {
+                    "type": "boolean",
+                    "description": "Whether the container has a read-only root filesystem."
+                },
+                "runAsNonRoot": {
+                    "type": "boolean",
+                    "description": "Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in SecurityContext. If set in both SecurityContext and ContainerSecurityContext, the value specified in ContainerSecurityContext takes precedence."
+                },
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                },
+                "capabilities": {
+                    "type": "object",
+                    "description": "The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Capabilities should be added to or removed from the default set based on the specific needs of the container. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#capabilities-v1-core"
+                }
+            },
+            "default": {}
+        },
+        "image": {
+            "type": "string",
+            "description": "Json exporter image to deploy.\nDefault: docker.io/prometheuscommunity/json-exporter:v0.7.0"
+        },
+        "imagePullPolicy": {
+            "type": "string",
+            "description": "Image pull policy to use for json-exporter deployment",
+            "default": "IfNotPresent"
+        },
+        "imagePullSecrets": {
+            "type": "array",
+            "description": "Reference to one or more secrets to be used when pulling images. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/",
+            "default": []
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable deploy json-exporter",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
+            "default": {}
+        },
+        "name": {
+            "type": "string",
+            "description": "A name of a microservice to deploy with. This name will be used as name of the microservice deployment and in labels",
+            "default": "json-exporter"
+        },
+        "nodeSelector": {
+            "type": "array",
+            "description": "Allow defines which Nodes the Pods are scheduled on",
+            "default": []
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the Pods to prevent them from evicting. Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#podpriorityclass"
+        },
+        "replicaCount": {
+            "type": "integer",
+            "description": "Number of created pods",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describe the computed resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "The maximum amount of compute resources allowed. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#meaning-of-cpu-and-memory-resource-requests-and-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The maximum amount of CPU allowed. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The maximum amount of memory allowed. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "The minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Ref: https://kubernetes.io/docs/user-guide/compute-resources/#meaning-of-cpu-and-memory-resource-requests-and-limits",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The minimum amount of CPU required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The minimum amount of memory required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                }
+            },
+            "default": {}
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes. The parameters are required if a Pod Security Policy is enabled for Kubernetes cluster and required if a Security Context Constraints is enabled for Openshift cluster",
+            "default": {},
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod. If unset, the Kubelet will not modify the ownership and permissions of any volume."
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "description": "Service configuration for json-exporter",
+            "properties": {
+                "labels": {
+                    "type": "object",
+                    "description": "Labels set which will create in service",
+                    "default": {}
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Port name of json-exporter which use in service",
+                    "default": "http"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port of json-exporter which use in service",
+                    "default": 7979
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Type of json-exporter service",
+                    "default": "ClusterIP"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "Service account for monitoring-operator to use. Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations to add to the service account",
+                    "default": {}
+                },
+                "install": {
+                    "type": "boolean",
+                    "description": "Specifies whether a service account should be created",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the service account to use. If not set and create is true, a name is generated using the fullname template",
+                    "default": ""
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "Service monitor for pulling metrics",
+            "properties": {
+                "defaults": {
+                    "type": "object",
+                    "description": "Default values that will be used for all ServiceMonitors created by `targets`",
+                    "properties": {
+                        "additionalMetricsRelabels": {
+                            "type": "object",
+                            "description": "Map of metric labels and values to add",
+                            "default": {}
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "Scraping interval",
+                            "default": "30s"
+                        },
+                        "labels": {
+                            "type": "object",
+                            "description": "Map of labels for ServiceMonitor",
+                            "default": {}
+                        },
+                        "scrapeTimeout": {
+                            "type": "string",
+                            "description": "Scrape timeout",
+                            "default": "30s"
+                        }
+                    }
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "If true, a ServiceMonitor CRD is created",
+                    "default": true
+                },
+                "scheme": {
+                    "type": "string",
+                    "description": "Scheme for the service monitor",
+                    "default": "http"
+                },
+                "targets": {
+                    "type": "array",
+                    "description": "List of targets to monitor",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints",
+            "default": []
+        }
+    }
+}

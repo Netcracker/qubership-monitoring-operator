@@ -29,7 +29,8 @@ Image can be found from:
     {{- if .Values.grafana.operator.image -}}
       {{- printf "%s" .Values.grafana.operator.image -}}
     {{- else -}}
-      {{- print "quay.io/grafana-operator/grafana-operator:v4.9.0" -}}
+      {{- /* # renovate: datasource=docker depName=grafana-operator/grafana-operator */ -}}
+      {{- print "quay.io/grafana-operator/grafana-operator:v5.22.2" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -44,7 +45,8 @@ Image can be found from:
   {{- if .Values.grafana.image -}}
     {{- printf "%s" .Values.grafana.image -}}
   {{- else -}}
-    {{- print "docker.io/grafana/grafana:11.6.5" -}}
+    {{- /* # renovate: datasource=docker depName=grafana/grafana */ -}}
+    {{- print "docker.io/grafana/grafana:12.4.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -59,7 +61,8 @@ Image can be found from:
     {{- if .Values.grafana.operator.initContainerImage -}}
       {{- printf "%s" .Values.grafana.operator.initContainerImage -}}
     {{- else -}}
-      {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:main" -}}
+      {{- /* # renovate: datasource=docker depName=Netcracker/qubership-grafana-plugins-init versioning=semver */ -}}
+      {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:0.20.0" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -76,7 +79,8 @@ Image can be found from:
   {{- if .Values.prometheus.operator.image -}}
     {{- printf "%s" .Values.prometheus.operator.image -}}
   {{- else -}}
-    {{- print "quay.io/prometheus-operator/prometheus-operator:v0.80.1" -}}
+    {{- /* # renovate: datasource=docker depName=prometheus-operator/prometheus-operator */ -}}
+    {{- print "quay.io/prometheus-operator/prometheus-operator:v0.91.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -90,7 +94,8 @@ Image can be found from:
   {{- if .Values.prometheus.configReloaderImage -}}
     {{- printf "%s" .Values.prometheus.configReloaderImage -}}
   {{- else -}}
-    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.80.1" -}}
+    {{- /* # renovate: datasource=docker depName=prometheus-operator/prometheus-config-reloader */ -}}
+    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.91.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -104,7 +109,8 @@ Image can be found from:
   {{- if .Values.alertManager.image -}}
     {{- printf "%s" .Values.alertManager.image -}}
   {{- else -}}
-    {{- print "docker.io/prom/alertmanager:v0.28.1" -}}
+    {{- /* # renovate: datasource=docker depName=prom/alertmanager */ -}}
+    {{- print "docker.io/prom/alertmanager:v0.32.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -118,7 +124,8 @@ Image can be found from:
   {{- if .Values.prometheus.image -}}
     {{- printf "%s" .Values.prometheus.image -}}
   {{- else -}}
-    {{- print "docker.io/prom/prometheus:v3.2.1" -}}
+    {{- /* # renovate: datasource=docker depName=prom/prometheus */ -}}
+    {{- print "docker.io/prom/prometheus:v3.11.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -134,7 +141,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmOperator.image -}}
     {{- printf "%s" .Values.victoriametrics.vmOperator.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/operator:v0.65.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- print "docker.io/victoriametrics/operator:v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -148,7 +156,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmOperator.configReloaderImage -}}
     {{- printf "%s" .Values.victoriametrics.vmOperator.configReloaderImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.65.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -162,7 +171,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAgent.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAgent.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmagent:v1.130.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/vmagent */ -}}
+    {{- print "docker.io/victoriametrics/vmagent:v1.143.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -176,7 +186,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAgent.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAgent.configReloadImage -}}
   {{- else -}}
-    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.80.1" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -190,7 +201,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlert.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAlert.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmalert:v1.130.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/vmalert */ -}}
+    {{- print "docker.io/victoriametrics/vmalert:v1.143.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -204,7 +216,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlert.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAlert.configReloadImage -}}
   {{- else -}}
-    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.14.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -218,7 +231,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlertManager.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAlertManager.image -}}
   {{- else -}}
-    {{- print "docker.io/prom/alertmanager:v0.28.1" -}}
+    {{- /* # renovate: datasource=docker depName=prom/alertmanager */ -}}
+    {{- print "docker.io/prom/alertmanager:v0.32.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -232,7 +246,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlertManager.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAlertManager.configReloadImage -}}
   {{- else -}}
-    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.14.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -246,7 +261,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAuth.image -}}
     {{- printf "%s" .Values.victoriametrics.vmAuth.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmauth:v1.130.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/vmauth */ -}}
+    {{- print "docker.io/victoriametrics/vmauth:v1.143.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -260,7 +276,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmCluster.vmSelectImage -}}
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmSelectImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmselect:v1.130.0-cluster" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/vmselect */ -}}
+    {{- print "docker.io/victoriametrics/vmselect:v1.143.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -274,7 +291,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmCluster.vmStorageImage -}}
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmStorageImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vmstorage:v1.130.0-cluster" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/vmstorage */ -}}
+    {{- print "docker.io/victoriametrics/vmstorage:v1.143.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -288,7 +306,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmCluster.vmInsertImage -}}
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmInsertImage -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/vminsert:v1.130.0-cluster" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/vminsert */ -}}
+    {{- print "docker.io/victoriametrics/vminsert:v1.143.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -302,7 +321,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAuth.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAuth.configReloadImage -}}
   {{- else -}}
-    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.80.1" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.68.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -316,7 +336,8 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmSingle.image -}}
     {{- printf "%s" .Values.victoriametrics.vmSingle.image -}}
   {{- else -}}
-    {{- print "docker.io/victoriametrics/victoria-metrics:v1.130.0" -}}
+    {{- /* # renovate: datasource=docker depName=victoriametrics/victoria-metrics */ -}}
+    {{- print "docker.io/victoriametrics/victoria-metrics:v1.143.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -332,7 +353,8 @@ Image can be found from:
   {{- if .Values.kubeStateMetrics.image -}}
     {{- printf "%s" .Values.kubeStateMetrics.image -}}
   {{- else -}}
-    {{- print "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.15.0" -}}
+    {{- /* # renovate: datasource=github-releases depName=kubernetes/kube-state-metrics */ -}}
+    {{- print "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.17.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -346,7 +368,8 @@ Image can be found from:
   {{- if .Values.nodeExporter.image -}}
     {{- printf "%s" .Values.nodeExporter.image -}}
   {{- else -}}
-    {{- print "docker.io/prom/node-exporter:v1.9.0" -}}
+    {{- /* # renovate: datasource=docker depName=prom/node-exporter */ -}}
+    {{- print "docker.io/prom/node-exporter:v1.11.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -360,7 +383,8 @@ Image can be found from:
   {{- if .Values.pushgateway.image -}}
     {{- printf "%s" .Values.pushgateway.image -}}
   {{- else -}}
-    {{- print "docker.io/prom/pushgateway:v1.11.0" -}}
+    {{- /* # renovate: datasource=docker depName=prom/pushgateway */ -}}
+    {{- print "docker.io/prom/pushgateway:v1.11.2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -392,6 +416,23 @@ Image can be found from:
   {{- if .Values.oAuthProxy.image -}}
     {{- printf "%s" .Values.oAuthProxy.image -}}
   {{- else -}}
-    {{- print "quay.io/oauth2-proxy/oauth2-proxy:7.8.1" -}}
+    {{- /* # renovate: datasource=github-releases depName=oauth2-proxy/oauth2-proxy */ -}}
+    {{- print "quay.io/oauth2-proxy/oauth2-proxy:7.15.2" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/********************************* Etcd Certificates Job *********************************/}}
+
+{{/*
+Find a etcd_certs_job image in various places.
+Image can be found from:
+* .Values.platform_monitoring_tests.image from values file
+* or default value
+*/}}
+{{- define "etcdCertsJob.image" -}}
+  {{- if .Values.etcdCertsJob.image -}}
+    {{- printf "%s" .Values.etcdCertsJob.image -}}
+  {{- else -}}
+    {{- print "ghcr.io/netcracker/qubership-etcd-certs-to-secret:main" -}}
   {{- end -}}
 {{- end -}}

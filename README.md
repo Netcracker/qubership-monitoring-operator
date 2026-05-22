@@ -103,7 +103,51 @@ graph TB
 - Helm 3.0+
 - kubectl configured for your cluster
 
-### 1. Install the Operator
+### 1. Install required CRDs (optional)
+
+**Install from source:**
+
+```bash
+# Clone the repository
+git clone https://github.com/Netcracker/qubership-monitoring-operator.git
+
+cd qubership-monitoring-operator
+
+# This will install all required CRDs in the cluster. --server-side option allows to avoi annotations size limitation by not-applying last-applied-configuration annotations.
+kubectl apply -f charts/qubership-monitoring-crds/crds/ --server-side
+
+```
+Alternatively an ArgoCD application pointed to the crds helm chart can be deployed (if ArgoCD is installed).
+Example application's spec:
+
+```yaml
+project: default
+source:
+  repoURL: https://github.com/Netcracker/qubership-monitoring-operator
+  path: charts/qubership-monitoring-crds
+  targetRevision: feat/crd-helm-chart # target branch with the desired version of crds
+destination:
+  server: https://kubernetes.default.svc
+  namespace: monitoring
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+    enabled: true
+  syncOptions:
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true
+    - ServerSideApply=true
+ignoreDifferences:
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    jsonPointers:
+      - /spec/preserveUnknownFields
+```
+
+Argo CD applies CRDs in the same manner as in first command `kubectl apply -f`.
+
+### 2. Install the Operator
 
 **Install from source:**
 ```bash
@@ -139,7 +183,7 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 - Prometheus Adapter for HPA
 - Integrations (Graphite, Promxy)
 
-### 2. Verify Installation
+### 3. Verify Installation
 
 ```bash
 # Check that monitoring operator is running
@@ -152,7 +196,7 @@ kubectl get platformmonitoring -n monitoring
 kubectl get pods -n monitoring
 ```
 
-### 3. Access Your Monitoring
+### 4. Access Your Monitoring
 
 ```bash
 # Get Grafana admin password

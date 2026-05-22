@@ -11,7 +11,7 @@ name: goldpinger-exporter
 image:
   repository: bloomberg/goldpinger
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 3.10.2
+  tag: 3.11.2
   pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
@@ -23,11 +23,11 @@ image:
 rbac:
   create: true
   clusterscoped: true
-  name: goldpinger-exporter-rbac
+  # name: goldpinger-exporter-rbac
 
 serviceAccount:
   create: true
-  # name: goldpinger-exporter-service-account
+  # name: goldpinger-exporter
 
 goldpinger:
   port: 8080
@@ -80,7 +80,7 @@ ingress:
   #      - chart-example.local
 
 ## Set a priorityClassName for the pod. If left blank a default priority will be set.
-priorityClassName:
+# priorityClassName:
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

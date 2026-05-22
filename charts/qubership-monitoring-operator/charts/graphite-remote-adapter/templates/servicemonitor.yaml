@@ -4,12 +4,8 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/instance: {{ cat $.Release.Namespace "-" .Values.name "-" $.Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: monitoring
-    {{- $image := include "graphiteRemoteAdapter.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    {{- include "monitoring.labels" (dict "ctx" . "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
 spec:
   endpoints:
     - interval: 30s

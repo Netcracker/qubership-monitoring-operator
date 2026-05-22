@@ -1,11 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: victoriametrics
-    app.kubernetes.io/part-of: monitoring
-    app.kubernetes.io/managed-by: monitoring-operator
   name: monitoring-victoriametrics-operator
+  labels:
+    app.kubernetes.io/component: victoriametrics-operator
+    app.kubernetes.io/managed-by: monitoring-operator
+    app.kubernetes.io/part-of: monitoring
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

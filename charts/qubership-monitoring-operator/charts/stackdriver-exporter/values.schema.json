@@ -1,0 +1,296 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable deploy stackdriver-exporter.",
+            "default": false
+        },
+        "name": {
+            "type": "string",
+            "description": "A name of a microservice to deploy with. This name will be used as name of the microservice deployment and in labels.",
+            "default": "stackdriver-exporter"
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Number of exporters to run",
+            "default": 1
+        },
+        "image": {
+            "type": "string",
+            "description": "A Docker image to deploy the stackdriver-exporter\nDefault: docker.io/prometheuscommunity/stackdriver-exporter:v0.18.0"
+        },
+        "imagePullPolicy": {
+            "type": "string",
+            "description": "Image pull policy to use for stackdriver-exporter deployment",
+            "default": "IfNotPresent"
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describes the compute resource requests and limits for single Pod.",
+            "default": {},
+            "properties": {
+                "requests": {
+                    "type": "object",
+                    "description": "The requests describes the minimum amount of compute resources required.",
+                    "default": {},
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The minimum amount of CPU required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The minimum amount of memory required. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                },
+                "limits": {
+                    "type": "object",
+                    "description": "The limits describes the maximum amount of compute resources allowed.",
+                    "default": {},
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "The maximum amount of CPU that stackdriver-exporter container can use. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "The maximum amount of memory that stackdriver-exporter container can use. Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory"
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "SecurityContext holds pod-level security attributes.",
+            "default": {},
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the stackdriver-exporter container as."
+                },
+                "runAsGroup": {
+                    "type": "integer",
+                    "description": "The GID to run the stackdriver-exporter container as."
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod."
+                }
+            }
+        },
+        "service": {
+            "type": "object",
+            "description": "Service configuration for stackdriver-exporter",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "Type of stackdriver-exporter service",
+                    "default": "ClusterIP"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port of stackdriver-exporter which use in service",
+                    "default": 9255
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations set which will be created in service",
+                    "default": {}
+                }
+            }
+        },
+        "stackdriver": {
+            "type": "object",
+            "properties": {
+                "projectId": {
+                    "type": "string",
+                    "description": "The Google Project ID to gather metrics for",
+                    "default": "FALSE"
+                },
+                "serviceAccountSecret": {
+                    "type": "string",
+                    "description": "An existing secret which contains credentials.json",
+                    "default": ""
+                },
+                "serviceAccountSecretKey": {
+                    "type": "string",
+                    "description": "Provide custom key for the existing secret to load credentials.json from",
+                    "default": ""
+                },
+                "serviceAccountKey": {
+                    "type": "string",
+                    "description": "A service account key JSON file. Must be provided when no existing secret is used, in this case a new secret will be created holding this service account",
+                    "default": ""
+                },
+                "maxRetries": {
+                    "type": "integer",
+                    "description": "Max number of retries that should be attempted on 503 errors from Stackdriver",
+                    "default": 0
+                },
+                "httpTimeout": {
+                    "type": "string",
+                    "description": "How long should Stackdriver_exporter wait for a result from the Stackdriver API",
+                    "default": "10s"
+                },
+                "maxBackoff": {
+                    "type": "string",
+                    "description": "Max time between each request in an exp backoff scenario",
+                    "default": "5s"
+                },
+                "backoffJitter": {
+                    "type": "string",
+                    "description": "The amount of jitter to introduce in an exp backoff scenario",
+                    "default": "1s"
+                },
+                "retryStatuses": {
+                    "type": "integer",
+                    "description": "The HTTP statuses that should trigger a retry",
+                    "default": 503
+                },
+                "dropDelegatedProjects": {
+                    "type": "boolean",
+                    "description": "Drop metrics from attached projects and fetch `project_id` only",
+                    "default": false
+                },
+                "metrics": {
+                    "type": "object",
+                    "properties": {
+                        "typePrefixes": {
+                            "type": "string",
+                            "description": "The prefixes to gather metrics for, we default to just CPU metrics.",
+                            "default": "compute.googleapis.com/instance/cpu"
+                        },
+                        "interval": {
+                            "type": "string",
+                            "description": "The frequency to request",
+                            "default": "5m"
+                        },
+                        "offset": {
+                            "type": "string",
+                            "description": "How far into the past to offset",
+                            "default": "0s"
+                        },
+                        "ingestDelay": {
+                            "type": "boolean",
+                            "description": "Offset for the Google Stackdriver Monitoring Metrics interval into the past by the ingest delay from the metric's metadata.",
+                            "default": false
+                        }
+                    }
+                }
+            }
+        },
+        "affinity": {
+            "type": "object",
+            "description": "If specified, the pod's scheduling constraints",
+            "default": {}
+        },
+        "extraArgs": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Additional arguments for stackdriver-exporter container.",
+            "default": []
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "Allow define which Nodes the Pods are scheduled on.",
+            "default": {}
+        },
+        "tolerations": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            },
+            "description": "Tolerations allow the pods to schedule onto nodes with matching taints.",
+            "default": []
+        },
+        "serviceAccount": {
+            "type": "object",
+            "description": "ServiceAccount setting.",
+            "properties": {
+                "create": {
+                    "type": "boolean",
+                    "description": "Specifies whether a ServiceAccount should be created.",
+                    "default": true
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the ServiceAccount to use.",
+                    "default": "stackdriver-exporter"
+                },
+                "annotations": {
+                    "type": "object",
+                    "description": "Will add the provided map to the annotations for the created serviceAccount.",
+                    "default": {}
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Will add the provided map to the labels for the created serviceAccount.",
+                    "default": {}
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "description": "Service monitor for pulling metrics",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "When set true then use a ServiceMonitor to configure scraping",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Set how frequently Prometheus should scrape",
+                    "default": "2m"
+                },
+                "telemetryPath": {
+                    "type": "string",
+                    "description": "Set path to stackdriver-exporter telemetry-path",
+                    "default": "/metrics"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator",
+                    "default": {
+                        "app.kubernetes.io/component": "monitoring"
+                    }
+                },
+                "timeout": {
+                    "type": "string",
+                    "description": "Set timeout for scrape",
+                    "default": "30s"
+                },
+                "relabelings": {
+                    "type": "array",
+                    "description": "Set relabelings for the ServiceMonitor, use to apply to samples before scraping",
+                    "default": []
+                },
+                "metricRelabelings": {
+                    "type": "array",
+                    "description": "Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion",
+                    "default": []
+                }
+            }
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects.",
+            "default": {}
+        },
+        "labels": {
+            "type": "object",
+            "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services.",
+            "default": {}
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "PriorityClassName assigned to the Pods to prevent them from evicting."
+        }
+    }
+}

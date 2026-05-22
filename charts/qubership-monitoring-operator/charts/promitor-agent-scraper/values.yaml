@@ -283,7 +283,7 @@ service:
     # Mandatory: no
     # Default: not set
     #
-    dnsPrefix:
+    # dnsPrefix:
     # To restrict access to Promitor by exposing it through an internal load balancer.
     # This setting is specific to Azure Kubernetes Service.
     # Type: boolean

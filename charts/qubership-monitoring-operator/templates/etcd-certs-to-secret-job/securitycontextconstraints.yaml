@@ -1,0 +1,34 @@
+{{- if eq .Values.publicCloudName "" }}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: {{ .Values.etcdCertsJob.rbac.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.etcdCertsJob.rbac.name }}
+    app.kubernetes.io/component: etcd-certs-to-secret
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version:  {{ template "monitoring.operator.version" . }}
+allowHostDirVolumePlugin: true
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+groups: []
+priority: 0
+readOnlyRootFilesystem: true
+requiredDropCapabilities: []
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+users: []
+volumes:
+- '*'
+{{- end }}
+{{- end }}

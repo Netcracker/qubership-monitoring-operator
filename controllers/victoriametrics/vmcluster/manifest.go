@@ -2,7 +2,6 @@ package vmcluster
 
 import (
 	"embed"
-	"errors"
 	"maps"
 	"strings"
 
@@ -12,10 +11,8 @@ import (
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -31,6 +28,8 @@ func vmClusterServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccou
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmClusterComponentName)
 	sa.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmClusterComponentName), nil)
 
 	return &sa, nil
 }
@@ -60,6 +59,8 @@ func vmClusterClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*r
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmClusterComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -79,6 +80,9 @@ func vmClusterClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterR
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmClusterComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmClusterComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -102,15 +106,27 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 
 		vmcluster.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmClusterComponentName
 
-		// Set labels
-		vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.GetName(), vmcluster.GetNamespace())
-
-		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmCluster.ClusterVersion)) > 0 {
-			vmcluster.Spec.ClusterVersion = cr.Spec.Victoriametrics.VmCluster.ClusterVersion
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmcluster.GetName(),
+			Component:       utils.VmClusterComponentName,
+			Instance:        utils.GetInstanceLabel(vmcluster.GetName(), vmcluster.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage),
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
 		}
-
+		// Set labels (resource + pod template for each component) in one place
+		utils.SetLabelsForResource(&vmcluster, in, nil)
 		if cr.Spec.Victoriametrics.VmCluster.VmSelect != nil {
 			vmcluster.Spec.VMSelect = cr.Spec.Victoriametrics.VmCluster.VmSelect
+			vmcluster.Spec.VMSelect.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+				Labels: utils.LabelsForPodTemplate(
+					vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect),
+					utils.VmSelectComponentName,
+					utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentSelect), vmcluster.GetNamespace()),
+					utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage),
+					"go",
+				),
+			}
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMSelect.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
@@ -124,22 +140,19 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMSelect.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMSelect.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmselectTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
-			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-
-			vmcluster.Spec.VMSelect.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
-				"app.kubernetes.io/component":  "victoriametrics",
-				"app.kubernetes.io/part-of":    "monitoring",
-				"app.kubernetes.io/managed-by": "monitoring-operator",
-				"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage),
-			}}
 		}
 
 		if cr.Spec.Victoriametrics.VmCluster.VmStorage != nil {
 			vmcluster.Spec.VMStorage = cr.Spec.Victoriametrics.VmCluster.VmStorage
+			vmcluster.Spec.VMStorage.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+				Labels: utils.LabelsForPodTemplate(
+					vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentStorage),
+					utils.VmClusterComponentName,
+					utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentStorage), vmcluster.GetNamespace()),
+					utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage),
+					"go",
+				),
+			}
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMStorage.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
@@ -154,22 +167,19 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMStorage.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMStorage.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmstorageTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMSelect.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
-			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage)
-
-			vmcluster.Spec.VMStorage.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMStorage.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
-				"app.kubernetes.io/component":  "victoriametrics",
-				"app.kubernetes.io/part-of":    "monitoring",
-				"app.kubernetes.io/managed-by": "monitoring-operator",
-				"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmStorageImage),
-			}}
 		}
 
 		if cr.Spec.Victoriametrics.VmCluster.VmInsert != nil {
 			vmcluster.Spec.VMInsert = cr.Spec.Victoriametrics.VmCluster.VmInsert
+			vmcluster.Spec.VMInsert.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+				Labels: utils.LabelsForPodTemplate(
+					vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentInsert),
+					utils.VmClusterComponentName,
+					utils.GetInstanceLabel(vmcluster.PrefixedName(vmetricsv1b1.ClusterComponentInsert), vmcluster.GetNamespace()),
+					utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage),
+					"go",
+				),
+			}
 			if cr.Spec.Victoriametrics.VmReplicas != nil {
 				vmcluster.Spec.VMInsert.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
 			}
@@ -184,103 +194,14 @@ func vmCluster(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMCluster, error) {
 				maps.Copy(vmcluster.Spec.VMInsert.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.crt"})
 				maps.Copy(vmcluster.Spec.VMInsert.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVminsertTLSSecretName(cr.Spec.Victoriametrics.VmCluster) + "/tls.key"})
 			}
-			vmcluster.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace())
-			vmcluster.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage)
+		}
 
-			vmcluster.Spec.VMInsert.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-				"name":                         utils.TruncLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/name":       utils.TruncLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name)),
-				"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmcluster.Spec.VMInsert.GetNameWithPrefix(cr.Name), vmcluster.GetNamespace()),
-				"app.kubernetes.io/component":  "victoriametrics",
-				"app.kubernetes.io/part-of":    "monitoring",
-				"app.kubernetes.io/managed-by": "monitoring-operator",
-				"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmInsertImage),
-			}}
+		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmCluster.ClusterVersion)) > 0 {
+			vmcluster.Spec.ClusterVersion = cr.Spec.Victoriametrics.VmCluster.ClusterVersion
 		}
 	}
 
 	return &vmcluster, nil
-}
-
-func vmSelectIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
-	ingress := v1beta1.Ingress{}
-	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmSelectIngressAsset), 100).Decode(&ingress); err != nil {
-		return nil, err
-	}
-	//Set parameters
-	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1beta1", Kind: "Ingress"})
-	ingress.SetName(cr.GetNamespace() + "-" + utils.VmSelectServiceName)
-	ingress.SetNamespace(cr.GetNamespace())
-
-	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmCluster.VmSelectIngress != nil && cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
-		// Add rule for vmselect UI
-		rule := v1beta1.IngressRule{Host: cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host}
-		serviceName := utils.VmSelectServiceName
-		servicePort := intstr.FromInt(utils.VmSelectServicePort)
-
-		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
-			Paths: []v1beta1.HTTPIngressPath{
-				{
-					Path: "/",
-					Backend: v1beta1.IngressBackend{
-						ServiceName: serviceName,
-						ServicePort: servicePort,
-					},
-				},
-			},
-		}
-		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
-
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName != "" {
-			ingress.Spec.TLS = []v1beta1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host},
-					SecretName: cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName,
-				},
-			}
-		}
-
-		if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.IngressClassName != nil {
-			ingress.Spec.IngressClassName = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.IngressClassName
-		}
-
-		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Annotations)
-		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
-			if ingress.GetAnnotations() == nil {
-				annotation := make(map[string]string)
-				annotation["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
-				ingress.SetAnnotations(annotation)
-			} else {
-				ingress.GetAnnotations()["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
-			}
-		}
-
-		if ingress.GetAnnotations() == nil {
-			annotation := make(map[string]string)
-			annotation["nginx.ingress.kubernetes.io/app-root"] = "/select/0/vmui"
-			ingress.SetAnnotations(annotation)
-		} else {
-			ingress.GetAnnotations()["nginx.ingress.kubernetes.io/app-root"] = "/select/0/vmui"
-		}
-
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels {
-			ingress.GetLabels()[lKey] = lValue
-		}
-	}
-	return &ingress, nil
 }
 
 func vmSelectIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
@@ -288,45 +209,159 @@ func vmSelectIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmSelectIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
-	//Set parameters
+	//Set metadata
 	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1", Kind: "Ingress"})
 	ingress.SetName(cr.GetNamespace() + "-" + utils.VmSelectServiceName)
 	ingress.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmCluster.VmSelectIngress != nil && cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
+		var rules []networkingv1.IngressRule
 		pathType := networkingv1.PathTypePrefix
-		// Add rule for vmselect UI
-		rule := networkingv1.IngressRule{Host: cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host}
-		rule.HTTP = &networkingv1.HTTPIngressRuleValue{
-			Paths: []networkingv1.HTTPIngressPath{
-				{
-					Path:     "/",
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: &networkingv1.IngressServiceBackend{
-							Name: utils.VmSelectServiceName,
-							Port: networkingv1.ServiceBackendPort{
-								Number: int32(utils.VmSelectServicePort),
+		ing := cr.Spec.Victoriametrics.VmCluster.VmSelectIngress
+
+		switch {
+		// 1. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &monv1.HTTPIngressRuleValue{
+						Paths: []monv1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: monv1.IngressPathBackend{
+									Service: monv1.IngressPathBackendService{
+										Name: utils.VmSelectServiceName,
+										Port: monv1.ServiceBackendPort{
+											Number: utils.VmSelectServicePort,
+										},
+									},
+								},
 							},
 						},
+					}
+				}
+
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmSelectPath(pathType)},
 					},
 				},
-			},
-		}
-		ingress.Spec.Rules = []networkingv1.IngressRule{rule}
+			})
 
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host},
-					SecretName: cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName,
+		// 3. fallback: if no custom ingress rules or Host provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmSelectPath(pathType)},
+					},
 				},
+			})
+		}
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				secret := hostgroup.SecretName
+				// fallback: if secretName is empty - use ingress TLSSecretName only
+				if secret == "" {
+					secret = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure TLS if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host != "" {
+			secret := cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.TLSSecretName
+			for _, rule := range cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
 			}
 		}
 
@@ -335,7 +370,7 @@ func vmSelectIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)
@@ -354,15 +389,27 @@ func vmSelectIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, err
 			ingress.GetAnnotations()["nginx.ingress.kubernetes.io/app-root"] = "/select/0/vmui"
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmCluster.VmSelectImage)
-
-		for lKey, lValue := range cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmSelectComponentName)
+		if len(cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmCluster.VmSelectIngress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
+}
+
+func defaultVmSelectPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.VmSelectServiceName,
+				Port: networkingv1.ServiceBackendPort{
+					Number: utils.VmSelectServicePort,
+				},
+			},
+		},
+	}
 }
