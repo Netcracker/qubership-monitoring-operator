@@ -134,7 +134,8 @@ sslExporter:
 
 ## Example: custom manual Probe
 
-If you do not want to manage probe targets through chart values, create a manual `Probe` resource and point it at the ssl-exporter Service:
+If you do not want to manage probe targets through chart values, create a manual `Probe` resource
+and point it at the ssl-exporter Service:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1

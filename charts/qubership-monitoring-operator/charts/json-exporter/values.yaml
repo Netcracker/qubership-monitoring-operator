@@ -189,7 +189,7 @@ config: {}
 #          templatize: true
 #
 # For full http client config parameters, ref: https://pkg.go.dev/github.com/prometheus/common/config?tab=doc#HTTPClientConfig
-# 
+#
 #        http_client_config:
 #          tls_config:
 #            insecure_skip_verify: true

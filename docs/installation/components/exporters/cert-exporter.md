@@ -1,7 +1,6 @@
 # cert-exporter
 
-**Note**: Pay attention to the specifics of deploy with `cert-exporter`. For more information, refer to
-the [Deploy with cert-exporter](#deploy-with-cert-exporter) section.
+**Note**: Pay attention to the specifics of deploy with `cert-exporter`.
 
 <!-- markdownlint-disable line-length -->
 | Field                                   | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |

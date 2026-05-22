@@ -42,7 +42,7 @@ Example:
 ....
 prometheus:
   install: false
-    
+
 alertManager:
   install: false
 
@@ -128,7 +128,7 @@ prometheus:
 
 alertManager:
   install: false
-  
+
 ....
 victorimetrics:
   vmOperator:
@@ -158,7 +158,7 @@ for all parameters [see here](../installation/README.md#victoria-metrics)
 Step 4. Run `vmctl` tool
 
 After successful deploy you can import snapshots to the TSDB. VictoriaMetrics has `vmctl` tool for it. More information
-[here](https://docs.victoriametrics.com/vmctl.html#migrating-data-from-prometheus).
+[VictoriaMetrics: vmctl](https://docs.victoriametrics.com/vmctl.html#migrating-data-from-prometheus).
 
 * You can run tool locally:
 
@@ -195,7 +195,7 @@ After successful deploy you can import snapshots to the TSDB. VictoriaMetrics ha
             args:
               - while true; do sleep 30; done;
   ```
-  
+
   **NOTE**: You should mount or upload Prometheus backup to pod with vmctl tool.
 
 The `vmctl` tool has a lot of flags it is just main parameters. But you can filter data in snapshot and upload not all

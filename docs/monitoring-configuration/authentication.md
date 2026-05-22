@@ -349,13 +349,13 @@ If we are talking about support authentication and authorization we have the fol
 | Component      | Authentication                  | Authorization                         |
 | -------------- | ------------------------------- | ------------------------------------- |
 | Grafana        | ✓ Support (Basic, LDAP, OAuth2) | ✓ Support (View, Editor, Admin roles) |
-| Prometheus     | ✓ Support (OAuth2)               | ✗ Not support                         |
-| Alertmanager   | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAgent        | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAlert        | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAuth         | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAlertmanager | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMSingle       | ✓ Support (OAuth2)               | ✗ Not support                         |
+| Prometheus     | ✓ Support (OAuth2)              | ✗ Not support                         |
+| Alertmanager   | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAgent        | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAlert        | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAuth         | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAlertmanager | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMSingle       | ✓ Support (OAuth2)              | ✗ Not support                         |
 
 Details about each component see below.
 
@@ -582,4 +582,3 @@ To support OAuth2 using `oauth2-proxy`. It uses configuration from the common se
 How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
-

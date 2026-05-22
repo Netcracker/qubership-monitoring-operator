@@ -5,8 +5,8 @@ installation and during the work.
 
 During deploy you can specify admin users and passwords for the next components:
 
-* Grafana
-* VMAuth
+- Grafana
+- VMAuth
 
 **Note:** Because the VMAuth used as a proxy to external access for all VictoriaMetrics components
 it means that it's enough to change specific users and passwords only for VMAuth. Other components
@@ -39,8 +39,8 @@ Behaviour:
 
 - By default `admin_user` and `admin_password` are set to `admin/admin`.
 - If you set any of them to an empty string `""`, Monitoring Operator will:
-    - on first installation: generate a random value and store it in the Secret;
-    - on subsequent upgrades: keep the existing value from the Secret.
+  - on first installation: generate a random value and store it in the Secret;
+  - on subsequent upgrades: keep the existing value from the Secret.
 - For backward compatibility, if the old section
   `grafana.config.security.admin_user` / `grafana.config.security.admin_password`
   is specified, its non-empty values override `grafana.security.*` **only when

@@ -61,14 +61,14 @@ For more information, refer to
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#webtlsconfig](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#webtlsconfig)
 
 <!-- markdownlint-disable line-length -->
-| Field          | Description                                                                                                                                                                                                                                      | Scheme |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core)                                             | object |
+| Field          | Description                                                                                                                                                                                                                                         | Scheme |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core)                                                | object |
 | cert           | Contains the TLS certificate for the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap)                                     | object |
 | client_ca      | Contains the CA certificate for client certificate authentication to the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap) | object |
-| clientAuthType | Server policy for client authentication. Maps to ClientAuth Policies. For more detail on clientAuth options: [https://golang.org/pkg/crypto/tls/#ClientAuthType](https://golang.org/pkg/crypto/tls/#ClientAuthType)                              | string |
-| generateCerts  | Allows to configure generation of TLS certificate for Prometheus by [cert-manager](https://cert-manager.io/).                                                                                                                                    | object |
-| createSecret   | Specifies content for secret that will be created.                                                                                                                                                                                               | object |
+| clientAuthType | Server policy for client authentication. Maps to ClientAuth Policies. For more detail on clientAuth options: [https://golang.org/pkg/crypto/tls/#ClientAuthType](https://golang.org/pkg/crypto/tls/#ClientAuthType)                                 | string |
+| generateCerts  | Allows to configure generation of TLS certificate for Prometheus by [cert-manager](https://cert-manager.io/).                                                                                                                                       | object |
+| createSecret   | Specifies content for secret that will be created.                                                                                                                                                                                                  | object |
 <!-- markdownlint-enable line-length -->
 
 ### webTLSConfig
@@ -262,8 +262,10 @@ In order for cert-manager to generate a secret containing certificates and priva
 
 2. Then you can create [Certificate](https://cert-manager.io/docs/concepts/certificate/) resource. Configuration of this
    resource allows to change parameters of generated certificates and private key. You can find an example of
-   certificate resource [here](https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources).
-3. Cert-manager will create [Certificate Request](https://cert-manager.io/docs/concepts/certificaterequest/)
+   certificate resource
+   [cert-manager: creating certificate resources](https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources).
+3. Cert-manager will create
+   [cert-manager:: Certificate Request](https://cert-manager.io/docs/concepts/certificaterequest/)
    resource based on created Certificate resource.
 4. Also, cert-manager will create Secret resource with name specified in the Certificate resource previously.
    Generated secret contains fields `ca.crt` with PEM CA certificate, `tls.crt` with PEM private key and `tls.key`
@@ -433,4 +435,3 @@ prometheus:
     tlsSecretName: prometheus-tls
 ...
 ```
-

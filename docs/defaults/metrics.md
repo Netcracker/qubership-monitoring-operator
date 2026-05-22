@@ -1,25 +1,5 @@
 # Metrics OOB
 
-* [Metrics OOB](#metrics-oob)
-  * [AlertManager](#alertmanager)
-  * [Core DNS service](#core-dns-service)
-  * [Grafana](#grafana)
-  * [Grafana-operator](#grafana-operator)
-  * [Kube-apiserver](#kube-apiserver)
-  * [Kube-state-metrics](#kube-state-metrics)
-  * [Kubelet](#kubelet)
-  * [cAdvisor](#cadvisor)
-  * [NGINX ingress](#nginx-ingress)
-  * [Node-exporter](#node-exporter)
-  * [Prometheus](#prometheus)
-  * [Prometheus-operator](#prometheus-operator)
-  * [Operator-sdk](#operator-sdk)
-  * [Openshift-state-metrics](#openshift-state-metrics)
-  * [Openshift-api-server](#openshift-api-server)
-  * [Openshift-api-server-operator](#openshift-api-server-operator)
-  * [Cluster-version-operator](#cluster-version-operator)
-  * [Openshift-HAProxy](#openshift-haproxy)
-
 ## AlertManager
 
 <!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
@@ -128,7 +108,7 @@
 | coredns_hosts_entries | gauge | The combined number of entries in hosts and Corefile. |
 | coredns_hosts_reload_timestamp_seconds | gauge | The timestamp of the last reload of hosts file. |
 | coredns_kubernetes_dns_programming_duration_seconds | histogram | Histogram of the time (in seconds) it took to program a DNS instance. |
-| coredns_local_localhost_requests | counter | Counter of localhost.<domain> requests. |
+| coredns_local_localhost_requests | counter | Counter of `localhost.<domain>` requests. |
 | coredns_panics | counter | A metrics that counts the number of panics. |
 | coredns_plugin_enabled | gauge | A metric that indicates whether a plugin is enabled on per server and zone basis. |
 | coredns_reload_failed | counter | Counter of the number of failed reload attempts. |

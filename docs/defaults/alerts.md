@@ -1,23 +1,5 @@
 # Alerts OOB
 
-* [Alerts OOB](#alerts-oob)
-  * [Monitoring-operator](#monitoring-operator)
-    * [Heartbeat](#heartbeat)
-    * [SelfMonitoring](#selfmonitoring)
-    * [AlertManager](#alertmanager)
-    * [KubernetesAlerts](#kubernetesalerts)
-    * [NodeProcesses](#nodeprocesses)
-    * [NodeExporters](#nodeexporters)
-    * [DockerContainers](#dockercontainers)
-    * [HAmode](#hamode)
-    * [HAProxy](#haproxy)
-    * [Etcd](#etcd)
-    * [NginxIngressAlerts](#nginxingressalerts)
-    * [CoreDnsAlerts](#corednsalerts)
-    * [DRAlerts](#dralerts)
-    * [BackupAlerts](#backupalerts)
-  * [Cert-exporter](#cert-exporter)
-
 ## Monitoring-operator
 
 ### Heartbeat

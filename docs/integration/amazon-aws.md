@@ -122,7 +122,7 @@ Examples of cloudwatch-exporter configuration for some managed services:
         aws_statistics: [Average]
         period_seconds: 86400
     ```
-  
+
 The configuration must contain metrics (with statistics, dimensions, and so on) that you want to see in Prometheus.
 The official AWS documentation has information about each metric, the most useful statistics for it, and the possible sets
 of dimensions.
@@ -459,7 +459,7 @@ For the lists of full metrics, refer to [CloudWatch Metrics](#cloudwatch-metrics
 
 ```yaml
 cloudwatchExporter:
-  serviceMonitor: 
+  serviceMonitor:
    interval: 2m
   config:
     period_seconds: 120
@@ -570,7 +570,8 @@ Read installation guide [cloudwatch-exporter section](../installation/components
 
 ### EFS
 
-AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json) required following Cloudwatch-exporter configuration:
+AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -618,7 +619,8 @@ metrics:
 
 ### EBS
 
-AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json) required following Cloudwatch-exporter configuration:
+AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -658,7 +660,8 @@ metrics:
 
 ### S3
 
-AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json) required following Cloudwatch-exporter configuration:
+AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -678,8 +681,8 @@ metrics:
 
 ### Classic ELB
 
-AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json) required following Cloudwatch-exporter
-configuration:
+AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -723,8 +726,8 @@ metrics:
 
 ### Application ELB
 
-AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json) required following
-Cloudwatch-exporter configuration:
+AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -788,8 +791,8 @@ metrics:
 
 ### Network ELB
 
-AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json) required following Cloudwatch-exporter
-configuration:
+AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -865,8 +868,8 @@ metrics:
 
 ### RabbitMQ
 
-AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json) required following Cloudwatch-exporter
-configuration:
+AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -946,8 +949,8 @@ metrics:
 
 ### Cassandra
 
-AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json) required following Cloudwatch-exporter
-configuration:
+AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -1122,8 +1125,8 @@ Metrics ingested into a workspace are stored for 150 days, and are then automati
 
 #### Set up IAM Roles for Service Accounts
 
-**Warning**: Before creating an IAM role for Kubernetes, do not forget to configure the OIDC provider for EKS. For more information,
-see IAM Roles for Service Accounts at
+**Warning**: Before creating an IAM role for Kubernetes, do not forget to configure the OIDC provider for EKS.
+For more information, see IAM Roles for Service Accounts at
 [https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
 in the Amazon EKS Security Guide.
 
@@ -1204,7 +1207,7 @@ In deployment parameters for Monitoring, specify the following set:
 prometheus:
   ...
   serviceAccount:
-    annotations: 
+    annotations:
       eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
   remoteWrite:
     - url: https://aps-workspaces.<AWS_REGION>.amazonaws.com/workspaces/<WORKSPACE_ID>/api/v1/remote_write
@@ -1274,7 +1277,7 @@ Add the following parameters:
   prometheus:
     ...
     serviceAccounts:
-      annotations: 
+      annotations:
         eks.amazonaws.com/sts-regional-endpoints: true
   ```
 
@@ -1309,7 +1312,7 @@ prometheus:
         - name: AWS_STS_REGIONAL_ENDPOINTS
           value: regional
   serviceAccounts:
-    annotations: 
+    annotations:
       eks.amazonaws.com/sts-regional-endpoints: true
       eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
   remoteWrite:

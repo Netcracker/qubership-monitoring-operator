@@ -76,7 +76,8 @@ target configurations.
 The json-exporter provides two main endpoints:
 
 - `/metrics` - Self-monitoring metrics
-- `/probe` - Probe endpoint for scraping JSON targets (configure scraping with Prometheus Operator `Probe` CRs, not Helm `ServiceMonitor` templates in this chart)
+- `/probe` - Probe endpoint for scraping JSON targets (configure scraping with Prometheus Operator `Probe` CRs,
+  not Helm `ServiceMonitor` templates in this chart)
 
 ## Configuration Examples
 
