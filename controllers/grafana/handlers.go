@@ -280,100 +280,78 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	return nil
 }
 
-// This method is not used. The behavior when resetting credential shells needs to be analyzed and possibly rewritten.
-func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
-	// Waiting Grafana Pods readiness
-	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
-	if err := r.WaitForPodsReadiness(
-		&appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      utils.GrafanaDeploymentName,
-				Namespace: cr.GetNamespace(),
-			}}); err != nil {
-		return err
-	}
-	r.Log.Info("Grafana Pods are ready", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
-	// Getting Admin Credentials Secret
-	r.Log.Info("Getting Admin Credentials Secret")
-	secretName := getGrafanaAdminSecretName(cr)
-	secretNamespace := cr.GetNamespace()
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
-		secretNamespace = cr.Spec.Grafana.Namespace
-	}
-	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
-	if err = r.GetResource(adminSecret); err == nil {
-		// Get Grafana Pod
-		r.Log.Info("Getting Grafana Pod")
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			return fmt.Errorf("cannot load in-cluster config: %w", err)
-		}
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			return fmt.Errorf("cannot create clientset: %w", err)
-		}
-		pods, err := clientset.CoreV1().Pods(cr.GetNamespace()).List(context.TODO(), metav1.ListOptions{
-			LabelSelector: "app=grafana",
-		})
-		if err != nil || len(pods.Items) == 0 {
-			return fmt.Errorf("grafana deployment pod wasn't found: %w", err)
-		}
-		var podName *string = nil
-		for _, p := range pods.Items {
-			if p.DeletionTimestamp == nil {
-				podName = &p.Name
-				break
-			}
-		}
-		if podName == nil {
-			return fmt.Errorf("no suitable grafana deployment pod was found: %w", err)
-		}
-		r.Log.Info("Grafana Pod was found: " + *podName)
-
-		// Prepare Grafana CLI request
-		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(adminSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
-		req := r.KubeClient.CoreV1().RESTClient().
-			Post().
-			Resource("pods").
-			Name(*podName).
-			Namespace(cr.GetNamespace()).
-			SubResource("exec").
-			VersionedParams(&corev1.PodExecOptions{
-				Container: "grafana",
-				Command:   command,
-				Stdin:     false,
-				Stdout:    true,
-				Stderr:    true,
-				TTY:       false,
-			}, scheme.ParameterCodec)
-
-		// Set up a connection
-		r.Log.Info("Setting Up a Connection with Grafana Pod")
-		exec, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
-		if err != nil {
-			return fmt.Errorf("grafana pod connection wasn't set up: %w", err)
-		}
-
-		// Execute Grafana CLI request
-		r.Log.Info("Executing Grafana CLI command")
-		var stdout, stderr bytes.Buffer
-		err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
-			Stdout: &stdout,
-			Stderr: &stderr,
-		})
-		if err != nil {
-			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
-		}
-
-		isSecretUpdated = false
-		r.Log.Info("Grafana Credentials Reset was finished")
-	}
-	if errors.IsNotFound(err) {
-		r.Log.Info("Admin Credentials Secret wasn't found")
-		return nil
-	}
-	return err
-}
+// TODO(#375): resetGrafanaCredentials — to be reimplemented for grafana-operator v5.
+// Tracked in: https://github.com/Netcracker/qubership-monitoring-operator/issues/375
+// The implementation below is preserved as reference for the future fix.
+// It must NOT be compiled until the required dependencies are restored:
+//   - imports: bytes, appsv1, rest, kubernetes, scheme, remotecommand
+//   - struct field: r.config *rest.Config
+//   - var: isSecretUpdated
+//
+// func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
+// 	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
+// 	if err := r.WaitForPodsReadiness(
+// 		&appsv1.Deployment{
+// 			ObjectMeta: metav1.ObjectMeta{
+// 				Name:      utils.GrafanaDeploymentName,
+// 				Namespace: cr.GetNamespace(),
+// 			}}); err != nil {
+// 		return err
+// 	}
+// 	secretName := getGrafanaAdminSecretName(cr)
+// 	secretNamespace := cr.GetNamespace()
+// 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+// 		secretNamespace = cr.Spec.Grafana.Namespace
+// 	}
+// 	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
+// 	if err = r.GetResource(adminSecret); err == nil {
+// 		config, err := rest.InClusterConfig()
+// 		if err != nil {
+// 			return fmt.Errorf("cannot load in-cluster config: %w", err)
+// 		}
+// 		clientset, err := kubernetes.NewForConfig(config)
+// 		if err != nil {
+// 			return fmt.Errorf("cannot create clientset: %w", err)
+// 		}
+// 		pods, err := clientset.CoreV1().Pods(cr.GetNamespace()).List(context.TODO(), metav1.ListOptions{
+// 			LabelSelector: "app=grafana",
+// 		})
+// 		if err != nil || len(pods.Items) == 0 {
+// 			return fmt.Errorf("grafana deployment pod wasn't found: %w", err)
+// 		}
+// 		var podName *string = nil
+// 		for _, p := range pods.Items {
+// 			if p.DeletionTimestamp == nil {
+// 				podName = &p.Name
+// 				break
+// 			}
+// 		}
+// 		if podName == nil {
+// 			return fmt.Errorf("no suitable grafana deployment pod was found: %w", err)
+// 		}
+// 		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(adminSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
+// 		req := r.KubeClient.CoreV1().RESTClient().
+// 			Post().Resource("pods").Name(*podName).Namespace(cr.GetNamespace()).SubResource("exec").
+// 			VersionedParams(&corev1.PodExecOptions{
+// 				Container: "grafana", Command: command,
+// 				Stdin: false, Stdout: true, Stderr: true, TTY: false,
+// 			}, scheme.ParameterCodec)
+// 		exec, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
+// 		if err != nil {
+// 			return fmt.Errorf("grafana pod connection wasn't set up: %w", err)
+// 		}
+// 		var stdout, stderr bytes.Buffer
+// 		err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{Stdout: &stdout, Stderr: &stderr})
+// 		if err != nil {
+// 			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
+// 		}
+// 		isSecretUpdated = false
+// 	}
+// 	if errors.IsNotFound(err) {
+// 		return nil
+// 	}
+// 	return err
+// }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
 	m, err := grafana(cr)
