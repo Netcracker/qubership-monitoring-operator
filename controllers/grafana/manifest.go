@@ -30,6 +30,31 @@ func getGrafanaRootURL(protocol string, host string) string {
 	return fmt.Sprintf("%v://%v/", protocol, host)
 }
 
+// configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
+// without GF_SECURITY_ADMIN_* environment variables (admin credentials are file-based in Grafana).
+func configureGrafanaOperatorKubeAuth(graf *grafv1.Grafana, operatorNamespace string) {
+	graf.Spec.Client = &grafv1.GrafanaClient{UseKubeAuth: true}
+
+	operatorSA := operatorNamespace + "-" + utils.GrafanaOperatorComponentName
+	rolePath := fmt.Sprintf(
+		"contains(sub, 'system:serviceaccount:%s:%s') && 'GrafanaAdmin' || 'None'",
+		operatorNamespace, operatorSA,
+	)
+
+	jwt := ensureGrafanaConfigSection(graf, "auth.jwt")
+	jwt["enabled"] = "true"
+	jwt["header_name"] = "Authorization"
+	jwt["expect_claims"] = `{"aud": ["operator.grafana.com"]}`
+	jwt["username_claim"] = "sub"
+	jwt["email_claim"] = "sub"
+	jwt["auto_sign_up"] = "true"
+	jwt["role_attribute_strict"] = "true"
+	jwt["role_attribute_path"] = rolePath
+	jwt["jwk_set_url"] = "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/openid/v1/jwks"
+	jwt["jwk_set_bearer_token_file"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	jwt["tls_client_ca"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+}
+
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
 // This function safely initializes the Deployment structure to avoid nil pointer dereference
 func ensureDeploymentInitialized(graf *grafv1.Grafana) {
@@ -421,6 +446,9 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			securitySection["admin_user"] = "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_USER}"
 			securitySection["admin_password"] = "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_PASSWORD}"
 
+			// grafana-operator authenticates to Grafana via ServiceAccount JWT, not admin env vars.
+			configureGrafanaOperatorKubeAuth(&graf, cr.GetNamespace())
+
 			// Configure OAuth client secret via file provider when auth is enabled.
 			// The secret is managed by Helm template oauth2-configs/secret-grafana-oauth-client-secret.yaml.
 			if cr.Spec.Auth != nil {
@@ -508,46 +536,33 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		ensurePodSpecInitialized(&graf)
 
 		// Access Template through deployment and set labels/annotations
-		// Use recover to safely handle any nil pointer issues that may occur due to v5 API structure changes
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					// If we panic, Template structure might not be accessible (e.g., Spec or Template are nil pointers)
-					// This is OK - labels/annotations are already set on the Grafana resource itself
-				}
-			}()
-			deployment := graf.Spec.Deployment
-			if deployment != nil {
-				// Initialize Labels if nil
-				if deployment.Spec.Template.Labels == nil {
-					deployment.Spec.Template.Labels = make(map[string]string)
-				}
-				// Set labels
-				deployment.Spec.Template.Labels["name"] = utils.TruncLabel(graf.GetName())
-				deployment.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(graf.GetName())
-				deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
-				deployment.Spec.Template.Labels["app.kubernetes.io/component"] = "grafana"
-				deployment.Spec.Template.Labels["app.kubernetes.io/part-of"] = "monitoring"
-				deployment.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-				deployment.Spec.Template.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
-				if cr.Spec.Grafana.Labels != nil {
-					for k, v := range cr.Spec.Grafana.Labels {
-						deployment.Spec.Template.Labels[k] = v
-					}
-				}
-
-				// Initialize Annotations if nil
-				if deployment.Spec.Template.Annotations == nil {
-					deployment.Spec.Template.Annotations = make(map[string]string)
-				}
-				// Set annotations
-				if cr.Spec.Grafana.Annotations != nil {
-					for k, v := range cr.Spec.Grafana.Annotations {
-						deployment.Spec.Template.Annotations[k] = v
-					}
+		deployment := graf.Spec.Deployment
+		if deployment != nil && deployment.Spec.Template != nil {
+			if deployment.Spec.Template.Labels == nil {
+				deployment.Spec.Template.Labels = make(map[string]string)
+			}
+			deployment.Spec.Template.Labels["name"] = utils.TruncLabel(graf.GetName())
+			deployment.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(graf.GetName())
+			deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
+			deployment.Spec.Template.Labels["app.kubernetes.io/component"] = "grafana"
+			deployment.Spec.Template.Labels["app.kubernetes.io/part-of"] = "monitoring"
+			deployment.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
+			deployment.Spec.Template.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
+			if cr.Spec.Grafana.Labels != nil {
+				for k, v := range cr.Spec.Grafana.Labels {
+					deployment.Spec.Template.Labels[k] = v
 				}
 			}
-		}()
+
+			if deployment.Spec.Template.Annotations == nil {
+				deployment.Spec.Template.Annotations = make(map[string]string)
+			}
+			if cr.Spec.Grafana.Annotations != nil {
+				for k, v := range cr.Spec.Grafana.Annotations {
+					deployment.Spec.Template.Annotations[k] = v
+				}
+			}
+		}
 
 		// ServiceAccount in v5 uses different structure - Annotations and Labels may be in different location
 		// Note: ServiceAccount configuration may need to be handled differently in v5
@@ -567,7 +582,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 		return nil, err
 	}
 	// Set Interval for Grafana datasource
-	var grafanaDatasourceInterval string = "30s"
+	grafanaDatasourceInterval := "30s"
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmOperator.IsInstall() {
 		if cr.Spec.Victoriametrics.VmSingle.IsInstall() {
 			vmSingle := vmetricsv1b1.VMSingle{}
@@ -658,7 +673,7 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	}
 
 	// Set JSONData for timeInterval - in v5, JSONData is json.RawMessage
-	var grafanaDatasourceInterval string = "30s"
+	grafanaDatasourceInterval := "30s"
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
 		grafanaDatasourceInterval = cr.Spec.Victoriametrics.VmAgent.ScrapeInterval
 	}

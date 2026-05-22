@@ -36,6 +36,8 @@ func TestGrafanaManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "Grafana manifest should not be empty")
+		assert.NotNil(t, m.Spec.Client)
+		assert.True(t, m.Spec.Client.UseKubeAuth)
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
 		// In grafana-operator v5, Labels and Annotations are in Deployment.Spec.Template
