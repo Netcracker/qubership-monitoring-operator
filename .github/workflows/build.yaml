@@ -1,5 +1,6 @@
 ---
 name: Build Artifacts
+
 on:
   release:
     types: [created]
@@ -55,6 +56,9 @@ concurrency:
 
 jobs:
   multiplatform_build:
+    permissions:
+      contents: read
+      packages: write
     if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
     strategy:
       fail-fast: false
@@ -80,6 +84,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
     - name: Set image name
       run: |
         OWNER="${{ github.repository_owner }}"

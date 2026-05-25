@@ -1,5 +1,7 @@
+---
 name: Monitoring Operator Release
-run-name: "Monitoring Operator Release ${{ inputs.version }}"
+run-name: "Release: Monitoring Operator ${{ inputs.appVersion }} with Helm chart version ${{ inputs.version }}"
+
 on:
   workflow_dispatch:
     inputs:
@@ -41,6 +43,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Load Docker Configuration
         id: load_component
@@ -138,6 +142,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
+          persist-credentials: false
       - name: Run Release Drafter
         uses: netcracker/release-drafter@86f4276a3894b5af70480e826c32fe3648ac6a70 # v1.0.0
         with:
@@ -158,6 +163,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Create archives
         run: |
