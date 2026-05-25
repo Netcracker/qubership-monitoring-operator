@@ -297,14 +297,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Only configure Config fields if Config was not provided as RawExtension
-		// Note: In v5, Config is map[string]map[string]string or runtime.RawExtension
-		// We need to work with Config as runtime.RawExtension and marshal/unmarshal JSON
-		if cr.Spec.Auth != nil && !configProvidedAsRawExtension {
-			// In grafana-operator v5, Config structure changed significantly
-			// OAuth configuration needs to be handled via runtime.RawExtension or removed
-			// Note: This functionality may need to be reimplemented for v5 API
-		}
+		// TODO(#376): OAuth configuration via spec.auth is not yet propagated to Grafana CR spec.config.
+		// When implemented, populate graf.Spec.Config["auth.generic_oauth"] from cr.Spec.Auth here.
 		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
