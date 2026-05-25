@@ -23,17 +23,12 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-// TODO(#377): getGrafanaRootURL — to be used when spec.grafana.config propagation is implemented.
-// Once spec.grafana.config is properly forwarded to Grafana CR spec.config, this helper can be
-// used to automatically populate server.root_url from spec.grafana.ingress.host as a convenience
-// default (users can override via grafana.config in values).
-//
-// func getGrafanaRootURL(protocol string, host string) string {
-// 	if protocol == "" {
-// 		protocol = "http"
-// 	}
-// 	return fmt.Sprintf("%v://%v/", protocol, host)
-// }
+func getGrafanaRootURL(protocol string, host string) string {
+	if protocol == "" {
+		protocol = "http"
+	}
+	return fmt.Sprintf("%v://%v/", protocol, host)
+}
 
 // configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
 // without GF_SECURITY_ADMIN_* environment variables (admin credentials are file-based in Grafana).
@@ -58,6 +53,18 @@ func configureGrafanaOperatorKubeAuth(graf *grafv1.Grafana, operatorNamespace st
 	jwt["jwk_set_url"] = "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/openid/v1/jwks"
 	jwt["jwk_set_bearer_token_file"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	jwt["tls_client_ca"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+}
+
+// ensureGrafanaConfigSection returns the map for the given grafana.ini section,
+// initialising graf.Spec.Config and the section map if necessary.
+func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string]string {
+	if graf.Spec.Config == nil {
+		graf.Spec.Config = make(map[string]map[string]string)
+	}
+	if graf.Spec.Config[section] == nil {
+		graf.Spec.Config[section] = make(map[string]string)
+	}
+	return graf.Spec.Config[section]
 }
 
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
@@ -105,17 +112,6 @@ func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *cor
 	return &podSpec.Containers[0]
 }
 
-// ensureGrafanaConfigSection ensures graf.Spec.Config and target section are initialized.
-func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string]string {
-	if graf.Spec.Config == nil {
-		graf.Spec.Config = map[string]map[string]string{}
-	}
-	if graf.Spec.Config[section] == nil {
-		graf.Spec.Config[section] = map[string]string{}
-	}
-	return graf.Spec.Config[section]
-}
-
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	return grafanaWithAdminPasswordChecksum(cr, "")
 }
@@ -161,11 +157,6 @@ func grafanaWithAdminPasswordChecksum(cr *monv1.PlatformMonitoring, adminPasswor
 		// We explicitly set it to nil for safety (though it should already be nil after decoding the asset).
 		graf.Spec.Ingress = nil
 
-		// TODO(#377): spec.grafana.config (runtime.RawExtension) is not yet propagated to Grafana CR
-		// spec.config (map[string]map[string]string). When implemented, user-provided config keys
-		// should be merged after operator defaults so they can override them (e.g. server.root_url).
-		// The configProvidedAsRawExtension gate (below) should also be restored to allow users to
-		// opt out of operator-managed config sections when providing their own full config.
 		// DataStorage removed in grafana-operator v5
 		// EnvFrom configuration moved to container-level in v5
 		if cr.Spec.Grafana.Replicas != nil {
@@ -492,6 +483,30 @@ func grafanaWithAdminPasswordChecksum(cr *monv1.PlatformMonitoring, adminPasswor
 
 				authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
 				authSection["client_secret"] = "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+			}
+		}
+
+		// Set server.root_url from ingress host as a convenience default (mirrors v4 behaviour).
+		// This is set before user config so users can override it via spec.grafana.config.
+		if cr.Spec.Grafana.Ingress != nil && cr.Spec.Grafana.Ingress.IsInstall() && cr.Spec.Grafana.Ingress.Host != "" {
+			protocol := "http"
+			if len(cr.Spec.Grafana.Ingress.TLS) > 0 || cr.Spec.Grafana.Ingress.TLSSecretName != "" {
+				protocol = "https"
+			}
+			serverSection := ensureGrafanaConfigSection(&graf, "server")
+			serverSection["root_url"] = getGrafanaRootURL(protocol, cr.Spec.Grafana.Ingress.Host)
+		}
+
+		// Propagate spec.grafana.config into Grafana CR spec.config.
+		// User-provided values are applied last so they override operator defaults (mirrors v4 behaviour).
+		if cr.Spec.Grafana.Config != nil {
+			var userConfig map[string]map[string]string
+			if err := json.Unmarshal(cr.Spec.Grafana.Config.Raw, &userConfig); err == nil {
+				for section, values := range userConfig {
+					for k, v := range values {
+						ensureGrafanaConfigSection(&graf, section)[k] = v
+					}
+				}
 			}
 		}
 
