@@ -1,7 +1,9 @@
+# Password change guide
+
 This guide describes how to change passwords for Monitoring and all components in it during
 installation and during the work.
 
-# Set passwords during deployment
+## Set passwords during deployment
 
 During deploy you can specify admin users and passwords for the next components:
 
@@ -12,7 +14,7 @@ During deploy you can specify admin users and passwords for the next components:
 it means that it's enough to change specific users and passwords only for VMAuth. Other components
 have no auth inside the Cloud.
 
-## Grafana deploy
+### Grafana deploy
 
 In current versions the **single source of truth** for Grafana admin credentials is the
 `{grafana-name}-admin-credentials` Secret (default name: `grafana-admin-credentials`).
@@ -40,8 +42,8 @@ Behaviour:
 
 - By default `admin_user` and `admin_password` are set to `admin/admin`.
 - If you set any of them to an empty string `""`, Helm will:
-    - on first installation: generate a random value and store it in the Secret;
-    - on subsequent upgrades: keep the existing value from the Secret.
+  - on first installation: generate a random value and store it in the Secret;
+  - on subsequent upgrades: keep the existing value from the Secret.
 - For backward compatibility, if the old section
   `grafana.config.security.admin_user` / `grafana.config.security.admin_password`
   is specified, its non-empty values override `grafana.security.*` **only when
@@ -69,7 +71,7 @@ grafana:
   If the Secret is absent, Grafana falls back to its built-in default (`admin/admin`),
   so login is still possible.
 
-### First start vs secret change (operator behaviour)
+#### First start vs secret change (operator behaviour)
 
 | Phase                           | Who applies credentials                                                                  | Monitoring Operator action                                                                                                                                                           |
 |---------------------------------|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -93,7 +95,7 @@ passwords
 **Note:** Please pay attention that if you are using OAuth2 or LDAP, or other external identity providers
 you need to manage users and their passwords in these identity providers.
 
-## VMAuth deploy
+### VMAuth deploy
 
 To specify VMAuth user during deploy you have to to add following in the deployment parameters:
 
@@ -119,13 +121,13 @@ victoriametrics:
       key: pass            # the key name inside the Secret
 ```
 
-# Change passwords after deploy
+## Change passwords after deploy
 
 This section describes how to change user credentials in runtime.
 
 **Note:** After you will change credentials please do not forget to change them in the CMDB parameters.
 
-## Grafana admin password change
+### Grafana admin password change
 
 To change Grafana's admin password in runtime, edit the `grafana-admin-credentials` Secret.
 This is the **only supported** way to keep Kubernetes and the running Grafana instance in sync.
@@ -168,7 +170,7 @@ data:
 type: Opaque
 ```
 
-Update Base64 encoded password and save the file. Close the editor to update the secret.
+Update base64 encoded password and save the file. Close the editor to update the secret.
 Following message confirms the secret was edited successfully.
 
 ```bash
@@ -176,7 +178,7 @@ Following message confirms the secret was edited successfully.
 secret/grafana-admin-credentials edited
 ```
 
-### What happens after the Secret is updated
+#### What happens after the Secret is updated
 
 Monitoring Operator reconciles PlatformMonitoring on a timer (default every 60 seconds). When it
 detects that the Secret checksum differs from `checksum/admin-secret` on the Grafana CR pod template:
@@ -210,7 +212,7 @@ kubectl get grafana grafana -n <monitoring-namespace> \
 
 If the Secret is **not** changed, the operator does not run credential reset on periodic reconciles.
 
-### Release/0.57 or less
+#### Release/0.57 or less
 
 **NOTE:** If you use monitoring `release/0.57` version or less Grafana credentials are stored into grafana CR and
 platform monitoring CR.
@@ -243,7 +245,7 @@ grafana:
 
 Monitoring-operator will start reconcile process, update Grafana CR and re-create grafana pod with new credentials.
 
-## VMAuth password change
+### VMAuth password change
 
 To change VMAuth credentials in runtime you need to edit PlatformMonitoring CR or a secret with a password.
 
