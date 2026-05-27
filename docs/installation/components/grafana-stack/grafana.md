@@ -6,6 +6,20 @@ Sensitive parameters are configured via files mounted from Kubernetes Secrets:
 - `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` is read from `grafana-oauth-client-secret` Secret using Grafana file provider (`$__file{...}`).
 - `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` remains a non-sensitive value and may stay in environment variables.
 
+## Admin credentials
+
+| Topic          | Details                                                                                                                                                          |
+|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Secret name    | `{grafana-name}-admin-credentials` (default: `grafana-admin-credentials`)                                                                                        |
+| Created by     | Helm when `grafana.disableDefaultAdminSecret=false` (default), from `grafana.security.admin_user` / `admin_password` in chart values (default `admin` / `admin`) |
+| Consumed by    | Grafana via mounted files; Monitoring Operator syncs runtime password when the Secret changes                                                                    |
+| Runtime change | Edit the Secret; see [password change guide](../../../user-guides/password-change.md)                                                                            |
+
+On **first install**, Grafana applies credentials from the mounted Secret when the admin user is created in the database.
+When the Secret is **updated later**, Monitoring Operator sets annotation `checksum/admin-secret` on the Grafana CR
+pod template (rolling restart) and runs `grafana cli admin reset-admin-password` so the password in the database
+matches the Secret (required when persistent storage is enabled).
+
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                              | Scheme                                                                                                                                          |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
