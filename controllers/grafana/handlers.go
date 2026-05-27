@@ -309,14 +309,23 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 
 	// Read the last-applied checksum from the existing Grafana CR pod-template annotation.
 	// This survives operator restarts without requiring additional persistent storage.
+	// resetGrafanaCredentials is only triggered when the CR already exists (i.e. Grafana was
+	// previously deployed). On first install the admin password is applied from the mounted
+	// secret file automatically by Grafana on startup, so no exec is needed.
 	existingCR := &grafv1.Grafana{}
 	existingCR.SetName(getGrafanaName(cr))
 	existingCR.SetNamespace(getGrafanaNamespace(cr))
 	existingCR.SetGroupVersionKind(schema.GroupVersionKind{
 		Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana",
 	})
+	crExists := true
 	lastChecksum := ""
-	if err := r.GetResource(existingCR); err == nil {
+	if err := r.GetResource(existingCR); err != nil {
+		if !errors.IsNotFound(err) {
+			r.Log.Info("Cannot read Grafana CR for checksum comparison; will not trigger credential reset", "err", err)
+		}
+		crExists = false
+	} else {
 		if existingCR.Spec.Deployment != nil &&
 			existingCR.Spec.Deployment.Spec.Template != nil &&
 			existingCR.Spec.Deployment.Spec.Template.Annotations != nil {
@@ -325,7 +334,7 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	}
 
 	currentAdminSecretChecksum = newChecksum
-	if newChecksum != lastChecksum {
+	if crExists && newChecksum != lastChecksum {
 		r.Log.Info("Admin credentials secret changed; Grafana credentials will be reset",
 			"secret", secretName)
 		isSecretUpdated = true
@@ -350,7 +359,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 			Namespace: grafanaNamespace,
 		},
 	}); err != nil {
-		return fmt.Errorf("Grafana deployment not ready: %w", err)
+		return fmt.Errorf("grafana deployment not ready: %w", err)
 	}
 	r.Log.Info("Grafana pods are ready")
 
