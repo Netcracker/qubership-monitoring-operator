@@ -561,6 +561,11 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					deployment.Spec.Template.Annotations[k] = v
 				}
 			}
+			// Propagate the admin secret checksum so grafana-operator triggers a rolling
+			// restart of the Grafana Deployment when the secret changes.
+			if currentAdminSecretChecksum != "" {
+				deployment.Spec.Template.Annotations[adminSecretChecksumAnnotation] = currentAdminSecretChecksum
+			}
 		}
 
 		// ServiceAccount in v5 uses different structure - Annotations and Labels may be in different location
