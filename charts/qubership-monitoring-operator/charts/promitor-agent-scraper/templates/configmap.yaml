@@ -15,6 +15,10 @@ data:
   {{- if .Values.azureAuthentication.identity.id }}
         identityId: {{ .Values.azureAuthentication.identity.id}}
   {{- end }}
+  {{- if or (.Values.azureAuthentication.identity.key) (eq .Values.secrets.createSecret false) }}
+        secretFilePath: /etc/promitor/secrets
+        secretFileName: appkey
+  {{- end }}
   {{- if .Values.resourceDiscovery.enabled }}
       resourceDiscovery:
         host: {{ .Values.resourceDiscovery.host | quote }}

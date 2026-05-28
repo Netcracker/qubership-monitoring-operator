@@ -60,6 +60,18 @@ func configureGrafanaOperatorKubeAuth(graf *grafv1.Grafana, operatorNamespace st
 	jwt["tls_client_ca"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 }
 
+// ensureGrafanaConfigSection returns the map for the given grafana.ini section,
+// initialising graf.Spec.Config and the section map if necessary.
+func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string]string {
+	if graf.Spec.Config == nil {
+		graf.Spec.Config = make(map[string]map[string]string)
+	}
+	if graf.Spec.Config[section] == nil {
+		graf.Spec.Config[section] = make(map[string]string)
+	}
+	return graf.Spec.Config[section]
+}
+
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
 // This function safely initializes the Deployment structure to avoid nil pointer dereference
 func ensureDeploymentInitialized(graf *grafv1.Grafana) {
@@ -488,6 +500,30 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 
 				authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
 				authSection["client_secret"] = "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+			}
+		}
+
+		// Set server.root_url from ingress host as a convenience default (mirrors v4 behaviour).
+		// This is set before user config so users can override it via spec.grafana.config.
+		if cr.Spec.Grafana.Ingress != nil && cr.Spec.Grafana.Ingress.IsInstall() && cr.Spec.Grafana.Ingress.Host != "" {
+			protocol := "http"
+			if len(cr.Spec.Grafana.Ingress.TLS) > 0 || cr.Spec.Grafana.Ingress.TLSSecretName != "" {
+				protocol = "https"
+			}
+			serverSection := ensureGrafanaConfigSection(&graf, "server")
+			serverSection["root_url"] = getGrafanaRootURL(protocol, cr.Spec.Grafana.Ingress.Host)
+		}
+
+		// Propagate spec.grafana.config into Grafana CR spec.config.
+		// User-provided values are applied last so they override operator defaults (mirrors v4 behaviour).
+		if cr.Spec.Grafana.Config != nil {
+			var userConfig map[string]map[string]string
+			if err := json.Unmarshal(cr.Spec.Grafana.Config.Raw, &userConfig); err == nil {
+				for section, values := range userConfig {
+					for k, v := range values {
+						ensureGrafanaConfigSection(&graf, section)[k] = v
+					}
+				}
 			}
 		}
 

@@ -1,0 +1,61 @@
+---
+name: "Cleanup: Remove old Docker images"
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # Runs weekly on Sunday at midnight
+  workflow_dispatch:
+    inputs:
+      threshold-days:
+        description: "Number of days to keep container versions"
+        required: false
+        default: "7"
+      included-tags:
+        description: "Tags to include for deletion"
+        required: false
+        default: "*"
+      excluded-tags:
+        description: "Tags to exclude from deletion"
+        required: false
+        default: "main,latest,release*,semver"
+      dry-run:
+        description: "Enable dry-run mode"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    environment:
+      name: cleanup
+      deployment: false
+    steps:
+      - name: "Summary"
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          THRESHOLD_DAYS: ${{ github.event.inputs.threshold-days || 7 }}
+          INCLUDED_TAGS: ${{ github.event.inputs.included-tags || '*' }}
+          EXCLUDED_TAGS: ${{ github.event.inputs.excluded-tags || 'main,latest,release*,semver' }}
+          DRY_RUN: ${{ github.event.inputs.dry-run || 'false' }}
+        run: |
+          echo "**Event**: $EVENT"
+          echo "**Actor**: $ACTOR"
+          echo "**Threshold days**: $THRESHOLD_DAYS"
+          echo "**Included tags**: $INCLUDED_TAGS"
+          echo "**Excluded tags**: $EXCLUDED_TAGS"
+          echo "**Dry-run**: $DRY_RUN"
+
+      - name: Run Container Package Cleanup Action
+        uses: Netcracker/qubership-workflow-hub/actions/container-package-cleanup@6a2de8d62ac5b6998e30f923613c998c263ea9f2 # v2.2.2
+        with:
+          threshold-days: ${{ github.event.inputs.threshold-days || 7 }}
+          included-tags: ${{ github.event.inputs.included-tags || '*' }}
+          excluded-tags: ${{ github.event.inputs.excluded-tags || 'main,latest,release*,semver' }}
+          dry-run: ${{ github.event.inputs.dry-run || 'false' }}
+        env:
+          PACKAGE_TOKEN: ${{ secrets.GH_RWD_PACKAGE_TOKEN }}
