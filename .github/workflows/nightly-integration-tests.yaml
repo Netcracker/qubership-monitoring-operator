@@ -1,0 +1,19 @@
+name: 'Tests: Run nightly monitoring integration tests'
+
+permissions:
+  contents: read
+
+on:
+  push
+#  schedule:
+#    - cron: '0 0 * * *'
+
+jobs:
+  Nightly-Monitoring-Pipeline:
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@feat/nightly_monitoring
+    with:
+      service_branch: main
+      pipeline_branch: '5e867049c9bc60651f53611cdcf167dc0c7f8ff4' # this value must match the value after '@' in 'uses'
+      repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
+      kind-layout: 'single-node'
+      scope: 'nightly'
