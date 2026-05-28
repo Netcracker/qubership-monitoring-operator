@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.operator.image -}}
     {{- printf "%s" .Values.operator.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
+    {{- /* # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-prometheus-adapter-operator */ -}}
     {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.11.3" -}}
   {{- end -}}
 {{- end -}}

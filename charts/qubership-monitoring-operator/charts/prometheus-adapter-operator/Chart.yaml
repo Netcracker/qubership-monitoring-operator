@@ -11,4 +11,5 @@ version: 0.3.2
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 0.7.2
+# renovate: datasource=docker depName=ghcr.io/netcracker/qubership-prometheus-adapter-operator
+appVersion: 0.11.3

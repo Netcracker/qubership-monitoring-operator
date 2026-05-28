@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-version-exporter versioning=semver */ -}}
+    {{- /* # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-version-exporter */ -}}
     {{- print "ghcr.io/netcracker/qubership-version-exporter:0.6.0" -}}
   {{- end -}}
 {{- end -}}

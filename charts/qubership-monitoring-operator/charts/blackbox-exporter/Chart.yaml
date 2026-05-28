@@ -11,4 +11,5 @@ version: 0.1.4
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 0.27.0
+# renovate: datasource=docker depName=prom/blackbox-exporter
+appVersion: v0.28.0

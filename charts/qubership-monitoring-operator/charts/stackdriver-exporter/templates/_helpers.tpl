@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=prometheus-community/stackdriver_exporter */ -}}
+    {{- /* # renovate: datasource=docker depName=prometheuscommunity/stackdriver-exporter */ -}}
     {{- print "docker.io/prometheuscommunity/stackdriver-exporter:v0.18.0" -}}
   {{- end -}}
 {{- end -}}

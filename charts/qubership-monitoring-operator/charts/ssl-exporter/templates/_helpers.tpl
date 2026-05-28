@@ -18,7 +18,8 @@ Find ssl-exporter image
 {{- if .Values.image -}}
 {{- printf "%s" .Values.image -}}
 {{- else -}}
-{{- print "ribbybibby/ssl-exporter:2.4.3" -}}
+{{- /* # renovate: datasource=docker depName=ribbybibby/ssl-exporter */ -}}
+{{- print "docker.io/ribbybibby/ssl-exporter:2.4.3" -}}
 {{- end -}}
 {{- end }}
 

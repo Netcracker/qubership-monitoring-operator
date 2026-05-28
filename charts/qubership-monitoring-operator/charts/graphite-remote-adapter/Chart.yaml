@@ -11,4 +11,5 @@ version: 0.1.3
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 0.4.0
+# renovate: datasource=docker depName=ghcr.io/netcracker/qubership-graphite-remote-adapter
+appVersion: 0.8.0

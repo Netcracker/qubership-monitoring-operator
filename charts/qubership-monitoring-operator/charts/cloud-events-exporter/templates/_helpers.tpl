@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
+    {{- /* # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-kube-events-reader */ -}}
     {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.0" -}}
   {{- end -}}
 {{- end -}}

@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graphite-remote-adapter versioning=semver */ -}}
+    {{- /* # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-graphite-remote-adapter */ -}}
     {{- print "ghcr.io/netcracker/qubership-graphite-remote-adapter:0.8.0" -}}
   {{- end -}}
 {{- end -}}

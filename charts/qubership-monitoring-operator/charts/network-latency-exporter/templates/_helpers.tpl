@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-network-latency-exporter versioning=semver */ -}}
+    {{- /* # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-network-latency-exporter */ -}}
     {{- print "ghcr.io/netcracker/qubership-network-latency-exporter:2.10.0" -}}
   {{- end -}}
 {{- end -}}

@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=prometheus/cloudwatch_exporter */ -}}
+    {{- /* # renovate: datasource=docker depName=prom/cloudwatch-exporter */ -}}
     {{- print "docker.io/prom/cloudwatch-exporter:v0.16.0" -}}
   {{- end -}}
 {{- end -}}

@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=jacksontj/promxy */ -}}
+    {{- /* # renovate: datasource=docker depName=quay.io/jacksontj/promxy */ -}}
     {{- print "quay.io/jacksontj/promxy:v0.0.93" -}}
   {{- end -}}
 {{- end -}}

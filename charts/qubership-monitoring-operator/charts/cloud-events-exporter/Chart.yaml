@@ -11,4 +11,5 @@ version: 0.1.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 2.2.0
+# renovate: datasource=docker depName=ghcr.io/netcracker/qubership-kube-events-reader
+appVersion: v2.9.0

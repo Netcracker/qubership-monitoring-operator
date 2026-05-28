@@ -10,7 +10,7 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=prometheus-community/json_exporter */ -}}
+    {{- /* # renovate: datasource=docker depName=prometheuscommunity/json-exporter */ -}}
     {{- print "docker.io/prometheuscommunity/json-exporter:v0.7.0" -}}
   {{- end -}}
 {{- end -}}

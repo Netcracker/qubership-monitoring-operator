@@ -10,8 +10,8 @@ Image can be found from:
   {{- if .Values.image -}}
     {{- printf "%s" .Values.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=github-releases depName=joe-elliott/cert-exporter */ -}}
-    {{- print "docker.io/joeelliott/cert-exporter:v3.15.0" -}}
+    {{- /* # renovate: datasource=docker depName=joeelliott/cert-exporter */ -}}
+    {{- print "docker.io/joeelliott/cert-exporter:v2.18.0" -}}
   {{- end -}}
 {{- end -}}
 
