@@ -17,3 +17,4 @@ jobs:
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       scope: 'nightly'
+
