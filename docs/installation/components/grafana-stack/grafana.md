@@ -11,7 +11,7 @@ Sensitive parameters are configured via files mounted from Kubernetes Secrets:
 ## Generic OAuth (IdP integration)
 
 When `spec.auth` is populated in `PlatformMonitoring`, the Monitoring Operator configures Grafana's
-built-in [Generic OAuth](https://grafana.com/docs/grafana/latest/setup-grafana/configure-authentication/generic-oauth/)
+built-in [Generic OAuth](https://grafana.com/docs/grafana/latest/setup-grafana/configure-access/configure-authentication/generic-oauth/)
 provider by propagating the following fields into `spec.config["auth.generic_oauth"]` of the Grafana CR:
 
 | `spec.auth` field         | Grafana ini key               | Notes                                                            |
