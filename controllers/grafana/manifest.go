@@ -1,6 +1,7 @@
 package grafana
 
 import (
+	"crypto/sha256"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -28,6 +29,20 @@ func getGrafanaRootURL(protocol string, host string) string {
 		protocol = "http"
 	}
 	return fmt.Sprintf("%v://%v/", protocol, host)
+}
+
+func grafanaTLSVolumeName(secretName string) string {
+	sum := sha256.Sum256([]byte(secretName))
+	return fmt.Sprintf("grafana-tls-%x", sum[:8])
+}
+
+func hasGrafanaOAuthConfig(auth *monv1.Auth) bool {
+	if auth == nil {
+		return false
+	}
+	return strings.TrimSpace(auth.LoginURL) != "" ||
+		strings.TrimSpace(auth.TokenURL) != "" ||
+		strings.TrimSpace(auth.UserInfoURL) != ""
 }
 
 // configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
@@ -325,12 +340,6 @@ func grafanaWithAdminPasswordChecksum(cr *monv1.PlatformMonitoring, adminPasswor
 
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
-
-		// TODO(#376): cr.Spec.Auth OAuth fields (LoginURL, TokenURL, UserInfoURL, TLSConfig) are not
-		// yet applied to Grafana CR spec.config["auth.generic_oauth"]. In grafana-operator v4 these
-		// were mapped to graf.Spec.Config.AuthGenericOauth. In v5 the target is
-		// spec.config["auth.generic_oauth"][key] = value. Needs reimplementation.
-		// TLS secrets (CASecret, CertSecret, KeySecret) also require volume mounts.
 		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
@@ -443,9 +452,9 @@ func grafanaWithAdminPasswordChecksum(cr *monv1.PlatformMonitoring, adminPasswor
 			// grafana-operator authenticates to Grafana via ServiceAccount JWT, not admin env vars.
 			configureGrafanaOperatorKubeAuth(&graf, cr.GetNamespace())
 
-			// Configure OAuth client secret via file provider when auth is enabled.
+			// Configure OAuth client secret via file provider when OAuth is enabled.
 			// The secret is managed by Helm template oauth2-configs/secret-grafana-oauth-client-secret.yaml.
-			if cr.Spec.Auth != nil {
+			if hasGrafanaOAuthConfig(cr.Spec.Auth) {
 				hasOAuthVolume := false
 				for _, v := range podSpec.Volumes {
 					if v.Name == oauthSecretVolumeName {
@@ -483,6 +492,75 @@ func grafanaWithAdminPasswordChecksum(cr *monv1.PlatformMonitoring, adminPasswor
 
 				authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
 				authSection["client_secret"] = "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+
+				authSection["enabled"] = "true"
+				authSection["auth_url"] = cr.Spec.Auth.LoginURL
+				authSection["token_url"] = cr.Spec.Auth.TokenURL
+				authSection["api_url"] = cr.Spec.Auth.UserInfoURL
+				authSection["scopes"] = "openid profile"
+
+				if cr.Spec.Auth.TLSConfig != nil {
+					tlsConfig := cr.Spec.Auth.TLSConfig
+					if tlsConfig.InsecureSkipVerify != nil {
+						authSection["tls_skip_verify_insecure"] = fmt.Sprintf("%t", *tlsConfig.InsecureSkipVerify)
+					}
+
+					const tlsMountBase = "/etc/grafana-tls"
+
+					mountTLSSecret := func(secretName string) string {
+						volName := grafanaTLSVolumeName(secretName)
+						mountPath := tlsMountBase + "/" + secretName
+
+						hasVol := false
+						for _, v := range podSpec.Volumes {
+							if v.Name == volName {
+								hasVol = true
+								break
+							}
+						}
+						if !hasVol {
+							podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+								Name: volName,
+								VolumeSource: corev1.VolumeSource{
+									Secret: &corev1.SecretVolumeSource{
+										SecretName: secretName,
+									},
+								},
+							})
+						}
+
+						hasMnt := false
+						for _, vm := range container.VolumeMounts {
+							if vm.Name == volName {
+								hasMnt = true
+								break
+							}
+						}
+						if !hasMnt {
+							container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+								Name:      volName,
+								MountPath: mountPath,
+								ReadOnly:  true,
+							})
+						}
+						return mountPath
+					}
+
+					if tlsConfig.CASecret != nil && tlsConfig.CASecret.Name != "" && tlsConfig.CASecret.Key != "" {
+						mountPath := mountTLSSecret(tlsConfig.CASecret.Name)
+						authSection["tls_client_ca"] = mountPath + "/" + tlsConfig.CASecret.Key
+					}
+
+					if tlsConfig.CertSecret != nil && tlsConfig.CertSecret.Name != "" && tlsConfig.CertSecret.Key != "" {
+						mountPath := mountTLSSecret(tlsConfig.CertSecret.Name)
+						authSection["tls_client_cert"] = mountPath + "/" + tlsConfig.CertSecret.Key
+					}
+
+					if tlsConfig.KeySecret != nil && tlsConfig.KeySecret.Name != "" && tlsConfig.KeySecret.Key != "" {
+						mountPath := mountTLSSecret(tlsConfig.KeySecret.Name)
+						authSection["tls_client_key"] = mountPath + "/" + tlsConfig.KeySecret.Key
+					}
+				}
 			}
 		}
 
