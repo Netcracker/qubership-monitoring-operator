@@ -6,6 +6,57 @@ Sensitive parameters are configured via files mounted from Kubernetes Secrets:
 - `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` is read from `grafana-oauth-client-secret` Secret using Grafana file provider (`$__file{...}`).
 - `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` remains a non-sensitive value and may stay in environment variables.
 
+## Generic OAuth (IdP integration)
+
+When `spec.auth` is populated in `PlatformMonitoring`, the Monitoring Operator configures Grafana's
+built-in [Generic OAuth](https://grafana.com/docs/grafana/latest/setup-grafana/configure-authentication/generic-oauth/)
+provider by propagating the following fields into `spec.config["auth.generic_oauth"]` of the Grafana CR:
+
+| `spec.auth` field         | Grafana ini key               | Notes                                                            |
+|---------------------------|-------------------------------|------------------------------------------------------------------|
+| `loginUrl`                | `auth_url`                    | IdP authorization endpoint                                       |
+| `tokenUrl`                | `token_url`                   | IdP token endpoint                                               |
+| `userInfoUrl`             | `api_url`                     | IdP userinfo endpoint                                            |
+| _(always set)_            | `enabled` = `"true"`          | Activates Generic OAuth                                          |
+| _(always set)_            | `scopes` = `"openid profile"` | Required OIDC scopes                                             |
+| `clientSecret` (via Helm) | `client_secret`               | Read from `grafana-oauth-client-secret` Secret via file provider |
+
+### TLS configuration for OAuth
+
+When `spec.auth.tlsConfig` is set, the Monitoring Operator mounts the referenced Kubernetes Secrets
+as read-only volumes in the Grafana pod and configures the corresponding Grafana ini keys:
+
+| `spec.auth.tlsConfig` field | Volume mount path                      | Grafana ini key            |
+|-----------------------------|----------------------------------------|----------------------------|
+| `caSecret`                  | `/etc/grafana-tls/<secret-name>/<key>` | `tls_client_ca`            |
+| `certSecret`                | `/etc/grafana-tls/<secret-name>/<key>` | `tls_client_cert`          |
+| `keySecret`                 | `/etc/grafana-tls/<secret-name>/<key>` | `tls_client_key`           |
+| `insecureSkipVerify`        | _(no mount)_                           | `tls_skip_verify_insecure` |
+
+The referenced Secrets must exist in the same namespace as the `PlatformMonitoring` resource.
+Each unique Secret name results in one Volume mounted at `/etc/grafana-tls/<secret-name>/`.
+If `certSecret` and `keySecret` reference the same Secret name, it is mounted only once.
+
+Example `spec.auth` configuration:
+
+```yaml
+auth:
+  loginUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/auth
+  tokenUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/token
+  userInfoUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/userinfo
+  tlsConfig:
+    insecureSkipVerify: false
+    caSecret:
+      name: idp-ca-cert
+      key: ca.crt
+    certSecret:
+      name: idp-client-cert
+      key: tls.crt
+    keySecret:
+      name: idp-client-cert
+      key: tls.key
+```
+
 ## Admin credentials
 
 | Topic          | Details                                                                                                                                                          |

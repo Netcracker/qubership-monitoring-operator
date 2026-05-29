@@ -23,17 +23,12 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-// TODO(#377): getGrafanaRootURL — to be used when spec.grafana.config propagation is implemented.
-// Once spec.grafana.config is properly forwarded to Grafana CR spec.config, this helper can be
-// used to automatically populate server.root_url from spec.grafana.ingress.host as a convenience
-// default (users can override via grafana.config in values).
-//
-// func getGrafanaRootURL(protocol string, host string) string {
-// 	if protocol == "" {
-// 		protocol = "http"
-// 	}
-// 	return fmt.Sprintf("%v://%v/", protocol, host)
-// }
+func getGrafanaRootURL(protocol string, host string) string {
+	if protocol == "" {
+		protocol = "http"
+	}
+	return fmt.Sprintf("%v://%v/", protocol, host)
+}
 
 // configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
 // without GF_SECURITY_ADMIN_* environment variables (admin credentials are file-based in Grafana).
@@ -115,17 +110,6 @@ func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *cor
 		podSpec.Containers[0].Name = "grafana"
 	}
 	return &podSpec.Containers[0]
-}
-
-// ensureGrafanaConfigSection ensures graf.Spec.Config and target section are initialized.
-func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string]string {
-	if graf.Spec.Config == nil {
-		graf.Spec.Config = map[string]map[string]string{}
-	}
-	if graf.Spec.Config[section] == nil {
-		graf.Spec.Config[section] = map[string]string{}
-	}
-	return graf.Spec.Config[section]
 }
 
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
@@ -498,9 +482,84 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					})
 				}
 
-				authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
-				authSection["client_secret"] = "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+			authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
+			authSection["client_secret"] = "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+
+			// Propagate IdP endpoint URLs from spec.auth into auth.generic_oauth config section.
+			// These are non-sensitive public URLs and do not require Secret mounting.
+			authSection["enabled"]    = "true"
+			authSection["auth_url"]   = cr.Spec.Auth.LoginURL
+			authSection["token_url"]  = cr.Spec.Auth.TokenURL
+			authSection["api_url"]    = cr.Spec.Auth.UserInfoURL
+			authSection["scopes"]     = "openid profile"
+
+			// Propagate TLS configuration from spec.auth.tlsConfig.
+			// Each TLS Secret is mounted as a read-only volume so Grafana can read cert/key files
+			// by path. This mirrors the v4 behaviour (graf.Spec.Secrets auto-mount) adapted for v5.
+			if cr.Spec.Auth.TLSConfig != nil {
+				tlsConfig := cr.Spec.Auth.TLSConfig
+
+				if tlsConfig.InsecureSkipVerify != nil && *tlsConfig.InsecureSkipVerify {
+					authSection["tls_skip_verify_insecure"] = "true"
+				}
+
+				const tlsMountBase = "/etc/grafana-tls"
+
+				// mountTLSSecret adds a Volume + VolumeMount for the given Secret unless already present.
+				mountTLSSecret := func(secretName string) {
+					volName := "grafana-tls-" + secretName
+					mountPath := tlsMountBase + "/" + secretName
+
+					hasVol := false
+					for _, v := range podSpec.Volumes {
+						if v.Name == volName {
+							hasVol = true
+							break
+						}
+					}
+					if !hasVol {
+						podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+							Name: volName,
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: secretName,
+								},
+							},
+						})
+					}
+
+					hasMnt := false
+					for _, vm := range container.VolumeMounts {
+						if vm.Name == volName {
+							hasMnt = true
+							break
+						}
+					}
+					if !hasMnt {
+						container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+							Name:      volName,
+							MountPath: mountPath,
+							ReadOnly:  true,
+						})
+					}
+				}
+
+				if tlsConfig.CASecret != nil && tlsConfig.CASecret.Name != "" && tlsConfig.CASecret.Key != "" {
+					mountTLSSecret(tlsConfig.CASecret.Name)
+					authSection["tls_client_ca"] = tlsMountBase + "/" + tlsConfig.CASecret.Name + "/" + tlsConfig.CASecret.Key
+				}
+
+				if tlsConfig.CertSecret != nil && tlsConfig.CertSecret.Name != "" && tlsConfig.CertSecret.Key != "" {
+					mountTLSSecret(tlsConfig.CertSecret.Name)
+					authSection["tls_client_cert"] = tlsMountBase + "/" + tlsConfig.CertSecret.Name + "/" + tlsConfig.CertSecret.Key
+				}
+
+				if tlsConfig.KeySecret != nil && tlsConfig.KeySecret.Name != "" && tlsConfig.KeySecret.Key != "" {
+					mountTLSSecret(tlsConfig.KeySecret.Name)
+					authSection["tls_client_key"] = tlsMountBase + "/" + tlsConfig.KeySecret.Name + "/" + tlsConfig.KeySecret.Key
+				}
 			}
+		}
 		}
 
 		// Set server.root_url from ingress host as a convenience default (mirrors v4 behaviour).
