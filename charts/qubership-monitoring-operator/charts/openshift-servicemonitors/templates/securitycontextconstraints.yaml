@@ -1,0 +1,32 @@
+{{- if .Values.copyOpenshiftCerts }}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: {{ .Values.rbac.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.rbac.name }}
+    app.kubernetes.io/component: openshift-copy-certs
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
+allowHostDirVolumePlugin: true
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+groups: []
+priority: 0
+readOnlyRootFilesystem: true
+requiredDropCapabilities: []
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+users: []
+volumes:
+- '*'
+{{- end }}
+{{- end }}

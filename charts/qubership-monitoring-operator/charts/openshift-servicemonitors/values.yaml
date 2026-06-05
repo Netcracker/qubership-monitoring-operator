@@ -1,0 +1,21 @@
+# Default values for network-latency-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Allow to disable deploy network-latency-exporter.
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: true
+copyOpenshiftCerts: true
+
+# Provide a name in place of network-latency-exporter for labels.
+# Type: string
+# Mandatory: no
+# Default: "network-latency-exporter"
+#
+name: "openshift-servicemonitors"
+monitoringOperator:
+
+  name: monitoring-operator

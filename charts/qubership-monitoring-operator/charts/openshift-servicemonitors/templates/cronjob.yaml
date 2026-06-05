@@ -1,0 +1,82 @@
+{{- if .Values.copyOpenshiftCerts }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.name }}
+    app.kubernetes.io/component: openshift-copy-certs
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: {{ .Values.concurrencyPolicy | default "Forbid" }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit | default 3 }}
+  jobTemplate:
+    spec:
+      {{- if .Values.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ .Values.activeDeadlineSeconds | default 60 }}
+      {{- end }}
+      {{- if .Values.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.ttlSecondsAfterFinished | default 60 }}
+      {{- end }}
+      template:
+        metadata:
+          labels:
+            name: {{ .Values.name }}
+            app.kubernetes.io/component: openshift-copy-certs
+            app.kubernetes.io/name: {{ .Values.name }}
+            app.kubernetes.io/part-of: monitoring
+            app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+            app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+          {{- if .Values.annotations }}
+          annotations:
+            {{- toYaml .Values.annotations | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- if .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml .Values.nodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.tolerations }}
+          tolerations:
+            {{- toYaml .Values.tolerations | nindent 12 }}
+          {{- end }}
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: openshift-copy-certs
+              image: {{ include "image" . }}
+              imagePullPolicy: {{ .Values.imagePullPolicy }}
+              args:
+                - '--secret=kube-etcd-client-certs'
+                - '--log-level={{ .Values.logLevel }}'
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              volumeMounts:
+                - name: etc
+                  mountPath: /etc
+                  readOnly: true
+              securityContext:
+                {{- include "securityContext" . | nindent 16 }}
+          {{- if .Values.priorityClassName }}
+          priorityClassName: {{ .Values.priorityClassName }}
+          {{- end }}
+          restartPolicy: {{ .Values.restartPolicy | default "Never" }}
+          serviceAccountName: {{ .Values.rbac.serviceAccountName }}
+          automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+          volumes:
+            - name: etc
+              hostPath:
+                path: /etc
+{{- end }}

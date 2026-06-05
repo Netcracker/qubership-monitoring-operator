@@ -1,0 +1,40 @@
+{{- if and .Values.install .Values.installMarketplaceOperator .Values.copyOpenshiftCerts }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    name: marketplace-operator
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+  name: marketplace-operator
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      ca:
+        configMap:
+          name: openshift-service-ca
+          key: service-ca.crt
+      cert:
+        secret:
+          name: metrics-client-certs
+          key: tls.crt
+      keySecret:
+        name: metrics-client-certs
+        key: tls.key
+      serverName: marketplace-operator-metrics.openshift-marketplace.svc
+  namespaceSelector:
+    matchNames:
+    - openshift-marketplace
+  selector:
+    matchLabels:
+      name: marketplace-operator
+{{- end }}
