@@ -1,0 +1,85 @@
+{{- if and .Values.install (not .Values.asDaemonSet) }}
+{{- $name := .Values.name -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/version: {{ splitList ":" (include "blackboxExporter.image" .) | last }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+        app.kubernetes.io/version: {{ splitList ":" (include "blackboxExporter.image" .) | last }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+      {{- if .Values.annotations }}
+      annotations:
+        {{- toYaml .Values.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ $name }}
+      securityContext:
+        {{ include "blackboxExporter.securityContext" . }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      containers:
+        - name: blackbox-exporter
+          image: {{ template "blackboxExporter.image" . }}
+          {{- if .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          {{- end }}
+          args:
+            - "--config.file=/config/blackbox.yaml"
+          {{- if .Values.extraArgs }}
+            {{ toYaml .Values.extraArgs | nindent 12 }}
+          {{- end }}
+          resources:
+            {{ include "blackboxExporter.resources" $ }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+              name: http
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      volumes:
+        - name: config
+      {{- if .Values.secretConfig }}
+          secret:
+            secretName: {{ $name }}
+      {{- else if .Values.configExistingSecretName }}
+          secret:
+            secretName: {{ .Values.configExistingSecretName }}
+      {{- else }}
+          configMap:
+            name: {{ $name }}
+{{- end }}
+{{- end }}

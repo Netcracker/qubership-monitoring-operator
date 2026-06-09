@@ -1,0 +1,19 @@
+{{- if .Values.install }}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  ports:
+    - name: web
+      protocol: TCP
+      port: {{ .Values.port }}
+      targetPort: web
+  selector:
+    app.kubernetes.io/name: {{ .Values.name }}
+  clusterIP: None
+  type: ClusterIP
+  sessionAffinity: None
+{{- end }}

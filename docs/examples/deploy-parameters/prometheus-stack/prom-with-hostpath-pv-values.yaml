@@ -1,0 +1,29 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+prometheus:
+  # Vanilla Prometheus image use user and group nobody = 65534
+  # So for use PV it is better to use
+  securityContext:
+    fsGroup: 65534
+    runAsUser: 65534
+  # Because hostPath PV created on specific node, we must bind Prometheus on this node
+  nodeSelector:
+    kubernetes.io/hostname: worker1
+  storage:
+    volumeClaimTemplate:
+      # If you deploy monitoring with Prometheus Operation with version `v0.34.0` or less you need add
+      # into metadata creationTimestamp as a workaround of issue into operator
+      # metadata:
+      #   creationTimestamp: 2020-07-20T18:55:02Z
+      spec:
+        # If into your Kubernetes/OpenShift there is default storage class you can specify fake storage class name
+        # to override defaults
+        storageClassName: manual
+        resources:
+          requests:
+            storage: 10Gi
+        selector:
+          # Match PV by label on PV
+          matchLabels:
+            app: prometheus

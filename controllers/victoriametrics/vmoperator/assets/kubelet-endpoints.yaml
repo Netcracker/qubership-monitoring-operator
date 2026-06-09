@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: kubelet
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    k8s-app: kubelet
+subsets:
+  - ports:
+      - name: "https-metrics"
+        port: 10250
+      - name: "http-metrics"
+        port: 10255
+      - name: "cadvisor"
+        port: 4194

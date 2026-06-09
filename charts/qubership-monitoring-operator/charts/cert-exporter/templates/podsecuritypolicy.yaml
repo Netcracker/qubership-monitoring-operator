@@ -1,0 +1,48 @@
+{{- if .Capabilities.APIVersions.Has "policy/v1beta1/PodSecurityPolicy" }}
+  {{- if and .Values.install .Values.setupSecurityContext .Values.global.privilegedRights }}
+    {{- with .Values }}
+      {{- if or (and .certsInFiles .certsInFiles.enabled) (and .certsInKubeconfig .certsInKubeconfig.enabled) }}
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ template "certExporter.rbac.fullname" $ }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" $ "name" (include "certExporter.rbac.fullname" $)) | nindent 4 }}
+spec:
+  privileged: false
+  # Allow core volume types.
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+    - 'hostPath'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  hostPorts:
+    - min: 0
+      max: 65535
+  runAsUser:
+    # Permits the container to run with root privileges as well.
+    rule: 'RunAsAny'
+  seLinux:
+    # This policy assumes the nodes are using AppArmor rather than SELinux.
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 0
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 0
+        max: 65535
+  readOnlyRootFilesystem: true
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

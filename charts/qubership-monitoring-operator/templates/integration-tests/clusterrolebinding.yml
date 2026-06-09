@@ -1,0 +1,17 @@
+{{- if and .Values.integrationTests.install .Values.global.privilegedRights }}
+{{- $intClusterRole := include "integrationTests.rbac.fullname" . -}}
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $intClusterRole }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $intClusterRole "component" "platform-monitoring-tests") | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.integrationTests.name }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $intClusterRole }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

@@ -1,0 +1,41 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: monitoring-prometheus
+  labels:
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+rules:
+  # Permissions to scrape metrics
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+      - pods
+      - services
+      - endpoints
+      - nodes/metrics
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
+  - nonResourceURLs:
+      - /metrics
+    verbs:
+      - 'get'
+  - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - ingresses
+    verbs:
+      - 'list'
+      - 'watch'
+  - verbs:
+      - get
+    apiGroups:
+      - route.openshift.io
+      - image.openshift.io
+    resources:
+      - routers/metrics
+      - registry/metrics

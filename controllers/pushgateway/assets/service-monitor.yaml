@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: monitoring-pushgateway
+  labels:
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  endpoints:
+    - port: http
+      interval: 30s
+      path: /metrics
+      metricRelabelings:
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  selector:
+    matchExpressions:
+      - key: platform.monitoring.app
+        operator: In
+        values: ["pushgateway"]

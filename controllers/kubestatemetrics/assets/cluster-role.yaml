@@ -1,0 +1,128 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: monitoring-kube-state-metrics
+  labels:
+    app.kubernetes.io/component: kube-state-metrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - secrets
+      - nodes
+      - pods
+      - services
+      - resourcequotas
+      - replicationcontrollers
+      - limitranges
+      - persistentvolumeclaims
+      - persistentvolumes
+      - namespaces
+      - endpoints
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - networkpolicies
+      - ingresses
+    verbs:
+      - 'list'
+      - 'watch'
+
+  # For Kubernetes
+  - apiGroups:
+      - "admissionregistration.k8s.io"
+    resources:
+      - validatingwebhookconfigurations
+      - mutatingwebhookconfigurations
+    verbs:
+      - 'list'
+      - 'watch'
+  # For Openshift
+  - apiGroups:
+      - "admissionregistration.k8s.io"
+    resources:
+      - validatingwebhookconfigurations
+      - mutatingwebhookconfigurations
+    verbs:
+      - 'list'
+      - 'watch'
+
+  - apiGroups:
+      - "extensions"
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - ingresses
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "apps"
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "batch"
+    resources:
+      - cronjobs
+      - jobs
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "policy"
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "certificates.k8s.io"
+    resources:
+      - certificatesigningrequests
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "storage.k8s.io"
+    resources:
+      - volumeattachments
+      - storageclasses
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "autoscaling"
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - "autoscaling.k8s.io"
+    resources:
+      - verticalpodautoscalers
+    verbs:
+      - 'list'
+      - 'watch'
+
+  - apiGroups:
+      - "discovery.k8s.io"
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch

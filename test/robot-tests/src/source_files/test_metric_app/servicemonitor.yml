@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: prometheus-example-app
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: prometheus-example-app
+spec:
+  labels:
+    app.kubernetes.io/component: monitoring
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-example-app
+  endpoints:
+    - interval: 30s
+      port: web
+      scheme: http
+  jobLabel: prometheus-example-app

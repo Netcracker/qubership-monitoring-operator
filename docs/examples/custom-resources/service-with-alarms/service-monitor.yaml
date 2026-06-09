@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: sample-service
+    app.kubernetes.io/component: monitoring   # Mandatory label
+  name: sample-service
+spec:
+  endpoints:
+  - interval: 30s
+    port: http
+  jobLabel: k8s-app
+  selector:
+    matchLabels:
+      k8s-app: sample-service

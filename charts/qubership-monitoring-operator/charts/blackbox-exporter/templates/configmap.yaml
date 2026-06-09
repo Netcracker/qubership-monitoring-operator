@@ -1,0 +1,12 @@
+{{- if and .Values.install .Values.config (eq .Values.configExistingSecretName "") }}
+apiVersion: v1
+kind: {{ if .Values.secretConfig -}} Secret {{- else -}} ConfigMap {{- end }}
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+{{ if .Values.secretConfig -}}
+stringData: {{- else -}} data: {{- end }}
+  blackbox.yaml: |
+    {{ toYaml .Values.config | nindent 4 }}
+{{- end }}

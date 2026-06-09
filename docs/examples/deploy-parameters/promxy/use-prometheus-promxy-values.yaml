@@ -1,0 +1,30 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+prometheus:
+  install: true
+promxy:
+  install: true
+  config:
+    serverGroups:
+      - address: prometheus-operated:9090
+        label: k8s-1
+      - address: prometheus-operated.monitoring.svc.cluster-2.local:9090
+        scheme: http
+        label: k8s-2
+victoriametrics:
+  vmOperator:
+    install: false
+
+# For another side you need to use the same configuration, except "serverGroups"
+# In the "serverGroups" need to swap addresses, like following:
+#
+# promxy:
+#   install: true
+#   config:
+#     serverGroups:
+#       - address: prometheus-operated:9090
+#         label: k8s-2
+#       - address: prometheus-operated.monitoring.svc.cluster-1.local:9090
+#         scheme: http
+#         label: k8s-1

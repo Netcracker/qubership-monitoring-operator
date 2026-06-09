@@ -1,0 +1,86 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: monitoring-prometheus-operator
+rules:
+# Permissions to create downstream custom resources
+- apiGroups:
+    - "monitoring.coreos.com"
+  resources:
+    - alertmanagers
+    - alertmanagers/finalizers
+    - alertmanagers/status
+    - alertmanagerconfigs
+    - alertmanagerconfigs/status
+    - prometheuses
+    - prometheuses/finalizers
+    - prometheuses/status
+    - prometheusrules
+    - prometheusrules/finalizers
+    - prometheusrules/status
+    - thanosrulers
+    - thanosrulers/finalizers
+    - thanosrulers/status
+    - podmonitors
+    - podmonitors/finalizers
+    - podmonitors/status
+    - probes
+    - probes/finalizers
+    - probes/status
+    - servicemonitors
+    - servicemonitors/finalizers
+    - servicemonitors/status
+  verbs:
+    - 'get'
+    - 'list'
+    - 'watch'
+    - 'create'
+    - 'delete'
+    - 'update'
+- apiGroups:
+    - "apps"
+  resources:
+    - statefulsets
+  verbs:
+    - 'create'
+    - 'delete'
+    - 'get'
+    - 'list'
+    - 'update'
+    - 'watch'
+- apiGroups:
+    - ""
+  resources:
+    - configmaps
+    - secrets
+  verbs:
+    - 'create'
+    - 'delete'
+    - 'get'
+    - 'list'
+    - 'update'
+    - 'watch'
+- apiGroups:
+    - ""
+  resources:
+    - pods
+  verbs:
+    - 'list'
+    - 'delete'
+- apiGroups:
+    - ""
+  resources:
+    - services
+    - services/finalizers
+    - endpoints
+  verbs:
+    - 'get'
+    - 'list'
+    - 'watch'
+    - 'create'
+    - 'update'
+    - 'delete'

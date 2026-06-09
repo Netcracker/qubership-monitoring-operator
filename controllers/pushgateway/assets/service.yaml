@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushgateway
+  labels:
+    app.kubernetes.io/name: pushgateway
+    platform.monitoring.app: pushgateway
+    app.kubernetes.io/component: pushgateway
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  annotations:
+    prometheus.io/scrape: "true"
+spec:
+  clusterIP: None
+  type: ClusterIP
+  ports:
+    - port: 9091
+      targetPort: 9091
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: pushgateway

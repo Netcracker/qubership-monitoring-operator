@@ -1,0 +1,6 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+# Public Clouds Exporters
+stackdriver_exporter:
+  install: true

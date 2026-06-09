@@ -1,0 +1,72 @@
+region: us-east-1
+period_seconds: 120
+delay_seconds: 60
+metrics:
+- aws_dimensions:
+  - EndpointId 
+  aws_metric_name: EndpointHealthyENICount
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - EndpointId 
+  aws_metric_name: EndpointUnHealthyENICount
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - EndpointId 
+  aws_metric_name: InboundQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointId 
+  aws_metric_name: OutboundQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointId 
+  aws_metric_name: OutboundQueryAggregateVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointId 
+  aws_metric_name: InboundQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointId
+  aws_metric_name: OutboundQueryAggregateVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FirewallRuleGroupId
+  aws_metric_name: FirewallRuleGroupQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - VpcId
+  aws_metric_name: VPCFirewallQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FirewallRuleGroupId
+  - VpcId
+  aws_metric_name: FirewallRuleGroupVpcQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FirewallRuleGroupId
+  - FirewallDomainListId
+  aws_metric_name: FirewallRuleGroupVpcQueryVolume
+  aws_namespace: AWS/Route53Resolver
+  aws_statistics:
+  - Sum

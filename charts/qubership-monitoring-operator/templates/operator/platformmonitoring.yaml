@@ -1,0 +1,1535 @@
+apiVersion: monitoring.netcracker.com/v1
+kind: PlatformMonitoring
+metadata:
+  name: platformmonitoring
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "platformmonitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: monitoring-operator
+spec:
+  {{- if .Values.publicCloudName }}
+  publicCloudName: {{ .Values.publicCloudName }}
+  {{- end }}
+  {{- if .Values.integration }}
+  integration:
+    {{- if .Values.integration.stackdriver }}
+    stackdriver:
+      {{- toYaml .Values.integration.stackdriver | nindent 6 }}
+    {{- end }}
+    {{- if .Values.integration.jaeger }}
+    jaeger:
+      {{- toYaml .Values.integration.jaeger | nindent 6 }}
+    {{- end }}
+    {{- if .Values.integration.clickHouse }}
+    clickHouse:
+      {{- toYaml .Values.integration.clickHouse | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.auth }}
+  auth:
+    {{- if .Values.auth.loginUrl }}
+    loginUrl: {{ .Values.auth.loginUrl }}
+    {{ end }}
+    {{- if .Values.auth.tokenUrl }}
+    tokenUrl: {{ .Values.auth.tokenUrl }}
+    {{ end }}
+    {{- if .Values.auth.userInfoUrl }}
+    userInfoUrl: {{ .Values.auth.userInfoUrl }}
+    {{ end }}
+    {{- if .Values.auth.tlsConfig }}
+    tlsConfig:
+      {{- toYaml .Values.auth.tlsConfig | nindent 6 }}
+    {{ end }}
+  {{- end }}
+  {{- if .Values.oAuthProxy }}
+  oAuthProxy:
+    image: {{ template "oauth2proxy.image" . }}
+  {{- end }}
+  {{- with .Values.gatewayApi }}
+  {{- if or .addIngressIgnoreAnnotation .parentRefs }}
+  gatewayApi:
+    addIngressIgnoreAnnotation: {{ .addIngressIgnoreAnnotation | default false }}
+    {{- if .parentRefs }}
+    parentRefs:
+      {{- toYaml .parentRefs | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.prometheus }}
+  {{- if .Values.prometheus.install }}
+  prometheus:
+    install: {{ .Values.prometheus.install }}
+    image: {{ template "prometheus.image" . }}
+    configReloaderImage: {{ template "prometheus.configReloader.image" . }}
+    paused: {{ .Values.prometheus.paused | default false }}
+    replicas: {{ .Values.prometheus.replicas | default 1 }}
+    scrapeInterval: {{ .Values.prometheus.scrapeInterval }}
+    scrapeTimeout: {{ .Values.prometheus.scrapeTimeout }}
+    evaluationInterval: {{ .Values.prometheus.evaluationInterval }}
+    {{- if .Values.prometheus.tlsConfig }}
+    {{- $tls := unset .Values.prometheus.tlsConfig "secret" }}
+    tlsConfig:
+      {{- if $tls.webTLSConfig }}
+      webTLSConfig:
+        {{- toYaml $tls | nindent 6 }}
+      {{- end }}
+      {{- if $tls.generateCerts }}
+      generateCerts:
+        enabled: {{ $tls.generateCerts.enabled | default false }}
+        secretName: {{ $tls.generateCerts.secretName | default "prometheus-cert-manager-tls" }}
+      {{- end }}
+    {{- end }}
+    containers:
+      {{- toYaml .Values.prometheus.containers | nindent 6 }}
+    {{- if .Values.prometheus.podMonitor }}
+    podMonitor:
+      install: {{ .Values.prometheus.podMonitor.install }}
+      interval: {{ .Values.prometheus.podMonitor.interval }}
+      scrapeTimeout: {{ .Values.prometheus.podMonitor.scrapeTimeout }}
+      metricRelabelings:
+        {{- toYaml .Values.prometheus.podMonitor.metricRelabelings | nindent 8 }}
+      relabelings:
+        {{- toYaml .Values.prometheus.podMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    {{- if .Values.prometheus.ruleNamespaceSelector }}
+    ruleNamespaceSelector:
+      {{- toYaml .Values.prometheus.ruleNamespaceSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.podMonitorNamespaceSelector }}
+    podMonitorNamespaceSelector:
+      {{- toYaml .Values.prometheus.podMonitorNamespaceSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.serviceMonitorNamespaceSelector }}
+    serviceMonitorNamespaceSelector:
+      {{- toYaml .Values.prometheus.serviceMonitorNamespaceSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.ruleSelector }}
+    ruleSelector:
+      {{- toYaml .Values.prometheus.ruleSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.podMonitorSelector }}
+    podMonitorSelector:
+      {{- toYaml .Values.prometheus.podMonitorSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.serviceMonitorSelector }}
+    serviceMonitorSelector:
+      {{- toYaml .Values.prometheus.serviceMonitorSelector | nindent 6 }}
+    {{- end }}
+    {{- if and .Values.prometheus.ingress (eq (toString .Values.prometheus.ingress.install) "true") }}
+    ingress:
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.prometheus.ingress "hostPrefix" "prometheus") | nindent 6 }}
+    {{- if .Values.prometheus.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.prometheus.httpRoute | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.prometheus.alerting }}
+    alerting:
+      {{- toYaml .Values.prometheus.alerting | nindent 6 }}
+    {{- end }}
+    externalLabels:
+      {{- toYaml .Values.prometheus.externalLabels | nindent 6 }}
+    externalUrl:
+      {{- toYaml .Values.prometheus.externalUrl | nindent 6 }}
+    remoteWrite:
+      {{- range .Values.prometheus.remoteWrite }}
+      {{- if .url }}
+      - url: {{ .url }}
+      {{- end }}
+      {{- if .name }}
+        name: {{ .name }}
+      {{- end }}
+      {{- if .sendExemplars }}
+        sendExemplars: {{ .sendExemplars }}
+      {{- end }}
+      {{- if .sendNativeHistograms }}
+        sendNativeHistograms: {{ .sendNativeHistograms }}
+      {{- end }}
+      {{- if .remoteTimeout }}
+        remoteTimeout: {{ .remoteTimeout }}
+      {{- end }}
+      {{- if .headers }}
+        headers:
+          {{- toYaml .headers | nindent 10 }}
+      {{- end }}
+      {{- if .writeRelabelConfigs }}
+        writeRelabelConfigs:
+          {{- toYaml .writeRelabelConfigs | nindent 10 }}
+      {{- end }}
+      {{- if .oauth2 }}
+        oauth2:
+          {{- toYaml .oauth2 | nindent 10 }}
+      {{- end }}
+      {{- if .bearerTokenFile }}
+        bearerTokenFile: {{ .bearerTokenFile }}
+      {{- end }}
+      {{- if .authorization }}
+        authorization:
+          {{- toYaml .authorization | nindent 10 }}
+      {{- end }}
+      {{- if .sigv4 }}
+        sigv4:
+          {{- toYaml .sigv4 | nindent 10 }}
+      {{- end }}
+      {{- if .bearerToken }}
+        bearerToken: {{ .bearerToken }}
+      {{- end }}
+      {{- if .tlsConfig }}
+        tlsConfig:
+          {{- toYaml .tlsConfig | nindent 10 }}
+      {{- end }}
+      {{- if .proxyUrl }}
+        proxyUrl: {{ .proxyUrl }}
+      {{- end }}
+      {{- if .queueConfig }}
+        queueConfig:
+          {{- toYaml .queueConfig | nindent 10 }}
+      {{- end }}
+      {{- if .metadataConfig }}
+        metadataConfig:
+          {{- toYaml .metadataConfig | nindent 10 }}
+      {{- end }}
+      {{- if .basicAuth }}
+      {{- if .basicAuth.createSecret }}
+        basicAuth:
+          password:
+            key: password
+            name: {{ .basicAuth.createSecret.secretName }}
+          username:
+            key: username
+            name: {{ .basicAuth.createSecret.secretName }}
+      {{- else }}
+        basicAuth:
+          {{- toYaml .basicAuth | nindent 10 }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+    remoteRead:
+      {{- toYaml .Values.prometheus.remoteRead | nindent 6 }}
+    secrets:
+      {{- toYaml .Values.prometheus.secrets | nindent 6 }}
+    resources:
+      {{ include "prometheus.resources" . }}
+    {{- if .Values.prometheus.retention }}
+    retention: {{ .Values.prometheus.retention }}
+    {{- end }}
+    {{- if .Values.prometheus.retentionsize }}
+    retentionsize: {{ .Values.prometheus.retentionsize }}
+    {{- end }}
+    securityContext:
+      {{ include "prometheus.securityContext" . }}
+    {{- if .Values.prometheus.nodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.prometheus.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.labels }}
+    labels:
+      {{- toYaml .Values.prometheus.labels | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.annotations }}
+    annotations:
+      {{- toYaml .Values.prometheus.annotations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.storage }}
+    storage:
+      {{- toYaml .Values.prometheus.storage | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.affinity }}
+    affinity:
+      {{- toYaml .Values.prometheus.affinity | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.volumes }}
+    volumes:
+      {{- toYaml .Values.prometheus.volumes | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.volumeMounts }}
+    volumeMounts:
+      {{- toYaml .Values.prometheus.volumeMounts | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.tolerations }}
+    tolerations:
+      {{- toYaml .Values.prometheus.tolerations | nindent 6 }}
+    {{- end }}
+    enableAdminAPI: {{ .Values.prometheus.enableAdminAPI | default false }}
+    {{- if .Values.prometheus.query }}
+    query:
+      {{- toYaml .Values.prometheus.query | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheus.priorityClassName }}
+    priorityClassName: {{ .Values.prometheus.priorityClassName }}
+    {{- end }}
+    {{- if .Values.prometheus.serviceAccount }}
+    serviceAccount:
+      annotations: {{ toYaml .Values.prometheus.serviceAccount.annotations | nindent 8 }}
+      labels: {{ toYaml .Values.prometheus.serviceAccount.labels | nindent 8 }}
+    {{- end }}
+    {{- if .Values.prometheus.enableFeatures }}
+    enableFeatures:
+      {{- toYaml .Values.prometheus.enableFeatures | nindent 6 }}
+    {{- end }}
+    operator:
+      image: {{ template "prometheus.operator.image" . }}
+      paused: {{ .Values.prometheus.operator.paused | default false }}
+      resources:
+        {{ include "prometheus.operator.resources" . }}
+      {{- if .Values.prometheus.operator.podMonitor }}
+      podMonitor:
+        install: {{ .Values.prometheus.operator.podMonitor.install }}
+        interval: {{ .Values.prometheus.operator.podMonitor.interval }}
+        scrapeTimeout: {{ .Values.prometheus.operator.podMonitor.scrapeTimeout }}
+        metricRelabelings:
+          {{- toYaml .Values.prometheus.operator.podMonitor.metricRelabelings | nindent 10 }}
+        relabelings:
+          {{- toYaml .Values.prometheus.operator.podMonitor.relabelings | nindent 10 }}
+      {{- end }}
+      securityContext:
+        {{ include "prometheus.operator.securityContext" . }}
+      {{- if .Values.prometheus.operator.tolerations }}
+      tolerations:
+        {{- toYaml .Values.prometheus.operator.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.prometheus.operator.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.affinity }}
+      affinity:
+        {{- toYaml .Values.prometheus.operator.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.labels }}
+      labels:
+        {{- toYaml .Values.prometheus.operator.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.annotations }}
+      annotations:
+        {{- toYaml .Values.prometheus.operator.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.namespaces }}
+      namespaces: {{ .Values.prometheus.operator.namespaces }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.priorityClassName }}
+      priorityClassName: {{ .Values.prometheus.operator.priorityClassName }}
+      {{- end }}
+      {{- if .Values.prometheus.operator.serviceAccount }}
+      serviceAccount:
+        annotations: {{- toYaml .Values.prometheus.operator.serviceAccount.annotations | nindent 10 }}
+        labels: {{- toYaml .Values.prometheus.operator.serviceAccount.labels | nindent 10 }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.victoriametrics }}
+  {{- if .Values.victoriametrics.vmOperator }}
+  {{- if .Values.victoriametrics.vmOperator.install }}
+  victoriametrics:
+    tlsEnabled: {{ .Values.victoriametrics.tlsEnabled }}
+    # TODO: Uncomment when vmCluster is actualized
+    # {{- if and .Values.victoriametrics.vmCluster.install .Values.victoriametrics.vmReplicas }}
+    # vmReplicas: {{ .Values.victoriametrics.vmReplicas }}
+    # {{- end }}
+    vmOperator:
+      install: {{ .Values.victoriametrics.vmOperator.install }}
+      paused: {{ .Values.victoriametrics.vmOperator.paused | default false }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      tlsConfig:
+        {{- if .Values.victoriametrics.vmOperator.tlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmOperator.tlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmOperator.tlsConfig.generateCerts .Values.victoriametrics.vmOperator.tlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmoperator-tls-secret" .Values.victoriametrics.vmOperator.tlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmOperator.tlsConfig.createSecret (not .Values.victoriametrics.vmOperator.tlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmoperator-tls-secret" .Values.victoriametrics.vmOperator.tlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      replicas: {{ .Values.victoriametrics.vmOperator.replicas }}
+      {{- if .Values.victoriametrics.vmOperator.serviceMonitor }}
+      serviceMonitor:
+        install: {{ .Values.victoriametrics.vmOperator.serviceMonitor.install }}
+        interval: {{ .Values.victoriametrics.vmOperator.serviceMonitor.interval }}
+        scrapeTimeout: {{ .Values.victoriametrics.vmOperator.serviceMonitor.scrapeTimeout }}
+        metricRelabelings:
+          {{- toYaml .Values.victoriametrics.vmOperator.serviceMonitor.metricRelabelings | nindent 10 }}
+        relabelings:
+          {{- toYaml .Values.victoriametrics.vmOperator.serviceMonitor.relabelings | nindent 10 }}
+      {{- end }}
+      extraEnvs:
+        - name: VM_CUSTOMCONFIGRELOADERIMAGE
+          value: {{ template "vm.operator.configReloader.image" . }}
+      {{- if .Values.victoriametrics.vmAlertManager }}
+      {{- if .Values.victoriametrics.vmAlertManager.install }}
+        - name: VM_VMALERTMANAGER_CONFIGRELOADERIMAGE
+          value: {{ template "vm.alertmanager.configReloader.image" . }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert }}
+      {{- if .Values.victoriametrics.vmAlert.install }}
+        - name: VM_VMALERTDEFAULT_CONFIGRELOADIMAGE
+          value: {{ template "vm.alert.configReloader.image" . }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent }}
+      {{- if .Values.victoriametrics.vmAgent.install }}
+        - name: VM_VMAGENTDEFAULT_CONFIGRELOADIMAGE
+          value: {{ template "vm.agent.configReloader.image" . }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth }}
+      {{- if .Values.victoriametrics.vmAuth.install }}
+        - name: VM_VMAUTHDEFAULT_CONFIGRELOADIMAGE
+          value: {{ template "vm.auth.configReloader.image" . }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.extraEnvs }}
+      {{- range .Values.victoriametrics.vmOperator.extraEnvs }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+      {{- end }}
+      {{- end }}
+      image: {{ template "vm.operator.image" . }}
+      resources:
+        {{ include "vm.operator.resources" . }}
+      securityContext:
+        {{ include "vm.operator.securityContext" . }}
+      containerSecurityContext:
+        {{ include "vm.operator.containerSecurityContext" . }}
+      {{- if .Values.victoriametrics.vmOperator.tolerations }}
+      tolerations:
+        {{- toYaml .Values.victoriametrics.vmOperator.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.victoriametrics.vmOperator.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmOperator.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.labels }}
+      labels:
+        {{- toYaml .Values.victoriametrics.vmOperator.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.annotations }}
+      annotations:
+        {{- toYaml .Values.victoriametrics.vmOperator.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmOperator.priorityClassName }}
+      priorityClassName: {{ .Values.victoriametrics.vmOperator.priorityClassName }}
+      {{- end }}
+    # Replace below if condition when vmCluster is actualized
+    # if and .Values.victoriametrics.vmSingle.install (not .Values.victoriametrics.vmCluster.install)
+    {{- if .Values.victoriametrics.vmSingle.install }}
+    vmSingle:
+      install: {{ .Values.victoriametrics.vmSingle.install }}
+      paused: {{ .Values.victoriametrics.vmSingle.paused | default false }}
+      {{- if and .Values.victoriametrics.vmSingle.ingress (eq (toString .Values.victoriametrics.vmSingle.ingress.install) "true") }}
+      ingress:
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmSingle.ingress "hostPrefix" "vmsingle") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmSingle.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmSingle.httpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      image: {{ template "vm.single.image" . }}
+      retentionPeriod: {{ .Values.victoriametrics.vmSingle.retentionPeriod | default "14d" }}
+      resources:
+        {{ include "vm.single.resources" . }}
+      securityContext:
+        {{ include "vm.single.securityContext" . }}
+      containers:
+        {{- toYaml .Values.victoriametrics.vmSingle.containers | nindent 8 }}
+      {{- if .Values.victoriametrics.vmSingle.tolerations }}
+      tolerations:
+        {{- toYaml .Values.victoriametrics.vmSingle.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.victoriametrics.vmSingle.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmSingle.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.priorityClassName }}
+      priorityClassName: {{ .Values.victoriametrics.vmSingle.priorityClassName }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.labels }}
+      labels:
+        {{- toYaml .Values.victoriametrics.vmSingle.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.annotations }}
+      annotations:
+        {{- toYaml .Values.victoriametrics.vmSingle.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.secrets }}
+      secrets:
+        {{- toYaml .Values.victoriametrics.vmSingle.secrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.storageDataPath }}
+      storageDataPath: {{- toYaml .Values.victoriametrics.vmSingle.storageDataPath }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.storage }}
+      storage:
+        {{- toYaml .Values.victoriametrics.vmSingle.storage | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.storageMetadata }}
+      storageMetadata:
+        {{- toYaml .Values.victoriametrics.vmSingle.storageMetadata | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.extraArgs }}
+      extraArgs:
+        {{- toYaml .Values.victoriametrics.vmSingle.extraArgs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmSingle.extraEnvs }}
+      extraEnvs:
+        {{- toYaml .Values.victoriametrics.vmSingle.extraEnvs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      tlsConfig:
+        {{- if .Values.victoriametrics.vmSingle.tlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmSingle.tlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmSingle.tlsConfig.generateCerts .Values.victoriametrics.vmSingle.tlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmsingle-tls-secret" .Values.victoriametrics.vmSingle.tlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmSingle.tlsConfig.createSecret (not .Values.victoriametrics.vmSingle.tlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmsingle-tls-secret" .Values.victoriametrics.vmSingle.tlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.victoriametrics.vmAgent.install }}
+    vmAgent:
+      install: {{ .Values.victoriametrics.vmAgent.install }}
+      replicas: {{ .Values.victoriametrics.vmAgent.replicas }}
+      paused: {{ .Values.victoriametrics.vmAgent.paused | default false }}
+      {{- if and .Values.victoriametrics.vmAgent.ingress (eq (toString .Values.victoriametrics.vmAgent.ingress.install) "true") }}
+      ingress:
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAgent.ingress "hostPrefix" "vmagent") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAgent.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAgent.httpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      image: {{ template "vm.agent.image" . }}
+      resources:
+        {{ include "vm.agent.resources" . }}
+      {{- if .Values.victoriametrics.vmAgent.scrapeInterval }}
+      scrapeInterval: {{ .Values.victoriametrics.vmAgent.scrapeInterval }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.maxScrapeInterval }}
+      maxScrapeInterval: {{ .Values.victoriametrics.vmAgent.maxScrapeInterval }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.minScrapeInterval }}
+      minScrapeInterval: {{ .Values.victoriametrics.vmAgent.minScrapeInterval }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.priorityClassName }}
+      priorityClassName: {{ .Values.victoriametrics.vmAgent.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{ include "vm.agent.securityContext" . }}
+      containers:
+        {{- toYaml .Values.victoriametrics.vmAgent.containers | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAgent.tolerations }}
+      tolerations:
+        {{- toYaml .Values.victoriametrics.vmAgent.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.victoriametrics.vmAgent.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmAgent.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.labels }}
+      labels:
+        {{- toYaml .Values.victoriametrics.vmAgent.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.externalLabels }}
+      externalLabels:
+        {{- toYaml .Values.victoriametrics.vmAgent.externalLabels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.remoteWrite }}
+      remoteWrite:
+      {{- range .Values.victoriametrics.vmAgent.remoteWrite }}
+        {{- if .url }}
+        - url: {{ .url }}
+        {{- end }}
+        {{- if .sendTimeout }}
+          sendTimeout: {{ .sendTimeout }}
+        {{- end }}
+        {{- if .headers }}
+          headers:
+            {{- toYaml .headers | nindent 12 }}
+        {{- end }}
+        {{- if .urlRelabelConfig }}
+          urlRelabelConfig:
+            {{- toYaml .urlRelabelConfig | nindent 12 }}
+        {{- end }}
+        {{- if .oauth2 }}
+          oauth2:
+            {{- toYaml .oauth2 | nindent 12 }}
+        {{- end }}
+        {{- if .bearerTokenSecret }}
+          bearerTokenSecret:
+            {{- toYaml .bearerTokenSecret | nindent 12 }}
+        {{- end }}
+        {{- if .inlineUrlRelabelConfig }}
+          inlineUrlRelabelConfig:
+            {{- toYaml .inlineUrlRelabelConfig | nindent 12 }}
+        {{- end }}
+        {{- if .tlsConfig }}
+          tlsConfig:
+            {{- toYaml .tlsConfig | nindent 12 }}
+        {{- end }}
+        {{- if .streamAggrConfig }}
+          streamAggrConfig: {{ .streamAggrConfig }}
+        {{- end }}
+        {{- if .basicAuth }}
+        {{- if .basicAuth.createSecret }}
+          basicAuth:
+            password:
+              key: password
+              name: {{ .basicAuth.createSecret.secretName }}
+            username:
+              key: username
+              name: {{ .basicAuth.createSecret.secretName }}
+        {{- else }}
+          basicAuth:
+            {{- toYaml .basicAuth | nindent 12 }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.remoteWriteSettings }}
+      remoteWriteSettings:
+        {{- toYaml .Values.victoriametrics.vmAgent.remoteWriteSettings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.relabelConfig }}
+      relabelConfig:
+        {{- toYaml .Values.victoriametrics.vmAgent.relabelConfig | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.inlineRelabelConfig }}
+      inlineRelabelConfig:
+        {{- toYaml .Values.victoriametrics.vmAgent.inlineRelabelConfig | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.podMonitorNamespaceSelector }}
+      podMonitorNamespaceSelector:
+        {{- toYaml .Values.victoriametrics.vmAgent.podMonitorNamespaceSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.serviceMonitorNamespaceSelector }}
+      serviceMonitorNamespaceSelector:
+        {{- toYaml .Values.victoriametrics.vmAgent.serviceMonitorNamespaceSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.podMonitorSelector }}
+      podMonitorSelector:
+        {{- toYaml .Values.victoriametrics.vmAgent.podMonitorSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.serviceMonitorSelector }}
+      serviceMonitorSelector:
+        {{- toYaml .Values.victoriametrics.vmAgent.serviceMonitorSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.secrets }}
+      secrets:
+        {{- toYaml .Values.victoriametrics.vmAgent.secrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.volumes }}
+      volumes:
+        {{- toYaml .Values.victoriametrics.vmAgent.volumes | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.volumeMounts }}
+      volumeMounts:
+        {{- toYaml .Values.victoriametrics.vmAgent.volumeMounts | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.annotations }}
+      annotations:
+        {{- toYaml .Values.victoriametrics.vmAgent.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.extraArgs }}
+      extraArgs:
+        {{- toYaml .Values.victoriametrics.vmAgent.extraArgs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAgent.extraEnvs }}
+      extraEnvs:
+        {{- toYaml .Values.victoriametrics.vmAgent.extraEnvs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      tlsConfig:
+        {{- if .Values.victoriametrics.vmAgent.tlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmAgent.tlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmAgent.tlsConfig.generateCerts .Values.victoriametrics.vmAgent.tlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmagent-tls-secret" .Values.victoriametrics.vmAgent.tlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmAgent.tlsConfig.createSecret (not .Values.victoriametrics.vmAgent.tlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmagent-tls-secret" .Values.victoriametrics.vmAgent.tlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.victoriametrics.vmAlertManager.install }}
+    vmAlertManager:
+      install: {{ .Values.victoriametrics.vmAlertManager.install }}
+      paused: {{ .Values.victoriametrics.vmAlertManager.paused | default false }}
+      image: {{ template "vm.alertmanager.image" . }}
+      replicas: {{ .Values.victoriametrics.vmAlertManager.replicas | default 1 }}
+      {{- if and .Values.victoriametrics.vmAlertManager.ingress (eq (toString .Values.victoriametrics.vmAlertManager.ingress.install) "true") }}
+      ingress:
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAlertManager.ingress "hostPrefix" "vmalertmanager") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAlertManager.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.httpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      resources:
+        {{ include "vm.alertmanager.resources" . }}
+      securityContext:
+        {{ include "vm.alertmanager.securityContext" . }}
+      containers:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.containers | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAlertManager.secrets }}
+      secrets:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.secrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.priorityClassName }}
+      priorityClassName: {{ .Values.victoriametrics.vmAlertManager.priorityClassName }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.tolerations }}
+      tolerations:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.tolerations | nindent 8 }}
+      {{- end }}
+      retention: {{ .Values.victoriametrics.vmAlertManager.retention | default "120h" }}
+      {{- if .Values.victoriametrics.vmAlertManager.configRawYaml }}
+      configRawYaml:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.configRawYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.configSecret }}
+      configSecret: {{ .Values.victoriametrics.vmAlertManager.configSecret }}
+      {{- end }}
+      selectAllByDefault: {{ ternary .Values.victoriametrics.vmAlertManager.selectAllByDefault true (hasKey .Values.victoriametrics.vmAlertManager "selectAllByDefault") }}
+      {{- if .Values.victoriametrics.vmAlertManager.configSelector }}
+      configSelector:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.configSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.configNamespaceSelector }}
+      configNamespaceSelector:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.configNamespaceSelector | nindent 8 }}
+      {{- end }}
+      disableNamespaceMatcher: {{- if eq (get .Values.victoriametrics.vmAlertManager "disableNamespaceMatcher") false }} false{{ else }} true{{ end }}
+      {{- if .Values.victoriametrics.vmAlertManager.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.victoriametrics.vmAlertManager.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.labels }}
+      labels:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.annotations }}
+      annotations:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.storage }}
+      storage:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.storage | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.volumes }}
+      volumes:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.volumes | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.volumeMounts }}
+      volumeMounts:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.volumeMounts | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.extraArgs }}
+      extraArgs:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.extraArgs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.extraEnvs }}
+      extraEnvs:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.extraEnvs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      tlsConfig:
+        {{- if .Values.victoriametrics.vmAlertManager.tlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmAlertManager.tlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmAlertManager.tlsConfig.generateCerts .Values.victoriametrics.vmAlertManager.tlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmalertmanager-tls-secret" .Values.victoriametrics.vmAlertManager.tlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmAlertManager.tlsConfig.createSecret (not .Values.victoriametrics.vmAlertManager.tlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmalertmanager-tls-secret" .Values.victoriametrics.vmAlertManager.tlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.webConfig }}
+      webConfig:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.webConfig | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlertManager.gossipConfig }}
+      gossipConfig:
+        {{- toYaml .Values.victoriametrics.vmAlertManager.gossipConfig | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.victoriametrics.vmAlert.install }}
+    vmAlert:
+      install: {{ .Values.victoriametrics.vmAlert.install }}
+      paused: {{ .Values.victoriametrics.vmAlert.paused | default false }}
+      image: {{ template "vm.alert.image" . }}
+      replicas: {{ .Values.victoriametrics.vmAlert.replicas | default 1 }}
+      {{- if and .Values.victoriametrics.vmAlert.ingress (eq (toString .Values.victoriametrics.vmAlert.ingress.install) "true") }}
+      ingress:
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAlert.ingress "hostPrefix" "vmalert") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAlert.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAlert.httpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.port }}
+      port: {{ .Values.victoriametrics.vmAlert.port }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.secrets }}
+      secrets:
+        {{- toYaml .Values.victoriametrics.vmAlert.secrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.priorityClassName }}
+      priorityClassName: {{ .Values.victoriametrics.vmAlert.priorityClassName }}
+      {{- end }}
+      resources:
+        {{ include "vm.alert.resources" . }}
+      {{- if .Values.victoriametrics.vmAlert.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmAlert.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.tolerations }}
+      tolerations:
+        {{- toYaml .Values.victoriametrics.vmAlert.tolerations | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{ include "vm.alert.securityContext" . }}
+      containers:
+        {{- toYaml .Values.victoriametrics.vmAlert.containers | nindent 8 }}
+      evaluationInterval: {{ .Values.victoriametrics.vmAlert.evaluationInterval | default "30s" }}
+      selectAllByDefault: {{ ternary .Values.victoriametrics.vmAlert.selectAllByDefault true (hasKey .Values.victoriametrics.vmAlert "selectAllByDefault") }}
+      {{- if .Values.victoriametrics.vmAlert.ruleSelector }}
+      ruleSelector:
+        {{- toYaml .Values.victoriametrics.vmAlert.ruleSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.ruleNamespaceSelector }}
+      ruleNamespaceSelector:
+        {{- toYaml .Values.victoriametrics.vmAlert.ruleNamespaceSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.remoteWrite }}
+      remoteWrite:
+        {{- toYaml .Values.victoriametrics.vmAlert.remoteWrite | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.remoteRead }}
+      remoteRead:
+        {{- toYaml .Values.victoriametrics.vmAlert.remoteRead | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.rulePath }}
+      rulePath:
+        {{- toYaml .Values.victoriametrics.vmAlert.rulePath | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.notifier }}
+      notifier:
+        {{- toYaml .Values.victoriametrics.vmAlert.notifier | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.notifiers }}
+      notifiers:
+        {{- toYaml .Values.victoriametrics.vmAlert.notifiers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.notifierConfigRef }}
+      notifierConfigRef:
+        {{- toYaml .Values.victoriametrics.vmAlert.notifierConfigRef | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.datasource }}
+      datasource:
+        {{- toYaml .Values.victoriametrics.vmAlert.datasource | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.extraArgs }}
+      extraArgs:
+        {{- toYaml .Values.victoriametrics.vmAlert.extraArgs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.extraEnvs }}
+      extraEnvs:
+        {{- toYaml .Values.victoriametrics.vmAlert.extraEnvs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.externalLabels }}
+      externalLabels:
+        {{- toYaml .Values.victoriametrics.vmAlert.externalLabels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.victoriametrics.vmAlert.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.victoriametrics.vmAlert.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.labels }}
+      labels:
+        {{- toYaml .Values.victoriametrics.vmAlert.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.annotations }}
+      annotations:
+        {{- toYaml .Values.victoriametrics.vmAlert.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.volumes }}
+      volumes:
+        {{- toYaml .Values.victoriametrics.vmAlert.volumes | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAlert.volumeMounts }}
+      volumeMounts:
+        {{- toYaml .Values.victoriametrics.vmAlert.volumeMounts | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      tlsConfig:
+        {{- if .Values.victoriametrics.vmAlert.tlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmAlert.tlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmAlert.tlsConfig.generateCerts .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmalert-tls-secret" .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmAlert.tlsConfig.createSecret (not .Values.victoriametrics.vmAlert.tlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmalert-tls-secret" .Values.victoriametrics.vmAlert.tlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.victoriametrics.vmAuth.install }}
+    vmAuth:
+      install: {{ .Values.victoriametrics.vmAuth.install }}
+      paused: {{ .Values.victoriametrics.vmAuth.paused | default false }}
+      image: {{ template "vm.auth.image" . }}
+      replicaCount: {{ .Values.victoriametrics.vmAuth.replicaCount | default 1 }}
+      resources:
+        {{ include "vm.auth.resources" . }}
+      securityContext:
+        {{ include "vm.auth.securityContext" . }}
+      containers:
+        {{- toYaml .Values.victoriametrics.vmAuth.containers | nindent 8 }}
+      {{- if and .Values.victoriametrics.vmAuth.ingress (eq (toString .Values.victoriametrics.vmAuth.ingress.install) "true") }}
+      ingress:
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmAuth.ingress "hostPrefix" "vmauth") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmAuth.httpRoute }}
+      httpRoute:
+        {{- toYaml .Values.victoriametrics.vmAuth.httpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.port }}
+      port: {{ .Values.victoriametrics.vmAuth.port }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.secrets }}
+      secrets:
+        {{- toYaml .Values.victoriametrics.vmAuth.secrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.configMaps }}
+      configMaps:
+        {{- toYaml .Values.victoriametrics.vmAuth.configMaps | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.priorityClassName }}
+      priorityClassName: {{ .Values.victoriametrics.vmAuth.priorityClassName }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.affinity }}
+      affinity:
+        {{- toYaml .Values.victoriametrics.vmAuth.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.tolerations }}
+      tolerations:
+        {{- toYaml .Values.victoriametrics.vmAuth.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.victoriametrics.vmAuth.nodeSelector | nindent 8 }}
+      {{- end }}
+      selectAllByDefault: {{ ternary .Values.victoriametrics.vmAuth.selectAllByDefault true (hasKey .Values.victoriametrics.vmAuth "selectAllByDefault") }}
+      {{- if .Values.victoriametrics.vmAuth.userSelector }}
+      userSelector:
+        {{- toYaml .Values.victoriametrics.vmAuth.userSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.userNamespaceSelector }}
+      userNamespaceSelector:
+        {{- toYaml .Values.victoriametrics.vmAuth.userNamespaceSelector | nindent 8 }}
+      {{- else }}
+      userNamespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.extraArgs }}
+      extraArgs:
+        {{- toYaml .Values.victoriametrics.vmAuth.extraArgs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.extraEnvs }}
+      extraEnvs:
+        {{- toYaml .Values.victoriametrics.vmAuth.extraEnvs | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.victoriametrics.vmAuth.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.annotations }}
+      annotations:
+        {{- toYaml .Values.victoriametrics.vmAuth.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.labels }}
+      labels:
+        {{- toYaml .Values.victoriametrics.vmAuth.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.volumes }}
+      volumes:
+        {{- toYaml .Values.victoriametrics.vmAuth.volumes | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmAuth.volumeMounts }}
+      volumeMounts:
+        {{- toYaml .Values.victoriametrics.vmAuth.volumeMounts | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      tlsConfig:
+        {{- if .Values.victoriametrics.vmAuth.tlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmAuth.tlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmAuth.tlsConfig.generateCerts .Values.victoriametrics.vmAuth.tlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmauth-tls-secret" .Values.victoriametrics.vmAuth.tlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmAuth.tlsConfig.createSecret (not .Values.victoriametrics.vmAuth.tlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmauth-tls-secret" .Values.victoriametrics.vmAuth.tlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.victoriametrics.vmAuth.install }}
+    {{- if or .Values.victoriametrics.vmUser.install (hasKey .Values.victoriametrics.vmUser "install") }}
+    vmUser:
+      install: {{ if hasKey .Values.victoriametrics.vmUser "install" }}{{ .Values.victoriametrics.vmUser.install }}{{ else }}true{{ end }}
+      paused: {{ .Values.victoriametrics.vmUser.paused | default false }}
+      {{- if .Values.victoriametrics.vmUser.username }}
+      username: {{ .Values.victoriametrics.vmUser.username }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmUser.passwordRef }}
+      passwordRef:
+        {{- toYaml .Values.victoriametrics.vmUser.passwordRef | nindent 8 }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmUser.tokenRef }}
+      tokenRef:
+        {{- toYaml .Values.victoriametrics.vmUser.tokenRef | nindent 8 }}
+      {{- end }}
+      generatePassword: {{ .Values.victoriametrics.vmUser.generatePassword | default false }}
+      {{- if .Values.victoriametrics.vmUser.bearerToken }}
+      bearerToken: {{ .Values.victoriametrics.vmUser.bearerToken }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmUser.targetRefs }}
+      targetRefs:
+        {{- toYaml .Values.victoriametrics.vmUser.targetRefs | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.victoriametrics.vmCluster.install }}
+    vmCluster:
+      install: {{ .Values.victoriametrics.vmCluster.install }}
+      retentionPeriod: {{ .Values.victoriametrics.vmCluster.retentionPeriod }}
+      paused: {{ .Values.victoriametrics.vmCluster.paused | default false }}
+      {{- if .Values.victoriametrics.vmCluster.replicationFactor }}
+      replicationFactor: {{ .Values.victoriametrics.vmCluster.replicationFactor }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmCluster.vmSelect }}
+      vmselect:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmSelect | nindent 10 }}
+          resources:
+            {{include "vm.select.resources" . }}
+      {{- end }}
+      vmSelectImage: {{ template "vm.select.image" . }}
+      {{- if and .Values.victoriametrics.vmCluster.vmSelectIngress (eq (toString .Values.victoriametrics.vmCluster.vmSelectIngress.install) "true") }}
+      vmSelectIngress:
+        {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.victoriametrics.vmCluster.vmSelectIngress "hostPrefix" "vmselect") | nindent 8 }}
+      {{- if .Values.victoriametrics.vmCluster.vmSelectHttpRoute }}
+      vmSelectHttpRoute:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmSelectHttpRoute | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      vmSelectTlsConfig:
+        {{- if .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmCluster.vmSelectTlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmCluster.vmSelectTlsConfig.generateCerts .Values.victoriametrics.vmCluster.vmSelectTlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmselect-tls-secret" .Values.victoriametrics.vmCluster.vmSelectTlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmCluster.vmSelectTlsConfig.createSecret (not .Values.victoriametrics.vmCluster.vmSelectTlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmselect-tls-secret" .Values.victoriametrics.vmCluster.vmSelectTlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmCluster.vmInsert }}
+      vminsert:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmInsert | nindent 10 }}
+          resources:
+            {{include "vm.insert.resources" . }}
+      {{- end }}
+      vmInsertImage: {{ template "vm.insert.image" . }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      vmInsertTlsConfig:
+        {{- if .Values.victoriametrics.vmCluster.vmInsertTlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmCluster.vmInsertTlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmCluster.vmInsertTlsConfig.generateCerts .Values.victoriametrics.vmCluster.vmInsertTlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vminsert-tls-secret" .Values.victoriametrics.vmCluster.vmInsertTlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmCluster.vmInsertTlsConfig.createSecret (not .Values.victoriametrics.vmCluster.vmInsertTlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vminsert-tls-secret" .Values.victoriametrics.vmCluster.vmInsertTlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.victoriametrics.vmCluster.vmStorage }}
+      vmstorage:
+        {{- toYaml .Values.victoriametrics.vmCluster.vmStorage | nindent 10 }}
+          resources:
+            {{include "vm.storage.resources" . }}
+      {{- end }}
+      vmStorageImage: {{ template "vm.storage.image" . }}
+      {{- if .Values.victoriametrics.tlsEnabled }}
+      vmStorageTlsConfig:
+        {{- if .Values.victoriametrics.vmCluster.vmStorageTlsConfig.existingSecret }}
+        secretName: {{ .Values.victoriametrics.vmCluster.vmStorageTlsConfig.existingSecret | quote }}
+        {{- else }}
+        {{- if and .Values.victoriametrics.vmCluster.vmStorageTlsConfig.generateCerts .Values.victoriametrics.vmCluster.vmStorageTlsConfig.generateCerts.enabled }}
+        secretName: {{ default "vmstorage-tls-secret" .Values.victoriametrics.vmCluster.vmStorageTlsConfig.generateCerts.secretName | quote }}
+        {{- end }}
+        {{- if and .Values.victoriametrics.vmCluster.vmStorageTlsConfig.createSecret (not .Values.victoriametrics.vmCluster.vmStorageTlsConfig.generateCerts.enabled) }}
+        secretName: {{ default "vmstorage-tls-secret" .Values.victoriametrics.vmCluster.vmStorageTlsConfig.createSecret.secretName | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if and .Values.prometheusRules .Values.prometheusRules.install }}
+  prometheusRules:
+    install: {{ .Values.prometheusRules.install }}
+    ruleGroups:
+    {{- if .Values.blackboxExporter }}
+      {{- if .Values.blackboxExporter.install }}
+        {{- toYaml .Values.prometheusRules.ruleGroups | nindent 6 }}
+      {{- else }}
+        {{- $tmpRuleGroups := without .Values.prometheusRules.ruleGroups "DRAlerts" }}
+        {{- toYaml $tmpRuleGroups | nindent 6 }}
+      {{- end }}
+    {{- else }}
+      {{- $tmpRuleGroups := without .Values.prometheusRules.ruleGroups "DRAlerts" }}
+      {{- toYaml $tmpRuleGroups | nindent 6 }}
+    {{- end }}
+    {{- if .Values.prometheusRules.override }}
+    override:
+      {{- toYaml .Values.prometheusRules.override | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.alertManager.install }}
+  alertManager:
+    install: {{ .Values.alertManager.install }}
+    image: {{ template "alertmanager.image" . }}
+    port: {{ .Values.alertManager.port}}
+    paused: {{ .Values.alertManager.paused | default false }}
+    replicas: {{ .Values.alertManager.replicas | default 1 }}
+    {{- if .Values.alertManager.priorityClassName }}
+    priorityClassName: {{ .Values.alertManager.priorityClassName }}
+    {{- end }}
+    {{- if .Values.alertManager.podMonitor }}
+    podMonitor:
+      install: {{ .Values.alertManager.podMonitor.install }}
+      interval: {{ .Values.alertManager.podMonitor.interval }}
+      scrapeTimeout: {{ .Values.alertManager.podMonitor.scrapeTimeout }}
+      metricRelabelings:
+        {{- toYaml .Values.alertManager.podMonitor.metricRelabelings | nindent 8 }}
+      relabelings:
+        {{- toYaml .Values.alertManager.podMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    {{- if and .Values.alertManager.ingress (eq (toString .Values.alertManager.ingress.install) "true") }}
+    ingress:
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.alertManager.ingress "hostPrefix" "alertmanager") | nindent 6 }}
+    {{- if .Values.alertManager.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.alertManager.httpRoute | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    containers:
+      {{- toYaml .Values.alertManager.containers | nindent 6 }}
+    resources:
+      {{ include "alertmanager.resources" . }}
+    securityContext:
+      {{ include "alertmanager.securityContext" . }}
+    {{- if .Values.alertManager.tolerations }}
+    tolerations:
+      {{- toYaml .Values.alertManager.tolerations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.alertManager.nodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.alertManager.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.alertManager.affinity }}
+    affinity:
+      {{- toYaml .Values.alertManager.affinity | nindent 6 }}
+    {{- end }}
+    {{- if .Values.alertManager.labels }}
+    labels:
+      {{- toYaml .Values.alertManager.labels | nindent 6 }}
+    {{- end }}
+    {{- if .Values.alertManager.annotations }}
+    annotations:
+      {{- toYaml .Values.alertManager.annotations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.alertManager.serviceAccount }}
+    serviceAccount:
+      annotations: {{- toYaml .Values.alertManager.serviceAccount.annotations | nindent 8 }}
+      labels: {{- toYaml .Values.alertManager.serviceAccount.labels | nindent 8 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.grafana }}
+  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
+  grafana:
+    install: {{ .Values.grafana.install }}
+    {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
+    disableDefaultAdminSecret: {{ .Values.grafana.disableDefaultAdminSecret }}
+    {{- else }}
+    disableDefaultAdminSecret: false
+    {{- end }}
+    image: {{ template "grafana.image" . }}
+    replicas: {{ .Values.grafana.replicas | default 1 }}
+    paused: {{ .Values.grafana.paused | default false }}
+    {{- if and .Values.grafana.ingress (eq (toString .Values.grafana.ingress.install) "true") }}
+    ingress:
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.grafana.ingress "hostPrefix" "grafana") | nindent 6 }}
+    {{- if .Values.grafana.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.grafana.httpRoute | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    config:
+      {{- toYaml .Values.grafana.config | nindent 6 }}
+    {{- if .Values.grafana.dataStorage }}
+    dataStorage:
+      {{- toYaml .Values.grafana.dataStorage | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.priorityClassName }}
+    priorityClassName: {{ .Values.grafana.priorityClassName }}
+    {{- end }}
+    {{- if .Values.grafana.podMonitor }}
+    podMonitor:
+      install: {{ .Values.grafana.podMonitor.install }}
+      interval: {{ .Values.grafana.podMonitor.interval }}
+      scrapeTimeout: {{ .Values.grafana.podMonitor.scrapeTimeout }}
+      metricRelabelings:
+        {{- toYaml .Values.grafana.podMonitor.metricRelabelings | nindent 8 }}
+      relabelings:
+        {{- toYaml .Values.grafana.podMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    resources:
+      {{ include "grafana.resources" . }}
+    {{- if .Values.grafana.grafanaHomeDashboard }}
+    grafanaHomeDashboard: {{ .Values.grafana.grafanaHomeDashboard }}
+    {{- end }}
+    {{- if .Values.grafana.dashboardLabelSelector }}
+    dashboardLabelSelector:
+      {{- toYaml .Values.grafana.dashboardLabelSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.dashboardNamespaceSelector }}
+    dashboardNamespaceSelector:
+      {{- toYaml .Values.grafana.dashboardNamespaceSelector | nindent 6 }}
+    {{- end }}
+    securityContext:
+      {{ include "grafana.securityContext" . }}
+    {{- if .Values.grafana.tolerations }}
+    tolerations:
+      {{- toYaml .Values.grafana.tolerations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.nodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.grafana.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.affinity }}
+    affinity:
+      {{- toYaml .Values.grafana.affinity | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.labels }}
+    labels:
+      {{- toYaml .Values.grafana.labels | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.annotations }}
+    annotations:
+      {{- toYaml .Values.grafana.annotations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.grafana.serviceAccount }}
+    serviceAccount:
+      annotations: {{- toYaml .Values.grafana.serviceAccount.annotations | nindent 8 }}
+      labels: {{- toYaml .Values.grafana.serviceAccount.labels | nindent 8 }}
+    {{- end }}
+    operator:
+      image: {{ template "grafana.operator.image" . }}
+      initContainerImage: {{ template "grafana.initContainer.image" . }}
+      {{- if .Values.grafana.operator.namespaceScope }}
+      namespaceScope: {{ .Values.grafana.operator.namespaceScope }}
+      {{- else if .Values.grafana.operator.watchNamespaceSelector }}
+      watchNamespaceSelector: {{ .Values.grafana.operator.watchNamespaceSelector }}
+      {{- else if .Values.grafana.operator.watchNamespaces }}
+      watchNamespaces: {{ .Values.grafana.operator.watchNamespaces }}
+      {{- else if .Values.grafana.operator.namespaces }}
+      namespaces: {{ .Values.grafana.operator.namespaces }}
+      {{- end }}
+      paused: {{ .Values.grafana.operator.paused | default false }}
+      {{- if .Values.grafana.operator.priorityClassName }}
+      priorityClassName: {{ .Values.grafana.operator.priorityClassName }}
+      {{- end }}
+      {{- if .Values.grafana.operator.podMonitor }}
+      podMonitor:
+        install: {{ .Values.grafana.operator.podMonitor.install }}
+        interval: {{ .Values.grafana.operator.podMonitor.interval }}
+        scrapeTimeout: {{ .Values.grafana.operator.podMonitor.scrapeTimeout }}
+        metricRelabelings:
+          {{- toYaml .Values.grafana.operator.podMonitor.metricRelabelings | nindent 10 }}
+        relabelings:
+          {{- toYaml .Values.grafana.operator.podMonitor.relabelings | nindent 10 }}
+      {{- end }}
+      resources:
+        {{ include "grafana.operator.resources" . }}
+      securityContext:
+        {{ include "grafana.operator.securityContext" . }}
+      {{- if .Values.grafana.operator.tolerations }}
+      tolerations:
+        {{- toYaml .Values.grafana.operator.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.grafana.operator.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.affinity }}
+      affinity:
+        {{- toYaml .Values.grafana.operator.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.labels }}
+      labels:
+        {{- toYaml .Values.grafana.operator.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.annotations }}
+      annotations:
+        {{- toYaml .Values.grafana.operator.annotations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.logLevel }}
+      logLevel:
+        {{- toYaml .Values.grafana.operator.logLevel | nindent 8 }}
+      {{- end }}
+      {{- if .Values.grafana.operator.serviceAccount }}
+      serviceAccount:
+        annotations:
+          {{- toYaml .Values.grafana.operator.serviceAccount.annotations | nindent 10 }}
+        labels:
+          {{- toYaml .Values.grafana.operator.serviceAccount.labels | nindent 10 }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if and .Values.grafanaDashboards .Values.grafanaDashboards.install }}
+  grafanaDashboards:
+    install: {{ .Values.grafanaDashboards.install }}
+    list:
+      {{- if and (.Values.monitoringOperator.podMonitor) (.Values.monitoringOperator.podMonitor.install) }}
+      - operators-overview
+      {{- end }}
+      {{- toYaml .Values.grafanaDashboards.list | nindent 6}}
+  {{- end }}
+  {{- if .Values.kubernetesMonitors }}
+  kubernetesMonitors:
+    {{- toYaml .Values.kubernetesMonitors | nindent 4 }}
+  {{- end }}
+  {{- if .Values.kubeStateMetrics.install }}
+  kubeStateMetrics:
+    install: {{ .Values.kubeStateMetrics.install }}
+    image: {{ template "kubeStateMetrics.image" . }}
+    paused: {{ .Values.kubeStateMetrics.paused | default false }}
+    {{- if .Values.kubeStateMetrics.serviceMonitor }}
+    serviceMonitor:
+      install: {{ .Values.kubeStateMetrics.serviceMonitor.install }}
+      interval: {{ .Values.kubeStateMetrics.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.kubeStateMetrics.serviceMonitor.scrapeTimeout }}
+      metricRelabelings:
+        {{- toYaml .Values.kubeStateMetrics.serviceMonitor.metricRelabelings | nindent 8 }}
+      relabelings:
+        {{- toYaml .Values.kubeStateMetrics.serviceMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.namespaces }}
+    namespaces: {{ .Values.kubeStateMetrics.namespaces }}
+    {{- end}}
+    {{- if .Values.kubeStateMetrics.scrapeResources }}
+    scrapeResources: {{ .Values.kubeStateMetrics.scrapeResources }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.metricLabelsAllowlist }}
+    metricLabelsAllowlist: {{ .Values.kubeStateMetrics.metricLabelsAllowlist }}
+    {{- end }}
+    resources:
+      {{ include "kubeStateMetrics.resources" . }}
+    securityContext:
+      {{ include "kubeStateMetrics.securityContext" . }}
+    {{- if .Values.kubeStateMetrics.tolerations }}
+    tolerations:
+      {{- toYaml .Values.kubeStateMetrics.tolerations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.nodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.kubeStateMetrics.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.affinity }}
+    affinity:
+      {{- toYaml .Values.kubeStateMetrics.affinity | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.labels }}
+    labels:
+      {{- toYaml .Values.kubeStateMetrics.labels | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.annotations }}
+    annotations:
+      {{- toYaml .Values.kubeStateMetrics.annotations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.serviceAccount }}
+    serviceAccount:
+      annotations: {{- toYaml .Values.kubeStateMetrics.serviceAccount.annotations | nindent 8 }}
+      labels: {{- toYaml .Values.kubeStateMetrics.serviceAccount.labels | nindent 8 }}
+    {{- end }}
+    {{- if .Values.kubeStateMetrics.priorityClassName }}
+    priorityClassName: {{ .Values.kubeStateMetrics.priorityClassName }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.nodeExporter.install }}
+  nodeExporter:
+    install: {{ .Values.nodeExporter.install }}
+    image: {{ template "nodeExporter.image" . }}
+    port: {{ .Values.nodeExporter.port }}
+    paused: {{ .Values.nodeExporter.paused | default false }}
+    {{- if .Values.nodeExporter.serviceMonitor }}
+    serviceMonitor:
+      install: {{ .Values.nodeExporter.serviceMonitor.install }}
+      interval: {{ .Values.nodeExporter.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.nodeExporter.serviceMonitor.scrapeTimeout }}
+      metricRelabelings:
+        {{- toYaml .Values.nodeExporter.serviceMonitor.metricRelabelings | nindent 8 }}
+      relabelings:
+        {{- toYaml .Values.nodeExporter.serviceMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.nodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.nodeExporter.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.labels }}
+    labels:
+      {{- toYaml .Values.nodeExporter.labels | nindent 6 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.annotations }}
+    annotations:
+      {{- toYaml .Values.nodeExporter.annotations | nindent 6 }}
+    {{- end }}
+    setupSecurityContext: {{ .Values.nodeExporter.setupSecurityContext }}
+    resources:
+      {{ include "nodeExporter.resources" . }}
+    securityContext:
+      {{ include "nodeExporter.securityContext" . }}
+    {{- if .Values.nodeExporter.tolerations }}
+    tolerations:
+      {{- toYaml .Values.nodeExporter.tolerations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.affinity }}
+    affinity:
+      {{- toYaml .Values.nodeExporter.affinity | nindent 6 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.serviceAccount }}
+    serviceAccount:
+      annotations: {{- toYaml .Values.nodeExporter.serviceAccount.annotations | nindent 8 }}
+      labels: {{- toYaml .Values.nodeExporter.serviceAccount.labels | nindent 8 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.collectorTextfileDirectory }}
+    collectorTextfileDirectory: {{ .Values.nodeExporter.collectorTextfileDirectory }}
+    {{- end }}
+    {{- if .Values.nodeExporter.extraArgs }}
+    extraArgs:
+      {{- toYaml .Values.nodeExporter.extraArgs | nindent 6 }}
+    {{- end }}
+    {{- if .Values.nodeExporter.priorityClassName }}
+    priorityClassName: {{ .Values.nodeExporter.priorityClassName }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.promxy }}
+  {{- if .Values.promxy.install }}
+  promxy:
+    install: {{ .Values.promxy.install }}
+    port: {{ .Values.promxy.port }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.pushgateway.install }}
+  pushgateway:
+    install: {{ .Values.pushgateway.install }}
+    image: {{ template "pushgateway.image" . }}
+    replicas: {{ .Values.pushgateway.replicas | default 1 }}
+    {{- if .Values.pushgateway.extraArgs }}
+    extraArgs:
+      {{- toYaml .Values.pushgateway.extraArgs | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.volumes }}
+    volumes:
+      {{- toYaml .Values.pushgateway.volumes | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.volumeMounts }}
+    volumeMounts:
+      {{- toYaml .Values.pushgateway.volumeMounts | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.storage }}
+    storage:
+      {{- toYaml .Values.pushgateway.storage | nindent 6 }}
+    {{- end }}
+    port: {{ .Values.pushgateway.port}}
+    {{- if and .Values.pushgateway.ingress (eq (toString .Values.pushgateway.ingress.install) "true") }}
+    ingress:
+      {{- include "monitoring.ingress" (dict "ctx" . "ingress" .Values.pushgateway.ingress "hostPrefix" "pushgateway") | nindent 6 }}
+    {{- if .Values.pushgateway.httpRoute }}
+    httpRoute:
+      {{- toYaml .Values.pushgateway.httpRoute | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    paused: {{ .Values.pushgateway.paused | default false }}
+    {{- if .Values.pushgateway.serviceMonitor }}
+    serviceMonitor:
+      install: {{ .Values.pushgateway.serviceMonitor.install }}
+      interval: {{ .Values.pushgateway.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.pushgateway.serviceMonitor.scrapeTimeout }}
+      metricRelabelings:
+        {{- toYaml .Values.pushgateway.serviceMonitor.metricRelabelings | nindent 8 }}
+      relabelings:
+        {{- toYaml .Values.pushgateway.serviceMonitor.relabelings | nindent 8 }}
+    {{- end }}
+    {{- if .Values.pushgateway.nodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.pushgateway.nodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.affinity }}
+    affinity:
+      {{- toYaml .Values.pushgateway.affinity | nindent 6 }}
+    {{- end }}
+    resources:
+      {{ include "pushgateway.resources" . }}
+    securityContext:
+      {{ include "pushgateway.securityContext" . }}
+    {{- if .Values.pushgateway.tolerations }}
+    tolerations:
+      {{- toYaml .Values.pushgateway.tolerations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.annotations }}
+    annotations:
+      {{- toYaml .Values.pushgateway.annotations | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.labels }}
+    labels:
+      {{- toYaml .Values.pushgateway.labels | nindent 6 }}
+    {{- end }}
+    {{- if .Values.pushgateway.priorityClassName }}
+    priorityClassName: {{ .Values.pushgateway.priorityClassName }}
+    {{- end }}
+  {{- end }}

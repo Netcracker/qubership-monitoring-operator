@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/component: node-exporter
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: node-exporter
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-exporter
+        app.kubernetes.io/component: node-exporter
+        app.kubernetes.io/part-of: monitoring
+        app.kubernetes.io/managed-by: monitoring-operator
+    spec:
+      containers:
+        - args:
+            - --collector.processes
+            - --collector.textfile.directory=/var/spool/monitoring
+            - --path.procfs=/host/proc
+            - --path.sysfs=/host/sys
+            - --path.rootfs=/host
+            - --path.udev.data=/host/run
+            - --web.listen-address=:9900
+          imagePullPolicy: IfNotPresent
+          name: node-exporter
+          resources: {}
+          ports:
+            - containerPort: 9900
+              hostPort: 9900
+              name: metrics
+          volumeMounts:
+            - mountPath: /host
+              mountPropagation: HostToContainer
+              name: root
+              readOnly: true
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: run
+              mountPath: /host/run
+              readOnly: true
+            - mountPath: /var/spool/monitoring
+              name: node-exporter-textfile
+              readOnly: true
+      hostNetwork: true
+      hostPID: true
+      serviceAccountName: monitoring-node-exporter
+      tolerations:
+        - operator: Exists
+      volumes:
+        - hostPath:
+            path: /proc
+          name: proc
+        - hostPath:
+            path: /sys
+          name: sys
+        - hostPath:
+            path: /
+            type: ""
+          name: root
+        - hostPath:
+            path: /run
+          name: run
+        - hostPath:
+            path: /var/spool/monitoring
+            type: DirectoryOrCreate
+          name: node-exporter-textfile

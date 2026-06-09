@@ -1,0 +1,48 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+# Victoriametrics image use user and group nobody = 65534
+monitoringOperator:
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+victoriametrics:
+  operator:
+    securityContext:
+      fsGroup: 65534
+      runAsUser: 65534
+  vmagent:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+  vmalertmanager:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+  vmalert:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+  vmauth:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+grafana:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+  operator:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+kubeStateMetrics:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+nodeExporter:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001

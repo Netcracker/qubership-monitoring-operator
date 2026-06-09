@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: k8s
+  labels:
+    app: alertmanager
+    platform.monitoring.app: alertmanager
+    name: alertmanager
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: alertmanager
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - alertmanager
+        topologyKey: "kubernetes.io/hostname"
+  alertmanagerConfigNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  alertmanagerConfigSelector: {}
+  image: "prom/alertmanager:v0.19.0"
+  replicas: 1

@@ -1,0 +1,19 @@
+project:
+  name: Monitoring Operator
+  shortName: qubership-monitoring-operator
+  url: https://github.com/Netcracker/qubership-monitoring-operator
+  description: A Helm chart for monitoring-operator
+  app: qubership-monitoring-operator
+repository:
+  url: https://github.com/Netcracker/qubership-monitoring-operator
+  name: qubership-monitoring-operator
+chart:
+  name: qubership-monitoring-operator
+  #version: v0.9.0-rc.0
+  values: "-- generate from values file --"
+  valuesExample: "-- generate from values file --"
+prerequisites:
+- "Kubernetes v1.15+ or OpenShift 3.11+"
+release:
+  name: qubership-monitoring-operator
+  namespace: monitoring

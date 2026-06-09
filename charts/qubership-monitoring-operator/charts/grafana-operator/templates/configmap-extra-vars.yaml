@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-extra-vars
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "grafana-extra-vars") | nindent 4 }}
+{{- if .Values.extraVars }}
+data:
+  {{- range $key, $val := .Values.extraVars }}
+  {{ $key | quote | indent 4}}: {{ $val | quote }}
+  {{- end}}
+  {{- if .Values.imageRenderer.install }}
+    {{- if not .Values.extraVars.GF_RENDERING_SERVER_URL }}
+      "GF_RENDERING_SERVER_URL": "http://grafana-image-renderer:8081/render"
+    {{- end }}
+    {{- if not .Values.extraVars.GF_RENDERING_CALLBACK_URL }}
+      "GF_RENDERING_CALLBACK_URL": "http://grafana-service:3000/"
+    {{- end }}
+  {{- end }}
+{{- else }}
+data:
+{{- end }}
+

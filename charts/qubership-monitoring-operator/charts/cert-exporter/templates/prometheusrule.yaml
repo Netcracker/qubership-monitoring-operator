@@ -1,0 +1,95 @@
+{{- if and .Values.install .Values.setupAlertingRules }}
+{{- with .Values }}
+{{- if or (and .certsInFiles .certsInFiles.enabled) (and .certsInKubeconfig .certsInKubeconfig.enabled) (and .certsInSecrets .certsInSecrets.enabled) }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" $ "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+spec:
+  groups:
+  - name: {{ .name }}
+    rules:
+    {{- if and .certsInFiles .certsInFiles.enabled }}
+    - alert: FileCerts30DaysRemaining
+      annotations:
+        description: Some certificates from files expire within 30 days.
+        summary: Certificates from files expire within 30 days
+      expr: count(86400 * 7 < cert_exporter_cert_expires_in_seconds <= 86400 * 30) > 0
+      for: 10m
+      labels:
+        severity: warning
+    - alert: FileCerts7DaysRemaining
+      annotations:
+        description: Some certificates from files expire within 7 days.
+        summary: Certificates from files expire within 7 days
+      expr: count(0 < cert_exporter_cert_expires_in_seconds <= 86400 * 7) > 0
+      for: 10m
+      labels:
+        severity: high
+    - alert: FileCertsExpired
+      annotations:
+        description: Some certificates from files already expired.
+        summary: Certificates from files expired
+      expr: count(cert_exporter_cert_expires_in_seconds <= 0) > 0
+      for: 10m
+      labels:
+        severity: critical
+    {{- end }}
+    {{- if and .certsInKubeconfig .certsInKubeconfig.enabled }}
+    - alert: KubeconfigCerts30DaysRemaining
+      annotations:
+        description: Some certificates from kubeconfig expire within 30 days.
+        summary: Certificates from kubeconfig expire within 30 days
+      expr: count(86400 * 7 < cert_exporter_kubeconfig_expires_in_seconds <= 86400 * 30) > 0
+      for: 10m
+      labels:
+        severity: warning
+    - alert: KubeconfigCerts7DaysRemaining
+      annotations:
+        description: Some certificates from kubeconfig expire within 7 days.
+        summary: Certificates from kubeconfig expire within 7 days
+      expr: count(0 < cert_exporter_kubeconfig_expires_in_seconds <= 86400 * 7) > 0
+      for: 10m
+      labels:
+        severity: high
+    - alert: KubeconfigCertsExpired
+      annotations:
+        description: Some certificates from kubeconfig already expired.
+        summary: Certificates from kubeconfig expired
+      expr: count(cert_exporter_kubeconfig_expires_in_seconds <= 0) > 0
+      for: 10m
+      labels:
+        severity: critical
+    {{- end }}
+    {{- if and .certsInSecrets .certsInSecrets.enabled }}
+    - alert: SecretCerts30DaysRemaining
+      annotations:
+        description: Some certificates from secrets expire within 30 days.
+        summary: Certificates from secrets expire within 30 days
+      expr: count(86400 * 7 < cert_exporter_secret_expires_in_seconds <= 86400 * 30) > 0
+      for: 10m
+      labels:
+        severity: warning
+    - alert: SecretCerts7DaysRemaining
+      annotations:
+        description: Some certificates from secrets expire within 7 days.
+        summary: Certificates from secrets expire within 7 days
+      expr: count(0 < cert_exporter_secret_expires_in_seconds <= 86400 * 7) > 0
+      for: 10m
+      labels:
+        severity: high
+    - alert: SecretCertsExpired
+      annotations:
+        description: Some certificates from secrets already expired.
+        summary: Certificates from secrets expired
+      expr: count(cert_exporter_secret_expires_in_seconds <= 0) > 0
+      for: 10m
+      labels:
+        severity: critical
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

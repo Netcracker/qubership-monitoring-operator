@@ -1,0 +1,27 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: platform-monitoring-victoriametrics-operator
+  labels:
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+priority: 0
+users: []
+groups: []
+readOnlyRootFilesystem: true
+requiredDropCapabilities: []
+defaultAddCapabilities: []
+allowedCapabilities: []
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+allowPrivilegedContainer: false
+allowHostDirVolumePlugin: true
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowHostIPC: false
+volumes:
+- '*'

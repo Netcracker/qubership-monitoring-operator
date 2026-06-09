@@ -1,0 +1,16 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+  allow-snippet-annotations: "false"
+  {{- if .Values.config }}
+  config.yml: |
+    {{ .Values.config | nindent 4 }}
+  {{- else }}
+  config.yml: ""
+  {{- end }}
+{{- end }}

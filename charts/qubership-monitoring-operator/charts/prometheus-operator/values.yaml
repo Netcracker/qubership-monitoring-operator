@@ -1,0 +1,683 @@
+# Default values for prometheus.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Deploy a Prometheus instance
+#
+# Allow to disable deploy prometheus.
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# Set paused to reconcilation for prometheus
+paused: false
+
+# Interval between consecutive scrapes.
+# default: 30s
+#
+scrapeInterval: 30s
+
+# Number of seconds to wait for target to respond before erroring.
+# default: 10s
+#
+scrapeTimeout: 10s
+
+# Interval between consecutive evaluations.
+# default: 30s
+#
+evaluationInterval: 30s
+
+# A docker image to use for prometheus deployment
+# image: prom/prometheus:v2.47.0
+
+# A docker image to use for prometheus-cofig-reloader deployment with prometheus pod
+#  configReloaderImage: prometheus-operator/prometheus-config-reloader:v0.52.1
+
+# Pod monitor for self-monitoring
+# Type: object
+# Mandatory: no
+#
+podMonitor:
+
+  # Install podMonitor to collect self-metrics from Prometheus
+  install: true
+
+  # Allow change metrics scrape interval
+  interval: 30s
+
+  # Allow change metrics scrape timeout
+  #
+  # Please note that scrapeTimeout must be less the interval
+  scrapeTimeout: 10s
+
+  # Metric relabeling is applied to samples as the last step before ingestion. It has the same configuration
+  # format and actions as target relabeling. Metric relabeling does not apply to automatically
+  # generated timeseries such as up.
+  # One use for this is to exclude time series that are too expensive to ingest.
+  # Ref: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs
+  metricRelabelings: []
+    # - action: keep
+    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+  #   sourceLabels: [__name__]
+
+  # Relabeling is a powerful tool to dynamically rewrite the label set of a target before it gets scraped.
+  # Multiple relabeling steps can be configured per scrape configuration. They are applied to the label
+  # set of each target in order of their appearance in the configuration file.
+  # Ref: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+  relabelings: []
+    # - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #   separator: ;
+    #   regex: ^(.*)$
+    #   targetLabel: nodename
+    #   replacement: $1
+  #   action: replace
+
+# TLS configuration for prometheus.
+#
+tlsConfig: {}
+#  generateCerts:
+#    enabled: false
+#    secretName: prometheus-cert-manager-tls
+#    clusterIssuerName: ""
+#    duration: 365
+#    renewBefore: 15
+#  webTLSConfig:
+#    keySecret:
+#      name:
+#      key:
+#    cert:
+#      secret:
+#        name:
+#        key:
+#    client_ca:
+#      secret:
+#        name:
+#        key:
+#  createSecret:
+#    name: prometheus-tls
+#    ca: ""
+#    key: ""
+#    cert: ""
+
+## The namespace selector for rules, podMonitors and serviceMonitors
+#
+# Namespace's labels to match for PodMonitor, ServiceMonitor, Rule discovery.
+# Labels selector requirements use matchExpressions.
+# !!!The requirements are ANDed.
+#
+# Type: object
+# Mandatory: no
+#
+# Default:
+#
+# ruleNamespaceSelector: {}
+# podMonitorNamespaceSelector: {}
+# serviceMonitorNamespaceSelector: {}
+#
+# ruleNamespaceSelector:
+#   matchExpressions:
+#     - key: monitoring
+#       operator: In
+#       values: ["prometheus"]
+# podMonitorNamespaceSelector:
+#   matchExpressions:
+#     - key: monitoring
+#       operator: In
+#       values: ["prometheus"]
+# serviceMonitorNamespaceSelector:
+#   matchExpressions:
+#     - key: monitoring
+#       operator: In
+#       values: ["prometheus"]
+
+## Rules, podsMonitor and serviceMonitors to be selected for target discovery.
+# Deprecated: if neither serviceMonitorSelector nor podMonitorSelector are specified, configuration is unmanaged.
+# Labels selector requirements use matchExpressions.
+# !!!The requirements are ANDed.
+#
+# Type: object
+# Mandatory: no
+#
+# Default:
+#
+# ruleSelector:
+#   matchExpressions:
+#     - key: app.kubernetes.io/component
+#       operator: In
+#       values: ["monitoring"]
+# podMonitorSelector:
+#   matchExpressions:
+#     - key: app.kubernetes.io/component
+#       operator: In
+#       values: ["monitoring"]
+# serviceMonitorSelector:
+#   matchExpressions:
+#     - key: app.kubernetes.io/component
+#       operator: In
+#       values: ["monitoring"]
+
+remoteWrite: []
+# - url: 'http://1.2.3.4:8086/api/v1/prom/write?db=prometheus'
+
+remoteRead: []
+# - url: 'http://1.2.3.4:8086/api/v1/prom/read?db=prometheus'
+
+# Replicas spec configuration for Prometheus
+replicas: 1
+
+# Containers allows injecting additional containers or modifying operator generated containers.
+# This can be used to allow adding an authentication proxy to a Prometheus pod or to change
+# the behavior of an operator generated container.
+# Each item of the list should be described as standard Kubernetes container:
+# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+containers: []
+
+# Secrets is a list of Secrets in the same namespace as the Prometheus object, which shall be mounted
+# into the Prometheus Pods. The Secrets are mounted into /etc/prometheus/secrets/<secret-name>.
+#
+# Type: array
+# Mandatory: no
+# Default: {}
+#
+secrets:
+  - kube-etcd-client-certs
+
+# Define details regarding alerting.
+# Type: object
+# Mandatory: no
+# Default: {alertmanagers: []}
+#
+alerting: {}
+#   alertmanagers: []
+
+# The labels to add to any time series or alerts when communicating with
+# external systems (federation, remote storage, Alertmanager).
+# Type: object
+# Mandatory: no
+# Default: {}
+#
+externalLabels: {}
+
+# Prometheus instances will be available under. This is necessary to generate correct URLs. This is necessary
+# if Prometheus is not served from root of a DNS name.
+# If ingress was specified during installation, will be set automatically
+# Type: string
+# Mandatory: no
+# Default: ""
+#
+externalUrl: ""
+
+# Allows create Ingress for Prometheus UI via monitoring-operator
+# Type: object
+# Mandatory: no
+# Default: {}
+#
+ingress: {}
+  # Indicates is Ingress need to be installed.
+  # Marked as true if host specified.
+  # Mandatory: no
+  # Default: false
+  #
+  # install: false
+
+  # FQDN of ingress host
+  # Type: string
+  # Mandatory: yes
+  # Default: ""
+  #
+  # host: ""
+
+  # Set of annotations for Ingress
+  # Allows to set up authorization e.g. via ingress-nginx
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  # annotations: {}
+
+  # Set of labels for Ingress
+  # Default monitoring-operator labels can be overwritten
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  # labels: {}
+
+  # Name of secret with TLS configs: tls.crt and tls.key
+  # The secret must exist
+  # Type: string
+  # Mandatory: no
+  # Default: ""
+  #
+  # tlsSecretName: ""
+
+# Allows create HTTPRoute for Prometheus UI via monitoring-operator.
+# Type: object
+# Mandatory: no
+# Default: {}
+# HTTPRoute spec reference:
+# https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute
+# Example:
+# httpRoute:
+#   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+#   # Default: false
+#   install: true
+#
+#   # Hostnames overrides ingress hostname if specified.
+#   hostnames:
+#     - prometheus.example.com
+#
+#   # ParentRefs overrides gatewayApi.parentRefs for this route.
+#   # All parentRefs in one route must use the same API group.
+#   parentRefs:
+#     - name: gateway
+#       namespace: gateway-infra
+#       kind: Gateway
+#       group: gateway.networking.k8s.io
+#       sectionName: http
+#
+#   # Rules may contain raw Gateway API matches/filters blocks.
+#   # BackendRefs are managed by operator.
+#   rules:
+#     - matches:
+#         - path:
+#             type: PathPrefix
+#             value: /
+#
+httpRoute: {}
+
+# Storage spec to specify how storage shall be used
+# More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#storagespec
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+storage: {}
+
+# Allow define which Nodes the Pods are scheduled on.
+# Type: map[string]
+# Mandatory: no
+# Default: not set
+#
+nodeSelector: {}
+#   node: worker1
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
+
+# Volumes allows configuration of additional volumes on the output StatefulSet definition.
+# Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+volumes: {}
+
+# VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
+# VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
+# that are generated as a result of StorageSpec objects.
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+volumeMounts: {}
+
+# Retention determines when to remove old data.
+#
+# Type: object
+# Mandatory: no
+# Default: 24h
+#
+retention: 24h
+
+# RetentionSize [EXPERIMENTAL] determines the maximum number of bytes that storage blocks can use.
+#
+# Type: object
+# Mandatory: no
+# Default: no set
+#
+retentionsize: {}
+
+# The resources describes the compute resource requests and limits for single Pods.
+# Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+# Type: object
+# Mandatory: no
+#
+resources: {}
+#  requests:
+#    cpu: 1000m
+#    memory: 2Gi
+#  limits:
+#    cpu: 3000m
+#    memory: 8Gi
+
+# SecurityContext holds pod-level security attributes.
+# The parameters are required if a Pod Security Policy is enabled
+#  for Kubernetes cluster and required if a Security Context Constraints is enabled
+# for OpenShift cluster.
+# Type: object
+# Mandatory: no
+#
+securityContext: {}
+
+  # The UID to run the entry point of the container process.
+  # Defaults to user specified in image metadata if unspecified.
+  # Type: integer
+  # Mandatory: no
+  #
+  # runAsUser: 2000
+
+  # A special supplemental group that applies to all containers in a pod.
+  # Some volume types allow the Kubelet to change the ownership of that volume
+  # to be owned by the pod:
+  #   1. The owning GID will be the FSGroup
+  #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+  #   3. The permission bits are OR'd with rw-rw----
+  # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+  # Type: integer
+  # Mandatory: no
+  #
+# fsGroup: 2000
+
+# The additionalScrape allows you to monitor hosts outside the cloud (balancers, graylog server, jenkins...)
+# Ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/additional-scrape-config.md
+# Type: object
+# Mandatory: no
+#
+# Example:
+#
+# additionalScrape:
+# - job_name: "balancer_check"
+#    metrics_path: /metrics
+#    static_configs:
+#    - targets:
+#      - "cloud-name-balancer-1.example.com:9100"
+#      - "cloud-name-balancer-2.example.com:9100"
+#
+additionalScrape: {}
+
+# The additionalAlertManager allows you to use AlertManager outside the cloud
+# Type: object
+# Mandatory: no
+#
+# Example:
+#
+# additionalAlertManager:
+# - tls_config:
+#     insecure_skip_verify: true
+#   scheme: https
+#   static_configs:
+#   - targets:
+#     - "alertmanager-operated-prometheus-operator.example.com"
+#
+additionalAlertManager: {}
+
+# The additionalAlertRelabel allows you to set additional Prometheus alert relabel configurations.
+# The alert relabel configurations are appended to the configuration generated by the Prometheus Operator.
+# They must be formatted according to the official Prometheus documentation:
+# https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alert_relabel_configs
+#
+# Type: object
+# Mandatory: no
+#
+# Example:
+#
+# additionalAlertRelabel:
+# - regex: (.+)\d+
+#   source_labels: src_qdr
+#   target_label: src_qdr
+#
+additionalAlertRelabel: {}
+
+# Enable access to prometheus web admin API. Defaults to the value of false.
+# WARNING: Enabling the admin APIs enables mutating endpoints, to delete data, shutdown Prometheus, and more.
+# Enabling this should be done with care and the user is advised to add additional authentication authorization
+# via a proxy to ensure only clients authorized to perform these actions can do so.
+# For more information see https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-admin-apis
+# Type: bool
+# Mandatory: no
+#
+enableAdminAPI: true
+
+# QuerySpec defines the query command line flags when starting Prometheus
+query:
+  # The delta difference allowed for retrieving metrics during expression evaluations.
+  # WARNING: This flag has a new name. Before Prometheus 2.x the name of this flag into Promethees CLI parameters
+  # had name `-query.staleness-delta`.
+  # For more information see https://prometheus.io/docs/prometheus/latest/migration/#flags
+  # Type: string
+  #
+  lookbackDelta: 2m
+
+  # Number of concurrent queries that can be run at once.
+  # Type: integer
+  #
+  # maxConcurrency: 50
+
+  # Maximum number of samples a single query can load into memory. Note that queries will fail
+  # if they would load more samples than this into memory, so this also limits the number of sample
+  # a query can return.
+  # Type: integer
+  #
+  # maxSamples: 20
+
+  # Maximum time a query may take before being aborted.
+  # Type: string
+  #
+  # timeout: 30s
+
+# Service account for monitoring-operator to use.
+# Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+serviceAccount:
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  app.kubernetes.io/managed-by: helm
+
+# Enable access to Prometheus disabled features.
+# Enabling disabled features is entirely outside the scope of what the maintainers will support and by doing so,
+# you accept that this behavior may break at any time without notice.
+# For more information see https://prometheus.io/docs/prometheus/latest/disabled_features/
+enableFeatures: []
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"
+
+# Manages Prometheus and Alertmanager components
+#
+operator:
+
+  # A docker image to use for prometheus-operator deployment with prometheus pod
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prometheus-operator/prometheus-operator:v0.52.1
+
+  # Set paused to reconciliation for prometheus-operator
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  requests:
+  #    cpu: 50m
+  #    memory: 50Mi
+
+  podMonitor:
+    install: true
+    interval: 30s
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 10s
+    metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+    #   sourceLabels: [__name__]
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+    #   action: replace
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  #  for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw----
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+  # fsGroup: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  annotation-key: annotation-value
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  label-key: label-value
+
+  # Comma separated list of namespaces the interaction of the Prometheus Operator and the apiserver in non-privileged mode.
+  # This parameter is unnecessary if the prometheus-operator has ClusterRole on all namespaces.
+  # Type: string
+  # Mandatory: no
+  #
+  # namespaces: ""
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  # Service account for monitoring-operator to use.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  serviceAccount:
+
+    # Annotations is an unstructured key value map stored
+    # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+    # They are not queryable and should be preserved when modifying objects.
+    # More info: https://kubernetes.io/docs/user-guide/annotations
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    annotations: {}
+    # eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
+
+    # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+    # May match selectors of replication controllers and services.
+    # More info: https://kubernetes.io/docs/user-guide/labels
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    labels: {}
+    # app.kubernetes.io/managed-by: helm

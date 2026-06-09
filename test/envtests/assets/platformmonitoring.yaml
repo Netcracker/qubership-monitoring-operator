@@ -1,0 +1,249 @@
+apiVersion: monitoring.netcracker.com/v1
+kind: PlatformMonitoring
+metadata:
+  name: platformmonitoring
+  namespace: monitoring
+spec:
+  alertManager:
+    containers: []
+    image: 'prom/alertmanager:v0.22.2'
+    ingress:
+      host: alertmanager.k8s.test.org
+      install: true
+    install: true
+    paused: false
+    podMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    port: 30903
+    replicas: 1
+    resources: {}
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+  grafana:
+    config:
+      auth:
+        disable_login_form: false
+        disable_signout_menu: true
+      auth.anonymous:
+        enabled: false
+      log:
+        level: warn
+        mode: console
+    security:
+      admin_password: admin
+      admin_user: admin
+    image: 'grafana/grafana:11.6.5'
+    ingress:
+      host: grafana.k8s.test.org
+      install: true
+    install: true
+    operator:
+      image: 'integreatly/grafana-operator:v3.9.0'
+      initContainerImage: >-
+        ghcr.io/netcracker/qubership-grafana-plugins-init:latest
+      paused: false
+      resources: {}
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+    paused: false
+    podMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    resources: {}
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+    grafanaHomeDashboard: true
+    dashboardLabelSelector: [{}]
+    dashboardNamespaceSelector:
+      matchExpressions:
+        - key: openshift.io/cluster-monitoring
+          operator: NotIn
+          values: [ "true" ]
+  grafanaDashboards:
+    install: true
+    list:
+      - alerts-overview
+      - core-dns-dashboard
+      - etcd-dashboard
+      - govm-processes
+      - jvm-processes
+      - home-dashboard
+      - kubernetes-cluster-overview
+      - kubernetes-kubelet
+      - kubernetes-distribution-by-labels
+      - kubernetes-namespace-resources
+      - kubernetes-nodes-resources
+      - kubernetes-pod-resources
+      - kubernetes-pods-distribution-by-node
+      - kubernetes-pods-distribution-by-zone
+      - kubernetes-top-resources
+      - prometheus-cardinality-explorer
+      - prometheus-self-monitoring
+      - alertmanager-overview
+      - grafana-overview
+      - tls-status
+      - ha-services
+  kubeStateMetrics:
+    image: 'coreos/kube-state-metrics:v1.9.8'
+    install: true
+    paused: false
+    resources: {}
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+    serviceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+  kubernetesMonitors:
+    apiserverServiceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings:
+        - action: keep
+          regex: >-
+            apiserver_(client_certificate_expiration_seconds_count|client_certificate_expiration_seconds_bucket|request_count|request_total)
+          sourceLabels:
+            - __name__
+      relabelings:
+        - replacement: kube-apiserver
+          sourceLabels:
+            - job
+          targetLabel: job
+    etcdServiceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    kubeControllerManagerServiceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    kubeSchedulerServiceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    kubeletServiceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings:
+        - regex: (.+)
+          sourceLabels:
+            - pod_name
+          targetLabel: pod
+        - regex: (.+)
+          sourceLabels:
+            - container_name
+          targetLabel: container
+        - action: labeldrop
+          regex: pod_name
+        - action: labeldrop
+          regex: container_name
+        - regex: kubelet_running_pods
+          replacement: kubelet_running_pod_count
+          sourceLabels:
+            - __name__
+          targetLabel: __name__
+        - regex: kubelet_running_containers
+          replacement: kubelet_running_container_count
+          sourceLabels:
+            - __name__
+          targetLabel: __name__
+      relabelings: []
+  nodeExporter:
+    image: 'prom/node-exporter:v1.1.2'
+    install: true
+    paused: false
+    port: 9900
+    resources: {}
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+    serviceMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    setupSecurityContext: true
+  prometheus:
+    install: true
+    configReloaderImage: >-
+      prometheus-operator/prometheus-config-reloader:v0.48.1
+    containers: []
+    externalLabels: {}
+    externalUrl: ''
+    image: 'prom/prometheus:v2.28.1'
+    ingress:
+      host: prometheus.k8s.test.org
+      install: true
+    operator:
+      image: 'prometheus-operator/prometheus-operator:v0.48.1'
+      paused: false
+      resources: {}
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+    paused: false
+    podMonitor:
+      install: true
+      interval: 30s
+      metricRelabelings: []
+      relabelings: []
+    remoteWrite: []
+    remoteRead: []
+    replicas: 1
+    resources: {}
+    secrets:
+      - kube-etcd-client-certs
+    securityContext:
+      fsGroup: 65534
+      runAsUser: 65534
+  prometheusRules:
+    install: true
+    ruleGroups:
+      - SelfMonitoring
+      - AlertManager
+      - KubebernetesAlerts
+      - NodeExporters
+      - DockerContainers
+      - HAproxy
+      - Etcd
+  pushgateway:
+    install: true
+    image: 'prom/pushgateway:v1.4.1'
+    paused: false
+    extraArgs:
+      - "--log.level=info"
+    port: 9091
+    ingress:
+      host: pushgateway.k8s.test.org
+      install: true
+    serviceMonitor:
+      install: true
+      interval: 30s
+      scrapeTimeout: 10s
+      metricRelabelings: []
+      relabelings: []
+    nodeSelector: {}
+    resources:
+      limits:
+        cpu: 200m
+        memory: 50Mi
+      requests:
+        cpu: 100m
+        memory: 30Mi
+    securityContext:
+      fsGroup: 65534
+      runAsUser: 65534
+    tolerations: []

@@ -1,0 +1,62 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: k8s
+  labels:
+    app: prometheus
+    platform.monitoring.app: prometheus
+    name: prometheus
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - prometheus
+        topologyKey: "kubernetes.io/hostname"
+  additionalScrapeConfigs:
+    key: prometheus-additional.yaml
+    name: additional-scrape-configs
+  additionalAlertRelabelConfigs:
+    key: alertrelabel-additional.yaml
+    name: additional-alertrelabel-configs
+  additionalAlertManagerConfigs:
+    key: alertmanager-additional.yaml
+    name: additional-alertmanager-configs
+  alerting:
+    alertmanagers: []
+  securityContext: {}
+  enableAdminAPI: false
+  serviceAccountName: monitoring-prometheus
+  externalLabels: {}
+  ruleNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  ruleSelector: {}
+  podMonitorNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  podMonitorSelector: {}
+  probeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  probeSelector: {}
+  serviceMonitorNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  serviceMonitorSelector: {}

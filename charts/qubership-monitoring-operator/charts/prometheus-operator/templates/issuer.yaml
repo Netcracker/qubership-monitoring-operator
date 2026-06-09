@@ -1,0 +1,14 @@
+{{- if .Values.tlsConfig }}
+{{- if .Values.tlsConfig.generateCerts }}
+{{- if and .Values.tlsConfig.generateCerts.enabled (not (.Values.tlsConfig.generateCerts.clusterIssuerName)) }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: prometheus-tls-issuer
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "prometheus-tls-issuer") | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- end }}
+{{- end }}
+{{- end }}

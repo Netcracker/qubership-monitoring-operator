@@ -1,0 +1,57 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+monitoringOperator:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+
+# Grafana
+grafana:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+  operator:
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+
+# Prometheus stack
+prometheus:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+
+alertManager:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+
+# Exporters
+kubeStateMetrics:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+nodeExporter:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+
+# Integrations tests
+integrationTests:
+  install: true
+  tags: grafanaORsmoke
+  timeoutBeforeStart: 120

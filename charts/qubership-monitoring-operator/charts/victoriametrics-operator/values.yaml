@@ -1,0 +1,2219 @@
+# Default values for victoriametrics-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Enable/Disable TLS for victoriametrics components.
+# Type: boolean
+# Default: false
+#
+tlsEnabled: false
+
+
+# Replicas expected size of the all VM components in cluster mode
+# Type: integer
+#
+# vmReplicas: 2
+
+# The name of the CA ClusterIssuer.
+# Must be configured if tlsConfig is enabled for victoriametrics components.
+# Type: string
+# Mandatory: If tlsEnabled is set to true, clusterIssuerName is mandatory.
+#
+clusterIssuerName: ""
+
+# Configurations of pre-delete cleanup hook
+cleanup:
+
+  # Enable of disable pre-delete cleanup job that should remove victoriametrics-operator Custom Resources (CRs).
+  # This job allow to correct remove VM CRs with processing it remove by victoriametrics-operator.
+  # Type: boolean
+  # Mandatory: yes
+  #
+  deleteCRs: true
+
+  hook:
+    # The name of cleanup job
+    # Type: string
+    # Mandatory: no
+    #
+    name: cleanup-hook
+
+    # Timeout between scale and delete commands in cleanup job. can be specified without units or with units.
+    # If you want yo use units, check which units support the Linux command "sleep"
+    # Type: string
+    # Mandatory: no
+    #
+    timeout: 10
+
+    # A docker image to use for cleanup job.
+    # Calculate automatically from deployDescriptor section, but this parameter allow to override the value.
+    # Type: string
+    # Mandatory: yes
+    #
+    #image: rancher/kuberlr-kubectl:v6.0.0
+
+    # If specified, the pod's scheduling constraints
+    # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+    # Type: object
+    # Mandatory: no
+    #
+    affinity: {}
+
+    # Allow define which Nodes the Pods are scheduled on.
+    # Type: map[string]string
+    # Mandatory: no
+    #
+    nodeSelector: {}
+
+    # Tolerations allow the pods to schedule onto nodes with matching taints.
+    # Type: object
+    # Mandatory: no
+    #
+    tolerations: {}
+
+    # SecurityContext holds pod-level security attributes.
+    # The parameters are required if a Pod Security Policy is enabled
+    # for Kubernetes cluster and required if a Security Context Constraints is enabled  for Openshift cluster.
+    # Type: object
+    # Mandatory: no
+    #
+    securityContext: {}
+
+    # SecurityContext holds container-level security attributes. Parameters set to support deploy with
+    # "restricted" PSS.
+    # Type: object
+    # Mandatory: no
+    #
+    containerSecurityContext:
+      capabilities:
+        drop:
+          - ALL
+      allowPrivilegeEscalation: false
+
+    # The resources describes the compute resource requests and limits for single Pods.
+    # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+    # Type: object
+    # Mandatory: no
+    #
+    resources:
+      requests:
+        cpu: 100m
+        memory: 56Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+# Deploy a Victoriametrics stack
+vmOperator:
+  # Allow to enable deploy vmOperator via monitoring-operator.
+  # If vmSingle was not deploy during deploy via helm it can deploy via change custom
+  # resource PlatformMonitoring.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Set paused to reconciliation for vmOperator
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Replicas expected size of the vmOperator cluster
+  # Type: integer
+  # Mandatory: no
+  #
+  replicas: 1
+
+  serviceMonitor:
+    # Install serviceMonitor.
+    # Type: boolean
+    # Mandatory: no
+    #
+
+    install: true
+    # Allow change metrics scrape interval.
+    # Type: string
+    # Mandatory: no
+    #
+    interval: 30s
+
+    # Allow change metrics scrape timeout
+    # Type: string
+    # Mandatory: no
+    #
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 30s
+
+    # Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion
+    metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
+
+    # Set relabelings for the ServiceMonitor, use to apply to samples before scraping
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
+
+  # Allows set extra system environment variables for vmoperator.
+  # Ref: https://docs.victoriametrics.com/operator/vars.html
+  # Type: object
+  # Mandatory: no
+  #
+  extraEnvs: []
+
+  # A docker image to use for vmOperator deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: victoriametrics/operator:v0.22.1
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+    # fsGroup: 2000
+
+  # Security Context for a container.
+  # Type: object
+  # Mandatory: no
+  #
+  containerSecurityContext: {}
+
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 400m
+  #    memory: 200Mi
+  #  requests:
+  #    cpu: 200m
+  #    memory: 100Mi
+
+  # PriorityClassName assigned to the Pods to prevent vmOperator pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  # TLS Configuration for victoriametrics-operator
+  #
+  tlsConfig:
+      # TLS configuration from existing secret
+      # If specified, all subsequent parameters in tls section are ignored.
+      #
+      # existingSecret: ""
+
+      # Use generateCerts section if you want cert-manager to generate secret.
+      # Will be ignored if existingSecret is already specified.
+      generateCerts:
+        enabled: true
+        duration: 365
+        renewBefore: 15
+        secretName: ""
+
+      # Use createSecret section to create secret with already known content of TLS certificates.
+      # Do not use createSecret if you use generateCerts
+      # Will be ignored if existingSecret is already specified.
+      # createSecret:
+      #   secretName: ""
+      #   ca: ""
+      #   key: ""
+      #   cert: ""
+
+vmSingle:
+  # Allow to enable deploy vmSingle via monitoring-operator.
+  # If vmSingle was not deploy during deploy via helm it can deploy via change custom
+  # resource PlatformMonitoring.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Allows create Ingress for vmSingle UI via monitoring-operator
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  ingress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmsingle ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
+  # Allows create HTTPRoute for vmSingle UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmsingle.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
+  # Set paused to reconciliation for vmSingle
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # A docker image to use for vmSingle deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: victoriametrics/victoria-metrics:v1.73.1
+
+  # RetentionPeriod for the stored metrics
+  # Note VictoriaMetrics has data/ and indexdb/ folders
+  # metrics from data/ removed eventually as soon as partition leaves retention period
+  # reverse index data at indexdb rotates once at the half of configured retention period
+  # https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention
+  retentionPeriod: "14d"
+
+  # Containers property allows to inject additions sidecars or to patch existing containers.
+  # It can be useful for proxies, backup, etc.
+  # Each item of the list should be described as standard Kubernetes container:
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core
+  containers: []
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # The GID to run the entrypoint of the container process.
+    # Uses runtime default if unset.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsGroup 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+    # fsGroup: 2000
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 1000m
+  #    memory: 2000Mi
+  #  requests:
+  #    cpu: 500m
+  #    memory: 1000Mi
+
+  # PVC spec for VmSingle.
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  storage: {}
+  #  accessModes:
+  #    - ReadWriteOnce
+  #  resources:
+  #    requests:
+  #      storage: 1Gi
+  #  storageClassName: nfs-dynamic-provisioning
+
+  # Secrets is a list of Secrets in the same namespace as the vmSingle object, which shall be mounted
+  # into the vmSingle Pods.
+  #
+  # Type: array
+  # Mandatory: no
+  # Default: []
+  #
+  secrets: []
+
+  # Additional vmSingle container arguments.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  extraArgs:
+    maxLabelsPerTimeseries: "40"
+
+  # Allows set extra system environment variables for vmSingle.
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  extraEnvs: []
+
+  # PriorityClassName assigned to the Pods to prevent vmSingle pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  tlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: true
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+vmAgent:
+  # Allow to enable deploy vmAgent via monitoring-operator.
+  # If vmAgent was not deploy during deploy via helm it can deploy via change custom
+  # resource PlatformMonitoring.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Replicas expected size of the vmagent cluster
+  # Type: integer
+  # Mandatory: no
+  #
+  replicas: 1
+
+  # Allows create Ingress for vmAgent UI via monitoring-operator
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  ingress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmagent ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
+  # Allows create HTTPRoute for vmAgent UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmagent.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
+  # Set paused to reconciliation for vmAgent
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # A docker image to use for vmAgent deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: victoriametrics/vmagent:v1.73.1
+
+  # Containers property allows to inject additions sidecars or to patch existing containers.
+  # It can be useful for proxies, backup, etc.
+  # Each item of the list should be described as standard Kubernetes container:
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core
+  containers: []
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+    # fsGroup: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: list[object]
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # MaxScrapeInterval allows limiting maximum scrape interval for VMServiceScrape, VMPodScrape and other scrapes.
+  # Type: string
+  # [ maxScrapeInterval: <duration> | default = 30s ]
+
+  # MinScrapeInterval allows limiting minimal scrape interval for VMServiceScrape, VMPodScrape and other scrapes.
+  # Type: string
+  # [ minScrapeInterval: <duration> | default = 10s ]
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 400m
+  #    memory: 200Mi
+  #  requests:
+  #    cpu: 200m
+  #    memory: 100Mi
+
+  # Secrets is a list of Secrets in the same namespace as the vmAgent object, which shall be mounted
+  # into the vmAgent Pods. The Secrets are mounted into /etc/vm/secrets/<secret-name>.
+  #
+  # Type: array
+  # Mandatory: no
+  # Default: []
+  #
+  # secrets:
+  #   - kube-etcd-client-certs
+
+  ## A name of a microservice secret to deploy with.
+  # This name will be used as name of the microservice secret deployment.
+  secretName: vmagent-secret
+
+  # Additional vmAgent container arguments.
+  # Type: map[string]string
+  # Mandatory: no
+  #
+  extraArgs:
+    promscrape.maxScrapeSize: "256MiB"
+    promscrape.streamParse: "true"
+
+  # Allows set extra system environment variables for vmagent.
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  extraEnvs: []
+
+  # Allows set extra system environment variables for vmAgent remote write into the Secret.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  extraVarsSecret: {}
+  # username:
+  # password:
+
+  # The additionalScrape allows you to monitor hosts outside the cloud (balancers, graylog server, jenkins...)
+  # Ref: https://docs.victoriametrics.com/operator/additional-scrape.html
+  # Type: object
+  # Mandatory: no
+  #
+  # Example:
+  #
+  # additionalScrape:
+  # - job_name: "balancer_check"
+  #    metrics_path: /metrics
+  #    static_configs:
+  #    - targets:
+  #      - "cloud-name-balancer-1.example.com:9100"
+  #      - "cloud-name-balancer-2.example.com:9100"
+  #
+  additionalScrape: {}
+
+  # The labels to add to all the metrics before sending them to -remoteWrite.url
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  externalLabels: {}
+
+  # The remoteWrite  list of victoria metrics /some other remote write system
+  # for vm it must looks like: http://victoria-metrics-single:8429/api/v1/write
+  # or for cluster different url
+  #
+  # Type: list[object]
+  # Mandatory: no
+  # Default: http://vmsingle-vmsingle.<monitoring-namespace>.svc:8429/api/v1/write
+  #
+  # remoteWrite: []
+  # - url: 'http://1.2.3.4:8086/api/v1/prom/write?db=prometheus'
+
+  # RemoteWriteSettings defines global settings for all remoteWrite urls.
+  #
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  # remoteWriteSettings: []
+
+  ## The namespace selector for podMonitors and serviceMonitors
+  #
+  # Namespace's labels to match for PodMonitor, ServiceMonitor discovery.
+  # Labels selector requirements use matchExpressions.
+  # !!!The requirements are ANDed.
+  #
+  # Type: object
+  # Mandatory: no
+  #
+  # Default:
+  #
+  # : {}
+  # podMonitorNamespaceSelector: {}
+  # serviceMonitorNamespaceSelector: {}
+  #
+  # podMonitorNamespaceSelector:
+  #   matchExpressions:
+  #     - key: monitoring
+  #       operator: In
+  #       values: ["prometheus"]
+  # serviceMonitorNamespaceSelector:
+  #   matchExpressions:
+  #     - key: monitoring
+  #       operator: In
+  #       values: ["prometheus"]
+
+  ## PodsMonitor and serviceMonitors to be selected for target discovery.
+  # Deprecated: if neither serviceMonitorSelector nor podMonitorSelector are specified, configuration is unmanaged.
+  # Labels selector requirements use matchExpressions.
+  # !!!The requirements are ANDed.
+  #
+  # serviceMonitorSelector: {}
+  # podMonitorSelector: {}
+
+  # Volumes allows configuration of additional volumes on the output StatefulSet definition.
+  # Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  volumes: {}
+
+  # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
+  # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
+  # that are generated as a result of StorageSpec objects.
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  volumeMounts: {}
+
+  # PriorityClassName assigned to the Pods to prevent vmAgent pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  tlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: true
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+vmAlertManager:
+  # Allow to enable deploy vmAlertManager via monitoring-operator.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Allows create Ingress for vmAlertManager UI via monitoring-operator
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  ingress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmalertmanager ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
+  # Allows create HTTPRoute for vmAlertManager UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmalertmanager.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
+  # Set paused to reconciliation for vmAlertManager
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Replicas expected size of the alertmanager cluster
+  # Type: integer
+  # Mandatory: no
+  #
+  replicas: 1
+
+  # Retention determines when to remove old data.
+  #
+  # Type: object
+  # Mandatory: no
+  # Default: 24h
+  #
+  # retention: 120h
+
+  # A docker image to use for vmAlertManager deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prom/alertmanager:v0.24.0
+
+  # Containers allows injecting additional containers or modifying operator generated containers.
+  # This can be used to allow adding an authentication proxy to a VMAlertmanager pod or to change
+  # the behavior of an operator generated container.
+  # Each item of the list should be described as standard Kubernetes container:
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  containers: []
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+    # fsGroup: 2000
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  requests:
+  #    cpu: 30m
+  #    memory: 56Mi
+
+  # Secrets is a list of Secrets in the same namespace as the vmAlertManager object, which shall be mounted
+  # into the vmAlertmanager Pods. The Secrets are mounted into /etc/vm/secrets/<secret-name>.
+  #
+  # Type: array
+  # Mandatory: no
+  # Default: []
+  #
+  secrets: []
+
+  # configSecret is the name of a Kubernetes Secret in the same namespace as the VMAlertManager object,
+  # which contains configuration for this VMAlertManager
+  #
+  # configSecret: alertmanager-k8s
+
+  # SelectAllByDefault changes default behavior for empty CRD selectors, such ConfigSelector.
+  # with selectAllScrapes: true and undefined ConfigSelector and ConfigNamespaceSelector
+  # Operator selects all exist alertManagerConfigs
+  # with selectAllScrapes: false - selects nothing
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  selectAllByDefault: true
+
+  # ConfigSelector defines selector for VMAlertmanagerConfig, result config will be merged with with Raw or Secret config.
+  # Works in combination with NamespaceSelector.
+  # NamespaceSelector nil - only objects at VMAlertmanager namespace.
+  # Selector nil - only objects at NamespaceSelector namespaces.
+  # If both nil - behaviour controlled by selectAllByDefault
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  configSelector: {}
+
+  # ConfigNamespaceSelector defines namespace selector for VMAlertmanagerConfig.
+  # Works in combination with Selector.
+  # NamespaceSelector nil - only objects at VMAlertmanager namespace.
+  # Selector nil - only objects at NamespaceSelector namespaces.
+  # If both nil - behaviour controlled by selectAllByDefault
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  configNamespaceSelector: {}
+
+  # DisableNamespaceMatcher disables top route namespace label matcher for VMAlertmanagerConfig
+  # It may be useful if alert doesn't have namespace label for some reason
+  # Type: boolean
+  # Mandatory: no
+  #
+  disableNamespaceMatcher: true
+
+  # Additional vmAlertManager container arguments.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  extraArgs: {}
+
+  # Allows set extra system environment variables for vmAlertManager.
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  extraEnvs: []
+
+  # PriorityClassName assigned to the Pods to prevent vmAlertManager pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  tlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: true
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+  # Web configuration for HTTPS settings.
+  # See https://prometheus.io/docs/alerting/latest/https/
+  # webConfig: {}
+  # gossipConfig: {}
+
+vmAlert:
+  # Allow to enable deploy vmAlert via monitoring-operator.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Allows create Ingress for vmAlert UI via monitoring-operator
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  ingress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+  # Allows create HTTPRoute for vmAlert UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmalert.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
+  # Set paused to reconciliation for vmAlert
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Replicas expected size of the vmAlert cluster
+  # Type: integer
+  # Mandatory: no
+  #
+  replicas: 1
+
+  # A docker image to use for vmAlert deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prom/alertmanager:v0.24.0
+
+  # Containers property allows to inject additions sidecars or to patch existing containers.
+  # It can be useful for proxies, backup, etc.
+  # Each item of the list should be described as standard Kubernetes container:
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  containers: []
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+    # fsGroup: 2000
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allows to define which Nodes the Pods are scheduled on.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 200m
+  #    memory: 500Mi
+  #  requests:
+  #    cpu: 50m
+  #    memory: 200Mi
+
+  # Secrets is a list of Secrets in the same namespace as the vmAlert object, which shall be mounted
+  # into the vmAlert Pods. The Secrets are mounted into /etc/vm/secrets/<secret-name>.
+  #
+  # Type: array
+  # Mandatory: no
+  # Default: []
+  #
+  secrets: []
+
+  # SelectAllByDefault changes default behavior for empty CRD selectors, such RuleSelector.
+  # with selectAllByDefault: true and empty serviceScrapeSelector and RuleNamespaceSelector
+  # Operator selects all exist serviceScrapes
+  # with selectAllByDefault: false - selects nothing
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  selectAllByDefault: true
+
+  # RuleSelector selector to select which VMRules to mount for loading alerting
+  # rules from.
+  # Works in combination with NamespaceSelector.
+  # If both nil - behaviour controlled by selectAllByDefault
+  # NamespaceSelector nil - only objects at VMAlert namespace.
+  # Type: map[string]string
+  # Mandatory: no
+  #
+  ruleSelector: {}
+
+  # RuleNamespaceSelector to be selected for VMRules discovery.
+  # Works in combination with Selector.
+  # If both nil - behaviour controlled by selectAllByDefault
+  # NamespaceSelector nil - only objects at VMAlert namespace.
+  # Type: map[string]string
+  # Mandatory: no
+  #
+  ruleNamespaceSelector: {}
+
+  # The labels to add to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  externalLabels: {}
+
+  # RemoteWrite Optional URL to remote-write compatible storage to persist vmalert state and rule results to.
+  # Rule results will be persisted according to each rule. Alerts state will be persisted in the form of time series
+  # named ALERTS and ALERTS_FOR_STATE. See -remoteWrite.url docs in vmalerts for details.
+  # Type: object
+  # Mandatory: no
+  #
+  # remoteWrite:
+  #   url: http://127.0.0.1:8428
+
+  # RemoteRead Optional URL to read vmalert state (persisted via RemoteWrite) This configuration only makes sense
+  # if alerts state has been successfully persisted (via RemoteWrite) before. See -remoteRead.url docs in vmalerts for details.
+  # Type: object
+  # Mandatory: no
+  #
+  # remoteRead:
+  #   url: http://127.0.0.1:8428
+
+  # RulePath to the file with alert rules. Supports patterns. Flag can be specified multiple times.
+  # Examples:
+  # -rule /path/to/file. Path to a single file with alerting rules
+  # -rule dir/*.yaml -rule /*.yaml. Relative path to all .yaml files in folder, absolute path to all .yaml files in root.
+  # by default operator adds /etc/vmalert/configs/base/vmalert.yaml
+  # Type: object
+  # Mandatory: no
+  #
+  # rulePath:
+  #   - /path/to/file/*yaml
+
+  # Additional vmAlert container arguments.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  extraArgs: {}
+
+  # Allows set extra system environment variables for vmAlert.
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  extraEnvs: []
+
+  # PriorityClassName assigned to the Pods to prevent vmAlert pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  tlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: true
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+vmAuth:
+  # Allow to enable deploy vmAuth via monitoring-operator.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Allows to create Ingress for vmAuth UI via monitoring-operator
+  # https://docs.victoriametrics.com/operator/api.html#vmauthspec
+  # https://docs.victoriametrics.com/operator/api.html#embeddedingress
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  ingress: {}
+
+    # Set of rules for Ingress
+    # Allows to customize routing rules for grafana ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+    #
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
+  # Allows create HTTPRoute for vmAuth UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmauth.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #       # Filters: raw HTTPRouteFilter objects
+  #       filters:
+  #         - type: URLRewrite
+  #           urlRewrite:
+  #             path:
+  #               type: ReplacePrefixMatch
+  #               replacePrefixMatch: /
+  #
+  httpRoute: {}
+
+  # Set paused to reconciliation for vmAlert
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Replicas expected size of the vmAuth cluster
+  replicaCount: 1
+
+  # A docker image to use for vmAlert deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prom/alertmanager:v0.24.0
+
+  # Containers property allows to inject additions sidecars or to patch existing containers.
+  # It can be useful for proxies, backup, etc.
+  # Each item of the list should be described as standard Kubernetes container:
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  containers: []
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+    # fsGroup: 2000
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # Optional duration in seconds the pod needs to terminate gracefully.
+  # If this value is nil, the default grace period will be used instead.
+  # Defaults - 30 seconds.
+  # Type: *int64
+  # Mandatory: no
+  # Default: not set
+  #
+  # terminationGracePeriodSeconds: 30
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 200m
+  #    memory: 500Mi
+  #  requests:
+  #    cpu: 50m
+  #    memory: 200Mi
+
+  # Secrets is a list of Secrets in the same namespace as the vmAuth object, which shall be mounted
+  # into the vmAuth Pods.
+  #
+  # Type: array
+  # Mandatory: no
+  # Default: []
+  #
+  secrets: []
+
+  # Secrets is a list of config maps in the same namespace as the vmAuth object, which shall be mounted
+  # into the vmAuth Pods.
+  #
+  # Type: array
+  # Mandatory: no
+  # Default: []
+  #
+  configMaps: []
+
+  # SelectAllByDefault changes default behavior for empty CRD selectors, such userSelector.
+  #	with selectAllByDefault: true and empty userSelector and userNamespaceSelector
+  #	Operator selects all exist users with selectAllByDefault: false - selects nothing
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  selectAllByDefault: true
+
+  # UserSelector defines VMUser to be selected for config file generation.
+  # Works in combination with NamespaceSelector.
+  # NamespaceSelector nil - only objects at VMAuth namespace.
+  # Selector nil - only objects at NamespaceSelector namespaces.
+  # If both nil - behaviour controlled by selectAllByDefault
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  userSelector: {}
+
+  # UserNamespaceSelector Namespaces to be selected for VMAuth discovery.
+  # Works in combination with Selector.
+  # NamespaceSelector nil - only objects at VMAuth namespace.
+  # Selector nil - only objects at NamespaceSelector namespaces.
+  # If both nil - behaviour controlled by selectAllByDefault
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  userNamespaceSelector: {}
+
+  # Listen port. Default value is set by operator.
+  # Type: string
+  # Mandatory: no
+  # Default: 8427
+  #
+  port: ""
+
+  # Additional vmAuth container arguments.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  extraArgs: {}
+
+  # Allows set extra system environment variables for vmAuth.
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  extraEnvs: []
+
+  # A name of a microservice secret to deploy with.
+  # This name will be used as name of the microservice secret deployment.
+  secretName: vmauth-secret
+
+  # Allows set extra system environment variables for vmAuth into the Secret.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  extraVarsSecret: {}
+  # username:
+  # password:
+
+  # PriorityClassName assigned to the Pods to prevent vmAuth pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+  tlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: true
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+vmUser:
+  # Allow to enable deploy vmUser via monitoring-operator.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Set paused to reconciliation for vmUser
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Set basic auth username for accessing protected endpoint
+  # Type: string
+  # Mandatory: no
+  #
+  username: admin
+
+  # Set basic auth password for accessing protected endpoint
+  # Type: string
+  # Mandatory: no
+  #
+  password: admin
+
+  # Allows fetching password from user-create secret by its name and key for accessing protected endpoint
+  # Type: object
+  # Mandatory: no
+  #
+  passwordRef:
+    name: vmuser-secret
+    key: password
+
+  # Allows fetching token from user-create secret by its name and key for accessing protected endpoint
+  # Type: object
+  # Mandatory: no
+  #
+  tokenRef: {}
+
+  # Instructs operator to generate password for user if spec.password if empty.
+  # Type: boolean
+  # Mandatory: no
+  #
+  generatePassword: false
+
+  # Authorization header value for accessing protected endpoint
+  # Type: string
+  # Mandatory: no
+  #
+  bearerToken: ""
+
+  # Reference to endpoints, which user may access.
+  # Type: list[object]
+  # Mandatory: no
+  # Default: []
+  #
+  targetRefs: []
+
+vmCluster:
+  # Enable deployment of vmcluster component
+  install: false
+
+  # ReplicationFactor defines how many copies of data make among
+  # distinct storage nodes
+  replicationFactor: 2
+
+  # RetentionPeriod for the stored metrics
+  # Note VictoriaMetrics has data/ and indexdb/ folders
+  # metrics from data/ removed eventually as soon as partition leaves retention period
+  # reverse index data at indexdb rotates once at the half of configured retention period
+  # https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention
+  retentionPeriod: "14d"
+
+  # A docker image to use for vmSelect deployment
+  # Type: string
+  # Mandatory: no
+  #
+  # vmSelectImage: victoriametrics/vmselect:v1.73.1-cluster
+
+  # A docker image to use for vmStorage deployment
+  # Type: string
+  # Mandatory: no
+  #
+  # vmStorageImage: victoriametrics/vmstorage:v1.73.1-cluster
+
+  # A docker image to use for vmInsert deployment
+  # Type: string
+  # Mandatory: no
+  #
+  # vmInsertImage: victoriametrics/vminsert:v1.73.1-cluster
+
+  vmSelect:
+    # Count of vmselect pods
+    replicaCount: 2
+
+    # Name of Priority Class
+    # priorityClassName: ""
+
+    # Extra command line arguments for vmselect component
+    extraArgs:
+      envflag.enable: "true"
+      envflag.prefix: VM_
+      loggerFormat: json
+      # See https://docs.victoriametrics.com/cluster-victoriametrics/#deduplication and
+      # https://docs.victoriametrics.com/cluster-victoriametrics/#replication-and-data-safety
+      dedup.minScrapeInterval: "30s"
+
+    # Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)
+    nodeSelector: {}
+    # Pod affinity
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - vmselect
+          topologyKey: "kubernetes.io/hostname"
+    # Pod topologySpreadConstraints
+    topologySpreadConstraints: []
+
+    # Resource object
+    resources: {}
+      # limits:
+      #   cpu: 50m
+      #   memory: 64Mi
+      # requests:
+      #   cpu: 50m
+      #   memory: 64Mi
+
+    # Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+    securityContext: {}
+
+    # Cache root folder
+    cacheMountPath: /cache
+
+  # Allows to create Ingress for vmSelect UI via monitoring-operator
+  # https://docs.victoriametrics.com/operator/api.html#embeddedingress
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  vmSelectIngress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+    # Set of rules for Ingress
+    # Allows to customize routing rules for vmselect ingress.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # rules: []
+
+    # Set of secrets used for TLS termination per group of hostnames
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    # Type: array
+    # Mandatory: no
+    #
+    # Default: []
+    # tls: []
+
+  # Allows create HTTPRoute for vmSelect UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/references/spec/#gateway.networking.k8s.io/v1.HTTPRouteSpec
+  # Example:
+  # vmSelectHttpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Type: boolean
+  #   # Default: false
+  #   #
+  #   install: true
+  #
+  #   # Hostnames overrides generated hostnames if specified.
+  #   # Type: list[string]
+  #   #
+  #   hostnames:
+  #     - vmselect.example.com
+  #
+  #   # ParentRefs defines route parent references to Gateway/listener.
+  #   # Type: list[object]
+  #   #
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       # Optional listener section name
+  #       sectionName: http
+  #
+  #   # Rules defines custom HTTPRoute rules. BackendRefs are managed by operator.
+  #   # Each rule may contain raw Gateway API matches/filters blocks.
+  #   # Type: list[object]
+  #   #
+  #   rules:
+  #     # Matches: raw HTTPRouteMatch objects
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /api/v1
+  #
+  vmSelectHttpRoute: {}
+
+  vmSelectTlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: false
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+  vmInsert:
+    # Name of Priority Class
+    # priorityClassName: ""
+
+    # Extra command line arguments for vminsert component
+    extraArgs:
+      envflag.enable: "true"
+      envflag.prefix: VM_
+      loggerFormat: json
+
+    # Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)
+    nodeSelector: {}
+    # Pod affinity
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - vminsert
+          topologyKey: "kubernetes.io/hostname"
+    # Pod topologySpreadConstraints
+    topologySpreadConstraints: []
+    # Count of vminsert pods
+    replicaCount: 2
+    # Resource object
+    resources: {}
+      # limits:
+      #   cpu: 50m
+      #   memory: 64Mi
+      # requests:
+      #   cpu: 50m
+      #   memory: 64Mi
+    # Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
+    securityContext: {}
+
+  vmInsertTlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: false
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""
+
+  vmStorage:
+    # Name of Priority Class
+    priorityClassName: ""
+
+    # Additional vmstorage container arguments. Extra command line arguments for vmstorage component
+    extraArgs:
+      envflag.enable: "true"
+      envflag.prefix: VM_
+      loggerFormat: json
+      # See https://docs.victoriametrics.com/cluster-victoriametrics/#deduplication
+      # and https://docs.victoriametrics.com/cluster-victoriametrics/#replication-and-data-safety
+      dedup.minScrapeInterval: "30s"
+
+    # Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)
+    nodeSelector: {}
+
+    # Pod affinity
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - vmstorage
+          topologyKey: "kubernetes.io/hostname"
+
+    # Pod topologySpreadConstraints
+    topologySpreadConstraints: []
+
+    # Count of vmstorage pods
+    replicaCount: 2
+
+    # Resource object. Ref: [https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
+    resources: {}
+      # limits:
+      #   cpu: 500m
+      #   memory: 512Mi
+      # requests:
+      #   cpu: 500m
+      #   memory: 512Mi
+
+    # Pod's security context. Ref: [https://kubernetes.io/docs/tasks/configure-pod-container/security-context/](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
+    securityContext: {}
+
+    terminationGracePeriodSeconds: 60
+
+  vmStorageTlsConfig:
+    # TLS configuration from existing secret
+    # If specified, all subsequent parameters in tls section are ignored.
+    #
+    # existingSecret: ""
+
+    # Use generateCerts section if you want cert-manager to generate secret.
+    # Will be ignored if existingSecret is already specified.
+    generateCerts:
+      enabled: false
+      duration: 365
+      renewBefore: 15
+      secretName: ""
+
+    # Use createSecret section to create secret with already known content of TLS certificates.
+    # Do not use createSecret if you use generateCerts
+    # Will be ignored if existingSecret is already specified.
+    # createSecret:
+    #   secretName: ""
+    #   ca: ""
+    #   key: ""
+    #   cert: ""

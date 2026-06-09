@@ -1,0 +1,89 @@
+{{- if and .Values.install .Values.certsInSecrets .Values.certsInSecrets.enabled }}
+{{- with .Values }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "monitoring.labels" $ | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
+    app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+    app.kubernetes.io/technology: go
+    {{- if .deployment.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .deployment.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .deployment.annotations }}
+  annotations:
+    {{- toYaml .deployment.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+        {{- include "monitoring.labels" $ | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
+        app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+        app.kubernetes.io/technology: go
+        {{- if .deployment.labels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .deployment.labels) | nindent 8 }}
+        {{- end }}
+      {{- if .deployment.annotations }}
+      annotations:
+        {{- toYaml .deployment.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .deployment.priorityClassName }}
+      priorityClassName: {{ .deployment.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ .name }}
+      securityContext:
+        {{ include "certExporter.deployment.securityContext" $ }}
+      tolerations: {{- toYaml .deployment.tolerations | nindent 8 }}
+      nodeSelector: {{- toYaml .deployment.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .deployment.affinity | nindent 8 }}
+      containers:
+        - command: ["./app"]
+          args:
+            - --secrets-include-glob={{ default "*.crt" .certsInSecrets.includeCerts }}
+            {{- if .certsInSecrets.excludeCerts }}
+            - --secrets-exclude-glob={{ .certsInSecrets.excludeCerts }}
+            {{- end }}
+            {{- if .certsInSecrets.annotationSelector }}
+            - --secrets-annotation-selector={{ .certsInSecrets.annotationSelector }}
+            {{- end }}
+            {{- if .certsInSecrets.labelSelector }}
+            - --secrets-label-selector={{ .certsInSecrets.labelSelector }}
+            {{- end }}
+            {{- if .certsInSecrets.namespace }}
+            - --secrets-namespace={{ .certsInSecrets.namespace }}
+            {{- end }}
+            {{- if .certsInSecrets.namespaces }}
+            - --secrets-namespaces={{ .certsInSecrets.namespaces }}
+            {{- end }}
+            {{- if .certsInSecrets.types }}
+            {{- range .certsInSecrets.types }}
+            - --secret-include-types={{ . }}
+            {{- end }}
+            {{- end }}
+            {{- if .certsInSecrets.kubeconfigPath }}
+            - --kubeconfig={{ .certsInSecrets.kubeconfigPath }}
+            {{- end }}
+            - --logtostderr
+            - --polling-period={{ default "1h0m0s" .pollingPeriod }}
+          {{- if .deployment.extraArgs }}
+              {{ toYaml .deployment.extraArgs | nindent 12 }}
+          {{- end }}
+          imagePullPolicy: IfNotPresent
+          image: {{ template "certExporter.image" $ }}
+          name: {{ .name }}
+          ports:
+            - containerPort: 8080
+              name: metrics
+          resources:
+            {{ include "certExporter.deployment.resources" $ }}
+{{- end }}
+{{- end }}

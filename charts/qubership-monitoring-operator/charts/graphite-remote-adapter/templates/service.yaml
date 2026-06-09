@@ -1,0 +1,17 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: {{ .Values.servicePort }}
+    protocol: TCP
+    targetPort: 9201
+  selector:
+    app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

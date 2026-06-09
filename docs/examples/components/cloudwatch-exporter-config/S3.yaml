@@ -1,0 +1,168 @@
+region: us-east-1
+period_seconds: 120
+delay_seconds: 60
+metrics:
+  - aws_dimensions:
+      - StorageType
+      - BucketName
+    aws_metric_name: BucketSizeBytes
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+  - aws_dimensions:
+      - StorageType
+      - BucketName
+    aws_metric_name: NumberOfObjects
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: AllRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: GetRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: PutRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: DeleteRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: HeadRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: PostRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: SelectRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: SelectBytesScanned
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: SelectBytesReturned
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: ListRequests
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: BytesDownloaded
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: BytesUploaded
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: 4xxErrors
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: 5xxErrors
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: FirstByteLatency
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - BucketName
+      - FilterId
+    aws_metric_name: TotalRequestLatency
+    aws_namespace: AWS/S3
+    aws_statistics:
+      - Average
+      - Maximum
+      - Minimum
+      - Sum
+      - SampleCount
+
+
+
+
+
+

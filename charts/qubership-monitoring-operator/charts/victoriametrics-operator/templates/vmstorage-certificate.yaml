@@ -1,0 +1,31 @@
+{{- if .Values.tlsEnabled }}
+{{- if and (not .Values.vmCluster.vmStorageTlsConfig.existingSecret) .Values.vmCluster.vmStorageTlsConfig.generateCerts .Values.vmCluster.vmStorageTlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vmstorage-tls-certificate
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "vmstorage-tls-certificate" "component" "vmStorage") | nindent 4 }}
+spec:
+  secretName: {{ default "vmstorage-tls-secret" .Values.vmCluster.vmStorageTlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.vmCluster.vmStorageTlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.vmCluster.vmStorageTlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: vmstorage-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - vmstorage-k8s
+    - vmstorage-k8s.{{ .Release.Namespace }}.svc
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

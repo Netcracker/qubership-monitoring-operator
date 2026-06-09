@@ -1,0 +1,42 @@
+{{- if .Values.tlsEnabled }}
+{{- if and (not .Values.vmCluster.vmSelectTlsConfig.existingSecret) .Values.vmCluster.vmSelectTlsConfig.generateCerts .Values.vmCluster.vmSelectTlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vmselect-tls-certificate
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "vmselect-tls-certificate" "component" "vmSelect") | nindent 4 }}
+spec:
+  secretName: {{ default "vmselect-tls-secret" .Values.vmCluster.vmSelectTlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.vmCluster.vmSelectTlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.vmCluster.vmSelectTlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: vmselect-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - vmselect-k8s
+    - vmselect-k8s.{{ .Release.Namespace }}.svc
+  {{- if .Values.vmCluster.vmSelectIngress.install }}
+  {{- if .Values.vmCluster.vmSelectIngress.host }}
+    - {{ .Values.vmCluster.vmSelectIngress.host }}
+  {{ else if .Values.vmCluster.vmSelectIngress.rules }}
+  {{- range .Values.vmCluster.vmSelectIngress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

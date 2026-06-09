@@ -1,0 +1,33 @@
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+  {{- if and .Values.install .Values.setupSecurityContext .Values.global.privilegedRights }}
+    {{- with .Values }}
+      {{- if or (and .certsInFiles .certsInFiles.enabled) (and .certsInKubeconfig .certsInKubeconfig.enabled) }}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: {{ template "certExporter.rbac.fullname" $ }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" $ "name" (include "certExporter.rbac.fullname" $)) | nindent 4 }}
+priority: 0
+users: []
+groups: []
+readOnlyRootFilesystem: true
+requiredDropCapabilities: []
+defaultAddCapabilities: []
+allowedCapabilities: []
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+allowPrivilegedContainer: false
+allowHostDirVolumePlugin: true
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowHostIPC: false
+volumes:
+- '*'
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

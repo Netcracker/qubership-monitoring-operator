@@ -1,0 +1,31 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- if .Values.service.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.service.labels) | nindent 4 }}
+    {{- end }}
+{{- if and (eq .Values.service.type "LoadBalancer") .Values.service.azureLoadBalancer }}
+  annotations:
+{{- if or (.Values.service.azureLoadBalancer.dnsPrefix) (.Values.service.azureLoadBalancer.exposeInternally) }}
+  {{- if .Values.service.azureLoadBalancer.dnsPrefix }}
+    service.beta.kubernetes.io/azure-dns-label-name: {{ .Values.service.azureLoadBalancer.dnsPrefix }}
+  {{- end }}
+  {{- if .Values.service.azureLoadBalancer.exposeInternally }}
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  {{- end }}
+{{- end }}
+{{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

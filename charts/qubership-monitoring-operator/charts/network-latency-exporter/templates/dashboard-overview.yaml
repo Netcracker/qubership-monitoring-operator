@@ -1,0 +1,1220 @@
+{{- if and .Values.install .Values.createGrafanaDashboards }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ .Values.name }}-overview
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (printf "%s-overview" .Values.name) "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  json: >
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "The dashboard shows overall network RTT metrics for all sources and destinations",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": 26,
+      "links": [
+        {
+          "icon": "external link",
+          "tags": [
+            "network"
+          ],
+          "type": "dashboards"
+        }
+      ],
+      "panels": [
+        {
+          "collapsed": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 6,
+          "panels": [],
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "refId": "A"
+            }
+          ],
+          "title": "Overview",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Shows average ping measurements grouped by destination host over selected time range",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Average Packet Loss"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.5
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-text"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Average Mean RTT"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Average Mean Standard Deviation"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "orange",
+                          "value": 2
+                        },
+                        {
+                          "color": "red",
+                          "value": 5
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-text"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Number of hops"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 11,
+            "w": 24,
+            "x": 0,
+            "y": 1
+          },
+          "id": 4,
+          "interval": "$c_interval",
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "10.4.14",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "exemplar": true,
+              "expr": "(round(avg(network_latency_sent{protocol=\"$protocol\", cluster=~\"$cluster\"}) by (destination)) - round(avg(network_latency_received{protocol=\"$protocol\", cluster=~\"$cluster\"}) by (destination))) / round(avg(network_latency_sent{protocol=\"$protocol\", cluster=~\"$cluster\"}) by (destination)) * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "exemplar": true,
+              "expr": "avg(network_latency_rtt_mean{protocol=\"$protocol\", cluster=~\"$cluster\"}) by (destination)",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "exemplar": true,
+              "expr": "avg(network_latency_rtt_stddev{protocol=\"$protocol\", cluster=~\"$cluster\"}) by (destination)",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "exemplar": true,
+              "expr": "round(avg(network_latency_hops_num{protocol=\"$protocol\", cluster=~\"$cluster\"}) by (destination))",
+              "format": "table",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "D"
+            }
+          ],
+          "title": "Average Ping Measurements",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {}
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true
+                },
+                "indexByName": {},
+                "renameByName": {
+                  "Value #A": "Average Packet Loss",
+                  "Value #B": "Average Mean RTT",
+                  "Value #C": "Average Mean Standard Deviation",
+                  "Value #D": "Number of hops",
+                  "destination": "Destination Node"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "collapsed": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 2,
+          "panels": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "description": "Shows average mean RTT metrics over selected time range (with package loss). Displayed values is a values for whole probe which includes $packets_num packets sent",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "Ping",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 35,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "decimals": 2,
+                  "links": [],
+                  "mappings": [],
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "ms"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "RTT Mean"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#FA6400",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.fillBelowTo",
+                        "value": "RTT Min"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "RTT Max"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "rgba(138, 184, 255, 0.28)",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.fillBelowTo",
+                        "value": "RTT Min"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "RTT Min"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#37872D",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Loss"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "bars"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 100
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#C4162A",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.pointSize",
+                        "value": 4
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "always"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "percent"
+                      },
+                      {
+                        "id": "max",
+                        "value": 100
+                      },
+                      {
+                        "id": "custom.axisLabel",
+                        "value": "Packet Loss"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 2
+              },
+              "id": 18,
+              "interval": "$c_interval",
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              },
+              "pluginVersion": "10.4.14",
+              "targets": [
+                {
+                  "alias": "RTT Mean",
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "avg(network_latency_rtt_mean{source=~\"$source\", protocol=\"$protocol\", cluster=~\"$cluster\"})",
+                  "groupBy": [
+                    {
+                      "params": [
+                        "$__interval"
+                      ],
+                      "type": "time"
+                    },
+                    {
+                      "params": [
+                        "null"
+                      ],
+                      "type": "fill"
+                    }
+                  ],
+                  "interval": "",
+                  "legendFormat": "RTT Mean",
+                  "orderByTime": "ASC",
+                  "policy": "default",
+                  "query": "SELECT mean(\"rtt_mean\") FROM \"t_network_latency\" WHERE \"source\" = '$source' AND \"protocol\" = '$protocol' AND $timeFilter GROUP BY time($__interval) fill(none)",
+                  "rawQuery": true,
+                  "refId": "A",
+                  "resultFormat": "time_series",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "value"
+                        ],
+                        "type": "field"
+                      },
+                      {
+                        "params": [],
+                        "type": "mean"
+                      }
+                    ]
+                  ],
+                  "tags": []
+                },
+                {
+                  "alias": "RTT Max",
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "avg(network_latency_rtt_max{source=~\"$source\", protocol=\"$protocol\", cluster=~\"$cluster\"})",
+                  "groupBy": [
+                    {
+                      "params": [
+                        "$__interval"
+                      ],
+                      "type": "time"
+                    },
+                    {
+                      "params": [
+                        "null"
+                      ],
+                      "type": "fill"
+                    }
+                  ],
+                  "interval": "",
+                  "legendFormat": "RTT Max",
+                  "orderByTime": "ASC",
+                  "policy": "default",
+                  "query": "SELECT mean(\"rtt_max\") FROM \"t_network_latency\" WHERE \"source\" = '$source' AND \"protocol\" = '$protocol' AND $timeFilter GROUP BY time($__interval) fill(none)",
+                  "rawQuery": true,
+                  "refId": "B",
+                  "resultFormat": "time_series",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "value"
+                        ],
+                        "type": "field"
+                      },
+                      {
+                        "params": [],
+                        "type": "mean"
+                      }
+                    ]
+                  ],
+                  "tags": []
+                },
+                {
+                  "alias": "RTT Min",
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "avg(network_latency_rtt_min{source=~\"$source\", protocol=\"$protocol\", cluster=~\"$cluster\"})",
+                  "groupBy": [
+                    {
+                      "params": [
+                        "$__interval"
+                      ],
+                      "type": "time"
+                    },
+                    {
+                      "params": [
+                        "null"
+                      ],
+                      "type": "fill"
+                    }
+                  ],
+                  "interval": "",
+                  "legendFormat": "RTT Min",
+                  "orderByTime": "ASC",
+                  "policy": "default",
+                  "query": "SELECT mean(\"rtt_min\") FROM \"t_network_latency\" WHERE \"source\" = '$source' AND \"protocol\" = '$protocol' AND $timeFilter GROUP BY time($__interval) fill(none)",
+                  "rawQuery": true,
+                  "refId": "C",
+                  "resultFormat": "time_series",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "value"
+                        ],
+                        "type": "field"
+                      },
+                      {
+                        "params": [],
+                        "type": "mean"
+                      }
+                    ]
+                  ],
+                  "tags": []
+                },
+                {
+                  "alias": "Loss",
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "(round(avg(network_latency_sent{source=~\"$source\", protocol=\"$protocol\", cluster=~\"$cluster\"})) - round(avg(network_latency_received{source=~\"$source\", protocol=\"$protocol\", cluster=~\"$cluster\"}))) / round(avg(network_latency_sent{source=~\"$source\", protocol=\"$protocol\", cluster=~\"$cluster\"})) * 100",
+                  "groupBy": [
+                    {
+                      "params": [
+                        "$__interval"
+                      ],
+                      "type": "time"
+                    },
+                    {
+                      "params": [
+                        "null"
+                      ],
+                      "type": "fill"
+                    }
+                  ],
+                  "interval": "",
+                  "legendFormat": "Loss",
+                  "orderByTime": "ASC",
+                  "policy": "default",
+                  "query": "SELECT (round(mean(\"sent\")) - round(mean(\"received\"))) / round(mean(\"sent\")) * 100 FROM \"t_network_latency\" WHERE \"source\" = '$source' AND \"protocol\" = '$protocol' AND $timeFilter GROUP BY time($__interval) fill(previous)",
+                  "rawQuery": true,
+                  "refId": "D",
+                  "resultFormat": "time_series",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "value"
+                        ],
+                        "type": "field"
+                      },
+                      {
+                        "params": [],
+                        "type": "mean"
+                      }
+                    ]
+                  ],
+                  "tags": []
+                }
+              ],
+              "title": "Average Mean RTT",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "description": "Shows average values of ping measurements grouped by destination host over selected time range. Click on a destination node to open dashboard with detailed information",
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Average Packet Loss"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "percent"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "green",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 0.5
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Average Mean RTT"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "ms"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Average Mean Standard Deviation"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "ms"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "green",
+                              "value": null
+                            },
+                            {
+                              "color": "orange",
+                              "value": 2
+                            },
+                            {
+                              "color": "red",
+                              "value": 5
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Number of hops"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 11,
+                "w": 24,
+                "x": 0,
+                "y": 10
+              },
+              "id": 40,
+              "interval": "$c_interval",
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "pluginVersion": "10.4.14",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "(round(avg(network_latency_sent{protocol=\"$protocol\", source=~\"$source\", cluster=~\"$cluster\"}) by (destination)) - round(avg(network_latency_received{protocol=\"$protocol\", source=~\"$source\", cluster=~\"$cluster\"}) by (destination))) / round(avg(network_latency_sent{protocol=\"$protocol\", source=~\"$source\", cluster=~\"$cluster\"}) by (destination)) * 100",
+                  "format": "table",
+                  "groupBy": [
+                    {
+                      "params": [
+                        "$__interval"
+                      ],
+                      "type": "time"
+                    },
+                    {
+                      "params": [
+                        "null"
+                      ],
+                      "type": "fill"
+                    }
+                  ],
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "orderByTime": "ASC",
+                  "policy": "default",
+                  "query": "SELECT (round(mean(\"sent\")) - round(mean(\"received\"))) / round(mean(\"sent\")) * 100 as \"avg_loss\",  mean(\"rtt_mean\") as \"avg_rtt\", mean(\"rtt_stddev\") as \"avg_stddev\", round(mean(\"hops_num\")) as \"hops\" FROM \"t_network_latency\" WHERE \"source\" =~ /$source/ AND \"protocol\" = '$protocol' AND $timeFilter GROUP BY \"destination\"",
+                  "rawQuery": true,
+                  "refId": "A",
+                  "resultFormat": "table",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "value"
+                        ],
+                        "type": "field"
+                      },
+                      {
+                        "params": [],
+                        "type": "mean"
+                      }
+                    ]
+                  ],
+                  "tags": []
+                },
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "avg(network_latency_rtt_mean{protocol=\"$protocol\", source=~\"$source\", cluster=~\"$cluster\"}) by (destination)",
+                  "format": "table",
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "B"
+                },
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "avg(network_latency_rtt_stddev{protocol=\"$protocol\", source=~\"$source\", cluster=~\"$cluster\"}) by (destination)",
+                  "format": "table",
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "C"
+                },
+                {
+                  "datasource": {
+                    "uid": "$datasource"
+                  },
+                  "exemplar": true,
+                  "expr": "round(avg(network_latency_hops_num{protocol=\"$protocol\", source=~\"$source\", cluster=~\"$cluster\"}) by (destination))",
+                  "format": "table",
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "D"
+                }
+              ],
+              "title": "Ping Measurements From $source To All Hosts",
+              "transformations": [
+                {
+                  "id": "merge",
+                  "options": {}
+                },
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true
+                    },
+                    "indexByName": {},
+                    "renameByName": {
+                      "Value #A": "Average Packet Loss",
+                      "Value #B": "Average Mean RTT",
+                      "Value #C": "Average Mean Standard Deviation",
+                      "Value #D": "Number of hops",
+                      "destination": "Destination Node"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "repeat": "source",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "refId": "A"
+            }
+          ],
+          "title": "Source: $source",
+          "type": "row"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "tags": [
+        "k8s",
+        "network"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "text": "Platform Monitoring Prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Datasource",
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {
+              "isNone": true,
+              "selected": false,
+              "text": "None",
+              "value": ""
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(up, cluster)",
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "cluster",
+            "options": [],
+            "query": {
+              "query": "label_values(up, cluster)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "$datasource"
+            },
+            "definition": "label_values(network_latency_status{cluster=\"$cluster\"}, source)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Source Host",
+            "multi": true,
+            "name": "source",
+            "options": [],
+            "query": {
+              "query": "label_values(network_latency_status{cluster=\"$cluster\"}, source)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "tagValuesQuery": "",
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "ICMP",
+              "value": "ICMP"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "$datasource"
+            },
+            "definition": "label_values(network_latency_status{source=~\"$source\",cluster=\"$cluster\"}, protocol)",
+            "hide": 0,
+            "includeAll": false,
+            "label": "Network Protocol",
+            "multi": false,
+            "name": "protocol",
+            "options": [],
+            "query": {
+              "query": "label_values(network_latency_status{source=~\"$source\",cluster=\"$cluster\"}, protocol)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "tagValuesQuery": "",
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+          },
+          {
+            "current": {
+              "isNone": true,
+              "selected": false,
+              "text": "None",
+              "value": ""
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "$datasource"
+            },
+            "definition": "label_values(network_latency_status{cluster=\"$cluster\"}, interval)",
+            "hide": 2,
+            "includeAll": false,
+            "label": "Collection Interval",
+            "multi": false,
+            "name": "c_interval",
+            "options": [],
+            "query": {
+              "query": "label_values(network_latency_status{cluster=\"$cluster\"}, interval)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "tagValuesQuery": "",
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "10",
+              "value": "10"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "$datasource"
+            },
+            "definition": "label_values(network_latency_status{cluster=\"$cluster\"}, packets)",
+            "hide": 2,
+            "includeAll": false,
+            "label": "Packets Sent Per Probe",
+            "multi": false,
+            "name": "packets_num",
+            "options": [],
+            "query": {
+              "query": "label_values(network_latency_status{cluster=\"$cluster\"}, packets)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "tagValuesQuery": "",
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+          }
+        ]
+      },
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "5s",
+          "10s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ]
+      },
+      "timezone": "",
+      "title": "Network Latency Overview",
+      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `network-latency-overview` ) }}",
+      "version": 1,
+      "weekStart": ""
+    }
+{{- end}}

@@ -1,0 +1,16 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: graphite-config
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "graphite-config") | nindent 4 }}
+data:
+  {{- if .Values.additionalGraphiteConfig }}
+  additionalGraphiteConfig.yaml: |-
+    {{- toYaml .Values.additionalGraphiteConfig | nindent 6 }}
+  {{- else }}
+  additionalGraphiteConfig.yaml: ""
+  {{- end }}
+{{- end }}
+

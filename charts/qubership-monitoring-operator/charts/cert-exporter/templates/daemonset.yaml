@@ -1,0 +1,188 @@
+{{- if and .Values.install (or (and .Values.certsInFiles .Values.certsInFiles.enabled) (and .Values.certsInKubeconfig .Values.certsInKubeconfig.enabled)) }}
+{{- with .Values }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "monitoring.labels" $ | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
+    app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+    app.kubernetes.io/technology: go
+    {{- if .daemonset.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .daemonset.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .daemonset.annotations }}
+  annotations:
+    {{- toYaml .daemonset.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+        {{- include "monitoring.labels" $ | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "certExporter.instance" $ }}
+        app.kubernetes.io/version: {{ template "certExporter.version" $ }}
+        app.kubernetes.io/technology: go
+        {{- if .daemonset.labels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .daemonset.labels) | nindent 8 }}
+        {{- end }}
+      {{- if .daemonset.annotations }}
+      annotations:
+        {{- toYaml .daemonset.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .daemonset.priorityClassName }}
+      priorityClassName: {{ .daemonset.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ .name }}
+      securityContext:
+        {{ include "certExporter.daemonset.securityContext" $ }}
+      tolerations: {{- toYaml .daemonset.tolerations | nindent 8 }}
+      nodeSelector: {{- toYaml .daemonset.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .daemonset.affinity | nindent 8 }}
+      volumes:
+      {{- if or (and .certsInFiles .certsInFiles.enabled .certsInFiles.defaultCerts) (and .certsInKubeconfig .certsInKubeconfig.enabled .certsInKubeconfig.defaultCerts) }}
+        {{- if not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+        - name: kube
+          hostPath:
+            path: /etc/kubernetes
+        {{- end }}
+        {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+        - name: openshift-origin
+          hostPath:
+            path: /etc/origin
+        {{- end }}
+      {{- end }}
+      {{- if and .certsInFiles .certsInFiles.enabled }}
+        {{- if .certsInFiles.defaultCerts }}
+        {{- if not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+        - name: kubelet-pki
+          hostPath:
+            path: /var/lib/kubelet/pki
+        {{- end }}
+        {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+        - name: openshift-etcd
+          hostPath:
+            path: /etc/etcd
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if and .certsInKubeconfig .certsInKubeconfig.enabled }}
+        {{- if .certsInKubeconfig.defaultCerts }}
+        - name: root-kube-config
+          hostPath:
+            path: /root/.kube/config
+        {{- end }}
+      {{- end }}
+      {{- if .additionalHostPathVolumes }}
+        {{- range .additionalHostPathVolumes }}
+        - name: {{ .volumeName }}
+          hostPath:
+            path: {{ .volumePath }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - command: ["./app"]
+          args:
+          {{- if and .certsInFiles .certsInFiles.enabled }}
+            {{- if and .certsInFiles.defaultCerts (not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints")) }}
+            - --include-cert-glob=/etc/kubernetes/**/*.crt
+            - --include-cert-glob=/etc/kubernetes/**/*.pem
+            - --include-cert-glob=/var/lib/kubelet/pki/**/*.crt
+            - --include-cert-glob=/var/lib/kubelet/pki/**/*.pem
+            {{- end }}
+            {{- if and .certsInFiles.defaultCerts ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+            - --include-cert-glob=/etc/etcd/**/*.crt
+            - --include-cert-glob=/etc/etcd/**/*.pem
+            - --include-cert-glob=/etc/origin/**/*.crt
+            - --include-cert-glob=/etc/origin/**/*.pem
+            {{- end }}
+            {{- if .certsInFiles.includeCerts }}
+            - --include-cert-glob={{ .certsInFiles.includeCerts }}
+            {{- end }}
+            {{- if .certsInFiles.excludeCerts }}
+            - --exclude-cert-glob={{ .certsInFiles.excludeCerts }}
+            {{- end }}
+          {{- end }}
+          {{- if and .certsInKubeconfig .certsInKubeconfig.enabled }}
+            {{- if and .certsInKubeconfig.defaultCerts (not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints")) }}
+            - --include-kubeconfig-glob=/etc/kubernetes/**/*.conf
+            - --include-kubeconfig-glob=/root/.kube/config
+            {{- end }}
+            {{- if and .certsInKubeconfig.defaultCerts ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+            - --include-kubeconfig-glob=/etc/origin/**/*.kubeconfig
+            - --include-kubeconfig-glob=/root/.kube/config
+            {{- end }}
+            {{- if .certsInKubeconfig.includeCerts }}
+            - --include-kubeconfig-glob={{ .certsInKubeconfig.includeCerts }}
+            {{- end }}
+            {{- if .certsInKubeconfig.excludeCerts }}
+            - --exclude-kubeconfig-glob={{ .certsInKubeconfig.excludeCerts }}
+            {{- end }}
+          {{- end }}
+            - --logtostderr
+            - --polling-period={{ default "1h0m0s" .pollingPeriod }}
+          {{- if .daemonset.extraArgs }}
+            {{ toYaml .daemonset.extraArgs | nindent 12 }}
+          {{- end }}
+          imagePullPolicy: IfNotPresent
+          image: {{ template "certExporter.image" $ }}
+          name: {{ .name }}
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - containerPort: 8080
+              name: metrics
+          volumeMounts:
+          {{- if or (and .certsInFiles .certsInFiles.enabled .certsInFiles.defaultCerts) (and .certsInKubeconfig .certsInKubeconfig.enabled .certsInKubeconfig.defaultCerts) }}
+            {{- if not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+            - name: kube
+              mountPath: /etc/kubernetes
+              readOnly: true
+            {{- end }}
+            {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+            - name: openshift-origin
+              mountPath: /etc/origin
+              readOnly: true
+            {{- end }}
+          {{- end }}
+          {{- if and .certsInFiles .certsInFiles.enabled }}
+            {{- if .certsInFiles.defaultCerts }}
+            {{- if not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+            - name: kubelet-pki
+              mountPath: /var/lib/kubelet/pki
+              readOnly: true
+            {{- end }}
+            {{- if $.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+            - name: openshift-etcd
+              mountPath: /etc/etcd
+              readOnly: true
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if and .certsInKubeconfig .certsInKubeconfig.enabled }}
+            {{- if .certsInKubeconfig.defaultCerts }}
+            - name: root-kube-config
+              mountPath: /root/.kube/config
+              readOnly: true
+            {{- end }}
+          {{- end }}
+          {{- if .additionalHostPathVolumes }}
+            {{- range .additionalHostPathVolumes }}
+            - name: {{ .volumeName }}
+              mountPath: {{ .volumePath }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
+          resources:
+            {{ include "certExporter.daemonset.resources" $ }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,112 @@
+region: us-east-1
+period_seconds: 120
+delay_seconds: 60
+metrics:
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeReadBytes
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+      - SampleCount
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeWriteBytes
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+      - SampleCount
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeReadOps
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeWriteOps
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeTotalReadTime
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeTotalWriteTime
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeIdleTime
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeQueueLength
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeThroughputPercentage
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: VolumeConsumedReadWriteOps
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+  - aws_dimensions:
+      - VolumeId
+    aws_metric_name: BurstBalance
+    aws_namespace: AWS/EBS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Sum
+      - Average
+
+
+
+
+
+
+

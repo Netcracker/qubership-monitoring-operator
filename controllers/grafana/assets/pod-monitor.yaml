@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    k8s-app: grafana-pod-monitor
+  name: grafana-pod-monitor
+spec:
+  podMetricsEndpoints:
+  - interval: 30s
+    port: grafana-http
+    scheme: http
+  jobLabel: k8s-app
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      app: grafana
+
+

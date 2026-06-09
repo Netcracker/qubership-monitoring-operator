@@ -1,0 +1,70 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+alertManager:
+  install: false
+  image: prom/alertmanager:latest
+oAuthProxy:
+  image: oauth2-proxy/oauth2-proxy:latest
+grafana:
+  image: grafana/grafana:latest
+  operator:
+    image: grafana-operator/grafana-operator:latest
+prometheus:
+  install: false
+  image: prometheus-operator/prometheus-config-reloader:latest
+  operator:
+    image: prometheus-operator/prometheus-operator:latest
+monitoringOperator:
+  image: ghcr.io/netcracker/qubership-monitoring-operator:latest
+kubeStateMetrics:
+  image: kube-state-metrics/kube-state-metrics:latest
+nodeExporter:
+  image: prom/node-exporter:latest
+graphite_remote_adapter:
+  install: true
+  image: ghcr.io/netcracker/qubership-graphite-remote-adapter:latest
+certExporter:
+  install: true
+  image: joeelliott/cert-exporter:latest
+networkLatencyExporter:
+  install: true
+  image: ghcr.io/netcracker/qubership-network-latency-exporter:latest
+blackboxExporter:
+  install: true
+  image: prom/blackbox-exporter:latest
+cloudEventsExporter:
+  install: true
+  image: ghcr.io/netcracker/qubership-kube-events-reader:latest
+pushgateway:
+  install: true
+  image: prom/pushgateway:latest
+prometheusAdapter:
+  image: ghcr.io/netcracker/qubership-prometheus-adapter:latest
+  operator:
+    image: ghcr.io/netcracker/qubership-prometheus-adapter-operator:latest
+promxy:
+  install: true
+  image: jacksontj/promxy:latest
+versionExporter:
+  install: true
+  image: ghcr.io/netcracker/version-exporter:latest
+stackdriverExporter:
+  install: true
+  image: prometheuscommunity/stackdriver-exporter:latest
+jsonExporter:
+  install: true
+  image: prometheuscommunity/json-exporter:latest
+victoriametrics:
+  vmOperator:
+    image: victoriametrics/operator:latest
+  vmAgent:
+    image: victoriametrics/vmagent:latest
+  vmSingle:
+    image: victoriametrics/victoria-metrics:latest
+  vmAlertManager:
+    image: victoriametrics/victoria-metrics:latest
+  vmAlert:
+    image: victoriametrics/vmalert:latest
+  vmAuth:
+    image: victoriametrics/vmauth:latest

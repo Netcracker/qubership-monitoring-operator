@@ -1,0 +1,461 @@
+# Default values for promitor-agent-scraper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Allow to enable deploy promitor-agent-scraper.
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# Replicas spec configuration for promitor-agent-scraper.
+# Type: int
+# Mandatory: no
+# Default: 1
+#
+replicas: 1
+
+# Name of promitor-agent-scraper which use in deployment and other objects names.
+# Type: string
+# Mandatory: no
+# Default: promitor-agent-scraper
+#
+name: promitor-agent-scraper
+
+# Image of promitor-agent-scraper.
+# Type: string
+# Mandatory: yes
+#
+# image: ghcr.io/tomkerkhove/promitor-agent-scraper:2.5.1
+
+# Image pull policy to use for promitor-agent-scraper deployment.
+# Type: string
+# Mandatory: no
+# Default: IfNotPresent
+#
+imagePullPolicy: IfNotPresent
+
+azureAuthentication:
+  # Authentication type to use to authenticate.
+  # Options are ServicePrincipal (default), UserAssignedManagedIdentity or SystemAssignedManagedIdentity.
+  # Type: string
+  # Mandatory: no
+  # Default: ServicePrincipal
+  #
+  mode: "ServicePrincipal"
+  identity:
+    # Id of the Azure AD entity to authenticate with.
+    # Type: string
+    # Mandatory: yes
+    # Default: not set
+    #
+    id: ""
+    # Secret of the Azure AD entity to authenticate with.
+    # Mounted from Kubernetes Secret to /etc/promitor/secrets/appkey and referenced
+    # in runtime.yaml via authentication.secretFilePath/secretFileName.
+    # Type: string
+    # Mandatory: yes
+    # Default: not set
+    #
+    key: ""
+    # Aad Pod Identity name, when using UserAssignedManagedIdentity or SystemAssignedManagedIdentity as mode.
+    # Type: string
+    # Mandatory: no
+    # Default: not set
+    #
+    binding: ""
+
+metricSinks:
+  prometheusScrapingEndpoint:
+    # Controls the path where the scraping endpoint for Prometheus is being exposed.
+    # Type: string
+    # Mandatory: no
+    # Default: /metrics
+    #
+    baseUriPath: /metrics
+    # Defines whether or not a timestamp should be included when the value was scraped on Azure Monitor.
+    # Supported values are True to opt-in & False to opt-out.
+    # Type: boolean
+    # Mandatory: no
+    # Default: true
+    #
+    enableMetricTimestamps: true
+    # Defines the value that will be reported if a metric is unavailable.
+    # Type: string
+    # Mandatory: no
+    # Default: NaN
+    #
+    metricUnavailableValue: NaN
+    # Controls how label values are reported to Prometheus by using transformation. Options are None & Lowercase.
+    # Type: string
+    # Mandatory: no
+    # Default: None
+    #
+    labelTransformation: None
+
+resourceDiscovery:
+  # Indication whether or not resource discovery is enabled through the Promitor Resource Discovery agent.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  enabled: false
+  # DNS name or IP address of the Promitor Resource Discovery agent.
+  # Type: string
+  # Mandatory: yes
+  # Default: not set
+  #
+  host: ""
+  # Port (UDP) address of the Promitor Resource Discovery agent.
+  # Type: int
+  # Mandatory: no
+  # Default: 80
+  #
+  port: 80
+
+telemetry:
+  # Defines the default minimum log level that should be logged if a sink does not provide one.
+  # Allowed values are Trace, Debug, Information, Warning, Error, Critical, None ordered from most to least verbose.
+  # Type: string
+  # Mandatory: no
+  # Default: Error
+  #
+  defaultLogLevel: "Error"
+  applicationInsights:
+    # Determines if the sink is used or not.
+    # Type: boolean
+    # Mandatory: no
+    # Default: false
+    #
+    enabled: false
+    # Defines the instrumentation key to use when sending telemetry to Azure Application Insights.
+    # Type: string
+    # Mandatory: no
+    # Default: not set
+    #
+    key: ""
+    # Verbosity to use for this sink, if not specified then the telemetry.defaultLogLevel will be used.
+    # Type: string
+    # Mandatory: no
+    # Default: not set
+    #
+    logLevel: ""
+  containerLogs:
+    # Determines if the sink is used or not.
+    # Type: boolean
+    # Mandatory: no
+    # Default: true
+    #
+    enabled: true
+    # Verbosity to use for this sink, if not specified then the telemetry.defaultLogLevel will be used.
+    # Type: string
+    # Mandatory: no
+    # Default: not set
+    #
+    logLevel: ""
+
+# Metric Declaration YAML
+azureMetadata:
+  # The id of the Azure tenant that will be queried.
+  # Type: string
+  # Mandatory: yes
+  # Default: not set
+  #
+  tenantId: ""
+  # The id of the default subscription to query.
+  # Type: string
+  # Mandatory: yes
+  # Default: not set
+  #
+  subscriptionId: ""
+  # The name of the default resource group to query.
+  # Type: string
+  # Mandatory: yes
+  # Default: not set
+  #
+  resourceGroupName: ""
+  # The name of the Azure cloud to use. Options are Global (default), China, UsGov & Germany.
+  # Type: string
+  # Mandatory: no
+  # Default: Global
+  #
+  cloud: "Global"
+
+metricDefaults:
+  aggregation:
+    # The default interval which defines over what period measurements of a metric should be aggregated.
+    # A cron that fits your needs.
+    # Type: string
+    # Mandatory: no
+    # Default: 00:05:00
+    #
+    interval: 00:05:00
+  scraping:
+    # A cron expression that controls the frequency of
+    # which all the configured metrics will be scraped from Azure Monitor.
+    # You can use crontab-generator.org to generate a cron that fits your needs.
+    # Type: string
+    # Mandatory: no
+    # Default: "*/5 * * * *"
+    #
+    schedule: "*/5 * * * *"
+
+# List of metrics to scrape.
+# Type: list[object]
+# Mandatory: no
+# Ref: https://docs.promitor.io/configuration/v2.x/metrics/
+# Default: []
+#
+metrics: []
+# Sample metric configuration below
+#   - name: demo_queue_size
+#     description: "Amount of active messages of the 'myqueue' queue (determined with ServiceBusQueue provider)"
+#     resourceType: ServiceBusQueue
+#     azureMetricConfiguration:
+#       metricName: ActiveMessages
+#       aggregation:
+#         type: Total
+#         interval: 00:15:00
+#     resources:
+#       - namespace: promitor-messaging
+#         queueName: orders
+
+secrets:
+  # To use your own secret, set createSecret to false and define the name/keys that your secret uses.
+  # Indication if you want to bring your own secret level of logging.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  createSecret: true
+  # Name of the secret for Azure AD identity secret.
+  # Type: string
+  # Mandatory: no
+  # Default: promitor-agent-scraper
+  #
+  secretName: promitor-agent-scraper
+  # Name of the field for Azure AD identity secret in the Secret resource.
+  # Type: string
+  # Mandatory: no
+  # Default: azure-app-key
+  #
+  appKeySecret: azure-app-key
+
+# Service configuration for promitor-agent-scraper
+# Type: object
+# Mandatory: no
+#
+service:
+  # Type of promitor-agent-scraper service.
+  # Type: string
+  # Mandatory: no
+  # Default: ClusterIP
+  #
+  type: ClusterIP
+
+  # Port of promitor-agent-scraper which use in service.
+  # Type: int
+  # Mandatory: no
+  # Default: 8888
+  #
+  port: 8888
+
+  # Target port of promitor-agent-scraper which use in service and container.
+  # Type: int
+  # Mandatory: no
+  # Default: 5000
+  #
+  targetPort: 5000
+
+  # Labels set which will create in service.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  labels: {}
+
+  # That configuration will work only if service.type: LoadBalancer.
+  # These settings are specific to Azure Kubernetes Service.
+  azureLoadBalancer:
+    # Prefix for DNS name to expose the service on using <name>.<location>.cloudapp.azure.com format.
+    # Azure Kubernetes Service only.
+    # Type: string
+    # Mandatory: no
+    # Default: not set
+    #
+    # dnsPrefix:
+    # To restrict access to Promitor by exposing it through an internal load balancer.
+    # This setting is specific to Azure Kubernetes Service.
+    # Type: boolean
+    # Mandatory: no
+    # Default: false
+    #
+    exposeInternally: false
+
+# ServiceAccount setting.
+# Type: object
+# Mandatory: no
+#
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created.
+  # This setting is specific to Azure Kubernetes Service.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  install: true
+
+  # The name of the ServiceAccount to use.
+  # This setting is specific to Azure Kubernetes Service.
+  # Type: string
+  # Mandatory: no
+  # Default: promitor-agent-scraper
+  #
+  name: promitor-agent-scraper
+
+  # Will add the provided map to the annotations for the created serviceAccount.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+
+  # Will add the provided map to the labels for the created serviceAccount.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+
+# Service monitor for pulling metrics.
+# Type: object
+# Mandatory: no
+#
+serviceMonitor:
+  # When set true then use a ServiceMonitor to configure scraping.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  install: true
+
+  # Set how frequently Prometheus should scrape.
+  # Type: string
+  # Mandatory: no
+  # Default: 5m
+  #
+  interval: 5m
+
+  # Set path to cloudwatch-exporter telemtery-path.
+  # Type: string
+  # Mandatory: no
+  # Default: /metrics
+  #
+  telemetryPath: /metrics
+
+  # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator.
+  # Type: map[string]string
+  # Mandatory: no
+  #
+  labels:
+    app.kubernetes.io/component: monitoring
+
+  # Set timeout for scrape
+  # timeout: 10s
+
+  # Set relabelings for the ServiceMonitor, use to apply to samples before scraping
+  # relabelings: []
+
+  # Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion
+  # metricRelabelings: []
+  #
+  # Example - note the Kubernetes convention of camelCase instead of Prometheus' snake_case
+  # metricRelabelings:
+  #   - sourceLabels: [dbinstance_identifier]
+  #     action: replace
+  #     replacement: mydbname
+  #     targetLabel: dbname
+
+# The resources describes the compute resource requests and limits for single Pods.
+# Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+# Type: object
+# Mandatory: no
+#
+resources: {}
+#  limits:
+#    cpu: 200m
+#    memory: 256Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+# SecurityContext holds pod-level security attributes.
+# Type: object
+# Mandatory: no
+#
+securityContext: {}
+  # The UID to run the entrypoint of the container process.
+  # Defaults to user specified in image metadata if unspecified.
+  # Type: integer
+  # Mandatory: no
+  #
+  # runAsUser: 2000
+
+  # A special supplemental group that applies to all containers in a pod.
+  # Some volume types allow the Kubelet to change the ownership of that volume
+  # to be owned by the pod:
+  #   1. The owning GID will be the FSGroup
+  #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+  #   3. The permission bits are OR'd with rw-rw----
+  # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+  # Type: integer
+  # Mandatory: no
+  #
+# fsGroup: 2000
+
+# If specified, the pod's scheduling constraints.
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
+
+# Allow define which Nodes the Pods are scheduled on.
+# Type: map[string]
+# Mandatory: no
+# Default: not set
+#
+nodeSelector: {}
+
+# Tolerations allow the pods to schedule onto nodes with matching taints.
+# Type: object
+# Mandatory: no
+#
+tolerations: []
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"

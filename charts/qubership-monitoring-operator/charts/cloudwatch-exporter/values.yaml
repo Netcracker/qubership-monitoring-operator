@@ -1,0 +1,283 @@
+# Default values for cloudwatch-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# CloudWatch Exporter allow get metrics from AWS CloudWatch and next Prometheus can collect these metrics
+
+# Allow to enable deploy cloudwatch-exporter
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# Replicas spec configuration for cloudwatch-exporter
+# Type: int
+# Mandatory: no
+# Default: 1
+#
+replicas: 1
+
+# Name of cloudwatch-exporter which use in deployment and other objects names
+# Type: string
+# Mandatory: no
+# Default: cloudwatch-exporter
+#
+name: cloudwatch-exporter
+
+# A docker image to use for cloudwatch-exporter deployment
+# image: prom/cloudwatch-exporter:v0.12.2
+
+# Image pull policy to use for cloudwatch-exporter deployment
+imagePullPolicy: IfNotPresent
+
+# Allow override command to run docker container
+# Type: array[string]
+# Mandatory: no
+# Default: no
+#
+# Example proxy configuration:
+# command:
+#   - 'java'
+#   - '-Dhttp.proxyHost=proxy.example.com'
+#   - '-Dhttp.proxyPort=3128'
+#   - '-Dhttps.proxyHost=proxy.example.com'
+#   - '-Dhttps.proxyPort=3128'
+#   - '-jar'
+#   - '/cloudwatch_exporter.jar'
+#   - '9106'
+#   - '/config/config.yml'
+#
+command: []
+
+# Port of cloudwatch-exporter which use in deployment
+# Type: int
+# Mandatory: no
+# Default: 9106
+#
+containerPort: 9106
+
+# Service configuration for cloudwatch-exporter
+# Type: object
+# Mandatory: no
+#
+service:
+  # Type of cloudwatch-exporter service
+  # Type: string
+  # Mandatory: no
+  # Default: ClusterIP
+  #
+  type: ClusterIP
+
+  # Port of cloudwatch-exporter which use in service
+  # Type: int
+  # Mandatory: no
+  # Default: 9106
+  #
+  port: 9106
+
+  # Port name of cloudwatch-exporter which use in service
+  # Type: string
+  # Mandatory: no
+  # Default: http
+  #
+  portName: http
+
+  # Annotations set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  annotations: {}
+
+  # Labels set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  labels: {}
+
+# The resources describes the compute resource requests and limits for single Pods.
+# Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+# Type: object
+# Mandatory: no
+#
+resources: {}
+#  limits:
+#    cpu: 200m
+#    memory: 256Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+aws:
+  # AWS credentials are mounted as file in the default path: /root/.aws/credentials.
+  # AWS key values are not exposed as container environment variables.
+  #
+  # Authentication options:
+  # 1) IRSA / instance profile: keep aws.secret.name, aws_access_key_id,
+  #    aws_secret_access_key unset.
+  # 2) External Secret with INI credentials content:
+  #      aws.secret.name: <secret-name>
+  #      Secret data key must be: credentials
+  # 3) Chart-managed static keys:
+  #      aws_access_key_id / aws_secret_access_key
+  #
+  # To use a non-default credentials path, adjust mount and SDK env path parameters
+  # directly in templates/deployment.yaml.
+  # AWS docs: https://docs.aws.amazon.com/sdkref/latest/guide/file-location.html
+
+  # Reference to a pre-created Kubernetes Secret that stores the credentials file.
+  secret:
+    # Name of the Secret. When set, chart does NOT create its own Secret.
+    # name: my-aws-credentials-secret
+
+    # Backward-compatible flag kept for values compatibility.
+    # For file-based credentials this flag is ignored.
+    includesSessionToken: false
+
+  # Chart-managed static keys (option 3). Do not use together with aws.secret.name.
+  # aws_access_key_id:
+  # aws_secret_access_key:
+
+# ServiceAccount setting
+# Type: object
+# Mandatory: no
+#
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  install: true
+
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: cloudwatch-exporter
+
+  # Will add the provided map to the annotations for the created serviceAccount
+  # e.g.
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::1234567890:role/prom-cloudwatch-exporter-oidc
+  #
+  # annotations:
+
+  # Specifies whether to automount API credentials for the ServiceAccount.
+  automountServiceAccountToken: true
+
+# Allow disable ClusterRole and ClusterRoleBinding.
+# Type: object
+# Mandatory: no
+#
+rbac:
+  # Allow creating ClusterRole. If set to `false`, ClusterRole must be created manually.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  createClusterRole: true
+
+  # Allow creating ClusterRoleBinding. If set to `false`, ClusterRoleBinding must be created manually.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  createClusterRoleBinding: true
+
+# Configuration is rendered with `tpl` function, therefore you can use any Helm variables and/or templates here
+# Type: string
+# Mandatory: no
+# Default: empty
+config: |-
+  # This is the default configuration for prometheus-cloudwatch-exporter
+  region: us-east-1
+  period_seconds: 240
+  metrics: []
+
+# Allow define which Nodes the Pods are scheduled on.
+# Type: map[string]
+# Mandatory: no
+# Default: not set
+#
+nodeSelector: {}
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# Tolerations allow the pods to schedule onto nodes with matching taints.
+# Type: object
+# Mandatory: no
+#
+tolerations: []
+
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
+
+# Service monitor for pulling metrics
+# Type: object
+# Mandatory: no
+#
+serviceMonitor:
+  # When set true then use a ServiceMonitor to configure scraping
+  install: true
+
+  # Set how frequently Prometheus should scrape
+  interval: 5m
+
+  # Set path to cloudwatch-exporter telemtery-path
+  telemetryPath: /metrics
+
+  # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
+  labels:
+    app.kubernetes.io/component: monitoring
+
+  # Set timeout for scrape
+  # timeout: 10s
+
+  # Set relabelings for the ServiceMonitor, use to apply to samples before scraping
+  # relabelings: []
+
+  # Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion
+  # metricRelabelings: []
+  #
+  # Example - note the Kubernetes convention of camelCase instead of Prometheus' snake_case
+  # metricRelabelings:
+  #   - sourceLabels: [dbinstance_identifier]
+  #     action: replace
+  #     replacement: mydbname
+  #     targetLabel: dbname
+
+# SecurityContext holds pod-level security attributes.
+# The parameters are required if a Pod Security Policy is enabled
+#  for Kubernetes cluster and required if a Security Context Constraints is enabled
+# for Openshift cluster.
+# Type: object
+# Mandatory: no
+#
+#securityContext:
+#  runAsUser: 65534  # run as nobody user instead of root
+#  fsGroup: 65534  # necessary to be able to read the EKS IAM token
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"

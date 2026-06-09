@@ -1,0 +1,140 @@
+{{- if .Values.integrationTests.install }}
+{{- $intTestsRole := printf "%s-int-tests" .Values.integrationTests.name -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $intTestsRole }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $intTestsRole "component" "platform-monitoring-tests") | nindent 4 }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+      - configmaps
+      - configmap
+      - secrets
+      - serviceaccounts
+    verbs:
+      - '*'
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+    verbs:
+      - '*'
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+    verbs:
+      - 'patch'
+      - 'create'
+      - 'list'
+      - 'update'
+      - 'get'
+      - 'delete'
+      - 'watch'
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - pods/status
+    verbs:
+      - get
+  - apiGroups:
+      - monitoring.netcracker.com
+    resources:
+      - platformmonitorings
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+      - grafanadashboards/status
+      - grafanas
+      - grafanas/status
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - monitoring.netcracker.com
+      - autoscaling
+      - pods/prometheus_example_app_load
+    resources:
+      - customscalemetricrules
+      - horizontalpodautoscalers
+    verbs:
+      - get
+      - create
+      - list
+      - patch
+      - update
+      - delete
+      - watch
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers/status
+    verbs:
+      - list
+      - get
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - create
+  - apiGroups:
+      - ''
+    resources:
+      - pods/log
+    verbs:
+      - get
+{{- end }}

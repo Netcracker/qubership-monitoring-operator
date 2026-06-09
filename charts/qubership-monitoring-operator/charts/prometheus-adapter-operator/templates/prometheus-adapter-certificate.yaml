@@ -1,0 +1,32 @@
+{{- if and .Values.install .Values.operator.tlsEnabled }}
+{{- if not (and .Values.operator.tlsConfig.caSecret .Values.operator.tlsConfig.certSecret .Values.operator.tlsConfig.keySecret) }}
+{{- if and (not .Values.operator.tlsConfig.existingSecret) .Values.operator.tlsConfig.generateCerts .Values.operator.tlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: prometheus-adapter-client-tls-certificate
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "prometheus-adapter-client-tls-certificate") | nindent 4 }}
+spec:
+  secretName: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.operator.tlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.operator.tlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: prometheus-adapter-client-tls-certificate-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - prometheus-adapter.{{ .Release.Namespace }}.svc
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.operator.tlsConfig.generateCerts.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}
+{{- end }}

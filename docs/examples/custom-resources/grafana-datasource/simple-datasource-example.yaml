@@ -1,0 +1,19 @@
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDataSource
+metadata:
+  name: simple-datasource-example
+  labels:
+    app.kubernetes.io/component: monitoring   # Mandatory label
+spec:
+  name: simple-datasource-example.yaml
+  datasources:
+  - access: proxy
+    editable: true
+    isDefault: true
+    jsonData:
+      timeInterval: 5s
+      tlsSkipVerify: true
+    name: Prometheus
+    type: prometheus
+    url: 'http://prometheus-operated:9090'
+    version: 1

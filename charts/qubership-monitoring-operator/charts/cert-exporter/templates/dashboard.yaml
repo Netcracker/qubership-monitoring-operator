@@ -1,0 +1,1593 @@
+{{- if and .Values.install .Values.setupGrafanaDashboard }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  json: >
+    {
+      "annotations": {
+        "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+        ]
+      },
+      "description": "Shows certificate expiration dates",
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": 19,
+      "iteration": 1632232575227,
+      "links": [],
+      "panels": [
+{{- if and .Values.certsInFiles .Values.certsInFiles.enabled }}
+      {
+        "collapsed": false,
+        "datasource": null,
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 22,
+        "panels": [],
+        "title": "Certificates from files",
+        "type": "row"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total Unique Certificates from Files",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "rgb(255, 255, 255)",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "rgb(255, 255, 255)",
+                "value": null
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 1
+        },
+        "id": 12,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(cert_exporter_cert_not_after_timestamp{nodename=~\"$nodename\", cluster=~\"$cluster\"}) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Total Unique Certificates from Files",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Detailed information about certificates from files",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "auto"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+              ]
+            }
+          },
+          "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expires In"
+            },
+            "properties": [
+            {
+              "id": "unit",
+              "value": "s"
+            },
+            {
+              "id": "decimals",
+              "value": 1
+            },
+            {
+              "id": "thresholds",
+              "value": {
+                "mode": "absolute",
+                "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 2592000
+                }
+                ]
+              }
+            },
+            {
+              "id": "custom.displayMode",
+              "value": "color-background"
+            },
+            {
+              "id": "custom.width",
+              "value": 150
+            }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expiration Date"
+            },
+            "properties": [
+            {
+              "id": "unit",
+              "value": "dateTimeAsIso"
+            }
+            ]
+          }
+          ]
+        },
+        "gridPos": {
+          "h": 18,
+          "w": 20,
+          "x": 4,
+          "y": 1
+        },
+        "id": 2,
+        "interval": "",
+        "links": [],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Expires In"
+          }
+          ]
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "cert_exporter_cert_expires_in_seconds{nodename=~\"$nodename\", cluster=~\"$cluster\"}",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "cert_exporter_cert_not_after_timestamp{nodename=~\"$nodename\", cluster=~\"$cluster\"} * 1000",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Certificates from Files",
+        "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "cn",
+                "filename",
+                "issuer",
+                "nodename",
+                "Value #A",
+                "Value #B"
+              ]
+            }
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "Value #A": 5,
+              "Value #B": 4,
+              "cn": 1,
+              "filename": 0,
+              "issuer": 2,
+              "nodename": 3
+            },
+            "renameByName": {
+              "Value #A": "Expires In",
+              "Value #B": "Expiration Date",
+              "cn": "CN",
+              "filename": "Filename",
+              "issuer": "Issuer",
+              "nodename": "Node"
+            }
+          }
+        }
+        ],
+        "type": "table"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total count of certificates from files that expire within 30 days",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "green",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 7
+        },
+        "id": 10,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(0 < cert_exporter_cert_expires_in_seconds{nodename=~\"$nodename\", cluster=~\"$cluster\"} <= 86400 * 30) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Expiring Soon (Files)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total count of certificates from files that already expired",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "green",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 13
+        },
+        "id": 19,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(cert_exporter_cert_expires_in_seconds{nodename=~\"$nodename\", cluster=~\"$cluster\"} <= 0) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Expired (Files)",
+        "transparent": true,
+        "type": "stat"
+      },
+{{- end }}
+{{- if and .Values.certsInKubeconfig .Values.certsInKubeconfig.enabled }}
+      {
+        "collapsed": false,
+        "datasource": null,
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 19
+        },
+        "id": 28,
+        "panels": [],
+        "title": "Certificates from kubeconfig",
+        "type": "row"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total Unique Certificates from Kubeconfig files",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "rgb(255, 255, 255)",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "rgb(255, 255, 255)",
+                "value": null
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 20
+        },
+        "id": 29,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(min(cert_exporter_kubeconfig_not_after_timestamp{nodename=~\"$nodename\", cluster=~\"$cluster\"}) without (instance,pod)) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Total Unique Certificates from Kubeconfig",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Detailed information about certificates from kubeconfig files",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "auto"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+              ]
+            }
+          },
+          "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expires In"
+            },
+            "properties": [
+            {
+              "id": "unit",
+              "value": "s"
+            },
+            {
+              "id": "decimals",
+              "value": 1
+            },
+            {
+              "id": "thresholds",
+              "value": {
+                "mode": "absolute",
+                "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 2592000
+                }
+                ]
+              }
+            },
+            {
+              "id": "custom.displayMode",
+              "value": "color-background"
+            },
+            {
+              "id": "custom.width",
+              "value": 150
+            }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expiration Date"
+            },
+            "properties": [
+            {
+              "id": "unit",
+              "value": "dateTimeAsIso"
+            }
+            ]
+          }
+          ]
+        },
+        "gridPos": {
+          "h": 18,
+          "w": 20,
+          "x": 4,
+          "y": 20
+        },
+        "id": 32,
+        "interval": "",
+        "links": [],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Expires In"
+          }
+          ]
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "cert_exporter_kubeconfig_expires_in_seconds{nodename=~\"$nodename\", cluster=~\"$cluster\"}",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "cert_exporter_kubeconfig_not_after_timestamp{nodename=~\"$nodename\", cluster=~\"$cluster\"} * 1000",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Certificates from Kubeconfig",
+        "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "cn",
+                "filename",
+                "issuer",
+                "nodename",
+                "Value #A",
+                "Value #B",
+                "name",
+                "type"
+              ]
+            }
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "Value #A": 7,
+              "Value #B": 6,
+              "cn": 2,
+              "filename": 0,
+              "issuer": 3,
+              "name": 1,
+              "nodename": 5,
+              "type": 4
+            },
+            "renameByName": {
+              "Value #A": "Expires In",
+              "Value #B": "Expiration Date",
+              "cn": "CN",
+              "filename": "Filename",
+              "issuer": "Issuer",
+              "name": "Name",
+              "nodename": "Node",
+              "type": "Type"
+            }
+          }
+        }
+        ],
+        "type": "table"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total count of certificates from kubeconfig that expire within 30 days",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "green",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 26
+        },
+        "id": 30,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(min(0 < cert_exporter_kubeconfig_expires_in_seconds{nodename=~\"$nodename\", cluster=~\"$cluster\"} <= 86400 * 30) without (instance,pod)) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Expiring Soon (Kubeconfig)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total count of certificates from kubeconfig that already expired",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "green",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 32
+        },
+        "id": 31,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(min(cert_exporter_kubeconfig_expires_in_seconds{nodename=~\"$nodename\", cluster=~\"$cluster\"} <= 0) without (instance,pod)) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Expired (Kubeconfig)",
+        "transparent": true,
+        "type": "stat"
+      },
+{{- end }}
+{{- if and .Values.certsInSecrets .Values.certsInSecrets.enabled }}
+      {
+        "collapsed": false,
+        "datasource": null,
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 38
+        },
+        "id": 24,
+        "panels": [],
+        "title": "Certificates from secrets",
+        "type": "row"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total Unique Certificates from Secrets",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "rgb(255, 255, 255)",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "rgb(255, 255, 255)",
+                "value": null
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 39
+        },
+        "id": 9,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(min(cert_exporter_secret_not_after_timestamp{secret_namespace=~\"$secret_namespace\", cluster=~\"$cluster\"}) without (instance,pod)) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Total Unique Certificates from Secrets",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Detailed information about certificates from secrets",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "auto"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+              ]
+            }
+          },
+          "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expires In"
+            },
+            "properties": [
+            {
+              "id": "custom.width",
+              "value": 150
+            },
+            {
+              "id": "unit",
+              "value": "s"
+            },
+            {
+              "id": "decimals",
+              "value": 1
+            },
+            {
+              "id": "thresholds",
+              "value": {
+                "mode": "absolute",
+                "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 2592000
+                }
+                ]
+              }
+            },
+            {
+              "id": "custom.displayMode",
+              "value": "color-background"
+            }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expiration Date"
+            },
+            "properties": [
+            {
+              "id": "unit",
+              "value": "dateTimeAsIso"
+            }
+            ]
+          }
+          ]
+        },
+        "gridPos": {
+          "h": 18,
+          "w": 20,
+          "x": 4,
+          "y": 39
+        },
+        "id": 16,
+        "interval": "",
+        "links": [],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Expires In"
+          }
+          ]
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "min(cert_exporter_secret_expires_in_seconds{secret_namespace=~\"$secret_namespace\", cluster=~\"$cluster\"}) without (instance,pod)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "min(cert_exporter_secret_not_after_timestamp{secret_namespace=~\"$secret_namespace\", cluster=~\"$cluster\"}) without (instance,pod) * 1000",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Certificates from Secrets",
+        "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "cn",
+                "issuer",
+                "key_name",
+                "secret_namespace",
+                "Value #A",
+                "Value #B",
+                "secret_name"
+              ]
+            }
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "Value #A": 6,
+              "Value #B": 5,
+              "cn": 2,
+              "issuer": 3,
+              "key_name": 1,
+              "secret_name": 0,
+              "secret_namespace": 4
+            },
+            "renameByName": {
+              "Value #A": "Expires In",
+              "Value #B": "Expiration Date",
+              "cn": "CN",
+              "issuer": "Issuer",
+              "key_name": "Key",
+              "secret_name": "Secret Name",
+              "secret_namespace": "Namespace"
+            }
+          }
+        }
+        ],
+        "type": "table"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total count of certificates from secrets that expire within 30 days",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "green",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 45
+        },
+        "id": 18,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(min(0 < cert_exporter_secret_expires_in_seconds{secret_namespace=~\"$secret_namespace\", cluster=~\"$cluster\"} <= 86400 * 30) without (instance,pod)) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Expiring Soon (Secrets)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "cacheTimeout": null,
+        "datasource": "$datasource",
+        "description": "Total count of certificates from secrets that already expired",
+        "fieldConfig": {
+          "defaults": {
+            "decimals": 0,
+            "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "green",
+                  "text": "0"
+                }
+              },
+              "type": "special"
+            }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 4,
+          "x": 0,
+          "y": 51
+        },
+        "id": 20,
+        "interval": null,
+        "links": [],
+        "maxDataPoints": 100,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "pluginVersion": "8.1.1",
+        "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(min(cert_exporter_secret_expires_in_seconds{secret_namespace=~\"$secret_namespace\", cluster=~\"$cluster\"} <= 0) without (instance,pod)) OR on() vector(0)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Expired (Secrets)",
+        "transparent": true,
+        "type": "stat"
+      },
+{{- end }}
+      {
+        "collapsed": true,
+        "datasource": null,
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 57
+        },
+        "id": 26,
+        "panels": [
+        {
+          "datasource": "$datasource",
+          "description": "Errors that occurred during the exporter's work in the last 1 hour. See pod logs for details.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": null,
+                "displayMode": "auto"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+                ]
+              }
+            },
+            "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Errors"
+              },
+              "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+              ]
+            }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 58
+          },
+          "id": 6,
+          "interval": "",
+          "options": {
+            "showHeader": true
+          },
+          "pluginVersion": "8.1.1",
+          "targets": [
+          {
+            "exemplar": true,
+            "expr": "increase(cert_exporter_error_total{cluster=~\"$cluster\"}[1h])",
+            "format": "table",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+          }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Errors[1h]",
+          "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true
+              },
+              "indexByName": {
+                "Time": 7,
+                "Value": 6,
+                "endpoint": 2,
+                "instance": 1,
+                "job": 3,
+                "namespace": 4,
+                "pod": 0,
+                "service": 5
+              },
+              "renameByName": {
+                "Value": "Errors",
+                "endpoint": "Endpoint",
+                "instance": "Instance",
+                "job": "Job",
+                "namespace": "Namespace",
+                "pod": "Pod",
+                "service": "Service"
+              }
+            }
+          }
+          ],
+          "transparent": true,
+          "type": "table"
+        }
+        ],
+        "title": "Exporter errors",
+        "type": "row"
+      }
+      ],
+      "refresh": "1h",
+      "schemaVersion": 30,
+      "style": "dark",
+      "tags": [
+        "k8s",
+        "certificates"
+      ],
+      "templating": {
+        "list": [
+        {
+          "current": {
+            "selected": true,
+            "text": "default",
+            "value": "default"
+          },
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": false,
+          "label": null,
+          "multi": false,
+          "name": "datasource",
+          "options": [],
+          "query": "prometheus",
+          "queryValue": "",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "type": "datasource"
+        },
+        {
+          "allValue": null,
+          "current": {
+            "selected": true,
+            "text": "k8s-1",
+            "value": "k8s-1"
+          },
+          "datasource": "${datasource}",
+          "definition": "label_values(up, cluster)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": false,
+          "label": null,
+          "multi": false,
+          "name": "cluster",
+          "options": [],
+          "query": {
+            "query": "label_values(up, cluster)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "allValue": null,
+          "current": {
+            "selected": true,
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "datasource": "$datasource",
+          "definition": "label_values(cert_exporter_cert_not_after_timestamp{job=\"cert-exporter\",cluster=~\"$cluster\"}, nodename)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": true,
+          "label": "node",
+          "multi": true,
+          "name": "nodename",
+          "options": [],
+          "query": {
+            "query": "label_values(cert_exporter_cert_not_after_timestamp{job=\"cert-exporter\",cluster=~\"$cluster\"}, nodename)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "tagValuesQuery": "",
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        },
+        {
+          "allValue": null,
+          "current": {
+            "selected": true,
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "datasource": "$datasource",
+          "definition": "label_values(cert_exporter_secret_not_after_timestamp{job=\"cert-exporter\",cluster=~\"$cluster\"}, secret_namespace)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": true,
+          "label": "namespace",
+          "multi": true,
+          "name": "secret_namespace",
+          "options": [],
+          "query": {
+            "query": "label_values(cert_exporter_secret_not_after_timestamp{job=\"cert-exporter\",cluster=~\"$cluster\"}, secret_namespace)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "tagValuesQuery": "",
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        }
+        ]
+      },
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "10s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ],
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ]
+      },
+      "timezone": "browser",
+      "title": "SSL/TLS Certificates",
+      "uid": "{{ printf `%.40s` ( printf `%s-%s` .Release.Namespace `ssl-tls-certs` ) }}",
+      "version": 1
+    }
+{{- end}}

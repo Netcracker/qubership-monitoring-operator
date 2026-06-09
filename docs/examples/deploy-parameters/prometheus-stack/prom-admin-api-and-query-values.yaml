@@ -1,0 +1,10 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+prometheus:
+  enableAdminAPI: true
+  query:
+    lookbackDelta: 2m
+    maxConcurrency: 10
+    maxSamples: 200
+    timeout: 30s

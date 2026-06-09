@@ -1,0 +1,22 @@
+{{- if .Values.monitoringOperator.pprof.install }}
+{{- $pprofServiceName := include "monitoring.name" . -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ $pprofServiceName }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $pprofServiceName) | nindent 4 }}
+  {{- if .Values.monitoringOperator.pprof.service.annotations }}
+  annotations:
+    {{ toYaml .Values.monitoringOperator.pprof.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.monitoringOperator.pprof.service.type }}
+  ports:
+    - name: {{ .Values.monitoringOperator.pprof.service.portName }}
+      port: {{ .Values.monitoringOperator.pprof.service.port }}
+      targetPort: {{ .Values.monitoringOperator.pprof.containerPort }}
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ $pprofServiceName }}
+{{- end }}

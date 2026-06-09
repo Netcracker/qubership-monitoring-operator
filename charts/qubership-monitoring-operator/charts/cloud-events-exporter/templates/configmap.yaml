@@ -1,0 +1,17 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+{{- if .Values.filtering }}
+  filtering.yaml: |-
+    sinks:
+      - name: "metrics"
+        {{- toYaml .Values.filtering | nindent 8 }}
+{{- else }}
+  filtering.yaml: ""
+{{- end }}
+{{- end }}

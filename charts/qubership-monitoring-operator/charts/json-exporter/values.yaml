@@ -1,0 +1,234 @@
+# Default values for json-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Allow to enable deploy json-exporter
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# A name of a microservice to deploy with.
+# This name will be used as name of the microservice deployment and in labels.
+name: json-exporter
+
+# A Docker image to deploy the json-exporter.
+# image: prometheuscommunity/json_exporter:v0.5.0
+
+# Image pull policy to use for json-exporter deployment
+imagePullPolicy: IfNotPresent
+
+## Reference to one or more secrets to be used when pulling images
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+
+# Type: integer
+# Mandatory: no
+# Default: 7979
+containerPort: 7979
+
+# Number of created pods.
+# Type: integer
+# Mandatory: no
+# Default: 1
+replicaCount: 1
+
+# Service account for monitoring-operator to use.
+# Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+# Type: object
+serviceAccount:
+  # Specifies whether a service account should be created
+  install: true
+
+  # Annotations to add to the service account
+  annotations: {}
+
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# SecurityContext holds pod-level security attributes.
+# The parameters are required if a Pod Security Policy is enabled
+# for Kubernetes cluster and required if a Security Context Constraints is enabled
+# for Openshift cluster.
+# Type: object
+# Mandatory: no
+securityContext: {}
+  # fsGroup: 2000
+  # podLabels:
+  # Custom labels for the pod
+
+# Security Context for a container.
+# Type: object
+# Mandatory: no
+containerSecurityContext: {}
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+
+# Service configuration for json-exporter
+# Type: object
+# Mandatory: no
+service:
+  # Type of json-exporter service
+  # Type: string
+  # Mandatory: no
+  # Default: ClusterIP
+  type: ClusterIP
+
+  # Port of json-exporter which use in service
+  # Type: int
+  # Mandatory: no
+  # Default: 7979
+  port: 7979
+
+  # Port name of json-exporter which use in service
+  # Type: string
+  # Mandatory: no
+  # Default: http
+  name: http
+
+  # Labels set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  labels: {}
+
+# ServiceMonitor for scraping exporter self-metrics (`/metrics`). For `/probe` targets use Prometheus Operator `Probe` CRs, not this chart.
+# Type: object
+# Mandatory: no
+serviceMonitor:
+  ## If true, the self-metrics ServiceMonitor CR is created
+  enabled: true
+  scheme: http
+
+  # Defaults for the self ServiceMonitor scrape settings
+  defaults:
+    additionalMetricsRelabels: {}
+    interval: 30s
+    labels: {}
+    scrapeTimeout: 30s
+
+# The resources describe the computed resource requests and limits for single Pods.
+# Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+# Type: object
+# Mandatory: no
+resources: {}
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+
+# Allow defines which Nodes the Pods are scheduled on.
+# Type: map[string]
+# Mandatory: no
+# Default: not set
+nodeSelector: []
+
+# Tolerations allow the pods to schedule onto nodes with matching taints.
+# Type: object
+# Mandatory: no
+tolerations: []
+
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+affinity: []
+
+# Configuration of json-exporter modules.
+# Ref: https://github.com/prometheus-community/json_exporter/tree/master/examples
+# Type: string
+# Mandatory: yes
+config: {}
+#    modules:
+#      default:
+#        metrics:
+#          - name: example_global_value
+#            path: "{ .counter }"
+#            help: Example of a top-level global value scrape in the json
+#            labels:
+#              environment: beta # static label
+#              location: "planet-{.location}"          # dynamic label
+#
+#          - name: example_value
+#            type: object
+#            help: Example of sub-level value scrapes from a json
+#            path: '{.values[?(@.state == "ACTIVE")]}'
+#            labels:
+#              environment: beta # static label
+#              id: '{.id}'          # dynamic label
+#            values:
+#              active: 1      # static value
+#              count: '{.count}' # dynamic value
+#              boolean: '{.some_boolean}'
+#
+#        headers:
+#          X-Dummy: my-test-header
+#
+# If 'body' is set, it will be sent by the exporter as the body content in the scrape request. The HTTP method will also be set as 'POST' in this case.
+#        body:
+#          content: |
+#            {"time_diff": "1m25s", "anotherVar": "some value"}
+#
+# The body content can also be a Go Template (https://golang.org/pkg/text/template), with all the functions from the Sprig library (https://masterminds.github.io/sprig/) available. All the query parameters sent by prometheus in the scrape query to the exporter, are available in the template.
+#        body:
+#          content: |
+#            {"time_diff": "{{ duration `95` }}","anotherVar": "{{ .myVal | first }}"}
+#          templatize: true
+#
+# For full http client config parameters, ref: https://pkg.go.dev/github.com/prometheus/common/config?tab=doc#HTTPClientConfig
+# 
+#        http_client_config:
+#          tls_config:
+#            insecure_skip_verify: true
+#          basic_auth:
+#            username: myuser
+#            #password: veryverysecret
+#            password_file: /tmp/mysecret.txt
+
+additionalVolumes: []
+# - name: password-file
+#   secret:
+#     secretName: secret-name
+
+additionalVolumeMounts: []
+# - name: password-file
+#   mountPath: "/tmp/mysecret.txt"
+#   subPath: mysecret.txt
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"

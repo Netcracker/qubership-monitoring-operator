@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: core-dns-service-monitor
+  labels:
+    k8s-app: core-dns-service-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  endpoints:
+    - interval: 30s
+      scrapeTimeout: 10s
+      metricRelabelings: []
+      relabelings:
+        - action: replace
+          regex: (.*)
+          replacement: $1
+          sourceLabels: ['__meta_kubernetes_pod_node_name']
+          targetLabel: node
+      port: metrics
+      path: /metrics
+      scheme: https
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tlsConfig:
+        insecureSkipVerify: true
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+      - openshift-dns
+  selector:
+    matchLabels:
+      dns.operator.openshift.io/owning-dns: default

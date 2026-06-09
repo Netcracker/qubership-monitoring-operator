@@ -1,0 +1,31 @@
+{{- if .Values.tlsEnabled }}
+{{- if and (not .Values.vmCluster.vmInsertTlsConfig.existingSecret) .Values.vmCluster.vmInsertTlsConfig.generateCerts .Values.vmCluster.vmInsertTlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vminsert-tls-certificate
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "vminsert-tls-certificate" "component" "vmInsert") | nindent 4 }}
+spec:
+  secretName: {{ default "vminsert-tls-secret" .Values.vmCluster.vmInsertTlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.vmCluster.vmInsertTlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.vmCluster.vmInsertTlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: vminsert-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - vminsert-k8s
+    - vminsert-k8s.{{ .Release.Namespace }}.svc
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

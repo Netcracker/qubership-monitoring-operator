@@ -1,0 +1,283 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'coredns_panics_total'
+    values: "1+1x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: CoreDnsAlerts
+    alertname: CorednsPanicCount
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "CoreDNS Panic Count (instance )"
+        description: "Number of CoreDNS panics encountered\n  VALUE = 1\n  LABELS = map[alertgroup:CoreDnsAlerts alertname:CorednsPanicCount severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_panics_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 5m
+    groupname: CoreDnsAlerts
+    alertname: CorednsPanicCount
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="1"}'
+    values: "0+1x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="2"}'
+    values: "0+2x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="3"}'
+    values: "0+3x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="5"}'
+    values: "0+100x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSLatencyHigh
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "CoreDNS have High Latency"
+        description: "CoreDNS has 99th percentile latency of 5 seconds for server  zone "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.2"}'
+    values: "0+2x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+3x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="0.5"}'
+    values: "0+100x1440"
+  - series: 'coredns_dns_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+101x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSLatencyHigh
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "1+240x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckFailureCount
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "CoreDNS health checks have failed to upstream server"
+        description: "CoreDNS health checks have failed to upstream server "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckFailureCount
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "1+240x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckBrokenCount
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+
+      exp_annotations:
+        summary: "CoreDNS health checks have failed for all upstream servers"
+        description: "CoreDNS health checks failed for all upstream servers LABELS = map[alertgroup:CoreDnsAlerts alertname:CoreDNSForwardHealthcheckBrokenCount severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_healthcheck_broken_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardHealthcheckBrokenCount
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="1"}'
+    values: "0+1x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="2"}'
+    values: "0+2x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="3"}'
+    values: "0+3x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="5"}'
+    values: "0+100x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+1000x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardLatencyHigh
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+
+      exp_annotations:
+        summary: "CoreDNS has 99th percentile latency for forwarding requests"
+        description: "CoreDNS has 99th percentile latency of 5 seconds forwarding requests to "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.1"}'
+    values: "0+1x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.2"}'
+    values: "0+2x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.3"}'
+    values: "0+3x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="0.5"}'
+    values: "0+100x1440"
+  - series: 'coredns_forward_request_duration_seconds_bucket{le="+Inf"}'
+    values: "0+101x1440"
+  alert_rule_test:
+  - eval_time: 30m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardLatencyHigh
+    exp_alerts: []
+
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "1200+1200x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsHighCritical
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL"
+        description: "CoreDNS is returning SERVFAIL for 3.846% of requests"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsHighCritical
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "400+400x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsHighWarning
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL"
+        description: "CoreDNS is returning SERVFAIL for 1.316% of requests"
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSErrorsHighWarning
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_responses_total{rcode="SERVFAIL"}'
+    values: "1200+1200x1440"
+  - series: 'coredns_forward_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsHighCritical
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL for forward requests"
+        description: "CoreDNS is returning SERVFAIL for 3.846% of forward requests to "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsHighCritical
+    exp_alerts: []
+
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_forward_responses_total{rcode="SERVFAIL"}'
+    values: "400+400x1440"
+  - series: 'coredns_forward_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsHighWarning
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "CoreDNS is returning SERVFAIL for forward requests"
+        description: "CoreDNS is returning SERVFAIL for 1.316% of forward requests to "
+
+- interval: 1m
+  input_series:
+  - series: 'coredns_dns_responses_total{rcode="SERVFAIL"}'
+    values: "0x1440"
+  - series: 'coredns_dns_responses_total'
+    values: "30000+30000x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: CoreDnsAlerts
+    alertname: CoreDNSForwardErrorsHighWarning
+    exp_alerts: []

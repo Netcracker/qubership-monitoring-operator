@@ -1,0 +1,52 @@
+# vmcluster.yaml
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMCluster
+metadata:
+  labels:
+    name: vmcluster
+    app.kubernetes.io/name: vmcluster
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: k8s
+spec:
+  retentionPeriod: "1"
+  replicationFactor: 2
+  vmstorage:
+    replicaCount: 2
+    storageDataPath: "/vm-data"
+    storage:
+      volumeClaimTemplate:
+        spec:
+          resources:
+            requests:
+              storage: "10Gi"
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+  vmselect:
+    replicaCount: 2
+    cacheMountPath: "/select-cache"
+    storage:
+      volumeClaimTemplate:
+        spec:
+          resources:
+            requests:
+              storage: "1Gi"
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+      requests:
+        cpu: "0.5"
+        memory: "500Mi"
+  vminsert:
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+      requests:
+        cpu: "0.5"
+        memory: "500Mi"

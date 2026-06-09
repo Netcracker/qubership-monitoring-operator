@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: blackbox-ingress-probe
+  labels:
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  jobName: http-get
+  interval: 30s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+    scheme: http
+    path: /probe
+  targets:
+    ingress:
+      selector:
+        matchLabels:
+          name: monitoring-vmauth-k8s
+      namespaceSelector:
+        matchNames:
+          - monitoring

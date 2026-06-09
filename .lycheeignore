@@ -1,0 +1,6 @@
+http://victoria-metrics-single:8429/api/v1/write
+(..)?/?images/prometheus_cpu_usage_[35]0s.png
+(/?docs/)?sources/draw.io
+(/?docs/)?sources/plantuml
+hardware-sizing.md
+https://valyala.medium.com/how-to-optimize-promql-and-metricsql-queries-85a1b75bf986

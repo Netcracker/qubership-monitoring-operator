@@ -1,0 +1,54 @@
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDataSource
+metadata:
+  name: full-datasource-example
+  labels:
+    app.kubernetes.io/component: monitoring   # Mandatory label
+spec:
+  name: full-datasource-example.yaml
+  datasources:
+  # <string, required> name of the datasource. Required
+  - name: Graphite
+    # <string, required> datasource type. Required
+    type: graphite
+    # <string, required> access mode. proxy or direct (Server or Browser in the UI). Required
+    access: proxy
+    # <int> org id. will default to orgId 1 if not specified
+    orgId: 1
+    # <string> custom UID which can be used to reference this datasource in other parts of the configuration, if not specified will be generated automatically
+    uid: my_unique_uid
+    # <string> url
+    url: http://localhost:8080
+    # <string> Deprecated, use secureJsonData.password
+    password:
+    # <string> database user, if used
+    user:
+    # <string> database name, if used
+    database:
+    # <bool> enable/disable basic auth
+    basicAuth:
+    # <string> basic auth username
+    basicAuthUser:
+    # <string> Deprecated, use secureJsonData.basicAuthPassword
+    basicAuthPassword:
+    # <bool> enable/disable with credentials headers
+    withCredentials:
+    # <bool> mark as default datasource. Max one per org
+    isDefault:
+    # <map> fields that will be converted to json and stored in jsonData
+    jsonData:
+      graphiteVersion: '1.1'
+      tlsAuth: true
+      tlsAuthWithCACert: true
+    # <string> json object of data that will be encrypted.
+    secureJsonData:
+      tlsCACert: '...'
+      tlsClientCert: '...'
+      tlsClientKey: '...'
+      # <string> database password, if used
+      password:
+      # <string> basic auth password
+      basicAuthPassword:
+    version: 1
+    # <bool> allow users to edit datasources from the UI.
+    editable: false

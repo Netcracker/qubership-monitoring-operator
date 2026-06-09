@@ -1,0 +1,116 @@
+apiVersion: v2
+name: qubership-monitoring-operator
+description: A Helm chart for monitoring-operator
+
+# A chart can be either an 'application' or a 'library' chart.
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+version: 1.4.28
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application.
+appVersion: 0.88.0
+
+# ~0 is equivalent to >= 0, < 1 (i.e. >=0.x.x and < 1.x.x, where x may have any number)
+# Details https://github.com/Masterminds/semver#checking-version-constraints
+dependencies:
+  # Grafana
+  - name: grafana
+    # Enable the subchart when either the Grafana instance or only the Grafana Operator is enabled.
+    # This preserves backward compatibility and adds a new "operator-only" scenario
+    # controlled via grafana.operator.install.
+    condition: grafana.install, grafana.operator.install
+    version: ~0
+    repository: "file://charts/grafana-operator"
+
+  # Prometheus stack
+  - name: prometheus
+    condition: prometheus.install
+    version: ~0
+    repository: "file://charts/prometheus-operator"
+
+  # VictoriaMetrics stack
+  - name: victoriametrics
+    condition: victoriametrics.vmOperator.install
+    version: ~0
+    repository: "file://charts/victoriametrics-operator"
+
+  # Autoscaling / HPA support
+  - name: prometheusAdapter
+    condition: prometheusAdapter.install
+    version: ~0
+    repository: "file://charts/prometheus-adapter-operator"
+
+  # Promxy (to use one backend link for some servers)
+  - name: promxy
+    condition: promxy.install
+    version: ~0
+    repository: "file://charts/promxy"
+
+  # Common Dashboards
+  - name: commonDashboards
+    condition: commonDashboards.install
+    version: ~0
+    repository: "file://charts/common-dashboards"
+
+  # Integration tools
+  - name: graphite_remote_adapter
+    condition: graphite_remote_adapter.install
+    version: ~0
+    repository: "file://charts/graphite-remote-adapter"
+
+  # Exporters
+  - name: blackboxExporter
+    condition: blackboxExporter.install
+    version: ~0
+    repository: "file://charts/blackbox-exporter"
+  - name: certExporter
+    condition: certExporter.install
+    version: ~0
+    repository: "file://charts/cert-exporter"
+  - name: jsonExporter
+    condition: jsonExporter.install
+    version: ~0
+    repository: "file://charts/json-exporter"
+  - name: networkLatencyExporter
+    condition: networkLatencyExporter.install
+    version: ~0
+    repository: "file://charts/network-latency-exporter"
+  - name: versionExporter
+    condition: versionExporter.install
+    version: ~0
+    repository: "file://charts/version-exporter"
+  - name: cloudEventsExporter
+    condition: cloudEventsExporter.install
+    version: ~0
+    repository: "file://charts/cloud-events-exporter"
+  - name: goldpingerExporter
+    condition: goldpingerExporter.install
+    version: ~0
+    repository: "file://charts/goldpinger-exporter"
+  - name: sslExporter
+    condition: sslExporter.install
+    version: ~0
+    repository: "file://charts/ssl-exporter"
+
+  # AWS CloudWatch exporter
+  - name: cloudwatchExporter
+    condition: cloudwatchExporter.install
+    version: ~0
+    repository: "file://charts/cloudwatch-exporter"
+  # Azure Monitor exporter
+  - name: promitorAgentScraper
+    condition: promitorAgentScraper.install
+    version: ~0
+    repository: "file://charts/promitor-agent-scraper"
+  - name: promitorAgentResourceDiscovery
+    condition: promitorAgentResourceDiscovery.install
+    version: ~0
+    repository: "file://charts/promitor-agent-resource-discovery"
+  # Google Cloud Operations (Stackdriver) exporter
+  - name: stackdriverExporter
+    condition: stackdriverExporter.install
+    version: ~0
+    repository: "file://charts/stackdriver-exporter"

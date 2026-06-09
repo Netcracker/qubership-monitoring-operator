@@ -1,0 +1,11 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    {{ tpl .Values.config . | nindent 4 }}
+{{- end }}

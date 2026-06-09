@@ -1,0 +1,19 @@
+{{- if .Values.grafana.install }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: {{ include "monitoring-pack-two.grafana.name" . }}
+  namespace: {{ default (include "monitoring-pack-two.namespace" .) .Values.grafana.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "monitoring-pack-two.grafana.name" . }}
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+    {{- $labelCtx := dict "commonLabels" .Values.commonLabels "componentLabels" (.Values.grafana.labels | default dict) }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" .Values.commonAnnotations "componentAnnotations" (.Values.grafana.annotations | default dict) }}
+  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+{{ toYaml (.Values.grafana.spec | default dict) | indent 2 }}
+{{- end }}

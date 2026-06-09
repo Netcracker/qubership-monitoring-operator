@@ -1,0 +1,47 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+promxy:
+  install: true
+
+  image: test
+
+  configmapReload:
+    image: test
+
+  grafanaDashboard: false
+
+  config:
+    serverGroups:
+      - address: vmsingle-k8s:8429
+        label: k8s-1
+        httpClient:
+          tlsConfig:
+            ca: |
+              -----BEGIN CERTIFICATE-----
+              ...
+              -----END CERTIFICATE-----
+      - address: vmsingle-k8s.monitoring.svc.cluster-2.local:8429
+        label: k8s-2
+        httpClient:
+          tlsConfig:
+            # Configure for
+            ca: |
+              -----BEGIN CERTIFICATE-----
+              ...
+              -----END CERTIFICATE-----
+            key: |
+              -----BEGIN PRIVATE KEY-----
+              ...
+              -----END PRIVATE KEY-----
+            cert: |
+              -----BEGIN CERTIFICATE-----
+              ...
+              -----END CERTIFICATE-----
+            serverName: <serverName>
+      - address: vmsingle-k8s.monitoring.svc.cluster-3.local:8429
+        label: k8s-3
+        httpClient:
+          tlsConfig:
+            # TLS will use, but without check certificates
+            insecureSkipVerify: true

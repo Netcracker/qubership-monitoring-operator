@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: blackbox-static-urls-probe
+  labels:
+    app.kubernetes.io/component: monitoring  # Mandatory label
+spec:
+  jobName: http-get
+  interval: 30s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+    scheme: http
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+        - 'http://example.com'
+        - 'https://example.com'
+        - 'http://google.com'
+        - 'https://google.com'

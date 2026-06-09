@@ -1,0 +1,1950 @@
+# Default values for monitoring-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Provide a name in place of monitoring-operator for `app:` labels
+nameOverride: ""
+
+# Provide a name to substitute for the full names of resources
+fullnameOverride: ""
+
+global:
+  # Indicates if monitoring-operator has permissions to deploy ClusterRole and
+  # ClusterRoleBinding resources.
+  # If set to `true` deploy all resources. Otherwise, deploy only Role and RoleBinding
+  # resources and expect that ClusterRole and ClusterRoleBinding resources were
+  # deployed manually.
+  # Also skip ClusterRole and ClusterRole binding resources deploy for the
+  # monitoring-operator itself if set to `false`.
+  #
+  # Type: boolean.
+  # Mandatory: no.
+  #
+  privilegedRights: true
+
+  # Provide a name of HWE profile.
+  # Allow values:
+  #  * small - 1 million points per minute
+  #  * medium - 3 million points per minute
+  #  * large - 10 million points per minute
+  #
+  profile: "medium"
+
+# Role and ClusterRole for monitoring-operator to use.
+# Ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+# Type: object
+# Mandatory: no
+#
+role:
+  # Allow to disable create Role and ClusterRole for monitoring-operator during deploy.
+  # If global.privilegedRights parameter is set to false, ClusterRole will not be installed in any case.
+  install: true
+
+# RoleBinding and ClusterRoleBinding for monitoring-operator to use.
+# Ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+# Type: object
+# Mandatory: no
+#
+roleBinding:
+  # Allow to disable create RoleBinding and ClusterRoleBinding for monitoring-operator during deploy.
+  # If global.privilegedRights parameter is set to false, ClusterRoleBinding will not be installed in any case.
+  install: true
+
+# Allows to disable or enable specific dashboards, rules and service monitors for the specified public cloud.
+# Allowed values: aws, azure, google, ""
+# Type: string
+# Mandatory: no
+#
+publicCloudName: ""
+
+# Gateway API settings shared by all components.
+# Type: object
+# Mandatory: no
+#
+gatewayApi:
+  # Add `gateway-api-converter.netcracker.com/ignore: "true"` to operator-managed ingresses.
+  # Type: boolean
+  # Mandatory: no
+  #
+  addIngressIgnoreAnnotation: false
+  # ParentRefs defines default parentRefs for HTTPRoutes.
+  # Per-component `httpRoute.parentRefs` overrides these values.
+  # More info on parentRefs:
+  # https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+  # Type: list[object]
+  # Mandatory: no
+  # Example:
+  # parentRefs:
+  #   - name: gateway
+  #     namespace: gateway-infra
+  #     kind: Gateway
+  #     group: gateway.networking.k8s.io
+  #     # Optional listener section name
+  #     sectionName: http
+  #
+  #
+  parentRefs: []
+
+# The PlatformMonitoring custom resource describes desired states for the monitoring application.
+# The application components:
+#   * kube-state-metrics  - a service to collects metrics from Kubernetes API
+#   * node-exporter       - a service to collects metrics from a physical nodes in cluster
+#   * prometheus-operator - an operator which deploys and controls prometheus and alert-manager
+#   * grafana-operator    - an operator which deploys and controles grafana
+# Also monitoring operator create and control such custom resource as:
+#   * Prometheus        - a resource which describe a Prometheus deployment
+#   * AlertManager      - a resource which describe an AlertManager deployment
+#   * Grafana           - a resource which describe a Grafana deployment
+#   * GrafanaDataSource - a resource which describe a default Grafana datasource
+# Type: object
+#
+monitoringOperator:
+
+  name: monitoring-operator
+
+  clusterRole:
+    install: true
+    name: ""
+
+  # A docker image to use for monitoring-operator deployment
+  # image: ghcr.io/netcracker/qubership-monitoring-operator:latest
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #   limits:
+  #     cpu: 100m
+  #     memory: 150Mi
+  #   requests:
+  #     cpu: 50m
+  #     memory: 50Mi
+
+  # SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  #  for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+  # Kubernetes secret name. Only pods which provide own keys
+  # can access the private registry.
+  # Type: Array
+  # Mandatory: no
+  #
+  imagePullSecrets: []
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw----
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+  # Mandatory: no
+  #
+  # fsGroup: 2000
+
+  # monitoring-operator pprof
+  # Type: object
+  # Mandatory: no
+  #
+  pprof:
+    # Indicates if monitoring-operator has pprof enabled.
+    # Mandatory: no
+    # Default: false
+    #
+    install: false
+
+    # Type: integer
+    # Mandatory: no
+    # Default: 9180
+    #
+    containerPort: 9180
+
+    # Service configuration for pprof service
+    # Type: object
+    # Mandatory: no
+    #
+    service:
+      # Type of pprof service
+      # Type: string
+      # Mandatory: no
+      # Default: ClusterIP
+      #
+      type: ClusterIP
+
+      # Port of pprof which use in service
+      # Type: int
+      # Mandatory: no
+      # Default: 9100
+      #
+      port: 9180
+
+      # Port name of pprof which use in service
+      # Type: string
+      # Mandatory: no
+      # Default: http
+      #
+      portName: pprof
+
+      # Annotations set which will create in service
+      # Type: map[string]string
+      # Mandatory: no
+      # Default: {}
+      #
+      annotations: {}
+
+      # Labels set which will create in service
+      # Type: map[string]string
+      # Mandatory: no
+      # Default: {}
+      #
+      labels: {}
+
+  # Service account for monitoring-operator to use.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  # Type: object
+  #
+  serviceAccount:
+
+    # Allow to disable create ServiceAccount during deploy
+    install: true
+
+    # Provide a name in place of monitoring-operator for ServiceAccount
+    name: "monitoring-operator"
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  annotation-key: annotation-value
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  label-key: label-value
+
+  # Pod monitor for self-monitoring
+  # Type: object
+  # Mandatory: no
+  #
+  podMonitor:
+
+    # Install podMonitor to collect self-metrics from monitoring-operator
+    install: true
+
+    # Allow change metrics scrape interval
+    interval: 30s
+
+    # Allow change metrics scrape timeout
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 10s
+
+    # Metric relabeling is applied to samples as the last step before ingestion. It has the same configuration
+    # format and actions as target relabeling. Metric relabeling does not apply to automatically
+    # generated timeseries such as up.
+    # One use for this is to exclude time series that are too expensive to ingest.
+    # Ref: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs
+    metricRelabelings:
+      - action: drop
+        regex: controller_runtime_reconcile_time_seconds_bucket;(0.005|0.01|0.025|0.05|0.15|0.2|0.25|0.3|0.35|0.4|0.45|0.6|0.7|0.8|0.9|1.25|1.5|1.75|2.5|3|3.5|4|4.5|6|7|8|9|15|20|25|40|50)
+        sourceLabels: ['__name__', 'le']
+    # - action: keep
+    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+    #   sourceLabels: [__name__]
+
+    # Relabeling is a powerful tool to dynamically rewrite the label set of a target before it gets scraped.
+    # Multiple relabeling steps can be configured per scrape configuration. They are applied to the label
+    # set of each target in order of their appearance in the configuration file.
+    # Ref: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+# Deploy an AlertManager instance
+#
+alertManager:
+
+  # Allow to disable deploy AlertManager.
+  # If AlertManager was not deploy during deploy via helm it can deploy via change custom
+  # resource PlatformMonitoring.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: false
+
+  # Set paused to reconciliation for AlertManager
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # A docker image to use for alertmanager deployment
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prom/alertmanager:v0.23.0
+
+  # Port for alertmanager service
+  # Type: integer
+  # Mandatory: no
+  #
+  port: 30903
+
+  # Pod monitor for self-monitoring
+  # Type: object
+  # Mandatory: no
+  #
+  podMonitor:
+    install: true
+    interval: 30s
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 10s
+    metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
+
+  # Containers allows injecting additional containers or modifying operator generated containers.
+  # This can be used to allow adding an authentication proxy to a AlertManager pod or to change
+  # the behavior of an operator generated container.
+  # Each item of the list should be described as standard Kubernetes container:
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  containers: []
+
+  # Replicas spec configuration for Alertmanager
+  # Type: integer
+  # Mandatory: no
+  #
+  replicas: 1
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #   limits:
+  #     cpu: 200m
+  #     memory: 200Mi
+  #   requests:
+  #     cpu: 100m
+  #     memory: 100Mi
+
+  # Allows create Ingress for AlertManager UI via monitoring-operator
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  #
+  ingress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+  # Allows to create HTTPRoute for AlertManager UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Default: false
+  #   install: true
+  #
+  #   # Hostnames overrides ingress hostname if specified.
+  #   hostnames:
+  #     - alertmanager.example.com
+  #
+  #   # ParentRefs overrides gatewayApi.parentRefs for this route.
+  #   # All parentRefs in one route must use the same API group.
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       sectionName: http
+  #
+  #   # Rules may contain raw Gateway API matches/filters blocks.
+  #   # BackendRefs are managed by operator.
+  #   rules:
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /
+  #
+  httpRoute: {}
+
+  # SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw----
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+  # fsGroup: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  annotation-key: annotation-value
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  label-key: label-value
+
+  # Service account for monitoring-operator to use.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  serviceAccount:
+
+    # Annotations is an unstructured key value map stored
+    # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+    # They are not queryable and should be preserved when modifying objects.
+    # More info: https://kubernetes.io/docs/user-guide/annotations
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    annotations: {}
+    # eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
+
+    # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+    # May match selectors of replication controllers and services.
+    # More info: https://kubernetes.io/docs/user-guide/labels
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    labels: {}
+    # app.kubernetes.io/managed-by: helm
+
+  # PriorityClassName assigned to the Pods to prevent alertManeger pods from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+# Component scraping kube state metrics
+#
+kubeStateMetrics:
+
+  # Allow to disable create KubeStateMetrics during deploy
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Image of kube-state-metrics
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: coreos/kube-state-metrics:v1.9.8
+
+  # Set paused to reconciliation for kube-state-metrics
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Service monitor for pulling metrics
+  # Type: object
+  # Mandatory: no
+  #
+  serviceMonitor:
+    install: true
+    interval: 30s
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 10s
+    metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
+
+  ## Comma separated list of namespaces to monitor in non-privileged mode.
+  # This parameter is unnecessary if the kube-state-metrics has ClusterRole on all namespaces.
+  # Type: string
+  # Mandatory: no
+  #
+  # namespaces: ""
+
+  ## Comma-separated list of Resources to be enabled.
+  # Type: string
+  # Mandatory: no
+  #
+  # scrapeResources: ""
+
+  ## Comma-separated list of additional Kubernetes label keys that will be used in the resource labels metric.
+  # Type: string
+  # Mandatory: no
+  # More info: https://github.com/kubernetes/kube-state-metrics/blob/v2.3.0/docs/cli-arguments.md
+  #
+  # metricLabelsAllowlist: "nodes=[*],pods=[*],namespaces=[*],deployments=[*],statefulsets=[*],daemonsets=[*],cronjobs=[*],jobs=[*],ingresses=[*],services=[*]"
+
+  # The resources describes the compute resource requests and limits for single Pods.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #   limits:
+  #     cpu: 100m
+  #     memory: 256Mi
+  #   requests:
+  #     cpu: 50m
+  #     memory: 50Mi
+
+  # SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  # for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw----
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+  # fsGroup: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  annotation-key: annotation-value
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  label-key: label-value
+
+  # Service account for monitoring-operator to use.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  serviceAccount:
+
+    # Annotations is an unstructured key value map stored
+    # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+    # They are not queryable and should be preserved when modifying objects.
+    # More info: https://kubernetes.io/docs/user-guide/annotations
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    annotations: {}
+    # eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
+
+    # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+    # May match selectors of replication controllers and services.
+    # More info: https://kubernetes.io/docs/user-guide/labels
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    labels: {}
+    # app.kubernetes.io/managed-by: helm
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+# Deploy node exporter as a daemonset to all nodes
+#
+nodeExporter:
+
+  # Allow to disable create NodeExporter during deploy
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: true
+
+  # Allows to create PodSecurityPolicy or SecurityContextConstraints.
+  # Type: boolean
+  # Mandatory: no
+  #
+  setupSecurityContext: true
+
+  # Image of node-exporter
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prom/node-exporter:v1.2.2
+
+  # Set paused to reconciliation for node-exporter
+  # Type: boolean
+  # Mandatory: no
+  #
+  paused: false
+
+  # Port for node-exporter daemonset and service
+  # Type: integer
+  # Mandatory: no
+  #
+  port: 9900
+
+  # Service monitor for pulling metrics
+  # Type: object
+  # Mandatory: no
+  #
+  serviceMonitor:
+    install: true
+    interval: 30s
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 10s
+    metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+  #   region: databases
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  annotation-key: annotation-value
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  label-key: label-value
+
+  # Define resources requests and limits for single Pods.
+  # ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  resources: {}
+  #   limits:
+  #     cpu: 100m
+  #     memory: 100Mi
+  #   requests:
+  #     cpu: 50m
+  #     memory: 50Mi
+
+  # SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  #  for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw----
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+    #
+  # fsGroup: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Service account for monitoring-operator to use.
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  serviceAccount:
+
+    # Annotations is an unstructured key value map stored
+    # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+    # They are not queryable and should be preserved when modifying objects.
+    # More info: https://kubernetes.io/docs/user-guide/annotations
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    annotations: {}
+    # eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
+
+    # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+    # May match selectors of replication controllers and services.
+    # More info: https://kubernetes.io/docs/user-guide/labels
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: not set
+    #
+    labels: {}
+    # app.kubernetes.io/managed-by: helm
+
+  # Directory for textfile collector
+  # More info: https://github.com/prometheus/node_exporter#textfile-collector
+  # Type: string
+  # Mandatory: no
+  #
+  collectorTextfileDirectory: /var/spool/monitoring
+
+  # Additional node-exporter container arguments.
+  # Type: list[string]
+  # Mandatory: no
+  # Default: []
+  #
+  extraArgs: []
+  # - --collector.systemd
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+# Integration allows setting up Platform Monitoring integration with other monitoring tools and public clouds.
+# Currently, supports:
+#   * Google Cloud Platform (integration with Google Cloud Operations)
+#   * Jaeger (a distributed tracing platform)
+integration:
+  # Set up Platform Monitoring integration with Google Cloud Operations (GCO).
+  # Integration schema:
+  #   * Send metrics from Prometheus to GCO by deploying 'stackdriver-prometheus-sidecar' container
+  #     as sidecar to Prometheus pod. Allows specify filters for metrics to send.
+  # stackdriver:
+    # Image of 'stackdriver-prometheus-sidecar'.
+    # This service is deploying as sidecar container to Prometheus pod and
+    # send metrics from Prometheus to GCO.
+    # Mandatory: yes
+    # image: gcr.io/stackdriver-prometheus/stackdriver-prometheus-sidecar:0.8.0
+
+    # Identificator of project in Google Cloud
+    # Mandatory: yes
+    # projectId: ""
+
+    # Location where project is deployed in Google Cloud
+    # Mandatory: yes
+    # location: ""
+
+    # Name of Kubernetes cluster in Google Cloud which will be monitored
+    # Mandatory: yes
+    # cluster: ""
+
+    # List of filters for metrics which will be sent to GCO.
+    # Filters use the same syntax as Prometheus instant vector selectors:
+    # https://prometheus.io/docs/prometheus/latest/querying/basics/#instant-vector-selectors.
+    # Examples:
+    #   * ["{__name__=~'prometheus_example_app_metric'}"]
+    # Mandatory: no
+    # metricsFilter: []
+
+  # Set up Platform Monitoring integration with Jaeger.
+  # Type: object
+  # Mandatory: no
+  #
+  jaeger:
+    # If true, looking for Jaeger Service in all namespaces and add Grafana DataSource for it service if it is found.
+    # Type: boolean
+    # Mandatory: no
+    # Default: true
+    #
+    createGrafanaDataSource: true
+
+# Create Grafana DataSource for ClickHouse Performance Dashboard
+  clickHouse:
+    createGrafanaDataSource: true
+
+# Auth allows setting integration via OAuth for Platform Monitoring services.
+# Currently supports:
+#   * IDP
+auth: {}
+  # The OAuth Client ID.
+  # Type: string
+  # Mandatory: yes
+  # clientId: XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXX
+
+  # The OAuth Client Secret.
+  # Type: string
+  # Mandatory: yes
+  # clientSecret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+  # Secret used by oauth2-proxy for cookie encryption/signing.
+  # Type: string
+  # Mandatory: no
+  # Default: Z0lKZ64IEMCv8XQM9smEDw==
+  # cookieSecret: XXXXXXXXXXXXXXXXXXXXXX==
+
+  # Authentication endpoint.
+  # Type: string
+  # Mandatory: yes
+  # loginUrl: http://<IDP route>/authorize
+
+  # Token redemption endpoint.
+  # Type: string
+  # Mandatory: yes
+  # tokenUrl: http://<IDP route>/token
+
+  # Access token validation endpoint.
+  # Type: string
+  # Mandatory: yes
+  # userInfoUrl: http://<IDP route>/userinfo
+
+  # Settings for TLS
+  # tlsConfig:
+  #   caSecret:
+  #     name: client-certificates
+  #     key: trusted-ca.crt
+  #   certSecret:
+  #     name: client-certificates
+  #     key: client-cert.crt
+  #   keySecret:
+  #     name: client-certificates
+  #     key: client-key.key
+  #   insecureSkipVerify: false
+
+  # The OAuth Client pwd for vmAuth.
+  #  basicAuthPwd :
+
+# OAuthProxy allows add AuthProxy as sidecar to Prometheus and AlertManager.
+oAuthProxy: {}
+  # An image of OAuthProxy sidecar.
+  # Type: string
+  # Mandatory: yes
+#
+# image: <image>
+
+# Map of service monitors for k8s cluster monitoring.
+#  List of services to monitor:
+#  - etcd
+#  - apiserver
+#  - kube-controller-manager
+#  - kube-scheduler
+#  - kubelet
+#
+#  Each service monitor can be disabled and customized by changing:
+#  - intrval
+#  - scrapeTimeout
+#  - relablings
+#  - metricRelablings
+#
+# Please note that scrapeTimeout must be less the interval
+#
+# Type: object
+# Mandatory: no
+#
+kubernetesMonitors:
+  etcdServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+  apiserverServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - action: keep
+        sourceLabels: ['__name__']
+        regex: 'apiserver_request_(.*)|apiserver_storage_(.*)|workqueue_(.*)|etcd_(.*)|process_(.*)|go_(.*)'
+      - action: drop
+        regex: 'apiserver_request_duration_seconds_bucket;(0.005|0.05|0.8|1.25|3|4|5|6|8|15|20|45)'
+        sourceLabels: ['__name__', 'le']
+      - action: drop
+        regex: 'etcd_request_duration_seconds_bucket;(0.005|0.8|1.25|1.5|3|4|5|6|8|15|20|45)'
+        sourceLabels: ['__name__', 'le']
+      - action: drop
+        regex: 'apiserver_request_(slo|sli)_duration_seconds_.*'
+        sourceLabels: ['__name__']
+    relabelings:
+      - action: replace
+        sourceLabels: ['job']
+        targetLabel: 'job'
+        replacement: 'kube-apiserver'
+  kubeControllerManagerServiceMonitor:
+    install: false
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - action: drop
+        regex: etcd_(debugging|disk|request|server).*
+        sourceLabels: ['__name__']
+    relabelings:
+      - action: replace
+        regex: (.+)(?::\d+)
+        replacement: $1:10257
+        sourceLabels: ['__address__']
+        targetLabel: __address__
+  kubeSchedulerServiceMonitor:
+    install: false
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings:
+      - action: replace
+        regex: (.+)(?::\d+)
+        replacement: $1:10259
+        sourceLabels: ['__address__']
+        targetLabel: __address__
+  kubeletServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    # Set up relabling for kubelet metrics to avoid different names for labels pod and container. In old kubernetes version it were called
+    # pod_name and container_name but were changed in https://github.com/kubernetes/kube-state-metrics/issues/501
+    # This configuration move values from labels pod_name and container_name to pod and container and then remove old labels.
+    metricRelabelings:
+      # We drop the container_start_time_seconds metric from /metrics/resource endpoint, because we faced problems with
+      # this particular metric before, and it can be found on other kubelet endpoints
+      - action: drop
+        regex: container_start_time_seconds;\/metrics\/resource
+        separator: ;
+        sourceLabels: ['__name__', 'metrics_path']
+      # We drop entire label set "metrics_path", because it was created only for the drop of metric above
+      - action: labeldrop
+        regex: metrics_path
+      - action: replace
+        sourceLabels: ['pod_name']
+        targetLabel: pod
+        regex: (.+)
+      - action: replace
+        sourceLabels: ['container_name']
+        targetLabel: container
+        regex: (.+)
+      - action: labeldrop
+        regex: pod_name
+      - action: labeldrop
+        regex: container_name
+      - action: replace
+        regex: 'kubelet_running_pods'
+        replacement: 'kubelet_running_pod_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+      - action: replace
+        regex: 'kubelet_running_containers'
+        replacement: 'kubelet_running_container_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+      - action: drop
+        regex: 'container_tasks_state'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'container_blkio_device_usage_total'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'container_memory_failures_total'
+        sourceLabels: ['__name__']
+      - action: labeldrop
+        regex: id
+    relabelings:
+      # This relabeling is used to drop metric container_start_time_seconds in the "metricRelabelings" section, because:
+      # 1. "metricRelabelings" happens later than "relabelings"
+      # 2. __metrics_path__ drops after "relabelings" step, so it's not in the "metricRelabelings" section
+      # 3. we have to use this value, because we must filter out the metric container_start_time_seconds only from
+      # /metrics/resource endpoint, but there are no ways to configure relabelings for each endpoint separately
+      - action: replace
+        regex: (\/metrics\/resource)
+        replacement: $1
+        sourceLabels:
+          - __metrics_path__
+        targetLabel: metrics_path
+  coreDnsServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings:
+      - action: replace
+        regex: (.*)
+        replacement: $1
+        sourceLabels: ['__meta_kubernetes_pod_node_name']
+        targetLabel: node
+  nginxIngressPodMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - action: drop
+        regex: 'nginx_ingress_controller_response_size_bucket'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'nginx_ingress_controller_request_size_bucket'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'nginx_ingress_controller_connect_duration_seconds_bucket'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'nginx_ingress_controller_header_duration_seconds_bucket'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'nginx_ingress_controller_bytes_sent_bucket'
+        sourceLabels: ['__name__']
+      - action: drop
+        regex: 'nginx_ingress_controller_orphan_ingress'
+        sourceLabels: ['__name__']
+    relabelings:
+      - action: replace
+        regex: (.*)
+        replacement: $1
+        sourceLabels: ['__meta_kubernetes_pod_node_name']
+        targetLabel: node
+  openshiftApiserverServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - action: drop
+        regex: etcd_(debugging|disk|server).*
+        sourceLabels:
+          - __name__
+      - action: drop
+        regex: apiserver_admission_controller_admission_latencies_seconds_.*
+        sourceLabels:
+          - __name__
+      - action: drop
+        regex: apiserver_admission_step_admission_latencies_seconds_.*
+        sourceLabels:
+          - __name__
+      - action: drop
+        regex: >-
+          apiserver_request_duration_seconds_bucket;(0.15|0.25|0.3|0.35|0.4|0.45|0.6|0.7|0.8|0.9|1.25|1.5|1.75|2.5|3|3.5|4.5|6|7|8|9|15|25|30|50)
+        sourceLabels:
+          - __name__
+          - le
+    relabelings:
+      - action: replace
+        replacement: openshift-apiserver
+        targetLabel: apiserver
+  openshiftApiserverOperatorServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+  openshiftClusterVersionOperatorServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+  openshiftStatemetricsServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+  openshiftHAProxyServiceMonitor:
+    install: true
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+
+# List of grafana dashboards which can be imported to grafana.
+# Remove dashboard name to remove dashboard from grafana.
+#
+# Full list of available dashboards:
+#   - alerts-overview
+#   - core-dns-dashboard
+#   - etcd-dashboard
+#   - govm-processes
+#   - ha-services
+#   - home-dashboard
+#   - ingress-list-of-ingresses
+#   - ingress-nginx-controller
+#   - ingress-request-handling-performance
+#   - jvm-processes
+#   - kubernetes-cluster-overview
+#   - kubernetes-kubelet
+#   - kubernetes-apiserver
+#   - kubernetes-distribution-by-labels
+#   - kubernetes-namespace-resources
+#   - kubernetes-nodes-resources
+#   - kubernetes-pod-resources
+#   - kubernetes-pods-distribution-by-node
+#   - kubernetes-pods-distribution-by-zone
+#   - kubernetes-top-resources
+#   - node-details
+#   - overall-platform-health
+#   - prometheus-cardinality-explorer
+#   - prometheus-self-monitoring
+#   - tls-status
+#   - victoriametrics-vmoperator
+#   - victoriametrics-vmalert
+#   - victoriametrics-vmagent
+#   - victoriametrics-vmsingle
+#   - operators-overview
+#
+# Type: object
+# Mandatory: no
+#
+grafanaDashboards:
+  install: true
+  list:
+    - alerts-overview
+    - core-dns-dashboard
+    - etcd-dashboard
+    - govm-processes
+    - home-dashboard
+    - ingress-list-of-ingresses
+    - ingress-nginx-controller
+    - ingress-request-handling-performance
+    - jvm-processes
+    - kubernetes-cluster-overview
+    - kubernetes-kubelet
+    - kubernetes-apiserver
+    - kubernetes-distribution-by-labels
+    - kubernetes-namespace-resources
+    - kubernetes-nodes-resources
+    - kubernetes-pod-resources
+    - kubernetes-pods-distribution-by-node
+    - kubernetes-pods-distribution-by-zone
+    - kubernetes-top-resources
+    - node-details
+    - overall-platform-health
+    - prometheus-cardinality-explorer
+    - alertmanager-overview
+    - grafana-overview
+    - tls-status
+    - ha-services
+
+# Basic PrometheusRules added alert rules.
+# Possible rule groups:
+#   * Heartbeat
+#   * SelfMonitoring
+#   * AlertManager
+#   * KubebernetesAlerts
+#   * NodeProcesses
+#   * NodeExporters
+#   * DockerContainers
+#   * HAmode
+#   * HAproxy
+#   * Etcd
+#   * NginxIngressAlerts
+#   * CoreDnsAlerts
+#   * DRAlerts
+#   * BackupAlerts
+# Each rule for groups above can be overridden using 'override' section in the format:
+# Type: object
+# Mandatory: no
+#
+prometheusRules:
+  install: true
+  ruleGroups:
+    - SelfMonitoring
+    - AlertManager
+    - KubebernetesAlerts
+    - NodeProcesses
+    - NodeExporters
+    - DockerContainers
+    - Etcd
+    - NginxIngressAlerts
+    - CoreDnsAlerts
+    - DRAlerts
+    - BackupAlerts
+  # override:
+  #     - group: SelfMonitoring
+  #       alert: PrometheusNotificationsBacklog
+  #       for: 0m
+  #       expr: min_over_time(prometheus_notifications_queue_length[20m]) > 0
+  #       severity: high
+
+pushgateway:
+
+  # Allow to disable create Pushgateway during deploy.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  install: false
+
+  # Image of pushgateway.
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: prom/pushgateway:v1.4.2
+
+  # Number of created pods.
+  # Type: integer
+  # Mandatory: no
+  # Default: 1
+  #
+  replicas: 1
+
+  # Set paused to reconciliation for pushgateway.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  paused: false
+
+  # Additional pushgateway container arguments.
+  # Type: list[string]
+  # Mandatory: no
+  # Default: []
+  #
+  extraArgs: []
+  #  - --log.level=info
+
+  # Volumes allows configuration of additional volumes on the output StatefulSet definition.
+  # Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  volumes: []
+
+  # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
+  # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
+  # that are generated as a result of StorageSpec objects.
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  volumeMounts: []
+
+  # PVC spec for Pushgateway. If specified, also adds flags
+  # --persistence.file=/data/pushgateway.data and --persistence.interval=5m,
+  # creates volume and volumeMount with name "storage-volume" in the deployment.
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  # storage:
+  #   accessModes:
+  #     - ReadWriteOnce
+  #   resources:
+  #     requests:
+  #       storage: "2Gi"
+  #   volumeName: pushgateway-pv
+  #   storageClassName: pushgateway
+
+
+  # Port for pushgateway deployment and service.
+  # Type: integer
+  # Mandatory: no
+  # Default: 9091
+  #
+  port: 9091
+
+  # Service monitor for pulling metrics.
+  # Type: object
+  # Mandatory: no
+  #
+  serviceMonitor:
+    install: true
+    interval: 30s
+    # Please note that scrapeTimeout must be less the interval
+    scrapeTimeout: 10s
+    metricRelabelings: []
+      # - action: keep
+    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+    #   sourceLabels: [__name__]
+    relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+    #   replacement: $1
+    #   action: replace
+
+  ingress: {}
+    # Indicates is Ingress need to be installed.
+    # Marked as true if host specified.
+    # Mandatory: no
+    # Default: false
+    #
+    # install: false
+
+    # FQDN of ingress host
+    # Type: string
+    # Mandatory: yes
+    # Default: ""
+    #
+    # host: ""
+
+    # Set of annotations for Ingress
+    # Allows to set up authorization e.g. via ingress-nginx
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # annotations: {}
+
+    # Set of labels for Ingress
+    # Default monitoring-operator labels can be overwritten
+    # Type: map[string]string
+    # Mandatory: no
+    # Default: {}
+    #
+    # labels: {}
+
+    # Name of secret with TLS configs: tls.crt and tls.key
+    # The secret must exist
+    # Type: string
+    # Mandatory: no
+    # Default: ""
+    #
+    # tlsSecretName: ""
+
+  # Allows create HTTPRoute for pushgateway UI via monitoring-operator.
+  # Type: object
+  # Mandatory: no
+  # Default: {}
+  # HTTPRoute spec reference:
+  # https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute
+  # Example:
+  # httpRoute:
+  #   # Install indicates whether HTTPRoute should be reconciled independently from ingress.
+  #   # Default: false
+  #   install: true
+  #
+  #   # Hostnames overrides ingress hostname if specified.
+  #   hostnames:
+  #     - pushgateway.example.com
+  #
+  #   # ParentRefs overrides gatewayApi.parentRefs for this route.
+  #   # All parentRefs in one route must use the same API group.
+  #   parentRefs:
+  #     - name: gateway
+  #       namespace: gateway-infra
+  #       kind: Gateway
+  #       group: gateway.networking.k8s.io
+  #       sectionName: http
+  #
+  #   # Rules may contain raw Gateway API matches/filters blocks.
+  #   # BackendRefs are managed by operator.
+  #   rules:
+  #     - matches:
+  #         - path:
+  #             type: PathPrefix
+  #             value: /
+  #
+  httpRoute: {}
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Define resources requests and limits for single Pods.
+  # ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  #
+  resources: {}
+  #   limits:
+  #     cpu: 200m
+  #     memory: 50Mi
+  #   requests:
+  #     cpu: 100m
+  #     memory: 30Mi
+
+  # SecurityContext holds pod-level security attributes.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+    # The UID to run the entrypoint of the container process.
+    # Defaults to user specified in image metadata if unspecified.
+    # Type: integer
+    # Mandatory: no
+    #
+    # runAsUser: 2000
+
+    # A special supplemental group that applies to all containers in a pod.
+    # Some volume types allow the Kubelet to change the ownership of that volume
+    # to be owned by the pod:
+    #   1. The owning GID will be the FSGroup
+    #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+    #   3. The permission bits are OR'd with rw-rw----
+    # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    # Type: integer
+    # Mandatory: no
+  #
+  # fsGroup: 2000
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  #  annotation-key: annotation-value
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  #  label-key: label-value
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+integrationTests:
+  ## A name of a microservice to deploy with.
+  # This name will be used as name of the microservice deployment and in labels.
+  name: monitoring-tests
+
+  # Allow to enable or disable deploy integration tests.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  install: false
+
+  ## The resources describe compute resource requests and limits for single Pod.
+  ## Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  resources: {}
+
+  ## SecurityContext holds pod-level security attributes.
+  # The parameters are required if a Pod Security Policy is enabled
+  #  for Kubernetes cluster and required if a Security Context Constraints is enabled
+  # for Openshift cluster.
+  # Type: object
+  # Mandatory: no
+  #
+  securityContext: {}
+
+  # Labels set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  labels: {}
+
+  # Annotations set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  annotations: {}
+
+  # Tolerations allow the pods to schedule onto nodes with matching taints.
+  # Type: object
+  # Mandatory: no
+  #
+  tolerations: []
+
+  # Allow define which Nodes the Pods are scheduled on.
+  # Type: map[string]
+  # Mandatory: no
+  # Default: not set
+  #
+  nodeSelector: {}
+
+  # If specified, the pod's scheduling constraints
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # Type: object
+  # Mandatory: no
+  # Default: not set
+  #
+  affinity: {}
+
+  # Allow select which test cases to run
+  # Type: string
+  # Mandatory: no
+  # Default: grafanaORtest-appORprometheus-adapterORsmoke
+  #
+  tags: grafanaORtest-appORprometheus-adapterORsmoke
+
+  # The parameter specifies the timeout before the start of integration tests.
+  # Type: integer
+  # Mandatory: no
+  # Default: 120
+  #
+  timeoutBeforeStart: 120
+
+  statusWriting:
+    #
+    # The parameter specifies enable/disable writing status of Integration tests' execution to the specified Custom Resource.
+    # Type: boolean
+    # Mandatory: no
+    # Default: true
+    #
+    enabled: true
+    # The parameter specifies the size of the integration test status message.
+    # Type: boolean
+    # Mandatory: no
+    # Default: true
+    #
+    isShortStatusMessage: true
+    # The parameter specifies whether to deploy only integration tests without any component (component was installed before).
+    # Type: boolean
+    # Mandatory: no
+    # Default: true
+    #
+    onlyIntegrationTests: true
+    # The parameter (optional) specifies the path to Custom Resource that should be used for the write status of auto-tests execution.
+    # Type: string
+    # Mandatory: no
+    # Default: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
+    # If namespace is not "prometheus-operator" change nc in custom resource path
+    #
+    customResourcePath: "monitoring.netcracker.com/v1/prometheus-operator/platformmonitorings/platformmonitoring"
+
+  # ATP report upload (S3 settings under atpReport.atpStorage). Env only when atpReport.enabled.
+  atpReport:
+    enabled: false
+    atpStorage:
+      # S3 provider type: aws (for real AWS S3), minio, s3 (for S3-compatible with custom endpoint)
+      provider: "aws"
+      # S3 API server URL (e.g., https://s3.amazonaws.com or https://minio.example.com)
+      serverUrl: "https://s3.amazonaws.com"
+      # S3 UI URL for browsing results (e.g., https://minio.example.com)
+      serverUiUrl: ""
+      # S3 bucket name. If empty - S3 integration is disabled and results stay local
+      bucket: ""
+      # S3 region (required for AWS S3)
+      region: "us-east-1"
+      # S3 credentials (Secret when atpReport.enabled)
+      username: ""
+      password: ""
+
+  # URL for viewing Allure reports (e.g., https://reports.example.com)
+  # Type: string
+  # Mandatory: no
+  atpReportViewUiUrl: ""
+
+  # Environment name for organizing test results path in S3
+  # Type: string
+  # Mandatory: no
+  environmentName: "monitoring"
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # priorityClassName: "priorityClassName"
+
+##### Sub-charts section
+
+# Common dashboards that stored in Monitoring
+commonDashboards:
+  # Enable by default
+  install: true
+
+# Adapter to support HPA scaling by custom metrics from VictoriaMetrics or Prometheus
+prometheusAdapter:
+  # Disable by default
+  install: false
+
+# Proxy to VictoriaMetrics or Prometheus datasources, use in DR deployments
+promxy:
+  # Disable by default
+  install: false
+
+# Adapter to receive metrics using RemoteWrite from VictoriaMetrics or Prometheus
+# convert them in Graphite format and send to Graphite/carbon/etc
+graphite_remote_adapter:
+  # Disable by default
+  install: false
+
+# Exporter to probe URLs
+blackboxExporter:
+  # Disable by default
+  install: false
+
+# Exporter to request JSON from any URL, parse the response and expose it as metrics
+jsonExporter:
+  # Disable by default
+  install: false
+
+# Exporter to check connectivity between nodes
+networkLatencyExporter:
+  # Disable by default
+  install: false
+
+# Exporter to discover all versions for all applications from ConfigMap
+versionExporter:
+  # Disable by default
+  install: false
+
+# Exporter to fetch all Events and convert them to metrics
+cloudEventsExporter:
+  # Disable by default
+  install: false
+
+# Exporter to request metrics from AWS CloudWatch about different AWS Managed Services
+cloudwatchExporter:
+  # Disable by default
+  install: false
+
+# Exporter to request metrics from Azure Monitor about different Azure Managed Services
+promitorAgentScraper:
+  # Disable by default
+  install: false
+
+# Resource discovery part of Promitor to discover hosts and other objects in Azure
+promitorAgentResourceDiscovery:
+  # Disable by default
+  install: false
+
+# Exporter to request metrics from Google Cloud Operations about different Google Managed Services
+stackdriver_exporter:
+  # Disable by default
+  install: false
+
+# Exporter to check and visualize network connectivity between Kubernetes nodes and pods in the cluster
+goldpingerExporter:
+  # Disable by default
+  install: false
+
+# Exporter to check SSL certificates
+sslExporter:
+  # Enable for testing
+  install: false
+
+# Settings for a job to copy certificates from etcd to a secret
+etcdCertsJob:
+  # A name to use for the job and cronjob
+  # Type: string
+  # Mandatory: no
+  # Default: "etcd-certs-to-secret"
+  #
+  name: "etcd-certs-to-secret"
+
+  # Log level for the job and cronjob
+  # Type: string
+  # Mandatory: no
+  # Default: "info"
+  #
+  logLevel: "info"
+
+  # Schedule for the job and cronjob. More info: https://crontab.guru
+  # Type: string
+  # Mandatory: no
+  # Default: "0 0 1 * *"
+  #
+  schedule: "0 0 1 * *"
+
+  # Time to live for the job and cronjob after it is finished
+  # Type: integer
+  # Mandatory: no
+  # Default: 180
+  #
+  ttlSecondsAfterFinished: 180
+
+  # Names for rbac resources
+  rbac:
+    name: "etcd-certs-to-secret-scc"
+    serviceAccountName: "etcd-certs-to-secret-sa"
+    roleName: "etcd-certs-to-secret-read"
+    roleBindingName: "etcd-certs-to-secret-rb"
+    clusterRoleName: "etcd-certs-to-secret-clusterrole"
+    clusterRoleBindingName: "etcd-certs-to-secret-clusterrb"
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  annotations: {}
+
+  # A secrets list to use when pulling images from private registries
+  imagePullSecrets: []
+
+  # Image pull policy to use for etcd-certs-to-secret job and cronjob. Can be Always, Never, IfNotPresent
+  # Type: string
+  # Mandatory: no
+  # Default: IfNotPresent
+  #
+  imagePullPolicy: "IfNotPresent"
+
+  # Enable or disable automount service account token
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  automountServiceAccountToken: true
+
+  # PriorityClassName assigned to the Pods to prevent them from evicting.
+  # Type: string
+  # Mandatory: no
+  # Default: ""
+  #
+  priorityClassName: ""
+
+  # Node labels for etcd-certs-to-secret job and cronjob scheduling.
+  # The default targets master/control-plane nodes where etcd certificates are expected under /etc.
+  # Type: map[string]string
+  # Mandatory: no
+  # Default:
+  #   node-role.kubernetes.io/control-plane: ""
+  #
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  # Tolerations for etcd-certs-to-secret job and cronjob scheduling.
+  # The default allows scheduling onto tainted master/control-plane nodes.
+  # Type: list
+  # Mandatory: no
+  #
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+      effect: NoSchedule
+    - operator: "Exists"
+      effect: "NoExecute"
+    - operator: "Exists"
+      effect: "NoSchedule"
+
+  # The resources describes the compute resource requests and limits for a single container.
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+      ephemeral-storage: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+      ephemeral-storage: 16Mi

@@ -1,0 +1,133 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: monitoring-kube-state-metrics
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  jobLabel: k8s-app
+  selector:
+    matchExpressions:
+      - key: platform.monitoring.app
+        operator: In
+        values: ["kube-state-metrics"]
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+    - port: http-metrics
+      interval: 30s
+      metricRelabelings:
+        - action: keep
+          sourceLabels:
+            - __name__
+          regex: kube_pod_container_resource_requests|kube_pod_container_resource_limits
+        - action: replace
+          sourceLabels:
+            - container
+          targetLabel: kube_container
+        - action: replace
+          sourceLabels:
+            - exported_container
+          targetLabel: container
+        - action: replace
+          sourceLabels:
+            - namespace
+          targetLabel: kube_namespace
+        - action: replace
+          sourceLabels:
+            - exported_namespace
+          targetLabel: namespace
+        - action: replace
+          sourceLabels:
+            - pod
+          targetLabel: kube_pod
+        - action: replace
+          sourceLabels:
+            - exported_pod
+          targetLabel: pod
+    - port: http-metrics
+      metricRelabelings:
+      - action: replace
+        sourceLabels:
+        - __name__
+        - resource
+        regex: kube_pod_container_resource_requests;cpu
+        targetLabel: __name__
+        replacement: kube_pod_container_resource_requests_cpu_cores
+      - action: replace
+        sourceLabels:
+          - __name__
+          - resource
+        regex: kube_pod_container_resource_requests;memory
+        targetLabel: __name__
+        replacement: kube_pod_container_resource_requests_memory_bytes
+      - action: replace
+        sourceLabels:
+          - __name__
+          - resource
+        regex: kube_pod_container_resource_limits;cpu
+        targetLabel: __name__
+        replacement: kube_pod_container_resource_limits_cpu_cores
+      - action: replace
+        sourceLabels:
+          - __name__
+          - resource
+        regex: kube_pod_container_resource_limits;memory
+        targetLabel: __name__
+        replacement: kube_pod_container_resource_limits_memory_bytes
+      - action: replace
+        sourceLabels:
+        - container
+        targetLabel: kube_container
+      - action: replace
+        sourceLabels:
+          - exported_container
+        targetLabel: container
+      - action: replace
+        sourceLabels:
+          - namespace
+        targetLabel: kube_namespace
+      - action: replace
+        sourceLabels:
+          - exported_namespace
+        targetLabel: namespace
+      - action: replace
+        sourceLabels:
+          - pod
+        targetLabel: kube_pod
+      - action: replace
+        sourceLabels:
+          - exported_pod
+        targetLabel: pod
+      interval: 30s
+    - interval: 30s
+      metricRelabelings:
+        - action: replace
+          sourceLabels:
+            - container
+          targetLabel: kube_container
+        - action: replace
+          sourceLabels:
+            - exported_container
+          targetLabel: container
+        - action: replace
+          sourceLabels:
+            - namespace
+          targetLabel: kube_namespace
+        - action: replace
+          sourceLabels:
+            - exported_namespace
+          targetLabel: namespace
+        - action: replace
+          sourceLabels:
+            - pod
+          targetLabel: kube_pod
+        - action: replace
+          sourceLabels:
+            - exported_pod
+          targetLabel: pod
+      port: telemetry
+      scheme: http

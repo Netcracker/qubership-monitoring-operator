@@ -1,0 +1,17 @@
+{{- if and .Values.install .Values.global.privilegedRights .Values.rbac.createClusterRole }}
+apiVersion: {{ template "rbac.apiVersion" . }}
+kind: ClusterRole
+metadata:
+  name: {{ template "cloudEventsExporter.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "cloudEventsExporter.fullname" .)) | nindent 4 }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
+{{- end }}

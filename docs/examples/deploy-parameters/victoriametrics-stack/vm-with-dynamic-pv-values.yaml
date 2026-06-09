@@ -1,0 +1,18 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+# Specify storage class to create volume
+victoriametrics:
+  vmSingle:
+    storage:
+      # Specify storage class to create volume
+      storageClassName: nfs-dynamic-provisioning
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: vmsingle
+      volumeName: data-victoriametrics-pv

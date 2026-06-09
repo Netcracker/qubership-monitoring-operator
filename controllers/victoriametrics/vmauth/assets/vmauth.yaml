@@ -1,0 +1,24 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAuth
+metadata:
+  labels:
+    name: vmauth
+    app.kubernetes.io/name: vmauth
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: k8s
+spec:
+  replicaCount: 1
+  resources: {}
+  securityContext:
+    runAsUser: 2000
+    runAsGroup: 2000
+    fsGroup: 2000
+
+  # Enable discovery all CRs if labelSelectors is empty
+  selectAllByDefault: true
+
+  # Selector to discovery CRs
+  userSelector: {}
+  userNamespaceSelector: {}

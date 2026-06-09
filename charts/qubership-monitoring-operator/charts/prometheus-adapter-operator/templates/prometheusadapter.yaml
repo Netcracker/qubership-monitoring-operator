@@ -1,0 +1,113 @@
+{{- if .Values.install }}
+apiVersion: monitoring.netcracker.com/v1
+kind: PrometheusAdapter
+metadata:
+  name: prometheus-adapter
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "prometheus-adapter" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-adapter-operator
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  image: {{ template "prometheusAdapter.image" . }}
+  replicas: {{ .Values.replicas }}
+  metricsRelistInterval: {{ .Values.metricsRelistInterval }}
+  prometheusUrl: {{ template "prometheusAdapter.prometheusUrl" . }}
+  {{- if .Values.customScaleMetricRulesSelector }}
+  customScaleMetricRulesSelector:
+    {{- toYaml .Values.customScaleMetricRulesSelector | nindent 4 }}
+  {{- end }}
+  enableResourceMetrics: {{ .Values.enableResourceMetrics }}
+  enableCustomMetrics: {{ .Values.enableCustomMetrics }}
+  securityContext:
+    {{ include "prometheusAdapter.securityContext" . }}
+  resources:
+    {{ include "prometheusAdapter.resources" $ }}
+  {{- if .Values.labels }}
+  labels:
+    {{- toYaml .Values.labels | nindent 4 }}
+  {{- end }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+  {{- if .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml .Values.nodeSelector | nindent 4 }}
+  {{- end }}
+  {{- if .Values.affinity }}
+  affinity:
+    {{- toYaml .Values.affinity | nindent 4 }}
+  {{- end }}
+  {{- if .Values.tolerations }}
+  tolerations:
+    {{- toYaml .Values.tolerations | nindent 4 }}
+  {{- end }}
+  {{- if .Values.priorityClassName }}
+  priorityClassName: {{ .Values.priorityClassName | quote }}
+  {{- end }}
+  {{- if .Values.operator.tlsEnabled }}
+  {{- if and .Values.operator.tlsConfig.caSecret .Values.operator.tlsConfig.keySecret .Values.operator.tlsConfig.certSecret }}
+  tlsConfig:
+    caSecret: {{- toYaml .Values.operator.tlsConfig.caSecret | nindent 6 }}
+    certSecret: {{- toYaml .Values.operator.tlsConfig.certSecret | nindent 6 }}
+    keySecret: {{- toYaml .Values.operator.tlsConfig.keySecret | nindent 6 }}
+  {{- else }}
+  {{-  if .Values.operator.tlsConfig.existingSecret }}
+  tlsConfig:
+    caSecret: 
+      key: "ca.crt"
+      name: {{ .Values.operator.tlsConfig.existingSecret }}
+    certSecret:
+      key: "tls.crt"
+      name: {{ .Values.operator.tlsConfig.existingSecret }}
+    keySecret:
+      key: "tls.key"
+      name: {{ .Values.operator.tlsConfig.existingSecret }}
+  {{- else }}
+  {{- if and .Values.operator.tlsConfig.generateCerts .Values.operator.tlsConfig.generateCerts.enabled }}
+  tlsConfig:
+    caSecret: 
+      key: "ca.crt"
+      name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.generateCerts.secretName }}
+    certSecret:
+      key: "tls.crt"
+      name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.generateCerts.secretName }}
+    keySecret:
+      key: "tls.key"
+      name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.generateCerts.secretName }}
+  {{- else }}
+  tlsConfig:
+    caSecret: 
+      key: "ca.crt"
+      name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.createSecret.secretName }}
+    certSecret:
+      key: "tls.crt"
+      name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.createSecret.secretName }}
+    keySecret:
+      key: "tls.key"
+      name: {{ default "prometheus-adapter-client-tls-secret" .Values.operator.tlsConfig.createSecret.secretName }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.auth }}
+  auth:
+  {{- if .Values.auth.basicAuth }}
+    basicAuth:
+    {{- if .Values.auth.basicAuth.createSecret }}
+      username:
+        name: prometheus-adapter-client-basic-auth
+        key: username
+      password:
+        name: prometheus-adapter-client-basic-auth
+        key: password
+    {{- else }}
+      {{- toYaml .Values.auth.basicAuth | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}

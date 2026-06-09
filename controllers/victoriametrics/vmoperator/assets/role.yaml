@@ -1,0 +1,216 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: monitoring-victoriametrics-operator
+  labels:
+    app.kubernetes.io/component: victoriametrics-operator
+    app.kubernetes.io/managed-by: monitoring-operator
+    app.kubernetes.io/part-of: monitoring
+rules:
+  # core
+  # This is needed for pod, service, configmap, secret and pvc creation
+  - apiGroups:
+      - ''
+    resources:
+      - configmaps
+      - configmaps/finalizers
+      - configmaps/status
+      - endpoints
+      - events
+      - persistentvolumeclaims
+      - persistentvolumeclaims/finalizers
+      - pods
+      - secrets
+      - secrets/finalizers
+      - services
+      - services/finalizers
+      - serviceaccounts
+      - serviceaccounts/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+
+  # apps
+  # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+      - daemonsets/finalizers
+      - deployments
+      - deployments/finalizers
+      - statefulsets
+      - statefulsets/finalizers
+      - statefulsets/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - patch
+      - watch
+
+  # rbac.authorization.k8s.io
+  # This is needed for role and rolebinding creation
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - rolebindings
+      - roles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # networking.k8s.io
+  # This is needed for ingress creation
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+      - ingresses/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  # Permissions to handle Ingresses finalizers
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+      - ingresses/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # coordination.k8s.io
+  # This is needed for leader election
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - update
+
+  # operator.victoriametrics.com
+  # This is needed for managing VictoriaMetrics custom resources
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vmalertmanagerconfigs
+      - vmnodescrapes
+      - vmpodscrapes
+      - vmprobes
+      - vmrules
+      - vmscrapeconfigs
+      - vmservicescrapes
+      - vmstaticscrapes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vlagents
+      - vlclusters
+      - vlogs
+      - vlsingles
+      - vmagents
+      - vmalertmanagers
+      - vmalerts
+      - vmanomalies
+      - vmauths
+      - vmclusters
+      - vmdistributed
+      - vmsingles
+      - vmusers
+      - vtclusters
+      - vtsingles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.victoriametrics.com
+    resources:
+      - vlagents/finalizers
+      - vlagents/status
+      - vlclusters/finalizers
+      - vlclusters/status
+      - vlogs/finalizers
+      - vlogs/status
+      - vlsingles/finalizers
+      - vlsingles/status
+      - vmagents/finalizers
+      - vmagents/status
+      - vmalertmanagerconfigs/finalizers
+      - vmalertmanagerconfigs/status
+      - vmalertmanagers/finalizers
+      - vmalertmanagers/status
+      - vmalerts/finalizers
+      - vmalerts/status
+      - vmanomalies/finalizers
+      - vmanomalies/status
+      - vmauths/finalizers
+      - vmauths/status
+      - vmclusters/finalizers
+      - vmclusters/status
+      - vmdistributed/finalizers
+      - vmdistributed/status
+      - vmnodescrapes/finalizers
+      - vmnodescrapes/status
+      - vmpodscrapes/finalizers
+      - vmpodscrapes/status
+      - vmprobes/finalizers
+      - vmprobes/status
+      - vmrules/finalizers
+      - vmrules/status
+      - vmscrapeconfigs/finalizers
+      - vmscrapeconfigs/status
+      - vmservicescrapes/finalizers
+      - vmservicescrapes/status
+      - vmsingles/finalizers
+      - vmsingles/status
+      - vmstaticscrapes/finalizers
+      - vmstaticscrapes/status
+      - vmusers/finalizers
+      - vmusers/status
+      - vtclusters/finalizers
+      - vtclusters/status
+      - vtsingles/finalizers
+      - vtsingles/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch

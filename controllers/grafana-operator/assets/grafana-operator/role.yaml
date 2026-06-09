@@ -1,0 +1,116 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: platform-monitoring-grafana-operator
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - configmaps
+      - secrets
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+      - create
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - watch
+      - patch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanas
+      - grafanas/status
+      - grafanas/finalizers
+      - grafanadashboards
+      - grafanadashboards/status
+      - grafanadatasources
+      - grafanadatasources/status
+      - grafanafolders
+      - grafanafolders/status
+      - grafanacontactpoints
+      - grafanacontactpoints/status
+      - grafanaalertrulegroups
+      - grafanaalertrulegroups/status
+      - grafananotificationpolicies
+      - grafananotificationpolicies/status
+      - grafananotificationtemplates
+      - grafananotificationtemplates/status
+      - grafanamutetimings
+      - grafanamutetimings/status
+      - grafananotificationpolicyroutes
+      - grafananotificationpolicyroutes/status
+      - grafanalibrarypanels
+      - grafanalibrarypanels/status
+      - grafanaserviceaccounts
+      - grafanaserviceaccounts/status
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+      - patch

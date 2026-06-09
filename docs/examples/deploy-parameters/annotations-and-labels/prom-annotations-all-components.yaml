@@ -1,0 +1,56 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+monitoringOperator:
+  install: true
+  serviceAccount:
+    annotations:
+      example.io/annotation: value
+      description: "some description"
+
+# Grafana
+grafana:
+  install: true
+  serviceAccount:
+    annotations:
+      example.io/annotation: value
+      description: "some description"
+  operator:
+    serviceAccount:
+      annotations:
+        example.io/annotation: value
+        description: "some description"
+
+# Prometheus stack
+prometheus:
+  install: true
+  serviceAccount:
+    annotations:
+      example.io/annotation: value
+      description: "some description"
+alertManager:
+  install: true
+  serviceAccount:
+    annotations:
+      example.io/annotation: value
+      description: "some description"
+
+# Exporters
+kubeStateMetrics:
+  install: true
+  serviceAccount:
+    annotations:
+      example.io/annotation: value
+      description: "some description"
+nodeExporter:
+  install: true
+  serviceAccount:
+    annotations:
+      example.io/annotation: value
+      description: "some description"
+
+# Integrations tests
+integrationTests:
+  install: true
+  tags: grafanaORsmoke
+  timeoutBeforeStart: 120

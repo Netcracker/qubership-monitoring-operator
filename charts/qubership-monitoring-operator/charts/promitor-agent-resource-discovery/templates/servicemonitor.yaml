@@ -1,0 +1,29 @@
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" ) ( .Values.install ) ( .Values.serviceMonitor.enabled ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
+    {{- if .Values.serviceMonitor.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.serviceMonitor.labels) | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - port: http
+    {{- if .Values.serviceMonitor.interval }}
+    interval: {{ .Values.serviceMonitor.interval }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.timeout }}
+    scrapeTimeout: {{ .Values.serviceMonitor.timeout }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.metricRelabelings }}
+    metricRelabelings:
+      {{ toYaml .Values.serviceMonitor.metricRelabelings | nindent 6 }}
+    {{- end }}
+  jobLabel: {{ .Values.name }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

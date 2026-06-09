@@ -1,0 +1,142 @@
+---
+name: Build Artifacts
+
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+    - main
+    tags:
+    - 'v*'
+    paths:
+    - '**'
+    - '!.github/**'
+    - '.github/workflows/integration-tests.yaml'
+    - '.github/workflows/build.yaml'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
+  pull_request:
+    branches:
+    - '**'
+    paths:
+    - '**'
+    - '!.github/**'
+    - '.github/workflows/integration-tests.yaml'
+    - '.github/workflows/build.yaml'
+    - '!docs/**'
+    - '!CODE-OF-CONDUCT.md'
+    - '!CONTRIBUTING.md'
+    - '!LICENSE'
+    - '!README.md'
+    - '!SECURITY.md'
+  workflow_dispatch:
+    inputs:
+      tags:
+        required: false
+        type: string
+        default: ''
+        description: 'Tags'
+      dry-run:
+        required: true
+        type: boolean
+        default: false
+        description: 'Dry run'
+
+concurrency:
+  # On main/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  # More info: https://stackoverflow.com/a/68422069/253468
+  group: ${{ github.ref == 'refs/heads/main' && format('ci-main-{0}', github.sha) || format('ci-main-{0}', github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  multiplatform_build:
+    permissions:
+      contents: read
+      packages: write
+    if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+        - name: qubership-monitoring-operator
+          description: Qubership Monitoring Operator image
+          file: cmd/operator/Dockerfile
+          context: .
+        - name: qubership-etcd-certs-to-secret
+          file: cmd/etcd-certs-to-secret/Dockerfile
+          context: .
+        - name: qubership-monitoring-transfer
+          description: Qubership Monitoring documentation and helm charts image
+          file: docker-transfer/Dockerfile
+          context: .
+        - name: qubership-monitoring-int-tests
+          description: Qubership Monitoring integration tests image
+          file: test/robot-tests/Dockerfile
+          context: test/robot-tests
+    runs-on: ubuntu-latest
+    name: ${{ matrix.component.name }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - name: Set image name
+      run: |
+        OWNER="${{ github.repository_owner }}"
+        OWNER=$(echo "${OWNER,,}" | sed -E 's/[^a-z0-9._-]+/-/g')
+        echo "FULL_IMAGE_NAME=ghcr.io/${OWNER}/${{ matrix.component.name }}" >>${GITHUB_ENV}
+      env:
+        IMAGE_NAME: '${{ github.repository }}'
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+      with:
+        images: "${{ env.FULL_IMAGE_NAME }}"
+        tags: |
+          type=ref,event=branch
+          type=ref,event=tag
+          type=raw,value=${{ github.head_ref }},enable=${{ github.event_name == 'pull_request' }}
+          type=sha,prefix=git-
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+        flavor: |
+          latest=${{ github.ref == 'refs/heads/main' }}
+        labels: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
+        annotations: |
+          org.opencontainers.image.description=${{ matrix.component.description }}
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push
+      uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
+      with:
+        no-cache: true
+        context: ${{ matrix.component.context }}
+        file: ${{ matrix.component.file }}
+        platforms: linux/amd64,linux/arm64
+        # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
+        push: >-
+          ${{
+            (github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]') &&
+            (
+            (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+            github.ref == 'refs/heads/main' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+            )
+          }}
+        provenance: false
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

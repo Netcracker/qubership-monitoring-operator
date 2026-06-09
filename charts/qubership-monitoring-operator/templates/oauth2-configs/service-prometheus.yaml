@@ -1,0 +1,21 @@
+{{- if .Values.prometheus }}
+{{- if .Values.prometheus.install }}
+{{- if and .Values.auth .Values.oAuthProxy }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-oauth2-proxy
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "prometheus-oauth2-proxy" "component" "oauth2-proxy") | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - name: oauth-proxy
+      port: 9092
+      protocol: TCP
+      targetPort: oauth-proxy
+  selector:
+    app.kubernetes.io/name: prometheus
+{{- end }}
+{{- end }}
+{{- end }}

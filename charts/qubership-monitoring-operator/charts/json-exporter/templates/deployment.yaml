@@ -1,0 +1,97 @@
+{{- if .Values.install }}
+{{- $image := include "jsonExporter.image" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ cat .Values.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+        app.kubernetes.io/version: {{ splitList ":" $image | last }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+      {{- if .Values.annotations }}
+      annotations:
+        {{- toYaml .Values.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.name }}
+      securityContext:
+        {{ include "jsonExporter.securityContext" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      containers:
+        - name: json-exporter
+          {{- if .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          {{ end }}
+          image: {{ template "jsonExporter.image" . }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: {{ .Values.service.name }}
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.service.name }}
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.service.name }}
+          resources:
+            {{ include "jsonExporter.resources" $ }}
+          volumeMounts:
+            - name: config-configmap-volume
+              mountPath: /config.yml
+              subPath: config.yml
+          {{- with .Values.additionalVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end  }}
+      volumes:
+        - name: config-configmap-volume
+          configMap:
+            name: {{ .Values.name }}
+            items:
+              - key: config.yml
+                path: config.yml
+        {{- with .Values.additionalVolumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+{{- end }}

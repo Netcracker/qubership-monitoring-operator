@@ -1,0 +1,248 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object",
+            "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+        },
+        "annotations": {
+            "type": "object",
+            "description": "Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations"
+        },
+        "containerPort": {
+            "type": "integer",
+            "description": "Type: integer\nMandatory: no\nDefault: 9100",
+            "default": 9100
+        },
+        "containerSecurityContext": {
+            "type": "object",
+            "description": "Security Context for a container.\nType: object\nMandatory: no",
+            "properties": {
+                "runAsUser": {
+                    "type": "integer",
+                    "description": "The UID to run the entrypoint of the container process.\nType: integer\nMandatory: no"
+                },
+                "fsGroup": {
+                    "type": "integer",
+                    "description": "A special supplemental group that applies to all containers in a pod.\nType: integer\nMandatory: no"
+                }
+            }
+        },
+        "exporterConfig": {
+            "type": "object",
+            "default": {
+                "configmap_collector": {
+                    "defaults": {
+                        "description": "Metric shows version collected from configmaps",
+                        "metricName": "configmap_collected_versions",
+                        "namespaces": [],
+                        "resourceLabels": {},
+                        "type": "configmap",
+                        "labels": [
+                            {
+                                "name": "application_name",
+                                "keyRegexp": "^([^\\.]+)\\.[^\\.]+\\.[^\\.]+"
+                            },
+                            {
+                                "name": "date",
+                                "keyRegexp": "^[^\\.]+\\.([^\\.]+)\\.[^\\.]+"
+                            },
+                            {
+                                "name": "username",
+                                "keyRegexp": "^[^\\.]+\\.[^\\.]+\\.([^\\.]+)"
+                            },
+                            {
+                                "name": "application_version",
+                                "valueRegexp": ".*"
+                            }
+                        ]
+                    },
+                    "resources": [
+                        {
+                            "name": "version"
+                        }
+                    ]
+                }
+            },
+            "description": "Additional Exporter Config."
+        },
+        "extraArgs": {
+            "type": "array",
+            "description": "Additional arguments for version-exporter container.\nType: list[string]\nMandatory: no\nDefault: []",
+            "default": []
+        },
+        "extraVarsSecret": {
+            "type": "object",
+            "description": "Allows set extra system environment variables for Version-exporter into the Secret.\nType: object\nMandatory: no\nDefault: {}"
+        },
+        "grafanaDashboard": {
+            "type": "boolean",
+            "description": "Allows creating Grafana dashboard for version-exporter\nType: boolean\nMandatory: no\nDefault: true",
+            "default": true
+        },
+        "image": {
+            "type": "string",
+            "description": "Image to use for version-exporter deployment",
+            "default": "ghcr.io/netcracker/qubership-version-exporter:main"
+        },
+        "imagePullPolicy": {
+            "type": "string",
+            "description": "Image pull policy to use for version-exporter deployment",
+            "default": "IfNotPresent"
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable or disable deploy version-exporter.\nType: boolean\nMandatory: no\nDefault: false",
+            "default": false
+        },
+        "labels": {
+            "type": "object",
+                    "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/user-guide/labels"
+        },
+        "name": {
+            "type": "string",
+            "description": "# A name of a microservice to deploy with.\nThis name will be used as name of the microservice deployment and in labels.",
+            "default": "version-exporter"
+        },
+        "nodeSelector": {
+            "type": "object",
+            "description": "# Allow define which Nodes the Pods are scheduled on.\nType: map[string]\nMandatory: no\nDefault: not set"
+        },
+        "priorityClassName": {
+            "type": "string",
+            "description": "Priority class name for version-exporter pods.\nType: string\nMandatory: no\nDefault: not set"
+        },
+        "replicas": {
+            "type": "integer",
+            "description": "Number of created pods.\nType: integer\nMandatory: no\nDefault: 1",
+            "default": 1
+        },
+        "resources": {
+            "type": "object",
+            "description": "The resources describe compute resource requests and limits for single container.\n Ref: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "description": "Defines maximum amount of compute resources allowed.\n Ref: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU limit for version-exporter container.\nType: string\nMandatory: no"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory limit for version-exporter container.\nType: string\nMandatory: no"
+                        }
+                    }
+                },
+                "requests": {
+                    "type": "object",
+                    "description": "Defines minimum amount of compute resources required.\n Ref: https://kubernetes.io/docs/user-guide/compute-resources/\nType: object\nMandatory: no",
+                    "properties": {
+                        "cpu": {
+                            "type": "string",
+                            "description": "CPU request for version-exporter container.\nType: string\nMandatory: no"
+                        },
+                        "memory": {
+                            "type": "string",
+                            "description": "Memory request for version-exporter container.\nType: string\nMandatory: no"
+                        }
+                    }
+                }
+            }
+        },
+        "secretName": {
+            "type": "string",
+            "description": "# A name of a microservice secret to deploy with.\nThis name will be used as name of the microservice secret deployment.",
+            "default": "version-exporter-secret"
+        },
+        "securityContext": {
+            "type": "object",
+            "description": "Mandatory: no"
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations set which will create in service\nType: map[string]string\nMandatory: no\nDefault: {}"
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels set which will create in service\nType: map[string]string\nMandatory: no\nDefault: {}"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port of version-exporter which use in service\nType: int\nMandatory: no\nDefault: 9100",
+                    "default": 9100
+                },
+                "portName": {
+                    "type": "string",
+                    "description": "Port name of version-exporter which use in service\nType: string\nMandatory: no\nDefault: http",
+                    "default": "http"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Type of version-exporter service\nType: string\nMandatory: no\nDefault: ClusterIP",
+                    "default": "ClusterIP"
+                }
+            },
+            "description": "Service configuration for version-exporter\nType: object\nMandatory: no"
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "description": "Annotations to add to the service account"
+                },
+                "create": {
+                    "type": "boolean",
+                    "description": "Specifies whether a service account should be created",
+                    "default": true
+                },
+                "labels": {
+                    "type": "object",
+                    "description": "Labels to add to the service account",
+                    "default": {}
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of the service account to use.\nIf not set and create is true, a name is generated using the fullname template",
+                    "default": "version-exporter"
+                }
+            }
+        },
+        "serviceMonitor": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "If true, a ServiceMonitor is created for a `version-exporter`.\nType: boolean\nMandatory: no\nDefault: true",
+                    "default": true
+                },
+                "interval": {
+                    "type": "string",
+                    "description": "Scraping interval for Prometheus.\nType: string\nMandatory: no\nDefault: 5m",
+                    "default": "5m"
+                },
+                "scrapeTimeout": {
+                    "type": "string",
+                    "description": "Please note that scrapeTimeout must be less than the interval",
+                    "default": "30s"
+                },
+                "telemetryPath": {
+                    "type": "string",
+                    "description": "Set path to version-exporter telemtery-path",
+                    "default": "/metrics"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array",
+            "description": "# Tolerations allow the pods to schedule onto nodes with matching taints.\nType: object\nMandatory: no",
+            "default": []
+        }
+    }
+}

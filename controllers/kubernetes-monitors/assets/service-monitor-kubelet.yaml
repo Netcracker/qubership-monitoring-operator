@@ -1,0 +1,110 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubelet-service-monitor
+  labels:
+    k8s-app: kubelet-service-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  endpoints:
+  - interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - sourceLabels: ['pod_name']
+        targetLabel: pod
+        regex: (.+)
+      - sourceLabels: ['container_name']
+        targetLabel: container
+        regex: (.+)
+      - action: labeldrop
+        regex: pod_name
+      - action: labeldrop
+        regex: container_name
+      - regex: 'kubelet_running_pods'
+        replacement: 'kubelet_running_pod_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+      - regex: 'kubelet_running_containers'
+        replacement: 'kubelet_running_container_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+    relabelings: []
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecureSkipVerify: true
+  - interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - sourceLabels: ['pod_name']
+        targetLabel: pod
+        regex: (.+)
+      - sourceLabels: ['container_name']
+        targetLabel: container
+        regex: (.+)
+      - action: labeldrop
+        regex: pod_name
+      - action: labeldrop
+        regex: container_name
+      - regex: 'kubelet_running_pods'
+        replacement: 'kubelet_running_pod_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+      - regex: 'kubelet_running_containers'
+        replacement: 'kubelet_running_container_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+    relabelings: []
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    path: /metrics/cadvisor
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecureSkipVerify: true
+  - interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+      - action: drop
+        regex: container_start_time_seconds
+        sourceLabels: ['__name__']
+      - sourceLabels: ['pod_name']
+        targetLabel: pod
+        regex: (.+)
+      - sourceLabels: ['container_name']
+        targetLabel: container
+        regex: (.+)
+      - action: labeldrop
+        regex: pod_name
+      - action: labeldrop
+        regex: container_name
+      - regex: 'kubelet_running_pods'
+        replacement: 'kubelet_running_pod_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+      - regex: 'kubelet_running_containers'
+        replacement: 'kubelet_running_container_count'
+        sourceLabels: ['__name__']
+        targetLabel: __name__
+    relabelings: []
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    path: /metrics/resource
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecureSkipVerify: true
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+    - platform-monitoring
+  selector:
+    matchLabels:
+      k8s-app: kubelet

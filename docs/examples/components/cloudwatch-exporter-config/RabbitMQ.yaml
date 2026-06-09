@@ -1,0 +1,262 @@
+region: us-east-1
+period_seconds: 120
+delay_seconds: 60
+metrics:
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: ExchangeCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: QueueCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: ConnectionCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: ChannelCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: ConsumerCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: MessageCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: MessageReadyCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: MessageUnacknowledgedCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: PublishRate
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: ConfirmRate
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: AckRate
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: SystemCpuUtilization
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: RabbitMQMemLimit
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: RabbitMQMemUsed
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: RabbitMQDiskFreeLimit
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: RabbitMQDiskFree
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Broker
+    aws_metric_name: RabbitMQFdUsed
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Node
+      - Broker
+    aws_metric_name: SystemCpuUtilization
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Node
+      - Broker
+    aws_metric_name: RabbitMQMemLimit
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Node
+      - Broker
+    aws_metric_name: RabbitMQMemUsed
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Node
+      - Broker
+    aws_metric_name: RabbitMQDiskFreeLimit
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Node
+      - Broker
+    aws_metric_name: RabbitMQDiskFree
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Node
+      - Broker
+    aws_metric_name: RabbitMQFdUsed
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Queue
+      - VirtualHost
+      - Broker
+    aws_metric_name: ConsumerCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Queue
+      - VirtualHost
+      - Broker
+    aws_metric_name: MessageReadyCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Queue
+      - VirtualHost
+      - Broker
+    aws_metric_name: MessageUnacknowledgedCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+  - aws_dimensions:
+      - Queue
+      - VirtualHost
+      - Broker
+    aws_metric_name: MessageCount
+    aws_namespace: AWS/AmazonMQ
+    aws_statistics:
+      - Average
+      - Minimum
+      - Maximum
+      - Sum
+

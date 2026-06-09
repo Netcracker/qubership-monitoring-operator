@@ -1,0 +1,2 @@
+{{ $.Chart.Name }} has been installed. Check pod statuses by running the command:
+kubectl --namespace {{ $.Release.Namespace }} get pods -l "app.kubernetes.io/part-of=monitoring"

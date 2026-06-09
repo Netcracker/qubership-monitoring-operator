@@ -1,0 +1,88 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+monitoringOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 200Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+victoriametrics:
+  operator:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 100Mi
+      limits:
+        cpu: 400m
+        memory: 200Mi
+  vmagent:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 100Mi
+      limits:
+        cpu: 400m
+        memory: 200Mi
+  vmalertmanager:
+    resources:
+      requests:
+        cpu: 30m
+        memory: 56Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+  vmalert:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 200Mi
+      limits:
+        cpu: 200m
+        memory: 500Mi
+  vmauth:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 200Mi
+      limits:
+        cpu: 200m
+        memory: 500Mi
+grafana:
+  install: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  operator:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 200Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+kubeStateMetrics:
+  install: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+nodeExporter:
+  install: true
+  port: 9900
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi

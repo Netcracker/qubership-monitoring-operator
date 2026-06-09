@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: monitoring-nginx-ingress-pod-monitor
+spec:
+  jobLabel: k8s-app
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+    - interval: 30s
+      scrapeTimeout: 10s
+      metricRelabelings: []
+      relabelings:
+        - action: replace
+          regex: (.*)
+          replacement: $1
+          sourceLabels: ['__meta_kubernetes_pod_node_name']
+          targetLabel: node
+      port: metrics
+      scheme: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx

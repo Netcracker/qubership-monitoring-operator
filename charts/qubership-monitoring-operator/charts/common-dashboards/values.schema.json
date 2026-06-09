@@ -1,0 +1,26 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "backupDaemonDashboard": {
+            "type": "boolean",
+            "description": "Install dashboard for backup-daemon",
+            "default": true
+        },
+        "install": {
+            "type": "boolean",
+            "description": "Allow to enable deploy common-dashboards",
+            "default": true
+        },
+        "kafkaJavaClientsDashboard": {
+            "type": "object",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Install dashboard for Kafka Java Clients with Producer and Consumer metrics",
+                    "default": true
+                }
+            }
+        }
+    }
+}

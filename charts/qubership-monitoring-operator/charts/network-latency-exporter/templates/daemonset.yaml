@@ -1,0 +1,94 @@
+{{- if .Values.install }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
+    app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+    app.kubernetes.io/technology: go
+    {{- if .Values.additionalLabels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
+    {{- end }}
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "networkLatencyExporter.instance" . }}
+        app.kubernetes.io/version: {{ template "networkLatencyExporter.version" . }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+      {{- if .Values.annotations }}
+      annotations:
+        {{- toYaml .Values.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      shareProcessNamespace: true
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      tolerations: {{- toYaml .Values.tolerations | nindent 8 }}
+      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .Values.affinity | nindent 8 }}
+      securityContext:
+        {{ include "networkLatencyExporter.securityContext" . }}
+      containers:
+        - name: {{ .Values.name }}
+          image: {{ template "networkLatencyExporter.image" . }}
+          args:
+            {{- if .Values.extraArgs }}
+              {{ toYaml .Values.extraArgs | nindent 12 }}
+            {{- end }}
+          ports:
+            - containerPort: 8125
+              protocol: TCP
+            - containerPort: 8094
+              protocol: TCP
+            - containerPort: 8092
+              protocol: UDP
+            - containerPort: 9273
+              name: metrics
+              protocol: TCP
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: REQUEST_TIMEOUT
+              value: {{ .Values.requestTimeout | quote }}
+            - name: TIMEOUT
+              value: {{ .Values.timeout }}
+            - name: PACKETS_NUM
+              value: {{ .Values.packetsNum | quote }}
+            - name: PACKET_SIZE
+              value: {{ .Values.packetSize | quote }}
+            - name: CHECK_TARGET
+              value: {{ .Values.checkTarget | quote }}
+            - name: DISCOVER_ENABLE
+              value: {{ .Values.discoverEnable | quote }}
+            - name: LATENCY_TYPES
+              value: {{ .Values.latencyTypes | quote }}
+          resources:
+            {{ include "networkLatencyExporter.resources" $ }}
+          terminationMessagePath: /dev/termination-log
+          imagePullPolicy: IfNotPresent
+          {{- if .Values.rbac.privileged }}
+          securityContext:
+            privileged: true
+          {{- end }}
+{{- end }}

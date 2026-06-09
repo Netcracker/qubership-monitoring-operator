@@ -1,0 +1,562 @@
+package vmalertmanager
+
+import (
+	"embed"
+	"strings"
+
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics"
+	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
+	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/yaml"
+)
+
+//go:embed  assets/*.yaml
+var assets embed.FS
+
+func vmAlertManagerServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount, error) {
+	sa := corev1.ServiceAccount{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerServiceAccountAsset), 100).Decode(&sa); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
+	sa.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	sa.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmAlertManagerComponentName), nil)
+
+	return &sa, nil
+}
+
+func vmAlertManagerClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
+	clusterRole := rbacv1.ClusterRole{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
+	clusterRole.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	if hasPsp {
+		clusterRole.Rules = append(clusterRole.Rules, rbacv1.PolicyRule{
+			Resources:     []string{"podsecuritypolicies"},
+			Verbs:         []string{"use"},
+			APIGroups:     []string{"policy"},
+			ResourceNames: []string{utils.VmOperatorComponentName},
+		})
+	}
+	if hasScc {
+		clusterRole.Rules = append(clusterRole.Rules, rbacv1.PolicyRule{
+			Resources:     []string{"securitycontextconstraints"},
+			Verbs:         []string{"use"},
+			APIGroups:     []string{"security.openshift.io"},
+			ResourceNames: []string{utils.VmOperatorComponentName},
+		})
+	}
+
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), nil)
+
+	return &clusterRole, nil
+}
+
+func vmAlertManagerClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRoleBinding, error) {
+	clusterRoleBinding := rbacv1.ClusterRoleBinding{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerClusterRoleBindingAsset), 100).Decode(&clusterRoleBinding); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	clusterRoleBinding.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRoleBinding"})
+	clusterRoleBinding.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	clusterRoleBinding.RoleRef.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+
+	// Set namespace for all subjects
+	for it := range clusterRoleBinding.Subjects {
+		sub := &clusterRoleBinding.Subjects[it]
+		sub.Namespace = cr.GetNamespace()
+		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+
+	return &clusterRoleBinding, nil
+}
+
+func vmAlertManagerRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
+	role := rbacv1.Role{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerRoleAsset), 100).Decode(&role); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
+	role.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	role.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmAlertManagerComponentName), nil)
+
+	return &role, nil
+}
+
+func vmAlertManagerRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error) {
+	roleBinding := rbacv1.RoleBinding{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerRoleBindingAsset), 100).Decode(&roleBinding); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	roleBinding.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "RoleBinding"})
+	roleBinding.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName)
+	roleBinding.SetNamespace(cr.GetNamespace())
+	roleBinding.RoleRef.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+
+	// Set namespace for all subjects
+	for it := range roleBinding.Subjects {
+		sub := &roleBinding.Subjects[it]
+		sub.Namespace = cr.GetNamespace()
+		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+
+	return &roleBinding, nil
+}
+
+func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMAlertmanager, error) {
+	var err error
+	vmalertmgr := vmetricsv1b1.VMAlertmanager{}
+	if err = yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerAsset), 100).Decode(&vmalertmgr); err != nil {
+		return nil, err
+	}
+
+	// Set parameters
+	vmalertmgr.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlertManager.IsInstall() {
+		vmalertmgr.Spec.Retention = cr.Spec.Victoriametrics.VmAlertManager.Retention
+		vmalertmgr.Spec.Image.Repository, vmalertmgr.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
+
+		if r != nil {
+			// Set security context
+			if cr.Spec.Victoriametrics.VmAlertManager.SecurityContext != nil {
+				if vmalertmgr.Spec.SecurityContext == nil {
+					vmalertmgr.Spec.SecurityContext = &vmetricsv1b1.SecurityContext{}
+				}
+				if cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.RunAsUser != nil {
+					vmalertmgr.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.RunAsUser
+				}
+				if cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.FSGroup != nil {
+					vmalertmgr.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.FSGroup
+				}
+			}
+		}
+
+		// Set resources for vmAlertManager
+		vmalertmgr.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
+
+		// Set resources for vmAlertManager
+		if cr.Spec.Victoriametrics.VmAlertManager.Resources.Size() > 0 {
+			vmalertmgr.Spec.Resources = cr.Spec.Victoriametrics.VmAlertManager.Resources
+		}
+		// Set secrets for vmAlertManager deployment
+		if len(cr.Spec.Victoriametrics.VmAlertManager.Secrets) > 0 {
+			vmalertmgr.Spec.Secrets = cr.Spec.Victoriametrics.VmAlertManager.Secrets
+		}
+
+		// Set replicas
+		if cr.Spec.Victoriametrics.VmAlertManager.Replicas != nil {
+			vmalertmgr.Spec.ReplicaCount = cr.Spec.Victoriametrics.VmAlertManager.Replicas
+		}
+		if cr.Spec.Victoriametrics.VmCluster.IsInstall() && cr.Spec.Victoriametrics.VmReplicas != nil {
+			vmalertmgr.Spec.ReplicaCount = cr.Spec.Victoriametrics.VmReplicas
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.ConfigRawYaml != "" {
+			vmalertmgr.Spec.ConfigRawYaml = cr.Spec.Victoriametrics.VmAlertManager.ConfigRawYaml
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.ConfigSecret != "" {
+			vmalertmgr.Spec.ConfigSecret = cr.Spec.Victoriametrics.VmAlertManager.ConfigSecret
+		}
+
+		// Set additional containers
+		if cr.Spec.Victoriametrics.VmAlertManager.Containers != nil {
+			vmalertmgr.Spec.Containers = cr.Spec.Victoriametrics.VmAlertManager.Containers
+		}
+
+		vmalertmgr.Spec.SelectAllByDefault = cr.Spec.Victoriametrics.VmAlertManager.SelectAllByDefault
+
+		// Set storage spec to specify how storage shall be used
+		if cr.Spec.Victoriametrics.VmAlertManager.Storage != nil {
+			vmalertmgr.Spec.Storage = cr.Spec.Victoriametrics.VmAlertManager.Storage
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.ExtraArgs != nil {
+			vmalertmgr.Spec.ExtraArgs = cr.Spec.Victoriametrics.VmAlertManager.ExtraArgs
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.WebConfig != nil {
+			vmalertmgr.Spec.WebConfig = cr.Spec.Victoriametrics.VmAlertManager.WebConfig
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.GossipConfig != nil {
+			vmalertmgr.Spec.GossipConfig = cr.Spec.Victoriametrics.VmAlertManager.GossipConfig
+		}
+
+		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
+			vmalertmgr.Spec.Secrets = append(vmalertmgr.Spec.Secrets, victoriametrics.GetVmalertmanagerTLSSecretName(cr.Spec.Victoriametrics.VmAlertManager))
+
+			if cr.Spec.Victoriametrics.VmAlertManager.WebConfig == nil || cr.Spec.Victoriametrics.VmAlertManager.WebConfig.TLSServerConfig == nil {
+				vmalertmgr.Spec.WebConfig = &vmetricsv1b1.AlertmanagerWebConfig{
+					TLSServerConfig: &vmetricsv1b1.TLSServerConfig{
+						Certs: vmetricsv1b1.Certs{
+							CertSecretRef: &corev1.SecretKeySelector{
+								Key: "tls.crt",
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: victoriametrics.GetVmalertmanagerTLSSecretName(cr.Spec.Victoriametrics.VmAlertManager),
+								},
+							},
+							KeySecretRef: &corev1.SecretKeySelector{
+								Key: "tls.key",
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: victoriametrics.GetVmalertmanagerTLSSecretName(cr.Spec.Victoriametrics.VmAlertManager),
+								},
+							},
+						},
+					},
+				}
+			}
+
+			vmalertmgr.Spec.EmbeddedProbes = &vmetricsv1b1.EmbeddedProbes{
+				LivenessProbe: &corev1.Probe{
+					TimeoutSeconds:   5,
+					PeriodSeconds:    5,
+					SuccessThreshold: 1,
+					FailureThreshold: 10,
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Path:   "/-/healthy",
+							Port:   intstr.FromString("web"),
+							Scheme: "HTTPS",
+						},
+					},
+				},
+				ReadinessProbe: &corev1.Probe{
+					TimeoutSeconds:   5,
+					PeriodSeconds:    5,
+					SuccessThreshold: 1,
+					FailureThreshold: 10,
+					ProbeHandler: corev1.ProbeHandler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Path:   "/-/healthy",
+							Port:   intstr.FromString("web"),
+							Scheme: "HTTPS",
+						},
+					},
+				},
+			}
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.ExtraEnvs != nil {
+			vmalertmgr.Spec.ExtraEnvs = cr.Spec.Victoriametrics.VmAlertManager.ExtraEnvs
+		}
+
+		// Set additional volumes
+		if cr.Spec.Victoriametrics.VmAlertManager.Volumes != nil {
+			vmalertmgr.Spec.Volumes = cr.Spec.Victoriametrics.VmAlertManager.Volumes
+		}
+		// Set additional volumeMounts for each vmAlertManager container. The current container names are:
+		// `vmalertmanager`, `config-reloader`
+		if cr.Spec.Victoriametrics.VmAlertManager.VolumeMounts != nil {
+			for it := range vmalertmgr.Spec.Containers {
+				c := &vmalertmgr.Spec.Containers[it]
+
+				// Set additional volumeMounts only for vmAlertManager container
+				if c.Name == utils.VmAlertManagerComponentName {
+					copy(c.VolumeMounts, cr.Spec.Victoriametrics.VmAlertManager.VolumeMounts)
+				}
+			}
+		}
+		// Set nodeSelector for vmAlertManager
+		if cr.Spec.Victoriametrics.VmAlertManager.NodeSelector != nil {
+			vmalertmgr.Spec.NodeSelector = cr.Spec.Victoriametrics.VmAlertManager.NodeSelector
+		}
+
+		// Set affinity for vmAlertManager
+		if cr.Spec.Victoriametrics.VmAlertManager.Affinity != nil {
+			vmalertmgr.Spec.Affinity = cr.Spec.Victoriametrics.VmAlertManager.Affinity
+		}
+
+		// Set tolerations for vmAlertManager
+		if cr.Spec.Victoriametrics.VmAlertManager.Tolerations != nil {
+			vmalertmgr.Spec.Tolerations = cr.Spec.Victoriametrics.VmAlertManager.Tolerations
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.ConfigSelector != nil {
+			vmalertmgr.Spec.ConfigSelector = cr.Spec.Victoriametrics.VmAlertManager.ConfigSelector
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.ConfigNamespaceSelector != nil {
+			vmalertmgr.Spec.ConfigNamespaceSelector = cr.Spec.Victoriametrics.VmAlertManager.ConfigNamespaceSelector
+		}
+
+		// Set disableNamespaceMatcher
+		if cr.Spec.Victoriametrics.VmAlertManager.DisableNamespaceMatcher != nil {
+			vmalertmgr.Spec.DisableNamespaceMatcher = *cr.Spec.Victoriametrics.VmAlertManager.DisableNamespaceMatcher
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.TerminationGracePeriodSeconds != nil {
+			vmalertmgr.Spec.TerminationGracePeriodSeconds = cr.Spec.Victoriametrics.VmAlertManager.TerminationGracePeriodSeconds
+		}
+
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmalertmgr.GetName(),
+			Component:       utils.VmAlertManagerComponentName,
+			Instance:        utils.GetInstanceLabel(vmalertmgr.GetName(), vmalertmgr.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAlertManager.Image),
+			Technology:      "go",
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmalertmgr, in, nil)
+
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmalertmgr.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
+
+		if vmalertmgr.Spec.PodMetadata != nil {
+			if vmalertmgr.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmAlertManager.Annotations != nil {
+				vmalertmgr.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmAlertManager.Annotations
+			} else {
+				for k, v := range cr.Spec.Victoriametrics.VmAlertManager.Annotations {
+					vmalertmgr.Spec.PodMetadata.Annotations[k] = v
+				}
+			}
+		}
+
+		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAlertManager.PriorityClassName)) > 0 {
+			vmalertmgr.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmAlertManager.PriorityClassName
+		}
+	}
+
+	return &vmalertmgr, nil
+}
+
+func vmAlertmanagerSecret(cr *monv1.PlatformMonitoring) (*corev1.Secret, error) {
+	secret := corev1.Secret{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerSecretAsset), 100).Decode(&secret); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	secret.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Secret"})
+	secret.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&secret, utils.BaseOnlyLabelInput(secret.GetName(), utils.VmAlertManagerComponentName), nil)
+
+	return &secret, nil
+}
+
+func vmAlertManagerIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
+	ingress := networkingv1.Ingress{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmAlertManagerIngressAsset), 100).Decode(&ingress); err != nil {
+		return nil, err
+	}
+	//Set metadata
+	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1", Kind: "Ingress"})
+	ingress.SetName(cr.GetNamespace() + "-" + utils.VmAlertManagerServiceName)
+	ingress.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlertManager.Ingress != nil && cr.Spec.Victoriametrics.VmAlertManager.Ingress.IsInstall() {
+		var rules []networkingv1.IngressRule
+		pathType := networkingv1.PathTypePrefix
+		ing := cr.Spec.Victoriametrics.VmAlertManager.Ingress
+
+		switch {
+		// 1. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &monv1.HTTPIngressRuleValue{
+						Paths: []monv1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: monv1.IngressPathBackend{
+									Service: monv1.IngressPathBackendService{
+										Name: utils.VmAlertManagerServiceName,
+										Port: monv1.ServiceBackendPort{
+											Number: utils.VmAlertManagerServicePort,
+										},
+									},
+								},
+							},
+						},
+					}
+				}
+
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAlertManagerPath(pathType)},
+					},
+				},
+			})
+
+		// 3. fallback: if no custom ingress rules or Host provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAlertManagerPath(pathType)},
+					},
+				},
+			})
+		}
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				// fallback: if secretName is empty - use ingress TLSSecretName only
+				secret := hostgroup.SecretName
+				if secret == "" {
+					secret = cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure tls if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host != "" {
+			secret := cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Victoriametrics.VmAlertManager.Ingress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := cr.Spec.Victoriametrics.VmAlertManager.Ingress.TLSSecretName
+			for _, rule := range cr.Spec.Victoriametrics.VmAlertManager.Ingress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
+			}
+		}
+
+		if cr.Spec.Victoriametrics.VmAlertManager.Ingress.IngressClassName != nil {
+			ingress.Spec.IngressClassName = cr.Spec.Victoriametrics.VmAlertManager.Ingress.IngressClassName
+		}
+
+		// Set annotations
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmAlertManager.Ingress.Annotations))
+		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
+			if ingress.GetAnnotations() == nil {
+				annotation := make(map[string]string)
+				annotation["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
+				ingress.SetAnnotations(annotation)
+			} else {
+				ingress.GetAnnotations()["nginx.ingress.kubernetes.io/backend-protocol"] = "HTTPS"
+			}
+		}
+
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAlertManagerComponentName)
+		if len(cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAlertManager.Ingress.Labels
+		}
+		utils.SetLabelsForResource(&ingress, in, nil)
+	}
+	return &ingress, nil
+}
+
+func defaultVmAlertManagerPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.VmAlertManagerServiceName,
+				Port: networkingv1.ServiceBackendPort{
+					Number: utils.VmAlertManagerServicePort,
+				},
+			},
+		},
+	}
+}

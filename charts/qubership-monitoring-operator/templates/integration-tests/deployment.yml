@@ -1,0 +1,163 @@
+{{- if .Values.integrationTests.install }}
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.integrationTests.name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.integrationTests.name "component" "platform-monitoring-tests") | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+    app.kubernetes.io/technology: python
+    {{- if .Values.integrationTests.labels }}
+      {{- toYaml .Values.integrationTests.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.integrationTests.annotations }}
+  annotations:
+    {{- toYaml .Values.integrationTests.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .Values.integrationTests.name }}
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring.labels" (dict "ctx" . "name" .Values.integrationTests.name "component" "platform-monitoring-tests") | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+        app.kubernetes.io/version: {{ template "integrationTests.version" . }}
+        app.kubernetes.io/technology: python
+        {{- if .Values.integrationTests.labels }}
+          {{- toYaml .Values.integrationTests.labels | nindent 8 }}
+        {{- end }}
+      {{- if .Values.integrationTests.annotations }}
+      annotations:
+        {{- toYaml .Values.integrationTests.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.integrationTests.name }}
+      {{- if .Values.integrationTests.priorityClassName }}
+      priorityClassName: {{ .Values.integrationTests.priorityClassName | quote }}
+      {{- end }}
+      volumes:
+        - name: robot-storage
+          emptyDir: {}
+      affinity: {}
+      tolerations: {{- toYaml .Values.integrationTests.tolerations | nindent 8 }}
+      nodeSelector: {{- toYaml .Values.integrationTests.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .Values.integrationTests.affinity | nindent 8 }}
+      securityContext: {{- toYaml .Values.integrationTests.securityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.integrationTests.name }}
+          image: {{ template "integrationTests.image" . }}
+          imagePullPolicy: Always
+          resources:
+            {{ include "integrationTests.resources" . }}
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: TEMP
+              value: /opt/robot/target
+            {{- if and .Values.grafana .Values.grafana.install }}
+            - name: GRAFANA
+              value: "true"
+            - name: GRAFANA_HOST
+              {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
+              value: {{ .Values.grafana.ingress.host | quote }}
+              {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
+              value: {{ (index .Values.grafana.ingress.rules 0).host }}
+              {{- else if and .Values.grafana.httpRoute.install .Values.grafana.httpRoute.hostnames }}
+              value: {{ .Values.grafana.httpRoute.hostnames | first | quote }}
+              {{- else }}
+              value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
+              {{- end }}
+            {{- else }}
+            - name: GRAFANA
+              value: "false"
+            {{- end }}
+            - name: TAGS
+              value: {{ toYaml .Values.integrationTests.tags }}
+            - name: TIMEOUT-BEFORE-START
+              value: {{ .Values.integrationTests.timeoutBeforeStart | quote }}
+            - name: OPERATOR
+            {{- if .Values.prometheus }}
+              {{- if .Values.prometheus.install }}
+              value: "prometheus-operator"
+              {{- else }}
+              value: "victoriametrics-operator"
+              {{- end }}
+            {{- else }}
+              value: "victoriametrics-operator"
+            {{- end }}
+            - name: STATUS_WRITING_ENABLED
+              value: {{ .Values.integrationTests.statusWriting.enabled | quote }}
+            - name: BLACKBOX-EXPORTER
+              value: {{ if .Values.blackboxExporter }}{{ default "false" .Values.blackboxExporter.install | quote }}{{ else }}"false"{{ end }}
+            - name: CERT-EXPORTER
+              value: {{ if .Values.certExporter }}{{ default "false" .Values.certExporter.install | quote }}{{ else }}"false"{{ end }}
+            - name: CLOUDWATCH-EXPORTER
+              value: {{ if .Values.cloudwatchExporter }}{{ default "false" .Values.cloudwatchExporter.install | quote }}{{ else }}"false"{{ end }}
+            - name: GRAPHITE-REMOTE-ADAPTER
+              value: {{ if .Values.graphite_remote_adapter }}{{ default "false" .Values.graphite_remote_adapter.install | quote }}{{ else }}"false"{{ end }}
+            - name: NETWORK-LATENCY-EXPORTER
+              value: {{ if .Values.networkLatencyExporter }}{{ default "false" .Values.networkLatencyExporter.install | quote }}{{ else }}"false"{{ end }}
+            - name: PROMETHEUS-ADAPTER
+              value: {{ if .Values.prometheusAdapter }}{{ default "false" .Values.prometheusAdapter.install | quote }}{{ else }}"false"{{ end }}
+            - name: PROMETHEUS-ADAPTER-OPERATOR
+              value: {{ if .Values.prometheusAdapter }}{{ default "false" .Values.prometheusAdapter.install | quote }}{{ else }}"false"{{ end }}
+            - name: PROMITOR-AGENT-SCRAPER
+              value: {{ if .Values.promitorAgentScraper }}{{ default "false" .Values.promitorAgentScraper.install | quote }}{{ else }}"false"{{ end }}
+            - name: PROMXY
+              value: {{ if .Values.promxy }}{{ default "false" .Values.promxy.install | quote }}{{ else }}"false"{{ end }}
+            - name: VERSION-EXPORTER
+              value: {{ if .Values.versionExporter }}{{ default "false" .Values.versionExporter.install | quote }}{{ else }}"false"{{ end }}
+            {{- if (eq true .Values.integrationTests.statusWriting.enabled) }}
+            - name: ONLY_INTEGRATION_TESTS
+              value: {{ .Values.integrationTests.statusWriting.onlyIntegrationTests | quote }}
+            - name: IS_SHORT_STATUS_MESSAGE
+              value: {{ .Values.integrationTests.statusWriting.isShortStatusMessage | quote }}
+            - name: STATUS_CUSTOM_RESOURCE_PATH
+              value: {{ template "integrationTests.customResourcePath" . }}
+            {{- end }}
+            {{- if .Values.integrationTests.atpReport.enabled }}
+            - name: ATP_REPORT_ENABLED
+              value: {{ .Values.integrationTests.atpReport.enabled | quote }}
+            - name: ATP_STORAGE_PROVIDER
+              value: {{ .Values.integrationTests.atpReport.atpStorage.provider | quote }}
+            - name: ATP_STORAGE_SERVER_URL
+              value: {{ .Values.integrationTests.atpReport.atpStorage.serverUrl | quote }}
+            - name: ATP_STORAGE_SERVER_UI_URL
+              value: {{ .Values.integrationTests.atpReport.atpStorage.serverUiUrl | quote }}
+            - name: ATP_STORAGE_BUCKET
+              value: {{ .Values.integrationTests.atpReport.atpStorage.bucket | quote }}
+            - name: ATP_STORAGE_REGION
+              value: {{ .Values.integrationTests.atpReport.atpStorage.region | quote }}
+            - name: ATP_STORAGE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.name }}-atp-storage-secret
+                  key: atp-storage-username
+            - name: ATP_STORAGE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.name }}-atp-storage-secret
+                  key: atp-storage-password
+            - name: ATP_REPORT_VIEW_UI_URL
+              value: {{ .Values.integrationTests.atpReportViewUiUrl | quote }}
+            {{- end }}
+            - name: ENVIRONMENT_NAME
+              value: {{ .Values.integrationTests.environmentName | quote }}
+            - name: RANDOM_RUN_TRIGGER
+              value: {{ randAlphaNum 10 | quote }}
+          volumeMounts:
+            - name: robot-storage
+              mountPath: /opt/robot/target
+{{- end }}

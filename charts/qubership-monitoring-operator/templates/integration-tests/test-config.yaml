@@ -1,0 +1,17 @@
+{{- define "monitoredImages.wrapper" -}}
+  {{- block "monitoring.monitoredImages" . }}DEFAULT{{- end -}}
+{{- end -}}
+{{- if .Values.integrationTests.install -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tests-config
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "tests-config" "component" "platform-monitoring-tests") | nindent 4 }}
+data:
+  {{- if ne (include "monitoredImages.wrapper" .) "DEFAULT" }}
+    dd_images: {{ include "monitoring.monitoredImages" . | indent 2 | quote }}
+  {{ else }}
+  dd_images: ""
+  {{ end }}
+{{ end }}

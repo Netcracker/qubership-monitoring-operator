@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: monitoring-node-exporter
+  labels:
+    app.kubernetes.io/name: node-exporter-service-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  jobLabel: node-exporter
+  endpoints:
+    - interval: 30s
+      port: metrics
+      relabelings:
+      - action: replace
+        regex: (.*)
+        replacement: $1
+        sourceLabels:
+        - __meta_kubernetes_pod_node_name
+        targetLabel: node
+  selector:
+    matchExpressions:
+      - key: platform.monitoring.app
+        operator: In
+        values: ["node-exporter"]
+  namespaceSelector:
+    matchNames:
+      - monitoring

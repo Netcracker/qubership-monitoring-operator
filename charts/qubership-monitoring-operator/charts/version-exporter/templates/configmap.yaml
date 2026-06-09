@@ -1,0 +1,15 @@
+{{- if and .Values.install }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+  {{- if .Values.exporterConfig }}
+  exporterConfig.yaml: |-
+    {{- toYaml .Values.exporterConfig | nindent 4 }}
+  {{- else }}
+  exporterConfig.yaml: ""
+  {{- end }}
+{{- end }}

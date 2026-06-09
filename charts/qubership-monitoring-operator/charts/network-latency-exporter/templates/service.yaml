@@ -1,0 +1,26 @@
+{{- if .Values.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: telegraf-statsd
+      port: 8125
+      protocol: TCP
+    - name: telegraf-tcp
+      port: 8094
+      protocol: TCP
+    - name: telegraf-udp
+      port: 8092
+      protocol: UDP
+    - name: metrics
+      port: 9273
+      targetPort: 9273
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

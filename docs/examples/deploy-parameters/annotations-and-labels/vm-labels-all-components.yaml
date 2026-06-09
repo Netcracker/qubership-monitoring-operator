@@ -1,0 +1,89 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+monitoringOperator:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+
+# Grafana
+grafana:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+  operator:
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+
+# VictoriaMetrics stack
+victoriametrics:
+  vmOperator:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+  vmAgent:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+  vmSingle:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+  vmAlertManager:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+  vmAlert:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+  vmAuth:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+  vmUser:
+    install: true
+    serviceAccount:
+      labels:
+        example.io/label: value
+        environment: test
+
+# Exporters
+kubeStateMetrics:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+nodeExporter:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test
+
+# Integrations tests
+integrationTests:
+  install: true
+  serviceAccount:
+    labels:
+      example.io/label: value
+      environment: test

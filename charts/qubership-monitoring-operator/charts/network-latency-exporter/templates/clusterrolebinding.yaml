@@ -1,0 +1,16 @@
+{{- if and .Values.install .Values.global.privilegedRights .Values.rbac.createClusterRoleBinding }}
+apiVersion: {{ template "rbac.apiVersion" . }}
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "networkLatencyExporter.rbac.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "networkLatencyExporter.rbac.fullname" .)) | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.serviceAccount.name }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ template "networkLatencyExporter.rbac.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

@@ -1,0 +1,42 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+prometheus:
+  # Vanilla Prometheus image use user and group nobody = 65534
+  securityContext:
+    fsGroup: 65534
+    runAsUser: 65534
+  operator:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+alertManager:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+grafana:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+  operator:
+    securityContext:
+      fsGroup: 1001
+      runAsUser: 1001
+kubeStateMetrics:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+nodeExporter:
+  install: true
+  port: 9900
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+cloudEventsExporter:
+  install: true
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001

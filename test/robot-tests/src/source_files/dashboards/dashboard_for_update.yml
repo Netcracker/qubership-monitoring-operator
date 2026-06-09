@@ -1,0 +1,72 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: robotframework-dashboard
+  labels:
+    app.kubernetes.io/component: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: >
+    {
+          "id": null,
+          "title": "updated-robotframework-dashboard",
+          "uid": "LO9hteVGz",
+          "tags": [],
+          "style": "dark",
+          "timezone": "browser",
+          "editable": true,
+          "hideControls": false,
+          "graphTooltip": 1,
+          "panels":
+           [{
+            "collapsed": false,
+            "datasource": null,
+            "id": 111,
+            "title": "Test Overview",
+            "type": "row"
+         },
+         {
+            "datasource": "$datasource",
+            "description": "Displays the status of pod",
+            "hideTimeOverride": true,
+            "id": 222,
+            "pluginVersion": "7.1.0",
+            "targets": [{
+                "expr": "sum(kube_pod_info{exported_namespace=\"$namespace\",exported_pod=~\"test-operator.*\" })",
+                "instant": false,
+                "valueHandler": "Number Threshold"
+            }],
+            "timeFrom": "5s",
+            "timeShift": null,
+            "title": "Tests Operator Status",
+            "type": "stat"
+            }],
+            "time": {
+                "from": "now-6h",
+                "to": "now"
+            },
+            "timepicker": {
+                "time_options": [],
+                "refresh_intervals": []
+            },
+            "templating": {
+            "list": []
+            },
+            "annotations": {
+            "list": [{
+                        "builtIn": 1,
+                        "datasource": "-- Grafana --",
+                        "enable": true,
+                        "hide": true,
+                        "name": "Annotations & Alerts",
+                        "type": "dashboard"
+                     }]
+                  },
+                "refresh": "5s",
+                "schemaVersion": 17,
+                "version": 2,
+                "links": []
+    }

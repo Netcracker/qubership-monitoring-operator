@@ -1,0 +1,93 @@
+{{- if .Values.imageRenderer.install }}
+{{- $image := include "grafana.imageRenderer.image" . }}
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.imageRenderer.name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.imageRenderer.name) | nindent 4 }}
+    app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/technology: node-js
+    app: {{ .Values.imageRenderer.name }}
+    {{- if .Values.imageRenderer.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.imageRenderer.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.imageRenderer.annotations }}
+  annotations:
+    {{- toYaml .Values.imageRenderer.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.imageRenderer.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.imageRenderer.name }}
+        {{- include "monitoring.labels" (dict "ctx" . "name" .Values.imageRenderer.name) | nindent 8 }}
+        app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+        app.kubernetes.io/version: {{ splitList ":" $image | last }}
+        app.kubernetes.io/technology: node-js
+        {{- if .Values.imageRenderer.labels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.imageRenderer.labels) | nindent 8 }}
+        {{- end }}
+      {{- if .Values.imageRenderer.annotations }}
+      annotations:
+        {{- toYaml .Values.imageRenderer.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.imageRenderer.priorityClassName }}
+      priorityClassName: {{ .Values.imageRenderer.priorityClassName | quote }}
+      {{- end }}
+      containers:
+        - name: grafana-image-renderer
+          image: {{ template "grafana.imageRenderer.image" . }}
+          ports:
+            - name: web
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: HTTP_HOST
+              value: "0.0.0.0"
+            - name: HTTP_PORT
+              value: "8081"
+          {{- range $key, $value := .Values.imageRenderer.extraEnvs }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+          {{- end }}
+          resources:
+            {{ include "grafana.imageRenderer.resources" $ }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: image-renderer-tmpfs
+          livenessProbe:
+            httpGet:
+              path: /
+              port: web
+            timeoutSeconds: 3
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      securityContext:
+        {{ include "grafana.imageRenderer.securityContext" . }}
+      {{- if .Values.imageRenderer.tolerations }}
+      tolerations:
+        {{- toYaml .Values.imageRenderer.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imageRenderer.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.imageRenderer.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imageRenderer.affinity }}
+      affinity:
+        {{- toYaml .Values.imageRenderer.affinity | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: image-renderer-tmpfs
+          emptyDir: {}
+{{- end }}

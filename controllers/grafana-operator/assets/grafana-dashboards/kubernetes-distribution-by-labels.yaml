@@ -1,0 +1,1551 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-distribution-by-labels
+  labels:
+    app.kubernetes.io/component: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: >
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "The dashboard allows filtering Kubernetes resources (pods, ingresses, etc.) by app.kubernetes.io labels",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": 131,
+      "links": [
+        {
+          "asDropdown": true,
+          "icon": "external link",
+          "includeVars": true,
+          "keepTime": true,
+          "tags": [
+              "k8s"
+          ],
+          "targetBlank": true,
+          "title": "Kubernetes dashboards",
+          "tooltip": "",
+          "type": "dashboards",
+          "url": ""
+        }
+      ],
+      "liveNow": false,
+      "panels": [
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 2,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows information about current dashboard",
+              "gridPos": {
+                "h": 11,
+                "w": 24,
+                "x": 0,
+                "y": 1
+              },
+              "id": 1,
+              "options": {
+                "code": {
+                  "language": "plaintext",
+                  "showLineNumbers": false,
+                  "showMiniMap": false
+                },
+                "content": "# Distribution by Labels\n\nThis dashboards shows Pods, Ingresses, Deployments (with ReplicaSets), StatefulSets, DaemonSets and Jobs with associated `app.kubernetes.io` labels:\n\n* app.kubernetes.io/name\n* app.kubernetes.io/instance\n* app.kubernetes.io/version\n* app.kubernetes.io/component\n* app.kubernetes.io/part-of\n* app.kubernetes.io/managed-by\n* app.kubernetes.io/managed-by-operator\n* app.kubernetes.io/technology\n\nYou can filter out values in tables by using the filter icon next to the column name for each column. Notice that you can filter out even blanc values in this case.\n\nDashboard filters on the top of the dashboard also can be used for this purpose, but keep in mind that values for these filters are taken from `kube_pod_labels` metric. Therefore, label values that are not contained in at least one of the pods will not be included in these filters.\n\n**IMPORTANT NOTE ABOUT DEPLOYMENTS:** Table `Deployments and ReplicaSets` shows information only about deployments and replicasets that currently have more than 0 ready replicas.",
+                "mode": "markdown"
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "expr": "",
+                  "instant": false,
+                  "range": true,
+                  "refId": "A"
+                }
+              ],
+              "title": "💡Help",
+              "type": "text"
+            }
+          ],
+          "title": "Help",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 1
+          },
+          "id": 4,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows pods with associated app.kubernetes.io labels",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 150
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Pod"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 180
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 2
+              },
+              "id": 3,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "enablePagination": false,
+                  "fields": "",
+                  "reducer": [
+                      "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "group (\r\n  kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\"$name\", label_app_kubernetes_io_instance=~\"$instance\", label_app_kubernetes_io_version=~\"$version\", label_app_kubernetes_io_component=~\"$component\", label_app_kubernetes_io_part_of=~\"$partOf\", label_app_kubernetes_io_managed_by=~\"$managedBy\", label_app_kubernetes_io_managed_by_operator=~\"$managedByOperator\", label_app_kubernetes_io_technology=~\"$technology\"}\r\n)\r\nby (namespace, pod, label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n*\r\non (namespace, pod)\r\ngroup_right(label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n  (\r\n    group (\r\n      kube_pod_info{cluster=\"$cluster\", namespace=~\"$namespace\"}\r\n    )\r\n    by (namespace, pod)\r\n  )",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Pods",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 11,
+                      "label_app_kubernetes_io_component": 6,
+                      "label_app_kubernetes_io_technology": 10,
+                      "label_app_kubernetes_io_instance": 4,
+                      "label_app_kubernetes_io_managed_by_operator": 9,
+                      "label_app_kubernetes_io_managed_by": 8,
+                      "label_app_kubernetes_io_name": 3,
+                      "label_app_kubernetes_io_part_of": 7,
+                      "label_app_kubernetes_io_version": 5,
+                      "namespace": 1,
+                      "pod": 2
+                    },
+                    "renameByName": {
+                      "label_app_kubernetes_io_component": "Component",
+                      "label_app_kubernetes_io_technology": "Technology",
+                      "label_app_kubernetes_io_instance": "Instance",
+                      "label_app_kubernetes_io_managed_by_operator": "Managed-by-operator",
+                      "label_app_kubernetes_io_managed_by": "Managed-by",
+                      "label_app_kubernetes_io_name": "Name",
+                      "label_app_kubernetes_io_part_of": "Part-of",
+                      "label_app_kubernetes_io_version": "Version",
+                      "namespace": "Namespace",
+                      "pod": "Pod"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "Pods",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 2
+          },
+          "id": 5,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows ingresses with associated app.kubernetes.io labels",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 132
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Ingress"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to ingress",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `ingress-nginx-controller`) ) %}/ingress-nginx-controller?var-datasource=$datasource&var-cluster=$cluster&var-ingress=${__data.fields.ingress}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 164
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Hostname"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Open ${__data.fields.Hostname}",
+                            "url": "https://${__data.fields.Hostname}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 247
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "app.kubernetes.io/managed-by"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 246
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "app.kubernetes.io/component"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 239
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "app.kubernetes.io/instance"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 219
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "app.kubernetes.io/name"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 200
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "app.kubernetes.io/part-of"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 210
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 11
+              },
+              "id": 6,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                      "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "group (\r\n  kube_ingress_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\"$name\", label_app_kubernetes_io_instance=~\"$instance\", label_app_kubernetes_io_version=~\"$version\", label_app_kubernetes_io_component=~\"$component\", label_app_kubernetes_io_part_of=~\"$partOf\", label_app_kubernetes_io_managed_by=~\"$managedBy\", label_app_kubernetes_io_managed_by_operator=~\"$managedByOperator\", label_app_kubernetes_io_technology=~\"$technology\"}\r\n)\r\nby (namespace, ingress, label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n*\r\non (namespace, ingress)\r\ngroup_right(label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n  (\r\n    group (\r\n      kube_ingress_path{cluster=\"$cluster\", namespace=~\"$namespace\"}\r\n    )\r\n    by (namespace, ingress, host)\r\n  )",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Ingresses",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 12,
+                      "host": 3,
+                      "ingress": 2,
+                      "label_app_kubernetes_io_component": 7,
+                      "label_app_kubernetes_io_technology": 11,
+                      "label_app_kubernetes_io_instance": 5,
+                      "label_app_kubernetes_io_managed_by_operator": 10,
+                      "label_app_kubernetes_io_managed_by": 9,
+                      "label_app_kubernetes_io_name": 4,
+                      "label_app_kubernetes_io_part_of": 8,
+                      "label_app_kubernetes_io_version": 6,
+                      "namespace": 1
+                    },
+                    "renameByName": {
+                      "host": "Hostname",
+                      "ingress": "Ingress",
+                      "label_app_kubernetes_io_component": "Component",
+                      "label_app_kubernetes_io_technology": "Technology",
+                      "label_app_kubernetes_io_instance": "Instance",
+                      "label_app_kubernetes_io_managed_by_operator": "Managed-by-operator",
+                      "label_app_kubernetes_io_managed_by": "Managed-by",
+                      "label_app_kubernetes_io_name": "Name",
+                      "label_app_kubernetes_io_part_of": "Part-of",
+                      "label_app_kubernetes_io_version": "Version",
+                      "namespace": "Namespace"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "Ingresses",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 3
+          },
+          "id": 7,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows deployments and replicasets with associated app.kubernetes.io labels, if they have more than 0 ready replicas",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 165
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "ReplicaSet"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to Pod Resources dashboard",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-controller=${__data.fields.replicaset}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 12
+              },
+              "id": 8,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                      "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "group (\r\n  kube_deployment_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\"$name\", label_app_kubernetes_io_instance=~\"$instance\", label_app_kubernetes_io_version=~\"$version\", label_app_kubernetes_io_component=~\"$component\", label_app_kubernetes_io_part_of=~\"$partOf\", label_app_kubernetes_io_managed_by=~\"$managedBy\", label_app_kubernetes_io_managed_by_operator=~\"$managedByOperator\", label_app_kubernetes_io_technology=~\"$technology\"}\r\n)\r\nby (namespace, deployment, label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n* \r\non (namespace, deployment) \r\ngroup_left(replicaset)\r\n  group(\r\n    kube_deployment_status_replicas_ready{cluster=\"$cluster\", namespace=~\"$namespace\"} \r\n    == \r\n    on(namespace, deployment) \r\n    group_left(replicaset)\r\n      label_replace(\r\n        group(\r\n          kube_replicaset_status_ready_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"} > 0\r\n        ) \r\n        by (namespace, replicaset, owner_name)\r\n        * \r\n        on(namespace, replicaset) \r\n        group_left(owner_name)\r\n          group(\r\n            kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"Deployment\"}\r\n          )\r\n          by (namespace, replicaset, owner_name)\r\n      , \"deployment\", \"$1\", \"owner_name\",\"(.*)\")\r\n  )\r\n  by (namespace, deployment, replicaset)",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Deployments and ReplicaSets",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "Value #A": true,
+                      "Value #B": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 12,
+                      "deployment": 2,
+                      "label_app_kubernetes_io_component": 7,
+                      "label_app_kubernetes_io_technology": 11,
+                      "label_app_kubernetes_io_instance": 5,
+                      "label_app_kubernetes_io_managed_by_operator": 10,
+                      "label_app_kubernetes_io_managed_by": 9,
+                      "label_app_kubernetes_io_name": 4,
+                      "label_app_kubernetes_io_part_of": 8,
+                      "label_app_kubernetes_io_version": 6,
+                      "namespace": 1,
+                      "replicaset": 3
+                    },
+                    "renameByName": {
+                      "deployment": "Deployment",
+                      "label_app_kubernetes_io_component": "Component",
+                      "label_app_kubernetes_io_technology": "Technology",
+                      "label_app_kubernetes_io_instance": "Instance",
+                      "label_app_kubernetes_io_managed_by_operator": "Managed-by-operator",
+                      "label_app_kubernetes_io_managed_by": "Managed-by",
+                      "label_app_kubernetes_io_name": "Name",
+                      "label_app_kubernetes_io_part_of": "Part-of",
+                      "label_app_kubernetes_io_version": "Version",
+                      "namespace": "Namespace",
+                      "replicaset": "ReplicaSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "Deployments",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 4
+          },
+          "id": 9,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows statefulsets with associated app.kubernetes.io labels",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "StatefulSet"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to Pod Resources dashboard",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-controller=${__data.fields.statefulset}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 13
+              },
+              "id": 10,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                      "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "group (\r\n  kube_statefulset_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\"$name\", label_app_kubernetes_io_instance=~\"$instance\", label_app_kubernetes_io_version=~\"$version\", label_app_kubernetes_io_component=~\"$component\", label_app_kubernetes_io_part_of=~\"$partOf\", label_app_kubernetes_io_managed_by=~\"$managedBy\", label_app_kubernetes_io_managed_by_operator=~\"$managedByOperator\", label_app_kubernetes_io_technology=~\"$technology\"}\r\n)\r\nby (namespace, statefulset, label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n*\r\non (namespace, statefulset)\r\ngroup_right(label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n  (\r\n    group (\r\n      kube_statefulset_created{cluster=\"$cluster\", namespace=~\"$namespace\"}\r\n    )\r\n    by (namespace, statefulset)\r\n  )",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "StatefulSets",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 11,
+                      "label_app_kubernetes_io_component": 6,
+                      "label_app_kubernetes_io_technology": 10,
+                      "label_app_kubernetes_io_instance": 4,
+                      "label_app_kubernetes_io_managed_by_operator": 9,
+                      "label_app_kubernetes_io_managed_by": 8,
+                      "label_app_kubernetes_io_name": 3,
+                      "label_app_kubernetes_io_part_of": 7,
+                      "label_app_kubernetes_io_version": 5,
+                      "namespace": 1,
+                      "statefulset": 2
+                    },
+                    "renameByName": {
+                      "label_app_kubernetes_io_component": "Component",
+                      "label_app_kubernetes_io_technology": "Technology",
+                      "label_app_kubernetes_io_instance": "Instance",
+                      "label_app_kubernetes_io_managed_by_operator": "Managed-by-operator",
+                      "label_app_kubernetes_io_managed_by": "Managed-by",
+                      "label_app_kubernetes_io_name": "Name",
+                      "label_app_kubernetes_io_part_of": "Part-of",
+                      "label_app_kubernetes_io_version": "Version",
+                      "namespace": "Namespace",
+                      "statefulset": "StatefulSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "StatefulSets",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 11,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows daemonsets with associated app.kubernetes.io labels",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "DaemonSet"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to Pod Resources dashboard",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-controller=${__data.fields.daemonset}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 14
+              },
+              "id": 12,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                      "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "group (\r\n  kube_daemonset_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\"$name\", label_app_kubernetes_io_instance=~\"$instance\", label_app_kubernetes_io_version=~\"$version\", label_app_kubernetes_io_component=~\"$component\", label_app_kubernetes_io_part_of=~\"$partOf\", label_app_kubernetes_io_managed_by=~\"$managedBy\", label_app_kubernetes_io_managed_by_operator=~\"$managedByOperator\", label_app_kubernetes_io_technology=~\"$technology\"}\r\n)\r\nby (namespace, daemonset, label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n*\r\non (namespace, daemonset)\r\ngroup_right(label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n  (\r\n    group (\r\n      kube_daemonset_created{cluster=\"$cluster\", namespace=~\"$namespace\"}\r\n    )\r\n    by (namespace, daemonset)\r\n  )",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "DaemonSets",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 11,
+                      "daemonset": 2,
+                      "label_app_kubernetes_io_component": 6,
+                      "label_app_kubernetes_io_technology": 10,
+                      "label_app_kubernetes_io_instance": 4,
+                      "label_app_kubernetes_io_managed_by_operator": 9,
+                      "label_app_kubernetes_io_managed_by": 8,
+                      "label_app_kubernetes_io_name": 3,
+                      "label_app_kubernetes_io_part_of": 7,
+                      "label_app_kubernetes_io_version": 5,
+                      "namespace": 1
+                    },
+                    "renameByName": {
+                      "daemonset": "DaemonSet",
+                      "label_app_kubernetes_io_component": "Component",
+                      "label_app_kubernetes_io_technology": "Technology",
+                      "label_app_kubernetes_io_instance": "Instance",
+                      "label_app_kubernetes_io_managed_by_operator": "Managed-by-operator",
+                      "label_app_kubernetes_io_managed_by": "Managed-by",
+                      "label_app_kubernetes_io_name": "Name",
+                      "label_app_kubernetes_io_part_of": "Part-of",
+                      "label_app_kubernetes_io_version": "Version",
+                      "namespace": "Namespace"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "DaemonSets",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 6
+          },
+          "id": 13,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows Kubernetes jobs with associated app.kubernetes.io labels",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Job"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to Pod Resources dashboard",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-controller=${__data.fields.job_name}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 23
+              },
+              "id": 14,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                      "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "pluginVersion": "10.2.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "group (\r\n  kube_job_labels{cluster=\"$cluster\", namespace=~\"$namespace\", label_app_kubernetes_io_name=~\"$name\", label_app_kubernetes_io_instance=~\"$instance\", label_app_kubernetes_io_version=~\"$version\", label_app_kubernetes_io_component=~\"$component\", label_app_kubernetes_io_part_of=~\"$partOf\", label_app_kubernetes_io_managed_by=~\"$managedBy\", label_app_kubernetes_io_managed_by_operator=~\"$managedByOperator\", label_app_kubernetes_io_technology=~\"$technology\"}\r\n)\r\nby (namespace, job_name, label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n*\r\non (namespace, job_name)\r\ngroup_right(label_app_kubernetes_io_name, label_app_kubernetes_io_instance, label_app_kubernetes_io_version, label_app_kubernetes_io_component, label_app_kubernetes_io_part_of, label_app_kubernetes_io_managed_by, label_app_kubernetes_io_managed_by_operator, label_app_kubernetes_io_technology)\r\n  (\r\n    group (\r\n      kube_job_created{cluster=\"$cluster\", namespace=~\"$namespace\"}\r\n    )\r\n    by (namespace, job_name)\r\n  )",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Jobs",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 11,
+                      "job_name": 2,
+                      "label_app_kubernetes_io_component": 6,
+                      "label_app_kubernetes_io_technology": 10,
+                      "label_app_kubernetes_io_instance": 4,
+                      "label_app_kubernetes_io_managed_by_operator": 9,
+                      "label_app_kubernetes_io_managed_by": 8,
+                      "label_app_kubernetes_io_name": 3,
+                      "label_app_kubernetes_io_part_of": 7,
+                      "label_app_kubernetes_io_version": 5,
+                      "namespace": 1
+                    },
+                    "renameByName": {
+                      "job_name": "Job",
+                      "label_app_kubernetes_io_component": "Component",
+                      "label_app_kubernetes_io_technology": "Technology",
+                      "label_app_kubernetes_io_instance": "Instance",
+                      "label_app_kubernetes_io_managed_by_operator": "Managed-by-operator",
+                      "label_app_kubernetes_io_managed_by": "Managed-by",
+                      "label_app_kubernetes_io_name": "Name",
+                      "label_app_kubernetes_io_part_of": "Part-of",
+                      "label_app_kubernetes_io_version": "Version",
+                      "namespace": "Namespace"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "Jobs",
+          "type": "row"
+        }
+      ],
+      "refresh": "",
+      "schemaVersion": 39,
+      "tags": [
+          "k8s",
+          "labels"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "text": "Platform Monitoring Prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "label": "datasource",
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {
+              "isNone": true,
+              "selected": false,
+              "text": "None",
+              "value": ""
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(up,cluster)",
+            "hide": 0,
+            "includeAll": false,
+            "label": "cluster",
+            "multi": false,
+            "name": "cluster",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(up,cluster)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": [
+                  "All"
+              ],
+              "value": [
+                  "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "namespace",
+            "multi": true,
+            "name": "namespace",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": true,
+              "text": [
+                  "All"
+              ],
+              "value": [
+                  "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_name)",
+            "description": "Label app.kubernetes.io/name",
+            "hide": 0,
+            "includeAll": true,
+            "label": "name",
+            "multi": true,
+            "name": "name",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_name)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": true,
+              "text": [
+                  "All"
+              ],
+              "value": [
+                  "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_instance)",
+            "description": "Label app.kubernetes.io/instance",
+            "hide": 0,
+            "includeAll": true,
+            "label": "instance",
+            "multi": true,
+            "name": "instance",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_instance)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_version)",
+            "description": "Label app.kubernetes.io/version",
+            "hide": 0,
+            "includeAll": true,
+            "label": "version",
+            "multi": true,
+            "name": "version",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_version)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_component)",
+            "description": "Label app.kubernetes.io/component",
+            "hide": 0,
+            "includeAll": true,
+            "label": "component",
+            "multi": true,
+            "name": "component",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_component)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_part_of)",
+            "description": "Label app.kubernetes.io/part-of",
+            "hide": 0,
+            "includeAll": true,
+            "label": "part-of",
+            "multi": true,
+            "name": "partOf",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_part_of)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_managed_by)",
+            "description": "Label app.kubernetes.io/managed-by",
+            "hide": 0,
+            "includeAll": true,
+            "label": "managed-by",
+            "multi": true,
+            "name": "managedBy",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_managed_by)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_managed_by_operator)",
+            "description": "Label app.kubernetes.io/managed-by-operator",
+            "hide": 0,
+            "includeAll": true,
+            "label": "managed-by-operator",
+            "multi": true,
+            "name": "managedByOperator",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_managed_by_operator)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_technology)",
+            "description": "Label app.kubernetes.io/technology",
+            "hide": 0,
+            "includeAll": true,
+            "label": "technology",
+            "multi": true,
+            "name": "technology",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_labels{cluster=\"$cluster\", namespace=~\"$namespace\"},label_app_kubernetes_io_technology)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Kubernetes / Distribution by Labels",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-distribution-by-labels`) ) %}",
+      "version": 2,
+      "weekStart": ""
+    }

@@ -1,0 +1,36 @@
+pushgateway:
+  install: true
+  extraArgs:
+    - "--persistence.file=/data/pushgateway.data"
+    - "--persistence.interval=5m"
+  volumes:
+    - name: storage-volume
+      persistentVolumeClaim:
+        claimName: pushgateway
+  volumeMounts:
+    - name: storage-volume
+      mountPath: "/data"
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: "2Gi"
+    volumeName: storage-volume
+    storageClassName: pushgateway
+---
+# Before deploy need manually create a PVC like:
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pushgateway
+  labels:
+    platform.monitoring.app: pushgateway
+    app.kubernetes.io/name: pushgateway
+    app.kubernetes.io/component: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "2Gi"

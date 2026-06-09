@@ -1,0 +1,16 @@
+{{- if and .Values.install .Values.global.privilegedRights .Values.rbac.createClusterRoleBinding }}
+apiVersion: {{ template "rbac.apiVersion" . }}
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "cloudEventsExporter.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "cloudEventsExporter.fullname" .)) | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "cloudEventsExporter.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.name }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

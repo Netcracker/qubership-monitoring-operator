@@ -1,0 +1,2436 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: ha-services
+  labels:
+    app.kubernetes.io/component: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: >
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "This dashboard allows checking whether services in the cluster are running in high availability mode or not",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": 288,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 11,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Describes how to use this dashboard",
+              "gridPos": {
+                "h": 19,
+                "w": 24,
+                "x": 0,
+                "y": 1
+              },
+              "id": 17,
+              "options": {
+                "code": {
+                  "language": "plaintext",
+                  "showLineNumbers": false,
+                  "showMiniMap": false
+                },
+                "content": "# About Dashboard\n\nThis dashboard is designed to identify services that are running in non-HA mode.\n\nIt focused on monitoring of Deployment and StatefulSets, because DaemonSets are running their pods on every node by default.\n\n# High Availability (HA) mode\n\nServices running in HA mode must satisfy the following requirements:\n\n* Have at least 2 available replicas\n* Replicas must be placed on different nodes\n* Replicas must be placed on different availability zones (AZ)\n\nCurrently, this dashboard doesn't have mechanisms for tracking AZ. For these purposes you can use Kubernetes / Pods Distribution By Zones dashboard.\n\n# How to use this dashboard\n\n**NOTE:** If you have a lot of pods and services on the environment, please,\nselect namespaces that you interested in on the `namespace` filter to prevent freezing and crashing of Grafana due to loading a large amount of data.\n\nIf you want to check whether all your services are running in high availability mode,\nfollow the instructions below:\n\n* If `Only 1 replica` number on `Services with Available Replicas` panel is greater than 0:\n  * Check `Desired and Available Replicas` panels for Deployments and StatefulSets\n    * If the controller `Has unavailable replicas`:\n      * Use `Not Healthy Pods` and `Last Terminated Status` panels to identify pods and containers with problems, and try to fix issues\n    * If the controller has `Desired replicas` less than 2:\n      * Check controller's spec and increase `replicas` parameter for it if possible and necessary (it's better to upgrade the service via CMDB rather than change the number directly on the spec)\n* If `Services with Multiple Pods per Node` value is greater than 0:\n  * Check all `Multiple Replicas on the Same Node` panels, and if the panel has data:\n    * Unfortunately, there is no a proper way to distribute replicas across nodes, but you can read [this article in the official documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) to avoid such situations as mush as possible\n",
+                "mode": "markdown"
+              },
+              "pluginVersion": "10.3.3",
+              "title": "How to",
+              "type": "text"
+            }
+          ],
+          "title": "Help",
+          "type": "row"
+        },
+        {
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 1
+          },
+          "id": 10,
+          "title": "Overview",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows total number of services (Deployments and StatefulSets) with at least 1 available replica, number of services with only 1 available replica (non-HA mode) and with 2 or more replicas (HA mode)",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "unitScale": true
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Only 1 replica"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "2 or more replicas"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "text",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 7,
+            "x": 0,
+            "y": 2
+          },
+          "id": 7,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "10.3.3",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "(count(kube_deployment_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} > 0) OR on() vector(0)) + (count(kube_statefulset_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} > 0) OR on() vector(0))",
+              "instant": true,
+              "legendFormat": "Total",
+              "range": false,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "(count(kube_deployment_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} == 1) OR on() vector(0)) + (count(kube_statefulset_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} == 1) OR on() vector(0))",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "Only 1 replica",
+              "range": false,
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "(count(kube_deployment_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} > 1) OR on() vector(0)) + (count(kube_statefulset_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} > 1) OR on() vector(0))",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "2 or more replicas",
+              "range": false,
+              "refId": "C"
+            }
+          ],
+          "title": "Services with Available Replicas",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Total number of services (Deployments and StatefulSets) with unavailable replicas",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unitScale": true
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 7,
+            "y": 2
+          },
+          "id": 8,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "10.3.3",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "((count(kube_deployment_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} < kube_deployment_status_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"}) >= 0)  OR on() vector(0)) + ((count(kube_statefulset_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} < kube_statefulset_status_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"}) >= 0)  OR on() vector(0))",
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "Services with Unavailable Replicas",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Total number of services (Deployments and StatefulSets) with 2 or more pods placed on the same node",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unitScale": true
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 4,
+            "x": 11,
+            "y": 2
+          },
+          "id": 18,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "10.3.3",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "count(sum(kube_pod_info{cluster=\"$cluster\", namespace=~\"$namespace\", node=~\".+\", created_by_kind=~\"ReplicaSet|StatefulSet\"}) by (namespace, node, created_by_name) > 1) >= 0 OR on() vector(0)",
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "Services with Multiple Pods per Node",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows number of pods controlled by Deployments and StatefulSets",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "none",
+              "unitScale": true
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Running"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "text",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Pending"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Failed"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 9,
+            "x": 15,
+            "y": 2
+          },
+          "id": 9,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+          },
+          "pluginVersion": "10.3.3",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (phase)\r\n(\r\n(kube_pod_info{cluster=\"$cluster\", namespace=~\"$namespace\"} * on (cluster, namespace, pod) group_left(phase) (kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\"} == 1))\r\n * on (namespace, pod) group_left()\r\nkube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=~\"ReplicaSet|StatefulSet\"}\r\n)",
+              "legendFormat": "{{phase}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Total Number of Replicas",
+          "type": "stat"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 7
+          },
+          "id": 2,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows number of available and desired replicas for every Deployment\n\nServices in HA mode must have more than 1 available replicas",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #C"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "0": {
+                                "color": "red",
+                                "index": 0,
+                                "text": "Yes"
+                              }
+                            },
+                            "type": "value"
+                          },
+                          {
+                            "options": {
+                              "match": "null+nan",
+                              "result": {
+                                "color": "green",
+                                "index": 1,
+                                "text": "No"
+                              }
+                            },
+                            "type": "special"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #A"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "text",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            },
+                            {
+                              "color": "green",
+                              "value": 2
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #B"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "red",
+                              "value": null
+                            },
+                            {
+                              "color": "green",
+                              "value": 2
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 7,
+                "w": 12,
+                "x": 0,
+                "y": 8
+              },
+              "id": 3,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Has unavailable replicas"
+                  }
+                ]
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum(kube_deployment_status_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (deployment, namespace)",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum(kube_deployment_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (deployment, namespace)",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "B"
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum(kube_deployment_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} < kube_deployment_status_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (deployment, namespace)",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "C"
+                }
+              ],
+              "title": "Desired and Available Replicas",
+              "transformations": [
+                {
+                  "id": "merge",
+                  "options": {}
+                },
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value #A": 4,
+                      "Value #B": 3,
+                      "Value #C": 5,
+                      "deployment": 2,
+                      "namespace": 1
+                    },
+                    "renameByName": {
+                      "Difference": "",
+                      "Time": "",
+                      "Value #A": "Desired replicas",
+                      "Value #B": "Available replicas",
+                      "Value #C": "Has unavailable replicas",
+                      "deployment": "Deployment",
+                      "namespace": "Namespace"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows Deployments if 2 or more their replicas placed on the same node\n\nServices are not allowed to have 2 or more replicas on the same node in HA mode",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "green",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 2
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 7,
+                "w": 12,
+                "x": 12,
+                "y": 8
+              },
+              "id": 6,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "count(label_replace((kube_pod_info{cluster=\"$cluster\", node=~\".+\", namespace=~\"$namespace\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"ReplicaSet\"}, \"replicaset\", \"$1\", \"owner_name\", \"(.*)\") * on(replicaset, namespace) group_left(owner_name) kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (namespace, owner_name, node) > 1",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Multiple Replicas on the Same Node",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": false,
+                      "created_by_kind": true,
+                      "endpoint": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
+                      "host_ip": true,
+                      "host_network": true,
+                      "instance": true,
+                      "job": true,
+                      "kube_container": true,
+                      "kube_namespace": true,
+                      "kube_pod": true,
+                      "pod_ip": true,
+                      "priority_class": true,
+                      "prometheus": true,
+                      "service": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "Value": "Pods on the same node",
+                      "namespace": "Namespace",
+                      "node": "Node",
+                      "owner_name": "Deployment"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Show information about the reason the container is currently in waiting or terminated state for pods controlled by Deployments",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": false,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "reason"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "red",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "pod"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 15
+              },
+              "id": 4,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "label_replace((kube_pod_container_status_waiting_reason{cluster=\"$cluster\", namespace=~\"$namespace\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"ReplicaSet\"}, \"replicaset\", \"$1\", \"owner_name\", \"(.*)\") * on(replicaset, namespace) group_left(owner_name) kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\"}",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "A"
+                },
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "expr": "label_replace((kube_pod_container_status_terminated_reason{cluster=\"$cluster\", namespace=~\"$namespace\",reason!=\"Completed\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"ReplicaSet\"}, \"replicaset\", \"$1\", \"owner_name\", \"(.*)\") * on(replicaset, namespace) group_left(owner_name) kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\"}",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "B"
+                },
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": true,
+                  "expr": "label_replace((label_replace(kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\", phase=\"Pending\"}, \"reason\", \"$1\", \"phase\", \"(.*)\") == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"ReplicaSet\"}, \"replicaset\", \"$1\", \"owner_name\", \"(.*)\") * on(replicaset, namespace) group_left(owner_name) kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\"}",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "C"
+                }
+              ],
+              "title": "Not Healthy Pods",
+              "transformations": [
+                {
+                  "id": "merge",
+                  "options": {}
+                },
+                {
+                  "id": "calculateField",
+                  "options": {
+                    "alias": "Value",
+                    "mode": "reduceRow",
+                    "reduce": {
+                      "include": [
+                        "Value #A",
+                        "Value #B",
+                        "Value #D"
+                      ],
+                      "reducer": "sum"
+                    },
+                    "replaceFields": false
+                  }
+                },
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "Value #A": true,
+                      "Value #B": true,
+                      "Value #C": true,
+                      "Value #D": true,
+                      "__name__": true,
+                      "cluster": true,
+                      "container": false,
+                      "endpoint": true,
+                      "exported_container": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
+                      "instance": true,
+                      "job": true,
+                      "kube_container": true,
+                      "kube_namespace": true,
+                      "kube_pod": true,
+                      "namespace": false,
+                      "owner_kind": false,
+                      "phase": true,
+                      "pod": false,
+                      "prometheus": true,
+                      "replicaset": true,
+                      "service": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 15,
+                      "Value #A": 23,
+                      "Value #B": 14,
+                      "Value #C": 17,
+                      "container": 10,
+                      "endpoint": 1,
+                      "exported_container": 4,
+                      "exported_namespace": 2,
+                      "exported_pod": 3,
+                      "instance": 5,
+                      "job": 6,
+                      "kube_container": 18,
+                      "kube_namespace": 19,
+                      "kube_pod": 20,
+                      "namespace": 7,
+                      "owner_name": 8,
+                      "phase": 16,
+                      "pod": 9,
+                      "prometheus": 21,
+                      "reason": 12,
+                      "replicaset": 11,
+                      "service": 13,
+                      "uid": 22
+                    },
+                    "renameByName": {
+                      "container": "Container",
+                      "exported_container": "",
+                      "exported_namespace": "",
+                      "exported_pod": "",
+                      "namespace": "Namespace",
+                      "owner_name": "Deployment",
+                      "pod": "Pod",
+                      "reason": "Reason",
+                      "replicaset": "ReplicaSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Show information about the last reason the container was in terminated state for pods controlled by Deployments",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": false,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "reason"
+                    },
+                    "properties": [
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "yellow",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "pod"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 15
+              },
+              "id": 5,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": false,
+                    "displayName": "namespace"
+                  }
+                ]
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "label_replace((kube_pod_container_status_last_terminated_reason{cluster=\"$cluster\", namespace=~\"$namespace\", reason!=\"Completed\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"ReplicaSet\"}, \"replicaset\", \"$1\", \"owner_name\", \"(.*)\") * on(replicaset, namespace) group_left(owner_name) kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\"}",
+                  "format": "table",
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "{{exported_pod}}-{{exported_namespace}}",
+                  "refId": "A"
+                }
+              ],
+              "title": "Last Terminated Status",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "__name__": true,
+                      "cluster": true,
+                      "container": false,
+                      "endpoint": true,
+                      "exported_container": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
+                      "instance": true,
+                      "job": true,
+                      "kube_container": true,
+                      "kube_namespace": true,
+                      "kube_pod": true,
+                      "namespace": false,
+                      "pod": false,
+                      "prometheus": true,
+                      "replicaset": true,
+                      "service": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 13,
+                      "container": 9,
+                      "endpoint": 1,
+                      "exported_container": 14,
+                      "exported_namespace": 3,
+                      "exported_pod": 2,
+                      "instance": 4,
+                      "job": 5,
+                      "kube_container": 15,
+                      "kube_namespace": 16,
+                      "kube_pod": 17,
+                      "namespace": 6,
+                      "owner_name": 7,
+                      "pod": 8,
+                      "prometheus": 18,
+                      "reason": 11,
+                      "replicaset": 10,
+                      "service": 12,
+                      "uid": 19
+                    },
+                    "renameByName": {
+                      "container": "Container",
+                      "exported_container": "",
+                      "exported_namespace": "",
+                      "exported_pod": "",
+                      "namespace": "Namespace",
+                      "owner_name": "Deployment",
+                      "pod": "Pod",
+                      "reason": "Reason",
+                      "replicaset": "ReplicaSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "Deployments",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 8
+          },
+          "id": 12,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows number of available and desired replicas for every StatefulSet\n\nServices in HA mode must have more than 1 available replicas",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #C"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "match": "null+nan",
+                              "result": {
+                                "color": "green",
+                                "index": 0,
+                                "text": "No"
+                              }
+                            },
+                            "type": "special"
+                          },
+                          {
+                            "options": {
+                              "from": 0,
+                              "result": {
+                                "color": "red",
+                                "index": 1,
+                                "text": "Yes"
+                              },
+                              "to": 150000
+                            },
+                            "type": "range"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #A"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "text",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            },
+                            {
+                              "color": "green",
+                              "value": 2
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value #B"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "red",
+                              "value": null
+                            },
+                            {
+                              "color": "green",
+                              "value": 2
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 7,
+                "w": 12,
+                "x": 0,
+                "y": 9
+              },
+              "id": 13,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Has unavailable replicas"
+                  }
+                ]
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum(kube_statefulset_status_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (statefulset, namespace)",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum(kube_statefulset_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (statefulset, namespace)",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "B"
+                },
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "sum(kube_statefulset_status_replicas_available{cluster=\"$cluster\", namespace=~\"$namespace\"} < kube_statefulset_status_replicas{cluster=\"$cluster\", namespace=~\"$namespace\"}) by (statefulset, namespace)",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "C"
+                }
+              ],
+              "title": "Desired and Available Replicas",
+              "transformations": [
+                {
+                  "id": "merge",
+                  "options": {}
+                },
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value #A": 4,
+                      "Value #B": 3,
+                      "Value #C": 5,
+                      "namespace": 1,
+                      "statefulset": 2
+                    },
+                    "renameByName": {
+                      "Difference": "",
+                      "Time": "",
+                      "Value #A": "Desired replicas",
+                      "Value #B": "Available replicas",
+                      "Value #C": "Has unavailable replicas",
+                      "deployment": "",
+                      "namespace": "Namespace",
+                      "statefulset": "StatefulSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows StatefulSets if 2 or more their replicas placed on the same node\n\nServices are not allowed to have 2 or more replicas on the same node in HA mode",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Value"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "green",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 2
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 7,
+                "w": 12,
+                "x": 12,
+                "y": 9
+              },
+              "id": 14,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "count((kube_pod_info{cluster=\"$cluster\", namespace=~\"$namespace\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=~\"$cluster\", namespace=~\"$namespace\", owner_kind=\"StatefulSet\"}) by (namespace, owner_name, node) > 1",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Multiple Replicas on the Same Node",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": false,
+                      "created_by_kind": true,
+                      "endpoint": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
+                      "host_ip": true,
+                      "host_network": true,
+                      "instance": true,
+                      "job": true,
+                      "kube_container": true,
+                      "kube_namespace": true,
+                      "kube_pod": true,
+                      "pod_ip": true,
+                      "priority_class": true,
+                      "prometheus": true,
+                      "service": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "Value": "Pods on the same node",
+                      "namespace": "Namespace",
+                      "node": "Node",
+                      "owner_name": "StatefulSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Show information about the reason the container is currently in waiting or terminated state for pods controlled by StatefulSets",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": false,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "reason"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "red",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "pod"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 16
+              },
+              "id": 15,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": []
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "(kube_pod_container_status_waiting_reason{cluster=\"$cluster\", namespace=~\"$namespace\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"StatefulSet\"}",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "A"
+                },
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "expr": "(kube_pod_container_status_terminated_reason{cluster=\"$cluster\", namespace=~\"$namespace\",reason!=\"Completed\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"StatefulSet\"}",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "B"
+                },
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": true,
+                  "expr": "(label_replace(kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\", phase=\"Pending\"}, \"reason\", \"$1\", \"phase\", \"(.*)\") == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"StatefulSet\"}",
+                  "format": "table",
+                  "hide": false,
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "",
+                  "refId": "C"
+                }
+              ],
+              "title": "Not Healthy Pods",
+              "transformations": [
+                {
+                  "id": "merge",
+                  "options": {}
+                },
+                {
+                  "id": "calculateField",
+                  "options": {
+                    "alias": "Value",
+                    "mode": "reduceRow",
+                    "reduce": {
+                      "include": [
+                        "Value #A",
+                        "Value #B",
+                        "Value #D"
+                      ],
+                      "reducer": "sum"
+                    },
+                    "replaceFields": false
+                  }
+                },
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "Value #A": true,
+                      "Value #B": true,
+                      "Value #C": true,
+                      "Value #D": true,
+                      "__name__": true,
+                      "cluster": true,
+                      "container": false,
+                      "endpoint": true,
+                      "exported_container": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
+                      "instance": true,
+                      "job": true,
+                      "kube_container": true,
+                      "kube_namespace": true,
+                      "kube_pod": true,
+                      "namespace": false,
+                      "owner_kind": false,
+                      "phase": true,
+                      "pod": false,
+                      "prometheus": true,
+                      "replicaset": true,
+                      "service": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 15,
+                      "Value #A": 23,
+                      "Value #B": 14,
+                      "Value #C": 17,
+                      "container": 10,
+                      "endpoint": 1,
+                      "exported_container": 4,
+                      "exported_namespace": 2,
+                      "exported_pod": 3,
+                      "instance": 5,
+                      "job": 6,
+                      "kube_container": 18,
+                      "kube_namespace": 19,
+                      "kube_pod": 20,
+                      "namespace": 7,
+                      "owner_name": 8,
+                      "phase": 16,
+                      "pod": 9,
+                      "prometheus": 21,
+                      "reason": 12,
+                      "replicaset": 11,
+                      "service": 13,
+                      "uid": 22
+                    },
+                    "renameByName": {
+                      "container": "Container",
+                      "exported_container": "",
+                      "exported_namespace": "",
+                      "exported_pod": "",
+                      "namespace": "Namespace",
+                      "owner_name": "StatefulSet",
+                      "pod": "Pod",
+                      "reason": "Reason",
+                      "replicaset": "ReplicaSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Show information about the last reason the container was in terminated state for pods controlled by StatefulSets",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": false,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unitScale": true
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "reason"
+                    },
+                    "properties": [
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "yellow",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "gradient",
+                          "type": "color-background"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "namespace"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to namespace",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-namespace-resources`) ) %}/kubernetes-namespace-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "pod"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": true,
+                            "title": "Drill down to pod",
+                            "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=${__data.fields.namespace}&var-pod=${__data.fields.pod}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 16
+              },
+              "id": 16,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": false,
+                    "displayName": "namespace"
+                  }
+                ]
+              },
+              "pluginVersion": "10.3.3",
+              "targets": [
+                {
+                  "datasource": {
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "(kube_pod_container_status_last_terminated_reason{cluster=\"$cluster\", namespace=~\"$namespace\", reason!=\"Completed\"} == 1) * on(pod, namespace) group_left(owner_name) kube_pod_owner{cluster=\"$cluster\", namespace=~\"$namespace\", owner_kind=\"StatefulSet\"}",
+                  "format": "table",
+                  "instant": true,
+                  "interval": "",
+                  "legendFormat": "{{exported_pod}}-{{exported_namespace}}",
+                  "refId": "A"
+                }
+              ],
+              "title": "Last Terminated Status",
+              "transformations": [
+                {
+                  "id": "organize",
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Value": true,
+                      "__name__": true,
+                      "cluster": true,
+                      "container": false,
+                      "endpoint": true,
+                      "exported_container": true,
+                      "exported_namespace": true,
+                      "exported_pod": true,
+                      "instance": true,
+                      "job": true,
+                      "kube_container": true,
+                      "kube_namespace": true,
+                      "kube_pod": true,
+                      "namespace": false,
+                      "pod": false,
+                      "prometheus": true,
+                      "replicaset": true,
+                      "service": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 13,
+                      "container": 9,
+                      "endpoint": 1,
+                      "exported_container": 14,
+                      "exported_namespace": 3,
+                      "exported_pod": 2,
+                      "instance": 4,
+                      "job": 5,
+                      "kube_container": 15,
+                      "kube_namespace": 16,
+                      "kube_pod": 17,
+                      "namespace": 6,
+                      "owner_name": 7,
+                      "pod": 8,
+                      "prometheus": 18,
+                      "reason": 11,
+                      "replicaset": 10,
+                      "service": 12,
+                      "uid": 19
+                    },
+                    "renameByName": {
+                      "container": "Container",
+                      "exported_container": "",
+                      "exported_namespace": "",
+                      "exported_pod": "",
+                      "namespace": "Namespace",
+                      "owner_name": "StatefulSet",
+                      "pod": "Pod",
+                      "reason": "Reason",
+                      "replicaset": "ReplicaSet"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "StatefulSets",
+          "type": "row"
+        }
+      ],
+      "refresh": "",
+      "schemaVersion": 39,
+      "tags": [
+        "ha"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "text": "Platform Monitoring Prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "ci-master",
+              "value": "ci-master"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_info,cluster)",
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "cluster",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_info,cluster)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": {
+              "selected": true,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
+            "hide": 0,
+            "includeAll": true,
+            "multi": true,
+            "name": "namespace",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "HA Services",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `ha-services`) ) %}",
+      "version": 1,
+      "weekStart": ""
+    }

@@ -1,0 +1,16 @@
+{{- if and .Values.install .Values.global.privilegedRights }}
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "version-exporter.rbac.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "version-exporter.rbac.fullname" .)) | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .Release.Namespace }}-{{ .Values.name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

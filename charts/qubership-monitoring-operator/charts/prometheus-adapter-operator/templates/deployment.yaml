@@ -1,0 +1,60 @@
+{{- if .Values.install }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "prometheusAdapter.instance" . }}
+    app.kubernetes.io/version: {{ template "prometheusAdapter.operator.version" . }}
+    app.kubernetes.io/technology: go
+    {{- if .Values.operator.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.operator.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.operator.annotations }}
+  annotations:
+    {{- toYaml .Values.operator.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name | quote }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ printf "%s-%s" .Values.name .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+        app.kubernetes.io/version: {{ template "prometheusAdapter.operator.version" . }}
+        app.kubernetes.io/technology: go
+        {{- if .Values.operator.labels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.operator.labels) | nindent 8 }}
+        {{- end }}
+      {{- if .Values.operator.annotations }}
+      annotations:
+        {{- toYaml .Values.operator.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.operator.priorityClassName }}
+      priorityClassName: {{ .Values.operator.priorityClassName | quote }}
+      {{- end }}
+      securityContext:
+        {{ include "prometheusAdapter.operator.securityContext" . }}
+      serviceAccountName: {{ .Values.name }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity: {{- toYaml .Values.operator.affinity | nindent 8 }}
+      nodeSelector: {{- toYaml .Values.operator.nodeSelector | nindent 8 }}
+      tolerations: {{- toYaml .Values.operator.tolerations | nindent 8 }}
+      containers:
+      - name: {{ .Values.name }}
+        command: ["/manager"]
+        args:
+          - "--enable-leader-election"
+        image: {{ template "prometheusAdapter.operator.image" . }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          {{ include "prometheusAdapter.operator.resources" $ }}
+{{- end }}

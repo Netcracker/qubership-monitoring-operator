@@ -1,0 +1,38 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kube-apiserver-service-monitor
+  labels:
+    k8s-app: apiserver-service-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+spec:
+  endpoints:
+    - interval: 30s
+      scrapeTimeout: 10s
+      metricRelabelings:
+        - sourceLabels: ['__name__']
+          regex: 'apiserver_request_(.*)|apiserver_storage_(.*)|workqueue_(.*)|etcd_(.*)|process_(.*)|go_(.*)'
+          action: keep
+      relabelings:
+        # Relabel label 'job' from 'apiserver' to 'kube-apiserver'
+        # to avoid misunderstanding in metrics because value 'apiserver'
+        # can be related to other entities outside K8s cluster.
+        - sourceLabels: ['job']
+          targetLabel: 'job'
+          replacement: 'kube-apiserver'
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      port: https
+      scheme: https
+      tlsConfig:
+        caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        serverName: kubernetes
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+      - default
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes

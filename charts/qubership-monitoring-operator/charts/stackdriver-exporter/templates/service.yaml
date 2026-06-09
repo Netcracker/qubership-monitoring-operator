@@ -1,0 +1,22 @@
+{{- if .Values.install }}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      targetPort: 9255
+      port: {{ .Values.service.port }}
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ .Values.name }}
+{{- end }}

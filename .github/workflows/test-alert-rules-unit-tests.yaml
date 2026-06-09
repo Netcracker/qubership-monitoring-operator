@@ -1,0 +1,71 @@
+---
+name: "Tests: Alert rules unit-tests"
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+    paths:
+      - .github/workflows/test-alert-rules-unit-tests.yaml
+      - controllers/prometheus-rules/**
+      - test/alerts-tests/**
+  pull_request:
+    branches:
+      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/test-alert-rules-unit-tests.yaml
+      - controllers/prometheus-rules/**
+      - test/alerts-tests/**
+
+permissions:
+  contents: read
+
+env:
+  vmalert_tool_version: v1.142.0
+  tests_dir: test/alerts-tests
+  source_alert_rules_file: controllers/prometheus-rules/assets/prometheus-rules.yaml
+  target_alert_rules_file: test/alerts-tests/rules.yaml
+
+jobs:
+  Run-Alerts-Test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install vmalert-tool
+        run: |
+          wget --max-redirect=1 -q https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${{ env.vmalert_tool_version }}/vmutils-linux-amd64-${{ env.vmalert_tool_version }}.tar.gz
+          tar -xvf vmutils-linux-amd64-${{ env.vmalert_tool_version }}.tar.gz
+          mv vmalert-tool-prod vmalert-tool
+          chmod +x vmalert-tool
+
+      - name: Render rules file from assets
+        run: |
+          echo "Alert rules are detected in assets, use them for testing and ignore others"
+          cp ${{ env.source_alert_rules_file }} ${{ env.target_alert_rules_file }}
+          sed '1,11d' -i ${{ env.target_alert_rules_file }}
+
+      - name: Check count of test cases for each alert rule
+        run: |
+          chmod +x ./${{ env.tests_dir }}/tests-checker.sh
+          ./${{ env.tests_dir }}/tests-checker.sh
+        continue-on-error: true
+
+      - name: Run test
+        run: |
+          mapfile -t test_files < <(find ${{ env.tests_dir }} -name "*-tests.yaml" | sort)
+          args=()
+          for f in "${test_files[@]}"; do
+            args+=(--files "$f")
+          done
+          ./vmalert-tool unittest "${args[@]}"

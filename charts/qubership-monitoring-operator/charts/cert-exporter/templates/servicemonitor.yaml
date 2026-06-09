@@ -1,0 +1,23 @@
+{{- if and .Values.install .Values.serviceMonitor.install }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: victoriametrics-operator
+spec:
+  endpoints:
+    - interval: {{ .Values.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+      port: metrics
+      path: /metrics
+      scheme: http
+  jobLabel: {{ .Values.name }}
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - {{ .Values.name }}
+{{- end }}

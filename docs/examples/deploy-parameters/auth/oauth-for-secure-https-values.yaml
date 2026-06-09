@@ -1,0 +1,42 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+auth:
+  # ClientId and ClientSecret you should generate for client in your IDP
+  clientId: XXXXXXXXXXXXXX
+  clientSecret: XXXXXXXXXXXXXXXXXXXXXX
+  # URLs for login, token and user info you can get from your IDP.
+  # For example in Keycloak in tenant exits a special page which contains these URLs
+  loginUrl: https://your-idp-url.org/login
+  tokenUrl: https://your-idp-url.org/token
+  userInfoUrl: https://your-idp-url.org/userinfo
+
+  # This section allow to skip TLS verification or specify certificate for it
+  tlsConfig:
+    # This flag NOT RECOMMENDED FOR PRODUCTION! It allow skip TLS verification
+    insecureSkipVerify: true
+
+    # Allow configure links on one or some secrets which will contains certificates
+    caSecret:
+      # Key / File name into Secret
+      key: idp-public-ca.crt
+      # Secret name
+      name: your-secret-with-certs
+    certSecret:
+      key: idp-public.crt
+      name: your-secret-with-certs
+    keySecret:
+      key: idp-public.key
+      name: your-secret-with-certs
+
+---
+# Before deploy need manually create a secret like:
+kind: Secret
+apiVersion: v1
+metadata:
+  name: your-secret-with-certs
+  namespace: namespace-where-deploy-monitoring
+data:
+  idp-public-ca.crt: <base64_value>
+  idp-public.crt: <base64_value>
+  idp-public.key: <base64_value>

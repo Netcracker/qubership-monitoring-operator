@@ -1,0 +1,16 @@
+{{- if and .Values.install .Values.clusterRoleBinding.install .Values.global.privilegedRights }}
+apiVersion: {{ template "rbac.apiVersion" . }}
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "prometheusAdapter.rbac.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "prometheusAdapter.rbac.fullname" .)) | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.name }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "prometheusAdapter.rbac.fullname" . }}
+{{- end }}

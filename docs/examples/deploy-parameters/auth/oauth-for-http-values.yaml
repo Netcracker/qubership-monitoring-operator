@@ -1,0 +1,12 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+auth:
+  # ClientId and ClientSecret you should generate for client in your IDP
+  clientId: XXXXXXXXXXXXXX
+  clientSecret: XXXXXXXXXXXXXXXXXXXXXX
+  # URLs for login, token and user info you can get from your IDP.
+  # For example in Keycloak in tenant exits a special page which contains these URLs
+  loginUrl: http://your-idp-url.org/login
+  tokenUrl: http://your-idp-url.org/token
+  userInfoUrl: http://your-idp-url.org/userinfo

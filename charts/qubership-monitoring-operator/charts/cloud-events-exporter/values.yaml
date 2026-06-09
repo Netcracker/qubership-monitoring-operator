@@ -1,0 +1,211 @@
+# Default values for cloud-events-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Deployment of cloud-events-exporter allows scraping events as metrics
+
+# Allow to disable create cloud-events-exporter during deploy
+# Type: boolean
+# Mandatory: no
+#
+install: false
+
+# Provide a name in place of cloud-events-exporter for labels.
+# Type: string
+# Mandatory: no
+# Default: "cloud-events-exporter"
+#
+name: "cloud-events-exporter"
+
+# Image of cloud-events-exporter
+# Type: string
+# Mandatory: yes
+#
+# image: ghcr.io/netcracker/qubership-kube-events-reader:latest
+
+rbac:
+  # Allow creating ClusterRole. If set to `false`, ClusterRole must be created manually.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  createClusterRole: true
+
+  # Allow creating ClusterRoleBinding. If set to `false`, ClusterRoleBinding must be created manually.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  createClusterRoleBinding: true
+
+# Service monitor for scraping Cloud events as metrics
+# Type: object
+# Mandatory: no
+#
+serviceMonitor:
+  install: true
+  interval: 30s
+  # Please note that scrapeTimeout must be less the interval
+  scrapeTimeout: 10s
+  metricRelabelings: []
+    # - action: keep
+  #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+  #   sourceLabels: [__name__]
+  relabelings: []
+    # - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #   separator: ;
+    #   regex: ^(.*)$
+    #   targetLabel: nodename
+    #   replacement: $1
+    #   action: replace
+
+# Allow to define which Nodes the Pods are scheduled on.
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+nodeSelector: {}
+#   region: databases
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# Define resources requests and limits for single Pods.
+# ref: https://kubernetes.io/docs/user-guide/compute-resources/
+#
+resources: {}
+#   limits:
+#     cpu: 100m
+#     memory: 100Mi
+#   requests:
+#     cpu: 50m
+#     memory: 50Mi
+
+# SecurityContext holds pod-level security attributes.
+# The parameters are required if a Pod Security Policy is enabled
+#  for Kubernetes cluster and required if a Security Context Constraints is enabled
+# for Openshift cluster.
+# Type: object
+# Mandatory: no
+#
+securityContext: {}
+  # The UID to run the entrypoint of the container process.
+  # Defaults to user specified in image metadata if unspecified.
+  # Type: integer
+  # Mandatory: no
+  #
+  # runAsUser: 2000
+
+  # A special supplemental group that applies to all containers in a pod.
+  # Some volume types allow the Kubelet to change the ownership of that volume
+  # to be owned by the pod:
+  #   1. The owning GID will be the FSGroup
+  #   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+  #   3. The permission bits are OR'd with rw-rw----
+  # If unset, the Kubelet will not modify the ownership and permissions of any volume.
+  # Type: integer
+  # Mandatory: no
+  #
+  # fsGroup: 2000
+
+# Tolerations allow the pods to schedule onto nodes with matching taints.
+# Type: object
+# Mandatory: no
+#
+tolerations: []
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"
+
+# Service account for monitoring-operator to use.
+# Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+serviceAccount:
+
+  # Specifies whether a ServiceAccount should be created
+  install: true
+
+  # Annotations is an unstructured key value map stored
+  # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+  # They are not queryable and should be preserved when modifying objects.
+  # More info: https://kubernetes.io/docs/user-guide/annotations
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  annotations: {}
+  # eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
+
+  # Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+  # May match selectors of replication controllers and services.
+  # More info: https://kubernetes.io/docs/user-guide/labels
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: not set
+  #
+  labels: {}
+  # app.kubernetes.io/managed-by: helm
+
+# Port to scrape cloud events metrics.
+# Type: int
+# Mandatory: no
+# Default: 9999
+#
+port: 9999
+
+namespaces: []
+#  - monitoring
+
+filtering:
+  match: []
+  #   - type: "Warning"
+  #     kind: "Pod|Deployment"
+  #     reason: ""
+  #     message: ""
+  #     namespace: ""
+  #     reportingController: ""
+  #     reportingInstance: ""
+  exclude: []
+  #   - type: "Normal"
+  #     message: ".*image.*"
+  #   - reason: "Completed|Pulled|Started"
+
+# Additional cloud-events-exporter container arguments.
+# Type: list[string]
+# Mandatory: no
+# Default: []
+#
+extraArgs: []
+# - -workers=2
+
+# Allows set extra system environment variables for cloud-events-exporter container.
+# Type: object
+# Mandatory: no
+#
+extraEnvs: {}
+#  ENV_NAME: ENV_VALUE
+
+# Allows creating Grafana dashboard for cloud-events-exporter
+# Type: boolean
+# Mandatory: no
+# Default: true
+#
+grafanaDashboard: true

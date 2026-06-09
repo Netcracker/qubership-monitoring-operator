@@ -1,0 +1,202 @@
+# Default values for monitoring-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Allow to enable or disable deploy promxy.
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# A name of the microservice to deploy with.
+# This name is used as the name of the microservice deployment and in labels.
+# Type: string
+# Mandatory: no
+# Default: "promxy"
+#
+name: promxy
+
+# A docker image to use for promxy deployment.
+# Type: string
+# Mandatory: yes
+#
+# image: quay.io/jacksontj/promxy:v0.0.93
+
+# Additional arguments for promxy container.
+# Type: list[string]
+# Mandatory: no
+# Default: []
+#
+extraArgs:
+#  - '--log-level=info'
+
+# Configuration for promxy.
+# Type: object
+# Mandatory: yes
+#
+config:
+  # Base configuration of targets (server groups) for promxy.
+  # Every group should contain address (service or ingress for scraping Prometheus metrics),
+  # scheme (http or https) and unique label for identification in Grafana.
+  # Scheme "http" is using by default.
+  # Type: list[object]
+  # Mandatory: yes
+  #
+  # serverGroups:
+  #  - address: "prometheus-operated:9090"
+  #    label: "k8s-1"
+  #  - address: "prometheus.k8s-2.cloud.com"
+  #    scheme: https
+  #    label: "k8s-2"
+  #  - address: "victoriametrics.cloud.com"
+  #    scheme: http
+  #    label: "k8s-itdpl"
+  #  - address: "victoriametrics.cloud.com"
+  #    scheme: http
+  #    labels:
+  #      cluster: k8s-1
+  #      project: test
+  #    httpClient:
+  #      basicAuth:
+  #        username: admin
+  #        password: admin
+
+  # Detailed configuration for promxy in the YAML format.
+  # If this parameter is specified, the rest of parameters from the config section will not be used.
+  # Ref: https://github.com/jacksontj/promxy/blob/v0.0.71/cmd/promxy/config.yaml
+  # Type: object
+  # Mandatory: no
+  #
+  detailedConfig: ""
+
+# Allows creating Grafana DR overview dashboard.
+# Type: boolean
+# Mandatory: no
+# Default: true
+#
+grafanaDashboard: true
+
+# The resources describes the compute resource requests and limits for promxy.
+# Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+# Type: object
+# Mandatory: no
+#
+resources: {}
+#  limits:
+#    cpu: 150m
+#    memory: 256Mi
+#  requests:
+#    cpu: 50m
+#    memory: 128Mi
+
+# Port for promxy container and service.
+# Type: integer
+# Mandatory: no
+# Default: 9090
+#
+port: 9090
+
+# Additional container with small sidecar that reload promxy when configmap with configuration is changing.
+# Type: object
+# Mandatory: no
+#
+configmapReload:
+  # Allow to disable deploy promxy-configmap-reload container.
+  # Type: boolean
+  # Mandatory: no
+  # Default: true
+  #
+  install: true
+
+  # A docker image to use for promxy-configmap-reload deployment.
+  # Type: string
+  # Mandatory: yes
+  #
+  # image: jimmidyson/configmap-reload:v0.5.0
+
+  # The resources describes the compute resource requests and limits for promxy-configmap-reload.
+  # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  # Type: object
+  # Mandatory: no
+  #
+  resources: {}
+  #  limits:
+  #    cpu: 10m
+  #    memory: 20Mi
+  #  requests:
+  #    cpu: 5m
+  #    memory: 3Mi
+
+# SecurityContext holds pod-level security attributes.
+# The parameters are required if a Pod Security Policy is enabled
+# for Kubernetes cluster and required if a Security Context Constraints is enabled
+# for Openshift cluster.
+# Type: object
+# Mandatory: no
+#
+# securityContext:
+# The UID to run the entrypoint of the container process.
+# Defaults to user specified in image metadata if unspecified.
+# Type: integer
+# Mandatory: no
+#
+# runAsUser: 2000
+#
+# A special supplemental group that applies to all containers in a pod.
+# Some volume types allow the Kubelet to change the ownership of that volume
+# to be owned by the pod:
+#   1. The owning GID will be the FSGroup
+#   2. The setgid bit is set (new files created in the volume will be owned by FSGroup)
+#   3. The permission bits are OR'd with rw-rw----
+# If unset, the Kubelet will not modify the ownership and permissions of any volume.
+# Type: integer
+# Mandatory: no
+#
+# fsGroup: 2000
+
+# Tolerations allow the pods to schedule onto nodes with matching taints.
+# Type: object
+# Mandatory: no
+#
+tolerations: []
+
+# Allow define which Nodes the Pods are scheduled on.
+# Type: map[string]
+# Mandatory: no
+# Default: not set
+#
+# nodeSelector: {}
+
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"

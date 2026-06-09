@@ -1,0 +1,12 @@
+# Default values for common-dashboards.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Allow to enable deploy common-dashboards
+install: true
+
+# Dashboard for Kafka Java Clients with Producer and Consumer Metrics
+kafkaJavaClientsDashboard:
+  install: true
+
+backupDaemonDashboard: true

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: autoscaling-example-service
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: autoscaling-example-service
+spec:
+  serviceAccountName: platform-monitoring-tests
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: autoscaling-example-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: autoscaling-example-service
+    spec:
+      securityContext: {}
+      containers:
+        - name: autoscaling-example-service
+          image: tbd  # TODO: convert to template
+          imagePullPolicy: Always
+          ports:
+            - name: web
+              containerPort: 8080

@@ -1,0 +1,68 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  labels:
+    name: vmagent
+    app.kubernetes.io/name: vmagent
+    app.kubernetes.io/component: victoriametrics
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+  name: k8s
+spec:
+  arbitraryFSAccessThroughSMs: {}
+  externalLabels:
+    cluster: cluster-name
+  extraArgs:
+    promscrape.streamParse: "true"
+  resources:
+    limits:
+      cpu: "1"
+      memory: 2000Mi
+    requests:
+      cpu: 100m
+      memory: 500Mi
+  scrapeInterval: 30s
+  additionalScrapeConfigs:
+    key: prometheus-additional.yaml
+    name: vm-additional-scrape-configs
+
+  # Set the default users for Pod Security Context
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 2000
+
+  # Enable discovery all CRs if labelSelectors is empty
+  selectAllByDefault: true
+
+  # Selector to discovery CRs
+  # Exclude the OpenShift Monitoring configurations
+  podScrapeSelector: {}
+  podScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  probeSelector: {}
+  probeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  serviceScrapeSelector: {}
+  serviceScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  nodeScrapeSelector: {}
+  nodeScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  staticScrapeSelector: {}
+  staticScrapeNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]

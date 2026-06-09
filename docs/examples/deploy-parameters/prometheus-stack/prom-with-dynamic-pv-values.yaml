@@ -1,0 +1,13 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+# Specify storage class to create volume
+prometheus:
+  storage:
+    volumeClaimTemplate:
+      spec:
+        # Specify storage class to create volume
+        storageClassName: nfs-dynamic-provisioning
+        resources:
+          requests:
+            storage: 10Gi

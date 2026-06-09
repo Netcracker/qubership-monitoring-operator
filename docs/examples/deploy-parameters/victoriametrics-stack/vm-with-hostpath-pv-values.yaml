@@ -1,0 +1,14 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+victoriametrics:
+  vmSingle:
+    storage:
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 10Gi
+      selector:
+        # Match PV by label on PV
+        matchLabels:
+          app: victoriametrics

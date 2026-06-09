@@ -1,0 +1,17 @@
+{{- if and .Values.role.install .Values.global.privilegedRights }}
+{{- $operatorClusterRoleName := include "monitoring.operator.rbac.fullname" . -}}
+kind: ClusterRoleBinding
+apiVersion: {{ template "rbac.apiVersion" . }}
+metadata:
+  name: {{ $operatorClusterRoleName }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $operatorClusterRoleName) | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.monitoringOperator.serviceAccount.name }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name:  {{ template "monitoring.operator.rbac.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

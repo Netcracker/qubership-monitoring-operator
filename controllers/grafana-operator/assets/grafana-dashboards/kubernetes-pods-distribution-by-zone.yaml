@@ -1,0 +1,1083 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: kubernetes-pods-distribution-by-zone
+  labels:
+    app.kubernetes.io/component: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: >
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "${datasource}"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "This dashboard shows extended statistics about distribution pods by zone",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [
+        {
+          "asDropdown": true,
+          "icon": "external link",
+          "includeVars": true,
+          "keepTime": true,
+          "tags": [
+            "k8s",
+            "nodes",
+            "pods"
+          ],
+          "targetBlank": true,
+          "title": "Kubernetes / Pods Distribution By Node",
+          "tooltip": "",
+          "type": "dashboards",
+          "url": ""
+        },
+        {
+          "asDropdown": true,
+          "icon": "external link",
+          "includeVars": true,
+          "keepTime": true,
+          "tags": [
+            "pods",
+            "nodes"
+          ],
+          "targetBlank": true,
+          "title": "Kubernetes / Pod Resources",
+          "tooltip": "",
+          "type": "dashboards",
+          "url": ""
+        },
+        {
+          "asDropdown": true,
+          "icon": "external link",
+          "includeVars": true,
+          "keepTime": true,
+          "tags": [
+            "k8s",
+            "nodes"
+          ],
+          "targetBlank": true,
+          "title": "Kubernetes / Nodes Resources",
+          "tooltip": "",
+          "type": "dashboards",
+          "url": ""
+        },
+        {
+          "asDropdown": true,
+          "icon": "external link",
+          "includeVars": true,
+          "keepTime": true,
+          "tags": [
+            "k8s",
+            "cluster"
+          ],
+          "targetBlank": true,
+          "title": "Kubernetes / Cluster Overvie",
+          "tooltip": "",
+          "type": "dashboards",
+          "url": ""
+        }
+      ],
+      "liveNow": false,
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 11,
+          "panels": [],
+          "repeat": "zone",
+          "repeatDirection": "h",
+          "title": "Overview for zone:  $zone",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows number of nodes for $zone",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Ready"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 3,
+            "x": 0,
+            "y": 1
+          },
+          "id": 1,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.8",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (condition)\r\n(\r\n(kube_node_status_condition{cluster=\"$cluster\", status=\"true\"} == 1) * on (cluster, node) group_left()\r\nkube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}\r\n)",
+              "legendFormat": "{{condition}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Number of nodes $zone",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows number of  CPU for $zone",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 3,
+            "x": 3,
+            "y": 1
+          },
+          "id": 16,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.8",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum\r\n(\r\n(count by (cluster, node) (node_cpu_seconds_total{mode=\"idle\", node!=\"\", job=\"node-exporter\"})) * on (cluster, node) group_left()\r\nkube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}\r\n)",
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Number of CPUs $zone",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows amount of memory for $zone",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "decbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 3,
+            "x": 6,
+            "y": 1
+          },
+          "id": 23,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.8",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum\r\n(\r\n(node_memory_MemTotal_bytes{node!=\"\", job=\"node-exporter\"}) * on (cluster, node) group_left()\r\nkube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}\r\n)",
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Total RAM $zone",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows  amount of used memory for $zone",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "decbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 3,
+            "x": 9,
+            "y": 1
+          },
+          "id": 32,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.8",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum\r\n(\r\n(node_memory_MemTotal_bytes{node!=\"\", job=\"node-exporter\"} - node_memory_MemFree_bytes{node!=\"\", job=\"node-exporter\"}) * on (cluster, node) group_left()\r\nkube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}\r\n)",
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Used RAM $zone",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Shows number of pods for $zone",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Running"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Succeeded"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "purple",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 12,
+            "y": 1
+          },
+          "id": 2,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "9.5.8",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (phase)\r\n(\r\n(kube_pod_info{cluster=\"$cluster\"} * on (cluster, namespace, pod) group_left(phase) (kube_pod_status_phase{cluster=\"$cluster\"} == 1))\r\n * on (cluster, node) group_left()\r\nkube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}\r\n)",
+              "legendFormat": "{{phase}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Total number of pods $zone",
+          "type": "stat"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 7
+          },
+          "id": 43,
+          "panels": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows number of pods with ready=true status per Zones for kind: Deployment",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "red",
+                        "value": null
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Microservice\\zone"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 400
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 8
+              },
+              "id": 44,
+              "maxDataPoints": 20,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": [],
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Count of Zones"
+                  }
+                ]
+              },
+              "pluginVersion": "9.5.8",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "label_join(\r\n  sum by (deployment, namespace, zone)\r\n  (\r\n    (\r\n      (\r\n        label_replace(kube_pod_owner{owner_kind=\"ReplicaSet\", cluster=\"$cluster\", namespace=~\"$namespace\"}, \"replicaset\", \"$1\", \"owner_name\", \"(.*)\")\r\n        * on (cluster, namespace, replicaset) group_left(deployment)\r\n        label_replace(kube_replicaset_owner{cluster=\"$cluster\", namespace=~\"$namespace\"}, \"deployment\", \"$1\", \"owner_name\", \"(.*)\")\r\n      ) * on (cluster, namespace, pod) group_left()\r\n      (\r\n        kube_pod_status_ready{cluster=\"$cluster\", namespace=~\"$namespace\", condition=\"true\"}==1\r\n      )\r\n    ) * on (cluster, namespace, pod) group_left(node, zone)\r\n    (\r\n      kube_pod_info * on (cluster, node) group_left(zone)\r\n      label_replace(kube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}, \"zone\", \"$1\", \"label_${label}\", \"(.*)\")\r\n    )\r\n  )\r\n  , \"Microservice\", \"\\t|\\t\", \"namespace\", \"deployment\"\r\n)",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Ready Deployment Pods distribution per zones",
+              "transformations": [
+                {
+                  "id": "groupingToMatrix",
+                  "options": {
+                    "columnField": "zone",
+                    "emptyValue": "null",
+                    "rowField": "Microservice",
+                    "valueField": "Value"
+                  }
+                },
+                {
+                  "id": "calculateField",
+                  "options": {
+                    "alias": "Count of Zones",
+                    "mode": "reduceRow",
+                    "reduce": {
+                      "reducer": "count"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows number of pods with ready=true status per Zones for Kind: StatefulSet",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "red",
+                        "value": null
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Microservice\\zone"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 400
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 20
+              },
+              "id": 55,
+              "maxDataPoints": 20,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": [],
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Count of Zones"
+                  }
+                ]
+              },
+              "pluginVersion": "9.5.8",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "label_join(\r\n  sum by (statefulset, namespace, zone)\r\n  (\r\n    (\r\n      (\r\n        label_replace(kube_pod_owner{owner_kind=\"StatefulSet\", cluster=\"$cluster\", namespace=~\"$namespace\"}, \"statefulset\", \"$1\", \"owner_name\", \"(.*)\")\r\n      ) * on (cluster, namespace, pod) group_left()\r\n      (\r\n        kube_pod_status_ready{cluster=\"$cluster\", namespace=~\"$namespace\", condition=\"true\"}==1\r\n      )\r\n    ) * on (cluster, namespace, pod) group_left(node, zone)\r\n    (\r\n      kube_pod_info * on (cluster, node) group_left(zone)\r\n      label_replace(kube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}, \"zone\", \"$1\", \"label_${label}\", \"(.*)\")\r\n    )\r\n  )\r\n  , \"Microservice\", \"\\t|\\t\", \"namespace\", \"statefulset\"\r\n)",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Ready StatefulSet Pods distribution per zones",
+              "transformations": [
+                {
+                  "id": "groupingToMatrix",
+                  "options": {
+                    "columnField": "zone",
+                    "emptyValue": "null",
+                    "rowField": "Microservice",
+                    "valueField": "Value"
+                  }
+                },
+                {
+                  "id": "calculateField",
+                  "options": {
+                    "alias": "Count of Zones",
+                    "mode": "reduceRow",
+                    "reduce": {
+                      "reducer": "count"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "description": "Shows number of pods with ready=true status per Zones for Kind: DaemonSet",
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "inspect": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "red",
+                        "value": null
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Microservice\\zone"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 400
+                      }
+                    ]
+                  }
+                ]
+              },
+              "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 32
+              },
+              "id": 56,
+              "maxDataPoints": 20,
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "countRows": false,
+                  "fields": [],
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Count of Zones"
+                  }
+                ]
+              },
+              "pluginVersion": "9.5.8",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "prometheus",
+                    "uid": "${datasource}"
+                  },
+                  "editorMode": "code",
+                  "exemplar": false,
+                  "expr": "label_join(\r\n  sum by (daemonset, namespace, zone)\r\n  (\r\n    (\r\n      (\r\n        label_replace(kube_pod_owner{owner_kind=\"DaemonSet\", cluster=\"$cluster\", namespace=~\"$namespace\"}, \"daemonset\", \"$1\", \"owner_name\", \"(.*)\")\r\n      ) * on (cluster, namespace, pod) group_left()\r\n      (\r\n        kube_pod_status_ready{cluster=\"$cluster\", namespace=~\"$namespace\", condition=\"true\"}==1\r\n      )\r\n    ) * on (cluster, namespace, pod) group_left(node, zone)\r\n    (\r\n      kube_pod_info * on (cluster, node) group_left(zone)\r\n      label_replace(kube_node_labels{cluster=\"$cluster\", label_${label}=~\"$zone\"}, \"zone\", \"$1\", \"label_${label}\", \"(.*)\")\r\n    )\r\n  )\r\n  , \"Microservice\", \"\\t|\\t\", \"namespace\", \"daemonset\"\r\n)",
+                  "format": "table",
+                  "instant": true,
+                  "legendFormat": "__auto",
+                  "range": false,
+                  "refId": "A"
+                }
+              ],
+              "title": "Ready DaemonSet Pods distribution per zones",
+              "transformations": [
+                {
+                  "id": "groupingToMatrix",
+                  "options": {
+                    "columnField": "zone",
+                    "emptyValue": "null",
+                    "rowField": "Microservice",
+                    "valueField": "Value"
+                  }
+                },
+                {
+                  "id": "calculateField",
+                  "options": {
+                    "alias": "Count of Zones",
+                    "mode": "reduceRow",
+                    "reduce": {
+                      "reducer": "count"
+                    }
+                  }
+                }
+              ],
+              "type": "table"
+            }
+          ],
+          "title": "Pods distribution",
+          "type": "row"
+        }
+      ],
+      "refresh": "",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": [
+        "k8s",
+        "pods",
+        "zones"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "text": "Platform Monitoring Prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "label": "Datasource",
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {
+              "isNone": true,
+              "selected": false,
+              "text": "None",
+              "value": ""
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_state_metrics_build_info,cluster)",
+            "hide": 0,
+            "includeAll": false,
+            "label": "Cluster",
+            "multi": false,
+            "name": "cluster",
+            "options": [],
+            "query": {
+              "query": "label_values(kube_state_metrics_build_info,cluster)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
+            "description": "Namespace name to filter Pods distribution tables",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Namespace",
+            "multi": true,
+            "name": "namespace",
+            "options": [],
+            "query": {
+              "query": "label_values(kube_pod_info{cluster=\"$cluster\"},namespace)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "zone",
+              "value": "zone"
+            },
+            "description": "Filter label names by some regex. See next variable.",
+            "hide": 0,
+            "includeAll": false,
+            "label": "Label Type",
+            "multi": false,
+            "name": "label_type",
+            "options": [
+              {
+                "selected": false,
+                "text": "any",
+                "value": "[^\",=]*"
+              },
+              {
+                "selected": true,
+                "text": "zone",
+                "value": "zone"
+              }
+            ],
+            "query": "any : [^\"\\,=]*, zone : zone",
+            "queryValue": "",
+            "skipUrlSync": false,
+            "type": "custom"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "topology_ebs_csi_aws_com_zone",
+              "value": "topology_ebs_csi_aws_com_zone"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "kube_node_labels{cluster=\"$cluster\"}",
+            "description": "Nodes Labels to group by. Use topology_kubernetes_io_zone for Availability Zones distribution view.",
+            "hide": 0,
+            "includeAll": false,
+            "label": "Node Label",
+            "multi": false,
+            "name": "label",
+            "options": [],
+            "query": {
+              "query": "kube_node_labels{cluster=\"$cluster\"}",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 2,
+            "regex": "/label_([^\",=]*${label_type:value}[^\",=]*)/g",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(label_${label})",
+            "description": "If topology_kubernetes_io_zone used - values of Availability Zones from Kubernetes",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Zone/Label values",
+            "multi": true,
+            "name": "zone",
+            "options": [],
+            "query": {
+              "query": "label_values(label_${label})",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "1",
+              "value": "1"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "query_result(count(count by (label_${label}) (kube_node_labels{cluster=\"$cluster\"})))",
+            "description": "Current number of available zones. Not used as template/filter. Only to show current info.",
+            "hide": 0,
+            "includeAll": false,
+            "label": "Number of Zones",
+            "multi": false,
+            "name": "threshold",
+            "options": [],
+            "query": {
+              "query": "query_result(count(count by (label_${label}) (kube_node_labels{cluster=\"$cluster\"})))",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "/\\{\\} ([0-9]+).*/",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ]
+      },
+      "timezone": "browser",
+      "title": "Kubernetes / Pods Distribution By Zones",
+      "uid": "{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pods-distribution-by-zone`) ) %}",
+      "version": 1,
+      "weekStart": ""
+    }

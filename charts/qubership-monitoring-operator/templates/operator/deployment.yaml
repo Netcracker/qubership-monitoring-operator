@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.monitoringOperator.name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" .Values.monitoringOperator.name) | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+    app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.monitoringOperator.annotations }}
+  annotations:
+    {{- toYaml .Values.monitoringOperator.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ .Values.monitoringOperator.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring.labels" (dict "ctx" . "name" .Values.monitoringOperator.name) | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
+        app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+      {{- if .Values.monitoringOperator.annotations }}
+      annotations:
+        {{- toYaml .Values.monitoringOperator.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.monitoringOperator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.monitoringOperator.serviceAccount.name }}
+      securityContext:
+        {{ include "monitoring.operator.securityContext" . }}
+      {{- if .Values.monitoringOperator.priorityClassName }}
+      priorityClassName: {{ .Values.monitoringOperator.priorityClassName | quote }}
+      {{- end }}
+      tolerations: {{- toYaml .Values.monitoringOperator.tolerations | nindent 8 }}
+      nodeSelector: {{- toYaml .Values.monitoringOperator.nodeSelector | nindent 8 }}
+      affinity: {{- toYaml .Values.monitoringOperator.affinity | nindent 8 }}
+      containers:
+        - name: monitoring-operator
+          image: {{ template "monitoring.operator.image" . }}
+          command: ["/manager"]
+          args:
+            - '--privilegedRights={{ .Values.global.privilegedRights }}'
+            {{- if .Values.monitoringOperator.pprof }}
+            - '--pprof-enable={{ .Values.monitoringOperator.pprof.install }}'
+            - '--pprof-address=:{{ .Values.monitoringOperator.pprof.service.port }}'
+            {{- end }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          {{- with .Values.monitoringOperator.pprof }}
+            {{- if .install }}
+              {{- if and .containerPort .service.portName }}
+          - containerPort: {{ .containerPort }}
+            name: {{ .service.portName }}
+            protocol: TCP
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{ include "monitoring.operator.resources" . }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

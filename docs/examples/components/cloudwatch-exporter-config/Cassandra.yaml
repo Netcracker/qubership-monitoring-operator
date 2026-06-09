@@ -1,0 +1,243 @@
+region: us-east-1
+period_seconds: 120
+delay_seconds: 60
+metrics:
+  - aws_dimensions: []
+    aws_metric_name: AccountMaxReads
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+  - aws_dimensions: []
+    aws_metric_name: AccountMaxWrites
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+  - aws_dimensions: []
+    aws_metric_name: AccountMaxTableLevelReads
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+  - aws_dimensions: []
+    aws_metric_name: AccountMaxTableLevelWrites
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+  - aws_dimensions: []
+    aws_metric_name: AccountProvisionedReadCapacityUtilization
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions: []
+    aws_metric_name: AccountProvisionedWriteCapacityUtilization
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: BillableTableSizeInBytes
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: ConditionalCheckFailedRequests
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+      - SampleCount
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: ConsumedReadCapacityUnits
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: ConsumedWriteCapacityUnits
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+      - SampleCount
+      - Sum
+  - aws_dimensions: []
+    aws_metric_name: MaxProvisionedTableReadCapacityUtilization
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions: []
+    aws_metric_name: MaxProvisionedTableWriteCapacityUtilization
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: PerConnectionRequestRateExceeded
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - SampleCount
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: ProvisionedReadCapacityUnits
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: ProvisionedWriteCapacityUnits
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Maximum
+      - Minimum
+      - Average
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: ReadThrottleEvents
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - SampleCount
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: ReturnedItemCount
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - SampleCount
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: StoragePartitionThroughputCapacityExceeded
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - SampleCount
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: SuccessfulRequestCount
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - SampleCount
+  - aws_dimensions:
+      - Operation
+    aws_metric_name: SuccessfulRequestCount
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+    aws_metric_name: SuccessfulRequestCount
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: SuccessfulRequestLatency
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - SampleCount
+  - aws_dimensions:
+      - Operation
+    aws_metric_name: SuccessfulRequestLatency
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+    aws_metric_name: SuccessfulRequestLatency
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: SystemErrors
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: SystemReconciliationDeletes
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - TableName
+    aws_metric_name: TTLDeletes
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: UserErrors
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - Keyspace
+      - Operation
+      - TableName
+    aws_metric_name: WriteThrottleEvents
+    aws_namespace: AWS/Cassandra
+    aws_statistics:
+      - Sum
+      - SampleCount

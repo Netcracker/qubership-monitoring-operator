@@ -1,0 +1,42 @@
+{{- if .Values.tlsEnabled }}
+{{- if and (not .Values.vmAuth.tlsConfig.existingSecret) .Values.vmAuth.tlsConfig.generateCerts .Values.vmAuth.tlsConfig.generateCerts.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vmauth-tls-certificate
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "vmauth-tls-certificate" "component" "vmAuth") | nindent 4 }}
+spec:
+  secretName: {{ default "vmauth-tls-secret" .Values.vmAuth.tlsConfig.generateCerts.secretName }}
+  duration: {{ default 365 .Values.vmAuth.tlsConfig.generateCerts.duration | mul 24 }}h
+  renewBefore: {{ default 15 .Values.vmAuth.tlsConfig.generateCerts.renewBefore | mul 24 }}h
+  commonName: vmauth-crt
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames:
+    - localhost
+    - vmauth-k8s
+    - vmauth-k8s.{{ .Release.Namespace }}.svc
+  {{- if .Values.vmAuth.ingress.install }}
+  {{- if .Values.vmAuth.ingress.host }}
+    - {{ .Values.vmAuth.ingress.host }}
+  {{ else if .Values.vmAuth.ingress.rules }}
+  {{- range .Values.vmAuth.ingress.rules }}
+    {{- if .host }}
+    - {{ .host }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: {{ .Values.clusterIssuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

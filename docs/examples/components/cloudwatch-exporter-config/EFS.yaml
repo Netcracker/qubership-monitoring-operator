@@ -1,0 +1,99 @@
+region: us-east-1
+period_seconds: 120
+delay_seconds: 60
+metrics:
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: PercentIOLimit
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: BurstCreditBalance
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: PermittedThroughput
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: MeteredIOBytes
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: TotalIOBytes
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: DataReadIOBytes
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: DataWriteIOBytes
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: MetadataIOBytes
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+      - SampleCount
+  - aws_dimensions:
+      - FileSystemId
+    aws_metric_name: ClientConnections
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Sum
+  - aws_dimensions:
+      - FileSystemId
+      - StorageClass
+    aws_metric_name: StorageBytes
+    aws_namespace: AWS/EFS
+    aws_statistics:
+      - Minimum
+      - Maximum
+      - Average
+      - Sum
+      - SampleCount
+
+
+
+

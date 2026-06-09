@@ -1,0 +1,111 @@
+{{- if .Values.install }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+    app.kubernetes.io/instance: {{ template "cloudwatch-exporter.instance" . }}
+    app.kubernetes.io/version: {{ template "cloudwatch-exporter.version" . }}
+    app.kubernetes.io/technology: go
+    {{- include "monitoring.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        {{- include "monitoring.labels" . | nindent 8 }}
+        app.kubernetes.io/instance: {{ template "cloudwatch-exporter.instance" . }}
+        app.kubernetes.io/version: {{ template "cloudwatch-exporter.version" . }}
+        app.kubernetes.io/technology: go
+        {{- include "monitoring.extraLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ .Files.Get "templates/cloudwatch-exporter/configmap.yaml" | sha256sum }}
+        checksum/secrets: {{ .Files.Get "templates/cloudwatch-exporter/secrets.yaml" | sha256sum }}
+        {{- if .Values.annotations }}
+          {{ toYaml .Values.annotations | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.name }}
+          image: {{ template "cloudwatch-exporter.image" . }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.command }}
+          command: {{ toYaml .Values.command | nindent 12 -}}
+          {{- end }}
+          ports:
+            - name: container-port
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: container-port
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: container-port
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            {{ include "cloudwatchExporter.resources" $ }}
+          volumeMounts:
+            - name: vol-cloudwatch-exporter
+              mountPath: /config
+            {{- if include "cloudwatch-exporter.awsCredentialsEnabled" . }}
+            - name: aws-credentials
+              mountPath: /root
+              readOnly: true
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{ include "cloudwatch-exporter.securityContext" . }}
+      {{- if .Values.serviceAccount.install }}
+      serviceAccount: {{ .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- end }}
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: {{ .Values.name }}
+        name: vol-cloudwatch-exporter
+      {{- if include "cloudwatch-exporter.awsCredentialsEnabled" . }}
+      - name: aws-credentials
+        secret:
+          secretName: {{ include "cloudwatch-exporter.awsCredentialsSecretName" . }}
+          defaultMode: 256
+          items:
+            - key: credentials
+              path: .aws/credentials
+      {{- end }}
+{{- end }}

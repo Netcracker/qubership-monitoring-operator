@@ -1,0 +1,15 @@
+vm_http_conn_timeout_open_conns_total 2048
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="0.500e-03...0.750e-03"} 2
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="0.750e-03...1.000e-03"} 10
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="1.000e-03...1.250e-03"} 15
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="1.250e-03...1.500e-03"} 45
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="1.500e-03...1.750e-03"} 120
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="1.750e-03...2.000e-03"} 330
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="2.000e-03...2.250e-03"} 800
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="2.250e-03...2.500e-03"} 1020
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="2.500e-03...2.750e-03"} 950
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="2.750e-03...3.000e-03"} 500
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="3.000e-03...3.250e-03"} 220
+vm_http_request_latency_seconds_bucket{path="/status",vmrange="3.250e-03...3.500e-03"} 100
+vm_http_request_latency_seconds_sum{path="/status"} 25.782
+vm_http_request_latency_seconds_count{path="/status"} 4499

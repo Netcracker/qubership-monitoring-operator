@@ -1,0 +1,211 @@
+package kubernetes_monitors
+
+import (
+	"embed"
+
+	"maps"
+
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/apimachinery/pkg/util/yaml"
+)
+
+//go:embed  assets/*.yaml
+var assets embed.FS
+
+// Common K8s monitors
+func kubernetesMonitorsApiServerServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+	sm := promv1.ServiceMonitor{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.ApiServerServiceMonitorAsset), 100).Decode(&sm); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	sm.SetName(cr.GetNamespace() + "-" + "kube-apiserver-service-monitor")
+	sm.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.KubernetesMonitors != nil {
+		monitor, ok := cr.Spec.KubernetesMonitors[utils.ApiserverServiceMonitorName]
+		if ok && monitor.IsInstall() {
+			monitor.OverrideServiceMonitor(&sm)
+		}
+	}
+
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
+			cr.GetLabels(),
+		),
+	}, nil)
+
+	if sm.Annotations == nil && cr.GetAnnotations() != nil {
+		sm.SetAnnotations(cr.GetAnnotations())
+	} else if cr.GetAnnotations() != nil {
+		for k, v := range cr.GetAnnotations() {
+			sm.Annotations[k] = v
+		}
+	}
+
+	return &sm, nil
+}
+
+func kubernetesMonitorsKubeletServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMonitor, error) {
+	sm := promv1.ServiceMonitor{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubeletServiceMonitorAsset), 100).Decode(&sm); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	sm.SetName(cr.GetNamespace() + "-" + "kubelet-service-monitor")
+	sm.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.KubernetesMonitors != nil {
+		monitor, ok := cr.Spec.KubernetesMonitors[utils.KubeletServiceMonitorName]
+		if ok && monitor.IsInstall() {
+			monitor.OverrideServiceMonitor(&sm)
+		}
+	}
+	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
+
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
+			cr.GetLabels(),
+		),
+	}, nil)
+
+	if sm.Annotations == nil && cr.GetAnnotations() != nil {
+		sm.SetAnnotations(cr.GetAnnotations())
+	} else if cr.GetAnnotations() != nil {
+		for k, v := range cr.GetAnnotations() {
+			sm.Annotations[k] = v
+		}
+	}
+
+	return &sm, nil
+}
+
+func kubernetesMonitorsCoreDnsServiceMonitor(cr *monv1.PlatformMonitoring, isOpenshiftV4 bool) (*promv1.ServiceMonitor, error) {
+	sm := promv1.ServiceMonitor{}
+
+	CoreDnsServiceMonitorAsset := utils.CoreDnsServiceMonitorAssetK8s
+
+	if isOpenshiftV4 {
+		CoreDnsServiceMonitorAsset = utils.CoreDnsServiceMonitorAssetOs4
+	}
+
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, CoreDnsServiceMonitorAsset), 100).Decode(&sm); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	sm.SetName(cr.GetNamespace() + "-" + "core-dns-service-monitor")
+	sm.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.KubernetesMonitors != nil {
+		monitor, ok := cr.Spec.KubernetesMonitors[utils.CoreDnsServiceMonitorName]
+		if ok && monitor.IsInstall() {
+			monitor.OverrideServiceMonitor(&sm)
+		}
+	}
+
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
+			cr.GetLabels(),
+		),
+	}, nil)
+
+	if sm.Annotations == nil && cr.GetAnnotations() != nil {
+		sm.SetAnnotations(cr.GetAnnotations())
+	} else if cr.GetAnnotations() != nil {
+		for k, v := range cr.GetAnnotations() {
+			sm.Annotations[k] = v
+		}
+	}
+
+	return &sm, nil
+}
+
+func kubernetesMonitorsNginxIngressPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {
+	pm := promv1.PodMonitor{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NginxIngressPodMonitorAsset), 100).Decode(&pm); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	pm.SetName(cr.GetNamespace() + "-" + "nginx-ingress-pod-monitor")
+	pm.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.KubernetesMonitors != nil {
+		monitor, ok := cr.Spec.KubernetesMonitors[utils.NginxIngressPodMonitorName]
+		if ok && monitor.IsInstall() {
+			monitor.OverridePodMonitor(&pm)
+		}
+	}
+
+	// Set labels via centralized API (PodMonitor: base-only per spec)
+	utils.SetLabelsForResource(&pm, utils.LabelInput{
+		Name:      pm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
+			cr.GetLabels(),
+		),
+	}, nil)
+
+	if pm.Annotations == nil && cr.GetAnnotations() != nil {
+		pm.SetAnnotations(cr.GetAnnotations())
+	} else {
+		for k, v := range cr.GetAnnotations() {
+			pm.Annotations[k] = v
+		}
+	}
+
+	return &pm, nil
+}
+
+// Openshift specific monitors
+func openshiftServiceMonitor(cr *monv1.PlatformMonitoring,
+	serviceMonitorAsset string,
+	crServiceMonitorName string,
+	metadataName string) (*promv1.ServiceMonitor, error) {
+	sm := promv1.ServiceMonitor{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, serviceMonitorAsset), 100).Decode(&sm); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	sm.SetName(cr.GetNamespace() + "-" + metadataName)
+	sm.SetNamespace(cr.GetNamespace())
+
+	if cr.Spec.KubernetesMonitors != nil {
+		monitor, ok := cr.Spec.KubernetesMonitors[crServiceMonitorName]
+		if ok && monitor.IsInstall() {
+			monitor.OverrideServiceMonitor(&sm)
+		}
+	}
+
+	// Set labels via centralized API (ServiceMonitor: base-only per spec)
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:      sm.GetName(),
+		Component: utils.KubernetesMonitorsComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{utils.ProcessedByOperatorKey: utils.VmOperatorComponentName},
+			cr.GetLabels(),
+		),
+	}, nil)
+
+	if sm.Annotations == nil && cr.GetAnnotations() != nil {
+		sm.SetAnnotations(cr.GetAnnotations())
+	} else if cr.GetAnnotations() != nil {
+		maps.Copy(sm.Annotations, cr.GetAnnotations())
+	}
+
+	return &sm, nil
+}
