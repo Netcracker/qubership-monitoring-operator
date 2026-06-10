@@ -1306,6 +1306,7 @@ openshiftOOBServiceMonitors:
     roleBindingName: "openshift-copy-certs-to-secret-rb"
     clusterRoleName: "openshift-copy-certs-to-secret-clusterrole"
     clusterRoleBindingName: "openshift-copy-certs-to-secret-clusterrb"
+    vmСlusterRoleBindingName: "cluster-monitoring-view-binding"
 
   # Annotations is an unstructured key value map stored
   # with a resource that may be set by external tools to store and retrieve arbitrary metadata.
