@@ -1348,7 +1348,7 @@ openshiftOOBServiceMonitors:
   # Default:
   #   node-role.kubernetes.io/control-plane: ""
   #
-  #nodeSelector:
+  # nodeSelector:
   #  node-role.kubernetes.io/control-plane: ""
 
   # Tolerations for openshift-copy-certs job and cronjob scheduling.
