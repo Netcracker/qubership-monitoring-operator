@@ -1276,7 +1276,7 @@ openshiftOOBServiceMonitors:
   # Default: "openshift-copy-certs"
   #
   name: "openshift-copy-certs"
-  image: ghcr.io/netcracker/qubership-openshift-copy-certs:main 
+  image: ghcr.io/netcracker/qubership-openshift-copy-certs:main
   # Log level for the job and cronjob
   # Type: string
   # Mandatory: no
@@ -2067,5 +2067,3 @@ etcdCertsJob:
       cpu: 10m
       memory: 64Mi
       ephemeral-storage: 16Mi
-
-# Settings for a job to copy certificates from openshift monitoring to a secret
