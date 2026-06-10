@@ -14,7 +14,7 @@ spec:
       ca:
         configMap:
           key: service-ca.crt
-          name: openshift-service-ca
+          name: openshift-service-ca.crt
       serverName: metrics.openshift-etcd-operator.svc
   jobLabel: app
   selector:

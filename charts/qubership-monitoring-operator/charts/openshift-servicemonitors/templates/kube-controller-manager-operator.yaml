@@ -19,7 +19,7 @@ spec:
       ca:
         configMap:
           key: service-ca.crt
-          name: openshift-service-ca
+          name: openshift-service-ca.crt
       serverName: metrics.openshift-kube-controller-manager-operator.svc
   jobLabel: app
   selector:
