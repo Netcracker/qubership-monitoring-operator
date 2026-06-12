@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.operator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.11.3" -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.11.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -26,7 +26,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:0.11.3" -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:0.11.4" -}}
   {{- end -}}
 {{- end -}}
 
