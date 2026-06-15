@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-version-exporter versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-version-exporter:0.6.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-version-exporter:0.6.1" -}}
   {{- end -}}
 {{- end -}}
 
