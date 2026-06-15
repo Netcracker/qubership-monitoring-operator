@@ -979,11 +979,14 @@ integration:
 #   * IDP
 auth: {}
   # The OAuth Client ID.
+  # For Grafana this value is treated as non-sensitive.
   # Type: string
   # Mandatory: yes
   # clientId: XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXX
 
   # The OAuth Client Secret.
+  # For Grafana this value is stored in dedicated Secret (grafana-oauth-client-secret)
+  # and read from file via $__file{} provider.
   # Type: string
   # Mandatory: yes
   # clientSecret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
