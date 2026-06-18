@@ -1,0 +1,22 @@
+{{- if .Values.copyOpenshiftCerts }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: namespace-list
+data:
+  namespaces: |
+    openshift-monitoring
+  config: |
+    {
+      "targetNamespace": "{{ .Release.Namespace }}",
+      "globalSecretNames": [],
+      "globalConfigMapNames": [],
+      "namespaceConfigs": [
+        {
+          "namespace": "openshift-monitoring",
+          "secretNames": ["metrics-client-certs"],
+          "configMapNames": ["openshift-service-ca"]
+        }
+      ]
+    }
+{{- end }}

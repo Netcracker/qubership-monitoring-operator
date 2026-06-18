@@ -114,3 +114,8 @@ dependencies:
     condition: stackdriverExporter.install
     version: ~0
     repository: "file://charts/stackdriver-exporter"
+  # Openshift servicemonitors
+  - name: openshiftOOBServiceMonitors
+    condition: openshiftOOBServiceMonitors.install
+    version: ~0
+    repository: "file://charts/openshift-servicemonitors"

@@ -1,0 +1,31 @@
+{{- if and .Values.install .Values.installKubeControllerManagerOperator .Values.copyOpenshiftCerts }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kube-controller-manager-operator-test
+  namespace: monitoring
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    port: https
+    scheme: https
+    tlsConfig:
+      ca:
+        configMap:
+          key: service-ca.crt
+          name: openshift-service-ca.crt
+      serverName: metrics.openshift-kube-controller-manager-operator.svc
+  jobLabel: app
+  selector:
+    matchLabels:
+      app: kube-controller-manager-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-kube-controller-manager-operator
+{{- end }}

@@ -1,0 +1,26 @@
+{{- if and .Values.install .Values.installEtcdOperator .Values.copyOpenshiftCerts }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: etcd-operator-test
+  namespace: monitoring
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    port: https
+    scheme: https
+    tlsConfig:
+      ca:
+        configMap:
+          key: service-ca.crt
+          name: openshift-service-ca.crt
+      serverName: metrics.openshift-etcd-operator.svc
+  jobLabel: app
+  selector:
+    matchLabels:
+      app: etcd-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-etcd-operator
+{{- end }}

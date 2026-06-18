@@ -1,0 +1,45 @@
+{{- if .Values.copyOpenshiftCerts }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: openshift-copy-certs
+  labels:
+    app.kubernetes.io/name: openshift-copy-certs
+    app.kubernetes.io/component: openshift-copy-certs
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: Helm
+spec:
+  jobLabel: openshift-copy-certs
+  selector:
+    matchLabels:
+      k8s-app: openshift-copy-certs
+  namespaceSelector:
+    matchNames:
+    {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+      - openshift-etcd
+    {{- else }}
+      - kube-system
+    {{- end }}
+  endpoints:
+    - interval: 30s
+      scrapeTimeout: 10s
+      scheme: https
+      {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+      port: etcd-metrics
+      {{- else }}
+      port: metrics
+      {{- end }}
+      tlsConfig:
+        serverName: ""
+        ca:
+          secret:
+            name: kube-etcd-client-certs
+            key: etcd-client-ca.crt
+        cert:
+          secret:
+            name: kube-etcd-client-certs
+            key: etcd-client.crt
+        keySecret:
+          name: kube-etcd-client-certs
+          key: etcd-client.key
+{{- end }}
