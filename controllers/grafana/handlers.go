@@ -3,9 +3,11 @@ package grafana
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"reflect"
 	"slices"
+	"sort"
 	"strings"
 	"time"
 
@@ -20,9 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 )
 
@@ -246,138 +246,200 @@ func getGrafanaAdminSecretName(cr *monv1.PlatformMonitoring) string {
 	return fmt.Sprintf("%s-admin-credentials", grafanaName)
 }
 
-// handleGrafanaCredentialsSecret checks the Helm-managed admin credentials secret when
-// disableDefaultAdminSecret=false. It is only used to log status; it never fails reconciliation.
-// If the secret is missing or incomplete, Grafana still has a fallback (built-in admin/admin when
-// env vars are optional, or the pod will use the secret once Helm creates it). The user can always
-// authenticate one way or another.
-func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) (err error) {
-	secretName := getGrafanaAdminSecretName(cr)
-	secretNamespace := cr.GetNamespace()
+// getGrafanaNamespace returns the namespace where the Grafana instance lives,
+// which may differ from the PlatformMonitoring namespace when spec.grafana.namespace is set.
+func getGrafanaNamespace(cr *monv1.PlatformMonitoring) string {
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
-		secretNamespace = cr.Spec.Grafana.Namespace
+		return cr.Spec.Grafana.Namespace
 	}
+	return cr.GetNamespace()
+}
 
-	e := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
-	err = r.GetResource(e)
-	if err != nil {
+// getGrafanaName returns the Grafana CR name, defaulting to utils.GrafanaComponentName.
+func getGrafanaName(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		return cr.Spec.Grafana.Name
+	}
+	return utils.GrafanaComponentName
+}
+
+// computeSecretChecksum returns a deterministic SHA256 hex digest of a secret data map.
+// Keys are sorted before hashing to guarantee a stable result regardless of map iteration order.
+func computeSecretChecksum(data map[string][]byte) string {
+	keys := make([]string, 0, len(data))
+	for k := range data {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	h := sha256.New()
+	for _, k := range keys {
+		h.Write([]byte(k))
+		h.Write(data[k])
+	}
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// handleGrafanaCredentialsSecret computes a SHA256 checksum of the admin credentials secret
+// and compares it with the checksum stored in the existing Grafana CR pod-template annotation.
+// When the checksums differ (secret changed since last reconcile), isSecretUpdated is set to
+// true so that resetGrafanaCredentials is invoked later in the same reconcile cycle.
+// The new checksum is stored in currentAdminSecretChecksum and written into the Grafana CR
+// annotation by grafana() in manifest.go, which causes grafana-operator to trigger a rolling
+// restart of the Grafana Deployment automatically.
+func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMonitoring) error {
+	secretName := getGrafanaAdminSecretName(cr)
+	secretNamespace := getGrafanaNamespace(cr)
+
+	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
+	if err := r.GetResource(adminSecret); err != nil {
 		if errors.IsNotFound(err) {
-			r.Log.Info("Grafana admin credentials secret not found; Grafana may use built-in default until Helm creates the secret",
+			r.Log.Info("Grafana admin credentials secret not found; skipping credential sync",
 				"secret", secretName, "namespace", secretNamespace)
 			return nil
 		}
 		return err
 	}
-
-	if e.Data == nil {
-		r.Log.Info("Grafana admin credentials secret has no data", "secret", secretName, "namespace", secretNamespace)
-		return nil
-	}
-	if _, ok := e.Data["GF_SECURITY_ADMIN_USER"]; !ok {
-		r.Log.Info("Grafana admin credentials secret missing GF_SECURITY_ADMIN_USER", "secret", secretName, "namespace", secretNamespace)
-		return nil
-	}
-	if _, ok := e.Data["GF_SECURITY_ADMIN_PASSWORD"]; !ok {
-		r.Log.Info("Grafana admin credentials secret missing GF_SECURITY_ADMIN_PASSWORD", "secret", secretName, "namespace", secretNamespace)
+	if len(adminSecret.Data) == 0 {
+		r.Log.Info("Grafana admin credentials secret has no data; skipping credential sync",
+			"secret", secretName, "namespace", secretNamespace)
 		return nil
 	}
 
-	r.Log.Info("Grafana admin credentials secret validated", "secret", secretName, "namespace", secretNamespace)
+	newChecksum := computeSecretChecksum(adminSecret.Data)
+
+	// Read the last-applied checksum from the existing Grafana CR pod-template annotation.
+	// This survives operator restarts without requiring additional persistent storage.
+	// resetGrafanaCredentials is only triggered when the CR already exists (i.e. Grafana was
+	// previously deployed). On first install the admin password is applied from the mounted
+	// secret file automatically by Grafana on startup, so no exec is needed.
+	existingCR := &grafv1.Grafana{}
+	existingCR.SetName(getGrafanaName(cr))
+	existingCR.SetNamespace(getGrafanaNamespace(cr))
+	existingCR.SetGroupVersionKind(schema.GroupVersionKind{
+		Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana",
+	})
+	crExists := true
+	lastChecksum := ""
+	if err := r.GetResource(existingCR); err != nil {
+		if !errors.IsNotFound(err) {
+			r.Log.Info("Cannot read Grafana CR for checksum comparison; will not trigger credential reset", "err", err)
+		}
+		crExists = false
+	} else {
+		if existingCR.Spec.Deployment != nil &&
+			existingCR.Spec.Deployment.Spec.Template != nil &&
+			existingCR.Spec.Deployment.Spec.Template.Annotations != nil {
+			lastChecksum = existingCR.Spec.Deployment.Spec.Template.Annotations[adminSecretChecksumAnnotation]
+		}
+	}
+
+	currentAdminSecretChecksum = newChecksum
+	if crExists && newChecksum != lastChecksum {
+		r.Log.Info("Admin credentials secret changed; Grafana credentials will be reset",
+			"secret", secretName)
+		isSecretUpdated = true
+	}
 	return nil
 }
 
-func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
-	// Waiting Grafana Pods readiness
-	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
-	if err := r.WaitForPodsReadiness(
-		&appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      utils.GrafanaDeploymentName,
-				Namespace: cr.GetNamespace(),
-			}}); err != nil {
+// resetGrafanaCredentials resets the Grafana admin password in the running database via
+// `grafana cli admin reset-admin-password`. This is required when a Persistent Volume is used
+// (SQLite or external DB) because Grafana ignores admin_password from config once the admin user
+// already exists in the database. For non-PV deployments the rolling restart triggered by the
+// checksum annotation is sufficient; calling this function in that case is safe and idempotent.
+func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) error {
+	grafanaNamespace := getGrafanaNamespace(cr)
+	grafanaName := getGrafanaName(cr)
+
+	r.Log.Info("Waiting for Grafana pods readiness before credential reset",
+		"deployment", utils.GrafanaDeploymentName, "namespace", grafanaNamespace)
+	if err := r.WaitForPodsReadiness(&appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      utils.GrafanaDeploymentName,
+			Namespace: grafanaNamespace,
+		},
+	}); err != nil {
+		return fmt.Errorf("grafana deployment not ready: %w", err)
+	}
+	r.Log.Info("Grafana pods are ready")
+
+	secretName := getGrafanaAdminSecretName(cr)
+	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: grafanaNamespace}}
+	if err := r.GetResource(adminSecret); err != nil {
+		if errors.IsNotFound(err) {
+			r.Log.Info("Admin credentials secret not found; skipping credential reset", "secret", secretName)
+			isSecretUpdated = false
+			return nil
+		}
 		return err
 	}
-	r.Log.Info("Grafana Pods are ready", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
-	// Getting Admin Credentials Secret
-	r.Log.Info("Getting Admin Credentials Secret")
-	secretName := getGrafanaAdminSecretName(cr)
-	secretNamespace := cr.GetNamespace()
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
-		secretNamespace = cr.Spec.Grafana.Namespace
-	}
-	adminSecret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace}}
-	if err = r.GetResource(adminSecret); err == nil {
-		// Get Grafana Pod
-		r.Log.Info("Getting Grafana Pod")
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			return fmt.Errorf("cannot load in-cluster config: %w", err)
-		}
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			return fmt.Errorf("cannot create clientset: %w", err)
-		}
-		pods, err := clientset.CoreV1().Pods(cr.GetNamespace()).List(context.TODO(), metav1.ListOptions{
-			LabelSelector: "app=grafana",
-		})
-		if err != nil || len(pods.Items) == 0 {
-			return fmt.Errorf("grafana deployment pod wasn't found: %w", err)
-		}
-		var podName *string = nil
-		for _, p := range pods.Items {
-			if p.DeletionTimestamp == nil {
-				podName = &p.Name
-				break
-			}
-		}
-		if podName == nil {
-			return fmt.Errorf("no suitable grafana deployment pod was found: %w", err)
-		}
-		r.Log.Info("Grafana Pod was found: " + *podName)
-
-		// Prepare Grafana CLI request
-		command := []string{"grafana", "cli", "admin", "reset-admin-password", string(adminSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])}
-		req := r.KubeClient.CoreV1().RESTClient().
-			Post().
-			Resource("pods").
-			Name(*podName).
-			Namespace(cr.GetNamespace()).
-			SubResource("exec").
-			VersionedParams(&corev1.PodExecOptions{
-				Container: "grafana",
-				Command:   command,
-				Stdin:     false,
-				Stdout:    true,
-				Stderr:    true,
-				TTY:       false,
-			}, scheme.ParameterCodec)
-
-		// Set up a connection
-		r.Log.Info("Setting Up a Connection with Grafana Pod")
-		exec, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
-		if err != nil {
-			return fmt.Errorf("grafana pod connection wasn't set up: %w", err)
-		}
-
-		// Execute Grafana CLI request
-		r.Log.Info("Executing Grafana CLI command")
-		var stdout, stderr bytes.Buffer
-		err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
-			Stdout: &stdout,
-			Stderr: &stderr,
-		})
-		if err != nil {
-			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
-		}
-
+	newPassword := string(adminSecret.Data["GF_SECURITY_ADMIN_PASSWORD"])
+	if newPassword == "" {
+		r.Log.Info("GF_SECURITY_ADMIN_PASSWORD is empty; skipping credential reset", "secret", secretName)
 		isSecretUpdated = false
-		r.Log.Info("Grafana Credentials Reset was finished")
-	}
-	if errors.IsNotFound(err) {
-		r.Log.Info("Admin Credentials Secret wasn't found")
 		return nil
 	}
-	return err
+
+	// Find a running Grafana pod. Pods are labelled with app.kubernetes.io/name=<grafana-name>
+	// via spec.deployment.spec.template.metadata.labels set in manifest.go.
+	pods, err := r.KubeClient.CoreV1().Pods(grafanaNamespace).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app.kubernetes.io/name=%s", utils.TruncLabel(grafanaName)),
+	})
+	if err != nil {
+		return fmt.Errorf("cannot list Grafana pods: %w", err)
+	}
+	var podName string
+	for _, p := range pods.Items {
+		if p.DeletionTimestamp == nil {
+			podName = p.Name
+			break
+		}
+	}
+	if podName == "" {
+		return fmt.Errorf("no running Grafana pod found with label app.kubernetes.io/name=%s in namespace %s",
+			grafanaName, grafanaNamespace)
+	}
+	r.Log.Info("Found Grafana pod for credential reset", "pod", podName)
+
+	// Official command per Grafana Operator docs for deployments with external/persistent databases.
+	command := []string{
+		"grafana", "cli",
+		"--homepath", "/usr/share/grafana",
+		"--config", "/etc/grafana/grafana.ini",
+		"admin", "reset-admin-password", newPassword,
+	}
+	req := r.KubeClient.CoreV1().RESTClient().
+		Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(grafanaNamespace).
+		SubResource("exec").
+		VersionedParams(&corev1.PodExecOptions{
+			Container: "grafana",
+			Command:   command,
+			Stdin:     false,
+			Stdout:    true,
+			Stderr:    true,
+			TTY:       false,
+		}, scheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
+	if err != nil {
+		return fmt.Errorf("cannot create executor for Grafana pod %s: %w", podName, err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}); err != nil {
+		return fmt.Errorf("grafana cli reset-admin-password failed: %v; stdout: %s; stderr: %s",
+			err, stdout.String(), stderr.String())
+	}
+
+	isSecretUpdated = false
+	r.Log.Info("Grafana admin credentials reset successfully")
+	return nil
 }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {

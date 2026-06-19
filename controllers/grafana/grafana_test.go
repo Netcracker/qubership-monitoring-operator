@@ -36,26 +36,18 @@ func TestGrafanaManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "Grafana manifest should not be empty")
+		assert.NotNil(t, m.Spec.Client)
+		assert.True(t, m.Spec.Client.UseKubeAuth)
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey])
 		// In grafana-operator v5, Labels and Annotations are in Deployment.Spec.Template
-		// Check if Deployment and Template are initialized before accessing them
-		if m.Spec.Deployment != nil {
-			// Use recover to safely check Template.Labels and Template.Annotations
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						// Template might not be accessible - this is OK in v5
-						// Labels/Annotations are set on the Grafana resource itself
-					}
-				}()
-				if m.Spec.Deployment.Spec.Template.Labels != nil {
-					assert.Equal(t, labelValue, m.Spec.Deployment.Spec.Template.Labels[labelKey])
-				}
-				if m.Spec.Deployment.Spec.Template.Annotations != nil {
-					assert.Equal(t, annotationValue, m.Spec.Deployment.Spec.Template.Annotations[annotationKey])
-				}
-			}()
+		if m.Spec.Deployment != nil && m.Spec.Deployment.Spec.Template != nil {
+			if m.Spec.Deployment.Spec.Template.Labels != nil {
+				assert.Equal(t, labelValue, m.Spec.Deployment.Spec.Template.Labels[labelKey])
+			}
+			if m.Spec.Deployment.Spec.Template.Annotations != nil {
+				assert.Equal(t, annotationValue, m.Spec.Deployment.Spec.Template.Annotations[annotationKey])
+			}
 		}
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
