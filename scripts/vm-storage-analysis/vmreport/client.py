@@ -102,7 +102,10 @@ class VictoriaMetricsClient:
             if not isinstance(data, dict):
                 raise QueryError(f"VictoriaMetrics top queries request returned unexpected payload: {response}")
             return data
-        if any(key in response for key in ("topByCount", "topByAvgDuration", "topBySumDuration", "topByAvgMemoryUsage")):
+        if any(
+            key in response
+            for key in ("topByCount", "topByAvgDuration", "topBySumDuration", "topByAvgMemoryUsage")
+        ):
             return response
         raise QueryError(f"VictoriaMetrics top queries request returned unexpected payload: {response}")
 
@@ -121,7 +124,9 @@ class VictoriaMetricsClient:
             raise QueryError(f"VictoriaMetrics label values request failed for {label_name}: {response}")
         data = response.get("data")
         if not isinstance(data, list):
-            raise QueryError(f"VictoriaMetrics label values request returned unexpected payload for {label_name}: {response}")
+            raise QueryError(
+                f"VictoriaMetrics label values request returned unexpected payload for {label_name}: {response}"
+            )
         return [item for item in data if isinstance(item, str)]
 
     def safe_label_values(self, label_name: str) -> Any:

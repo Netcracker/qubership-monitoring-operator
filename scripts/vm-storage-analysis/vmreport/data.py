@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import math
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from typing import Any
 
@@ -81,6 +80,8 @@ def queries(args) -> dict[str, str]:
     cardinality_group_selector = merge_selector_matchers(args.cardinality_selector, active_present_matchers)
     scrape_group_selector = merge_selector_matchers(args.scrape_selector, scrape_present_matchers)
     query_requests_selector = merge_selector(args.selector, f'path=~"{args.query_requests_path_regex}"')
+    remote_write_selector = merge_selector(args.selector, 'path="/api/v1/write",protocol="promremotewrite"')
+    remote_write_parser_selector = merge_selector(args.selector, 'type="promremotewrite"')
 
     active_series_selector = merge_selector(args.selector, 'type="storage/hour_metric_ids"')
     non_index_selector = merge_selector(args.selector, 'type=~"storage/(big|small)"')
@@ -104,49 +105,61 @@ def queries(args) -> dict[str, str]:
         "new_series_total": f"sum(increase(vm_new_timeseries_created_total{selector}[{churn_lookback}]))",
         "ingestion_rate_per_second": f"sum(rate(vm_rows_inserted_total{selector}[{rate_window}]))",
         "remote_write_requests_max": (
-            f"max_over_time((sum(rate(vm_http_requests_total{merge_selector(args.selector, 'path=\"/api/v1/write\",protocol=\"promremotewrite\"')}[{rate_window}])))"
+            f"max_over_time((sum(rate(vm_http_requests_total{remote_write_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "remote_write_http_errors_max": (
-            f"max_over_time((sum(rate(vm_http_request_errors_total{merge_selector(args.selector, 'path=\"/api/v1/write\",protocol=\"promremotewrite\"')}[{rate_window}])))"
+            f"max_over_time((sum(rate(vm_http_request_errors_total{remote_write_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "remote_write_http_error_ratio_max": (
-            f"max_over_time(((sum(rate(vm_http_request_errors_total{merge_selector(args.selector, 'path=\"/api/v1/write\",protocol=\"promremotewrite\"')}[{rate_window}]))) / "
-            f"clamp_min(sum(rate(vm_http_requests_total{merge_selector(args.selector, 'path=\"/api/v1/write\",protocol=\"promremotewrite\"')}[{rate_window}])), 1e-12))"
+            f"max_over_time(((sum(rate(vm_http_request_errors_total{remote_write_selector}[{rate_window}]))) / "
+            f"clamp_min(sum(rate(vm_http_requests_total{remote_write_selector}[{rate_window}])), 1e-12))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "remote_write_parser_read_errors_max": (
-            f"max_over_time((sum(rate(vm_protoparser_read_errors_total{merge_selector(args.selector, 'type=\"promremotewrite\"')}[{rate_window}])))"
+            f"max_over_time((sum(rate(vm_protoparser_read_errors_total{remote_write_parser_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "remote_write_parser_unmarshal_errors_max": (
-            f"max_over_time((sum(rate(vm_protoparser_unmarshal_errors_total{merge_selector(args.selector, 'type=\"promremotewrite\"')}[{rate_window}])))"
+            f"max_over_time((sum(rate("
+            f"vm_protoparser_unmarshal_errors_total{remote_write_parser_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "rows_ignored_too_many_labels_total": (
-            f"sum(increase(vm_rows_ignored_total{merge_selector(args.selector, 'reason=\"too_many_labels\"')}[{churn_lookback}]))"
+            f"sum(increase(vm_rows_ignored_total"
+            f"{merge_selector(args.selector, 'reason=\"too_many_labels\"')}[{churn_lookback}]))"
         ),
         "rows_ignored_too_long_label_name_total": (
-            f"sum(increase(vm_rows_ignored_total{merge_selector(args.selector, 'reason=\"too_long_label_name\"')}[{churn_lookback}]))"
+            f"sum(increase(vm_rows_ignored_total"
+            f"{merge_selector(args.selector, 'reason=\"too_long_label_name\"')}[{churn_lookback}]))"
         ),
         "rows_ignored_too_long_label_value_total": (
-            f"sum(increase(vm_rows_ignored_total{merge_selector(args.selector, 'reason=\"too_long_label_value\"')}[{churn_lookback}]))"
+            f"sum(increase(vm_rows_ignored_total"
+            f"{merge_selector(args.selector, 'reason=\"too_long_label_value\"')}[{churn_lookback}]))"
         ),
-        "insert_limit_reached_total": f"sum(increase(vm_concurrent_insert_limit_reached_total{selector}[{churn_lookback}]))",
-        "select_limit_reached_total": f"sum(increase(vm_concurrent_select_limit_reached_total{selector}[{churn_lookback}]))",
-        "select_limit_timeout_total": f"sum(increase(vm_concurrent_select_limit_timeout_total{selector}[{churn_lookback}]))",
+        "insert_limit_reached_total": (
+            f"sum(increase(vm_concurrent_insert_limit_reached_total{selector}[{churn_lookback}]))"
+        ),
+        "select_limit_reached_total": (
+            f"sum(increase(vm_concurrent_select_limit_reached_total{selector}[{churn_lookback}]))"
+        ),
+        "select_limit_timeout_total": (
+            f"sum(increase(vm_concurrent_select_limit_timeout_total{selector}[{churn_lookback}]))"
+        ),
         "slow_inserts_ratio": (
             f"max((sum without(type)(rate(vm_slow_row_inserts_total{selector}[{rate_window}])) / "
             f"clamp_min(sum without(type)(rate(vm_rows_inserted_total{selector}[{rate_window}])), 1e-12)))"
         ),
         "vm_slow_queries_total_rate_per_second": f"sum(rate(vm_slow_queries_total{selector}[{rate_window}]))",
         "container_cpu_cfs_throttled_seconds_rate_max": (
-            f"max_over_time((sum(rate(container_cpu_cfs_throttled_seconds_total{vmsingle_cpu_selector}[{rate_window}])))"
+            f"max_over_time((sum(rate("
+            f"container_cpu_cfs_throttled_seconds_total{vmsingle_cpu_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "process_pressure_cpu_stalled_seconds_rate_max": (
-            f"max_over_time((sum(rate(process_pressure_cpu_stalled_seconds_total{vmsingle_cpu_selector}[{rate_window}])))"
+            f"max_over_time((sum(rate("
+            f"process_pressure_cpu_stalled_seconds_total{vmsingle_cpu_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "vmagent_container_cpu_cfs_throttled_seconds_rate_max": (
@@ -154,16 +167,21 @@ def queries(args) -> dict[str, str]:
             f"[{churn_lookback}:{rate_window}])"
         ),
         "vmagent_process_pressure_cpu_stalled_seconds_rate_max": (
-            f"max_over_time((sum(rate(process_pressure_cpu_stalled_seconds_total{vmagent_cpu_selector}[{rate_window}])))"
+            f"max_over_time((sum(rate("
+            f"process_pressure_cpu_stalled_seconds_total{vmagent_cpu_selector}[{rate_window}])))"
             f"[{churn_lookback}:{rate_window}])"
         ),
         "vmagent_persistentqueue_bytes_dropped_ratio": (
-            f"max(((sum(rate(vm_persistentqueue_bytes_dropped_total{vmagent_cpu_selector}[{rate_window}])) by (job, instance)) / "
-            f"(sum(rate(vm_persistentqueue_bytes_written_total{vmagent_cpu_selector}[{rate_window}])) by (job, instance))) "
-            f"and on(job, instance) ((sum(rate(vm_persistentqueue_bytes_written_total{vmagent_cpu_selector}[{rate_window}])) by (job, instance)) > 0))"
+            f"max(((sum(rate(vm_persistentqueue_bytes_dropped_total"
+            f"{vmagent_cpu_selector}[{rate_window}])) by (job, instance)) / "
+            f"(sum(rate(vm_persistentqueue_bytes_written_total"
+            f"{vmagent_cpu_selector}[{rate_window}])) by (job, instance))) "
+            f"and on(job, instance) ((sum(rate(vm_persistentqueue_bytes_written_total"
+            f"{vmagent_cpu_selector}[{rate_window}])) by (job, instance)) > 0))"
         ),
         "remote_write_traffic_mbit_per_second": (
-            f"sum(rate(vmagent_remotewrite_conn_bytes_written_total{vmagent_cpu_selector}[{rate_window}])) * 8 / 1000000"
+            f"sum(rate(vmagent_remotewrite_conn_bytes_written_total"
+            f"{vmagent_cpu_selector}[{rate_window}])) * 8 / 1000000"
         ),
         "storage_growth_rows_per_second": (
             f"sum(rate(vm_rows_added_to_storage_total{selector}[{rate_window}])) - "
@@ -193,7 +211,8 @@ def queries(args) -> dict[str, str]:
         cluster_label = args.cluster_ingestion_label
         cluster_selector = merge_selector(args.selector, f'{cluster_label}!=""')
         result["ingestion_by_cluster"] = (
-            f"topk({args.top_limit}, sum(rate(vm_rows_inserted_total{cluster_selector}[{rate_window}])) by ({cluster_label}))"
+            f"topk({args.top_limit}, "
+            f"sum(rate(vm_rows_inserted_total{cluster_selector}[{rate_window}])) by ({cluster_label}))"
         )
     vmalert_base_query = (
         args.vmalert_requests_query.strip()
@@ -204,7 +223,9 @@ def queries(args) -> dict[str, str]:
             "or vector(0))"
         )
     )
-    result["vmalert_requests_rate_per_second"] = f"max_over_time(({vmalert_base_query})[{churn_lookback}:{rate_window}])"
+    result["vmalert_requests_rate_per_second"] = (
+        f"max_over_time(({vmalert_base_query})[{churn_lookback}:{rate_window}])"
+    )
     return result
 
 
@@ -298,8 +319,16 @@ def collect_tsdb_results(
         for name, future in futures.items():
             result[name] = future.result()
 
-    top_metrics_rows = tsdb_rows(result["tsdb_stats"].get("seriesCountByMetricName") if isinstance(result["tsdb_stats"], dict) else [])
-    metric_names = [row["name"] for row in top_metrics_rows[: effective_metric_label_analysis_limit(args)] if row.get("name")]
+    top_metrics_rows = tsdb_rows(
+        result["tsdb_stats"].get("seriesCountByMetricName")
+        if isinstance(result["tsdb_stats"], dict)
+        else []
+    )
+    metric_names = [
+        row["name"]
+        for row in top_metrics_rows[: effective_metric_label_analysis_limit(args)]
+        if row.get("name")
+    ]
     result["metric_series"] = fetch_series_by_metric(
         client,
         metric_names,
@@ -317,7 +346,11 @@ def collect_tsdb_results(
         }
         all_metric_names = result.get("all_metric_names")
         if isinstance(all_metric_names, list):
-            valid_metric_names = [metric_name for metric_name in all_metric_names if isinstance(metric_name, str) and metric_name]
+            valid_metric_names = [
+                metric_name
+                for metric_name in all_metric_names
+                if isinstance(metric_name, str) and metric_name
+            ]
             if args.max_full_scan_metrics > 0 and len(valid_metric_names) > args.max_full_scan_metrics:
                 result["all_metric_names"] = {
                     "error": (
@@ -327,9 +360,14 @@ def collect_tsdb_results(
                     )
                 }
             else:
-                remaining_metric_names = [metric_name for metric_name in valid_metric_names if metric_name not in global_series_by_metric]
+                remaining_metric_names = [
+                    metric_name
+                    for metric_name in valid_metric_names
+                    if metric_name not in global_series_by_metric
+                ]
                 print(
-                    f"FULL_LABEL_SCAN enabled: fetching /api/v1/series for {len(remaining_metric_names)} additional metric names. "
+                    f"FULL_LABEL_SCAN enabled: fetching /api/v1/series for "
+                    f"{len(remaining_metric_names)} additional metric names. "
                     "This may take a long time on large installations.",
                     file=sys.stderr,
                     flush=True,
@@ -456,7 +494,17 @@ def metric_usage_items(items: Any) -> list[dict[str, Any]]:
     if isinstance(items, dict):
         nested = first_present(
             items,
-            ["stats", "metricNamesStats", "metric_names_stats", "rows", "result", "data", "items", "metrics", "records"],
+            [
+                "stats",
+                "metricNamesStats",
+                "metric_names_stats",
+                "rows",
+                "result",
+                "data",
+                "items",
+                "metrics",
+                "records",
+            ],
         )
         if nested is not None and nested is not items:
             return metric_usage_items(nested)
@@ -516,7 +564,12 @@ def parse_metric_usage_rows(items: Any) -> list[dict[str, Any]]:
                 "lastRequestTimestamp": compact_timestamp(parse_timestamp(last_request_timestamp)),
             }
         )
-    rows.sort(key=lambda row: (row["queryRequestsCount"] if isinstance(row.get("queryRequestsCount"), (int, float)) else -1), reverse=True)
+    rows.sort(
+        key=lambda row: (
+            row["queryRequestsCount"] if isinstance(row.get("queryRequestsCount"), (int, float)) else -1
+        ),
+        reverse=True,
+    )
     return rows
 
 
@@ -656,7 +709,9 @@ def build_label_distribution_rows(
         if allow_global_series_extrapolation
         else {}
     )
-    inspected_metrics = [metric_name for metric_name, series_list in metric_series.items() if isinstance(series_list, list)]
+    inspected_metrics = [
+        metric_name for metric_name, series_list in metric_series.items() if isinstance(series_list, list)
+    ]
     inspected_metric_count = len(inspected_metrics)
     metrics_by_label: dict[str, set[str]] = {}
     local_series_by_label: dict[str, float] = {}
@@ -693,13 +748,21 @@ def build_label_distribution_rows(
         unique_values = len(local_unique_values_by_label.get(label_name, set()))
         series = local_series_by_label.get(label_name, 0.0)
         raw_series_share = safe_div(float(series), active_series) if active_series else None
-        series_share = maybe_round(min(float(raw_series_share), 1.0), 6) if isinstance(raw_series_share, (int, float)) else None
+        series_share = (
+            maybe_round(min(float(raw_series_share), 1.0), 6)
+            if isinstance(raw_series_share, (int, float))
+            else None
+        )
         if not isinstance(series_share, float) or series_share < series_share_threshold:
             continue
         if label_name in infra_labels and isinstance(unique_values, (int, float)) and float(unique_values) <= 1:
             continue
         metric_count = len(metrics_by_label.get(label_name, set()))
-        metric_coverage_ratio = maybe_round(safe_div(float(metric_count), float(inspected_metric_count)), 6) if inspected_metric_count else None
+        metric_coverage_ratio = (
+            maybe_round(safe_div(float(metric_count), float(inspected_metric_count)), 6)
+            if inspected_metric_count
+            else None
+        )
         if (
             metric_coverage_ratio == 1
             and label_name not in infra_labels

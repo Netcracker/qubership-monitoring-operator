@@ -95,7 +95,12 @@ def format_group_value(metric: dict[str, Any], label_names: list[str]) -> str:
     return ", ".join(parts)
 
 
-def grouped_sample_rows(samples: Any, value_name: str, label_names: list[str], group_column: str = "Service") -> list[dict[str, Any]]:
+def grouped_sample_rows(
+    samples: Any,
+    value_name: str,
+    label_names: list[str],
+    group_column: str = "Service",
+) -> list[dict[str, Any]]:
     if not isinstance(samples, list):
         return []
     rows: list[dict[str, Any]] = []
@@ -152,7 +157,12 @@ def flag_rows(samples: Any) -> list[dict[str, Any]]:
     return rows
 
 
-def filter_flag_rows(rows: list[dict[str, Any]], *, is_set: bool | None = None, require_value: bool = False) -> list[dict[str, Any]]:
+def filter_flag_rows(
+    rows: list[dict[str, Any]],
+    *,
+    is_set: bool | None = None,
+    require_value: bool = False,
+) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     for row in rows:
         if is_set is not None and row.get("Is Set") is not is_set:

@@ -98,7 +98,13 @@ from different components:
 - `--scrape-selector` for `scrape_series_added`
 - `--cardinality-selector` for the broad `topk(count by (__name__))` query
 - `--service-group-by-labels` for how stored active-series service groups are defined
-- `--monitoring-namespace` for container-scoped `vmsingle` / `vmagent` checks in the monitoring namespace; this selector is used for CPU throttling, CPU pressure, `flag`, `vm_persistentqueue_*`, and `vmagent_remotewrite_*` metrics. These checks are not automatically intersected with `--selector`, because their label sets often differ from storage self-metrics; in shared monitoring namespaces they should be treated as namespace-scoped component signals unless you override them with environment-specific queries.
+- `--monitoring-namespace` for container-scoped `vmsingle` / `vmagent` checks
+  in the monitoring namespace; this selector is used for CPU throttling, CPU
+  pressure, `flag`, `vm_persistentqueue_*`, and `vmagent_remotewrite_*`
+  metrics. These checks are not automatically intersected with `--selector`,
+  because their label sets often differ from storage self-metrics; in shared
+  monitoring namespaces they should be treated as namespace-scoped component
+  signals unless you override them with environment-specific queries.
 - `--enable-cluster-ingestion-table` enables an optional table with
   `vm_rows_inserted_total` rate grouped by `--cluster-ingestion-label`
 - `--query-requests-path-regex` for which VictoriaMetrics API paths count as metric/query traffic
@@ -155,7 +161,9 @@ python scripts/vm-storage-analysis/vm_storage_report.py
 ## Output Notes
 
 - `summary` contains the main storage and churn numbers.
-- `summary.query_requests_rate_per_second` shows the observed per-second rate of VictoriaMetrics metric/query API requests matching the configured or default request-path regex.
+- `summary.query_requests_rate_per_second` shows the observed per-second rate of
+  VictoriaMetrics metric/query API requests matching the configured or default
+  request-path regular expression.
 - `summary.storage_full_eta_days` is a linear disk-full projection across
   matched targets. It is empty when recent `vm_data_size_bytes` growth is
   non-positive or unavailable.

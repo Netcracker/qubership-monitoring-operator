@@ -128,7 +128,11 @@ def format_cell(value: Any) -> str:
 
 
 def format_table_cell(table_name: str, header: str, value: Any) -> str:
-    if table_name == "label_distribution" and header in {"Series Share", "Metrics Coverage"} and isinstance(value, (int, float)):
+    if (
+        table_name == "label_distribution"
+        and header in {"Series Share", "Metrics Coverage"}
+        and isinstance(value, (int, float))
+    ):
         return html_escape(f"{value:.1%}")
     return format_cell(value)
 
@@ -202,41 +206,145 @@ def summary_metric_descriptions() -> dict[str, str]:
     return {
         "active_series": "Number of active time series with new data points during the last hour.",
         "total_datapoints": "Total stored raw samples excluding indexdb rows.",
-        "data_size_gb": "Total data size on disk for VictoriaMetrics storage parts `storage/big` and `storage/small`, in GB.",
+        "data_size_gb": (
+            "Total data size on disk for VictoriaMetrics storage parts "
+            "`storage/big` and `storage/small`, in GB."
+        ),
         "indexdb_size_gb": "Total on-disk size of VictoriaMetrics `indexdb/file` parts, in GB.",
         "bytes_per_sample": "Average storage footprint per stored sample.",
-        "index_to_data_ratio": "Ratio of `indexdb/file` size to `storage/big + storage/small` size, following the VictoriaMetrics FAQ guidance. Elevated values can reflect high cardinality or churn, but they should be interpreted as a heuristic rather than a hard failure boundary.",
+        "index_to_data_ratio": (
+            "Ratio of `indexdb/file` size to `storage/big + storage/small` size, "
+            "following the VictoriaMetrics FAQ guidance. Elevated values can "
+            "reflect high cardinality or churn, but they should be interpreted "
+            "as a heuristic rather than a hard failure boundary."
+        ),
         "min_free_disk_space_gb": "Minimum free disk space across matched VictoriaMetrics targets, in GB.",
         "total_free_disk_space_gb": "Sum of free disk space across matched VictoriaMetrics targets, in GB.",
-        "storage_full_eta_days": "Linear disk-full ETA in days across matched targets, computed from total vm_free_disk_space_bytes divided by total vm_data_size_bytes growth over the storage ETA lookback. Empty when growth is non-positive or unavailable.",
+        "storage_full_eta_days": (
+            "Linear disk-full ETA in days across matched targets, computed from "
+            "total vm_free_disk_space_bytes divided by total "
+            "vm_data_size_bytes growth over the storage ETA lookback. Empty "
+            "when growth is non-positive or unavailable."
+        ),
         "churn_rate_per_second": "Rate of newly created time series per second.",
         "new_series_total": "Total number of new time series created during the selected lookback window.",
-        "new_series_per_active_series": "Reference ratio of new series created during the lookback window to the current active-series count. Useful for spotting sudden churn growth, but it should be interpreted together with service and label breakdowns.",
+        "new_series_per_active_series": (
+            "Reference ratio of new series created during the lookback window to "
+            "the current active-series count. Useful for spotting sudden churn "
+            "growth, but it should be interpreted together with service and "
+            "label breakdowns."
+        ),
         "ingestion_rate_per_second": "Rate of inserted samples per second.",
-        "remote_write_requests_max": "Maximum observed per-second rate of remote write HTTP requests reaching vmsingle on /api/v1/write during the lookback window.",
-        "remote_write_http_errors_max": "Maximum observed per-second rate of remote write HTTP request errors on vmsingle for /api/v1/write during the lookback window.",
-        "remote_write_http_error_ratio_max": "Maximum observed remote write HTTP error ratio during the lookback window, computed as max_over_time(rate(errors) / rate(requests)).",
-        "remote_write_parser_read_errors_max": "Maximum observed per-second rate of vmsingle protoparser read errors for promremotewrite payloads during the lookback window.",
-        "remote_write_parser_unmarshal_errors_max": "Maximum observed per-second rate of vmsingle unmarshal errors for promremotewrite payloads during the lookback window.",
-        "rows_ignored_too_many_labels_total": "Total number of rows ignored by vmsingle because a time series contains too many labels during the lookback window.",
-        "rows_ignored_too_long_label_name_total": "Total number of rows ignored by vmsingle because a label name is too long during the lookback window.",
-        "rows_ignored_too_long_label_value_total": "Total number of rows ignored by vmsingle because a label value is too long during the lookback window.",
-        "insert_limit_reached_total": "Total number of times vmsingle hit the concurrent insert limit during the lookback window.",
-        "select_limit_reached_total": "Total number of times vmsingle hit the concurrent select/query limit during the lookback window.",
-        "select_limit_timeout_total": "Total number of times read/query requests timed out while waiting for a concurrent select slot during the lookback window.",
-        "query_requests_rate_per_second": "Maximum observed per-second rate of VictoriaMetrics metric/query API requests matching the configured or default request-path regex during the lookback window.",
-        "avg_query_request_duration_seconds": "Maximum observed average duration of query-related VictoriaMetrics API requests during the lookback window, computed from one ratio expression so numerator and denominator come from the same timestamp.",
-        "query_concurrency_limit": "VictoriaMetrics concurrent query capacity from vm_concurrent_select_capacity, with fallback to effective flag search.maxConcurrentRequests.",
-        "vmalert_requests_rate_per_second": "Maximum observed per-second rate of vmalert datasource requests during the lookback window when vmalert_datasource_queries_total is available; otherwise uses a rule-execution rate proxy from vmalert_execution_total, not exact datasource request count. By default this query is global and is not automatically scoped by SELECTOR unless a custom VMALERT_REQUESTS_QUERY is provided.",
-        "slow_inserts_ratio": "Maximum per-target share of inserted rows classified by VictoriaMetrics as slow, after summing across row types for each target and shown as a percentage. Values above the threshold can indicate disk or system pressure.",
-        "container_cpu_cfs_throttled_seconds_rate_max": "Maximum summed per-second rate of container_cpu_cfs_throttled_seconds_total for container=vmsingle in the configured MONITORING_NAMESPACE during the lookback window.",
-        "process_pressure_cpu_stalled_seconds_rate_max": "Maximum summed per-second rate of process_pressure_cpu_stalled_seconds_total for container=vmsingle in the configured MONITORING_NAMESPACE during the lookback window.",
-        "vmagent_container_cpu_cfs_throttled_seconds_rate_max": "Maximum summed per-second rate of container_cpu_cfs_throttled_seconds_total for container=vmagent in the configured MONITORING_NAMESPACE during the lookback window.",
-        "vmagent_process_pressure_cpu_stalled_seconds_rate_max": "Maximum summed per-second rate of process_pressure_cpu_stalled_seconds_total for container=vmagent in the configured MONITORING_NAMESPACE during the lookback window.",
-        "vmagent_persistentqueue_bytes_dropped_ratio": "Maximum vmagent persistent-queue loss ratio across job and instance, computed as dropped bytes divided by written bytes. Empty value means no matching series or no computable ratio for the selected snapshot.",
-        "remote_write_traffic_mbit_per_second": "Estimated remote write traffic from vmagent to the configured remoteWrite.url, calculated from vmagent_remotewrite_conn_bytes_written_total and shown in Mbit/s.",
-        "vm_slow_queries_total_rate_per_second": "Per-second rate computed from the VictoriaMetrics counter vm_slow_queries_total.",
-        "storage_growth_rows_per_second": "Estimated net growth of stored rows per second after deduplication adjustments.",
+        "remote_write_requests_max": (
+            "Maximum observed per-second rate of remote write HTTP requests "
+            "reaching vmsingle on /api/v1/write during the lookback window."
+        ),
+        "remote_write_http_errors_max": (
+            "Maximum observed per-second rate of remote write HTTP request errors "
+            "on vmsingle for /api/v1/write during the lookback window."
+        ),
+        "remote_write_http_error_ratio_max": (
+            "Maximum observed remote write HTTP error ratio during the lookback "
+            "window, computed as max_over_time(rate(errors) / rate(requests))."
+        ),
+        "remote_write_parser_read_errors_max": (
+            "Maximum observed per-second rate of vmsingle protoparser read "
+            "errors for promremotewrite payloads during the lookback window."
+        ),
+        "remote_write_parser_unmarshal_errors_max": (
+            "Maximum observed per-second rate of vmsingle unmarshal errors for "
+            "promremotewrite payloads during the lookback window."
+        ),
+        "rows_ignored_too_many_labels_total": (
+            "Total number of rows ignored by vmsingle because a time series "
+            "contains too many labels during the lookback window."
+        ),
+        "rows_ignored_too_long_label_name_total": (
+            "Total number of rows ignored by vmsingle because a label name is "
+            "too long during the lookback window."
+        ),
+        "rows_ignored_too_long_label_value_total": (
+            "Total number of rows ignored by vmsingle because a label value is "
+            "too long during the lookback window."
+        ),
+        "insert_limit_reached_total": (
+            "Total number of times vmsingle hit the concurrent insert limit "
+            "during the lookback window."
+        ),
+        "select_limit_reached_total": (
+            "Total number of times vmsingle hit the concurrent select/query "
+            "limit during the lookback window."
+        ),
+        "select_limit_timeout_total": (
+            "Total number of times read/query requests timed out while waiting "
+            "for a concurrent select slot during the lookback window."
+        ),
+        "query_requests_rate_per_second": (
+            "Maximum observed per-second rate of VictoriaMetrics metric/query API "
+            "requests matching the configured or default request-path regex "
+            "during the lookback window."
+        ),
+        "avg_query_request_duration_seconds": (
+            "Maximum observed average duration of query-related VictoriaMetrics API "
+            "requests during the lookback window, computed from one ratio "
+            "expression so numerator and denominator come from the same timestamp."
+        ),
+        "query_concurrency_limit": (
+            "VictoriaMetrics concurrent query capacity from "
+            "vm_concurrent_select_capacity, with fallback to effective flag "
+            "search.maxConcurrentRequests."
+        ),
+        "vmalert_requests_rate_per_second": (
+            "Maximum observed per-second rate of vmalert datasource requests during "
+            "the lookback window when vmalert_datasource_queries_total is available; "
+            "otherwise uses a rule-execution rate proxy from "
+            "vmalert_execution_total, not exact datasource request count. By default "
+            "this query is global and is not automatically scoped by SELECTOR unless "
+            "a custom VMALERT_REQUESTS_QUERY is provided."
+        ),
+        "slow_inserts_ratio": (
+            "Maximum per-target share of inserted rows classified by VictoriaMetrics "
+            "as slow, after summing across row types for each target and shown as a "
+            "percentage. Values above the threshold can indicate disk or system pressure."
+        ),
+        "container_cpu_cfs_throttled_seconds_rate_max": (
+            "Maximum summed per-second rate of "
+            "container_cpu_cfs_throttled_seconds_total for container=vmsingle in the "
+            "configured MONITORING_NAMESPACE during the lookback window."
+        ),
+        "process_pressure_cpu_stalled_seconds_rate_max": (
+            "Maximum summed per-second rate of "
+            "process_pressure_cpu_stalled_seconds_total for container=vmsingle in the "
+            "configured MONITORING_NAMESPACE during the lookback window."
+        ),
+        "vmagent_container_cpu_cfs_throttled_seconds_rate_max": (
+            "Maximum summed per-second rate of "
+            "container_cpu_cfs_throttled_seconds_total for container=vmagent in the "
+            "configured MONITORING_NAMESPACE during the lookback window."
+        ),
+        "vmagent_process_pressure_cpu_stalled_seconds_rate_max": (
+            "Maximum summed per-second rate of "
+            "process_pressure_cpu_stalled_seconds_total for container=vmagent in the "
+            "configured MONITORING_NAMESPACE during the lookback window."
+        ),
+        "vmagent_persistentqueue_bytes_dropped_ratio": (
+            "Maximum vmagent persistent-queue loss ratio across job and instance, "
+            "computed as dropped bytes divided by written bytes. Empty value means "
+            "no matching series or no computable ratio for the selected snapshot."
+        ),
+        "remote_write_traffic_mbit_per_second": (
+            "Estimated remote write traffic from vmagent to the configured "
+            "remoteWrite.url, calculated from "
+            "vmagent_remotewrite_conn_bytes_written_total and shown in Mbit/s."
+        ),
+        "vm_slow_queries_total_rate_per_second": (
+            "Per-second rate computed from the VictoriaMetrics counter "
+            "vm_slow_queries_total."
+        ),
+        "storage_growth_rows_per_second": (
+            "Estimated net growth of stored rows per second after "
+            "deduplication adjustments."
+        ),
     }
 
 
@@ -255,12 +363,17 @@ def render_metric_table(
             continue
         value = summary.get(key)
         rule = thresholds.get(key)
-        status_label, status_class = threshold_status(value, rule if isinstance(rule, dict) else None)
+        status_label, status_class = threshold_status(
+            value,
+            rule if isinstance(rule, dict) else None,
+        )
         rows.append(
             "<tr>"
             f"<td class=\"col-metric\">{html_escape(labels.get(key, key))}</td>"
             f"<td class=\"col-value\">{format_summary_value(key, value)}</td>"
-            f"<td class=\"col-threshold\">{html_escape(threshold_text(rule if isinstance(rule, dict) else None, metric_name=key))}</td>"
+            f"<td class=\"col-threshold\">"
+            f"{html_escape(threshold_text(rule if isinstance(rule, dict) else None, metric_name=key))}"
+            "</td>"
             f"<td class=\"col-status {status_class}\">{html_escape(status_label)}</td>"
             f"<td class=\"col-description\">{html_escape(descriptions.get(key, ''))}</td>"
             "</tr>"
@@ -273,7 +386,11 @@ def render_metric_table(
         f"{header_html_with_tooltip('value', header_descriptions.get('value'), class_name='col-value')}"
         f"{header_html_with_tooltip('alert_when', header_descriptions.get('threshold'), class_name='col-threshold')}"
         f"{header_html_with_tooltip('status', header_descriptions.get('status'), class_name='col-status')}"
-        f"{header_html_with_tooltip('description', header_descriptions.get('description'), class_name='col-description')}"
+        f"{header_html_with_tooltip(
+            'description',
+            header_descriptions.get('description'),
+            class_name='col-description',
+        )}"
         "</tr></thead>"
         f"<tbody>{body_html}</tbody></table></div></section>"
     )
@@ -324,7 +441,10 @@ def render_window_table(report: dict[str, Any]) -> str:
         ("churn_lookback", windows.get("churn_lookback", "")),
         ("storage_eta_lookback", windows.get("storage_eta_lookback", "")),
     ]
-    body_html = "".join("<tr>" f"<td>{html_escape(name)}</td>" f"<td>{html_escape(value)}</td>" "</tr>" for name, value in rows)
+    body_html = "".join(
+        "<tr>" f"<td>{html_escape(name)}</td>" f"<td>{html_escape(value)}</td>" "</tr>"
+        for name, value in rows
+    )
     return (
         "<section><h2>Lookback Window</h2>"
         "<div class=\"table-wrap\"><table><thead><tr>"
@@ -337,7 +457,10 @@ def render_window_table(report: dict[str, Any]) -> str:
 
 def render_findings(findings: Any) -> str:
     if not isinstance(findings, list) or not findings:
-        return '<section class="group problems ok"><h2>Findings</h2><p>No warnings in this snapshot.</p></section>'
+        return (
+            '<section class="group problems ok"><h2>Findings</h2>'
+            "<p>No warnings in this snapshot.</p></section>"
+        )
     cards: list[str] = []
     for item in findings:
         if not isinstance(item, dict):
@@ -348,10 +471,14 @@ def render_findings(findings: Any) -> str:
         area = html_escape(str(item.get("area", "finding")).replace("_", " ").title())
         message = html_escape(item.get("message", ""))
         cards.append(
-            f'<article class="panel problem {severity}"><div class="problem-head"><h3>{area}</h3><span>{severity}</span></div><p>{message}</p></article>'
+            f'<article class="panel problem {severity}"><div class="problem-head">'
+            f"<h3>{area}</h3><span>{severity}</span></div><p>{message}</p></article>"
         )
     if not cards:
-        return '<section class="group problems ok"><h2>Findings</h2><p>No warnings in this snapshot.</p></section>'
+        return (
+            '<section class="group problems ok"><h2>Findings</h2>'
+            "<p>No warnings in this snapshot.</p></section>"
+        )
     return f'<section class="group problems"><h2>Findings</h2>{"".join(cards)}</section>'
 
 
@@ -375,7 +502,10 @@ def display_header_name(value: str) -> str:
 
 def table_column_descriptions(name: str) -> dict[str, str]:
     descriptions: dict[str, dict[str, str]] = {
-        "top_labels_by_unique_values": {"name": "Label name.", "value": "Number of distinct values observed for this label."},
+        "top_labels_by_unique_values": {
+            "name": "Label name.",
+            "value": "Number of distinct values observed for this label.",
+        },
         "vmsingle_configured_flags": {
             "Flag": "VictoriaMetrics command-line flag exposed via the flag metric.",
             "Value": "Configured value for this flag according to VictoriaMetrics self-metrics.",
@@ -397,16 +527,31 @@ def table_column_descriptions(name: str) -> dict[str, str]:
             "Is Set": "Whether this flag was explicitly set at startup or left at its default value.",
         },
         "top_services_by_series": {
-            "Service": "Service or microservice group composed from the configured SERVICE_GROUP_BY_LABELS labels.",
-            "Series": "Number of visible series returned by the current cardinality instant query for this service group.",
+            "Service": (
+                "Service or microservice group composed from the configured "
+                "SERVICE_GROUP_BY_LABELS labels."
+            ),
+            "Series": (
+                "Number of visible series returned by the current cardinality "
+                "instant query for this service group."
+            ),
         },
         "top_services_by_new_series": {
-            "Service": "Service or microservice group composed from the configured SERVICE_GROUP_BY_LABELS labels.",
-            "New Series": "Total number of newly discovered scrape-time series from vmagent targets for this service group during the lookback window.",
+            "Service": (
+                "Service or microservice group composed from the configured "
+                "SERVICE_GROUP_BY_LABELS labels."
+            ),
+            "New Series": (
+                "Total number of newly discovered scrape-time series from vmagent "
+                "targets for this service group during the lookback window."
+            ),
         },
         "ingestion_by_cluster": {
             "cluster": "Cluster label value from vm_rows_inserted_total.",
-            "Rows Per Second": "Per-second rate of inserted rows from vm_rows_inserted_total for this cluster label value.",
+            "Rows Per Second": (
+                "Per-second rate of inserted rows from vm_rows_inserted_total "
+                "for this cluster label value."
+            ),
         },
         "tsdb_top_labels_by_memory_bytes": {
             "name": "Label name.",
@@ -414,16 +559,27 @@ def table_column_descriptions(name: str) -> dict[str, str]:
         },
         "label_distribution": {
             "Label": "Label name being evaluated across the metric scope used for this report.",
-            "Series": "Number of scanned series carrying this label within the current report scope.",
-            "Series Share": "Share of current active series represented by the scanned series carrying this label.",
+            "Series": (
+                "Number of scanned series carrying this label within the current "
+                "report scope."
+            ),
+            "Series Share": (
+                "Share of current active series represented by the scanned series "
+                "carrying this label."
+            ),
             "Metrics Coverage": "Share of metrics in the current scan scope that contain this label.",
-            "Unique Values": "How many distinct values of this label were observed in the scanned series within the current report scope.",
+            "Unique Values": (
+                "How many distinct values of this label were observed in the "
+                "scanned series within the current report scope."
+            ),
             "Classification": "Heuristic outcome: normal, observe, or review.",
         },
         "high_cardinality_metric_usage": {
             "metric": "Metric name joined from TSDB cardinality and metric usage views.",
             "series": "Number of series for this metric.",
-            "top_label": "Main label driver for this metric based on sampled /api/v1/series analysis.",
+            "top_label": (
+                "Main label driver for this metric based on sampled /api/v1/series analysis."
+            ),
             "top_label_unique_values": "Number of distinct values found for the main label driver.",
             "queryRequestsCount": "How many query requests touched this metric.",
             "lastRequestTimestamp": "Timestamp of the latest recorded query request for this metric.",
@@ -431,29 +587,65 @@ def table_column_descriptions(name: str) -> dict[str, str]:
         },
         "top_queries_by_sum_duration": {
             "Query": "PromQL query text recorded by VictoriaMetrics top-queries statistics.",
-            "Sum Duration Seconds": "Total execution time accumulated by this query across the selected top-queries lifetime window, in seconds.",
-            "Query Time Interval": "Original range selector used by the query, if VictoriaMetrics exposes it; '-' means no explicit range was recorded.",
-            "Count": "How many times this query was executed within the selected top-queries lifetime window.",
+            "Sum Duration Seconds": (
+                "Total execution time accumulated by this query across the selected "
+                "top-queries lifetime window, in seconds."
+            ),
+            "Query Time Interval": (
+                "Original range selector used by the query, if VictoriaMetrics "
+                "exposes it; '-' means no explicit range was recorded."
+            ),
+            "Count": (
+                "How many times this query was executed within the selected "
+                "top-queries lifetime window."
+            ),
         },
         "top_queries_by_avg_duration": {
             "Query": "PromQL query text recorded by VictoriaMetrics top-queries statistics.",
             "Avg Duration Seconds": "Average execution time of this query, in seconds.",
-            "Query Time Interval": "Original range selector used by the query, if VictoriaMetrics exposes it; '-' means no explicit range was recorded.",
-            "Count": "How many times this query was executed within the selected top-queries lifetime window.",
+            "Query Time Interval": (
+                "Original range selector used by the query, if VictoriaMetrics "
+                "exposes it; '-' means no explicit range was recorded."
+            ),
+            "Count": (
+                "How many times this query was executed within the selected "
+                "top-queries lifetime window."
+            ),
         },
         "top_queries_by_count": {
             "Query": "PromQL query text recorded by VictoriaMetrics top-queries statistics.",
-            "Count": "How many times this query was executed within the selected top-queries lifetime window.",
-            "Query Time Interval": "Original range selector used by the query, if VictoriaMetrics exposes it; '-' means no explicit range was recorded.",
+            "Count": (
+                "How many times this query was executed within the selected "
+                "top-queries lifetime window."
+            ),
+            "Query Time Interval": (
+                "Original range selector used by the query, if VictoriaMetrics "
+                "exposes it; '-' means no explicit range was recorded."
+            ),
         },
         "top_queries_by_avg_memory": {
             "Query": "PromQL query text recorded by VictoriaMetrics top-queries statistics.",
-            "Avg Memory Usage Bytes": "Average memory allocated for this query according to VictoriaMetrics top-queries statistics, in bytes.",
-            "Query Time Interval": "Original range selector used by the query, if VictoriaMetrics exposes it; '-' means no explicit range was recorded.",
-            "Count": "How many times this query was executed within the selected top-queries lifetime window.",
+            "Avg Memory Usage Bytes": (
+                "Average memory allocated for this query according to "
+                "VictoriaMetrics top-queries statistics, in bytes."
+            ),
+            "Query Time Interval": (
+                "Original range selector used by the query, if VictoriaMetrics "
+                "exposes it; '-' means no explicit range was recorded."
+            ),
+            "Count": (
+                "How many times this query was executed within the selected "
+                "top-queries lifetime window."
+            ),
         },
-        "lookback_window": {"parameter": "Report parameter name.", "value": "Configured value used when collecting this snapshot."},
-        "errors": {"query": "Query or API call name that failed.", "error": "Captured error message for that failed query or API call."},
+        "lookback_window": {
+            "parameter": "Report parameter name.",
+            "value": "Configured value used when collecting this snapshot.",
+        },
+        "errors": {
+            "query": "Query or API call name that failed.",
+            "error": "Captured error message for that failed query or API call.",
+        },
         "summary": {
             "metric": "Summary metric name.",
             "value": "Measured or calculated value for this summary metric.",
@@ -482,7 +674,8 @@ def render_infra_toggle(name: str) -> str:
         "<label class=\"table-toggle\" for=\""
         f"{html_escape(checkbox_id)}"
         "\">"
-        f"<input type=\"checkbox\" id=\"{html_escape(checkbox_id)}\" data-table-toggle=\"{html_escape(name)}\" autocomplete=\"off\"> "
+        f"<input type=\"checkbox\" id=\"{html_escape(checkbox_id)}\" "
+        f"data-table-toggle=\"{html_escape(name)}\" autocomplete=\"off\"> "
         "<span>Show Infra Labels</span>"
         "</label>"
     )
@@ -500,22 +693,52 @@ def table_intro(name: str, report: dict[str, Any]) -> str:
             else "This check was run only across top metrics for speed. Enable FULL_LABEL_SCAN to scan all metrics."
         )
         return (
-            "<p class=\"table-note\"><strong>How to read this table:</strong> <code>normal</code> means the label looks broadly expected for the current metric scope. <code>observe</code> means the label either has a noticeable series share with limited metric spread or already shows a non-trivial number of unique values. <code>review</code> means the label combines high series share, low metric coverage, and high unique-value count, which is a stronger high-cardinality signal. </p>"
-            "<p class=\"table-note\"><strong>Note:</strong> This table is built only from the selector-scoped <code>/api/v1/series</code> scan used for this report. <code>Series</code>, <code>Series Share</code>, and <code>Unique Values</code> therefore reflect the scanned report scope rather than global TSDB totals. For fully global reports without <code>SELECTOR</code>, sampled metrics may be extrapolated with TSDB per-metric totals; for selector-scoped reports that extrapolation is intentionally disabled to avoid mixing in foreign series. Non-infra labels with <code>Metrics Coverage=100%</code> are usually omitted, but labels with high <code>Unique Values</code> are kept because globally present business labels can still be major cardinality drivers. Infra labels are hidden by default and can be shown with the checkbox below. "
+            "<p class=\"table-note\"><strong>How to read this table:</strong> "
+            "<code>normal</code> means the label looks broadly expected for the current "
+            "metric scope. <code>observe</code> means the label either has a noticeable "
+            "series share with limited metric spread or already shows a non-trivial "
+            "number of unique values. <code>review</code> means the label combines "
+            "high series share, low metric coverage, and high unique-value count, "
+            "which is a stronger high-cardinality signal. </p>"
+            "<p class=\"table-note\"><strong>Note:</strong> This table is built only "
+            "from the selector-scoped <code>/api/v1/series</code> scan used for this "
+            "report. <code>Series</code>, <code>Series Share</code>, and "
+            "<code>Unique Values</code> therefore reflect the scanned report scope "
+            "rather than global TSDB totals. For fully global reports without "
+            "<code>SELECTOR</code>, sampled metrics may be extrapolated with TSDB "
+            "per-metric totals; for selector-scoped reports that extrapolation is "
+            "intentionally disabled to avoid mixing in foreign series. Non-infra "
+            "labels with <code>Metrics Coverage=100%</code> are usually omitted, but "
+            "labels with high <code>Unique Values</code> are kept because globally "
+            "present business labels can still be major cardinality drivers. Infra "
+            "labels are hidden by default and can be shown with the checkbox below. "
             f"{html_escape(scope_text)}</p>"
         )
     if name == "top_labels_by_unique_values":
-        return "<p class=\"table-note\"><strong>Note:</strong> Infra labels are hidden by default and can be shown with the checkbox below.</p>"
+        return (
+            "<p class=\"table-note\"><strong>Note:</strong> Infra labels are hidden "
+            "by default and can be shown with the checkbox below.</p>"
+        )
     if name in {"vmsingle_configured_flags", "vmagent_configured_flags"}:
-        return "<p class=\"table-note\"><strong>Note:</strong> This table shows only flags with <code>Is Set=true</code>, meaning they were explicitly passed to VictoriaMetrics at startup.</p>"
+        return (
+            "<p class=\"table-note\"><strong>Note:</strong> This table shows only "
+            "flags with <code>Is Set=true</code>, meaning they were explicitly "
+            "passed to VictoriaMetrics at startup.</p>"
+        )
     if name in {"vmsingle_all_effective_flags", "vmagent_all_effective_flags"}:
-        return "<p class=\"table-note\"><strong>Note:</strong> This table shows all effective flag values reported by the <code>flag</code> metric, including defaults where <code>Is Set=false</code>.</p>"
+        return (
+            "<p class=\"table-note\"><strong>Note:</strong> This table shows all "
+            "effective flag values reported by the <code>flag</code> metric, "
+            "including defaults where <code>Is Set=false</code>.</p>"
+        )
     if name == "top_services_by_series":
         labels = analysis_modes.get("service_group_by_labels", [])
         label_text = ", ".join(labels) if isinstance(labels, list) and labels else "namespace, job"
         return (
             "<p class=\"table-note\"><strong>Note:</strong> Services in this table are grouped by "
-            f"{html_escape(label_text)}. It shows the current visible series footprint from the cardinality instant query for each group, not vm_cache_entries-based active series.</p>"
+            f"{html_escape(label_text)}. It shows the current visible series "
+            "footprint from the cardinality instant query for each group, not "
+            "vm_cache_entries-based active series.</p>"
         )
     if name == "top_services_by_new_series":
         labels = analysis_modes.get("service_group_by_labels", [])
@@ -529,12 +752,18 @@ def table_intro(name: str, report: dict[str, Any]) -> str:
     if name == "ingestion_by_cluster":
         label_name_value = analysis_modes.get("cluster_ingestion_label", "cluster")
         label_text = label_name_value if isinstance(label_name_value, str) and label_name_value else "cluster"
-        return "<p class=\"table-note\"><strong>Note:</strong> This optional table groups <code>vm_rows_inserted_total</code> rate by " f"<code>{html_escape(label_text)}</code>.</p>"
+        return (
+            "<p class=\"table-note\"><strong>Note:</strong> This optional table "
+            "groups <code>vm_rows_inserted_total</code> rate by "
+            f"<code>{html_escape(label_text)}</code>.</p>"
+        )
     if name == "high_cardinality_metric_usage":
         parts: list[str] = []
         if analysis_modes.get("top_metric_label_drivers_partial_sample"):
             parts.append(
-                "Some Top Label values come from a partial <code>/api/v1/series</code> sample because <code>SERIES_SAMPLE_LIMIT</code> was reached."
+                "Some Top Label values come from a partial "
+                "<code>/api/v1/series</code> sample because "
+                "<code>SERIES_SAMPLE_LIMIT</code> was reached."
             )
         top_limit = analysis_modes.get("top_limit")
         analysis_limit = analysis_modes.get("metric_label_analysis_limit")
@@ -547,7 +776,9 @@ def table_intro(name: str, report: dict[str, Any]) -> str:
         ):
             parts.append(
                 "The configured <code>METRIC_LABEL_ANALYSIS_LIMIT</code> was lower than "
-                f"<code>TOP_LIMIT</code> ({top_limit}), so the effective analysis limit was automatically raised to <code>{analysis_limit}</code>."
+                f"<code>TOP_LIMIT</code> ({top_limit}), so the effective "
+                "analysis limit was automatically raised to "
+                f"<code>{analysis_limit}</code>."
             )
         if parts:
             return "<p class=\"table-note\"><strong>Note:</strong> " + " ".join(parts) + "</p>"
@@ -573,18 +804,27 @@ def render_table(name: str, title: str, rows: list[dict[str, Any]], report: dict
     headers = [header for header in rows[0].keys() if not header.startswith("__")]
     table_class = f"table-{css_class_name(name)}"
     column_descriptions = table_column_descriptions(name)
-    header_html = "".join(header_html_with_tooltip(header, column_descriptions.get(header), class_name=f"col-{css_class_name(header)}") for header in headers)
+    header_html = "".join(
+        header_html_with_tooltip(
+            header,
+            column_descriptions.get(header),
+            class_name=f"col-{css_class_name(header)}",
+        )
+        for header in headers
+    )
     body_html = "".join(
         (
             "<tr"
             + (
-                f' class="infra-label-row" data-table-name="{html_escape(name)}" style="display:none"'
+                    f' class="infra-label-row" data-table-name="{html_escape(name)}" '
+                    'style="display:none"'
                 if row.get("__infraLabel") and show_infra_toggle(name)
                 else ""
             )
             + ">"
             + "".join(
-                f"<td class=\"{table_cell_class(name, header, row.get(header))}\">{format_table_cell(name, header, row.get(header))}</td>"
+                f"<td class=\"{table_cell_class(name, header, row.get(header))}\">"
+                f"{format_table_cell(name, header, row.get(header))}</td>"
                 for header in headers
             )
             + "</tr>"
@@ -594,10 +834,14 @@ def render_table(name: str, title: str, rows: list[dict[str, Any]], report: dict
     table_html = (
         f"{table_intro(name, report)}"
         f"{render_infra_toggle(name)}"
-        f"<div class=\"table-wrap\"><table class=\"{table_class}\"><thead><tr>{header_html}</tr></thead><tbody>{body_html}</tbody></table></div>"
+        f"<div class=\"table-wrap\"><table class=\"{table_class}\"><thead><tr>"
+        f"{header_html}</tr></thead><tbody>{body_html}</tbody></table></div>"
     )
     if name in {"vmsingle_all_effective_flags", "vmagent_all_effective_flags"}:
-        return f"<section><details class=\"collapsible-section\"><summary>{html_escape(title)}</summary>{table_html}</details></section>"
+        return (
+            "<section><details class=\"collapsible-section\"><summary>"
+            f"{html_escape(title)}</summary>{table_html}</details></section>"
+        )
     return f"<section><h2>{html_escape(title)}</h2>{table_html}</section>"
 
 
@@ -684,10 +928,16 @@ def write_html_report(report: dict[str, Any], output: str) -> None:
     thresholds = report.get("thresholds", {})
     findings_rows = report.get("findings", [])
     findings_html = render_findings(findings_rows)
-    key_signals_html = render_key_signals_table(summary if isinstance(summary, dict) else {}, thresholds if isinstance(thresholds, dict) else {})
+    key_signals_html = render_key_signals_table(
+        summary if isinstance(summary, dict) else {},
+        thresholds if isinstance(thresholds, dict) else {},
+    )
     window_html = render_window_table(report)
     configuration_html = render_configuration_section(report)
-    tables_html = "".join(render_table(name, table_title(name), rows, report) for name, rows in ordered_table_sections(report))
+    tables_html = "".join(
+        render_table(name, table_title(name), rows, report)
+        for name, rows in ordered_table_sections(report)
+    )
     errors = report.get("errors", {})
     errors_html = ""
     if errors:

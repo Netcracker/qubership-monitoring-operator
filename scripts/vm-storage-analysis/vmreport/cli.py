@@ -201,7 +201,10 @@ def parser(description: str) -> argparse.ArgumentParser:
     result.add_argument(
         "--storage-eta-lookback",
         default=env_value("STORAGE_ETA_LOOKBACK", "24h"),
-        help="Range window for disk-full ETA based on vm_data_size_bytes growth. Default: 24h. Env: STORAGE_ETA_LOOKBACK.",
+        help=(
+            "Range window for disk-full ETA based on vm_data_size_bytes growth. "
+            "Default: 24h. Env: STORAGE_ETA_LOOKBACK."
+        ),
     )
     result.add_argument(
         "--top-limit",
@@ -218,19 +221,28 @@ def parser(description: str) -> argparse.ArgumentParser:
     result.add_argument(
         "--top-queries-lookback",
         default=env_value("TOP_QUERIES_LOOKBACK", "24h"),
-        help="Lookback window passed as maxLifetime to /api/v1/status/top_queries. Default: 24h. Env: TOP_QUERIES_LOOKBACK.",
+        help=(
+            "Lookback window passed as maxLifetime to /api/v1/status/top_queries. "
+            "Default: 24h. Env: TOP_QUERIES_LOOKBACK."
+        ),
     )
     result.add_argument(
         "--metric-label-analysis-limit",
         type=positive_int,
         default=env_positive_int("METRIC_LABEL_ANALYSIS_LIMIT", "10"),
-        help="How many top TSDB metrics to inspect label cardinality for. Default: 10. Env: METRIC_LABEL_ANALYSIS_LIMIT.",
+        help=(
+            "How many top TSDB metrics to inspect label cardinality for. "
+            "Default: 10. Env: METRIC_LABEL_ANALYSIS_LIMIT."
+        ),
     )
     result.add_argument(
         "--metric-usage-limit",
         type=positive_int,
         default=env_positive_int("METRIC_USAGE_LIMIT", "5000"),
-        help="How many metric names to request from /api/v1/status/metric_names_stats. Default: 5000. Env: METRIC_USAGE_LIMIT.",
+        help=(
+            "How many metric names to request from /api/v1/status/metric_names_stats. "
+            "Default: 5000. Env: METRIC_USAGE_LIMIT."
+        ),
     )
     result.add_argument(
         "--series-sample-limit",
@@ -246,7 +258,8 @@ def parser(description: str) -> argparse.ArgumentParser:
         type=non_negative_int,
         default=env_non_negative_int("GLOBAL_SERIES_FETCH_LIMIT", "0"),
         help=(
-            "Maximum number of series fetched from /api/v1/series per metric during global label distribution analysis. "
+            "Maximum number of series fetched from /api/v1/series per metric "
+            "during global label distribution analysis. "
             "Use 0 for no explicit limit. Default: 0. Env: GLOBAL_SERIES_FETCH_LIMIT."
         ),
     )
@@ -304,7 +317,8 @@ def parser(description: str) -> argparse.ArgumentParser:
         type=positive_int,
         default=env_positive_int("LABEL_GLOBAL_UNIQUE_VALUES_THRESHOLD", "100"),
         help=(
-            "Keep globally present non-infra labels in Label Distribution when their Unique Values reach this threshold. "
+            "Keep globally present non-infra labels in Label Distribution "
+            "when their Unique Values reach this threshold. "
             "Default: 100. Env: LABEL_GLOBAL_UNIQUE_VALUES_THRESHOLD."
         ),
     )
