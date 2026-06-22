@@ -27,10 +27,16 @@ rules:
     resources:
       - configmaps
       - configmaps/finalizers
+      - configmaps/status
       - endpoints
       - events
+      - namespaces
+      - nodes
+      - nodes/metrics
+      - nodes/proxy
       - persistentvolumeclaims
       - persistentvolumeclaims/finalizers
+      - pods
       - pods/eviction
       - secrets
       - secrets/finalizers
@@ -46,19 +52,6 @@ rules:
       - patch
       - update
       - watch
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps/status
-      - namespaces
-      - nodes
-      - nodes/metrics
-      - nodes/proxy
-      - pods
-    verbs:
-      - get
-      - list
-      - watch
 
   # apps
   # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
@@ -66,20 +59,13 @@ rules:
       - apps
     resources:
       - daemonsets
-      - deployments
-      - replicasets
-      - statefulsets
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - apps
-    resources:
       - daemonsets/finalizers
       - daemonsets/status
+      - deployments
       - deployments/finalizers
       - deployments/status
+      - replicasets
+      - statefulsets
       - statefulsets/finalizers
       - statefulsets/status
     verbs:
