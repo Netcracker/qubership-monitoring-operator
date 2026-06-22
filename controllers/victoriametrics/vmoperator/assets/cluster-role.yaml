@@ -27,10 +27,12 @@ rules:
     resources:
       - configmaps
       - configmaps/finalizers
+      - configmaps/status
       - endpoints
       - events
       - persistentvolumeclaims
       - persistentvolumeclaims/finalizers
+      - pods
       - pods/eviction
       - secrets
       - secrets/finalizers
@@ -46,15 +48,14 @@ rules:
       - patch
       - update
       - watch
+
   - apiGroups:
       - ""
     resources:
-      - configmaps/status
       - namespaces
       - nodes
       - nodes/metrics
       - nodes/proxy
-      - pods
     verbs:
       - get
       - list
@@ -66,20 +67,13 @@ rules:
       - apps
     resources:
       - daemonsets
-      - deployments
-      - replicasets
-      - statefulsets
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - apps
-    resources:
       - daemonsets/finalizers
       - daemonsets/status
+      - deployments
       - deployments/finalizers
       - deployments/status
+      - replicasets
+      - statefulsets
       - statefulsets/finalizers
       - statefulsets/status
     verbs:
