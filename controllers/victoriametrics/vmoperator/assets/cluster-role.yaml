@@ -30,10 +30,6 @@ rules:
       - configmaps/status
       - endpoints
       - events
-      - namespaces
-      - nodes
-      - nodes/metrics
-      - nodes/proxy
       - persistentvolumeclaims
       - persistentvolumeclaims/finalizers
       - pods
@@ -51,6 +47,18 @@ rules:
       - list
       - patch
       - update
+      - watch
+
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+      - nodes
+      - nodes/metrics
+      - nodes/proxy
+    verbs:
+      - get
+      - list
       - watch
 
   # apps
