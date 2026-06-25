@@ -1,0 +1,21 @@
+{{- if and .Values.install .Values.installConfigOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: config-operator
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - openshift-config-operator
+  selector:
+    matchLabels:
+      app: openshift-config-operator
+{{- end }}
