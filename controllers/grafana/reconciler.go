@@ -11,18 +11,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+
+// isSecretUpdated is set to true when the admin credentials secret changes
+// between reconcile cycles and must be reset via grafana cli.
 var isSecretUpdated = false
 
-// isManageAdminSecret returns true when Helm (and therefore this operator) manages
-// the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
-// When the flag is true the user is responsible for the secret; we skip validation.
-func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
-	if cr.Spec.Grafana == nil {
-		return false
-	}
-	// We manage the secret when disableDefaultAdminSecret is explicitly false or not set.
-	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil || !*cr.Spec.Grafana.DisableDefaultAdminSecret
-}
+// currentAdminSecretChecksum holds the SHA256 of the admin credentials secret
+// computed during the last reconcile. Written into the Grafana CR pod-template
+// annotation so grafana-operator triggers a rolling restart on secret change.
+var currentAdminSecretChecksum string
+
+// adminSecretChecksumAnnotation is the pod-template annotation key used to
+// propagate the admin secret checksum and drive rolling restarts.
+const adminSecretChecksumAnnotation = "checksum/admin-secret"
 
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
@@ -53,10 +54,8 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			if isManageAdminSecret(cr) {
-				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
-					return err
-				}
+			if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
+				return err
 			}
 			// Reconcile resources with creation and update
 			if err := r.handleGrafana(cr); err != nil {
@@ -119,9 +118,16 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// To apply a manually changed secret value, restart the Grafana pod (new env var values
-			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
-			// available but not triggered automatically; it can be invoked for in-place credential updates.
+			// Reset Grafana admin credentials in the running database when the
+			// secret has changed. This handles both PV and non-PV deployments:
+			// the rolling restart triggered by the checksum annotation handles
+			// the emptyDir case; the grafana cli exec handles the PV case.
+			if isSecretUpdated {
+				if err := r.resetGrafanaCredentials(cr); err != nil {
+					r.Log.Error(err, "Cannot reset Grafana credentials")
+					return err
+				}
+			}
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
