@@ -30,6 +30,18 @@ func getGrafanaRootURL(protocol string, host string) string {
 	return fmt.Sprintf("%v://%v/", protocol, host)
 }
 
+// ensureGrafanaConfigSection returns the map for the given grafana.ini section,
+// initialising graf.Spec.Config and the section map if necessary.
+func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string]string {
+	if graf.Spec.Config == nil {
+		graf.Spec.Config = make(map[string]map[string]string)
+	}
+	if graf.Spec.Config[section] == nil {
+		graf.Spec.Config[section] = make(map[string]string)
+	}
+	return graf.Spec.Config[section]
+}
+
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
 // This function safely initializes the Deployment structure to avoid nil pointer dereference
 func ensureDeploymentInitialized(graf *grafv1.Grafana) {
@@ -116,14 +128,6 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// We explicitly set it to nil for safety (though it should already be nil after decoding the asset).
 		graf.Spec.Ingress = nil
 
-		// Config is now runtime.RawExtension in grafana-operator v5
-		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
-		configProvidedAsRawExtension := cr.Spec.Grafana.Config != nil
-		if configProvidedAsRawExtension {
-			// Config is runtime.RawExtension, but graf.Spec.Config expects map[string]map[string]string
-			// We need to unmarshal RawExtension to set Config properly
-			// For now, skip setting Config if provided as RawExtension - it will be handled by grafana-operator
-		}
 		// DataStorage removed in grafana-operator v5
 		// EnvFrom configuration moved to container-level in v5
 		if cr.Spec.Grafana.Replicas != nil {
@@ -293,14 +297,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Only configure Config fields if Config was not provided as RawExtension
-		// Note: In v5, Config is map[string]map[string]string or runtime.RawExtension
-		// We need to work with Config as runtime.RawExtension and marshal/unmarshal JSON
-		if cr.Spec.Auth != nil && !configProvidedAsRawExtension {
-			// In grafana-operator v5, Config structure changed significantly
-			// OAuth configuration needs to be handled via runtime.RawExtension or removed
-			// Note: This functionality may need to be reimplemented for v5 API
-		}
+		// TODO(#376): OAuth configuration via spec.auth is not yet propagated to Grafana CR spec.config.
+		// When implemented, populate graf.Spec.Config["auth.generic_oauth"] from cr.Spec.Auth here.
 		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
@@ -400,6 +398,30 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			for _, env := range envVars {
 				if !envMap[env.Name] {
 					container.Env = append(container.Env, env)
+				}
+			}
+		}
+
+		// Set server.root_url from ingress host as a convenience default (mirrors v4 behaviour).
+		// This is set before user config so users can override it via spec.grafana.config.
+		if cr.Spec.Grafana.Ingress != nil && cr.Spec.Grafana.Ingress.IsInstall() && cr.Spec.Grafana.Ingress.Host != "" {
+			protocol := "http"
+			if len(cr.Spec.Grafana.Ingress.TLS) > 0 || cr.Spec.Grafana.Ingress.TLSSecretName != "" {
+				protocol = "https"
+			}
+			serverSection := ensureGrafanaConfigSection(&graf, "server")
+			serverSection["root_url"] = getGrafanaRootURL(protocol, cr.Spec.Grafana.Ingress.Host)
+		}
+
+		// Propagate spec.grafana.config into Grafana CR spec.config.
+		// User-provided values are applied last so they override operator defaults (mirrors v4 behaviour).
+		if cr.Spec.Grafana.Config != nil {
+			var userConfig map[string]map[string]string
+			if err := json.Unmarshal(cr.Spec.Grafana.Config.Raw, &userConfig); err == nil {
+				for section, values := range userConfig {
+					for k, v := range values {
+						ensureGrafanaConfigSection(&graf, section)[k] = v
+					}
 				}
 			}
 		}
