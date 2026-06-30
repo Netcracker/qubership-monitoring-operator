@@ -29,7 +29,7 @@ Image can be found from:
     {{- if .Values.grafana.operator.image -}}
       {{- printf "%s" .Values.grafana.operator.image -}}
     {{- else -}}
-      {{- /* # renovate: datasource=docker depName=grafana-operator/grafana-operator */ -}}
+      {{- /* # renovate: datasource=docker depName=quay.io/grafana-operator/grafana-operator */ -}}
       {{- print "quay.io/grafana-operator/grafana-operator:v5.22.2" -}}
     {{- end -}}
   {{- end -}}
@@ -61,7 +61,7 @@ Image can be found from:
     {{- if .Values.grafana.operator.initContainerImage -}}
       {{- printf "%s" .Values.grafana.operator.initContainerImage -}}
     {{- else -}}
-      {{- /* # renovate: datasource=docker depName=Netcracker/qubership-grafana-plugins-init versioning=semver */ -}}
+      {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-grafana-plugins-init versioning=semver */ -}}
       {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:0.20.0" -}}
     {{- end -}}
   {{- end -}}
@@ -79,7 +79,7 @@ Image can be found from:
   {{- if .Values.prometheus.operator.image -}}
     {{- printf "%s" .Values.prometheus.operator.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=prometheus-operator/prometheus-operator */ -}}
+    {{- /* # renovate: datasource=docker depName=quay.io/prometheus-operator/prometheus-operator */ -}}
     {{- print "quay.io/prometheus-operator/prometheus-operator:v0.91.0" -}}
   {{- end -}}
 {{- end -}}
@@ -94,7 +94,7 @@ Image can be found from:
   {{- if .Values.prometheus.configReloaderImage -}}
     {{- printf "%s" .Values.prometheus.configReloaderImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=prometheus-operator/prometheus-config-reloader */ -}}
+    {{- /* # renovate: datasource=docker depName=quay.io/prometheus-operator/prometheus-config-reloader */ -}}
     {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.91.0" -}}
   {{- end -}}
 {{- end -}}
