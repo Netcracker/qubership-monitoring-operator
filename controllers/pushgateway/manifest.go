@@ -2,7 +2,6 @@ package pushgateway
 
 import (
 	"embed"
-	"errors"
 	"strings"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -11,7 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -179,21 +178,17 @@ func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, er
 			}
 		}
 
-		d.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		d.Spec.Template.Labels["name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(d.GetName())
-		d.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(d.GetName(), d.GetNamespace())
-		d.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		if cr.Spec.Pushgateway.Labels != nil {
-			for k, v := range cr.Spec.Pushgateway.Labels {
-				d.Labels[k] = v
-				d.Spec.Template.Labels[k] = v
-			}
+		in := utils.LabelInput{
+			Name:            d.GetName(),
+			Component:       utils.PushgatewayComponentName,
+			Instance:        utils.GetInstanceLabel(d.GetName(), d.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Pushgateway.Image),
+			Technology:      "go",
+			ComponentLabels: cr.Spec.Pushgateway.Labels,
+		}
+		utils.SetLabelsForWorkload(&d, &d.Spec.Template.Labels, in)
+		d.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: map[string]string{"app.kubernetes.io/name": utils.TruncLabel(in.Name)},
 		}
 
 		if len(strings.TrimSpace(cr.Spec.Pushgateway.PriorityClassName)) > 0 {
@@ -214,11 +209,7 @@ func pushgatewayPVC(cr *monv1.PlatformMonitoring) (*corev1.PersistentVolumeClaim
 	pvc.SetName(utils.PushgatewayComponentName)
 	pvc.SetNamespace(cr.GetNamespace())
 
-	// Set labels
-	pvc.Labels["name"] = utils.TruncLabel(pvc.GetName())
-	pvc.Labels["app.kubernetes.io/name"] = utils.TruncLabel(pvc.GetName())
-	pvc.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(pvc.GetName(), pvc.GetNamespace())
-	pvc.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
+	utils.SetLabelsForResource(&pvc, utils.BaseOnlyLabelInput(pvc.GetName(), utils.PushgatewayComponentName), nil)
 
 	if cr.Spec.Pushgateway != nil && cr.Spec.Pushgateway.Storage != nil {
 		// Set PVC spec
@@ -247,71 +238,11 @@ func pushgatewayService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
 			}
 		}
 	}
+
+	utils.SetLabelsForResource(&service, utils.BaseOnlyLabelInput(service.GetName(), utils.PushgatewayComponentName), nil)
+	service.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.PushgatewayComponentName)}
+
 	return &service, nil
-}
-
-func pushgatewayIngressV1beta1(cr *monv1.PlatformMonitoring) (*v1beta1.Ingress, error) {
-	ingress := v1beta1.Ingress{}
-	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayIngressAsset), 100).Decode(&ingress); err != nil {
-		return nil, err
-	}
-	//Set parameters
-	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1beta1", Kind: "Ingress"})
-	ingress.SetName(cr.GetNamespace() + "-" + utils.PushgatewayComponentName)
-	ingress.SetNamespace(cr.GetNamespace())
-
-	if cr.Spec.Pushgateway != nil && cr.Spec.Pushgateway.Ingress != nil && cr.Spec.Pushgateway.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Pushgateway.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
-		servicePort := intstr.FromInt(int(cr.Spec.Pushgateway.Port))
-		serviceName := utils.PushgatewayComponentName
-
-		// Add rule for pushgateway UI
-		rule := v1beta1.IngressRule{Host: cr.Spec.Pushgateway.Ingress.Host}
-		rule.HTTP = &v1beta1.HTTPIngressRuleValue{
-			Paths: []v1beta1.HTTPIngressPath{
-				{
-					Path: "/",
-					Backend: v1beta1.IngressBackend{
-						ServiceName: serviceName,
-						ServicePort: servicePort,
-					},
-				},
-			},
-		}
-		ingress.Spec.Rules = []v1beta1.IngressRule{rule}
-
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Pushgateway.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []v1beta1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Pushgateway.Ingress.Host},
-					SecretName: cr.Spec.Pushgateway.Ingress.TLSSecretName,
-				},
-			}
-		}
-
-		if cr.Spec.Pushgateway.Ingress.IngressClassName != nil {
-			ingress.Spec.IngressClassName = cr.Spec.Pushgateway.Ingress.IngressClassName
-		}
-
-		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Pushgateway.Ingress.Annotations)
-
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		for lKey, lValue := range cr.Spec.Pushgateway.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
-		}
-	}
-	return &ingress, nil
 }
 
 func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
@@ -319,45 +250,158 @@ func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, 
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayIngressAsset), 100).Decode(&ingress); err != nil {
 		return nil, err
 	}
-	//Set parameters
+	//Set metadata
 	ingress.SetGroupVersionKind(schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1", Kind: "Ingress"})
 	ingress.SetName(cr.GetNamespace() + "-" + utils.PushgatewayComponentName)
 	ingress.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Pushgateway != nil && cr.Spec.Pushgateway.Ingress != nil && cr.Spec.Pushgateway.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Pushgateway.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
+		var rules []networkingv1.IngressRule
 		pathType := networkingv1.PathTypePrefix
-		// Add rule for pushgateway UI
-		rule := networkingv1.IngressRule{Host: cr.Spec.Pushgateway.Ingress.Host}
-		rule.HTTP = &networkingv1.HTTPIngressRuleValue{
-			Paths: []networkingv1.HTTPIngressPath{
-				{
-					Path:     "/",
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: &networkingv1.IngressServiceBackend{
-							Name: utils.PushgatewayComponentName,
-							Port: networkingv1.ServiceBackendPort{
-								Number: cr.Spec.Pushgateway.Port,
+		ing := cr.Spec.Pushgateway.Ingress
+
+		switch {
+		// 1. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &monv1.HTTPIngressRuleValue{
+						Paths: []monv1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: monv1.IngressPathBackend{
+									Service: monv1.IngressPathBackendService{
+										Name: utils.PushgatewayComponentName,
+										Port: monv1.ServiceBackendPort{
+											Name: utils.PushgatewayPortName,
+										},
+									},
+								},
 							},
 						},
+					}
+				}
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultPushgatewayPath(pathType)},
 					},
 				},
-			},
-		}
-		ingress.Spec.Rules = []networkingv1.IngressRule{rule}
+			})
 
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Pushgateway.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Pushgateway.Ingress.Host},
-					SecretName: cr.Spec.Pushgateway.Ingress.TLSSecretName,
+		// 3. fallback: if no custom ingress rules or Host provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultPushgatewayPath(pathType)},
+					},
 				},
+			})
+		}
+
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Pushgateway.Ingress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Pushgateway.Ingress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				secret := hostgroup.SecretName
+				// fallback: if secretName is empty - use ingress TLSSecretName only
+				if secret == "" {
+					secret = cr.Spec.Pushgateway.Ingress.TLSSecretName
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure TLS if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Pushgateway.Ingress.Host != "" {
+			secret := cr.Spec.Pushgateway.Ingress.TLSSecretName
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Pushgateway.Ingress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Pushgateway.Ingress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := cr.Spec.Pushgateway.Ingress.TLSSecretName
+			for _, rule := range cr.Spec.Pushgateway.Ingress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
 			}
 		}
 
@@ -366,17 +410,13 @@ func pushgatewayIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, 
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Pushgateway.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Pushgateway.Ingress.Annotations))
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Pushgateway.Image)
-
-		for lKey, lValue := range cr.Spec.Pushgateway.Ingress.Labels {
-			ingress.GetLabels()[lKey] = lValue
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.PushgatewayComponentName)
+		if len(cr.Spec.Pushgateway.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Pushgateway.Ingress.Labels
 		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
 }
@@ -396,5 +436,29 @@ func pushgatewayServiceMonitor(cr *monv1.PlatformMonitoring) (*promv1.ServiceMon
 	}
 	sm.Spec.NamespaceSelector.MatchNames = []string{cr.GetNamespace()}
 
+	utils.SetLabelsForResource(&sm, utils.LabelInput{
+		Name:      sm.GetName(),
+		Component: utils.PushgatewayComponentName,
+		ComponentLabels: utils.MergeLabels(
+			map[string]string{"app.kubernetes.io/processed-by-operator": "prometheus-operator"},
+			cr.GetLabels(),
+		),
+	}, nil)
+
 	return &sm, nil
+}
+
+func defaultPushgatewayPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.PushgatewayComponentName,
+				Port: networkingv1.ServiceBackendPort{
+					Name: utils.PushgatewayPortName,
+				},
+			},
+		},
+	}
 }

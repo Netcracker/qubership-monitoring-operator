@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graphite-remote-adapter versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-graphite-remote-adapter:0.8.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-graphite-remote-adapter:0.8.1" -}}
   {{- end -}}
 {{- end -}}
 

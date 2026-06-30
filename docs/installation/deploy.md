@@ -86,6 +86,133 @@ alertmanager:
     install: false  # Disable ingress for AlertManager
 ```
 
+## Gateway API Configuration
+
+You can expose UI endpoints using Gateway API HTTPRoutes. Gateway settings are configured once at the chart root,
+and each component can define its own `httpRoute` section with hostnames, parent references, matches, and filters.
+More info in [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute).
+
+The operator supports HTTPRoutes for Prometheus, AlertManager, Grafana, Pushgateway, VmSingle, VmSelect,
+VmAgent, VmAlertManager, VmAlert, and VmAuth.
+
+Supported `httpRoute` fields:
+
+| Field | Description |
+| ----- | ----------- |
+| `install` | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`. |
+| `hostnames` | Overrides generated hostnames. If omitted, the component ingress host is used. |
+| `parentRefs` | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
+| `rules[].matches` | Raw Gateway API HTTPRoute match blocks. |
+| `rules[].filters` | Raw Gateway API HTTPRoute filter blocks. |
+
+`backendRefs` are managed by the operator and cannot be configured through `httpRoute.rules`.
+When custom `rules` are set, the operator injects the component backend service and port into each rule,
+**unless** the rule contains a `RequestRedirect` or `URLRewrite` filter — those filters replace the
+backend destination, so `backendRefs` is omitted for those rules.
+
+The operator logs HTTPRoute status warnings when the Gateway controller reports unhealthy parent status,
+including empty `status.parents`, `Accepted=False`, or `ResolvedRefs=False`. These warnings do not fail
+component reconciliation.
+
+```yaml
+gatewayApi:
+  addIngressIgnoreAnnotation: true
+  parentRefs:
+    - name: gateway
+      namespace: gateway-infra
+      kind: Gateway
+      group: gateway.networking.k8s.io
+
+grafana:
+  httpRoute:
+    install: true
+    parentRefs:
+      - name: gateway
+        namespace: gateway-infra
+        sectionName: http
+    hostnames:
+      - grafana.example.com
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        filters:
+          - type: URLRewrite
+            urlRewrite:
+              path:
+                type: ReplacePrefixMatch
+                replacePrefixMatch: /
+
+victoriametrics:
+  vmSingle:
+    httpRoute:
+      install: true
+      hostnames:
+        - vmsingle.example.com
+```
+
+### Customizing Ingress Routing and TLS Rules
+
+You can define custom ingress routing rules for individual components using the `ingress.rules` parameter.
+Refer the ingress description in
+(official documentation)[https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules].
+For example:
+
+```yaml
+grafana:
+  ingress:
+    install: true
+    rules:
+      - host: grafana.example.com
+        http:
+          paths:
+            - path: "/"
+              pathType: Prefix
+              backend:
+                service:
+                  name: "grafana-service"
+                  port:
+                    number: 3000
+```
+
+#### Configuring an Empty Host
+It is also possible to configure an empty host value by specifying an empty string for either the `ingress.host` parameter or within `ingress.rules[].host`:
+
+**Option 1:**
+```yaml
+grafana:
+  ingress:
+    install: true
+    host: ''
+```
+
+**Option 2:**
+```yaml
+grafana:
+  ingress:
+    install: true
+    rules:
+      - host: ''
+```
+
+#### Specifying Multiple TLS Secrets
+To configure different TLS secrets for multiple hosts, use the `tls` parameter as shown below:
+
+```yaml
+grafana:
+  ingress:
+    install: true
+    tls:
+      - hosts:
+          - host1.example.com
+          - host2.example.com
+        secretName: "grafana-custom-tls-secret"
+      - hosts:
+          - host3.example.com
+        secretName: "grafana-another-custom-tls-secret"
+```
+
 ## Deployment Examples
 
 ### Production Deployment
@@ -198,7 +325,7 @@ victoriametrics:
 
 cloudwatchExporter:
   install: true
-  
+
 # Use AWS Load Balancer Controller
 grafana:
   ingress:
@@ -369,4 +496,4 @@ After successful deployment:
 1. **[Post-Deploy Checks](post-deploy-checks.md)** - Verify installation
 2. **[Configuration](../configuration.md)** - Customize your setup
 3. **[Storage](storage.md)** - Configure persistent storage
-4. **[Component Configuration](components/)** - Fine-tune individual components 
+4. **[Component Configuration](components/)** - Fine-tune individual components

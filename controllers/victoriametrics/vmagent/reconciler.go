@@ -4,6 +4,7 @@ import (
 	"context"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	secv1 "github.com/openshift/api/security/v1"
@@ -67,21 +68,6 @@ func (r *VmAgentReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitorin
 				return err
 			}
 
-			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
-			// This API unavailable in k8s v1.22+
-			if r.HasIngressV1beta1Api() {
-				if cr.Spec.Victoriametrics.VmAgent.Ingress != nil &&
-					cr.Spec.Victoriametrics.VmAgent.Ingress.IsInstall() &&
-					!cr.Spec.Victoriametrics.VmAuth.IsInstall() {
-					if err := r.handleIngressV1beta1(cr); err != nil {
-						return err
-					}
-				} else {
-					if err := r.deleteIngressV1beta1(cr); err != nil {
-						r.Log.Error(err, "Can not delete Ingress")
-					}
-				}
-			}
 			// Reconcile Ingress (version v1) if necessary and the cluster is has such API
 			// This API available in k8s v1.19+
 			if r.HasIngressV1Api() {
@@ -96,6 +82,27 @@ func (r *VmAgentReconciler) Run(ctx context.Context, cr *monv1.PlatformMonitorin
 						r.Log.Error(err, "Can not delete Ingress")
 					}
 				}
+			}
+
+			ingressHost := ""
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			if cr.Spec.Victoriametrics.VmAgent.Ingress != nil {
+				ingressHost = cr.Spec.Victoriametrics.VmAgent.Ingress.Host
+			}
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.VmAgentServiceName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    utils.VmAgentServiceName,
+				ServicePort:    int32(utils.VmAgentServicePort),
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmAgentServiceName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.VmAgentServiceName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.VmAgentServiceName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAgent.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.Victoriametrics.VmAgent.HTTPRoute,
+			}); err != nil {
+				return err
 			}
 			r.Log.Info("Component reconciled")
 		} else {
@@ -148,19 +155,30 @@ func (r *VmAgentReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 		r.Log.Error(err, "Can not delete vmagent.")
 	}
 
-	// Try to delete Ingress (version v1beta1) is there is such API
-	// This API unavailable in k8s v1.22+
-	if r.HasIngressV1beta1Api() {
-		if err = r.deleteIngressV1beta1(cr); err != nil {
-			r.Log.Error(err, "Can not delete Ingress.")
-		}
-	}
 	// Try to delete Ingress (version v1) is there is such API
 	// This API available in k8s v1.19+
 	if r.HasIngressV1Api() {
 		if err = r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress.")
 		}
+	}
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.Victoriametrics != nil {
+		componentRoute = cr.Spec.Victoriametrics.VmAgent.HTTPRoute
+	}
+	if err = gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.VmAgentServiceName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.VmAgentServiceName,
+		ServicePort:    int32(utils.VmAgentServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 
 	if err := r.deleteServiceAccount(cr); err != nil {

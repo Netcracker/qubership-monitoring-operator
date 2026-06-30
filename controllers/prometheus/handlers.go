@@ -2,11 +2,9 @@ package prometheus
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/api/networking/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
@@ -17,12 +15,6 @@ func (r *PrometheusReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring
 		r.Log.Error(err, "Failed creating ServiceAccount manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -49,12 +41,6 @@ func (r *PrometheusReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) e
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -84,12 +70,6 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -137,35 +117,6 @@ func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) er
 	return nil
 }
 
-func (r *PrometheusReconciler) handleIngressV1beta1(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *PrometheusReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
 	m, err := prometheusIngressV1(cr)
 	if err != nil {
@@ -201,12 +152,6 @@ func (r *PrometheusReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) er
 		r.Log.Error(err, "Failed creating PodMonitor manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Prometheus.Image)
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -296,25 +241,6 @@ func (r *PrometheusReconciler) deletePrometheus(cr *monv1.PlatformMonitoring) er
 		return err
 	}
 	e := &promv1.Prometheus{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if err = r.DeleteResource(e); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *PrometheusReconciler) deleteIngressV1beta1(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusIngressV1beta1(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Ingress manifest")
-		return err
-	}
-	e := &v1beta1.Ingress{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil

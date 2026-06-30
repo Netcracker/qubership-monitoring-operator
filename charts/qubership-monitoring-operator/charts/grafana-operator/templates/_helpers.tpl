@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.imageRenderer.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=grafana/grafana-image-renderer */ -}}
-    {{- print "docker.io/grafana/grafana-image-renderer:3.12.9" -}}
+    {{- print "docker.io/grafana/grafana-image-renderer:5.8.3" -}}
   {{- end -}}
 {{- end -}}
 

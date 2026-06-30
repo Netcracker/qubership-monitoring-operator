@@ -2,7 +2,7 @@ This document describes the metrics list and how to collect them from Etcd.
 
 # Metrics
 
-Etcd already exposes its metrics in Prometheus format and doesn't require to use of specific exporters.
+Etcd already exposes its metrics in Prometheus format and doesn't require to use specific exporters.
 
 | Name       | Metrics Port | Metrics Endpoint | Need Exporter? | Auth?                | Is Exporter Third Party? |
 | ---------- | ------------ | ---------------- | -------------- | -------------------- | ------------------------ |
@@ -10,16 +10,21 @@ Etcd already exposes its metrics in Prometheus format and doesn't require to use
 
 ## How to Collect
 
-Metrics expose on port `2379` and endpoint `/metrics`. By default, Etcd has authentication by certificates.
+Currently, etcd certificates for the metrics endpoint are retrieved by the `etcd-certs-to-secret` post-install and post-upgrade job.
+This job creates or updates a Secret containing the certificates and a ServiceMonitor configured to reference this Secret in the monitoring namespace.
+It also creates or updates an etcd Service in the namespace where etcd is deployed.
+However, this approach does not work on public cloud platforms (such as AWS, Azure, GKE, etc.) because access to control plane nodes is restricted.
 
-By default Etcd has no Service, so to collect metrics from it need to create a Service in the namespace where
-Etcd deployed (in Kubernetes usually it's `kube-system`). Config of Service:
+Metrics are exposed on port `2379` at the `/metrics` endpoint. By default, etcd uses certificate-based authentication. Since etcd does not expose a Service by default, a Service must be created in the namespace where etcd is deployed (typically `kube-system` in Kubernetes) in order to collect metrics.
+
+Config of etcd Service:
 
 ```yaml
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: etcd
+  namespace: kube-system
   labels:
     k8s-app: etcd
 spec:
@@ -31,14 +36,7 @@ spec:
   selector:
     component: etcd
   clusterIP: None
-  clusterIPs:
-    - None
   type: ClusterIP
-  sessionAffinity: None
-  ipFamilies:
-    - IPv4
-  ipFamilyPolicy: SingleStack
-  internalTrafficPolicy: Cluster
 ```
 
 Config `ServiceMonitor` for `prometheus-operator` to collect Etcd metrics:
@@ -57,9 +55,17 @@ spec:
       scheme: https
       scrapeTimeout: 10s
       tlsConfig:
-        caFile: /etc/prometheus/secrets/kube-etcd-client-certs/etcd-client-ca.crt
-        certFile: /etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.crt
-        keyFile: /etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.key
+        ca:
+          secret:
+            name: kube-etcd-client-certs
+            key: etcd-client-ca.crt
+        cert:
+          secret:
+            name: kube-etcd-client-certs
+            key: etcd-client.crt
+        keySecret:
+          name: kube-etcd-client-certs
+          key: etcd-client.key
   jobLabel: k8s-app
   namespaceSelector:
     matchNames:
@@ -71,8 +77,7 @@ spec:
 
 ### How to find certificates for Etcd
 
-If you configure Etcd monitoring manually, so you need to fill empty Secret for Monitoring with found Etcd
-certificates. For example:
+If you configure etcd monitoring manually, you need to populate the empty Secret used by the monitoring system with the appropriate etcd certificates. For example:
 
 ```yaml
 apiVersion: v1
@@ -83,7 +88,7 @@ metadata:
     app.kubernetes.io/managed-by: prometheus-operator
     app.kubernetes.io/name: kube-etcd-client-certs
   name: kube-etcd-client-certs
-  namespace: prometheus-operator
+  namespace: <monitoring_namespace>
 type: Opaque
 data:
   etcd-client-ca.crt: <your_etcd-client-ca.crt>
@@ -91,101 +96,44 @@ data:
   etcd-client.key: <your_etcd-client.key>
 ```
 
-To find certificate in different Kubernetes and OpenShift version exist different ways.
+The method for retrieving etcd certificates varies between different versions of Kubernetes and OpenShift.
 
-#### For Kubernetes 1.19-?
-
-```bash
-# etcd-client-ca.crt
-kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | kubectl exec $(awk '/etcd/{print $1; exit}') -n kube-system -- echo $(</etc/kubernetes/pki/etcd/ca.crt) | base64 | sed ':a; /$/N; s/\n//; ta'
-
-# etcd-client.crt
-kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | kubectl exec $(awk '/etcd/{print $1; exit}') -n kube-system --  echo $(</etc/kubernetes/pki/etcd/peer.crt) | base64 | sed ':a; /$/N; s/\n//; ta'
-
-# etcd-client.key
-kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | kubectl exec $(awk '/etcd/{print $1; exit}') -n kube-system --  echo $(</etc/kubernetes/pki/etcd/peer.key) | base64 | sed ':a; /$/N; s/\n//; ta'
-```
-
-**If the previous method didn't work:**
-
-In some cases, the etcd container may not have a shell that would allow commands to be used directly through
-`kubectl exec` command. In this case, the following way is recommended:
-
-1. Open 2 linux terminal (the first will be used to access the terminal inside the etcd container,
-the second to process the contents of the certificates).
-2. Use commands below inside terminal №1 to open the shell into etcd container:
-
-   ```bash
-   etcd_pod=$(kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | awk '/etcd/{print $1; exit}')
-   kubectl exec -it $etcd_pod -n kube-system -- sh
-   ```
-
-3. Inside the etcd container (terminal №1) run the following command to get the contents of the ca.crt certificate:
-
-   ```bash
-   echo $(</etc/kubernetes/pki/etcd/ca.crt)
-   ```
-
-4. Run the following command inside terminal №2. Replace `<certificate>` with output of previous step:
-
-   ```bash
-   echo "<certificate>" | sed 's/ /\n/g;s/-----BEGIN\nCERTIFICATE-----/-----BEGIN CERTIFICATE-----/;s/-----END\nCERTIFICATE-----/-----END CERTIFICATE-----/' | base64
-   ```
-
-5. You can put output of previous command in the `kube-etcd-client-certs` Secret as `etcd-client-ca.crt` value.
-6. Get certificate from `peer.crt` file by running follow command inside terminal №1:
-
-   ```bash
-   echo $(</etc/kubernetes/pki/etcd/peer.crt)
-   ```
-
-7. Repeat step 4. You can put output of this command as `etcd-client.crt` in the Secret.
-8. Get RSA private key from `peer.key` file by running follow command inside terminal №1:
-
-   ```bash
-   echo $(</etc/kubernetes/pki/etcd/peer.key)
-   ```
-
-9. Run the following command inside terminal №2. Replace `<certificate>` with output of previous step:
-
-   ```bash
-   echo "<certificate>" | sed 's/ /\n/g;s/-----BEGIN\nRSA\nPRIVATE\nKEY-----/-----BEGIN RSA PRIVATE KEY-----/;s/-----END\nRSA\nPRIVATE\nKEY-----/-----END RSA PRIVATE KEY-----/' | base64
-   ```
-
-10. You can put output of previous command as `etcd-client.key` value in the Secret.
-
-#### For Kubernetes 1.15-1.18
+#### For Kubernetes
 
 ```bash
+etcd_pod=$(kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | awk '/etcd/{print $1; exit}')
+
 # etcd-client-ca.crt
-kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | kubectl exec $(awk '/etcd/{print $1; exit}') -n kube-system -- cat /etc/kubernetes/pki/etcd/ca.crt | base64 | sed ':a; /$/N; s/\n//; ta'
+kubectl exec "$etcd_pod" -n kube-system -- cat /etc/kubernetes/pki/etcd/ca.crt | base64 | tr -d '\n'
 
 # etcd-client.crt
-kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | kubectl exec $(awk '/etcd/{print $1; exit}') -n kube-system -- cat /etc/kubernetes/pki/etcd/peer.crt | base64 | sed ':a; /$/N; s/\n//; ta'
+kubectl exec "$etcd_pod" -n kube-system -- cat /etc/kubernetes/pki/etcd/peer.crt | base64 | tr -d '\n'
 
 # etcd-client.key
-kubectl get pods -n kube-system --no-headers --field-selector status.phase=Running | kubectl exec $(awk '/etcd/{print $1; exit}') -n kube-system -- cat /etc/kubernetes/pki/etcd/peer.key | base64 | sed ':a; /$/N; s/\n//; ta'
+kubectl exec "$etcd_pod" -n kube-system -- cat /etc/kubernetes/pki/etcd/peer.key | base64 | tr -d '\n'
 ```
+
+If your etcd pod uses non-default certificate paths, inspect the etcd container command arguments for `--peer-key-file`, `--peer-trusted-ca-file`, and `--peer-cert-file`, then replace the paths in the commands above.
 
 #### For OpenShift 4.x
 
 ```bash
 # etcd-client-ca.crt
-oc get configmap etcd-metric-serving-ca --namespace=openshift-etcd-operator -o json | jq -r '.data."ca-bundle.crt"' | base64
+oc get configmap etcd-metric-serving-ca --namespace=openshift-etcd-operator -o jsonpath='{.data.ca-bundle\.crt}' | base64 | tr -d '\n'
 
 # etcd-client.crt
-oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o json | jq -r '.data."tls.crt"'
+oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o jsonpath='{.data.tls\.crt}'
 
 # etcd-client.key
-oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o json | jq -r '.data."tls.key"'
+oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o jsonpath='{.data.tls\.key}'
 ```
 
-In additional for OpenShift 4.5 - 4.7 need to change settings into ServiceMonitor for etcd. It can be found in namespace
-in which deployed monitoring and should have name like `<namesapce>-etcd-service-monitor`.
+For OpenShift 4.x, the `etcd-certs-to-secret` job configures the ServiceMonitor to use namespace `openshift-etcd` and port `etcd-metrics`.
+This resource can be found in the namespace where monitoring is deployed and typically has a name similar to `<namespace>-etcd-service-monitor`.
 
-In this file need to change:
+If you configure etcd monitoring manually, make the following changes:
 
-1. Change namespace, because in OpenShift 4.5-4.7 etcd was moved from `kube-system` to `openshift-etcd`:
+1. Update the namespace:
 
     ```yaml
     spec:
@@ -194,18 +142,16 @@ In this file need to change:
         - openshift-etcd
     ```
 
-2. Change metrics port name, because in OpenShift 4.5-4.7 in service for etcd port was renamed to `etcd-metrics`:
+2. Update the metrics port name to `etcd-metrics`:
 
     ```yaml
     spec:
       endpoints:
-      - interval: 30s
-         port: etcd-metrics
+        - interval: 30s
+          port: etcd-metrics
     ```
 
-3. Check that both etcd pods and etcd service has label `k8s-app: etcd`. If this label not exists on one of both
-   resources need eaither to add it. Or find other label which present on both resources and specify it
-   in `matchSelector`:
+3. Ensure that the ServiceMonitor selector matches the etcd Service labels:
 
    ```yaml
    spec:
@@ -217,14 +163,16 @@ In this file need to change:
 #### For OpenShift 3.11
 
 ```bash
+etcd_pod=$(oc get pods -n kube-system --no-headers --selector openshift.io/component=etcd | awk '/etcd/{print $1; exit}')
+
 # etcd-client-ca.crt
-oc get pods -n kube-system --no-headers --selector openshift.io/component=etcd | oc exec $(awk '/etcd/{print $1; exit}') -n kube-system -- cat /etc/etcd/ca.crt | base64 | sed ':a; /$/N; s/\n//; ta'
+oc exec "$etcd_pod" -n kube-system -- cat /etc/etcd/ca.crt | base64 | tr -d '\n'
 
 # etcd-client.crt
-oc get pods -n kube-system --no-headers --selector openshift.io/component=etcd | oc exec $(awk '/etcd/{print $1; exit}') -n kube-system -- cat /etc/etcd/peer.crt | base64 | sed ':a; /$/N; s/\n//; ta'
+oc exec "$etcd_pod" -n kube-system -- cat /etc/etcd/peer.crt | base64 | tr -d '\n'
 
 # etcd-client.key
-oc get pods -n kube-system --no-headers --selector openshift.io/component=etcd | oc exec $(awk '/etcd/{print $1; exit}') -n kube-system -- cat /etc/etcd/peer.key | base64 | sed ':a; /$/N; s/\n//; ta'
+oc exec "$etcd_pod" -n kube-system -- cat /etc/etcd/peer.key | base64 | tr -d '\n'
 ```
 
 ## Metrics List

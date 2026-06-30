@@ -91,6 +91,20 @@ func (r *VmOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if err := r.handleKubeletServiceEndpoints(cr); err != nil {
 				return err
 			}
+			if cr.Spec.PublicCloudName == "" {
+				if err := r.handleKubeSchedulerService(cr); err != nil {
+					return err
+				}
+				if err := r.handleKubeSchedulerServiceEndpoints(cr); err != nil {
+					return err
+				}
+				if err := r.handleKubeControllerManagerService(cr); err != nil {
+					return err
+				}
+				if err := r.handleKubeControllerManagerServiceEndpoints(cr); err != nil {
+					return err
+				}
+			}
 			r.Log.Info("Component reconciled")
 
 		} else {

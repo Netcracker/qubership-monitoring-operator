@@ -17,12 +17,6 @@ func (r *KubeStateMetricsReconciler) handleServiceAccount(cr *monv1.PlatformMoni
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
-
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
@@ -48,12 +42,6 @@ func (r *KubeStateMetricsReconciler) handleClusterRole(cr *monv1.PlatformMonitor
 		r.Log.Error(err, "Failed creating ClusterRole manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -83,12 +71,6 @@ func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *monv1.Platform
 		r.Log.Error(err, "Failed creating ClusterRoleBinding manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -125,6 +107,12 @@ func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitori
 		}
 		return err
 	}
+	if utils.WorkloadNeedsSelectorReplace(e, m) {
+		if err := r.DeleteResource(e); err != nil {
+			return err
+		}
+		return r.CreateResource(cr, m)
+	}
 
 	//Set parameters
 	e.SetLabels(m.GetLabels())
@@ -149,11 +137,7 @@ func (r *KubeStateMetricsReconciler) handleService(cr *monv1.PlatformMonitoring)
 		return err
 	}
 
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
+	m.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.KubestatemetricsComponentName)}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
@@ -183,12 +167,6 @@ func (r *KubeStateMetricsReconciler) handleServiceMonitor(cr *monv1.PlatformMoni
 		r.Log.Error(err, "Failed creating ServiceMonitor manifest")
 		return err
 	}
-
-	// Set labels
-	m.Labels["name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/name"] = utils.TruncLabel(m.GetName())
-	m.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(m.GetName(), m.GetNamespace())
-	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.KubeStateMetrics.Image)
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {

@@ -152,143 +152,39 @@ Return remoteWrite URLs for prometheus.
 {{/************************************ Ingresses *************************************/}}
 
 {{/*
-Set default value for grafana ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name.
+Render ingress settings for PlatformMonitoring CR.
 */}}
-{{- define "grafana.ingress" -}}
-  {{- if .Values.grafana.ingress -}}
-      {{- toYaml .Values.grafana.ingress | nindent 6 -}}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- define "monitoring.ingress" -}}
+{{- $ingress := .ingress -}}
+{{- $ctx := .ctx -}}
+{{- $hostPrefix := .hostPrefix -}}
+install: true
+{{- if $ingress.rules }}
+rules:
+{{ toYaml $ingress.rules }}
+{{- else if $ingress.host }}
+host: {{ $ingress.host | quote }}
+{{- else if $ctx.Values.CLOUD_PUBLIC_HOST }}
+host: {{ printf "%s-%s.%s" $hostPrefix $ctx.Release.Namespace $ctx.Values.CLOUD_PUBLIC_HOST | quote }}
 {{- end -}}
-
-{{/*
-Set default value for vmSingle ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "vm.single.ingress" -}}
-  {{- if .Values.victoriametrics.vmSingle.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmSingle.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmsingle-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- if $ingress.tls }}
+tls:
+{{- toYaml $ingress.tls | nindent 2 }}
+{{- end }}
+{{- if $ingress.tlsSecretName }}
+tlsSecretName: {{ $ingress.tlsSecretName | quote }}
 {{- end -}}
-
-{{/*
-Set default value for vmSelect ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "vm.select.ingress" -}}
-  {{- if .Values.victoriametrics.vmCluster.vmSelectIngress -}}
-        {{- toYaml .Values.victoriametrics.vmCluster.vmSelectIngress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmsingle-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for vmAgent ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "vm.agent.ingress" -}}
-  {{- if .Values.victoriametrics.vmAgent.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAgent.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmagent-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for vmAlertManager ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "vm.alertmanager.ingress" -}}
-  {{- if .Values.victoriametrics.vmAlertManager.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAlertManager.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmalertmanager-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for vmAlert ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "vm.alert.ingress" -}}
-  {{- if .Values.victoriametrics.vmAlert.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAlert.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmalert-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for vmAuth ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "vm.auth.ingress" -}}
-  {{- if .Values.victoriametrics.vmAuth.ingress -}}
-        {{- toYaml .Values.victoriametrics.vmAuth.ingress | nindent 8 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-        host: "vmauth-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-        {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for prometheus ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "prometheus.ingress" -}}
-  {{- if .Values.prometheus.ingress -}}
-      {{- toYaml .Values.prometheus.ingress | nindent 6 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "prometheus-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for alertManager ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "alertmanager.ingress" -}}
-  {{- if .Values.alertManager.ingress -}}
-      {{- toYaml .Values.alertManager.ingress | nindent 6 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "alertmanager-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Set default value for pushgateway ingress host if not specify in Values.
-CLOUD_PUBLIC_HOST is a parameter that can be use to provide Cloud DNS name
-*/}}
-{{- define "pushgateway.ingress" -}}
-  {{- if .Values.pushgateway.ingress -}}
-      {{- toYaml .Values.pushgateway.ingress | nindent 6 }}
-  {{- else if .Values.CLOUD_PUBLIC_HOST -}}
-      host: "pushgateway-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST }}"
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- if $ingress.ingressClassName }}
+ingressClassName: {{ $ingress.ingressClassName | quote }}
+{{- end }}
+{{- if $ingress.annotations }}
+annotations:
+{{ toYaml $ingress.annotations | indent 2 }}
+{{- end }}
+{{- if $ingress.labels }}
+labels:
+{{ toYaml $ingress.labels | indent 2 }}
+{{- end }}
 {{- end -}}
 
 {{/********************************* Platform Monitoring Tests *********************************/}}

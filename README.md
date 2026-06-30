@@ -6,11 +6,14 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/Netcracker/qubership-monitoring-operator)](https://goreportcard.com/report/github.com/Netcracker/qubership-monitoring-operator)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-A comprehensive Kubernetes operator that simplifies the deployment and management of production-ready monitoring stacks. Built to handle complex monitoring environments with minimal operational overhead while providing maximum flexibility and scalability.
+A comprehensive Kubernetes operator that simplifies the deployment and management of production-ready monitoring stacks.
+Built to handle complex monitoring environments with minimal operational overhead while providing maximum flexibility and scalability.
 
 ## What is Qubership Monitoring Operator?
 
-The Qubership Monitoring Operator is a cloud-native solution that automates the deployment and management of complete monitoring infrastructure on Kubernetes. It orchestrates industry-standard monitoring tools and provides a unified interface for comprehensive observability.
+The Qubership Monitoring Operator is a cloud-native solution that automates the deployment and management of complete
+monitoring infrastructure on Kubernetes. It orchestrates industry-standard monitoring tools and provides a unified
+interface for comprehensive observability.
 
 ### Key Benefits
 
@@ -25,6 +28,7 @@ The Qubership Monitoring Operator is a cloud-native solution that automates the 
 ## What You Get
 
 ### Core Components
+
 - **Time Series Database**: VictoriaMetrics or Prometheus for metrics storage
 - **Visualization**: Grafana with pre-built dashboards for Kubernetes and applications
 - **Alerting**: AlertManager or VMAlert for intelligent alert management
@@ -32,6 +36,7 @@ The Qubership Monitoring Operator is a cloud-native solution that automates the 
 - **Autoscaling**: Horizontal Pod Autoscaler integration with custom metrics
 
 ### Included Exporters
+
 - **Infrastructure**: node-exporter, kube-state-metrics for Kubernetes insights
 - **Security**: cert-exporter for TLS certificate monitoring
 - **Network**: blackbox-exporter for endpoint monitoring and network latency tracking
@@ -40,6 +45,7 @@ The Qubership Monitoring Operator is a cloud-native solution that automates the 
 - **Events**: cloud-events-exporter for CloudEvents monitoring
 
 ### Integrations
+
 - **Graphite**: graphite-remote-adapter for Graphite integration
 - **Load Balancing**: promxy for high availability and federation
 
@@ -150,6 +156,7 @@ Argo CD applies CRDs in the same manner as in first command `kubectl apply -f`.
 ### 2. Install the Operator
 
 **Install from source:**
+
 ```bash
 # Clone the repository
 git clone https://github.com/Netcracker/qubership-monitoring-operator.git
@@ -163,6 +170,7 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 ```
 
 **What gets installed automatically:**
+
 - **Monitoring Operator** - manages monitoring stack lifecycle
 - **VictoriaMetrics Operator** - enabled
 - **VictoriaMetrics Single** - time series database with 14d retention
@@ -178,8 +186,9 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 - **Prometheus Rules** - basic alerting rules
 
 **What's disabled by default:**
+
 - All cloud exporters (AWS, Azure, GCP)
-- All optional exporters (blackbox, cert, json, etc.)
+- All optional exporters (blackbox, cert, JSON, etc.)
 - Prometheus Adapter for HPA
 - Integrations (Graphite, Promxy)
 
@@ -211,24 +220,29 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 ## Documentation
 
 ### Quick Guides
+
 - **[Installation Guide](https://netcracker.github.io/qubership-monitoring-operator/installation/)** - Detailed installation instructions
 - **[Configuration Guide](https://netcracker.github.io/qubership-monitoring-operator/configuration/)** - Complete configuration options
 - **[Troubleshooting](https://netcracker.github.io/qubership-monitoring-operator/troubleshooting/)** - Common issues and solutions
 
 ### API Reference
+
 - **[PlatformMonitoring](https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/)** - Main custom resource reference
 - **[PrometheusAdapter](https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/)** - HPA metrics adapter configuration
 
 ### Default Monitoring
+
 - **[Metrics](https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/)** - Out-of-the-box metrics collection
 - **[Alerts](https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/)** - Pre-configured alerting rules
 - **[Dashboards](https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/)** - Built-in Grafana dashboards
 
 ### Examples
+
 - **[Service Monitoring](https://netcracker.github.io/qubership-monitoring-operator/examples/)** - Monitor your applications
 - **[Cloud Watch Integration](https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/)** - Cloud provider integrations
 
-### Architecture
+### Architecture Overview
+
 - **[Architecture Overview](https://netcracker.github.io/qubership-monitoring-operator/architecture/)** - Detailed system architecture
 
 ## Contributing

@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "grafana-operator.fullname" . }}
-  namespace: {{ include "grafana-operator.namespace" . }}
+  name: {{ include "grafana-operator-converter.fullname" . }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
   labels:
-    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator.name" .)) | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator-converter.name" .) "component" (include "grafana-operator-converter.name" .)) | nindent 4 }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/version: {{ include "grafana-operator-converter.version" . }}
     app.kubernetes.io/technology: go
     {{- if .Values.additionalLabels }}
     {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
@@ -15,7 +15,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "grafana-operator.name" . }}
+      app.kubernetes.io/name: {{ include "grafana-operator-converter.name" . }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -23,9 +23,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator.name" .)) | nindent 8 }}
+        {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator-converter.name" .) "component" (include "grafana-operator-converter.name" .)) | nindent 8 }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+        app.kubernetes.io/version: {{ include "grafana-operator-converter.version" . }}
         app.kubernetes.io/technology: go
         {{- if .Values.additionalLabels }}
         {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 8 }}
@@ -35,25 +35,25 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "grafana-operator.serviceAccountName" . }}
+      serviceAccountName: {{ include "grafana-operator-converter.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "grafana-operator-converter.name" . }}
           {{- with .Values.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: {{ include "grafana-operator-converter.image" . }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: WATCH_NAMESPACE
               {{- if and .Values.namespaceScope (eq .Values.watchNamespaces "") }}
-              value: {{ .Release.Namespace }}
+              value: {{ .Release.Namespace | quote }}
               {{ else }}
-              value: {{ .Values.watchNamespaces }}
+              value: {{ .Values.watchNamespaces | quote }}
               {{- end }}
             - name: WATCH_NAMESPACE_SELECTOR
               {{- if and .Values.namespaceScope (eq .Values.watchNamespaceSelector "") }}

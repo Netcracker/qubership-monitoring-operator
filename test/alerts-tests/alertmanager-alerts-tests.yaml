@@ -1,0 +1,78 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 1m
+tests:
+- interval: 1m
+  input_series:
+  - series: 'alertmanager_config_last_reload_successful'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: AlertManager
+    alertname: PrometheusAlertmanagerConfigurationReloadFailure
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+      exp_annotations:
+        summary: "Prometheus AlertManager configuration reload failure (instance )"
+        description: "AlertManager configuration reload error\n  VALUE = 0\n  LABELS: map[__name__:alertmanager_config_last_reload_successful alertgroup:AlertManager alertname:PrometheusAlertmanagerConfigurationReloadFailure severity:warning]"
+
+- interval: 1m
+  input_series:
+  - series: 'alertmanager_config_last_reload_successful'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: AlertManager
+    alertname: PrometheusAlertmanagerConfigurationReloadFailure
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_notifications_alertmanagers_discovered'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: AlertManager
+    alertname: PrometheusNotConnectedToAlertmanager
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+      exp_annotations:
+        summary: "Prometheus not connected to alertmanager (instance )"
+        description: "Prometheus cannot connect the alertmanager\n  VALUE = 0\n  LABELS: map[__name__:prometheus_notifications_alertmanagers_discovered alertgroup:AlertManager alertname:PrometheusNotConnectedToAlertmanager severity:critical]"
+
+- interval: 1m
+  input_series:
+  - series: 'prometheus_notifications_alertmanagers_discovered'
+    values: "1x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: AlertManager
+    alertname: PrometheusNotConnectedToAlertmanager
+    exp_alerts: []
+
+- interval: 1m
+  input_series:
+  - series: 'alertmanager_notifications_failed_total'
+    values: "120+120x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: AlertManager
+    alertname: PrometheusAlertmanagerNotificationFailing
+    exp_alerts:
+    - exp_labels:
+        severity: high
+      exp_annotations:
+        summary: "Prometheus AlertManager notification failing (instance )"
+        description: "Alertmanager is failing sending notifications\n  VALUE = 2\n  LABELS: map[alertgroup:AlertManager alertname:PrometheusAlertmanagerNotificationFailing severity:high]"
+
+- interval: 1m
+  input_series:
+  - series: 'alertmanager_notifications_failed_total'
+    values: "0x1440"
+  alert_rule_test:
+  - eval_time: 15m
+    groupname: AlertManager
+    alertname: PrometheusAlertmanagerNotificationFailing
+    exp_alerts: []

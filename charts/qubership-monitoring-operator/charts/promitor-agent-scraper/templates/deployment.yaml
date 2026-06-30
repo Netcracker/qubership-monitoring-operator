@@ -60,6 +60,14 @@ spec:
         - name: config-volume-{{ .Values.name }}
           configMap:
             name: {{ .Values.name }}
+      {{- if or (.Values.azureAuthentication.identity.key) (eq .Values.secrets.createSecret false) }}
+        - name: azure-auth-secret
+          secret:
+            secretName: {{ .Values.secrets.secretName }}
+            items:
+              - key: {{ .Values.secrets.appKeySecret }}
+                path: appkey
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
@@ -71,19 +79,16 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-          env:
-          {{- if or (.Values.azureAuthentication.identity.key) (eq .Values.secrets.createSecret false) }}
-          - name: PROMITOR_AUTH_APPKEY
-            valueFrom:
-              secretKeyRef:
-                  name: {{ .Values.secrets.secretName }}
-                  key: {{ .Values.secrets.appKeySecret }}
-          {{- end}}
           resources:
             {{ include "promitor.agentScraper.resources" $ }}
           volumeMounts:
           - name: config-volume-{{ .Values.name }}
             mountPath: /config/
+          {{- if or (.Values.azureAuthentication.identity.key) (eq .Values.secrets.createSecret false) }}
+          - name: azure-auth-secret
+            mountPath: /etc/promitor/secrets
+            readOnly: true
+          {{- end }}
           livenessProbe:
             failureThreshold: 3
             httpGet:

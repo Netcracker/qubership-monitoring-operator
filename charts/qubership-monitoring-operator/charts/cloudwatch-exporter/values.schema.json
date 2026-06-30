@@ -14,28 +14,28 @@
         },
         "aws": {
             "type": "object",
-            "description": "AWS credentials configuration for CloudWatch access.",
+            "description": "AWS authentication configuration. Credentials are loaded from a file mounted into the container at /root/.aws/credentials and are never passed as environment variables.",
             "properties": {
                 "aws_access_key_id": {
                     "type": "string",
-                    "description": "AWS access key ID to authenticate with AWS if not using a credentials secret."
+                    "description": "AWS access key ID for the chart-managed credentials Secret. Do not set when using aws.secret.name or IRSA."
                 },
                 "aws_secret_access_key": {
                     "type": "string",
-                    "description": "AWS secret access key to authenticate with AWS if not using a credentials secret."
+                    "description": "AWS secret access key for the chart-managed credentials Secret. Do not set when using aws.secret.name or IRSA."
                 },
                 "secret": {
                     "type": "object",
-                    "description": "Reference to a pre-created Kubernetes Secret containing AWS credentials.",
+                    "description": "Reference to a pre-created Kubernetes Secret that contains the AWS credentials file in INI format under the 'credentials' data key.",
                     "properties": {
-                        "includesSessionToken": {
-                            "type": "boolean",
-                            "description": "Indicates whether the referenced secret contains a session token field.",
-                            "default": false
-                        },
                         "name": {
                             "type": "string",
-                            "description": "Name of the Kubernetes Secret that stores AWS credentials."
+                            "description": "Name of the pre-created Kubernetes Secret. When set, the chart does not create its own Secret."
+                        },
+                        "includesSessionToken": {
+                            "type": "boolean",
+                            "description": "Backward-compatible flag kept for values compatibility. Ignored for file-based credentials flow.",
+                            "default": false
                         }
                     }
                 }

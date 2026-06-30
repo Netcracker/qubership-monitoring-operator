@@ -2,6 +2,7 @@ package alertmanager
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -45,19 +46,6 @@ func (r *AlertManagerReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				return err
 			}
 
-			// Reconcile Ingress (version v1beta1) if necessary and the cluster is has such API
-			// This API unavailable in k8s v1.22+
-			if r.HasIngressV1beta1Api() {
-				if cr.Spec.AlertManager.Ingress != nil && cr.Spec.AlertManager.Ingress.IsInstall() {
-					if err := r.handleIngressV1beta1(cr); err != nil {
-						return err
-					}
-				} else {
-					if err := r.deleteIngressV1beta1(cr); err != nil {
-						r.Log.Error(err, "Can not delete Ingress")
-					}
-				}
-			}
 			// Reconcile Ingress (version v1) if necessary and the cluster is has such API
 			// This API available in k8s v1.19+
 			if r.HasIngressV1Api() {
@@ -70,6 +58,32 @@ func (r *AlertManagerReconciler) Run(cr *monv1.PlatformMonitoring) error {
 						r.Log.Error(err, "Can not delete Ingress")
 					}
 				}
+			}
+			ingressHost := ""
+			if cr.Spec.AlertManager.Ingress != nil {
+				ingressHost = cr.Spec.AlertManager.Ingress.Host
+			}
+			parentRefs := []monv1.GatewayParentRef(nil)
+			if cr.Spec.GatewayAPI != nil {
+				parentRefs = cr.Spec.GatewayAPI.ParentRefs
+			}
+			serviceName := utils.AlertmanagerServiceName
+			servicePort := int32(utils.AlertmanagerServicePort)
+			if cr.Spec.Auth != nil && cr.Spec.OAuthProxy != nil {
+				serviceName = utils.AlertmanagerOAuthProxyServiceName
+				servicePort = int32(utils.OAuthProxyServicePort)
+			}
+			if err := gateway.ReconcileGatewayRoutes(r.ComponentReconciler, cr, gateway.GatewayRouteConfig{
+				NamePrefix:     cr.GetNamespace() + "-" + utils.AlertManagerComponentName,
+				Namespace:      cr.GetNamespace(),
+				Host:           ingressHost,
+				ServiceName:    serviceName,
+				ServicePort:    servicePort,
+				Labels:         map[string]string{"name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.AlertManagerComponentName), "app.kubernetes.io/name": utils.TruncLabel(cr.GetNamespace() + "-" + utils.AlertManagerComponentName), "app.kubernetes.io/instance": utils.GetInstanceLabel(cr.GetNamespace()+"-"+utils.AlertManagerComponentName, cr.GetNamespace()), "app.kubernetes.io/version": utils.GetTagFromImage(cr.Spec.AlertManager.Image)},
+				ParentRefs:     parentRefs,
+				ComponentRoute: cr.Spec.AlertManager.HTTPRoute,
+			}); err != nil {
+				return err
 			}
 
 			if cr.Spec.AlertManager.PodMonitor != nil && cr.Spec.AlertManager.PodMonitor.IsInstall() {
@@ -111,19 +125,30 @@ func (r *AlertManagerReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if err := r.deletePodMonitor(cr); err != nil {
 		r.Log.Error(err, "Can not delete PodMonitor")
 	}
-	// Try to delete Ingress (version v1beta1) is there is such API
-	// This API unavailable in k8s v1.22+
-	if r.HasIngressV1beta1Api() {
-		if err := r.deleteIngressV1beta1(cr); err != nil {
-			r.Log.Error(err, "Can not delete Ingress")
-		}
-	}
 	// Try to delete Ingress (version v1) is there is such API
 	// This API available in k8s v1.19+
 	if r.HasIngressV1Api() {
 		if err := r.deleteIngressV1(cr); err != nil {
 			r.Log.Error(err, "Can not delete Ingress")
 		}
+	}
+	parentRefs := []monv1.GatewayParentRef(nil)
+	if cr.Spec.GatewayAPI != nil {
+		parentRefs = cr.Spec.GatewayAPI.ParentRefs
+	}
+	var componentRoute *monv1.GatewayHTTPRoute
+	if cr.Spec.AlertManager != nil {
+		componentRoute = cr.Spec.AlertManager.HTTPRoute
+	}
+	if err := gateway.DeleteGatewayRoutes(r.ComponentReconciler, gateway.GatewayRouteConfig{
+		NamePrefix:     cr.GetNamespace() + "-" + utils.AlertManagerComponentName,
+		Namespace:      cr.GetNamespace(),
+		ServiceName:    utils.AlertmanagerServiceName,
+		ServicePort:    int32(utils.AlertmanagerServicePort),
+		ParentRefs:     parentRefs,
+		ComponentRoute: componentRoute,
+	}); err != nil {
+		r.Log.Error(err, "Can not delete Gateway API routes.")
 	}
 
 }

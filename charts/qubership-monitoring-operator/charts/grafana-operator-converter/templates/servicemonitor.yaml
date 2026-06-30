@@ -1,11 +1,11 @@
-{{- if.Values.serviceMonitor.enabled -}}
+{{- if .Values.serviceMonitor.enabled -}}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "grafana-operator.fullname" . }}
-  namespace: {{ include "grafana-operator.namespace" . }}
+  name: {{ include "grafana-operator-converter.fullname" . }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
   labels:
-    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator.name" .)) | nindent 4 }}
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "grafana-operator-converter.name" .) "component" (include "grafana-operator-converter.name" .)) | nindent 4 }}
     app.kubernetes.io/processed-by-operator: prometheus-operator
     {{- if .Values.additionalLabels }}
     {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.additionalLabels) | nindent 4 }}
@@ -20,7 +20,7 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "grafana-operator.name" . }}
+      app.kubernetes.io/name: {{ include "grafana-operator-converter.name" . }}
   endpoints:
     - port: metrics
       path: {{ .Values.serviceMonitor.telemetryPath }}

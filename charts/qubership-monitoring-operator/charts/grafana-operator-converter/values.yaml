@@ -30,13 +30,11 @@ env: []
 # - name: MY_VAR
 # value: "myvalue"
 
-image:
-  # -- grafana operator converter image repository
-  repository: ghcr.io/netcracker/qubership-grafana-operator-converter
-  # -- The image pull policy to use in grafana operator container
-  pullPolicy: IfNotPresent
-  # -- Overrides the image tag whose default is the chart appVersion.
-  tag: "main"
+# -- grafana operator converter image
+image: ghcr.io/netcracker/qubership-grafana-operator-converter:main
+
+# -- The image pull policy to use in grafana operator converter container
+imagePullPolicy: IfNotPresent
 
 # -- image pull secrets
 imagePullSecrets: []

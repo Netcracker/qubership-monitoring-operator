@@ -16,7 +16,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -34,6 +33,8 @@ func vmAuthServiceAccount(cr *monv1.PlatformMonitoring) (*corev1.ServiceAccount,
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
 	sa.SetName(cr.GetNamespace() + "-" + utils.VmAuthComponentName)
 	sa.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&sa, utils.BaseOnlyLabelInput(sa.GetName(), utils.VmAuthComponentName), nil)
 
 	return &sa, nil
 }
@@ -63,6 +64,8 @@ func vmAuthClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbac
 		})
 	}
 
+	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAuthComponentName), nil)
+
 	return &clusterRole, nil
 }
 
@@ -82,6 +85,9 @@ func vmAuthClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
 	}
+
+	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAuthComponentName), nil)
+
 	return &clusterRoleBinding, nil
 }
 
@@ -94,6 +100,9 @@ func vmAuthRole(cr *monv1.PlatformMonitoring) (*rbacv1.Role, error) {
 	role.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"})
 	role.SetName(cr.GetNamespace() + "-" + utils.VmAuthComponentName)
 	role.SetNamespace(cr.GetNamespace())
+
+	utils.SetLabelsForResource(&role, utils.BaseOnlyLabelInput(role.GetName(), utils.VmAuthComponentName), nil)
+
 	return &role, nil
 }
 
@@ -114,6 +123,9 @@ func vmAuthRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBinding, error
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
 	}
+
+	utils.SetLabelsForResource(&roleBinding, utils.BaseOnlyLabelInput(roleBinding.GetName(), utils.VmAuthComponentName), nil)
+
 	return &roleBinding, nil
 }
 
@@ -353,27 +365,23 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 			maps.Copy(vmauth.Spec.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmauthTLSSecretName(cr.Spec.Victoriametrics.VmAuth) + "/tls.key"})
 		}
 
-		// Set labels
-		vmauth.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(vmauth.GetName(), vmauth.GetNamespace())
-		vmauth.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
+		// Set labels via centralized API (CR: base + processed-by-operator in ComponentLabels)
+		in := utils.LabelInput{
+			Name:            vmauth.GetName(),
+			Component:       utils.VmAuthComponentName,
+			Instance:        utils.GetInstanceLabel(vmauth.GetName(), vmauth.GetNamespace()),
+			Version:         utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image),
+			Technology:      "go",
+			ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "victoriametrics-operator"},
+		}
+		utils.SetLabelsForResource(&vmauth, in, nil)
 
-		vmauth.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{Labels: map[string]string{
-			"name":                         utils.TruncLabel(vmauth.GetName()),
-			"app.kubernetes.io/name":       utils.TruncLabel(vmauth.GetName()),
-			"app.kubernetes.io/instance":   utils.GetInstanceLabel(vmauth.GetName(), vmauth.GetNamespace()),
-			"app.kubernetes.io/component":  "victoriametrics",
-			"app.kubernetes.io/part-of":    "monitoring",
-			"app.kubernetes.io/managed-by": "monitoring-operator",
-			"app.kubernetes.io/version":    utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image),
-		}}
+		// Set PodMetadata.Labels (same procedure as resource metadata)
+		vmauth.Spec.PodMetadata = &vmetricsv1b1.EmbeddedObjectMetadata{
+			Labels: in.Labels(nil),
+		}
 
 		if vmauth.Spec.PodMetadata != nil {
-			if cr.Spec.Victoriametrics.VmAuth.Labels != nil {
-				for k, v := range cr.Spec.Victoriametrics.VmAuth.Labels {
-					vmauth.Spec.PodMetadata.Labels[k] = v
-				}
-			}
-
 			if vmauth.Spec.PodMetadata.Annotations == nil && cr.Spec.Victoriametrics.VmAuth.Annotations != nil {
 				vmauth.Spec.PodMetadata.Annotations = cr.Spec.Victoriametrics.VmAuth.Annotations
 			} else {
@@ -401,50 +409,153 @@ func vmAuthIngress(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) 
 	ingress.SetNamespace(cr.GetNamespace())
 
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAuth.Ingress != nil && cr.Spec.Victoriametrics.VmAuth.Ingress.IsInstall() {
-		// Check that ingress host is specified.
-		if cr.Spec.Victoriametrics.VmAuth.Ingress.Host == "" {
-			return nil, errors.New("host for ingress can not be empty")
-		}
-
-		var ingressServiceBackend *networkingv1.IngressServiceBackend
-		if cr.Spec.Auth != nil && cr.Spec.OAuthProxy != nil {
-			ingressServiceBackend = &networkingv1.IngressServiceBackend{
-				Name: utils.VmAuthOAuthProxyServiceName,
-				Port: networkingv1.ServiceBackendPort{
-					Name: utils.OAuthProxyServicePortName,
-				},
-			}
-		} else {
-			ingressServiceBackend = &networkingv1.IngressServiceBackend{
-				Name: utils.VmAuthServiceName,
-				Port: networkingv1.ServiceBackendPort{
-					Number: utils.VmAuthServicePort,
-				},
-			}
-		}
-
+		var rules []networkingv1.IngressRule
 		pathType := networkingv1.PathTypePrefix
-		rule := networkingv1.IngressRule{Host: cr.Spec.Victoriametrics.VmAuth.Ingress.Host}
-		rule.HTTP = &networkingv1.HTTPIngressRuleValue{
-			Paths: []networkingv1.HTTPIngressPath{
-				{
-					Path:     "/",
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: ingressServiceBackend,
+		ing := cr.Spec.Victoriametrics.VmAuth.Ingress
+
+		switch {
+		// 1. If custom ingress rules provided
+		case len(ing.Rules) > 0:
+			for _, r := range ing.Rules {
+				// fallback if HTTP is not set
+				if r.HTTP == nil || len(r.HTTP.Paths) == 0 {
+					r.HTTP = &monv1.HTTPIngressRuleValue{
+						Paths: []monv1.IngressPath{
+							{
+								Path:     "/",
+								PathType: string(pathType),
+								Backend: monv1.IngressPathBackend{
+									Service: monv1.IngressPathBackendService{
+										Name: utils.VmAuthServiceName,
+										Port: monv1.ServiceBackendPort{
+											Number: utils.VmAuthServicePort,
+										},
+									},
+								},
+							},
+						},
+					}
+				}
+
+				// converting to k8s networkingv1
+				var paths []networkingv1.HTTPIngressPath
+				for _, p := range r.HTTP.Paths {
+					pt := networkingv1.PathTypePrefix
+					if p.PathType != "" {
+						pt = networkingv1.PathType(p.PathType)
+					}
+
+					backendPort := networkingv1.ServiceBackendPort{}
+					if p.Backend.Service.Port.Number != 0 {
+						backendPort.Number = p.Backend.Service.Port.Number
+					} else {
+						backendPort.Name = p.Backend.Service.Port.Name
+					}
+
+					paths = append(paths, networkingv1.HTTPIngressPath{
+						Path:     p.Path,
+						PathType: &pt,
+						Backend: networkingv1.IngressBackend{
+							Service: &networkingv1.IngressServiceBackend{
+								Name: p.Backend.Service.Name,
+								Port: backendPort,
+							},
+						},
+					})
+				}
+
+				rules = append(rules, networkingv1.IngressRule{
+					Host: r.Host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{Paths: paths},
+					},
+				})
+			}
+
+		// 2. If Host is provided
+		case ing.Host != "":
+			rules = append(rules, networkingv1.IngressRule{
+				Host: ing.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAuthPath(pathType)},
 					},
 				},
-			},
-		}
-		ingress.Spec.Rules = []networkingv1.IngressRule{rule}
+			})
 
-		// Configure TLS if TLS secret name is set
-		if cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName != "" {
-			ingress.Spec.TLS = []networkingv1.IngressTLS{
-				{
-					Hosts:      []string{cr.Spec.Victoriametrics.VmAuth.Ingress.Host},
-					SecretName: cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName,
+		// 3. fallback: if no custom ingress rules or Host provided
+		default:
+			rules = append(rules, networkingv1.IngressRule{
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{defaultVmAuthPath(pathType)},
+					},
 				},
+			})
+		}
+		ingress.Spec.Rules = rules
+
+		tlsConfigured := false
+		// Configure tls if TLS config is defined
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAuth.Ingress.TLS) > 0 {
+			for _, hostgroup := range cr.Spec.Victoriametrics.VmAuth.Ingress.TLS {
+				if len(hostgroup.Hosts) == 0 {
+					continue
+				}
+				validHosts := make([]string, 0, len(hostgroup.Hosts))
+				for _, h := range hostgroup.Hosts {
+					if strings.TrimSpace(h) != "" {
+						validHosts = append(validHosts, h)
+					}
+				}
+				if len(validHosts) == 0 {
+					continue
+				}
+				secret := hostgroup.SecretName
+				// fallback: if secretName is empty - use ingress TLSSecretName only
+				if secret == "" {
+					secret = cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName
+				}
+				if secret != "" {
+					ingress.Spec.TLS = append(ingress.Spec.TLS, networkingv1.IngressTLS{
+						Hosts:      validHosts,
+						SecretName: secret,
+					})
+				}
+			}
+			if len(ingress.Spec.TLS) > 0 {
+				tlsConfigured = true
+			}
+		}
+		// Configure TLS if TLS secret name and host is set
+		if !tlsConfigured && cr.Spec.Victoriametrics.VmAuth.Ingress.Host != "" {
+			secret := cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName
+			if secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      []string{cr.Spec.Victoriametrics.VmAuth.Ingress.Host},
+						SecretName: secret,
+					},
+				}
+				tlsConfigured = true
+			}
+		}
+		// Fallback: use ingress rules to configure tls hosts and TLSSecretName
+		if !tlsConfigured && len(cr.Spec.Victoriametrics.VmAuth.Ingress.Rules) > 0 {
+			tlsHosts := []string{}
+			secret := cr.Spec.Victoriametrics.VmAuth.Ingress.TLSSecretName
+			for _, rule := range cr.Spec.Victoriametrics.VmAuth.Ingress.Rules {
+				if rule.Host != "" {
+					tlsHosts = append(tlsHosts, rule.Host)
+				}
+			}
+			if len(tlsHosts) > 0 && secret != "" {
+				ingress.Spec.TLS = []networkingv1.IngressTLS{
+					{
+						Hosts:      tlsHosts,
+						SecretName: secret,
+					},
+				}
 			}
 		}
 
@@ -453,7 +564,7 @@ func vmAuthIngress(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) 
 		}
 
 		// Set annotations
-		ingress.SetAnnotations(cr.Spec.Victoriametrics.VmAuth.Ingress.Annotations)
+		ingress.SetAnnotations(utils.GetIngressAnnotationsForGateway(cr, cr.Spec.Victoriametrics.VmAuth.Ingress.Annotations))
 		if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 			if ingress.GetAnnotations() == nil {
 				annotation := make(map[string]string)
@@ -464,13 +575,27 @@ func vmAuthIngress(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) 
 			}
 		}
 
-		// Set labels with saving default labels
-		ingress.Labels["name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/name"] = utils.TruncLabel(ingress.GetName())
-		ingress.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(ingress.GetName(), ingress.GetNamespace())
-		ingress.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmAuth.Image)
-
-		ingress.SetLabels(labels.Merge(ingress.GetLabels(), cr.Spec.Victoriametrics.VmAuth.Ingress.Labels))
+		// Set labels via centralized API (Ingress: base only per spec)
+		in := utils.BaseOnlyLabelInput(ingress.GetName(), utils.VmAuthComponentName)
+		if len(cr.Spec.Victoriametrics.VmAuth.Ingress.Labels) > 0 {
+			in.ComponentLabels = cr.Spec.Victoriametrics.VmAuth.Ingress.Labels
+		}
+		utils.SetLabelsForResource(&ingress, in, nil)
 	}
 	return &ingress, nil
+}
+
+func defaultVmAuthPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+	return networkingv1.HTTPIngressPath{
+		Path:     "/",
+		PathType: &pathType,
+		Backend: networkingv1.IngressBackend{
+			Service: &networkingv1.IngressServiceBackend{
+				Name: utils.VmAuthServiceName,
+				Port: networkingv1.ServiceBackendPort{
+					Number: utils.VmAuthServicePort,
+				},
+			},
+		},
+	}
 }
