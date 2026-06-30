@@ -101,7 +101,7 @@
       "versioning": "docker"
     },
     {
-      "description": "Group Netcracker docker images (overrides third-party-images group)",
+      "description": "Group Netcracker image dependencies (overrides third-party-images group)",
       "matchManagers": ["custom.regex", "dockerfile"],
       "matchPackageNames": [
         "Netcracker/qubership-grafana-plugins-init",
