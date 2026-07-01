@@ -48,7 +48,7 @@ jobs:
       platforms: ${{ steps.load_component.outputs.platforms }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
@@ -145,13 +145,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
           persist-credentials: false
       - name: Run Release Drafter
-        uses: netcracker/release-drafter@86f4276a3894b5af70480e826c32fe3648ac6a70 # v1.0.0
+        uses: netcracker/release-drafter@130c08399304912ffe90e9604e4328f2fdcd7619 # v1.0.1
         with:
           config-name: release-drafter-config.yml
           publish: 'false'
@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
