@@ -35,6 +35,9 @@ jobs:
       contents: read
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     # Only deploy from main branch, not from PRs
     if: github.ref == 'refs/heads/main'
     steps:
