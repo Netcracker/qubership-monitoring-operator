@@ -11,18 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-
-// isSecretUpdated is set to true when the admin credentials secret changes
-// between reconcile cycles and must be reset via grafana cli.
-var isSecretUpdated = false
-
-// currentAdminSecretChecksum holds the SHA256 of the admin credentials secret
-// computed during the last reconcile. Written into the Grafana CR pod-template
-// annotation so grafana-operator triggers a rolling restart on secret change.
-var currentAdminSecretChecksum string
-
-// adminSecretChecksumAnnotation is the pod-template annotation key used to
-// propagate the admin secret checksum and drive rolling restarts.
+// adminSecretChecksumAnnotation propagates the admin password checksum to the pod template.
 const adminSecretChecksumAnnotation = "checksum/admin-secret"
 
 type GrafanaReconciler struct {
@@ -54,11 +43,12 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
+			credentialsSyncState, err := r.handleGrafanaCredentialsSecret(cr)
+			if err != nil {
 				return err
 			}
 			// Reconcile resources with creation and update
-			if err := r.handleGrafana(cr); err != nil {
+			if err := r.handleGrafana(cr, credentialsSyncState.adminPasswordChecksum); err != nil {
 				return err
 			}
 			if err := r.handleGrafanaDataSource(cr); err != nil {
@@ -122,7 +112,7 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			// secret has changed. This handles both PV and non-PV deployments:
 			// the rolling restart triggered by the checksum annotation handles
 			// the emptyDir case; the grafana cli exec handles the PV case.
-			if isSecretUpdated {
+			if credentialsSyncState.resetPassword {
 				if err := r.resetGrafanaCredentials(cr); err != nil {
 					r.Log.Error(err, "Cannot reset Grafana credentials")
 					return err

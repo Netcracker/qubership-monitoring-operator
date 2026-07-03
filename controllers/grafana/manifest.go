@@ -117,6 +117,10 @@ func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string
 }
 
 func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
+	return grafanaWithAdminPasswordChecksum(cr, "")
+}
+
+func grafanaWithAdminPasswordChecksum(cr *monv1.PlatformMonitoring, adminPasswordChecksum string) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -563,8 +567,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 			// Propagate the admin secret checksum so grafana-operator triggers a rolling
 			// restart of the Grafana Deployment when the secret changes.
-			if currentAdminSecretChecksum != "" {
-				deployment.Spec.Template.Annotations[adminSecretChecksumAnnotation] = currentAdminSecretChecksum
+			if adminPasswordChecksum != "" {
+				deployment.Spec.Template.Annotations[adminSecretChecksumAnnotation] = adminPasswordChecksum
 			}
 		}
 

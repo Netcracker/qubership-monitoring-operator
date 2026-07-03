@@ -16,9 +16,11 @@ have no auth inside the Cloud.
 
 ### Grafana deploy
 
-In current versions the **single source of truth** for Grafana admin credentials is the
-`{grafana-name}-admin-credentials` Secret (default name: `grafana-admin-credentials`).
-The Grafana pod reads admin user and password from files mounted from this Secret via
+The `{grafana-name}-admin-credentials` Secret (default name: `grafana-admin-credentials`)
+provides Grafana admin credentials. The Secret must be in the Grafana namespace. By default,
+that is the Helm release namespace. If `grafana.namespace` is set, use that namespace.
+
+The Grafana pod reads the admin user and password from files mounted from this Secret by using
 Grafana file provider (`$__file{...}`) in `grafana.ini`:
 
 - `/etc/grafana-admin/GF_SECURITY_ADMIN_USER`
@@ -38,7 +40,7 @@ grafana:
     admin_password: admin
 ```
 
-Behaviour:
+Behavior:
 
 - By default `admin_user` and `admin_password` are set to `admin/admin`.
 - If you set any of them to an empty string `""`, Helm will:
@@ -73,14 +75,17 @@ grafana:
 
 #### First start vs secret change (operator behaviour)
 
-| Phase                           | Who applies credentials                                                                  | Monitoring Operator action                                                                                                                                                           |
-|---------------------------------|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **First install**               | Grafana reads mounted secret files on startup and creates the admin user in its database | Does **not** run `grafana cli admin reset-admin-password` (Grafana CR does not exist yet on the first credential check)                                                              |
-| **Secret changed after deploy** | Secret is the source of truth                                                            | Detects checksum change, updates Grafana CR pod-template annotation `checksum/admin-secret` (rolling restart), then runs `grafana cli admin reset-admin-password` in the Grafana pod |
+| Phase                             | Who applies credentials                                                                  | Monitoring Operator action                                                                                                                                                                    |
+|-----------------------------------|------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **First install**                 | Grafana reads mounted secret files on startup and creates the admin user in its database | Does **not** run `grafana cli admin reset-admin-password` (Grafana CR does not exist yet on the first credential check)                                                                       |
+| **Password changed after deploy** | Secret password is the source of truth                                                   | Detects password checksum change, updates Grafana CR pod-template annotation `checksum/admin-secret` (rolling restart), then runs `grafana cli admin reset-admin-password` in the Grafana pod |
 
 On deployments with a **Persistent Volume**, Grafana ignores `admin_password` from config once the admin user
 already exists in the database. The CLI reset step is required in that case. On deployments without PV,
 the rolling restart alone is often sufficient; the CLI reset is still executed and is idempotent.
+
+Runtime sync supports `GF_SECURITY_ADMIN_PASSWORD`. Changing `GF_SECURITY_ADMIN_USER` after the admin user already
+exists does not rename the database user.
 
 **Reconcile interval:** credential sync runs on the next PlatformMonitoring reconcile cycle (default ~60 seconds
 after the Secret is updated).
@@ -129,7 +134,7 @@ This section describes how to change user credentials in runtime.
 
 ### Grafana admin password change
 
-To change Grafana's admin password in runtime, edit the `grafana-admin-credentials` Secret.
+To change Grafana's admin password at runtime, edit the `grafana-admin-credentials` Secret.
 This is the **only supported** way to keep Kubernetes and the running Grafana instance in sync.
 
 Find it in the namespace with Monitoring, for example using a command:
@@ -181,7 +186,7 @@ secret/grafana-admin-credentials edited
 #### What happens after the Secret is updated
 
 Monitoring Operator reconciles PlatformMonitoring on a timer (default every 60 seconds). When it
-detects that the Secret checksum differs from `checksum/admin-secret` on the Grafana CR pod template:
+detects that the password checksum differs from `checksum/admin-secret` on the Grafana CR pod template:
 
 1. Updates the Grafana CR with the new checksum annotation (grafana-operator performs a rolling restart
    of the Grafana Deployment).
@@ -191,8 +196,8 @@ detects that the Secret checksum differs from `checksum/admin-secret` on the Gra
 Expected log messages (`monitoring-operator` deployment logs):
 
 ```text
-Admin credentials secret changed; Grafana credentials will be reset
-Waiting for Grafana pods readiness before credential reset
+Grafana admin password changed; Grafana credentials will be reset
+Waiting for a ready Grafana pod before credential reset
 Grafana admin credentials reset successfully
 ```
 

@@ -13,6 +13,22 @@
 #
 install: true
 
+# Custom Grafana CR name.
+# The admin credentials Secret name follows this value: {name}-admin-credentials.
+# Type: string
+# Mandatory: no
+# Default: grafana
+#
+# name: grafana
+
+# Namespace where the Grafana CR and Grafana pod run.
+# The admin credentials Secret and OAuth client Secret must be in the same namespace.
+# Type: string
+# Mandatory: no
+# Default: release namespace
+#
+# namespace: monitoring
+
 # A docker image to use for grafana-operator deployment
 # Type: string
 # Mandatory: no
@@ -194,7 +210,7 @@ config:
 # Set to "" to auto-generate a random value on first install; subsequent helm upgrades will
 # preserve the generated value.
 # Backward compatibility: if config.security.admin_user / config.security.admin_password are set,
-# they override these values when rendering the secret (single source of truth remains the secret).
+# they override these values when rendering the secret. Runtime sync applies password changes.
 # Type: object
 # Mandatory: no
 #
