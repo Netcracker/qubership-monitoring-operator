@@ -42,18 +42,21 @@ jobs:
         id: config
         env:
           ACTOR: ${{ github.actor }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
         run: |
           restricted=$(python3 -c "
           import yaml, os
           with open('.github/config/build-config.yaml') as f:
               config = yaml.safe_load(f)
           actors = config.get('restricted-actors', [])
-          print('true' if os.environ['ACTOR'] in actors else 'false')
+          current_actors = [os.environ['ACTOR'], os.environ.get('PR_AUTHOR', '')]
+          print('true' if any(actor in actors for actor in current_actors) else 'false')
           ")
           if [ "$restricted" = "true" ]; then
             echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
           else
-            echo "sonar-project-key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
+            echo "sonar-project-key=${SONAR_PROJECT_KEY}" >> "$GITHUB_OUTPUT"
           fi
 
   test:
@@ -68,7 +71,7 @@ jobs:
       kube-version: '1.30.0'
       envtest-version: 'release-0.19'
       skip-docker: true
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit] generic-go-build requires inherited SONAR_TOKEN.
     permissions:
       contents: read
       pull-requests: write
