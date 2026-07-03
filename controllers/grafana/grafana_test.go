@@ -185,7 +185,7 @@ func TestGrafanaManifestCustomNameNamespaceAndSecretMounts(t *testing.T) {
 	assert.Equal(t, "password-checksum", m.Spec.Deployment.Spec.Template.Annotations[adminSecretChecksumAnnotation])
 	assert.Equal(t, "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_USER}", m.Spec.Config["security"]["admin_user"])
 	assert.Equal(t, "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_PASSWORD}", m.Spec.Config["security"]["admin_password"])
-	assert.Equal(t, "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}", m.Spec.Config["auth.generic_oauth"]["client_secret"])
+	assert.Nil(t, m.Spec.Config["auth.generic_oauth"])
 
 	adminVolume := findVolume(t, podSpec.Volumes, "grafana-admin-secret")
 	require.NotNil(t, adminVolume.Secret)
@@ -193,23 +193,140 @@ func TestGrafanaManifestCustomNameNamespaceAndSecretMounts(t *testing.T) {
 	require.NotNil(t, adminVolume.Secret.Optional)
 	assert.True(t, *adminVolume.Secret.Optional)
 
-	oauthVolume := findVolume(t, podSpec.Volumes, "grafana-oauth-secret")
-	require.NotNil(t, oauthVolume.Secret)
-	assert.Equal(t, "grafana-oauth-client-secret", oauthVolume.Secret.SecretName)
-	require.NotNil(t, oauthVolume.Secret.Optional)
-	assert.True(t, *oauthVolume.Secret.Optional)
-
 	container := podSpec.Containers[0]
 	assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{
 		Name:      "grafana-admin-secret",
 		MountPath: "/etc/grafana-admin",
 		ReadOnly:  true,
 	})
+}
+
+func TestGrafanaManifestGenericOAuthConfig(t *testing.T) {
+	insecureSkipVerify := false
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Auth: &monv1.Auth{
+				LoginURL:    "https://idp.example.com/auth",
+				TokenURL:    "https://idp.example.com/token",
+				UserInfoURL: "https://idp.example.com/userinfo",
+				TLSConfig: &monv1.TLSConfig{
+					InsecureSkipVerify: &insecureSkipVerify,
+					CASecret: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "idp.ca.secret"},
+						Key:                  "ca.crt",
+					},
+					CertSecret: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "idp-client-secret"},
+						Key:                  "tls.crt",
+					},
+					KeySecret: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "idp-client-secret"},
+						Key:                  "tls.key",
+					},
+				},
+			},
+			Grafana: &monv1.Grafana{},
+		},
+	}
+
+	m, err := grafana(cr)
+	require.NoError(t, err)
+	authSection := m.Spec.Config["auth.generic_oauth"]
+	require.NotNil(t, authSection)
+	assert.Equal(t, "true", authSection["enabled"])
+	assert.Equal(t, "https://idp.example.com/auth", authSection["auth_url"])
+	assert.Equal(t, "https://idp.example.com/token", authSection["token_url"])
+	assert.Equal(t, "https://idp.example.com/userinfo", authSection["api_url"])
+	assert.Equal(t, "openid profile", authSection["scopes"])
+	assert.Equal(t, "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}", authSection["client_secret"])
+	assert.Equal(t, "false", authSection["tls_skip_verify_insecure"])
+	assert.Equal(t, "/etc/grafana-tls/idp.ca.secret/ca.crt", authSection["tls_client_ca"])
+	assert.Equal(t, "/etc/grafana-tls/idp-client-secret/tls.crt", authSection["tls_client_cert"])
+	assert.Equal(t, "/etc/grafana-tls/idp-client-secret/tls.key", authSection["tls_client_key"])
+
+	podSpec := m.Spec.Deployment.Spec.Template.Spec
+	require.NotNil(t, podSpec)
+	oauthVolume := findVolume(t, podSpec.Volumes, "grafana-oauth-secret")
+	require.NotNil(t, oauthVolume.Secret)
+	assert.Equal(t, "grafana-oauth-client-secret", oauthVolume.Secret.SecretName)
+	require.NotNil(t, oauthVolume.Secret.Optional)
+	assert.True(t, *oauthVolume.Secret.Optional)
+
+	caVolumeName := grafanaTLSVolumeName("idp.ca.secret")
+	clientVolumeName := grafanaTLSVolumeName("idp-client-secret")
+	assert.NotContains(t, caVolumeName, ".")
+	assert.Len(t, caVolumeName, len("grafana-tls-")+16)
+
+	caVolume := findVolume(t, podSpec.Volumes, caVolumeName)
+	require.NotNil(t, caVolume.Secret)
+	assert.Equal(t, "idp.ca.secret", caVolume.Secret.SecretName)
+
+	clientVolume := findVolume(t, podSpec.Volumes, clientVolumeName)
+	require.NotNil(t, clientVolume.Secret)
+	assert.Equal(t, "idp-client-secret", clientVolume.Secret.SecretName)
+	assert.Equal(t, 1, countVolumes(podSpec.Volumes, clientVolumeName))
+
+	container := podSpec.Containers[0]
 	assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{
 		Name:      "grafana-oauth-secret",
 		MountPath: "/etc/grafana-oauth",
 		ReadOnly:  true,
 	})
+	assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{
+		Name:      caVolumeName,
+		MountPath: "/etc/grafana-tls/idp.ca.secret",
+		ReadOnly:  true,
+	})
+	assert.Contains(t, container.VolumeMounts, corev1.VolumeMount{
+		Name:      clientVolumeName,
+		MountPath: "/etc/grafana-tls/idp-client-secret",
+		ReadOnly:  true,
+	})
+}
+
+func TestGrafanaManifestEmptyAuthDoesNotEnableOAuth(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Auth:    &monv1.Auth{},
+			Grafana: &monv1.Grafana{},
+		},
+	}
+
+	m, err := grafana(cr)
+	require.NoError(t, err)
+	assert.Nil(t, m.Spec.Config["auth.generic_oauth"])
+	require.NotNil(t, m.Spec.Deployment.Spec.Template.Spec)
+	assert.Equal(t, 0, countVolumes(m.Spec.Deployment.Spec.Template.Spec.Volumes, "grafana-oauth-secret"))
+}
+
+func TestGrafanaManifestRootURLAndConfigOverride(t *testing.T) {
+	installIngress := true
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{
+				Ingress: &monv1.Ingress{
+					Install: &installIngress,
+					Host:    "grafana.example.com",
+				},
+			},
+		},
+	}
+
+	m, err := grafana(cr)
+	require.NoError(t, err)
+	assert.Equal(t, "http://grafana.example.com/", m.Spec.Config["server"]["root_url"])
+
+	cr.Spec.Grafana.Config = &runtime.RawExtension{
+		Raw: []byte(`{"server":{"root_url":"https://custom.example.com/grafana"},"auth.generic_oauth":{"scopes":"openid email profile"}}`),
+	}
+
+	m, err = grafana(cr)
+	require.NoError(t, err)
+	assert.Equal(t, "https://custom.example.com/grafana", m.Spec.Config["server"]["root_url"])
+	assert.Equal(t, "openid email profile", m.Spec.Config["auth.generic_oauth"]["scopes"])
 }
 
 func TestGrafanaManifestDeploymentOptions(t *testing.T) {
@@ -765,4 +882,14 @@ func findVolume(t *testing.T, volumes []corev1.Volume, name string) corev1.Volum
 	}
 	t.Fatalf("volume %s not found", name)
 	return corev1.Volume{}
+}
+
+func countVolumes(volumes []corev1.Volume, name string) int {
+	count := 0
+	for _, volume := range volumes {
+		if volume.Name == name {
+			count++
+		}
+	}
+	return count
 }

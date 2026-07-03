@@ -8,12 +8,16 @@ Sensitive parameters are configured via files mounted from Kubernetes Secrets:
   Grafana file provider (`$__file{...}`).
 - `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` remains a non-sensitive value and may stay in environment variables.
 
+The Secrets consumed by the Grafana pod are created in the Grafana namespace. By default, this is the release namespace.
+If `grafana.namespace` is set, the chart creates Grafana Secrets in that namespace.
+
 ## Generic OAuth (IdP integration)
 
-When `spec.auth` is populated in `PlatformMonitoring`, the Monitoring Operator configures Grafana's
-built-in [Generic OAuth](https://grafana.com/docs/grafana/latest/setup-grafana/configure-access/configure-authentication/generic-oauth/)
-provider by propagating the following fields into `spec.config["auth.generic_oauth"]` of the Grafana CR:
+When OAuth endpoint URLs are populated in `spec.auth` of `PlatformMonitoring`, the Monitoring Operator configures
+Grafana's built-in [Generic OAuth][grafana-generic-oauth] provider by propagating the following fields into
+`spec.config["auth.generic_oauth"]` of the Grafana CR:
 
+<!-- markdownlint-disable line-length -->
 | `spec.auth` field         | Grafana ini key               | Notes                                                            |
 |---------------------------|-------------------------------|------------------------------------------------------------------|
 | `loginUrl`                | `auth_url`                    | IdP authorization endpoint                                       |
@@ -22,20 +26,24 @@ provider by propagating the following fields into `spec.config["auth.generic_oau
 | _(always set)_            | `enabled` = `"true"`          | Activates Generic OAuth                                          |
 | _(always set)_            | `scopes` = `"openid profile"` | Required OIDC scopes                                             |
 | `clientSecret` (via Helm) | `client_secret`               | Read from `grafana-oauth-client-secret` Secret via file provider |
+<!-- markdownlint-enable line-length -->
 
 ### TLS configuration for OAuth
 
 When `spec.auth.tlsConfig` is set, the Monitoring Operator mounts the referenced Kubernetes Secrets
 as read-only volumes in the Grafana pod and configures the corresponding Grafana ini keys:
 
+<!-- markdownlint-disable line-length -->
 | `spec.auth.tlsConfig` field | Volume mount path                      | Grafana ini key            |
 |-----------------------------|----------------------------------------|----------------------------|
 | `caSecret`                  | `/etc/grafana-tls/<secret-name>/<key>` | `tls_client_ca`            |
 | `certSecret`                | `/etc/grafana-tls/<secret-name>/<key>` | `tls_client_cert`          |
 | `keySecret`                 | `/etc/grafana-tls/<secret-name>/<key>` | `tls_client_key`           |
 | `insecureSkipVerify`        | _(no mount)_                           | `tls_skip_verify_insecure` |
+<!-- markdownlint-enable line-length -->
 
-The referenced Secrets must exist in the same namespace as the `PlatformMonitoring` resource.
+The referenced Secrets must exist in the Grafana namespace. By default, this is the `PlatformMonitoring` namespace.
+If `grafana.namespace` is set, create the OAuth and TLS Secrets in that namespace instead.
 Each unique Secret name results in one Volume mounted at `/etc/grafana-tls/<secret-name>/`.
 If `certSecret` and `keySecret` reference the same Secret name, it is mounted only once.
 
@@ -58,6 +66,22 @@ auth:
       name: idp-client-cert
       key: tls.key
 ```
+
+## Grafana configuration defaults
+
+The operator writes these Grafana configuration defaults when the corresponding values are set:
+
+- `spec.grafana.ingress.host` sets `server.root_url` to `http://<host>/`.
+- `spec.grafana.ingress.tls` or `spec.grafana.ingress.tlsSecretName` switches the default `server.root_url` scheme
+  to `https`.
+- `spec.auth` OAuth endpoint URLs set `auth.generic_oauth` keys described above.
+
+These defaults are not emitted when the related values are empty, so a default installation without ingress or OAuth
+keeps the previous Grafana configuration. Values from `spec.grafana.config` are applied last and override operator
+defaults, including `server.root_url` and `auth.generic_oauth`.
+
+<!-- markdownlint-disable-next-line line-length -->
+[grafana-generic-oauth]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-access/configure-authentication/generic-oauth/
 
 ## Admin credentials
 
@@ -82,7 +106,7 @@ rename the database user.
 | install                    | Allows to disable deploy Grafana. If Grafana was not deployed during the deployment using helm, it can be deployed using the change custom resource PlatformMonitoring.                                                | bool                                                                                                                                            |
 | paused                     | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                                            |
 | name                       | Name of the Grafana custom resource. The admin credentials Secret name follows this value: `{name}-admin-credentials`.                                                                                                 | string                                                                                                                                          |
-| namespace                  | Namespace where the Grafana custom resource and pods run. The admin credentials Secret and OAuth client Secret must be in the same namespace.                                                                          | string                                                                                                                                          |
+| namespace                  | Namespace where the Grafana custom resource and pods run. Grafana Secrets must be in the same namespace.                                                                                                               | string                                                                                                                                          |
 | image                      | A Docker image to be used for the grafana deployment.                                                                                                                                                                  | string                                                                                                                                          |
 | ingress                    | Allows to create Ingress for Grafana UI using monitoring-operator.                                                                                                                                                     | *[Ingress](../../../api/platform-monitoring.md#ingress)                                                                                         |
 | httpRoute                  | HTTPRoute allows to create Gateway API HTTPRoute for the Grafana UI.                                                                                                                                                   | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                                        |
