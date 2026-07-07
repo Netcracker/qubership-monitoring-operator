@@ -271,7 +271,9 @@ extraVars:
 # Default: {}
 #
 extraVarsSecret: {}
-# GF_AUTH_GENERIC_OAUTH_CLIENT_ID and GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET will be populated from OAuth2 proxy secret.
+# GF_AUTH_GENERIC_OAUTH_CLIENT_ID can be populated from grafana-extra-vars-secret.
+# GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET is mounted from dedicated Secret
+# (grafana-oauth-client-secret) and read via $__file in grafana config.
 
 ## Allows set custom home dashboard for grafana.
 ## GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json
