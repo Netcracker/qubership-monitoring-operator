@@ -62,7 +62,7 @@ Image can be found from:
       {{- printf "%s" .Values.grafana.operator.initContainerImage -}}
     {{- else -}}
       {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-grafana-plugins-init versioning=semver */ -}}
-      {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:0.20.0" -}}
+      {{- print "ghcr.io/netcracker/qubership-grafana-plugins-init:0.21.0" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
