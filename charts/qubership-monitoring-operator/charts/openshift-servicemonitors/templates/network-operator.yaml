@@ -1,0 +1,24 @@
+{{- if and .Values.install .Values.installNetworkOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+  name: network-operator
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    port: metrics
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  selector:
+    matchLabels:
+      name: network-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-network-operator
+{{- end }}
