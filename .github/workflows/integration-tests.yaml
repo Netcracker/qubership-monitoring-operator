@@ -63,9 +63,9 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@c46738acd2481dcea8b4cd0bee83e3f4f4539f2c # v1.11.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@9fcb2de51b4d510b52ffca883515bdb388cbc16f # v1.14.0
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'c46738acd2481dcea8b4cd0bee83e3f4f4539f2c' # this value must match the value after '@' in 'uses'
+      pipeline_branch: '9fcb2de51b4d510b52ffca883515bdb388cbc16f' # this value must match the value after '@' in 'uses'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
