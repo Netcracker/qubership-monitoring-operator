@@ -1192,6 +1192,12 @@ spec:
   {{- if or .Values.grafana.install .Values.grafana.operator.install }}
   grafana:
     install: {{ .Values.grafana.install }}
+    {{- if .Values.grafana.name }}
+    name: {{ .Values.grafana.name }}
+    {{- end }}
+    {{- if .Values.grafana.namespace }}
+    namespace: {{ .Values.grafana.namespace }}
+    {{- end }}
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
     disableDefaultAdminSecret: {{ .Values.grafana.disableDefaultAdminSecret }}
     {{- else }}
