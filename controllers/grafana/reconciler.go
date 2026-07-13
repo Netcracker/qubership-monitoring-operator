@@ -11,18 +11,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var isSecretUpdated = false
-
-// isManageAdminSecret returns true when Helm (and therefore this operator) manages
-// the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
-// When the flag is true the user is responsible for the secret; we skip validation.
-func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
-	if cr.Spec.Grafana == nil {
-		return false
-	}
-	// We manage the secret when disableDefaultAdminSecret is explicitly false or not set.
-	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil || !*cr.Spec.Grafana.DisableDefaultAdminSecret
-}
+// adminSecretChecksumAnnotation propagates the admin password checksum to the pod template.
+const adminSecretChecksumAnnotation = "checksum/admin-secret"
 
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
@@ -53,13 +43,12 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			if isManageAdminSecret(cr) {
-				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
-					return err
-				}
+			credentialsSyncState, err := r.handleGrafanaCredentialsSecret(cr)
+			if err != nil {
+				return err
 			}
 			// Reconcile resources with creation and update
-			if err := r.handleGrafana(cr); err != nil {
+			if err := r.handleGrafana(cr, credentialsSyncState.adminPasswordChecksum); err != nil {
 				return err
 			}
 			if err := r.handleGrafanaDataSource(cr); err != nil {
@@ -119,9 +108,16 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// To apply a manually changed secret value, restart the Grafana pod (new env var values
-			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
-			// available but not triggered automatically; it can be invoked for in-place credential updates.
+			// Reset Grafana admin credentials in the running database when the
+			// secret has changed. This handles both PV and non-PV deployments:
+			// the rolling restart triggered by the checksum annotation handles
+			// the emptyDir case; the grafana cli exec handles the PV case.
+			if credentialsSyncState.resetPassword {
+				if err := r.resetGrafanaCredentials(cr); err != nil {
+					r.Log.Error(err, "Cannot reset Grafana credentials")
+					return err
+				}
+			}
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
