@@ -2217,3 +2217,111 @@ vmCluster:
     #   ca: ""
     #   key: ""
     #   cert: ""
+
+# Deploy mcp-victoriametrics server together with VictoriaMetrics.
+# Type: object
+# Mandatory: no
+#
+mcp:
+  # Enable mcp-victoriametrics deployment.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: false
+
+  # Name of mcp-victoriametrics resources.
+  # Type: string
+  # Mandatory: no
+  #
+  name: mcp-victoriametrics
+
+  # Container image for mcp-victoriametrics.
+  # Type: string
+  # Mandatory: no
+  #
+  image: ghcr.io/victoriametrics/mcp-victoriametrics:v1.20.2
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+  replicas: 1
+  # MCP server transport mode for a separately running in-cluster server.
+  # Use http for streamable HTTP endpoint /mcp, or sse for SSE endpoint.
+  mode: http
+  # Port where mcp-victoriametrics listens inside the container.
+  listenPort: 8080
+
+  vm:
+    # Root VictoriaMetrics API URL reachable from the MCP pod.
+    # When empty, defaults to the operator-managed service matching type:
+    # http://vmsingle-k8s.<namespace>.svc:8428 for single or
+    # http://vmselect-k8s.<namespace>.svc:8481 for cluster.
+    entrypoint: ""
+    # Use single for VMSingle and cluster for VMCluster/VMSelect.
+    type: single
+    bearerToken: ""
+    bearerTokenSecret:
+      name: ""
+      key: token
+    headers: ""
+    headersSecret:
+      name: ""
+      key: headers
+
+  passthroughHeaders: []
+  # Empty list leaves MCP_DISABLED_TOOLS unset and preserves the upstream
+  # defaults: export, flags, metric_relabel_debug, downsampling_filters_debug,
+  # retention_filters_debug, and test_rules.
+  disabledTools: []
+  logLevel: info
+  extraEnv: {}
+
+  service:
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+    labels: {}
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    labels: {}
+
+  serviceMonitor:
+    install: false
+    labels: {}
+    annotations: {}
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+
+  httpRoute:
+    install: false
+    hostnames: []
+    parentRefs: []
+    rules: []
+    annotations: {}
+    labels: {}
+
+  ingress:
+    install: false
+    className: ""
+    annotations: {}
+    tls: []
+    hosts: []
+      # - host: mcp-vm.example.com
+      #   paths:
+      #     - path: /
+      #       pathType: Prefix
+
+  resources: {}
+  securityContext: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  volumes: []
+  volumeMounts: []
+  labels: {}
+  annotations: {}
+  podAnnotations: {}

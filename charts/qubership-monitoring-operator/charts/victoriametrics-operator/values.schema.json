@@ -103,6 +103,163 @@
             "description": "The name of the CA ClusterIssuer.\nMust be configured if tlsConfig is enabled for victoriametrics components.\nType: string\nMandatory: If tlsEnabled is set to true, clusterIssuerName is mandatory.",
             "default": ""
         },
+        "mcp": {
+            "type": "object",
+            "description": "VictoriaMetrics MCP server configuration",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Enable deployment of the VictoriaMetrics MCP server; requires the operator-managed backend matching mcp.vm.type",
+                    "default": false
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Base name for VictoriaMetrics MCP resources",
+                    "default": "mcp-victoriametrics"
+                },
+                "image": {
+                    "type": "string",
+                    "description": "VictoriaMetrics MCP container image",
+                    "default": "ghcr.io/victoriametrics/mcp-victoriametrics:v1.20.2"
+                },
+                "imagePullPolicy": {
+                    "type": "string",
+                    "enum": ["Always", "IfNotPresent", "Never"],
+                    "default": "IfNotPresent"
+                },
+                "imagePullSecrets": {
+                    "type": "array",
+                    "items": {"type": "object"}
+                },
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 1
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "MCP transport mode for the in-cluster server",
+                    "enum": ["http", "sse"],
+                    "default": "http"
+                },
+                "listenPort": {
+                    "type": "integer",
+                    "description": "Port where mcp-victoriametrics listens inside the container",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 8080
+                },
+                "vm": {
+                    "type": "object",
+                    "description": "Connection to the VictoriaMetrics entrypoint",
+                    "properties": {
+                        "entrypoint": {"type": "string"},
+                        "type": {"type": "string", "enum": ["single", "cluster"], "default": "single"},
+                        "bearerToken": {"type": "string"},
+                        "bearerTokenSecret": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "key": {"type": "string", "default": "token"}
+                            }
+                        },
+                        "headers": {"type": "string"},
+                        "headersSecret": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "key": {"type": "string", "default": "headers"}
+                            }
+                        }
+                    }
+                },
+                "passthroughHeaders": {
+                    "type": "array",
+                    "description": "Incoming MCP request header names forwarded to the VictoriaMetrics entrypoint",
+                    "items": {"type": "string"}
+                },
+                "disabledTools": {
+                    "type": "array",
+                    "description": "VictoriaMetrics MCP tools to disable",
+                    "items": {"type": "string"}
+                },
+                "logLevel": {
+                    "type": "string",
+                    "description": "VictoriaMetrics MCP log level",
+                    "default": "info"
+                },
+                "extraEnv": {
+                    "type": "object",
+                    "description": "Additional environment variables"
+                },
+                "service": {
+                    "type": "object",
+                    "description": "VictoriaMetrics MCP Service configuration",
+                    "properties": {
+                        "type": {"type": "string", "default": "ClusterIP"},
+                        "port": {"type": "integer", "minimum": 1, "maximum": 65535, "default": 8080},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"}
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "description": "VictoriaMetrics MCP ServiceAccount configuration",
+                    "properties": {
+                        "create": {"type": "boolean", "default": true},
+                        "name": {"type": "string"},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"}
+                    }
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "description": "VictoriaMetrics MCP ServiceMonitor configuration",
+                    "properties": {
+                        "install": {"type": "boolean", "default": false},
+                        "labels": {"type": "object"},
+                        "annotations": {"type": "object"},
+                        "interval": {"type": "string", "default": "30s"},
+                        "scrapeTimeout": {"type": "string", "default": "10s"},
+                        "metricRelabelings": {"type": "array", "items": {"type": "object"}},
+                        "relabelings": {"type": "array", "items": {"type": "object"}}
+                    }
+                },
+                "httpRoute": {
+                    "type": "object",
+                    "description": "VictoriaMetrics MCP Gateway API HTTPRoute configuration",
+                    "properties": {
+                        "install": {"type": "boolean", "default": false},
+                        "hostnames": {"type": "array", "items": {"type": "string"}},
+                        "parentRefs": {"type": "array", "description": "Gateway parent references; at least one is required when HTTPRoute is enabled", "items": {"type": "object"}},
+                        "rules": {"type": "array", "items": {"type": "object"}},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"}
+                    }
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "VictoriaMetrics MCP Ingress configuration",
+                    "properties": {
+                        "install": {"type": "boolean", "default": false},
+                        "className": {"type": "string"},
+                        "annotations": {"type": "object"},
+                        "tls": {"type": "array", "items": {"type": "object"}},
+                        "hosts": {"type": "array", "description": "Ingress hosts and paths; at least one host is required when Ingress is enabled", "items": {"type": "object"}}
+                    }
+                },
+                "resources": {"type": "object"},
+                "securityContext": {"type": "object"},
+                "nodeSelector": {"type": "object"},
+                "affinity": {"type": "object"},
+                "tolerations": {"type": "array", "items": {"type": "object"}},
+                "volumes": {"type": "array", "items": {"type": "object"}},
+                "volumeMounts": {"type": "array", "items": {"type": "object"}},
+                "labels": {"type": "object"},
+                "annotations": {"type": "object"},
+                "podAnnotations": {"type": "object"}
+            }
+        },
         "tlsEnabled": {
             "type": "boolean",
             "description": "Enable/Disable TLS for victoriametrics components.\nType: boolean\nDefault: false",

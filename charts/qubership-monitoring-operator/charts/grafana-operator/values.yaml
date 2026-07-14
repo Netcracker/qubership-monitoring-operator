@@ -716,3 +716,208 @@ imageRenderer:
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
   # priorityClassName: "priorityClassName"
+
+# Deploy mcp-grafana server together with Grafana.
+# Type: object
+# Mandatory: no
+#
+mcp:
+  # Enable mcp-grafana deployment.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: false
+
+  # Name of mcp-grafana resources.
+  # Type: string
+  # Mandatory: no
+  #
+  name: mcp-grafana
+
+  # Container image for mcp-grafana.
+  # Type: object
+  # Mandatory: no
+  #
+  image:
+    registry: docker.io
+    repository: grafana/mcp-grafana
+    tag: 0.17.2
+    pullPolicy: IfNotPresent
+  # Deprecated. Use image.pullPolicy.
+  imagePullPolicy: ""
+  imagePullSecrets: []
+
+  replicas: 1
+
+  # Root Grafana URL reachable from the MCP pod.
+  # Defaults to http://grafana-service.<namespace>.svc:3000 when empty.
+  grafanaUrl: ""
+
+  # Preferred way to pass Grafana service account token.
+  existingSecret:
+    name: ""
+    key: token
+
+  # Optional inline token. If set, Helm creates a Secret.
+  serviceAccountToken: ""
+  tokenSecret:
+    name: ""
+    key: token
+
+  # Optional basic auth. Prefer service account token.
+  basicAuth:
+    username: ""
+    password: ""
+
+  orgId: ""
+  debug: false
+  disableWrite: true
+  # Keep the default toolset focused on monitoring troubleshooting.
+  # Set to [] to use the upstream default tool categories.
+  enabledTools:
+    - search
+    - datasource
+    - dashboard
+    - prometheus
+    - loki
+    - alerting
+  disabledCategories: []
+  metrics:
+    enabled: false
+  # MCP transport: streamable-http or sse.
+  transport: streamable-http
+  # Path for streamable-http transport. Ignored for sse transport.
+  endpointPath: /
+  # Additional allowed Host header values. localhost:<targetPort> and enabled
+  # HTTPRoute/Ingress hosts are included automatically. Add Service DNS names
+  # explicitly only when clients connect directly through the Kubernetes Service.
+  allowedHosts: []
+  allowedOrigins: []
+
+  tls:
+    caFile: ""
+    skipVerify: false
+
+  extraArgs: []
+  command: []
+  extraEnv: {}
+  envValueFrom: {}
+  envFrom: []
+
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+    externalIPs: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    externalName: ""
+    nodePort: ""
+    extraPorts: []
+    sessionAffinity: ""
+    sessionAffinityConfig: {}
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    labels: {}
+    automountServiceAccountToken: false
+
+  serviceMonitor:
+    install: false
+    labels: {}
+    annotations: {}
+    path: /metrics
+    namespaceSelector: {}
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+
+  httpRoute:
+    install: false
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    hostnames: []
+    parentRefs: []
+    rules: []
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+    timeouts: {}
+    filters: []
+    additionalRules: []
+    httpsRedirect: false
+    annotations: {}
+    labels: {}
+
+  ingress:
+    install: false
+    className: ""
+    annotations: {}
+    labels: {}
+    tls: []
+    hosts: []
+      # - host: mcp-grafana.example.com
+      #   paths:
+      #     - path: /
+      #       pathType: Prefix
+
+  resources: {}
+  securityContext: {}
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+  # mcp-grafana does not need Kubernetes API credentials.
+  automountServiceAccountToken: false
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      httpHeaders:
+        - name: Host
+          value: 'localhost:{{ .Values.mcp.service.targetPort | default .Values.mcp.service.port }}'
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      httpHeaders:
+        - name: Host
+          value: 'localhost:{{ .Values.mcp.service.targetPort | default .Values.mcp.service.port }}'
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  startupProbe: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  runtimeClassName: ""
+  schedulerName: ""
+  terminationGracePeriodSeconds: ""
+  hostAliases: []
+  dnsPolicy: ""
+  dnsConfig: {}
+  lifecycle: {}
+  initContainers: []
+  extraInitContainers: []
+  extraContainers: []
+  volumes: []
+  volumeMounts: []
+  labels: {}
+  annotations: {}
+  podAnnotations: {}
+  podLabels: {}

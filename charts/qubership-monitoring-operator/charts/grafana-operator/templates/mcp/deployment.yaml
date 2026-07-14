@@ -1,0 +1,244 @@
+{{- if .Values.mcp.install }}
+{{- $name := include "grafana.mcp.fullname" . }}
+{{- $image := include "grafana.mcp.image" . }}
+{{- $listenPort := .Values.mcp.service.targetPort | default .Values.mcp.service.port }}
+{{- $allowedHosts := list (printf "localhost:%v" $listenPort) }}
+{{- range $host := .Values.mcp.allowedHosts }}
+{{- $allowedHosts = append $allowedHosts (tpl $host $) }}
+{{- end }}
+{{- if .Values.mcp.httpRoute.install }}
+{{- range $host := .Values.mcp.httpRoute.hostnames }}
+{{- $allowedHosts = append $allowedHosts (tpl (toString $host) $) }}
+{{- end }}
+{{- end }}
+{{- if .Values.mcp.ingress.install }}
+{{- range $rule := .Values.mcp.ingress.hosts }}
+{{- if $rule.host }}
+{{- $allowedHosts = append $allowedHosts (tpl (toString $rule.host) $) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $allowedHosts = uniq $allowedHosts }}
+{{- $pullPolicy := .Values.mcp.imagePullPolicy }}
+{{- if and (kindIs "map" .Values.mcp.image) .Values.mcp.image.pullPolicy }}
+{{- $pullPolicy = .Values.mcp.image.pullPolicy }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 4 }}
+    app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app: {{ $name }}
+    {{- if .Values.mcp.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.mcp.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 8 }}
+        app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+        {{- if .Values.mcp.podLabels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.podLabels) | nindent 8 }}
+        {{- end }}
+        {{- if .Values.mcp.labels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 8 }}
+        {{- end }}
+      {{- if .Values.mcp.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.mcp.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: {{ .Values.mcp.automountServiceAccountToken }}
+      {{- if .Values.mcp.serviceAccount.create }}
+      serviceAccountName: {{ default $name .Values.mcp.serviceAccount.name }}
+      {{- else if .Values.mcp.serviceAccount.name }}
+      serviceAccountName: {{ .Values.mcp.serviceAccount.name }}
+      {{- end }}
+      {{- if .Values.mcp.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.mcp.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.priorityClassName }}
+      priorityClassName: {{ .Values.mcp.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.mcp.runtimeClassName }}
+      runtimeClassName: {{ .Values.mcp.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.mcp.schedulerName }}
+      schedulerName: {{ .Values.mcp.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.mcp.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.mcp.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.mcp.hostAliases }}
+      hostAliases:
+        {{- toYaml .Values.mcp.hostAliases | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.mcp.initContainers .Values.mcp.extraInitContainers }}
+      initContainers:
+        {{- if .Values.mcp.initContainers }}
+        {{- toYaml .Values.mcp.initContainers | nindent 8 }}
+        {{- end }}
+        {{- if .Values.mcp.extraInitContainers }}
+        {{- tpl (toYaml .Values.mcp.extraInitContainers) $ | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: mcp-grafana
+          image: {{ $image }}
+          imagePullPolicy: {{ default "IfNotPresent" $pullPolicy }}
+          {{- if .Values.mcp.command }}
+          command:
+            {{- toYaml .Values.mcp.command | nindent 12 }}
+          {{- end }}
+          args:
+            {{- if .Values.mcp.debug }}
+            - -debug
+            {{- end }}
+            - -t
+            - {{ .Values.mcp.transport | quote }}
+            - --address
+            - {{ printf "0.0.0.0:%v" $listenPort | quote }}
+            {{- if eq (toString .Values.mcp.transport) "streamable-http" }}
+            - --endpoint-path
+            - {{ .Values.mcp.endpointPath | quote }}
+            {{- end }}
+            - --allowed-hosts
+            - {{ join "," $allowedHosts | quote }}
+            {{- if .Values.mcp.allowedOrigins }}
+            - --allowed-origins
+            - {{ join "," .Values.mcp.allowedOrigins | quote }}
+            {{- end }}
+            {{- if .Values.mcp.disableWrite }}
+            - --disable-write
+            {{- end }}
+            {{- if .Values.mcp.enabledTools }}
+            - --enabled-tools
+            - {{ join "," .Values.mcp.enabledTools | quote }}
+            {{- end }}
+            {{- range .Values.mcp.disabledCategories }}
+            - {{ printf "--disable-%s" . | quote }}
+            {{- end }}
+            {{- if .Values.mcp.metrics.enabled }}
+            - --metrics
+            {{- end }}
+            {{- if .Values.mcp.tls.caFile }}
+            - --tls-ca-file
+            - {{ .Values.mcp.tls.caFile | quote }}
+            {{- end }}
+            {{- if .Values.mcp.tls.skipVerify }}
+            - --tls-skip-verify
+            {{- end }}
+            {{- range .Values.mcp.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $listenPort }}
+              protocol: TCP
+          env:
+            - name: GRAFANA_URL
+              value: {{ default (printf "http://grafana-service.%s.svc:3000" .Release.Namespace) .Values.mcp.grafanaUrl | quote }}
+            {{- if or .Values.mcp.serviceAccountToken .Values.mcp.existingSecret.name }}
+            - name: GRAFANA_SERVICE_ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (default (printf "%s-token" $name) .Values.mcp.tokenSecret.name) .Values.mcp.existingSecret.name }}
+                  key: {{ default (default "token" .Values.mcp.tokenSecret.key) .Values.mcp.existingSecret.key }}
+            {{- end }}
+            {{- if .Values.mcp.basicAuth.username }}
+            - name: GRAFANA_USERNAME
+              value: {{ .Values.mcp.basicAuth.username | quote }}
+            {{- end }}
+            {{- if .Values.mcp.basicAuth.password }}
+            - name: GRAFANA_PASSWORD
+              value: {{ .Values.mcp.basicAuth.password | quote }}
+            {{- end }}
+            {{- if .Values.mcp.orgId }}
+            - name: GRAFANA_ORG_ID
+              value: {{ .Values.mcp.orgId | quote }}
+            {{- end }}
+            {{- range $key, $value := .Values.mcp.extraEnv }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- range $key, $value := .Values.mcp.envValueFrom }}
+            - name: {{ $key | quote }}
+              valueFrom:
+                {{- toYaml $value | nindent 16 }}
+            {{- end }}
+          {{- if .Values.mcp.envFrom }}
+          envFrom:
+            {{- toYaml .Values.mcp.envFrom | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mcp.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mcp.livenessProbe }}
+          livenessProbe:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mcp.readinessProbe }}
+          readinessProbe:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mcp.startupProbe }}
+          startupProbe:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mcp.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.mcp.resources | nindent 12 }}
+          {{- if .Values.mcp.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.mcp.volumeMounts | nindent 12 }}
+          {{- end }}
+        {{- if .Values.mcp.extraContainers }}
+        {{- tpl (toYaml .Values.mcp.extraContainers) $ | nindent 8 }}
+        {{- end }}
+      securityContext:
+        {{ include "grafana.mcp.securityContext" . }}
+      {{- if .Values.mcp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.mcp.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.affinity }}
+      affinity:
+        {{- toYaml .Values.mcp.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.tolerations }}
+      tolerations:
+        {{- toYaml .Values.mcp.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.mcp.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.dnsPolicy }}
+      dnsPolicy: {{ .Values.mcp.dnsPolicy | quote }}
+      {{- end }}
+      {{- if .Values.mcp.dnsConfig }}
+      dnsConfig:
+        {{- toYaml .Values.mcp.dnsConfig | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.volumes }}
+      volumes:
+        {{- toYaml .Values.mcp.volumes | nindent 8 }}
+      {{- end }}
+{{- end }}

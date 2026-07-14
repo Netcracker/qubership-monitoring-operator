@@ -1,0 +1,84 @@
+{{- if and .Values.mcp.install .Values.mcp.httpRoute.install }}
+{{- $name := include "grafana.mcp.fullname" . }}
+{{- if eq (len .Values.mcp.httpRoute.parentRefs) 0 }}
+{{- fail "grafana.mcp.httpRoute.parentRefs must contain at least one Gateway reference when HTTPRoute is enabled" }}
+{{- end }}
+apiVersion: {{ .Values.mcp.httpRoute.apiVersion }}
+kind: {{ .Values.mcp.httpRoute.kind }}
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 4 }}
+    {{- if .Values.mcp.httpRoute.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.httpRoute.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.httpRoute.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.httpRoute.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.mcp.httpRoute.hostnames }}
+  hostnames:
+    {{- range $hostname := .Values.mcp.httpRoute.hostnames }}
+    - {{ tpl $hostname $ | quote }}
+    {{- end }}
+  {{- end }}
+  parentRefs:
+    {{- toYaml .Values.mcp.httpRoute.parentRefs | nindent 4 }}
+  rules:
+    {{- if .Values.mcp.httpRoute.additionalRules }}
+    {{- toYaml .Values.mcp.httpRoute.additionalRules | nindent 4 }}
+    {{- end }}
+    {{- if .Values.mcp.httpRoute.httpsRedirect }}
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+    {{- else }}
+    {{- if .Values.mcp.httpRoute.rules }}
+    {{- range .Values.mcp.httpRoute.rules }}
+    - {{- if .matches }}
+      matches:
+        {{- toYaml .matches | nindent 8 }}
+      {{- else }}
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+      {{- end }}
+      {{- if .filters }}
+      filters:
+        {{- toYaml .filters | nindent 8 }}
+      {{- end }}
+      {{- if .timeouts }}
+      timeouts:
+        {{- toYaml .timeouts | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $name }}
+          port: {{ $.Values.mcp.service.port }}
+          group: ""
+          kind: Service
+          weight: 1
+    {{- end }}
+    {{- else }}
+    - matches:
+        {{- toYaml .Values.mcp.httpRoute.matches | nindent 8 }}
+      {{- if .Values.mcp.httpRoute.filters }}
+      filters:
+        {{- toYaml .Values.mcp.httpRoute.filters | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.httpRoute.timeouts }}
+      timeouts:
+        {{- toYaml .Values.mcp.httpRoute.timeouts | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $name }}
+          port: {{ .Values.mcp.service.port }}
+          group: ""
+          kind: Service
+          weight: 1
+    {{- end }}
+    {{- end }}
+{{- end }}

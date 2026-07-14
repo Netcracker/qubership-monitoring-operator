@@ -1,0 +1,56 @@
+{{- if .Values.mcp.install }}
+{{- $name := include "grafana.mcp.fullname" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 4 }}
+    app: {{ $name }}
+    {{- if .Values.mcp.service.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.service.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.service.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.mcp.service.type }}
+  {{- if .Values.mcp.service.clusterIP }}
+  clusterIP: {{ .Values.mcp.service.clusterIP }}
+  {{- end }}
+  {{- if .Values.mcp.service.externalIPs }}
+  externalIPs:
+    {{- toYaml .Values.mcp.service.externalIPs | nindent 4 }}
+  {{- end }}
+  {{- if .Values.mcp.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.mcp.service.loadBalancerIP }}
+  {{- end }}
+  {{- if .Values.mcp.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml .Values.mcp.service.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  {{- if and (eq .Values.mcp.service.type "ExternalName") .Values.mcp.service.externalName }}
+  externalName: {{ .Values.mcp.service.externalName }}
+  {{- end }}
+  ports:
+    - name: http
+      port: {{ .Values.mcp.service.port }}
+      targetPort: http
+      protocol: TCP
+      {{- if and (or (eq .Values.mcp.service.type "NodePort") (eq .Values.mcp.service.type "LoadBalancer")) .Values.mcp.service.nodePort }}
+      nodePort: {{ .Values.mcp.service.nodePort }}
+      {{- end }}
+    {{- with .Values.mcp.service.extraPorts }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  selector:
+    app: {{ $name }}
+  {{- if .Values.mcp.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.mcp.service.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.mcp.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+    {{- toYaml .Values.mcp.service.sessionAffinityConfig | nindent 4 }}
+  {{- end }}
+{{- end }}
