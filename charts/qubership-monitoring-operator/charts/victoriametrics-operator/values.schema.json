@@ -608,7 +608,7 @@
                             "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
                             "properties": {
                                 "cpu": {
-                                    "type": "string"  
+                                    "type": "string"
                                 },
                                 "memory": {
                                     "type": "string"
@@ -620,7 +620,7 @@
                             "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
                             "properties": {
                                 "cpu": {
-                                    "type": "string"  
+                                    "type": "string"
                                 },
                                 "memory": {
                                     "type": "string"
@@ -1233,7 +1233,7 @@
                                     "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
                                     "properties": {
                                         "cpu": {
-                                            "type": "string"  
+                                            "type": "string"
                                         },
                                         "memory": {
                                             "type": "string"
@@ -1245,7 +1245,7 @@
                                     "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
                                     "properties": {
                                         "cpu": {
-                                            "type": "string"  
+                                            "type": "string"
                                         },
                                         "memory": {
                                             "type": "string"
@@ -1381,7 +1381,7 @@
                                     "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
                                     "properties": {
                                         "cpu": {
-                                            "type": "string"  
+                                            "type": "string"
                                         },
                                         "memory": {
                                             "type": "string"
@@ -1393,7 +1393,7 @@
                                     "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
                                     "properties": {
                                         "cpu": {
-                                            "type": "string"  
+                                            "type": "string"
                                         },
                                         "memory": {
                                             "type": "string"
@@ -1556,7 +1556,7 @@
                                     "description": "Limits describes the maximum amount of compute resources allowed.\nType: object\nMandatory: no",
                                     "properties": {
                                         "cpu": {
-                                            "type": "string"  
+                                            "type": "string"
                                         },
                                         "memory": {
                                             "type": "string"
@@ -1568,7 +1568,7 @@
                                     "description": "Requests describes the minimum amount of compute resources required.\nType: object\nMandatory: no",
                                     "properties": {
                                         "cpu": {
-                                            "type": "string"  
+                                            "type": "string"
                                         },
                                         "memory": {
                                             "type": "string"
@@ -1711,7 +1711,7 @@
                             "properties": {
                                 "cpu": {
                                     "type": "string",
-                                    "default": "400m"   
+                                    "default": "400m"
                                 },
                                 "memory": {
                                     "type": "string",
@@ -1725,7 +1725,7 @@
                             "properties": {
                                 "cpu": {
                                     "type": "string",
-                                    "default": "200m"   
+                                    "default": "200m"
                                 },
                                 "memory": {
                                     "type": "string",
@@ -1926,7 +1926,7 @@
                             "properties": {
                                 "cpu": {
                                     "type": "string",
-                                    "default": "1000m"   
+                                    "default": "1000m"
                                 },
                                 "memory": {
                                     "type": "string",
@@ -1940,7 +1940,7 @@
                             "properties": {
                                 "cpu": {
                                     "type": "string",
-                                    "default": "500m"   
+                                    "default": "500m"
                                 },
                                 "memory": {
                                     "type": "string",

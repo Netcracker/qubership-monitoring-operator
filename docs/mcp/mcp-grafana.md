@@ -382,7 +382,7 @@ export GRAFANA_SERVICE_ACCOUNT_TOKEN="<service-account-token>"
 Use Helm when the MCP server should run inside the same Kubernetes cluster as
 Grafana.
 
-The upstream README historically referenced the old `grafana/grafana-mcp`
+The upstream readme historically referenced the old `grafana/grafana-mcp`
 chart repository. For this document, use the current Grafana Community chart.
 
 Add the Grafana Community Helm repository:
