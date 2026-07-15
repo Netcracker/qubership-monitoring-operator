@@ -8,6 +8,12 @@ The MCP server exposes VictoriaMetrics read-only APIs and embedded
 VictoriaMetrics documentation to MCP-compatible clients, such as Claude
 Desktop, Claude Code, Cursor, and other tools that support MCP.
 
+This guide uses upstream distributions for local installation with Docker, a
+binary, or source code. In-cluster Helm installation uses the Qubership
+Monitoring Operator chart and its `victoriametrics.mcp` values. Upstream Helm
+chart values use a different schema and cannot be copied into the monitoring
+chart.
+
 ## Table of Contents
 
 - [Installing mcp-victoriametrics](#installing-mcp-victoriametrics)
@@ -16,7 +22,7 @@ Desktop, Claude Code, Cursor, and other tools that support MCP.
   - [Choose VictoriaMetrics Endpoint](#choose-victoriametrics-endpoint)
   - [Self-Signed Certificates](#self-signed-certificates)
   - [Installation](#installation)
-    - [Helm](#helm)
+    - [Helm with Monitoring Chart](#helm-with-monitoring-chart)
     - [Binaries](#binaries)
     - [Docker](#docker)
     - [Source](#source)
@@ -35,9 +41,9 @@ Desktop, Claude Code, Cursor, and other tools that support MCP.
 
 Before installation, prepare the following:
 
-* VictoriaMetrics stack enabled with `victoriametrics.vmSingle.install: true`.
-  In the current operator setup, `VMSingle` is the expected VictoriaMetrics
-  backend.
+* An operator-managed VictoriaMetrics backend: normally `VMSingle` with
+  `victoriametrics.vmSingle.install: true`, or `VMCluster` with
+  `victoriametrics.vmCluster.install: true`.
 * An MCP-compatible client.
 
 ## Choose VictoriaMetrics Endpoint
@@ -201,94 +207,96 @@ debugging, expose the MCP server on `http://localhost:8080/mcp` with Docker or
 
 ## Installation
 
-### Helm
+### Helm with Monitoring Chart
 
-Use Helm when the MCP server should run inside the same Kubernetes cluster as
-the monitoring stack.
+Use the Qubership Monitoring Operator Helm chart when the MCP server should run
+in the same Kubernetes cluster as the operator-managed VictoriaMetrics backend.
+The MCP server is installed as part of the VictoriaMetrics subchart and is not
+a standalone Helm release.
 
-Add the VictoriaMetrics Helm repository:
+The values in this section belong to the Qubership Monitoring Operator chart.
+They are not compatible with the values of the upstream
+`vm/victoria-metrics-mcp` chart.
 
-```bash
-helm repo add vm https://victoriametrics.github.io/helm-charts/
-helm repo update
-```
-
-Export default chart values:
-
-```bash
-helm show values vm/victoria-metrics-mcp > values.yaml
-```
-
-Add and adjust the following example parameters in `values.yaml`:
+Add and adjust the following example parameters in the monitoring chart values
+file:
 
 ```yaml
-vm:
-  entrypoint: "http://vmsingle-k8s.monitoring.svc:8428"
-  type: "single"
-  bearerToken: ""
-
-mcp:
-  mode: http
-
-service:
-  type: ClusterIP
-  port: 8080
-
-# Use HTTPRoute to expose MCP server outside the cluster.
-route:
-  enabled: true
-  hostnames:
-    - mcp-vm.example.com
-  parentRefs:
-    - name: gateway
-      namespace: istio-system
-      sectionName: default
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-
-# Or use Ingress instead of HTTPRoute. In this case set route.enabled to false.
-ingress:
-  enabled: false
-  className: ""
-  hosts:
-    - host: mcp-vm.example.com
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+victoriametrics:
+  vmOperator:
+    install: true
+  vmSingle:
+    install: true
+  mcp:
+    install: true
+    vm:
+      type: single
+    httpRoute:
+      install: true
+      hostnames:
+        - mcp-vm.example.com
+      parentRefs:
+        - name: gateway
+          namespace: istio-system
+          sectionName: default
 ```
 
 This snippet is an example, not a set of universal values. Adjust it for your
 cluster:
 
-* `vm.entrypoint` must contain the actual monitoring namespace. The URL is
-  formed as `http://<vmsingle_service>.<monitoring_namespace>.svc:8428`.
-* `route.hostnames` or `ingress.hosts` must contain the desired MCP server host.
-* `route.parentRefs` must point to the Gateway that serves HTTPRoute traffic in
-  your cluster.
-* `ingress.className`, `ingress.hosts`, and TLS settings depend on the Ingress
-  controller used in your cluster.
-* If VictoriaMetrics requires authentication, set the corresponding `vm`
-  authentication parameters.
+* For `VMSingle`, use `victoriametrics.mcp.vm.type: single`. The MCP entrypoint
+  defaults to the operator-managed `VMSingle` Service.
+* For `VMCluster`, enable `victoriametrics.vmCluster.install`, disable
+  `victoriametrics.vmSingle.install`, and use
+  `victoriametrics.mcp.vm.type: cluster`. The entrypoint then defaults to the
+  operator-managed `VMSelect` Service.
+* Set `victoriametrics.mcp.vm.entrypoint` only to override the generated
+  in-cluster URL, for example when MCP must connect through VMAuth.
+* `victoriametrics.mcp.httpRoute.hostnames` must contain the desired MCP server
+  host, and `parentRefs` must point to the Gateway used by the cluster.
+* Use `victoriametrics.mcp.ingress` instead of
+  `victoriametrics.mcp.httpRoute` when the cluster exposes applications through
+  Ingress.
 
-Install the chart:
+See the complete
+[VictoriaMetrics MCP Helm parameters](../installation/components/victoriametrics-stack/mcp.md)
+reference before configuring authentication, forwarded headers, metrics, or
+advanced pod settings.
 
-replace `monitoring` with the target namespace to install MCP server to.
+Apply the values through the normal monitoring chart installation or upgrade
+process. For a source checkout and a release named `monitoring-operator`:
 
 ```bash
-helm install vmm vm/victoria-metrics-mcp \
+helm upgrade --install monitoring-operator \
+  charts/qubership-monitoring-operator \
   -f values.yaml \
-  -n monitoring
+  -n monitoring \
+  --create-namespace
 ```
 
-Check the release and pods:
+Check the deployed resources:
 
 ```bash
-helm list -f vmm -n monitoring
-kubectl get pods -n monitoring | grep vmm
+kubectl get deployment,service,httproute -n monitoring | grep mcp-victoriametrics
 ```
+
+The streamable HTTP endpoint for the example is:
+
+```text
+https://mcp-vm.example.com/mcp
+```
+
+When the monitoring chart is obtained from a Helm repository instead of a
+source checkout, replace `charts/qubership-monitoring-operator` with the chart
+reference used by your environment.
+
+The MCP server requires `victoriametrics.vmOperator.install: true` and a
+backend matching `victoriametrics.mcp.vm.type`. Setting only
+`victoriametrics.mcp.install: true` does not create a standalone MCP deployment.
+
+The upstream `vm/victoria-metrics-mcp` chart remains an option for a standalone
+deployment, but it has a different values schema and is outside the scope of
+this monitoring chart example.
 
 ### Binaries
 
@@ -407,18 +415,23 @@ variables to the binary directly and set `MCP_SERVER_MODE=http`.
 ## Configuration Parameters
 
 `mcp-victoriametrics` is configured with environment variables.
+These are upstream server runtime parameters used directly by local, Docker,
+and source installations. The monitoring Helm chart maps its
+`victoriametrics.mcp` values to these variables; use the
+[VictoriaMetrics MCP Helm parameters](../installation/components/victoriametrics-stack/mcp.md)
+reference when configuring an in-cluster deployment.
 
-| Variable | Description | Required |
-| --- | --- | --- |
-| `VM_INSTANCE_ENTRYPOINT` | Root URL of the VictoriaMetrics API. For in-cluster MCP use the direct `VMSingle` URL, for example `http://vmsingle-k8s.monitoring.svc:8428`, and replace `monitoring` if the stack is installed in another namespace. For local MCP, the external `VMAuth` HTTPRoute or Ingress URL can be used when it transparently proxies the root VictoriaMetrics API to `VMSingle`. In case `VMAuth` is not installed direct HTTPRoute or Ingress URL of `VMSingle` can be used. If `VMCluster` is installed, then `VMSelect` HTTPRoute or Ingress URL can be used. | Yes |
-| `VM_INSTANCE_TYPE` | VictoriaMetrics type. Use `single` in most cases and `cluster` if VMCluster is deployed. | Yes |
-| `VM_INSTANCE_BEARER_TOKEN` | Bearer token sent to the configured VictoriaMetrics entrypoint, for example `vmauth` or an API Gateway. | No |
-| `VM_INSTANCE_HEADERS` | Custom headers sent to the configured entrypoint, comma-separated as `Header=Value`. | No |
-| `MCP_PASSTHROUGH_HEADERS` | Headers forwarded from incoming MCP requests to the configured entrypoint in `sse` or `http` mode. | No |
-| `MCP_SERVER_MODE` | MCP transport mode: `stdio`, `sse`, or `http`. Defaults to `stdio`. | No |
-| `MCP_LISTEN_ADDR` | Listen address for `sse` or `http` mode. Defaults to `localhost:8080`. | No |
-| `MCP_DISABLED_TOOLS` | Comma-separated list of tools to disable. | No |
-| `MCP_LOG_LEVEL` | Log level: `debug`, `info`, `warn`, or `error`. | No |
+| Variable                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Required |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `VM_INSTANCE_ENTRYPOINT`   | Root URL of the VictoriaMetrics API. For in-cluster MCP use the direct `VMSingle` URL, for example `http://vmsingle-k8s.monitoring.svc:8428`, and replace `monitoring` if the stack is installed in another namespace. For local MCP, the external `VMAuth` HTTPRoute or Ingress URL can be used when it transparently proxies the root VictoriaMetrics API to `VMSingle`. In case `VMAuth` is not installed direct HTTPRoute or Ingress URL of `VMSingle` can be used. If `VMCluster` is installed, then `VMSelect` HTTPRoute or Ingress URL can be used. | Yes      |
+| `VM_INSTANCE_TYPE`         | VictoriaMetrics type. Use `single` in most cases and `cluster` if VMCluster is deployed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Yes      |
+| `VM_INSTANCE_BEARER_TOKEN` | Bearer token sent to the configured VictoriaMetrics entrypoint, for example `vmauth` or an API Gateway.                                                                                                                                                                                                                                                                                                                                                                                                                                                    | No       |
+| `VM_INSTANCE_HEADERS`      | Custom headers sent to the configured entrypoint, comma-separated as `Header=Value`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | No       |
+| `MCP_PASSTHROUGH_HEADERS`  | Headers forwarded from incoming MCP requests to the configured entrypoint in `sse` or `http` mode.                                                                                                                                                                                                                                                                                                                                                                                                                                                         | No       |
+| `MCP_SERVER_MODE`          | MCP transport mode: `stdio`, `sse`, or `http`. Defaults to `stdio`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | No       |
+| `MCP_LISTEN_ADDR`          | Listen address for `sse` or `http` mode. Defaults to `localhost:8080`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | No       |
+| `MCP_DISABLED_TOOLS`       | Comma-separated list of tools to disable.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | No       |
+| `MCP_LOG_LEVEL`            | Log level: `debug`, `info`, `warn`, or `error`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | No       |
 
 Use `stdio` mode when the MCP client is configured with a `command` that points
 to the `mcp-victoriametrics` binary. In this mode the client starts the binary
@@ -484,7 +497,7 @@ endpoint:
 
 For temporary local debugging of the Helm installation without HTTPRoute or
 Ingress, you can also use
-`kubectl port-forward svc/vmm-victoria-metrics-mcp -n monitoring 8080:8080`
+`kubectl port-forward svc/mcp-victoriametrics -n monitoring 8080:8080`
 and set `url` in `claude_desktop_config.json` to `http://localhost:8080/mcp`.
 
 ### Claude Code
@@ -539,31 +552,31 @@ VictoriaMetrics instance type, and `MCP_DISABLED_TOOLS` configuration.
 
 Commonly available tools are:
 
-| Tool | Description | Enabled by default |
-| --- | --- | --- |
-| `query` | Execute instant PromQL or MetricsQL queries. | Yes |
-| `query_range` | Execute range PromQL or MetricsQL queries over a time period. | Yes |
-| `metrics` | List available metric names. | Yes |
-| `metrics_metadata` | Read stored metric metadata, such as type, help, and unit. | Yes |
-| `labels` | List available label names. | Yes |
-| `label_values` | List values for a specific label. | Yes |
-| `series` | List available time series. | Yes |
-| `rules` | View alerting and recording rules. | Yes |
-| `alerts` | View current firing and pending alerts. | Yes |
-| `metric_statistics` | Inspect metric usage in queries. | Yes |
-| `active_queries` | View currently executing queries. | Yes |
-| `top_queries` | View frequent or slow queries. | Yes |
-| `tsdb_status` | Inspect TSDB cardinality statistics. | Yes |
-| `tenants` | List tenants in a multi-tenant cluster setup. Mostly useful for `VMCluster`. | Yes |
-| `documentation` | Search embedded VictoriaMetrics documentation without online access. | Yes |
-| `prettify_query` | Format PromQL or MetricsQL queries. | Yes |
-| `explain_query` | Parse and explain PromQL or MetricsQL queries. | Yes |
-| `export` | Export raw time series data to JSON or CSV. | No |
-| `flags` | View non-default VictoriaMetrics startup flags. | No |
-| `metric_relabel_debug` | Debug Prometheus-compatible relabeling rules. | No |
-| `downsampling_filters_debug` | Debug downsampling configuration. | No |
-| `retention_filters_debug` | Debug retention filter configuration. | No |
-| `test_rules` | Unit-test alerting and recording rules with `vmalert`. | No |
+| Tool                         | Description                                                                  | Enabled by default |
+| ---------------------------- | ---------------------------------------------------------------------------- | ------------------ |
+| `query`                      | Execute instant PromQL or MetricsQL queries.                                 | Yes                |
+| `query_range`                | Execute range PromQL or MetricsQL queries over a time period.                | Yes                |
+| `metrics`                    | List available metric names.                                                 | Yes                |
+| `metrics_metadata`           | Read stored metric metadata, such as type, help, and unit.                   | Yes                |
+| `labels`                     | List available label names.                                                  | Yes                |
+| `label_values`               | List values for a specific label.                                            | Yes                |
+| `series`                     | List available time series.                                                  | Yes                |
+| `rules`                      | View alerting and recording rules.                                           | Yes                |
+| `alerts`                     | View current firing and pending alerts.                                      | Yes                |
+| `metric_statistics`          | Inspect metric usage in queries.                                             | Yes                |
+| `active_queries`             | View currently executing queries.                                            | Yes                |
+| `top_queries`                | View frequent or slow queries.                                               | Yes                |
+| `tsdb_status`                | Inspect TSDB cardinality statistics.                                         | Yes                |
+| `tenants`                    | List tenants in a multi-tenant cluster setup. Mostly useful for `VMCluster`. | Yes                |
+| `documentation`              | Search embedded VictoriaMetrics documentation without online access.         | Yes                |
+| `prettify_query`             | Format PromQL or MetricsQL queries.                                          | Yes                |
+| `explain_query`              | Parse and explain PromQL or MetricsQL queries.                               | Yes                |
+| `export`                     | Export raw time series data to JSON or CSV.                                  | No                 |
+| `flags`                      | View non-default VictoriaMetrics startup flags.                              | No                 |
+| `metric_relabel_debug`       | Debug Prometheus-compatible relabeling rules.                                | No                 |
+| `downsampling_filters_debug` | Debug downsampling configuration.                                            | No                 |
+| `retention_filters_debug`    | Debug retention filter configuration.                                        | No                 |
+| `test_rules`                 | Unit-test alerting and recording rules with `vmalert`.                       | No                 |
 
 By default upstream disables several potentially heavier or more specialized
 tools, including `export`, `flags`, `metric_relabel_debug`,
@@ -573,13 +586,13 @@ capabilities.
 
 Useful tools for smoke testing are:
 
-| Tool | Purpose |
-| --- | --- |
-| `metrics` | Verify that MCP can authenticate to VictoriaMetrics and list metric names. |
-| `labels` | Verify access to label metadata. |
+| Tool           | Purpose                                                                      |
+| -------------- | ---------------------------------------------------------------------------- |
+| `metrics`      | Verify that MCP can authenticate to VictoriaMetrics and list metric names.   |
+| `labels`       | Verify access to label metadata.                                             |
 | `label_values` | Verify access to values for a known label, for example `job` or `namespace`. |
-| `query` | Run a simple instant query, for example `up`. |
-| `tsdb_status` | Check cardinality statistics for troubleshooting. |
+| `query`        | Run a simple instant query, for example `up`.                                |
+| `tsdb_status`  | Check cardinality statistics for troubleshooting.                            |
 
 VictoriaMetrics Cloud tools are intentionally not covered here because this
 operator setup uses a Kubernetes-hosted VictoriaMetrics stack, usually
@@ -611,11 +624,9 @@ For Docker:
 docker rm -f mcp-victoriametrics
 ```
 
-For Helm:
-
-```bash
-helm uninstall vmm -n monitoring
-```
+For an MCP server installed with the monitoring chart, set
+`victoriametrics.mcp.install: false` and upgrade the monitoring release. Do not
+uninstall the monitoring release only to remove MCP.
 
 For binary or source installation, remove the local `mcp-victoriametrics`
 binary if it is no longer needed. For source installation, remove the cloned
@@ -625,4 +636,4 @@ source directory as well.
 
 * [VictoriaMetrics MCP Server GitHub repository](https://github.com/VictoriaMetrics/mcp-victoriametrics)
 * [VictoriaMetrics MCP Server releases](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases)
-* [VictoriaMetrics MCP Helm chart documentation](https://docs.victoriametrics.com/helm/victoria-metrics-mcp/)
+* [Upstream standalone VictoriaMetrics MCP Helm chart](https://docs.victoriametrics.com/helm/victoria-metrics-mcp/)

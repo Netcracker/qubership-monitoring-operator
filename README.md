@@ -48,6 +48,8 @@ interface for comprehensive observability.
 
 - **Graphite**: graphite-remote-adapter for Graphite integration
 - **Load Balancing**: promxy for high availability and federation
+- **Model Context Protocol**: optional Grafana and VictoriaMetrics MCP servers for querying and troubleshooting the
+  monitoring stack from MCP-compatible AI agents
 
 ## Architecture
 
@@ -191,6 +193,7 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 - All optional exporters (blackbox, cert, JSON, etc.)
 - Prometheus Adapter for HPA
 - Integrations (Graphite, Promxy)
+- Grafana and VictoriaMetrics MCP servers
 
 ### 3. Verify Installation
 
@@ -224,6 +227,14 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 - **[Installation Guide](https://netcracker.github.io/qubership-monitoring-operator/installation/)** - Detailed installation instructions
 - **[Configuration Guide](https://netcracker.github.io/qubership-monitoring-operator/configuration/)** - Complete configuration options
 - **[Troubleshooting](https://netcracker.github.io/qubership-monitoring-operator/troubleshooting/)** - Common issues and solutions
+
+### MCP Integration
+
+- **[Monitoring with MCP](docs/mcp/mcp-monitoring.md)** - Recommendations, architecture, security, and usage examples
+- **[Grafana MCP](docs/mcp/mcp-grafana.md)** - Installation and configuration of `mcp-grafana`
+- **[VictoriaMetrics MCP](docs/mcp/mcp-victoriametrics.md)** - Installation and configuration of `mcp-victoriametrics`
+- **[Grafana MCP Helm Parameters](docs/installation/components/grafana-stack/mcp.md)** - Helm values reference
+- **[VictoriaMetrics MCP Helm Parameters](docs/installation/components/victoriametrics-stack/mcp.md)** - Helm values reference
 
 ### API Reference
 

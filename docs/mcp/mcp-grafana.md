@@ -7,6 +7,11 @@ Context Protocol (MCP) server.
 The MCP server gives MCP-compatible clients access to Grafana dashboards,
 datasources, alerting, annotations, snapshots, and query tools.
 
+This guide uses upstream distributions for local installation with `uvx`,
+Docker, or a binary. In-cluster Helm installation uses the Qubership Monitoring
+Operator chart and its `grafana.mcp` values. Upstream Helm chart values use a
+different schema and cannot be copied into the monitoring chart.
+
 ## Table of Contents
 
 - [Installing mcp-grafana](#installing-mcp-grafana)
@@ -21,7 +26,7 @@ datasources, alerting, annotations, snapshots, and query tools.
     - [Docker](#docker)
     - [Binary Release](#binary-release)
     - [Go Install from Source](#go-install-from-source)
-    - [Helm](#helm)
+    - [Helm with Monitoring Chart](#helm-with-monitoring-chart)
   - [Configuration Parameters](#configuration-parameters)
   - [Configure MCP Clients](#configure-mcp-clients)
     - [Claude Desktop](#claude-desktop)
@@ -377,144 +382,141 @@ export GRAFANA_SERVICE_ACCOUNT_TOKEN="<service-account-token>"
   --disable-write
 ```
 
-### Helm
+### Helm with Monitoring Chart
 
-Use Helm when the MCP server should run inside the same Kubernetes cluster as
-Grafana.
+Use the Qubership Monitoring Operator Helm chart when the MCP server should run
+in the same Kubernetes cluster as the operator-managed Grafana instance. The
+MCP server is installed as part of the Grafana subchart and is not a standalone
+Helm release.
 
-The upstream readme historically referenced the old `grafana/grafana-mcp`
-chart repository. For this document, use the current Grafana Community chart.
-
-Add the Grafana Community Helm repository:
-
-```bash
-helm repo add grafana-community https://grafana-community.github.io/helm-charts
-helm repo update
-```
+The values in this section belong to the Qubership Monitoring Operator chart.
+They are not compatible with the values of the upstream
+`grafana-community/grafana-mcp` chart.
 
 Create a Kubernetes secret with the Grafana service account token:
 
 ```bash
+kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 kubectl create secret generic grafana-mcp-token \
   -n monitoring \
   --from-literal=token='<service-account-token>'
 ```
 
-Export default chart values:
-
-```bash
-helm show values grafana-community/grafana-mcp > values.yaml
-```
-
-Add and adjust the following example parameters in `values.yaml`:
+Add and adjust the following example parameters in the monitoring chart values
+file:
 
 ```yaml
 grafana:
-  url: "http://grafana-service.monitoring.svc:3000"
-  apiKeySecret:
-    name: grafana-mcp-token
-    key: token
-
-disableWrite: true
-
-service:
-  enabled: true
-  type: ClusterIP
-  port: 8000
-
-extraArgs:
-  - --transport=streamable-http
-  - --endpoint-path=/mcp
-  - --allowed-hosts=mcp-grafana.example.com
-
-# Use HTTPRoute to expose MCP server outside the cluster.
-route:
-  main:
-    enabled: true
-    kind: HTTPRoute
-    hostnames:
-      - mcp-grafana.example.com
-    parentRefs:
-      - name: gateway
-        namespace: istio-system
-        sectionName: default
-    matches:
-      - path:
-          type: PathPrefix
-          value: /
-
-# Or use Ingress instead of HTTPRoute. In this case keep route.main.enabled false.
-ingress:
-  enabled: false
-  className: ""
-  hosts:
-    - host: mcp-grafana.example.com
-      paths:
-        - path: /
-          pathType: Prefix
+  install: true
+  mcp:
+    install: true
+    existingSecret:
+      name: grafana-mcp-token
+      key: token
+    disableWrite: true
+    httpRoute:
+      install: true
+      hostnames:
+        - mcp-grafana.example.com
+      parentRefs:
+        - name: gateway
+          namespace: istio-system
+          sectionName: default
 ```
 
 This snippet is an example, not a set of universal values. Adjust it for your
 cluster:
 
-* `grafana.url` must contain the actual monitoring namespace.
-* `grafana.apiKeySecret` must point to the secret that contains the Grafana
-  service account token.
-* `route.main.hostnames` or `ingress.hosts` must contain the desired MCP server
-  host.
-* `route.main.parentRefs` must point to the Gateway that serves HTTPRoute
-  traffic in your cluster.
-* `--allowed-hosts` must include the external MCP server hostname, otherwise
-  `mcp-grafana` can reject HTTPRoute or Ingress requests with `403`.
-* Keep `disableWrite: true` unless the MCP client is expected to create
-  or modify Grafana resources.
+* `grafana.mcp.existingSecret` must point to the Secret that contains the
+  Grafana service account token.
+* `grafana.mcp.httpRoute.hostnames` must contain the desired MCP server host.
+* `grafana.mcp.httpRoute.parentRefs` must point to the Gateway that serves
+  HTTPRoute traffic in your cluster.
+* HTTPRoute and Ingress hosts are added to `--allowed-hosts` automatically.
+  Use `grafana.mcp.allowedHosts` only for additional Host values, such as a
+  hostname produced by a proxy that rewrites the original Host header.
+* Keep `grafana.mcp.disableWrite: true` unless the MCP client is expected to
+  create or modify Grafana resources.
+* Use `grafana.mcp.ingress` instead of `grafana.mcp.httpRoute` when the cluster
+  exposes applications through Ingress.
 
-Install the chart:
+See the complete
+[Grafana MCP Helm parameters](../installation/components/grafana-stack/mcp.md)
+reference before enabling authentication, forwarded headers, TLS, metrics, or
+advanced pod settings.
+
+Apply the values through the normal monitoring chart installation or upgrade
+process. For a source checkout and a release named `monitoring-operator`:
 
 ```bash
-helm install grafana-mcp grafana-community/grafana-mcp \
+helm upgrade --install monitoring-operator \
+  charts/qubership-monitoring-operator \
   -f values.yaml \
-  -n monitoring
+  -n monitoring \
+  --create-namespace
 ```
 
-Check the release and pods:
+Check the deployed resources:
 
 ```bash
-helm list -f grafana-mcp -n monitoring
-kubectl get pods -n monitoring | grep grafana-mcp
+kubectl get deployment,service,httproute -n monitoring | grep mcp-grafana
 ```
 
-The streamable HTTP endpoint is available at:
+The streamable HTTP endpoint for the example is:
 
 ```text
 https://mcp-grafana.example.com/
 ```
 
+When the monitoring chart is obtained from a Helm repository instead of a
+source checkout, replace `charts/qubership-monitoring-operator` with the chart
+reference used by your environment.
+
+The MCP server requires `grafana.install: true`. Setting only
+`grafana.mcp.install: true` does not enable the Grafana subchart or create a
+standalone MCP deployment.
+
+If request-time authentication to Grafana is used instead of static MCP pod
+credentials, configure the forwarded headers described in the Authentication
+section and make every MCP client send the required header.
+
+Protect the external MCP HTTPRoute or Ingress independently at the API Gateway,
+Ingress controller, or service mesh layer.
+
+The upstream `grafana-community/grafana-mcp` chart remains an option for a
+standalone deployment, but it has a different values schema and is outside the
+scope of this monitoring chart example.
+
 ## Configuration Parameters
 
 `mcp-grafana` is configured with environment variables and command-line flags.
+These are upstream server runtime parameters used directly by local and Docker
+installations. The monitoring Helm chart maps its `grafana.mcp` values to these
+parameters; use the
+[Grafana MCP Helm parameters](../installation/components/grafana-stack/mcp.md)
+reference when configuring an in-cluster deployment.
 
-| Parameter | Description | Required |
-| --- | --- | --- |
-| `GRAFANA_URL` | Root Grafana URL. For in-cluster MCP use `http://grafana-service.monitoring.svc:3000`. For local MCP use the external Grafana HTTPRoute or Ingress URL. | Yes |
-| `GRAFANA_SERVICE_ACCOUNT_TOKEN` | Grafana service account token. Preferred authentication method. | Yes, unless using username/password |
-| `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE` | File that contains the Grafana service account token. Useful for Kubernetes Secrets mounted as files. | No |
-| `GRAFANA_USERNAME` | Grafana username for basic authentication. | Yes, unless using token |
-| `GRAFANA_PASSWORD` | Grafana password for basic authentication. | Yes, unless using token |
-| `GRAFANA_ORG_ID` | Numeric Grafana organization ID. | No |
-| `GRAFANA_EXTRA_HEADERS` | JSON object with extra headers sent to Grafana API requests. | No |
-| `GRAFANA_FORWARD_HEADERS` | Comma-separated list of incoming headers to forward to Grafana. Applies only to SSE or streamable HTTP transports. | No |
-| `--transport`, `-t` | MCP transport: `stdio`, `sse`, or `streamable-http`. Defaults to `stdio` for the binary; the Docker image entrypoint defaults to SSE. | No |
-| `--address` | Listen address for SSE or streamable HTTP. Defaults to `localhost:8000`. | No |
-| `--endpoint-path` | Endpoint path for streamable HTTP. Defaults to `/`. | No |
-| `--allowed-hosts` | Comma-separated allowlist for HTTP `Host` headers. Required when exposing the server through HTTPRoute or Ingress with an external hostname. | No |
-| `--allowed-origins` | Comma-separated allowlist for HTTP `Origin` headers. Usually not needed for desktop MCP clients. | No |
-| `--disable-write` | Disable write operations against Grafana. Recommended by default. | No |
-| `--enabled-tools` | Comma-separated list of enabled tool categories. Some categories are disabled by default upstream. | No |
-| `--tls-ca-file` | CA certificate file used by MCP when connecting to Grafana. | No |
-| `--tls-skip-verify` | Skip Grafana TLS certificate verification. Use only for temporary local testing. | No |
-| `--server.tls-cert-file` | Server TLS certificate for streamable HTTP. | No |
-| `--server.tls-key-file` | Server TLS private key for streamable HTTP. | No |
+| Parameter                            | Description                                                                                                                                             | Required                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `GRAFANA_URL`                        | Root Grafana URL. For in-cluster MCP use `http://grafana-service.monitoring.svc:3000`. For local MCP use the external Grafana HTTPRoute or Ingress URL. | Yes                                 |
+| `GRAFANA_SERVICE_ACCOUNT_TOKEN`      | Grafana service account token. Preferred authentication method.                                                                                         | Yes, unless using username/password |
+| `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE` | File that contains the Grafana service account token. Useful for Kubernetes Secrets mounted as files.                                                   | No                                  |
+| `GRAFANA_USERNAME`                   | Grafana username for basic authentication.                                                                                                              | Yes, unless using token             |
+| `GRAFANA_PASSWORD`                   | Grafana password for basic authentication.                                                                                                              | Yes, unless using token             |
+| `GRAFANA_ORG_ID`                     | Numeric Grafana organization ID.                                                                                                                        | No                                  |
+| `GRAFANA_EXTRA_HEADERS`              | JSON object with extra headers sent to Grafana API requests.                                                                                            | No                                  |
+| `GRAFANA_FORWARD_HEADERS`            | Comma-separated list of incoming headers to forward to Grafana. Applies only to SSE or streamable HTTP transports.                                      | No                                  |
+| `--transport`, `-t`                  | MCP transport: `stdio`, `sse`, or `streamable-http`. Defaults to `stdio` for the binary; the Docker image entrypoint defaults to SSE.                   | No                                  |
+| `--address`                          | Listen address for SSE or streamable HTTP. Defaults to `localhost:8000`.                                                                                | No                                  |
+| `--endpoint-path`                    | Endpoint path for streamable HTTP. Defaults to `/`.                                                                                                     | No                                  |
+| `--allowed-hosts`                    | Comma-separated allowlist for HTTP `Host` headers. Required when exposing the server through HTTPRoute or Ingress with an external hostname.            | No                                  |
+| `--allowed-origins`                  | Comma-separated allowlist for HTTP `Origin` headers. Usually not needed for desktop MCP clients.                                                        | No                                  |
+| `--disable-write`                    | Disable write operations against Grafana. Recommended by default.                                                                                       | No                                  |
+| `--enabled-tools`                    | Comma-separated list of enabled tool categories. Some categories are disabled by default upstream.                                                      | No                                  |
+| `--tls-ca-file`                      | CA certificate file used by MCP when connecting to Grafana.                                                                                             | No                                  |
+| `--tls-skip-verify`                  | Skip Grafana TLS certificate verification. Use only for temporary local testing.                                                                        | No                                  |
+| `--server.tls-cert-file`             | Server TLS certificate for streamable HTTP.                                                                                                             | No                                  |
+| `--server.tls-key-file`              | Server TLS private key for streamable HTTP.                                                                                                             | No                                  |
 
 Use `stdio` mode when the MCP client is configured with a `command` that points
 to a local `mcp-grafana` binary or to `uvx`. In this mode the client starts the
@@ -695,35 +697,35 @@ The upstream server exposes many tool categories. Some datasource-specific
 categories are disabled by default upstream and must be explicitly included in
 `--enabled-tools` if they are needed.
 
-| Tool category | Example tools or capability |
-| --- | --- |
-| `admin` | List teams, users, roles, role assignments, and resource permissions. |
-| `search` | Search dashboards and folders. |
-| `dashboard` | Read dashboards, inspect panel queries, extract dashboard properties, and update dashboards when write access is enabled. |
-| `runpanelquery` | Execute stored dashboard panel queries. Disabled by default upstream. |
-| `datasource` | List datasources, get datasource details, and check datasource health. |
-| `examples` | Get datasource query examples. Disabled by default upstream. |
-| `prometheus` | Run PromQL queries and inspect metric names, labels, label values, metadata, and histograms. |
-| `loki` | Run LogQL queries, inspect labels, query stats and patterns, and analyze Loki label usage. |
-| `alerting` | Read and manage alert rules, notification policies, contact points, and time intervals. |
-| `incident` | List, create, inspect, and update Grafana Incident objects. |
-| `oncall` | List OnCall schedules, shifts, teams, users, and alert groups. |
-| `sift` | Inspect Sift investigations and run Sift analyses when available. |
-| `asserts` | Read Grafana Asserts summaries when the plugin is available. |
-| `pyroscope` | Inspect and query profiling data from Pyroscope datasources. |
-| `annotations` | Read and manage Grafana annotations and annotation tags. |
-| `snapshot` | List, inspect, create, and delete dashboard snapshots. |
-| `rendering` | Render dashboard or panel images when rendering is configured. |
-| `navigation` | Generate Grafana deeplink URLs. |
-| `provisioning` | List provisioning repositories and validate provisioning files. |
-| `influxdb` | Query InfluxDB datasources. |
-| `elasticsearch` | Query Elasticsearch or OpenSearch datasources. Disabled by default upstream. |
-| `quickwit` | Query Quickwit datasources. Disabled by default upstream. |
-| `clickhouse` | Inspect and query ClickHouse datasources. Disabled by default upstream. |
-| `cloudwatch` | Inspect and query AWS CloudWatch datasources. Disabled by default upstream. |
-| `athena` | Inspect and query Athena datasources. Disabled by default upstream. |
-| `snowflake` | Inspect and query Snowflake datasources. Disabled by default upstream. |
-| `graphite` | Query Graphite datasources. Disabled by default upstream. |
+| Tool category   | Example tools or capability                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `admin`         | List teams, users, roles, role assignments, and resource permissions.                                                     |
+| `search`        | Search dashboards and folders.                                                                                            |
+| `dashboard`     | Read dashboards, inspect panel queries, extract dashboard properties, and update dashboards when write access is enabled. |
+| `runpanelquery` | Execute stored dashboard panel queries. Disabled by default upstream.                                                     |
+| `datasource`    | List datasources, get datasource details, and check datasource health.                                                    |
+| `examples`      | Get datasource query examples. Disabled by default upstream.                                                              |
+| `prometheus`    | Run PromQL queries and inspect metric names, labels, label values, metadata, and histograms.                              |
+| `loki`          | Run LogQL queries, inspect labels, query stats and patterns, and analyze Loki label usage.                                |
+| `alerting`      | Read and manage alert rules, notification policies, contact points, and time intervals.                                   |
+| `incident`      | List, create, inspect, and update Grafana Incident objects.                                                               |
+| `oncall`        | List OnCall schedules, shifts, teams, users, and alert groups.                                                            |
+| `sift`          | Inspect Sift investigations and run Sift analyses when available.                                                         |
+| `asserts`       | Read Grafana Asserts summaries when the plugin is available.                                                              |
+| `pyroscope`     | Inspect and query profiling data from Pyroscope datasources.                                                              |
+| `annotations`   | Read and manage Grafana annotations and annotation tags.                                                                  |
+| `snapshot`      | List, inspect, create, and delete dashboard snapshots.                                                                    |
+| `rendering`     | Render dashboard or panel images when rendering is configured.                                                            |
+| `navigation`    | Generate Grafana deeplink URLs.                                                                                           |
+| `provisioning`  | List provisioning repositories and validate provisioning files.                                                           |
+| `influxdb`      | Query InfluxDB datasources.                                                                                               |
+| `elasticsearch` | Query Elasticsearch or OpenSearch datasources. Disabled by default upstream.                                              |
+| `quickwit`      | Query Quickwit datasources. Disabled by default upstream.                                                                 |
+| `clickhouse`    | Inspect and query ClickHouse datasources. Disabled by default upstream.                                                   |
+| `cloudwatch`    | Inspect and query AWS CloudWatch datasources. Disabled by default upstream.                                               |
+| `athena`        | Inspect and query Athena datasources. Disabled by default upstream.                                                       |
+| `snowflake`     | Inspect and query Snowflake datasources. Disabled by default upstream.                                                    |
+| `graphite`      | Query Graphite datasources. Disabled by default upstream.                                                                 |
 
 For this chart, the default `grafana.mcp.enabledTools` value keeps the MCP
 server focused on monitoring troubleshooting and reduces the number of tools
@@ -747,13 +749,13 @@ a custom list if your Grafana instance needs additional categories such as
 
 Useful tools for smoke testing are:
 
-| Tool | Purpose |
-| --- | --- |
-| `list_datasources` | Verify that MCP can authenticate to Grafana and read datasource metadata. |
-| `get_datasource` | Inspect one datasource by name or UID. |
-| `check_datasources_health` | Check whether Grafana can reach configured datasources. |
-| `list_prometheus_label_names` | Verify access to a Prometheus-compatible datasource. |
-| `list_loki_label_names` | Verify access to a Loki-compatible datasource. |
+| Tool                          | Purpose                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `list_datasources`            | Verify that MCP can authenticate to Grafana and read datasource metadata. |
+| `get_datasource`              | Inspect one datasource by name or UID.                                    |
+| `check_datasources_health`    | Check whether Grafana can reach configured datasources.                   |
+| `list_prometheus_label_names` | Verify access to a Prometheus-compatible datasource.                      |
+| `list_loki_label_names`       | Verify access to a Loki-compatible datasource.                            |
 
 If `--disable-write` is enabled, read-only tools continue to work, but tools
 that create or modify Grafana resources are disabled or rejected.
@@ -784,11 +786,9 @@ For Docker:
 docker rm -f mcp-grafana
 ```
 
-For Helm:
-
-```bash
-helm uninstall grafana-mcp -n monitoring
-```
+For an MCP server installed with the monitoring chart, set
+`grafana.mcp.install: false` and upgrade the monitoring release. Do not
+uninstall the monitoring release only to remove MCP.
 
 For binary or Go install, remove the local `mcp-grafana` binary if it is no
 longer needed.
@@ -797,6 +797,6 @@ longer needed.
 
 * [`mcp-grafana` upstream repository](https://github.com/grafana/mcp-grafana)
 * [`mcp-grafana` releases](https://github.com/grafana/mcp-grafana/releases)
-* [`grafana-mcp` Helm chart](https://github.com/grafana-community/helm-charts/tree/main/charts/grafana-mcp)
+* [Upstream standalone `grafana-mcp` Helm chart](https://github.com/grafana-community/helm-charts/tree/main/charts/grafana-mcp)
 * [Grafana service account documentation](https://grafana.com/docs/grafana/latest/administration/service-accounts/)
 * [Model Context Protocol](https://modelcontextprotocol.io/)

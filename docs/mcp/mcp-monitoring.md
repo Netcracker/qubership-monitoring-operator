@@ -20,10 +20,10 @@ where to find detailed setup instructions.
 
 For the monitoring stack, we recommend two MCP servers:
 
-| Monitoring component | MCP server | Recommendation |
-| --- | --- | --- |
-| Grafana | `mcp-grafana` | Recommended as the main MCP entrypoint for dashboards, datasources, alerts, folders, annotations, and querying metrics or logs through Grafana datasources. |
-| VictoriaMetrics | `mcp-victoriametrics` | Recommended for direct VictoriaMetrics API access, MetricsQL or PromQL queries, labels, series, cardinality and query diagnostics, rules, alerts, and embedded VictoriaMetrics documentation. |
+| Monitoring component | MCP server            | Recommendation                                                                                                                                                                                |
+| -------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grafana              | `mcp-grafana`         | Recommended as the main MCP entrypoint for dashboards, datasources, alerts, folders, annotations, and querying metrics or logs through Grafana datasources.                                   |
+| VictoriaMetrics      | `mcp-victoriametrics` | Recommended for direct VictoriaMetrics API access, MetricsQL or PromQL queries, labels, series, cardinality and query diagnostics, rules, alerts, and embedded VictoriaMetrics documentation. |
 
 Use `mcp-grafana` when the user needs a broad observability interface through
 Grafana. Use `mcp-victoriametrics` when the user needs direct access to
@@ -31,16 +31,16 @@ VictoriaMetrics or wants to diagnose VictoriaMetrics-specific behavior.
 
 ## How to Choose
 
-| Use case | Recommended MCP |
-| --- | --- |
-| Explore dashboards, folders, panels, and datasource configuration. | `mcp-grafana` |
-| Query Prometheus-compatible metrics through the Grafana datasource layer. | `mcp-grafana` |
-| Query Loki logs through Grafana datasources. | `mcp-grafana` |
-| Inspect Grafana alerting, contact points, annotations, snapshots, or plugins. | `mcp-grafana` |
-| Query VictoriaMetrics directly with MetricsQL or PromQL. | `mcp-victoriametrics` |
-| List VictoriaMetrics metrics, labels, label values, and series. | `mcp-victoriametrics` |
+| Use case                                                                                | Recommended MCP       |
+| --------------------------------------------------------------------------------------- | --------------------- |
+| Explore dashboards, folders, panels, and datasource configuration.                      | `mcp-grafana`         |
+| Query Prometheus-compatible metrics through the Grafana datasource layer.               | `mcp-grafana`         |
+| Query Loki logs through Grafana datasources.                                            | `mcp-grafana`         |
+| Inspect Grafana alerting, contact points, annotations, snapshots, or plugins.           | `mcp-grafana`         |
+| Query VictoriaMetrics directly with MetricsQL or PromQL.                                | `mcp-victoriametrics` |
+| List VictoriaMetrics metrics, labels, label values, and series.                         | `mcp-victoriametrics` |
 | Investigate VictoriaMetrics cardinality, active queries, top queries, rules, or alerts. | `mcp-victoriametrics` |
-| Search VictoriaMetrics documentation offline from the MCP client. | `mcp-victoriametrics` |
+| Search VictoriaMetrics documentation offline from the MCP client.                       | `mcp-victoriametrics` |
 
 In most cases, start with `mcp-grafana` because it matches the way users
 usually navigate the monitoring stack: dashboards, datasources, alerts, and
@@ -51,10 +51,10 @@ debugging or lower-level API access is required.
 
 There are two common deployment models.
 
-| Deployment model | When to use it | Notes |
-| --- | --- | --- |
-| Local MCP server | Local development, debugging, or personal assistant setup. | The MCP server runs on the user's workstation. The monitored component must be reachable from that workstation through HTTPRoute, Ingress, port-forward, or another accessible endpoint. |
-| In-cluster MCP server | Shared team usage or a stable endpoint for multiple MCP clients. | The MCP server runs in the Kubernetes cluster, usually installed with Helm and exposed through HTTPRoute or Ingress. Protect the exposed MCP endpoint at the gateway or ingress layer. |
+| Deployment model      | When to use it                                                   | Notes                                                                                                                                                                                    |
+| --------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Local MCP server      | Local development, debugging, or personal assistant setup.       | The MCP server runs on the user's workstation. The monitored component must be reachable from that workstation through HTTPRoute, Ingress, port-forward, or another accessible endpoint. |
+| In-cluster MCP server | Shared team usage or a stable endpoint for multiple MCP clients. | The MCP server runs in the Kubernetes cluster, usually installed with Helm and exposed through HTTPRoute or Ingress. Protect the exposed MCP endpoint at the gateway or ingress layer.   |
 
 For local `stdio` mode, the MCP client starts the MCP server process itself.
 This is common for local binaries and `uvx`-based `mcp-grafana` usage.
@@ -85,8 +85,6 @@ grafana:
       name: grafana-mcp-token
       key: token
     disableWrite: true
-    allowedHosts:
-      - mcp-grafana.example.com
     httpRoute:
       install: true
       hostnames:
@@ -119,12 +117,18 @@ victoriametrics:
 Use Ingress instead of HTTPRoute by setting `*.mcp.ingress.install: true` and
 providing the required hosts, paths, annotations, and TLS settings.
 
+HTTPRoute and Ingress hostnames are automatically added to the Grafana MCP
+allowed-hosts list. Configure `grafana.mcp.allowedHosts` only for additional
+Host values that are not present in the route configuration.
+
 ## Detailed Setup Guides
 
 Use the detailed guides for component-specific installation and configuration:
 
 * [Installing mcp-grafana](mcp-grafana.md)
 * [Installing mcp-victoriametrics](mcp-victoriametrics.md)
+* [Grafana MCP Helm parameters](../installation/components/grafana-stack/mcp.md)
+* [VictoriaMetrics MCP Helm parameters](../installation/components/victoriametrics-stack/mcp.md)
 
 The detailed guides include:
 

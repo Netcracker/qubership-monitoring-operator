@@ -266,6 +266,7 @@ level.
 
 ```yaml
 grafana:
+  install: true
   mcp:
     install: true
     existingSecret:
