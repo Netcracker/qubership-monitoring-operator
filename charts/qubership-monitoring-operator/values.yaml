@@ -1834,6 +1834,12 @@ goldpingerExporter:
   # Disable by default
   install: false
 
+# Converter to migrate Grafana resources from v1alpha1 to v1beta1 APIs
+grafanaConverter:
+  nameOverride: qubership-grafana-operator-converter
+  # Install by default as a migration helper for Grafana Operator v5
+  install: true
+
 # Exporter to check SSL certificates
 sslExporter:
   # Enable for testing

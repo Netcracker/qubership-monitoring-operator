@@ -104,11 +104,11 @@ Determine Deployment Type
     ${deployment_exists}=  Run Keyword And Return Status  Get Deployment Entity  ${name}  ${namespace}
     ${daemonset_exists}=   Run Keyword And Return Status  Get Daemon Set  ${name}  ${namespace}
     ${deployment_type}=    Set Variable  none
-    ${deployment_type}=    Run Keyword If    ${deployment_exists} and not ${daemonset_exists}  
-    ...    Set Variable    deployment  
+    ${deployment_type}=    Run Keyword If    ${deployment_exists} and not ${daemonset_exists}
+    ...    Set Variable    deployment
     ...    ELSE    Set Variable    daemonset
     RETURN  ${deployment_type}
-    
+
 Check Deployment Or DaemonSet State
     [Arguments]  ${name}
     ${deployment_type}=  Determine Deployment Type  ${name}
@@ -152,13 +152,27 @@ Check Deployment State With Prerequisite
 
 Check Deployment State
     [Arguments]  ${name}
-    ${pods_in_namespace}=  Get Pods  ${namespace}
-    ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
     ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
+    ${pods_in_namespace}=  Get Pods  ${namespace}
+    ${pod_in_namespace}=  Get Pods Matching Deployment Selector  ${pods_in_namespace}  ${deployment}
     Check Pod's List Is Equals  ${pod_in_namespace}  ${deployment.spec.replicas}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Status Of Pods  ${pod_in_namespace}
     RETURN  ${flag}
+
+Get Pods Matching Deployment Selector
+    [Arguments]  ${pods}  ${deployment}
+    ${selector}=  Set Variable  ${deployment.spec.selector.match_labels}
+    ${matched_pods}=  Create List
+    FOR  ${pod}  IN  @{pods}
+        ${pod_labels}=  Set Variable  ${pod.metadata.labels}
+        ${matches}=  Run Keyword And Return Status
+        ...  Dictionary Should Contain Sub Dictionary  ${pod_labels}  ${selector}
+        IF  ${matches}
+            Append To List  ${matched_pods}  ${pod}
+        END
+    END
+    RETURN  ${matched_pods}
 
 Check Stateful Set State With Prerequisite
     [Arguments]  ${name}  ${name-in-cr}  ${parentservice}=${None}
