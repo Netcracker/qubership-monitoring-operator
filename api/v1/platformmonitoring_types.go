@@ -1768,12 +1768,13 @@ type GrafanaDashboards struct {
 
 // PrometheusRule handles parameters to override PrometheusRule: alerts of recording rules
 type PrometheusRule struct {
-	Group    string `json:"group,omitempty"`
-	Alert    string `json:"alert,omitempty"`
-	Record   string `json:"record,omitempty"`
-	For      string `json:"for,omitempty"`
-	Expr     string `json:"expr,omitempty"`
-	Severity string `json:"severity,omitempty"`
+	Group       string            `json:"group,omitempty"`
+	Alert       string            `json:"alert,omitempty"`
+	Record      string            `json:"record,omitempty"`
+	For         string            `json:"for,omitempty"`
+	Expr        string            `json:"expr,omitempty"`
+	Severity    string            `json:"severity,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // PrometheusRules help to add and override Prometheus rules
@@ -2048,6 +2049,14 @@ func (pr *PrometheusRule) OverridePrometheusRule(rule *promv1.Rule) {
 	}
 	if pr.Severity != "" {
 		rule.Labels["severity"] = pr.Severity
+	}
+	if len(pr.Annotations) > 0 {
+		if rule.Annotations == nil {
+			rule.Annotations = make(map[string]string)
+		}
+		for key, value := range pr.Annotations {
+			rule.Annotations[key] = value
+		}
 	}
 }
 

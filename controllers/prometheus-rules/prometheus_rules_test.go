@@ -50,3 +50,46 @@ func TestPrometheusRuleManifests(t *testing.T) {
 		assert.Nil(t, m.GetAnnotations())
 	})
 }
+
+func TestPrometheusRuleManifestWithAnnotationOverride(t *testing.T) {
+	install := true
+	customSummary := "Custom notification backlog summary"
+	customRunbook := "https://example.org/runbooks/prometheus-backlog"
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			PrometheusRules: &monv1.PrometheusRules{
+				Install:    &install,
+				RuleGroups: []string{"SelfMonitoring"},
+				Override: []monv1.PrometheusRule{
+					{
+						Group: "SelfMonitoring",
+						Alert: "PrometheusNotificationsBacklog",
+						Annotations: map[string]string{
+							"summary":     customSummary,
+							"runbook_url": customRunbook,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	manifest, err := prometheusRules(cr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, group := range manifest.Spec.Groups {
+		for _, rule := range group.Rules {
+			if rule.Alert == "PrometheusNotificationsBacklog" {
+				assert.Equal(t, customSummary, rule.Annotations["summary"])
+				assert.Equal(t, customRunbook, rule.Annotations["runbook_url"])
+				assert.NotEmpty(t, rule.Annotations["description"])
+				return
+			}
+		}
+	}
+
+	t.Fatal("PrometheusNotificationsBacklog rule was not found")
+}
