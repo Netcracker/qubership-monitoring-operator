@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	validPrivateKey = "-----BEGIN PRIVATE KEY-----\nkey\n-----END PRIVATE KEY-----"
+	validPrivateKey = "-----BEGIN PRIVATE KEY-----\nkey\n-----END PRIVATE KEY-----" // gitleaks:allow -- Test fixture.
 	validCACert     = "-----BEGIN CERTIFICATE-----\nca\n-----END CERTIFICATE-----"
 	validPeerCert   = "-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----"
 )
@@ -263,6 +263,59 @@ func TestCreateOrUpdateSecret(t *testing.T) {
 	got, err = clientset.CoreV1().Secrets("monitoring").Get(ctx, "etcd-certs", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("get updated secret failed: %v", err)
+	}
+	if string(got.Data["value"]) != "new" {
+		t.Fatalf("got data %q, want new", got.Data["value"])
+	}
+}
+
+func TestCreateOrUpdateSecretPreservesExistingMetadata(t *testing.T) {
+	controller := true
+	existing := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "etcd-certs",
+			Namespace: "monitoring",
+			Labels:    map[string]string{"custom": "keep"},
+			Annotations: map[string]string{
+				"custom": "keep",
+			},
+			OwnerReferences: []metav1.OwnerReference{{
+				APIVersion: "monitoring.netcracker.com/v1",
+				Kind:       "PlatformMonitoring",
+				Name:       "platformmonitoring",
+				UID:        "platform-monitoring-uid",
+				Controller: &controller,
+			}},
+		},
+		Data: map[string][]byte{"value": []byte("old")},
+	}
+	clientset := fake.NewSimpleClientset(existing)
+	desired := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "etcd-certs",
+			Namespace: "monitoring",
+			Labels:    map[string]string{"managed": "new"},
+		},
+		Data: map[string][]byte{"value": []byte("new")},
+	}
+
+	if err := createOrUpdateSecret(context.TODO(), clientset, desired, testLogger()); err != nil {
+		t.Fatalf("update failed: %v", err)
+	}
+
+	got, err := clientset.CoreV1().Secrets("monitoring").Get(
+		context.TODO(), "etcd-certs", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("get updated secret failed: %v", err)
+	}
+	if len(got.OwnerReferences) != 1 || got.OwnerReferences[0].UID != "platform-monitoring-uid" {
+		t.Fatalf("owner references were not preserved: %#v", got.OwnerReferences)
+	}
+	if got.Annotations["custom"] != "keep" {
+		t.Fatalf("annotations were not preserved: %#v", got.Annotations)
+	}
+	if got.Labels["custom"] != "keep" || got.Labels["managed"] != "new" {
+		t.Fatalf("labels were not merged: %#v", got.Labels)
 	}
 	if string(got.Data["value"]) != "new" {
 		t.Fatalf("got data %q, want new", got.Data["value"])

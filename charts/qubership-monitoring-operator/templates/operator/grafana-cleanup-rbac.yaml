@@ -1,0 +1,76 @@
+{{- if or .Values.grafana.install .Values.grafana.operator.install .Values.commonDashboards.install }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: monitoring-grafana-cleanup-hook
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-grafana-cleanup-hook") | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-11"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/resource-policy": keep
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: monitoring-grafana-cleanup-hook
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-grafana-cleanup-hook") | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-11"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/resource-policy": keep
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+  - apiGroups:
+      - apps
+    resources:
+      - deployments/scale
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+      - grafanadatasources
+      - grafanas
+    verbs:
+      - get
+      - list
+      - watch
+      - delete
+      - deletecollection
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: monitoring-grafana-cleanup-hook
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-grafana-cleanup-hook") | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-11"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/resource-policy": keep
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: monitoring-grafana-cleanup-hook
+subjects:
+  - kind: ServiceAccount
+    name: monitoring-grafana-cleanup-hook
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"strings"
+	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -176,13 +177,15 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 				if cr.Spec.Grafana.Operator.Resources.Size() > 0 {
 					c.Resources = cr.Spec.Grafana.Operator.Resources
 				}
-				// Configure WATCH_NAMESPACE and WATCH_NAMESPACE_SELECTOR environment variables
-				// Priority: NamespaceScope > WatchNamespaceSelector > WatchNamespaces > Namespaces (deprecated)
-				// If none are set, WATCH_NAMESPACE will be empty (watch all namespaces) - filtering should be done via instanceSelector.matchExpressions
-				// If NamespaceScope is true, limit to operator's namespace
+				// Configure WATCH_NAMESPACE and WATCH_NAMESPACE_SELECTOR environment variables.
+				// Non-privileged mode must stay in the PlatformMonitoring namespace because it only has a Role.
+				// Privileged mode priority: NamespaceScope > WatchNamespaceSelector > WatchNamespaces > Namespaces (deprecated).
+				// If none are set in privileged mode, WATCH_NAMESPACE is empty and the operator watches all namespaces.
 				watchNamespace := ""
 				watchNamespaceSelector := ""
-				if cr.Spec.Grafana.Operator.NamespaceScope {
+				if !utils.PrivilegedRights {
+					watchNamespace = cr.GetNamespace()
+				} else if cr.Spec.Grafana.Operator.NamespaceScope {
 					watchNamespace = cr.GetNamespace()
 				} else if cr.Spec.Grafana.Operator.WatchNamespaceSelector != "" {
 					// Use label selector to dynamically discover namespaces
@@ -330,6 +333,7 @@ func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.Gr
 	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
 	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
 	dashboard.SetNamespace(cr.GetNamespace())
+	dashboard.Spec.ResyncPeriod = metav1.Duration{Duration: 10 * time.Minute}
 
 	// Set labels (CR: base + processed-by-operator per spec)
 	utils.SetLabelsForResource(&dashboard, utils.LabelInput{

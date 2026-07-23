@@ -1,22 +1,20 @@
+# Monitoring Maintenance
+
+## Ways to Make Changes
+
 This document provides information about the maintenance of the Monitoring deployment and the configuration of its
 services.
 
-# Ways to Make Changes
-
 The following sections describe the various ways to make changes in the Monitoring deployment.
 
-## Redeploy/Update
+### Redeploy/Update
 
-### Manual Deploy using Helm
-
-**NOTE:** if you want to deploy the `monitoring-operator` into **Kubernetes v1.15** or lower or
-**OpenShift v3.11** or lower, you must work with _v1beta1_ CRDs manually. For more information see
-[Work with legacy CRDs](#work-with-legacy-crds).
+#### Manual Deploy using Helm
 
 This chart installs Monitoring Operator which can create/configure/manage Prometheus and the components in
 Kubernetes/OpenShift.
 
-#### Installing the Chart
+##### Installing the Chart
 
 To install the chart with the `monitoring-operator` release name, use the following command.
 
@@ -30,7 +28,7 @@ configuration section lists the parameters that can be configured during the ins
 The default installation includes Prometheus Operator, AlertManager, Exporters, and configuration for scraping the
 Kubernetes/OpenShift infrastructure.
 
-#### Upgrading the Chart
+##### Upgrading the Chart
 
 To upgrade the chart with the `monitoring-operator` release name, use the following command.
 
@@ -41,7 +39,7 @@ helm upgrade monitoring-operator charts/monitoring-operator
 The command upgrades monitoring-operator on the Kubernetes/OpenShift cluster in the default configuration. The
 configuration section lists the parameters that can be configured during the upgrade.
 
-#### Uninstalling the Chart
+##### Uninstalling the Chart
 
 To uninstall or delete the `monitoring-operator` deployment, use the following command.
 
@@ -51,40 +49,13 @@ helm delete monitoring-operator
 
 The command removes all the Kubernetes/OpenShift components associated with the chart and deletes the release.
 
-**Warning**: Note that this step removes CRDs for monitoring and deleting these CRDs deletes all resources of their
-type. All resources like ServiceMonitor and GrafanaDashboard are removed from the applications.
+Helm does not remove CRDs. To remove them, follow the
+[manual CRD removal procedure](user-guides/manual-create-crds.md#remove), which deletes the extracted CRD manifests.
 
-CRDs created by this chart are not removed by default and should be manually cleaned up.
+**Warning**: Deleting CRDs deletes all corresponding custom resources in every namespace, including application
+`ServiceMonitor` and `GrafanaDashboard` objects.
 
-* For Kubernetes
-
-    ```bash
-    kubectl delete crd platformmonitoring.monitoring.netcracker.com
-    kubectl delete crd prometheuses.monitoring.coreos.com
-    kubectl delete crd prometheusrules.monitoring.coreos.com
-    kubectl delete crd servicemonitors.monitoring.coreos.com
-    kubectl delete crd podmonitors.monitoring.coreos.com
-    kubectl delete crd alertmanagers.monitoring.coreos.com
-    kubectl delete crd grafana.integreatly.org
-    kubectl delete crd grafanadashboard.integreatly.org
-    kubectl delete crd grafanadatasource.integreatly.org
-    ```
-
-* For OpenShift
-
-    ```bash
-    oc delete crd platformmonitoring.monitoring.netcracker.com
-    oc delete crd prometheuses.monitoring.coreos.com
-    oc delete crd prometheusrules.monitoring.coreos.com
-    oc delete crd servicemonitors.monitoring.coreos.com
-    oc delete crd podmonitors.monitoring.coreos.com
-    oc delete crd alertmanagers.monitoring.coreos.com
-    oc delete crd grafana.integreatly.org
-    oc delete crd grafanadashboard.integreatly.org
-    oc delete crd grafanadatasource.integreatly.org
-    ```
-
-## Change Parameters in Custom Resource in Runtime
+### Change Parameters in Custom Resource in Runtime
 
 For deploy and config, the Monitoring deployment uses monitoring-operator, which is based on operator-sdk.
 
@@ -147,61 +118,11 @@ Using this procedure, you can:
 All parameters that you can specify in the `PlatformMonitoring` objects are described in the API documents. For more
 details, refer to the _Platform Monitoring_ chapter in the _Cloud Platform Monitoring Guide_.
 
-## Work with legacy CRDs
-
-If you use **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower, you must use CRDs with _v1beta1_ API version.
-But the Helm chart uses CRDs _v1_ version, which are incompatible with _v1beta1_ CRDs.
-
-So if you use Kubernetes or OpenShift of specified version or lower, you have to work with _v1beta1_ CRDs which
-are contained in the [crds directory](crds/). Also, you have to use the features of deployment tools
-to skip installing CRDs to avoid errors.
-
-If you want to deploy the `monitoring-operator` in a cluster (Kubernetes v1.15 or lower or
-OpenShift v3.11 or lower) for the first time, you have to install CRDs manually before deploying other components.
-
-To create CRDs version _v1beta1_ need:
-
-1. Login into cluster using `kubectl` client for Kubernetes or `oc` client for `OpenShift`
-2. Navigate to `docs/crds` directory
-3. Execute the following command for Kubernetes:
-
-```bash
-kubectl create -f ./v1beta1
-```
-
-or for OpenShift:
-
-```bash
-oc create -f ./v1beta1
-```
-
-To update CRDs version _v1beta1_ need:
-
-1. Login into cluster using `kubectl` client for Kubernetes or `oc` client for `OpenShift`
-2. Navigate to `docs/crds` directory
-3. Execute the following command for Kubernetes:
-
-```bash
-kubectl replace -f ./v1beta1
-```
-
-or for OpenShift:
-
-```bash
-oc replace -f ./v1beta1
-```
-
-To remove CRDs you can use instructions from [Remove procedure](#remove-procedure).
-
-**NOTE:** You must set the following parameters during deploy to skip CRDs creation if you use _v1beta1_ CRDs:
-
-* for manually Helm installation - add `--skip-crds` to `helm install` or `helm upgrade` command
-
-# Provided Procedures
+## Provided Procedures
 
 The information about the procedures for monitoring deployment is described in the following sections.
 
-## Update Procedure
+### Update Procedure
 
 Except for one important point, the update process is the same as the installation process.
 
@@ -217,23 +138,25 @@ During install/update you need:
 * Create or use previously created configurations.
 * Run any job for update or run update manually with using Helm.
 
-But before run update need manually update CRDs.
-
-**NOTE:** if you use the `monitoring-operator` into **Kubernetes v1.15** or lower or
-**OpenShift v3.11** or lower, you must work with _v1beta1_ CRDs manually. For more information see
-[Work with legacy CRDs](#work-with-legacy-crds).
+Before upgrading the operator or managed-controller images, apply the complete CRD set from the target release.
 
 To update CRDs need:
 
-1. Download chart. How to find it see below.
-2. Navigate to directory `charts/monitoring-operator`.
-3. Execute a command:
+1. Download and extract `monitoring-operator-<version>-crds.zip` from the target release.
+2. Execute:
 
     ```bash
-    kubectl replace -f crds/
+    kubectl apply --server-side --force-conflicts --recursive -f path/to/extracted/crds/
     ```
 
-## Remove Procedure
+Server-side apply updates existing CRDs, creates CRDs introduced by the target release, and avoids the large
+client-side last-applied-configuration annotation. Ordinary `helm upgrade` does not upgrade CRDs.
+
+Before upgrading from Grafana Operator v4, migrate legacy
+[`GrafanaDataSource` resources](examples/custom-resources/grafana-datasource/README.md#migrate-v4-resources).
+Legacy dashboards remain available to the Grafana operator converter and must not be removed before conversion.
+
+### Remove Procedure
 
 There are some ways to uninstall or delete the `monitoring-operator` deployment:
 
@@ -241,7 +164,7 @@ There are some ways to uninstall or delete the `monitoring-operator` deployment:
 * Remove the `PlatformMonitoring` CR and operator.
 * Remove all created CRDs.
 
-### Remove PlatformMonitoring CR
+#### Remove PlatformMonitoring CR
 
 Monitoring-operator watches the state of the `PlatformMonitoring` CR and tracks all events. So when you remove this, the
 object operator should remove all objects (Deployments, ConfigMaps, Secrets, and so on), which it created during the
@@ -271,7 +194,7 @@ objects are not removed:
 * Some cluster entities like ClusterRoles, ClusterRoleBindings, Security Context Constraints (SCC), and Pod Security
   Policy (PSP)
 
-### Remove PlatformMonitoring CR and Operator
+#### Remove PlatformMonitoring CR and Operator
 
 The simplest way to remove the CR and operator is by using the following helm delete command.
 
@@ -287,55 +210,14 @@ helm list -n <namespace>
 
 The command removes all the Kubernetes/OpenShift components associated with the chart and deletes the release.
 
-### Remove all Created CRDs
+#### Remove all Created CRDs
 
-**Warning**: Note that this step removes CRDs for monitoring, and deleting these CRDs causes the deletion of all
-resources of their type. It means that all resources like ServiceMonitor and GrafanaDashboard are removed from the
-applications.
+Follow the [manual CRD removal procedure](user-guides/manual-create-crds.md#remove), which deletes the extracted CRD manifests.
 
-CRDs created by this chart are not removed by default and should be manually cleaned up.
+**Warning**: Deleting CRDs deletes all corresponding custom resources in every namespace, including application
+`ServiceMonitor` and `GrafanaDashboard` objects.
 
-* For Kubernetes
-
-    ```bash
-    kubectl delete crd grafanas.integreatly.org
-    kubectl delete crd grafanadashboards.integreatly.org
-    kubectl delete crd grafanadatasources.integreatly.org
-    kubectl delete crd grafananotificationchannels.integreatly.org
-    kubectl delete crd alertmanagers.monitoring.coreos.com
-    kubectl delete crd alertmanagerconfigs.monitoring.coreos.com
-    kubectl delete crd podmonitors.monitoring.coreos.com
-    kubectl delete crd probes.monitoring.coreos.com
-    kubectl delete crd prometheuses.monitoring.coreos.com
-    kubectl delete crd prometheusrules.monitoring.coreos.com
-    kubectl delete crd servicemonitors.monitoring.coreos.com
-    kubectl delete crd thanosrulers.monitoring.coreos.com
-    kubectl delete crd customscalemetricrules.monitoring.netcracker.com
-    kubectl delete crd platformmonitorings.monitoring.netcracker.com
-    kubectl delete crd prometheusadapters.monitoring.netcracker.com
-    ```
-
-* For OpenShift
-
-    ```bash
-    oc delete crd grafanas.integreatly.org
-    oc delete crd grafanadashboards.integreatly.org
-    oc delete crd grafanadatasources.integreatly.org
-    oc delete crd grafananotificationchannels.integreatly.org
-    oc delete crd alertmanagers.monitoring.coreos.com
-    oc delete crd alertmanagerconfigs.monitoring.coreos.com
-    oc delete crd podmonitors.monitoring.coreos.com
-    oc delete crd probes.monitoring.coreos.com
-    oc delete crd prometheuses.monitoring.coreos.com
-    oc delete crd prometheusrules.monitoring.coreos.com
-    oc delete crd servicemonitors.monitoring.coreos.com
-    oc delete crd thanosrulers.monitoring.coreos.com
-    oc delete crd customscalemetricrules.monitoring.netcracker.com
-    oc delete crd platformmonitorings.monitoring.netcracker.com
-    oc delete crd prometheusadapters.monitoring.netcracker.com
-    ```
-
-## Deploy/Skip/Remove based components
+### Deploy/Skip/Remove based components
 
 Monitoring-operator control (deploy/update/remove) some base components which include into monitoring deployment
 Components list which it control:
@@ -378,7 +260,7 @@ grafana:
 
 For see more information about available deploy parameters please refer to [Installation Guide](installation/README.md).
 
-## Pause reconciliation for components which control by monitoring-operator
+### Pause reconciliation for components which control by monitoring-operator
 
 As described in paragraph above monitoring-operator control components and can create/update/remove them.
 Also it means that if you want change any settings manually you just can't do it.
@@ -425,11 +307,11 @@ and next make changes in DaemonSet.
 
 For see more information about available deploy parameters please refer to [Installation Guide](installation/README.md).
 
-## Export Prometheus Data
+### Export Prometheus Data
 
 The information about the various ways to export data from Prometheus is described in the following sections.
 
-### Export using Snapshots
+#### Export using Snapshots
 
 Snapshot creates a snapshot of all current data into `snapshots/<datetime>-<rand>` under the TSDB's data directory and
 returns the directory as a response. It optionally skips snapshotting the data that is only present in the head block,
@@ -456,7 +338,7 @@ $ curl -XPOST http://localhost:9090/api/v1/admin/tsdb/snapshot
 
 The snapshot now exists at `<data-dir>/snapshots/20171210T211224Z-2be650b6d019eb54`.
 
-### Copy PV Content
+#### Copy PV Content
 
 The Prometheus data can be copied as a content of PV.
 
@@ -466,16 +348,16 @@ To do so, just copy the PV data to any external storage. For example,
 cp -R <data-dir>/ <external-storage>/prometheus/
 ```
 
-## Import Prometheus Data
+### Import Prometheus Data
 
 The information about the various ways to import data from Prometheus is described in the following sections.
 
-### Import from Snapshots
+#### Import from Snapshots
 
 To use the data from a snapshot, just copy the snapshot to `--storage.tsdb.path=<dir>` and run Prometheus. By default,
 it is `--storage.tsdb.path=/prometheus`.
 
-### Use early copied PV Content
+#### Use early copied PV Content
 
 To use such data, just copy it to `--storage.tsdb.path=<dir>` and run Prometheus. By default, it
 is `--storage.tsdb.path=/prometheus`.

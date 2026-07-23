@@ -1,9 +1,11 @@
+# Troubleshooting
+
+## Deploy
+
 This document provides information about troubleshooting Monitoring deployment and its configurations.
 It also provides the configurations of monitoring services.
 
-# Deploy
-
-## Manifests Contain a New Resource that Already Exists
+### Manifests Contain a New Resource that Already Exists
 
 Sometimes the following error can be seen during a run deploy using a job or manually using a Helm.
 
@@ -25,7 +27,7 @@ annotations:
 
 In this case, Helm cannot install or upgrade this resource because it did not create it and should not change.
 
-## Set Integer Parameter Value to Zero
+### Set Integer Parameter Value to Zero
 
 Due to the nature of work, the Helm templates with any integer value parameters that are equal to zero
 (for example, `securityContext.runAsUser` or `securityContext.fsGroup`) must be passed as a string (with quotes).
@@ -39,11 +41,11 @@ securityContext:
 
 Otherwise, the default values are set.
 
-# Runtime Issues
+## Runtime Issues
 
-## Common Issues
+### Common Issues
 
-### Prometheus or Grafana Operators are Restarting
+#### Prometheus or Grafana Operators are Restarting
 
 Prometheus-operator and Grafana-operator can use a lot of memory during the start if a lot of Custom Resources (CR)
 with which the operator works are deployed on the Cloud.
@@ -114,7 +116,7 @@ The parameters' descriptions can be found in the following section of the _Cloud
 
 * [Platform Monitoring Installation Procedure](installation/README.md)
 
-### Metrics absent or errors during metrics collection
+#### Metrics absent or errors during metrics collection
 
 By default `prometheus/victoriametrics` tries to fetch metrics and endpoints from all the namespaces cluster-wide which contain
 `serviceMonitors/podMonitors/probeMonitors` and monitor them. However in some cases filters can be used to specify particular
@@ -203,7 +205,7 @@ Usually, the problem at this step means:
 Usually, the errors at this point are visible in the `Last error` column in active targets and more details can be found
 in the `response` link in the case of VictoriaMetrics.
 
-### Unable to update Etcd certificates
+#### Unable to update Etcd certificates
 
 In case of restricted privileges monitoring-operator/etcd_monitor_reconciler can throw warn message like:
 
@@ -214,9 +216,9 @@ In case of restricted privileges monitoring-operator/etcd_monitor_reconciler can
 It means there is no access to Etcd resources.
 The solutions are described in the `monitoring-operator` RBAC document, `the-monitoring-operator-rbac` section.
 
-## Prometheus Stack
+### Prometheus Stack
 
-### Prometheus Target is Down
+#### Prometheus Target is Down
 
 If a pod with an application that should expose metrics to Prometheus is running, the corresponding `ServiceMonitor`
 (or `PodMonitor`) is created and the corresponding target is present in the Prometheus UI, but that target is down.
@@ -226,9 +228,9 @@ increasing the timeout may help.
 
 **Note that scrapeTimeout must be less than the interval.**
 
-## VictoriaMetrics Stack
+### VictoriaMetrics Stack
 
-### VictoriaMetrics Operator Can't Remove ClusterRole/ClusterRoleBinding
+#### VictoriaMetrics Operator Can't Remove ClusterRole/ClusterRoleBinding
 
 **When it can occur:**
 
@@ -288,7 +290,7 @@ for the whole `finalizers` section:
 kubectl -n <namespace_name> patch <object_type> <object_name> -p '{"metadata":{"finalizers":null}}' --type=merge
 ```
 
-### EFS Persistence Volume overflow
+#### EFS Persistence Volume overflow
 
 **When it can occur:**
 
@@ -318,14 +320,14 @@ You can use faster disks (like SSD), but `Throughput Optimized HDD volumes` shou
 About AWS EBS disk types you can read in the documentation
 [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html).
 
-### Cannot read stream body
+#### Cannot read stream body
 
 **When it can occur:**
 
 * Big the response size
 * Small `promscrape.maxScrapeSize`
 * You can face with error message
-  
+
   ```bash
   Cannot read stream body in 1 seconds: the response from "https://x.x.x.x:6443/metrics" exceeds -promscrape.maxScrapeSize=16777216; either reduce the response size for the target or increase -promscrape.maxScrapeSize
   ```
@@ -351,7 +353,7 @@ victoriametrics:
       promscrape.maxScrapeSize: 256MiB
 ```
 
-### VictoriaMetrics pods continuously restart
+#### VictoriaMetrics pods continuously restart
 
 **When it can occur:**
 
@@ -411,7 +413,7 @@ this error means that the problem:
 
 In this case, need to find where was specified email notification channel config was and add the lost email address.
 
-### VictoriaMetrics config secret does not contain inhibit rules
+#### VictoriaMetrics config secret does not contain inhibit rules
 
 **When it can occur:**
 
@@ -494,19 +496,9 @@ spec:
 
 For more information about AlertmanagerConfig, refer to the [Configuration documentation](configuration.md#alertmanagerconfig).
 
-## Grafana
+### Grafana
 
-### Grafana Data Source not found
-
-The `grafana-operator v4.x` has a problem ([https://github.com/grafana/grafana-operator/issues/652](https://github.com/grafana/grafana-operator/issues/652))
-when the Prometheus datasource is not imported until the controller-manager
-is restarted. The problem is that both resources are created at the same time and the Grafana pod is started before
-the operator updates the config map for data sources.
-
-However, you can update the GrafanaDataSource object (for example, add a new label) so that grafana-deployment is
-recreated and datasource is imported.
-
-### Grafana-operator stop discover new dashboards or locked
+#### Grafana-operator stop discover new dashboards or locked
 
 **Description:**
 
@@ -563,11 +555,11 @@ To unlock the `grafana-operator` need:
     kubectl -n <monitoring_namespace> delete pod <grafana_operator_pod_name>
     ```
 
-## Exporters
+### Exporters
 
-### NodeExporter
+#### NodeExporter
 
-#### Not all node-exporter Endpoints have UP Status in OpenShift
+##### Not all node-exporter Endpoints have UP Status in OpenShift
 
 Iptables service specifies a port's range in OpenShift. By default, the range is from `30000` to `32999`.
 The `NodeExporter` runs on the 9900 port, which is outside the specified default range.
@@ -602,9 +594,9 @@ To fix this problem, you can edit the list of opened ports on each virtual machi
 `monitoring-operator` will use the built-in SecurityContextConstraint for node-exporter that is provided
 by Openshift.
 
-### Network-latency-exporter
+#### Network-latency-exporter
 
-#### Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy
+##### Network Latency Dashboards do not Contain Data, but Exporter Pods are Healthy
 
 This may be due to insufficient rights for the exporter. Make sure that RBAC resources were created correctly.
 
@@ -615,9 +607,9 @@ the `runAsUser: "0"` parameter.
 of the exporter in the OpenShift v4.x version. If you want to use the exporter in this case, you can set the
 `.Values.networkLatencyExporter.rbac.privileged` parameter to `true` during the deployment.
 
-### Kubelet
+#### Kubelet
 
-#### VMSingle/Prometheus cannot handle container_start_time_seconds metric with too small a timestamp
+##### VMSingle/Prometheus cannot handle container_start_time_seconds metric with too small a timestamp
 
 **This issue can be fixed on the Kubernetes side since v1.29**: <https://github.com/kubernetes/kubernetes/pull/120518>
 
@@ -675,14 +667,14 @@ Also, you can add the relabeling above manually directly to the service monitor,
 NOT managed by monitoring-operator. Otherwise, more likely these changes will be overridden during the next
 reconciliation cycle.
 
-## Integrations
+### Integrations
 
-### Graphite-remote-adapter
+#### Graphite-remote-adapter
 
 This section describes various issues that can occur with the graphite-remote-adapter component and how to troubleshoot
 them.
 
-#### Graphite-remote-adapter Regularly Restarts with OOM
+##### Graphite-remote-adapter Regularly Restarts with OOM
 
 In some cases, the graphite-remote-adapter pod regularly restarts with an OOM error in
 the status.
@@ -767,7 +759,7 @@ graphite:
 
 Remember to restart the Graphite pod.
 
-#### Graphite-remote-adapter send metrics with delay
+##### Graphite-remote-adapter send metrics with delay
 
 **Description:**
 
@@ -839,9 +831,9 @@ where:
 **Note:** Since release `0.70.0` the graphite-remote-adapter can set `GOMAXPROCS` automatically based on the set
 pod's limits during the start. So if you are using this or a higher version, you can skip this recommendation.
 
-## Prometheus-adapter
+### Prometheus-adapter
 
-### ServiceNotFound for `v1.custom.metrics.k8s.io` API Service
+#### ServiceNotFound for `v1.custom.metrics.k8s.io` API Service
 
 When `prometheus-adapter` is not available (the pod was removed, or the pod continuously restarted),
 Kubernetes API Server could not handle some requests.
@@ -884,7 +876,7 @@ kubectl delete apiservice v1.custom.metrics.k8s.io
 **Note:** Old Kubernetes versions can use `v1beta1` API version and you have to work
 with `v1beta1.custom.metrics.k8s.io`.
 
-### FailedDiscoveryCheck for `v1.custom.metrics.k8s.io` API Service
+#### FailedDiscoveryCheck for `v1.custom.metrics.k8s.io` API Service
 
 When `prometheus-adapter` is available, but didn't discover no one rules, it won't run handler for registered API.
 It means that Kubernetes API Server will can't process HPA requests for custom metrics.
@@ -936,7 +928,7 @@ To fix the first issue you have two options:
             values:
               - monitoring
     ```
-  
+
   * in this case, you have to add label `app.kubernetes.io/component: monitoring` to CR:
 
     ```yaml
@@ -953,7 +945,7 @@ To solve the second issue need to add at least one `CustomScaleMetricRule` CR wi
 The `prometheus-adapter` will enable the handler and will process API requests for `v1.custom.metrics.k8s.io`
 only in case when it has at least one rule for `v1.custom.metrics.k8s.io`.
 
-### prometheus-adapter Pod is Down or Restarting
+#### prometheus-adapter Pod is Down or Restarting
 
 When `prometheus-adapter` is down or the `prometheus-adapter` pod is continuously restarted, it can
 have some root cases:

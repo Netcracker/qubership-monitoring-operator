@@ -43,7 +43,7 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
 			}
-			return nil
+			return r.migrateLegacyGrafanaResources(context.TODO(), cr, m)
 		}
 		return err
 	}
@@ -64,6 +64,9 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 		if err = r.UpdateResource(e); err != nil {
 			return err
 		}
+	}
+	if err = r.migrateLegacyGrafanaResources(context.TODO(), cr, e); err != nil {
+		return err
 	}
 	// WA for https://github.com/grafana-operator/grafana-operator/issues/652
 	r.Log.Info("Waiting grafana-deployment")
@@ -100,12 +103,18 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
+			if err = r.adoptExistingDatasourceUID(context.TODO(), cr, m); err != nil {
+				return err
+			}
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
 			}
 			return nil
 		}
 		return err
+	}
+	if m.Spec.CustomUID == "" {
+		m.Spec.CustomUID = checkObj.Spec.CustomUID
 	}
 
 	// Only update if something actually changed to avoid unnecessary updates
@@ -148,12 +157,18 @@ func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
+			if err = r.adoptExistingDatasourceUID(context.TODO(), cr, m); err != nil {
+				return err
+			}
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
 			}
 			return nil
 		}
 		return err
+	}
+	if m.Spec.CustomUID == "" {
+		m.Spec.CustomUID = checkObj.Spec.CustomUID
 	}
 
 	// Set parameters
@@ -286,6 +301,7 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	return nil
 }
 
+//nolint:unused // Kept for manual Grafana credential recovery.
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
 	// Waiting Grafana Pods readiness
 	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
@@ -370,7 +386,6 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
 		}
 
-		isSecretUpdated = false
 		r.Log.Info("Grafana Credentials Reset was finished")
 	}
 	if errors.IsNotFound(err) {

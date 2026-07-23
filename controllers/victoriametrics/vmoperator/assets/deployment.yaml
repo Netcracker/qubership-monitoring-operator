@@ -53,7 +53,7 @@ spec:
           value: 50Mi
         - name: VM_VMALERTMANAGER_CONFIGRELOADERMEMORY
           value: 50Mi
-        image: victoriametrics/operator:v0.33.0
+        image: victoriametrics/operator:v0.73.1
         imagePullPolicy: IfNotPresent
         name: victoriametrics-operator
         ports:

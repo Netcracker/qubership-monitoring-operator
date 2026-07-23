@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -62,4 +63,34 @@ func TestVmSingleManifests(t *testing.T) {
 		},
 	}
 
+}
+
+func TestVmSingleUsesOperatorVmAlertURL(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "monitoring",
+		},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmOperator: monv1.VmOperator{
+					Image: "vmoperator:current",
+				},
+				VmSingle: monv1.VmSingle{
+					Image: "vmsingle:current",
+				},
+				VmAlert: monv1.VmAlert{
+					Image: "vmalert:current",
+				},
+			},
+		},
+	}
+
+	manifest, err := vmSingle(nil, cr)
+	require.NoError(t, err)
+
+	assert.Equal(
+		t,
+		"http://vmalert-k8s.monitoring.svc:8080",
+		manifest.Spec.ExtraArgs["vmalert.proxyURL"],
+	)
 }

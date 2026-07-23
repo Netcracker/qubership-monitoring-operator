@@ -95,7 +95,7 @@ gatewayApi:
 #   * Prometheus        - a resource which describe a Prometheus deployment
 #   * AlertManager      - a resource which describe an AlertManager deployment
 #   * Grafana           - a resource which describe a Grafana deployment
-#   * GrafanaDataSource - a resource which describe a default Grafana datasource
+#   * GrafanaDatasource - a resource which describes a default Grafana datasource
 # Type: object
 #
 monitoringOperator:
