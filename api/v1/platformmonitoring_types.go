@@ -1790,10 +1790,6 @@ type Promxy struct {
 	Port    *int32 `json:"port,omitempty"`
 }
 
-func init() {
-	SchemeBuilder.Register(&PlatformMonitoring{}, &PlatformMonitoringList{})
-}
-
 // IsInstall check if AlertManager should be installed
 // Returns false if parameter `install` is false or not set
 func (am AlertManager) IsInstall() bool {
