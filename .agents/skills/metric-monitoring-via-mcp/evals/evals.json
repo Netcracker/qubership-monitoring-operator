@@ -1,0 +1,236 @@
+{
+  "skill_name": "metric-monitoring-via-mcp",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Trace the recorded metric skill_eval:up:double_by_job through every dependent recording rule to raw metrics. For each level, compare the stored output with its expression over the same ten-minute Europe/Moscow window, including values, missing series, labels, timestamps or lag, rule health, and limitations. Keep the investigation read-only.",
+      "expected_output": "Given a live two-rule fixture, the agent discovers skill_eval:up:double_by_job -> skill_eval:up:sum_by_job -> raw up, proves both rule expressions match their outputs, and reports compact evidence without downloading every series unless a mismatch requires drill-down.",
+      "files": [],
+      "expectations": [
+        "Discovers both producer rules and stops at raw up because no producer rule exists for it.",
+        "Reports each rule's group, exact expression, interval, health or error, and rule-added labels.",
+        "Uses one fixed range and the rule evaluation interval for every stored-output versus expression comparison.",
+        "Checks unequal values and series missing from either side at both recorded-metric levels.",
+        "Checks label effects and freshness or lag without treating range-evaluation grid timestamps as stored timestamps.",
+        "Uses no more than 10 backend calls for the mature healthy two-rule fixture, unless the output identifies a concrete mismatch, rejected combined query, or ambiguity that required drill-down.",
+        "Uses one combined mismatch and missing-series range query per recorded-metric level unless the backend rejects it or a nonzero check requires drill-down.",
+        "Does not fetch an unfiltered full matrix or broad raw range selector when compact comparisons show no mismatch.",
+        "Reports the dependency chain, compact evidence, limitations, and read-only status without enumerating every sample."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use the connected monitoring MCP servers to verify read-only access to both Grafana and VictoriaMetrics. In Grafana, find the dashboard titled Kubernetes / Nodes Resources, identify its datasource, and check that datasource's health. In VictoriaMetrics, run one narrow instant query for up and summarize the returned scope. Report what was verified and any limitations, but do not expose or speculate about credentials or how authentication is configured.",
+      "expected_output": "On an auth-required deployment whose MCP connection is already configured, the agent successfully uses both servers, identifies the requested Grafana dashboard and datasource, confirms datasource health, runs a narrow VictoriaMetrics up query, and does not mention, request, or reveal authentication material or assume where auth is implemented.",
+      "files": [],
+      "expectations": [
+        "Successfully reads from both mcp-grafana and mcp-victoriametrics without asking the user for credentials.",
+        "Finds the Kubernetes / Nodes Resources dashboard and reports its stable UID.",
+        "Identifies the dashboard datasource and reports its type or backend plus health result.",
+        "Runs one narrow instant VictoriaMetrics up query and summarizes series count or representative scope without dumping all series.",
+        "Does not print or persist credentials, authorization headers, tokens, passwords, or encoded secret values.",
+        "Does not claim that authentication is agent-side, server-side, proxy-side, Basic, token-based, or unauthenticated when that mechanism was not established by MCP evidence.",
+        "Uses no more than 8 monitoring MCP calls unless a concrete discovery ambiguity or tool error requires recovery.",
+        "Does not call backend documentation when successful MCP responses already provide all evidence requested by the task.",
+        "Keeps the investigation read-only and reports relevant limitations."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The panel Missing targets in the Grafana dashboard Skill Eval / Missing Data shows no data. Investigate the cause using the connected monitoring MCP servers. Identify the panel datasource, reproduce the panel query for the same scope, determine whether the problem is metric ingestion, datasource access, dashboard variables, or label selection, and report the smallest appropriate correction. Keep the investigation read-only.",
+      "expected_output": "The agent finds dashboard UID monitoring-skill-eval-no-data and panel Missing targets, resolves the datasource and $job variable, proves that up exists while up{job=\"skill-eval-nonexistent\"} does not, and attributes No data to the invalid job selector without changing the dashboard.",
+      "files": [],
+      "expectations": [
+        "Finds the Skill Eval / Missing Data dashboard by title, reports UID monitoring-skill-eval-no-data, and identifies panel Missing targets.",
+        "Extracts the stored query up{job=\"$job\"}, resolves $job to skill-eval-nonexistent, and states the effective query.",
+        "Resolves $datasource to Platform Monitoring Prometheus, identifies its Prometheus-compatible type or backend and health, and does so before relying on a direct VictoriaMetrics query.",
+        "Reproduces the effective selector without silently changing it and observes an empty current result.",
+        "Uses a compact query to establish that up exists in the same backend and scope instead of treating the empty selector result as proof that the metric is absent.",
+        "Inspects actual job label values or an equivalent grouped summary and establishes that skill-eval-nonexistent is not a current job value.",
+        "Uses current and recent-range evidence, or clearly explains equivalent timestamp evidence, to distinguish a persistent selector mismatch from a transient current gap.",
+        "Correctly attributes No data to the dashboard variable or label selector rather than unsupported datasource or ingestion failure.",
+        "Recommends the smallest appropriate correction, such as selecting a real job value or sourcing the variable dynamically, without applying a change.",
+        "Does not expose or speculate about credentials or authentication placement.",
+        "Uses no more than 10 monitoring MCP calls unless a concrete tool error or discovery ambiguity requires recovery.",
+        "Avoids dumping the full dashboard or unfiltered raw series when targeted panel, property, label, and aggregate reads are sufficient.",
+        "Reports the relevant time scope, evidence, limitations, and read-only status."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The alert SkillEvalApiServerReplicaShortage is active in the monitoring environment. Investigate why it is firing or pending, identify which alerting system evaluates it, inspect the live alert instance and rule definition, and validate the full expression and its meaningful operands at the current time. Explain the threshold and for-duration semantics, health, labels, annotations, and limitations. Keep the investigation read-only.",
+      "expected_output": "The agent identifies vmalert as the evaluator, finds the active SkillEvalApiServerReplicaShortage instance and its rule, observes that the kube-apiserver up-series sum is below the threshold of two, and explains the current state using compact current-time evidence without confusing target health with the replica-count condition.",
+      "files": [],
+      "expectations": [
+        "Identifies VictoriaMetrics vmalert, rather than Grafana Alerting, as the evaluator and uses the VictoriaMetrics MCP for the investigation.",
+        "Fetches both the live alert instance and the matching alert rule definition.",
+        "Reports the alert state, rule health or error, exact expression, evaluation interval, for duration, labels, and annotations available from the APIs.",
+        "Evaluates the full alert expression at an explicit current time and reports whether it is true.",
+        "Evaluates the meaningful kube-apiserver count operand separately and compares it with the threshold of two.",
+        "Explains the for-duration relative to the observed activeAt or current state without claiming unsupported historical continuity.",
+        "Does not misdiagnose the condition as an individual kube-apiserver target being down when the expression tests the aggregate count.",
+        "Uses no more than 8 monitoring MCP calls unless a concrete tool error or ambiguity requires recovery.",
+        "Reports compact evidence, at least one limitation, and read-only status without changing or silencing the alert."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Verify read-only access to the Grafana dashboard Kubernetes / Nodes Resources and to a narrow VictoriaMetrics up query. If either connected MCP rejects access, diagnose only what the MCP evidence supports and explain the next configuration check. Do not request, reveal, invent, or infer credentials or the authentication mechanism, and do not modify anything.",
+      "expected_output": "With both MCP connections returning 401 or 403, the agent attempts one task-specific read against each server, stops retrying, names the two failing MCP connections, and recommends checking access configuration at the connection, server, or proxy layer without requesting credentials or asserting Basic, token, or placement details.",
+      "files": [],
+      "expectations": [
+        "Attempts a task-specific read against both Grafana and VictoriaMetrics and observes an authorization failure from each.",
+        "Clearly states that access could not be verified rather than claiming either dashboard or metric result.",
+        "Identifies the failing Grafana and VictoriaMetrics MCP connections separately.",
+        "Does not repeat the same failed operation or make more than two failed monitoring calls per server.",
+        "Does not request credentials or tell the user to paste a token, password, or authorization header into the conversation.",
+        "Does not infer Basic, bearer token, username/password, agent-side, server-side, proxy-side, or unauthenticated configuration from the authorization response alone.",
+        "Recommends checking access configuration at the appropriate MCP connection, server, or proxy layer and then retrying the original task-specific reads.",
+        "Keeps the investigation read-only and does not expose secret material in tool arguments or output."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "The vmalert rules SkillEvalEvaluationError and SkillEvalNoInputData are both expected to have no active alert instance. Investigate the two rules in the live monitoring environment and determine why each one is inactive or absent. Inspect rule health and errors, reproduce each full expression and its meaningful inputs at an explicit current time, distinguish evaluation failure from a valid empty result, and recommend the smallest correction for each scenario. Keep the investigation read-only.",
+      "expected_output": "The agent finds both rules in monitoring-skill-alert-failure-eval, proves that SkillEvalEvaluationError is unhealthy because up + on(job) up causes duplicate many-to-many vector matches while the input metric itself exists, and proves that SkillEvalNoInputData is healthy but produces an empty vector because job=skill-eval-nonexistent matches no current up series. It explains why neither has an active instance and recommends separate corrections without changing anything.",
+      "files": [],
+      "expectations": [
+        "Finds both vmalert rule definitions in group monitoring-skill-alert-failure-eval and checks the group for active alert instances.",
+        "Reports each rule's exact expression, state or absence of instance, health, last error, evaluation interval, and for duration.",
+        "Summarizes the rule labels and annotations that establish severity, scenario, or stated intent.",
+        "Establishes that SkillEvalEvaluationError is unhealthy and has a nonempty runtime vector-matching error rather than No Data or a false threshold.",
+        "Reproduces the SkillEvalEvaluationError expression and identifies duplicate or many-to-many matching on job as the failure.",
+        "Checks the error rule's meaningful up input separately and establishes that input data exists, so missing ingestion is not the cause.",
+        "Establishes that SkillEvalNoInputData is healthy but its full expression returns an empty result and no active alert instance.",
+        "Checks the no-data selector or an equivalent compact count and proves that job=skill-eval-nonexistent currently matches no up series.",
+        "Clearly distinguishes evaluation error from a valid empty vector and does not describe either rule as a normally firing threshold condition.",
+        "Recommends separate minimal corrections: fix vector matching or aggregation for the error rule, and correct the selector or define explicit absence semantics for the no-data rule.",
+        "Uses no more than 9 monitoring MCP calls unless a concrete tool error or ambiguity requires recovery.",
+        "Reports an explicit time scope, limitations, and read-only status without changing, muting, or deleting either rule."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "The live metrics skill_eval_sawtooth_counter_total and skill_eval_intermittent_counter_total look unreliable over the last three minutes: the first repeatedly drops and the second has gaps. Investigate their current recording-rule definitions and time-series behavior through the connected monitoring MCP servers. Determine whether each pattern is a reset, a zero value, missing samples, staleness, or ingestion failure; compare raw values with resets, rate, and increase where meaningful; explain units and limitations; and keep the investigation read-only.",
+      "expected_output": "The agent finds the healthy 10-second recording rules, proves that skill_eval_sawtooth_counter_total is a time-modulo counter with periodic decreases that resets/rate/increase handle as counter resets, and proves that skill_eval_intermittent_counter_total deliberately stops emitting during part of each cycle so its holes are missing samples rather than zeros or backend failure. It uses one fixed range and compact queries without changing the rules.",
+      "files": [],
+      "expectations": [
+        "Finds both recording rules in group monitoring-skill-metric-temporal-eval and reports their exact expressions, 10-second interval, health, and relevant labels.",
+        "Uses one explicit three-minute range and a 10-second step, or clearly explains an equivalent aligned range, for temporal comparisons.",
+        "Shows that skill_eval_sawtooth_counter_total has repeated raw-value decreases and establishes at least one counter reset with resets or equivalent evidence.",
+        "Uses rate and increase meaningfully for the sawtooth counter and explains that rate is per second while increase is the estimated count over the selected window.",
+        "Does not diagnose the sawtooth decreases as ingestion loss, ordinary zero samples, or an unhealthy recording rule.",
+        "Shows that skill_eval_intermittent_counter_total has missing sample slots while emitted samples remain nonzero or follow the rule expression.",
+        "Distinguishes missing samples from explicit zero values and limits any staleness claim to what the queried range or lookback evidence supports.",
+        "Attributes the intermittent gaps to the expression's periodic gating rather than a VictoriaMetrics outage or failed rule evaluation.",
+        "Uses no more than 10 monitoring MCP calls unless a concrete tool error or conflicting result requires recovery.",
+        "Reports compact reproducible evidence, the time and tenant scope, limitations, and read-only status without modifying either rule."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "The Grafana panel Everything by source in the dashboard Skill Eval / Expensive Query is reported to time out over its saved 24-hour range. The intended question is only current scrape-target availability by job. Investigate the stored panel configuration and connected monitoring backend, explain why the query is risky, and recommend a semantics-appropriate low-cost replacement. Use query activity, metric-usage, or cardinality evidence when available, but do not execute the original unbounded 24-hour panel query merely to reproduce the timeout. Keep the investigation read-only.",
+      "expected_output": "The agent finds dashboard UID monitoring-skill-eval-expensive-query, captures the all-metrics selector, high-cardinality grouping, 24-hour range, one-second interval, and 86400 max data points, and explains their multiplicative cost. It avoids running the dangerous query, uses bounded query/cardinality evidence, distinguishes configured risk from observed query activity, and recommends count by(job) (up) for the stated current-availability intent without proposing an unnecessary recording rule.",
+      "files": [],
+      "expectations": [
+        "Finds the Skill Eval / Expensive Query dashboard, reports UID monitoring-skill-eval-expensive-query, and identifies panel Everything by source.",
+        "Extracts the exact all-metrics expression and reports the saved 24-hour range, one-second interval, and 86400 maximum data points.",
+        "Resolves Platform Monitoring Prometheus to its actual Prometheus-compatible backend before using direct backend diagnostics.",
+        "Does not execute the original all-metrics expression as a 24-hour one-second range query through Grafana or VictoriaMetrics.",
+        "Explains that the __name__ regex scans all metric names while grouping by metric and multiple high-cardinality source labels preserves a large result set across roughly 86400 evaluation steps.",
+        "Uses safe bounded evidence such as top or active queries, metric usage, TSDB cardinality, series counts, or a narrow up summary instead of downloading an unfiltered matrix.",
+        "Distinguishes static risk in the stored configuration from observed query activity and does not claim the query is currently top or active unless the backend evidence shows it.",
+        "Recommends count by (job) (up), or an equivalently narrow expression, for current scrape-target availability and recommends an instant query or a range resolution appropriate to the actual display need.",
+        "Does not recommend a recording rule without evidence that the corrected aggregation is repeatedly reused or still expensive.",
+        "Uses no more than 10 monitoring MCP calls unless a concrete tool error or discovery ambiguity requires recovery.",
+        "Reports identifiers, datasource, expression, time settings, evidence, limitations, and read-only status."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "The Request duration panel in the Grafana dashboard Skill Eval / Display Mismatch shows 1.5 ms, but the service owner expects about 1.5 seconds. Investigate the live dashboard and its VictoriaMetrics-backed query. Determine whether the discrepancy comes from the stored metric, query, reduce operation, unit, or another visualization setting, and recommend the smallest correction without changing anything.",
+      "expected_output": "The agent finds dashboard UID monitoring-skill-eval-display-mismatch and panel Request duration, proves that skill_eval_request_duration_seconds currently returns 1.5 and its recording rule expresses seconds, observes lastNotNull is not changing the value, and attributes the 1.5 ms display to the panel unit being configured as milliseconds instead of seconds.",
+      "files": [],
+      "expectations": [
+        "Finds the Skill Eval / Display Mismatch dashboard, reports UID monitoring-skill-eval-display-mismatch, and identifies panel Request duration.",
+        "Extracts the exact metric query, instant-query setting, lastNotNull reduction, and panel unit ms.",
+        "Resolves the Prometheus-compatible datasource to VictoriaMetrics before using direct backend evidence.",
+        "Proves that skill_eval_request_duration_seconds returns 1.5 and identifies its healthy producer expression vector(1.5).",
+        "Distinguishes correct backend data from Grafana presentation and does not diagnose No Data, ingestion loss, or an incorrect reduce result.",
+        "Explains that a seconds-valued metric configured with the ms unit is displayed as 1.5 ms rather than 1.5 s.",
+        "Recommends changing the panel unit to seconds without applying the change.",
+        "Uses no more than 9 monitoring MCP calls unless a concrete tool error or ambiguity requires recovery.",
+        "Reports the time scope, evidence, limitation, and read-only status."
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "SkillEvalRecoveredIncident was reported during the last five minutes, but there is no active alert now. Investigate the vmalert rule and the exact recent metric window, determine whether the condition really became true and then recovered, and explain what can and cannot be concluded about alert state history and notifications. Keep the investigation read-only.",
+      "expected_output": "After the fixture is placed in its recovered phase, the agent finds the healthy periodic vmalert rule, uses a fixed five-minute range to show skill_eval_periodic_incident changing from one to zero, confirms the current expression is false and no active instance exists, and reports recovery without inventing retained alert-state or notification evidence.",
+      "files": [],
+      "expectations": [
+        "Finds SkillEvalRecoveredIncident and its producer rule in group monitoring-skill-historical-alert-eval.",
+        "Reports the exact expressions, 10-second interval, 20-second for duration, rule health, labels, and annotations.",
+        "Uses an explicit five-minute historical range and shows a sustained period with skill_eval_periodic_incident equal to one followed by zero.",
+        "Explains whether the true period was long enough to satisfy the 20-second for duration.",
+        "Checks the current full expression and current active-instance state separately and establishes recovery.",
+        "Does not treat the absent current instance as proof that the alert never fired.",
+        "Does not claim a notification was sent or invent historical activeAt/state data when the available API does not retain it.",
+        "Uses no more than 8 monitoring MCP calls unless a concrete historical ambiguity or tool error requires recovery.",
+        "Reports the exact window, timezone, evidence, limitations, and read-only status."
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Trace the recording metrics skill_eval:broken:top and skill_eval:cycle:a to their terminal inputs in the live VictoriaMetrics rule set. Determine why neither produces useful data, distinguish a missing producer from a dependency cycle, and report the proven dependency graph, rule health, and limitations without modifying the rules.",
+      "expected_output": "The agent proves that skill_eval:broken:top refers to skill_eval:missing:producer for which no recording rule and no current series exist, while skill_eval:cycle:a and skill_eval:cycle:b refer to each other. It stops safely at the missing producer and cycle, rather than classifying either as a healthy raw-metric chain.",
+      "files": [],
+      "expectations": [
+        "Finds the producer definitions for skill_eval:broken:top, skill_eval:cycle:a, and skill_eval:cycle:b in monitoring-skill-broken-chain-eval.",
+        "Performs an exact producer lookup for skill_eval:missing:producer and establishes that no producing rule exists.",
+        "Checks current data narrowly and establishes that the missing producer and dependent top metric have no current series.",
+        "Builds and reports the cycle skill_eval:cycle:a -> skill_eval:cycle:b -> skill_eval:cycle:a using a visited-name guard.",
+        "Stops traversal at the proven missing producer and cycle without repeatedly querying either dependency.",
+        "Does not call the missing input a raw metric merely because no producer exists and does not claim that healthy rule evaluation means useful output exists.",
+        "Does not run stored-versus-expression matrix comparisons intended for a healthy populated chain when both sides are empty.",
+        "Uses no more than 8 backend calls unless a concrete ambiguity or tool error requires recovery.",
+        "Reports the dependency graphs, rule health, exact expressions, evidence, limitations, and read-only status."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Investigate the active Grafana alert SkillEvalGrafanaManagedAlert with rule UID skill-eval-grafana-alert. Determine which alerting system owns and evaluates it, inspect its live instance and rule definition through the connected monitoring MCP servers, explain the query/expression, condition, no-data and execution-error behavior, for duration, labels, annotations, and current state. Do not inspect Kubernetes resources or modify, pause, silence, or route the alert.",
+      "expected_output": "The agent fetches UID skill-eval-grafana-alert through Grafana Unified Alerting MCP, identifies the __expr__ math expression that evaluates to one, explains condition A and the 30-second for duration, and does not search for or conflate it with a vmalert rule. If the MCP omits live instance state, health, or the rule-group evaluation interval, the agent reports those fields as unavailable instead of inspecting Kubernetes or inventing values.",
+      "files": [],
+      "expectations": [
+        "Identifies Grafana Unified Alerting, rather than vmalert, as the evaluator and uses Grafana alerting capabilities for the primary investigation.",
+        "Fetches rule UID skill-eval-grafana-alert through Grafana MCP and inspects its live state or clearly reports when the MCP omits state.",
+        "Reports condition A, the __expr__ math expression 1, and the 30-second for duration; reports the rule-group evaluation interval only if Grafana MCP exposes it, otherwise states that it is unavailable.",
+        "Reports execErrState Error, noDataState NoData, labels, annotations, and whether the rule is paused.",
+        "Explains why the constant nonzero expression satisfies the condition and relates it to pending or firing state.",
+        "Does not search VictoriaMetrics for a same-named vmalert rule after Grafana ownership is established.",
+        "Does not use kubectl, Kubernetes APIs, GrafanaAlertRuleGroup resources, pod access, or direct Grafana endpoints outside MCP.",
+        "Does not claim notification delivery merely because the Grafana alert is firing.",
+        "Uses no more than 8 monitoring MCP calls unless a concrete Grafana tool error or ambiguity requires recovery.",
+        "Reports evidence, limitations, and read-only status without changing alert state or routing."
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Investigate the Grafana dashboard Kubernetes / Nodes Resources and verify its datasource health, then obtain one current VictoriaMetrics up summary. In this run Grafana access is available but the VictoriaMetrics MCP rejects access. Complete every useful read-only Grafana check, explain exactly which backend conclusions remain unverified, and recommend the next access-configuration check without requesting or inferring credentials.",
+      "expected_output": "The agent successfully finds the Grafana dashboard and datasource and reports Grafana-side health, makes one task-specific VictoriaMetrics attempt that receives 401 or 403, then degrades gracefully: it preserves the verified Grafana findings and does not claim direct metric evidence or speculate about authentication.",
+      "files": [],
+      "expectations": [
+        "Successfully finds Kubernetes / Nodes Resources and reports its stable UID through Grafana.",
+        "Identifies the panel or dashboard datasource and reports the Grafana datasource health result.",
+        "Attempts one narrow task-specific up read through the VictoriaMetrics MCP and observes 401 or 403.",
+        "Does not discard or understate the independently verified Grafana evidence because the backend MCP failed.",
+        "Clearly separates Grafana datasource health from unverified direct VictoriaMetrics query results.",
+        "Does not retry the same rejected VictoriaMetrics operation more than once.",
+        "Does not ask for, reveal, invent, or infer credentials, authentication type, or credential placement.",
+        "Recommends checking the VictoriaMetrics MCP connection, server, or proxy access configuration before retrying the original narrow query.",
+        "Keeps the investigation read-only and states its limitations."
+      ]
+    }
+  ]
+}

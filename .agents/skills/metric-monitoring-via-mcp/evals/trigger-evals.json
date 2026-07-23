@@ -1,0 +1,86 @@
+[
+  {
+    "query": "In the Grafana dashboard Kubernetes / Nodes Resources, the CPU panel suddenly shows No data. Find its datasource, reconstruct the effective query with resolved variables, and check the last 20 minutes of data.",
+    "should_trigger": true
+  },
+  {
+    "query": "Trace metric namespace:container_cpu_usage:sum_rate through every recording rule to raw metrics in VictoriaMetrics and check whether stored values still match the expressions.",
+    "should_trigger": true
+  },
+  {
+    "query": "The KubePodCrashLooping alert has been pending for 15 minutes. Use the available monitoring MCP servers to determine why it remains pending and whether the for condition has been satisfied.",
+    "should_trigger": true
+  },
+  {
+    "query": "Investigate why http_requests_total exists for namespace=dev but has disappeared for namespace=prod. Check labels, freshness, the current value, and a one-hour range.",
+    "should_trigger": true
+  },
+  {
+    "query": "Find the Grafana-managed alert Checkout latency high, inspect its rule and datasource, and explain whether NoData or the threshold caused its current state.",
+    "should_trigger": true
+  },
+  {
+    "query": "Use kubectl to inspect ServiceMonitor payments-api, its selected Service and EndpointSlices, and the vmagent custom resource to find where Kubernetes discovery drops it.",
+    "should_trigger": false
+  },
+  {
+    "query": "Using only the connected VictoriaMetrics MCP, inspect active and dropped vmagent targets for payments-api and explain the scrape health, last error, and any relabeling evidence the MCP exposes.",
+    "should_trigger": true
+  },
+  {
+    "query": "The recording rule job:http_errors:rate5m reports health=error. Find its lastError, evaluate the expression in parts, and determine whether the cause is syntax, label matching, or a missing input metric.",
+    "should_trigger": true
+  },
+  {
+    "query": "Which current targets contribute to up{job=\"kubelet\"} in this deployment, and were any series stale or missing during the last 30 minutes? Use compact live evidence.",
+    "should_trigger": true
+  },
+  {
+    "query": "The dashboard variable cluster is set to east but the panel shows west data. Inspect the saved variables, panel query, datasource and returned labels to locate the mismatch.",
+    "should_trigger": true
+  },
+  {
+    "query": "vmalert says DiskSpaceLow is firing, Alertmanager has multiple instances. Verify the evaluated expression and explain which labels created the separate alert instances.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a new GrafanaDashboard custom resource for HTTP latency with p50, p95, and p99 panels, and add it to the operator Helm chart.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix the Grafana reconciler in controllers/grafana: after a custom resource update its status does not change and the unit test fails.",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain with a self-contained example how rate() differs from increase() in PromQL. No access to a live monitoring environment is needed.",
+    "should_trigger": false
+  },
+  {
+    "query": "Review this local dashboard JSON file for schemaVersion compatibility and format it; don't connect to Grafana or query any live datasource.",
+    "should_trigger": false
+  },
+  {
+    "query": "The Loki Logs panel unexpectedly returns no results. Inspect its LogQL query and determine why no application logs were returned.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write PrometheusRule YAML for a new SLO burn-rate alert and add it to the charts, but do not inspect or validate anything in the live cluster.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add support for grafana.integreatly.org/v1beta1 GrafanaDatasource resources to the Go operator and regenerate the CRDs.",
+    "should_trigger": false
+  },
+  {
+    "query": "Design a set of RED metrics and SLOs for a new checkout API; the monitoring environment has not been deployed yet.",
+    "should_trigger": false
+  },
+  {
+    "query": "Configure the mcp-grafana server in Codex so its authorization header is taken from an environment variable.",
+    "should_trigger": false
+  },
+  {
+    "query": "Migrate the existing alert rules from Jsonnet to Helm templates while preserving their names and labels. Do not investigate the live system.",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-skill-eval-alert
+  namespace: monitoring
+  labels:
+    skill-eval: alert-investigation
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-4
+spec:
+  groups:
+    - name: monitoring-skill-alert-eval
+      interval: 30s
+      rules:
+        - alert: SkillEvalApiServerReplicaShortage
+          expr: (sum(up{job="kube-apiserver"}) or vector(0)) < 2
+          for: 1m
+          labels:
+            severity: warning
+            skill_eval: "true"
+          annotations:
+            summary: Skill eval API server replica shortage
+            description: The observed kube-apiserver target count is below the fixture threshold of two.
