@@ -1,0 +1,4 @@
+interface:
+  display_name: "Metric Monitoring via MCP"
+  short_description: "Investigate live metrics through Grafana and VictoriaMetrics MCP"
+  default_prompt: "Use $metric-monitoring-via-mcp to investigate a metric-backed dashboard, metric, MCP-exposed scrape target, metric alert, or recording rule exclusively through connected monitoring MCP servers."
