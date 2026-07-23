@@ -171,7 +171,7 @@ vmOperator:
   # Type: string
   # Mandatory: yes
   #
-  # image: victoriametrics/operator:v0.22.1
+  # image: victoriametrics/operator:v0.73.1
 
   ## SecurityContext holds pod-level security attributes.
   # The parameters are required if a Pod Security Policy is enabled
@@ -409,7 +409,7 @@ vmSingle:
   # Type: string
   # Mandatory: yes
   #
-  # image: victoriametrics/victoria-metrics:v1.73.1
+  # image: victoriametrics/victoria-metrics:v1.147.0
 
   # RetentionPeriod for the stored metrics
   # Note VictoriaMetrics has data/ and indexdb/ folders
@@ -685,7 +685,7 @@ vmAgent:
   # Type: string
   # Mandatory: yes
   #
-  # image: victoriametrics/vmagent:v1.73.1
+  # image: victoriametrics/vmagent:v1.147.0
 
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.
@@ -1067,7 +1067,7 @@ vmAlertManager:
   # Type: string
   # Mandatory: yes
   #
-  # image: prom/alertmanager:v0.24.0
+  # image: prom/alertmanager:v0.33.0
 
   # Containers allows injecting additional containers or modifying operator generated containers.
   # This can be used to allow adding an authentication proxy to a VMAlertmanager pod or to change
@@ -1347,7 +1347,7 @@ vmAlert:
   # Type: string
   # Mandatory: yes
   #
-  # image: prom/alertmanager:v0.24.0
+  # image: prom/alertmanager:v0.33.0
 
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.
@@ -1630,7 +1630,7 @@ vmAuth:
   # Type: string
   # Mandatory: yes
   #
-  # image: prom/alertmanager:v0.24.0
+  # image: prom/alertmanager:v0.33.0
 
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.

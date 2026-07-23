@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 )
@@ -95,6 +96,9 @@ func TestVmOperatorManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ClusterRole manifest should not be empty")
+		assert.True(t, clusterRoleContains(m, "vmanomalyconfigs"), "ClusterRole should manage VMAnomalyConfig resources")
+		assert.True(t, clusterRoleContains(m, "vmanomalyconfigs/finalizers"), "ClusterRole should manage VMAnomalyConfig finalizers")
+		assert.True(t, clusterRoleContains(m, "vmanomalyconfigs/status"), "ClusterRole should manage VMAnomalyConfig status")
 	})
 	t.Run("Test ClusterRoleBinding manifest", func(t *testing.T) {
 		m, err := vmOperatorClusterRoleBinding(cr)
@@ -159,4 +163,15 @@ func TestVmOperatorManifests(t *testing.T) {
 	// 	}
 	// 	assert.NotNil(t, m, "PodMonitor manifest should not be empty")
 	// })
+}
+
+func clusterRoleContains(role *rbacv1.ClusterRole, resource string) bool {
+	for _, rule := range role.Rules {
+		for _, candidate := range rule.Resources {
+			if candidate == resource {
+				return true
+			}
+		}
+	}
+	return false
 }

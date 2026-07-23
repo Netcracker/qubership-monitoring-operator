@@ -23,13 +23,6 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func getGrafanaRootURL(protocol string, host string) string {
-	if protocol == "" {
-		protocol = "http"
-	}
-	return fmt.Sprintf("%v://%v/", protocol, host)
-}
-
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
 // This function safely initializes the Deployment structure to avoid nil pointer dereference
 func ensureDeploymentInitialized(graf *grafv1.Grafana) {
@@ -116,14 +109,6 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// We explicitly set it to nil for safety (though it should already be nil after decoding the asset).
 		graf.Spec.Ingress = nil
 
-		// Config is now runtime.RawExtension in grafana-operator v5
-		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
-		configProvidedAsRawExtension := cr.Spec.Grafana.Config != nil
-		if configProvidedAsRawExtension {
-			// Config is runtime.RawExtension, but graf.Spec.Config expects map[string]map[string]string
-			// We need to unmarshal RawExtension to set Config properly
-			// For now, skip setting Config if provided as RawExtension - it will be handled by grafana-operator
-		}
 		// DataStorage removed in grafana-operator v5
 		// EnvFrom configuration moved to container-level in v5
 		if cr.Spec.Grafana.Replicas != nil {
@@ -293,14 +278,6 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Only configure Config fields if Config was not provided as RawExtension
-		// Note: In v5, Config is map[string]map[string]string or runtime.RawExtension
-		// We need to work with Config as runtime.RawExtension and marshal/unmarshal JSON
-		if cr.Spec.Auth != nil && !configProvidedAsRawExtension {
-			// In grafana-operator v5, Config structure changed significantly
-			// OAuth configuration needs to be handled via runtime.RawExtension or removed
-			// Note: This functionality may need to be reimplemented for v5 API
-		}
 		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
@@ -451,10 +428,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Use recover to safely handle any nil pointer issues that may occur due to v5 API structure changes
 		func() {
 			defer func() {
-				if r := recover(); r != nil {
-					// If we panic, Template structure might not be accessible (e.g., Spec or Template are nil pointers)
-					// This is OK - labels/annotations are already set on the Grafana resource itself
-				}
+				_ = recover()
 			}()
 			deployment := graf.Spec.Deployment
 			if deployment != nil {
@@ -489,12 +463,6 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 		}()
 
-		// ServiceAccount in v5 uses different structure - Annotations and Labels may be in different location
-		// Note: ServiceAccount configuration may need to be handled differently in v5
-		if graf.Spec.ServiceAccount != nil && cr.Spec.Grafana.ServiceAccount != nil {
-			// In v5, ServiceAccountV1 structure changed - handle accordingly
-			// Annotations and Labels may need to be set via ServiceAccount metadata
-		}
 	}
 	return &graf, nil
 }
@@ -507,7 +475,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 		return nil, err
 	}
 	// Set Interval for Grafana datasource
-	var grafanaDatasourceInterval string = "30s"
+	grafanaDatasourceInterval := "30s"
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmOperator.IsInstall() {
 		if cr.Spec.Victoriametrics.VmSingle.IsInstall() {
 			vmSingle := vmetricsv1b1.VMSingle{}
@@ -518,7 +486,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 				maps.Copy(vmSingle.Spec.ExtraArgs, map[string]string{"tls": "true"})
 			}
 			if dataSource.Spec.Datasource != nil {
-				dataSource.Spec.Datasource.URL = vmSingle.AsURL()
+				dataSource.Spec.Datasource.URL = vmSingle.AsURL(false)
 			}
 		}
 		if cr.Spec.Victoriametrics.VmCluster.IsInstall() {
@@ -531,7 +499,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 				maps.Copy(vmCluster.Spec.VMSelect.ExtraArgs, map[string]string{"tls": "true"})
 			}
 			if dataSource.Spec.Datasource != nil {
-				dataSource.Spec.Datasource.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"
+				dataSource.Spec.Datasource.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect, false) + "/select/0/prometheus"
 			}
 		}
 		if cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
@@ -598,7 +566,7 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	}
 
 	// Set JSONData for timeInterval - in v5, JSONData is json.RawMessage
-	var grafanaDatasourceInterval string = "30s"
+	grafanaDatasourceInterval := "30s"
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
 		grafanaDatasourceInterval = cr.Spec.Victoriametrics.VmAgent.ScrapeInterval
 	}

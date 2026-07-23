@@ -200,11 +200,11 @@ var (
 	OpenshiftStatemetrics           = "openshift-state-metrics-service-monitor"
 	OpenshiftHAProxy                = "openshift-haproxy-service-monitor"
 
-	ApiServerServiceMonitorAsset = BasePath + "service-monitor-apiserver.yaml"
-	KubeletServiceMonitorAsset   = BasePath + "service-monitor-kubelet.yaml"
-	CoreDnsServiceMonitorAssetK8s            = BasePath + "service-monitor-core-dns-k8s.yaml"
-	CoreDnsServiceMonitorAssetOs4            = BasePath + "service-monitor-core-dns-os4.yaml"
-	NginxIngressPodMonitorAsset              = BasePath + "pod-monitor-nginx-ingress.yaml"
+	ApiServerServiceMonitorAsset  = BasePath + "service-monitor-apiserver.yaml"
+	KubeletServiceMonitorAsset    = BasePath + "service-monitor-kubelet.yaml"
+	CoreDnsServiceMonitorAssetK8s = BasePath + "service-monitor-core-dns-k8s.yaml"
+	CoreDnsServiceMonitorAssetOs4 = BasePath + "service-monitor-core-dns-os4.yaml"
+	NginxIngressPodMonitorAsset   = BasePath + "pod-monitor-nginx-ingress.yaml"
 
 	EtcdServiceMonitorAsset             = BasePath + "service-monitor-etcd.yaml"
 	EtcdClientCertsSecretAsset          = BasePath + "kube-etcd-client-certs-secret.yaml"

@@ -7,7 +7,6 @@ import urllib.request
 
 from ruamel.yaml import YAML
 
-
 log = logging.getLogger("crd-update")
 
 
@@ -44,6 +43,15 @@ HELM_HOOK_ANNOTATIONS = {
     "helm.sh/hook-weight": "-5",
 }
 
+LEGACY_GRAFANA_CRDS = {
+    "v1alpha1.integreatly.org_grafanadashboards.yaml",
+}
+
+CRD_FILE_PREFIXES = {
+    "prometheus": "monitoring.coreos.com_",
+    "victoriametrics": "operator.victoriametrics.com_",
+}
+
 
 def download(url):
     log.info("Downloading %s", url)
@@ -65,10 +73,65 @@ def ensure_annotations(doc, extra_annotations):
     metadata["annotations"] = annotations
 
 
+def remove_descriptions(value):
+    versions = value.get("spec", {}).get("versions", [])
+    for version in versions:
+        schema = version.get("schema", {}).get("openAPIV3Schema")
+        if schema:
+            remove_schema_descriptions(schema)
+
+
+def remove_schema_descriptions(schema):
+    schema.pop("description", None)
+
+    for child in (schema.get("properties") or {}).values():
+        remove_schema_descriptions(child)
+
+    for keyword in ("items", "additionalProperties", "not"):
+        child = schema.get(keyword)
+        if isinstance(child, dict):
+            remove_schema_descriptions(child)
+        elif isinstance(child, list):
+            for item in child:
+                remove_schema_descriptions(item)
+
+    for keyword in ("allOf", "anyOf", "oneOf"):
+        for child in schema.get(keyword) or []:
+            remove_schema_descriptions(child)
+
+    for keyword in ("$defs", "definitions", "dependentSchemas", "patternProperties"):
+        for child in (schema.get(keyword) or {}).values():
+            remove_schema_descriptions(child)
+
+
 def filename_for(crd):
     group = crd["spec"]["group"].lower()
     plural = crd["spec"]["names"]["plural"].lower()
     return f"{group}_{plural}.yaml"
+
+
+def clear_output_dir(output_dir, operator):
+    for name in os.listdir(output_dir):
+        if operator == "grafana" and name in LEGACY_GRAFANA_CRDS:
+            continue
+        prefix = CRD_FILE_PREFIXES.get(operator)
+        if prefix and not name.startswith(prefix):
+            continue
+        if name.endswith((".yaml", ".yml")):
+            os.remove(os.path.join(output_dir, name))
+
+
+def compact_legacy_grafana_crds(output_dir, yaml):
+    for name in LEGACY_GRAFANA_CRDS:
+        path = os.path.join(output_dir, name)
+        if not os.path.exists(path):
+            continue
+
+        with open(path, encoding="utf-8") as source:
+            doc = yaml.load(source)
+        remove_descriptions(doc)
+        with open(path, "w", encoding="utf-8") as target:
+            yaml.dump(doc, target)
 
 
 def process(operator, version, output_dir):
@@ -83,6 +146,7 @@ def process(operator, version, output_dir):
     docs = list(yaml.load_all(io.StringIO(raw)))
 
     os.makedirs(output_dir, exist_ok=True)
+    clear_output_dir(output_dir, operator)
 
     written = 0
     for doc in docs:
@@ -91,6 +155,7 @@ def process(operator, version, output_dir):
         if doc.get("kind", "").lower() != "customresourcedefinition":
             continue
 
+        remove_descriptions(doc)
         annotations = dict(HELM_HOOK_ANNOTATIONS)
         if spec["version_annotation"]:
             annotations[spec["version_annotation"]] = version
@@ -101,6 +166,9 @@ def process(operator, version, output_dir):
             yaml.dump(doc, f)
         log.info("Wrote %s", out_path)
         written += 1
+
+    if operator == "grafana":
+        compact_legacy_grafana_crds(output_dir, yaml)
 
     if written == 0:
         log.warning("No CRDs found in %s", url)

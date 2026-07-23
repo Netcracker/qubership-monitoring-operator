@@ -1,0 +1,266 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: '-5'
+    operator.grafana.com/version: 5.24.0
+  name: grafanacontactpoints.grafana.integreatly.org
+spec:
+  group: grafana.integreatly.org
+  names:
+    categories:
+    - grafana-operator
+    kind: GrafanaContactPoint
+    listKind: GrafanaContactPointList
+    plural: grafanacontactpoints
+    singular: grafanacontactpoint
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - format: date-time
+      jsonPath: .status.lastResync
+      name: Last resync
+      type: date
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              allowCrossNamespaceImport:
+                default: false
+                type: boolean
+              disableResolveMessage:
+                type: boolean
+              editable:
+                type: boolean
+                x-kubernetes-validations:
+                - message: spec.editable is immutable
+                  rule: self == oldSelf
+              instanceSelector:
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+                x-kubernetes-validations:
+                - message: spec.instanceSelector is immutable
+                  rule: self == oldSelf
+              name:
+                type: string
+                x-kubernetes-validations:
+                - message: spec.name is immutable
+                  rule: self == oldSelf
+              receivers:
+                items:
+                  properties:
+                    disableResolveMessage:
+                      type: boolean
+                    settings:
+                      x-kubernetes-preserve-unknown-fields: true
+                    type:
+                      minLength: 1
+                      type: string
+                    uid:
+                      maxLength: 40
+                      pattern: ^[a-zA-Z0-9-_]+$
+                      type: string
+                    valuesFrom:
+                      items:
+                        properties:
+                          targetPath:
+                            type: string
+                          valueFrom:
+                            properties:
+                              configMapKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    default: ""
+                                    type: string
+                                  optional:
+                                    type: boolean
+                                required:
+                                - key
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    default: ""
+                                    type: string
+                                  optional:
+                                    type: boolean
+                                required:
+                                - key
+                                type: object
+                                x-kubernetes-map-type: atomic
+                            type: object
+                            x-kubernetes-validations:
+                            - message: Either configMapKeyRef or secretKeyRef must be set
+                              rule: (has(self.configMapKeyRef) && !has(self.secretKeyRef)) || (!has(self.configMapKeyRef) && has(self.secretKeyRef))
+                        required:
+                        - targetPath
+                        - valueFrom
+                        type: object
+                      maxItems: 99
+                      type: array
+                  required:
+                  - settings
+                  - type
+                  type: object
+                maxItems: 99
+                type: array
+              resyncPeriod:
+                pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$
+                type: string
+              settings:
+                x-kubernetes-preserve-unknown-fields: true
+              suspend:
+                type: boolean
+              type:
+                minLength: 1
+                type: string
+              uid:
+                maxLength: 40
+                pattern: ^[a-zA-Z0-9-_]+$
+                type: string
+                x-kubernetes-validations:
+                - message: spec.uid is immutable
+                  rule: self == oldSelf
+              valuesFrom:
+                items:
+                  properties:
+                    targetPath:
+                      type: string
+                    valueFrom:
+                      properties:
+                        configMapKeyRef:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              default: ""
+                              type: string
+                            optional:
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        secretKeyRef:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              default: ""
+                              type: string
+                            optional:
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                      type: object
+                      x-kubernetes-validations:
+                      - message: Either configMapKeyRef or secretKeyRef must be set
+                        rule: (has(self.configMapKeyRef) && !has(self.secretKeyRef)) || (!has(self.configMapKeyRef) && has(self.secretKeyRef))
+                  required:
+                  - targetPath
+                  - valueFrom
+                  type: object
+                maxItems: 99
+                type: array
+            required:
+            - instanceSelector
+            type: object
+            x-kubernetes-validations:
+            - message: spec.name is immutable
+              rule: ((!has(oldSelf.name) && !has(self.name)) || (has(oldSelf.name) && has(self.name)))
+            - message: spec.editable is immutable
+              rule: ((!has(oldSelf.editable) && !has(self.editable)) || (has(oldSelf.editable) && has(self.editable)))
+            - message: disabling spec.allowCrossNamespaceImport requires a recreate to ensure desired state
+              rule: '!oldSelf.allowCrossNamespaceImport || (oldSelf.allowCrossNamespaceImport && self.allowCrossNamespaceImport)'
+          status:
+            properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              lastResync:
+                format: date-time
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,5 +1,3 @@
-This section describes the various configurations that can be performed on Monitoring.
-
 # Configuration
 
 This section describes all the configurations and extension points that are provided by Monitoring.
@@ -405,7 +403,7 @@ metadata:
   name: monitoring-nginx-ingress-pod-monitor
 spec:
   jobLabel: k8s-app
-  namespaceSelector: 
+  namespaceSelector:
     any: true
   podMetricsEndpoints:
     - interval: 30s
@@ -765,7 +763,7 @@ You can use the following options to provide the dashboard using the GrafanaDash
 
 * [JSON inline into CR](#inline-json)
 * [GrafanaDashboard refer to ConfigMap which contains JSON](#dashboard-in-configmap)
-* [GrafanaDashboard contains dashboard id from grafana.com](#dashboard-from-grafana-official-site)
+* [GrafanaDashboard contains dashboard ID from grafana.com](#dashboard-from-grafana-official-site)
 * [GrafanaDashboard contains URL for download dashboard](#dashboard-by-url)
 
 ##### GrafanaDashboard Known Issues
@@ -803,7 +801,7 @@ For more information, see [Dashboard by URL](#dashboard-by-url).
 This option allows to provide a Grafana dashboard's JSON inline into a custom resource.
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: inline-json-dashboard
@@ -833,7 +831,7 @@ data:
     { ... }
 
 ---
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: dashboard-from-cm
@@ -856,7 +854,7 @@ the official site, [https://grafana.com](https://grafana.com).
 For example,
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: dashboard-from-grafana-com
@@ -882,7 +880,7 @@ This option allows to download the dashboard using a URL from any server.
 For example,
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: helm-example-dashboard-by-url
@@ -1136,7 +1134,7 @@ metadata:
   name: monitoring-nginx-ingress-pod-monitor
 spec:
   jobLabel: k8s-app
-  namespaceSelector: 
+  namespaceSelector:
     any: true
   podMetricsEndpoints:
     - interval: 30s
@@ -1404,7 +1402,7 @@ By default, Monitoring creates Grafana DataSources for:
 Example of Prometheus datasource is as follows.
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDataSource
 metadata:
   name: platform-monitoring-prometheus

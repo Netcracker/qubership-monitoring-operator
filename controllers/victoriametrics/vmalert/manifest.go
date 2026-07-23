@@ -208,14 +208,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 						vmSingle.Spec.ExtraArgs = make(map[string]string)
 					}
 					maps.Copy(vmSingle.Spec.ExtraArgs, map[string]string{"tls": "true"})
-					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmSingle.AsURL()}
+					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmSingle.AsURL(false)}
 					vmalert.Spec.RemoteWrite.TLSConfig = &vmetricsv1b1.TLSConfig{
 						CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 						CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 						KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 					}
 				} else {
-					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmSingle.AsURL()}
+					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmSingle.AsURL(false)}
 				}
 			}
 			if cr.Spec.Victoriametrics.VmOperator.IsInstall() && cr.Spec.Victoriametrics.VmCluster.IsInstall() {
@@ -228,14 +228,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 						vmCluster.Spec.VMInsert.ExtraArgs = make(map[string]string)
 					}
 					maps.Copy(vmCluster.Spec.VMInsert.ExtraArgs, map[string]string{"tls": "true"})
-					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus"}
+					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert, false) + "/insert/0/prometheus"}
 					vmalert.Spec.RemoteWrite.TLSConfig = &vmetricsv1b1.TLSConfig{
 						CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 						CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 						KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 					}
 				} else {
-					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus"}
+					vmalert.Spec.RemoteWrite = &vmetricsv1b1.VMAlertRemoteWriteSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert, false) + "/insert/0/prometheus"}
 				}
 			}
 		}
@@ -269,7 +269,7 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					vmAlertManager.SetName(utils.VmComponentName)
 					vmAlertManager.SetNamespace(cr.GetNamespace())
 					if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
-						vmAlertManager.Spec.WebConfig = &vmetricsv1b1.AlertmanagerWebConfig{
+						vmAlertManager.Spec.WebConfig = &vmetricsv1b1.VMAlertmanagerWebConfig{
 							TLSServerConfig: &vmetricsv1b1.TLSServerConfig{
 								Certs: vmetricsv1b1.Certs{
 									CertSecretRef: &corev1.SecretKeySelector{
@@ -287,14 +287,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 								},
 							},
 						}
-						vmalert.Spec.Notifier = &vmetricsv1b1.VMAlertNotifierSpec{URL: vmAlertManager.AsURL()}
+						vmalert.Spec.Notifier = &vmetricsv1b1.VMAlertNotifierSpec{URL: vmAlertManager.AsURL(false)}
 						vmalert.Spec.Notifier.TLSConfig = &vmetricsv1b1.TLSConfig{
 							CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 							CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 							KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 						}
 					} else {
-						vmalert.Spec.Notifier = &vmetricsv1b1.VMAlertNotifierSpec{URL: vmAlertManager.AsURL()}
+						vmalert.Spec.Notifier = &vmetricsv1b1.VMAlertNotifierSpec{URL: vmAlertManager.AsURL(false)}
 					}
 				}
 
@@ -304,7 +304,7 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					vmAlertManager.SetNamespace(cr.GetNamespace())
 					vmAlertManager.Spec.ReplicaCount = cr.Spec.Victoriametrics.VmAlertManager.Replicas
 					if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
-						vmAlertManager.Spec.WebConfig = &vmetricsv1b1.AlertmanagerWebConfig{
+						vmAlertManager.Spec.WebConfig = &vmetricsv1b1.VMAlertmanagerWebConfig{
 							TLSServerConfig: &vmetricsv1b1.TLSServerConfig{
 								Certs: vmetricsv1b1.Certs{
 									CertSecretRef: &corev1.SecretKeySelector{
@@ -358,14 +358,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 				if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.TLSEnabled {
 					vmSingle.Spec.ExtraArgs = make(map[string]string)
 					maps.Copy(vmSingle.Spec.ExtraArgs, map[string]string{"tls": "true"})
-					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmSingle.AsURL()}
+					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmSingle.AsURL(false)}
 					vmalert.Spec.Datasource.TLSConfig = &vmetricsv1b1.TLSConfig{
 						CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 						CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 						KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 					}
 				} else {
-					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmSingle.AsURL()}
+					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmSingle.AsURL(false)}
 				}
 			}
 			if cr.Spec.Victoriametrics.VmOperator.IsInstall() && cr.Spec.Victoriametrics.VmCluster.IsInstall() {
@@ -378,14 +378,14 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 						vmCluster.Spec.VMSelect.ExtraArgs = make(map[string]string)
 					}
 					maps.Copy(vmCluster.Spec.VMSelect.ExtraArgs, map[string]string{"tls": "true"})
-					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"}
+					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect, false) + "/select/0/prometheus"}
 					vmalert.Spec.Datasource.TLSConfig = &vmetricsv1b1.TLSConfig{
 						CAFile:   "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/ca.crt",
 						CertFile: "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.crt",
 						KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmalertTLSSecretName(cr.Spec.Victoriametrics.VmAlert) + "/tls.key",
 					}
 				} else {
-					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"}
+					vmalert.Spec.Datasource = vmetricsv1b1.VMAlertDatasourceSpec{URL: vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect, false) + "/select/0/prometheus"}
 				}
 			}
 		}

@@ -44,10 +44,7 @@ func TestGrafanaManifests(t *testing.T) {
 			// Use recover to safely check Template.Labels and Template.Annotations
 			func() {
 				defer func() {
-					if r := recover(); r != nil {
-						// Template might not be accessible - this is OK in v5
-						// Labels/Annotations are set on the Grafana resource itself
-					}
+					_ = recover()
 				}()
 				if m.Spec.Deployment.Spec.Template.Labels != nil {
 					assert.Equal(t, labelValue, m.Spec.Deployment.Spec.Template.Labels[labelKey])

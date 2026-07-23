@@ -556,6 +556,7 @@ rules:
       - operator.victoriametrics.com
     resources:
       - vmalertmanagerconfigs
+      - vmanomalyconfigs
       - vmnodescrapes
       - vmpodscrapes
       - vmprobes
@@ -622,6 +623,8 @@ rules:
       - vmalerts/status
       - vmanomalies/finalizers
       - vmanomalies/status
+      - vmanomalyconfigs/finalizers
+      - vmanomalyconfigs/status
       - vmauths/finalizers
       - vmauths/status
       - vmclusters/finalizers

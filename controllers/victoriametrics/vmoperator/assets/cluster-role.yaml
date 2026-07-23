@@ -9,7 +9,7 @@ metadata:
 rules:
   ############################################### Kubernetes API Groups ################################################
 
-    # nonResourceURLs
+  # nonResourceURLs
   # This is needed for metrics endpoint access
   - nonResourceURLs:
       - /metrics
@@ -280,6 +280,7 @@ rules:
       - vmauths
       - vmclusters
       - vmdistributed
+      - vmanomalyconfigs
       - vmsingles
       - vmusers
       - vtclusters
@@ -321,6 +322,8 @@ rules:
       - vmclusters/status
       - vmdistributed/finalizers
       - vmdistributed/status
+      - vmanomalyconfigs/finalizers
+      - vmanomalyconfigs/status
       - vmnodescrapes/finalizers
       - vmnodescrapes/status
       - vmpodscrapes/finalizers
