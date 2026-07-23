@@ -7,7 +7,7 @@ files for the agent under evaluation.
 ## Mapping
 
 | Eval | Fixture | Expected live state |
-|---|---|---|
+| --- | --- | --- |
 | 1 — recording-rule chain | `recording-rule-chain.yaml` | Two healthy recording rules produce `skill_eval:up:sum_by_job` and `skill_eval:up:double_by_job`. |
 | 3 — dashboard No Data | `dashboard-no-data.yaml` | The panel selects the deliberately absent job value `skill-eval-nonexistent`. |
 | 4 — alert investigation | `alert-rule.yaml` | `SkillEvalApiServerReplicaShortage` becomes pending and then firing when fewer than two healthy `kube-apiserver` targets are visible. |

@@ -137,7 +137,7 @@
         "Extracts the exact all-metrics expression and reports the saved 24-hour range, one-second interval, and 86400 maximum data points.",
         "Resolves Platform Monitoring Prometheus to its actual Prometheus-compatible backend before using direct backend diagnostics.",
         "Does not execute the original all-metrics expression as a 24-hour one-second range query through Grafana or VictoriaMetrics.",
-        "Explains that the __name__ regex scans all metric names while grouping by metric and multiple high-cardinality source labels preserves a large result set across roughly 86400 evaluation steps.",
+        "Explains that the __name__ regular expression scans all metric names while grouping by metric and multiple high-cardinality source labels preserves a large result set across roughly 86400 evaluation steps.",
         "Uses safe bounded evidence such as top or active queries, metric usage, TSDB cardinality, series counts, or a narrow up summary instead of downloading an unfiltered matrix.",
         "Distinguishes static risk in the stored configuration from observed query activity and does not claim the query is currently top or active unless the backend evidence shows it.",
         "Recommends count by (job) (up), or an equivalently narrow expression, for current scrape-target availability and recommends an instant query or a range resolution appropriate to the actual display need.",

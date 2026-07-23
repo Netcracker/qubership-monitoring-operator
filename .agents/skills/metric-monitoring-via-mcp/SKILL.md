@@ -193,8 +193,8 @@ task-specific sequences.
   one of these diagnoses only when the MCP evidence reaches that stage; an
   absent active target alone does not identify which earlier stage failed.
 - Apply relabel rules in order using the discovered `__meta_*` labels. Do not
-  infer the result from a single regex unless the MCP also exposes the relevant
-  rule or an explicit dropped-target reason. Account for action defaults,
+  infer the result from a single regular expression unless the MCP exposes the
+  relevant rule or an explicit dropped-target reason. Account for action defaults,
   missing source labels, separators, and earlier label mutations when available.
 - Use `up` only for targets that survived discovery and target relabeling. An
   absent `up` series cannot distinguish an undiscovered target from a dropped
