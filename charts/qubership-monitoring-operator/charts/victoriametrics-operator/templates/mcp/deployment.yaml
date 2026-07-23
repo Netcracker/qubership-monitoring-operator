@@ -1,0 +1,141 @@
+{{- if include "vm.mcp.enabled" . }}
+{{- $name := include "vm.mcp.fullname" . }}
+{{- $image := include "vm.mcp.image" . }}
+{{- $listenPort := default 8080 .Values.mcp.listenPort }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-victoriametrics") | nindent 4 }}
+    app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+    app: {{ $name }}
+    {{- if .Values.mcp.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.mcp.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-victoriametrics") | nindent 8 }}
+        app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+        {{- if .Values.mcp.labels }}
+        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 8 }}
+        {{- end }}
+      {{- if .Values.mcp.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.mcp.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      {{- if .Values.mcp.serviceAccount.create }}
+      serviceAccountName: {{ default $name .Values.mcp.serviceAccount.name }}
+      {{- else if .Values.mcp.serviceAccount.name }}
+      serviceAccountName: {{ .Values.mcp.serviceAccount.name }}
+      {{- end }}
+      {{- if .Values.mcp.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.mcp.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.priorityClassName }}
+      priorityClassName: {{ .Values.mcp.priorityClassName | quote }}
+      {{- end }}
+      containers:
+        - name: mcp-victoriametrics
+          image: {{ $image }}
+          imagePullPolicy: {{ .Values.mcp.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $listenPort }}
+              protocol: TCP
+          env:
+            - name: VM_INSTANCE_ENTRYPOINT
+              value: {{ include "vm.mcp.entrypoint" . | quote }}
+            - name: VM_INSTANCE_TYPE
+              value: {{ .Values.mcp.vm.type | quote }}
+            - name: MCP_SERVER_MODE
+              value: {{ .Values.mcp.mode | quote }}
+            - name: MCP_LISTEN_ADDR
+              value: {{ printf ":%v" $listenPort | quote }}
+            {{- if .Values.mcp.vm.bearerToken }}
+            - name: VM_INSTANCE_BEARER_TOKEN
+              value: {{ .Values.mcp.vm.bearerToken | quote }}
+            {{- else if .Values.mcp.vm.bearerTokenSecret.name }}
+            - name: VM_INSTANCE_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mcp.vm.bearerTokenSecret.name }}
+                  key: {{ .Values.mcp.vm.bearerTokenSecret.key }}
+            {{- end }}
+            {{- if .Values.mcp.vm.headers }}
+            - name: VM_INSTANCE_HEADERS
+              value: {{ .Values.mcp.vm.headers | quote }}
+            {{- else if .Values.mcp.vm.headersSecret.name }}
+            - name: VM_INSTANCE_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mcp.vm.headersSecret.name }}
+                  key: {{ .Values.mcp.vm.headersSecret.key }}
+            {{- end }}
+            {{- if .Values.mcp.passthroughHeaders }}
+            - name: MCP_PASSTHROUGH_HEADERS
+              value: {{ join "," .Values.mcp.passthroughHeaders | quote }}
+            {{- end }}
+            {{- if .Values.mcp.disabledTools }}
+            - name: MCP_DISABLED_TOOLS
+              value: {{ join "," .Values.mcp.disabledTools | quote }}
+            {{- end }}
+            {{- if .Values.mcp.logLevel }}
+            - name: MCP_LOG_LEVEL
+              value: {{ .Values.mcp.logLevel | quote }}
+            {{- end }}
+            {{- range $key, $value := .Values.mcp.extraEnv }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.mcp.resources | nindent 12 }}
+          {{- if .Values.mcp.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.mcp.volumeMounts | nindent 12 }}
+          {{- end }}
+      securityContext:
+        {{ include "vm.mcp.securityContext" . }}
+      {{- if .Values.mcp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.mcp.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.affinity }}
+      affinity:
+        {{- toYaml .Values.mcp.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.tolerations }}
+      tolerations:
+        {{- toYaml .Values.mcp.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.volumes }}
+      volumes:
+        {{- toYaml .Values.mcp.volumes | nindent 8 }}
+      {{- end }}
+{{- end }}

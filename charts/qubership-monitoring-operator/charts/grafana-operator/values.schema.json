@@ -373,6 +373,277 @@
             "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects",
             "default": {}
         },
+        "mcp": {
+            "type": "object",
+            "description": "Grafana MCP server configuration",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "description": "Enable deployment of the Grafana MCP server; requires Grafana installation to be enabled",
+                    "default": false
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Base name for Grafana MCP resources",
+                    "default": "mcp-grafana"
+                },
+                "image": {
+                    "type": "object",
+                    "description": "Grafana MCP container image configuration",
+                    "properties": {
+                        "registry": {
+                            "type": "string",
+                            "default": "docker.io"
+                        },
+                        "repository": {
+                            "type": "string",
+                            "default": "grafana/mcp-grafana"
+                        },
+                        "tag": {
+                            "type": "string",
+                            "default": "0.17.2"
+                        },
+                        "pullPolicy": {
+                            "type": "string",
+                            "enum": ["Always", "IfNotPresent", "Never"],
+                            "default": "IfNotPresent"
+                        }
+                    }
+                },
+                "imagePullPolicy": {
+                    "type": "string",
+                    "description": "Deprecated image pull policy; use image.pullPolicy"
+                },
+                "imagePullSecrets": {
+                    "type": "array",
+                    "description": "Image pull secrets for the Grafana MCP pod",
+                    "items": {"type": "object"}
+                },
+                "replicas": {
+                    "type": "integer",
+                    "description": "Number of Grafana MCP replicas",
+                    "minimum": 0,
+                    "default": 1
+                },
+                "grafanaUrl": {
+                    "type": "string",
+                    "description": "Grafana URL reachable from the MCP pod"
+                },
+                "existingSecret": {
+                    "type": "object",
+                    "description": "Existing Secret containing a Grafana service account token",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "key": {"type": "string", "default": "token"}
+                    }
+                },
+                "serviceAccountToken": {
+                    "type": "string",
+                    "description": "Inline Grafana service account token"
+                },
+                "tokenSecret": {
+                    "type": "object",
+                    "description": "Secret created for the inline Grafana service account token",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "key": {"type": "string", "default": "token"}
+                    }
+                },
+                "basicAuth": {
+                    "type": "object",
+                    "description": "Grafana basic authentication credentials",
+                    "properties": {
+                        "username": {"type": "string"},
+                        "password": {"type": "string"}
+                    }
+                },
+                "orgId": {
+                    "type": ["string", "integer"],
+                    "description": "Grafana organization ID"
+                },
+                "debug": {
+                    "type": "boolean",
+                    "description": "Enable Grafana MCP debug logging",
+                    "default": false
+                },
+                "disableWrite": {
+                    "type": "boolean",
+                    "description": "Disable Grafana write operations",
+                    "default": true
+                },
+                "enabledTools": {
+                    "type": "array",
+                    "description": "Enabled Grafana MCP tool categories",
+                    "items": {"type": "string"},
+                    "default": ["search", "datasource", "dashboard", "prometheus", "loki", "alerting"]
+                },
+                "disabledCategories": {
+                    "type": "array",
+                    "description": "Additional Grafana MCP tool categories to disable",
+                    "items": {"type": "string"}
+                },
+                "metrics": {
+                    "type": "object",
+                    "description": "Grafana MCP metrics configuration",
+                    "properties": {
+                        "enabled": {"type": "boolean", "default": false}
+                    }
+                },
+                "transport": {
+                    "type": "string",
+                    "description": "MCP transport for the in-cluster server",
+                    "enum": ["streamable-http", "sse"],
+                    "default": "streamable-http"
+                },
+                "endpointPath": {
+                    "type": "string",
+                    "description": "Endpoint path for streamable HTTP transport",
+                    "default": "/"
+                },
+                "allowedHosts": {
+                    "type": "array",
+                    "description": "Additional allowed HTTP Host header values rendered through tpl; localhost with the configured listen port and enabled HTTPRoute/Ingress hosts are included automatically",
+                    "items": {"type": "string"}
+                },
+                "allowedOrigins": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                },
+                "tls": {
+                    "type": "object",
+                    "description": "TLS configuration for connections from MCP to Grafana",
+                    "properties": {
+                        "caFile": {"type": "string"},
+                        "skipVerify": {"type": "boolean", "default": false}
+                    }
+                },
+                "extraArgs": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                },
+                "command": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                },
+                "extraEnv": {
+                    "type": "object",
+                    "description": "Additional environment variables, including GRAFANA_FORWARD_HEADERS"
+                },
+                "envValueFrom": {
+                    "type": "object",
+                    "description": "Additional environment variables populated from Kubernetes references"
+                },
+                "envFrom": {
+                    "type": "array",
+                    "items": {"type": "object"}
+                },
+                "service": {
+                    "type": "object",
+                    "description": "Grafana MCP Service configuration",
+                    "properties": {
+                        "type": {"type": "string", "default": "ClusterIP"},
+                        "port": {"type": "integer", "default": 8000},
+                        "targetPort": {"type": "integer", "default": 8000},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"},
+                        "clusterIP": {"type": "string"},
+                        "externalIPs": {"type": "array", "items": {"type": "string"}},
+                        "loadBalancerIP": {"type": "string"},
+                        "loadBalancerSourceRanges": {"type": "array", "items": {"type": "string"}},
+                        "externalName": {"type": "string"},
+                        "nodePort": {"type": ["string", "integer"]},
+                        "extraPorts": {"type": "array", "items": {"type": "object"}},
+                        "sessionAffinity": {"type": "string"},
+                        "sessionAffinityConfig": {"type": "object"}
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "description": "Grafana MCP ServiceAccount configuration",
+                    "properties": {
+                        "create": {"type": "boolean", "default": true},
+                        "name": {"type": "string"},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"},
+                        "automountServiceAccountToken": {"type": "boolean", "default": false}
+                    }
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "description": "Grafana MCP ServiceMonitor configuration",
+                    "properties": {
+                        "install": {"type": "boolean", "default": false},
+                        "labels": {"type": "object"},
+                        "annotations": {"type": "object"},
+                        "path": {"type": "string", "default": "/metrics"},
+                        "namespaceSelector": {"type": "object"},
+                        "interval": {"type": "string", "default": "30s"},
+                        "scrapeTimeout": {"type": "string", "default": "10s"},
+                        "metricRelabelings": {"type": "array", "items": {"type": "object"}},
+                        "relabelings": {"type": "array", "items": {"type": "object"}}
+                    }
+                },
+                "httpRoute": {
+                    "type": "object",
+                    "description": "Grafana MCP Gateway API HTTPRoute configuration",
+                    "properties": {
+                        "install": {"type": "boolean", "default": false},
+                        "apiVersion": {"type": "string", "default": "gateway.networking.k8s.io/v1"},
+                        "kind": {"type": "string", "default": "HTTPRoute"},
+                        "hostnames": {"type": "array", "items": {"type": "string"}},
+                        "parentRefs": {"type": "array", "description": "Gateway parent references; at least one is required when HTTPRoute is enabled", "items": {"type": "object"}},
+                        "rules": {"type": "array", "items": {"type": "object"}},
+                        "matches": {"type": "array", "items": {"type": "object"}},
+                        "timeouts": {"type": "object"},
+                        "filters": {"type": "array", "items": {"type": "object"}},
+                        "additionalRules": {"type": "array", "items": {"type": "object"}},
+                        "httpsRedirect": {"type": "boolean", "default": false},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"}
+                    }
+                },
+                "ingress": {
+                    "type": "object",
+                    "description": "Grafana MCP Ingress configuration",
+                    "properties": {
+                        "install": {"type": "boolean", "default": false},
+                        "className": {"type": "string"},
+                        "annotations": {"type": "object"},
+                        "labels": {"type": "object"},
+                        "tls": {"type": "array", "items": {"type": "object"}},
+                        "hosts": {"type": "array", "description": "Ingress hosts and paths; at least one host is required when Ingress is enabled", "items": {"type": "object"}}
+                    }
+                },
+                "resources": {"type": "object"},
+                "securityContext": {"type": "object"},
+                "containerSecurityContext": {"type": "object"},
+                "automountServiceAccountToken": {"type": "boolean", "default": false},
+                "readinessProbe": {"type": "object"},
+                "livenessProbe": {"type": "object"},
+                "startupProbe": {"type": "object"},
+                "nodeSelector": {"type": "object"},
+                "affinity": {"type": "object"},
+                "tolerations": {"type": "array", "items": {"type": "object"}},
+                "topologySpreadConstraints": {"type": "array", "items": {"type": "object"}},
+                "priorityClassName": {"type": "string"},
+                "runtimeClassName": {"type": "string"},
+                "schedulerName": {"type": "string"},
+                "terminationGracePeriodSeconds": {"type": ["string", "integer"]},
+                "hostAliases": {"type": "array", "items": {"type": "object"}},
+                "dnsPolicy": {"type": "string"},
+                "dnsConfig": {"type": "object"},
+                "lifecycle": {"type": "object"},
+                "initContainers": {"type": "array", "items": {"type": "object"}},
+                "extraInitContainers": {"type": "array", "items": {"type": "object"}},
+                "extraContainers": {"type": "array", "items": {"type": "object"}},
+                "volumes": {"type": "array", "items": {"type": "object"}},
+                "volumeMounts": {"type": "array", "items": {"type": "object"}},
+                "labels": {"type": "object"},
+                "annotations": {"type": "object"},
+                "podAnnotations": {"type": "object"},
+                "podLabels": {"type": "object"}
+            }
+        },
         "nodeSelector": {
             "type": "object",
             "description": "Allow define which Nodes the Pods are scheduled on",
