@@ -1,13 +1,15 @@
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDataSource
 metadata:
   name: simple-datasource-example
   labels:
     app.kubernetes.io/component: monitoring   # Mandatory label
 spec:
-  name: simple-datasource-example.yaml
-  datasources:
-  - access: proxy
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+  datasource:
+    access: proxy
     editable: true
     isDefault: true
     jsonData:

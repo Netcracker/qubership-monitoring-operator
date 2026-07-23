@@ -30,10 +30,10 @@ scrapeTimeout: 10s
 evaluationInterval: 30s
 
 # A docker image to use for prometheus deployment
-# image: prom/prometheus:v2.47.0
+# image: prom/prometheus:v3.12.0
 
 # A docker image to use for prometheus-cofig-reloader deployment with prometheus pod
-#  configReloaderImage: prometheus-operator/prometheus-config-reloader:v0.52.1
+#  configReloaderImage: prometheus-operator/prometheus-config-reloader:v0.92.1
 
 # Pod monitor for self-monitoring
 # Type: object

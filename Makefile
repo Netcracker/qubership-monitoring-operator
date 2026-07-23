@@ -80,12 +80,12 @@ CONTAINER_NAME="qubership-monitoring-operator"
 DOCKERFILE=cmd/operator/Dockerfile
 
 # CRD update tool and operator versions (override on the command line, e.g.
-# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.90.1`)
+# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.92.1`)
 CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
 PYTHON?=python3
-PROMETHEUS_OPERATOR_VERSION?=0.90.1
-VICTORIAMETRICS_OPERATOR_VERSION?=0.66.0
-GRAFANA_OPERATOR_VERSION?=5.21.0
+PROMETHEUS_OPERATOR_VERSION?=0.92.1
+VICTORIAMETRICS_OPERATOR_VERSION?=0.73.1
+GRAFANA_OPERATOR_VERSION?=5.24.0
 
 ###########
 # Generic #
@@ -117,7 +117,7 @@ clean:
 .PHONY: generate
 generate: controller-gen
 	echo "=> Generate CRDs and deepcopy ..."
-	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=256 \
+	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=0 \
 					  object:headerFile="tools/boilerplate.go.txt" \
 					  paths="./..." \
 					  output:crd:artifacts:config=charts/qubership-monitoring-operator/crds/
@@ -127,7 +127,7 @@ generate: controller-gen
 	else \
 	  SED_CMD="sed -i"; \
 	fi; \
-	find charts/qubership-monitoring-operator/crds -name '*.yaml' | while read f; do \
+	find charts/qubership-monitoring-operator/crds -name 'monitoring.netcracker.com_*.yaml' | while read f; do \
 	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook-weight: \"-5\"" "$$f"; \
 	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook: crd-install" "$$f"; \
 	done
@@ -142,7 +142,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.0 ;\
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.21.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -225,6 +225,7 @@ docs/crd/v1:
 .PHONY: update-crds
 update-crds:
 	echo "=> Update CRDs in dedicated Helm chart ..."
+	rm -f ${CRDS_HELM_CRDS_FOLDER}/crds/*.yaml ${CRDS_HELM_CRDS_FOLDER}/crds/*.yml
 	find $(CRD_DOC_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
 
 ###############
@@ -232,12 +233,11 @@ update-crds:
 ###############
 
 # Download upstream CRDs for managed operators and write them into the
-# corresponding subchart `crds/` folders. Versions can be overridden via
+# corresponding chart `crds/` folders. Versions can be overridden via
 # PROMETHEUS_OPERATOR_VERSION / VICTORIAMETRICS_OPERATOR_VERSION /
 # GRAFANA_OPERATOR_VERSION variables.
-# Note: Grafana CRDs are not updated currently because we are using old version of the operator.
 .PHONY: update-operators-crds
-update-operators-crds: update-prometheus-crds update-victoriametrics-crds
+update-operators-crds: update-prometheus-crds update-victoriametrics-crds update-grafana-crds
 
 .PHONY: update-prometheus-crds
 update-prometheus-crds:
@@ -246,6 +246,8 @@ update-prometheus-crds:
 		--operator prometheus \
 		--version $(PROMETHEUS_OPERATOR_VERSION) \
 		--output-dir $(PROM_OPER_CRD_FOLDER)
+	rm -f $(VM_CRD_FOLDER)/monitoring.coreos.com_*.yaml
+	cp $(PROM_OPER_CRD_FOLDER)/monitoring.coreos.com_*.yaml $(VM_CRD_FOLDER)/
 
 .PHONY: update-victoriametrics-crds
 update-victoriametrics-crds:

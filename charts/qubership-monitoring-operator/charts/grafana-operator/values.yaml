@@ -17,7 +17,7 @@ install: true
 # Type: string
 # Mandatory: no
 #
-# image: grafana/grafana:11.6.5
+# image: grafana/grafana:12.4.3
 
 # Number of created pods.
 # Type: integer

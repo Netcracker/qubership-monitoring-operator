@@ -209,7 +209,7 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 			vmalertmgr.Spec.Secrets = append(vmalertmgr.Spec.Secrets, victoriametrics.GetVmalertmanagerTLSSecretName(cr.Spec.Victoriametrics.VmAlertManager))
 
 			if cr.Spec.Victoriametrics.VmAlertManager.WebConfig == nil || cr.Spec.Victoriametrics.VmAlertManager.WebConfig.TLSServerConfig == nil {
-				vmalertmgr.Spec.WebConfig = &vmetricsv1b1.AlertmanagerWebConfig{
+				vmalertmgr.Spec.WebConfig = &vmetricsv1b1.VMAlertmanagerWebConfig{
 					TLSServerConfig: &vmetricsv1b1.TLSServerConfig{
 						Certs: vmetricsv1b1.Certs{
 							CertSecretRef: &corev1.SecretKeySelector{
@@ -229,31 +229,29 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 				}
 			}
 
-			vmalertmgr.Spec.EmbeddedProbes = &vmetricsv1b1.EmbeddedProbes{
-				LivenessProbe: &corev1.Probe{
-					TimeoutSeconds:   5,
-					PeriodSeconds:    5,
-					SuccessThreshold: 1,
-					FailureThreshold: 10,
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path:   "/-/healthy",
-							Port:   intstr.FromString("web"),
-							Scheme: "HTTPS",
-						},
+			vmalertmgr.Spec.LivenessProbe = &corev1.Probe{
+				TimeoutSeconds:   5,
+				PeriodSeconds:    5,
+				SuccessThreshold: 1,
+				FailureThreshold: 10,
+				ProbeHandler: corev1.ProbeHandler{
+					HTTPGet: &corev1.HTTPGetAction{
+						Path:   "/-/healthy",
+						Port:   intstr.FromString("web"),
+						Scheme: "HTTPS",
 					},
 				},
-				ReadinessProbe: &corev1.Probe{
-					TimeoutSeconds:   5,
-					PeriodSeconds:    5,
-					SuccessThreshold: 1,
-					FailureThreshold: 10,
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path:   "/-/healthy",
-							Port:   intstr.FromString("web"),
-							Scheme: "HTTPS",
-						},
+			}
+			vmalertmgr.Spec.ReadinessProbe = &corev1.Probe{
+				TimeoutSeconds:   5,
+				PeriodSeconds:    5,
+				SuccessThreshold: 1,
+				FailureThreshold: 10,
+				ProbeHandler: corev1.ProbeHandler{
+					HTTPGet: &corev1.HTTPGetAction{
+						Path:   "/-/healthy",
+						Port:   intstr.FromString("web"),
+						Scheme: "HTTPS",
 					},
 				},
 			}

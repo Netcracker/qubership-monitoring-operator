@@ -286,6 +286,7 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	return nil
 }
 
+//nolint:unused // Kept for manual Grafana credential recovery.
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
 	// Waiting Grafana Pods readiness
 	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
@@ -370,7 +371,6 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
 		}
 
-		isSecretUpdated = false
 		r.Log.Info("Grafana Credentials Reset was finished")
 	}
 	if errors.IsNotFound(err) {

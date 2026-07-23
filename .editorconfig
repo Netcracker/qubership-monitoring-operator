@@ -24,6 +24,10 @@ trim_trailing_whitespace = false
 [{go.mod,go.sum,*.go,.gitmodules}]
 indent_size = 4
 indent_style = tab
+eclint_indent_style = unset
+
+[Makefile]
+indent_style = tab
 
 [Dockerfile]
 indent_size = 4

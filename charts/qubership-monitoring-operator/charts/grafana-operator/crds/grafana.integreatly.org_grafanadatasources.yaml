@@ -1,0 +1,244 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: '-5'
+    operator.grafana.com/version: 5.24.0
+  name: grafanadatasources.grafana.integreatly.org
+spec:
+  group: grafana.integreatly.org
+  names:
+    categories:
+    - grafana-operator
+    kind: GrafanaDatasource
+    listKind: GrafanaDatasourceList
+    plural: grafanadatasources
+    singular: grafanadatasource
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.NoMatchingInstances
+      name: No matching instances
+      type: boolean
+    - format: date-time
+      jsonPath: .status.lastResync
+      name: Last resync
+      type: date
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              allowCrossNamespaceImport:
+                default: false
+                type: boolean
+              datasource:
+                properties:
+                  access:
+                    type: string
+                  basicAuth:
+                    type: boolean
+                  basicAuthUser:
+                    type: string
+                  database:
+                    type: string
+                  editable:
+                    type: boolean
+                  isDefault:
+                    type: boolean
+                  jsonData:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  name:
+                    type: string
+                  orgId:
+                    format: int64
+                    type: integer
+                  secureJsonData:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type:
+                    type: string
+                  uid:
+                    type: string
+                  url:
+                    type: string
+                  user:
+                    type: string
+                type: object
+              instanceSelector:
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+                x-kubernetes-validations:
+                - message: spec.instanceSelector is immutable
+                  rule: self == oldSelf
+              plugins:
+                items:
+                  properties:
+                    name:
+                      minLength: 1
+                      type: string
+                    version:
+                      pattern: ^((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?|latest)$
+                      type: string
+                  required:
+                  - name
+                  - version
+                  type: object
+                type: array
+              resyncPeriod:
+                pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$
+                type: string
+              suspend:
+                type: boolean
+              uid:
+                maxLength: 40
+                pattern: ^[a-zA-Z0-9-_]+$
+                type: string
+                x-kubernetes-validations:
+                - message: spec.uid is immutable
+                  rule: self == oldSelf
+              valuesFrom:
+                items:
+                  properties:
+                    targetPath:
+                      type: string
+                    valueFrom:
+                      properties:
+                        configMapKeyRef:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              default: ""
+                              type: string
+                            optional:
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        secretKeyRef:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              default: ""
+                              type: string
+                            optional:
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                      type: object
+                      x-kubernetes-validations:
+                      - message: Either configMapKeyRef or secretKeyRef must be set
+                        rule: (has(self.configMapKeyRef) && !has(self.secretKeyRef)) || (!has(self.configMapKeyRef) && has(self.secretKeyRef))
+                  required:
+                  - targetPath
+                  - valueFrom
+                  type: object
+                maxItems: 99
+                type: array
+            required:
+            - datasource
+            - instanceSelector
+            type: object
+            x-kubernetes-validations:
+            - message: spec.uid is immutable
+              rule: ((!has(oldSelf.uid) && !has(self.uid)) || (has(oldSelf.uid) && has(self.uid)))
+            - message: disabling spec.allowCrossNamespaceImport requires a recreate to ensure desired state
+              rule: '!oldSelf.allowCrossNamespaceImport || (oldSelf.allowCrossNamespaceImport && self.allowCrossNamespaceImport)'
+          status:
+            properties:
+              NoMatchingInstances:
+                type: boolean
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              hash:
+                type: string
+              lastMessage:
+                type: string
+              lastResync:
+                format: date-time
+                type: string
+              uid:
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
