@@ -9,6 +9,9 @@ import (
 
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -31,6 +34,28 @@ func TestPlatformMonitoringCRDManifest(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.NotNil(t, cr, "Custom resource manifest should not be empty")
+}
+
+func TestAddToSchemeRegistersAPITypes(t *testing.T) {
+	scheme := k8sruntime.NewScheme()
+	require.NoError(t, AddToScheme(scheme))
+
+	testCases := []struct {
+		kind     string
+		expected k8sruntime.Object
+	}{
+		{kind: "PlatformMonitoring", expected: &PlatformMonitoring{}},
+		{kind: "PlatformMonitoringList", expected: &PlatformMonitoringList{}},
+		{kind: "ListOptions", expected: &metav1.ListOptions{}},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.kind, func(t *testing.T) {
+			actual, err := scheme.New(SchemeGroupVersion.WithKind(testCase.kind))
+			require.NoError(t, err)
+			assert.IsType(t, testCase.expected, actual)
+		})
+	}
 }
 
 func TestOverridePrometheusRuleAnnotations(t *testing.T) {
