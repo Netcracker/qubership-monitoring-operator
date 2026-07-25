@@ -11,8 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var isSecretUpdated = false
-
 // isManageAdminSecret returns true when Helm (and therefore this operator) manages
 // the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
 // When the flag is true the user is responsible for the secret; we skip validation.
@@ -26,7 +24,6 @@ func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
 
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
-	config     *rest.Config
 	*utils.ComponentReconciler
 }
 
@@ -40,7 +37,6 @@ func NewGrafanaReconciler(c client.Client, s *runtime.Scheme, dc discovery.Disco
 			Log:    utils.Logger("grafana_reconciler"),
 		},
 		KubeClient: cl,
-		config:     r,
 	}
 }
 
@@ -119,9 +115,6 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// To apply a manually changed secret value, restart the Grafana pod (new env var values
-			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
-			// available but not triggered automatically; it can be invoked for in-place credential updates.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
