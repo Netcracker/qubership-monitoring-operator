@@ -2,7 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "schedule:weekly"
+    "schedule:weekly",
+    "github>Netcracker/renovate-config:test-pipelines"
   ],
   "labels": [
     "dependencies"

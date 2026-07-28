@@ -9,14 +9,13 @@ on:
 
 jobs:
   Nightly-Monitoring-Pipeline:
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@9fcb2de51b4d510b52ffca883515bdb388cbc16f # v1.14.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@ddc741b38bac5dc4834b8f6827c9f6d16abf0db8 # v1.14.1
     with:
       service_branch: main
-      pipeline_branch: 'c46738acd2481dcea8b4cd0bee83e3f4f4539f2c' # this value must match the value after '@' in 'uses'
+      pipeline_branch: 'ddc741b38bac5dc4834b8f6827c9f6d16abf0db8' # v1.14.1 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       scope: 'nightly'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
       AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}
-
