@@ -33,7 +33,7 @@ For OpenShift compatibility, refer to the equivalent Kubernetes version. For exa
 Ensure you have the following prerequisites in place before installation:
 
 - Kubernetes 1.19+ or OpenShift 3.11+ cluster
-- `kubectl` 1.19+ or `oc` 3.11+ CLI tools
+- `kubectl` 1.19+ or `oc` 3.11+ command-line tools
 - Helm 3.0+
 - Pre-created namespace for installation
 - Appropriate permissions for deployment
@@ -97,6 +97,10 @@ By default, the following components are installed:
 - No ingress configured by default
 - No integrations enabled
 
+Grafana does not set `server.root_url` or Generic OAuth settings unless you configure Grafana ingress or `auth`
+integration values. If you set `grafana.config`, those values override operator-generated Grafana defaults. For details,
+see the [Grafana component guide](components/grafana-stack/grafana.md#grafana-configuration-defaults).
+
 For detailed information about components, see [Components](components/).
 
 ## Installation Steps
@@ -154,12 +158,12 @@ After installing the monitoring operator, verify that all components are running
    ```
 
 4. **Access Grafana dashboard:**
-   
+
    If ingress is configured, access via URL. Otherwise, use port-forwarding:
    ```bash
    kubectl port-forward svc/grafana 3000:3000 -n monitoring
    ```
-   
+
    Default login for Grafana is typically admin/admin unless configured otherwise.
 
 For complete verification procedures, see [Post-Deploy Checks](post-deploy-checks.md).
@@ -173,4 +177,4 @@ After successful installation, you can:
 - Configure monitoring parameters, see [Configuration](../configuration.md)
 - Configure authentication and security, see [Authentication](../monitoring-configuration/authentication.md)
 - Set up alerting rules, see [Troubleshooting](../troubleshooting.md)
-- Review maintenance procedures, see [Maintenance](../maintenance.md) 
+- Review maintenance procedures, see [Maintenance](../maintenance.md)
