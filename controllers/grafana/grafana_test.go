@@ -90,6 +90,7 @@ func TestGrafanaManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "GrafanaDatasource manifest should not be empty")
+		assert.Equal(t, grafanaCleanupLabelValue, m.GetLabels()[grafanaCleanupLabelKey])
 		assert.Equal(t, 10*time.Minute, m.Spec.ResyncPeriod.Duration)
 	})
 	t.Run("Test GrafanaPromxyDatasource manifest", func(t *testing.T) {
@@ -99,6 +100,7 @@ func TestGrafanaManifests(t *testing.T) {
 		}
 		assert.NotNil(t, m, "GrafanaPromxyDatasource manifest should not be empty")
 		assert.Equal(t, "platform-monitoring-promxy", m.GetName())
+		assert.Equal(t, grafanaCleanupLabelValue, m.GetLabels()[grafanaCleanupLabelKey])
 		assert.Equal(t, 10*time.Minute, m.Spec.ResyncPeriod.Duration)
 		if m.Spec.Datasource != nil {
 			assert.Contains(t, m.Spec.Datasource.URL, "promxy")

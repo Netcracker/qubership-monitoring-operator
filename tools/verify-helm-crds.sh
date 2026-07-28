@@ -591,12 +591,17 @@ for required_grafana_cleanup_token in \
     grafanas.grafana.integreatly.org \
     app.kubernetes.io/managed-by-operator=monitoring-operator \
     app.kubernetes.io/component=grafana-operator \
-    app.kubernetes.io/managed-by=monitoring-operator \
     backup-daemon \
     kafka-java-clients; do
     verify_text_contains "${grafana_cleanup_command}" "${required_grafana_cleanup_token}" \
         "required scoped Grafana cleanup token"
 done
+verify_text_contains "${grafana_cleanup_command}" \
+    "grafanadatasources.grafana.integreatly.org --selector=app.kubernetes.io/managed-by-operator=monitoring-operator" \
+    "reserved Grafana datasource cleanup selector"
+verify_text_excludes "${grafana_cleanup_command}" \
+    "grafanadatasources.grafana.integreatly.org --selector=app.kubernetes.io/managed-by=monitoring-operator" \
+    "generic Grafana datasource cleanup selector"
 
 helm template monitoring "${chart_dir}" \
     --set grafana.install=false \

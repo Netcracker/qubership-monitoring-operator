@@ -58,7 +58,7 @@ spec:
               {{- end }}
               {{- if .Values.grafana.install }}
               kubectl delete grafanadatasources.grafana.integreatly.org
-              --selector=app.kubernetes.io/managed-by=monitoring-operator
+              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator
               --ignore-not-found=true --wait=true
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
               kubectl delete grafanas.grafana.integreatly.org

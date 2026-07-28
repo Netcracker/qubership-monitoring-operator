@@ -546,6 +546,10 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	// Set parameters
 	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	dataSource.SetNamespace(cr.GetNamespace())
+	if dataSource.Labels == nil {
+		dataSource.Labels = make(map[string]string)
+	}
+	dataSource.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 	// In v5, one GrafanaDatasource CR = one datasource. Promxy is a separate CR (grafanaPromxyDataSource).
 
@@ -592,6 +596,10 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	// Set parameters
 	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	dataSource.SetNamespace(cr.GetNamespace())
+	if dataSource.Labels == nil {
+		dataSource.Labels = make(map[string]string)
+	}
+	dataSource.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 	// Set Promxy URL with port from CR (default: 9090)
 	promxyPort := int32(9090)
