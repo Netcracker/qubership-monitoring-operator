@@ -124,3 +124,6 @@ gradlew         text eol=lf
 # with the python modules ``pickle``, ``dbm.*``,
 # ``shelve``, ``marshal``, ``anydbm``, & ``bsddb``
 # (among others).
+agent-packages/troubleshoot-monitoring/.apm/skills/troubleshoot-monitoring/references/troubleshooting.md linguist-generated=true
+docs/troubleshooting.md linguist-generated=true
+docs/troubleshooting.superseded.md linguist-generated=true
