@@ -120,11 +120,14 @@ git clone https://github.com/Netcracker/qubership-monitoring-operator.git
 
 cd qubership-monitoring-operator
 
-# Run this before installing or upgrading the operator. Server-side apply creates new CRDs, updates existing CRDs, and avoids the last-applied-configuration annotation size limit.
+# Run this before installing or upgrading the operator. Server-side apply creates new CRDs, updates existing CRDs, and
+# avoids the last-applied-configuration annotation size limit.
 kubectl apply --server-side --force-conflicts -f charts/qubership-monitoring-crds/crds/
 
 ```
-Ordinary `helm upgrade` does not upgrade CRDs. Alternatively, an Argo CD Application pointed to the CRD Helm chart can apply the complete CRD set. Before transferring existing Helm-managed CRDs to Argo CD, run the one-time `kubectl apply --server-side --force-conflicts` command above so Argo CD does not encounter field-ownership conflicts.
+Ordinary `helm upgrade` does not upgrade CRDs. Alternatively, an Argo CD Application pointed to the CRD Helm chart
+can apply the complete CRD set. Before transferring existing Helm-managed CRDs to Argo CD, run the one-time
+`kubectl apply --server-side --force-conflicts` command above so Argo CD does not encounter field-ownership conflicts.
 Example application's spec:
 
 ```yaml
@@ -152,11 +155,19 @@ ignoreDifferences:
       - /spec/preserveUnknownFields
 ```
 
-With `ServerSideApply=true`, Argo CD applies CRDs in the same manner as the `kubectl apply --server-side` command above. When the operator chart is deployed as a separate Application, set `source.helm.skipCrds: true` so that the CRD and operator Applications do not compete for CRD ownership.
+With `ServerSideApply=true`, Argo CD applies CRDs in the same manner as the `kubectl apply --server-side` command
+above. When the operator chart is deployed as a separate Application, set `source.helm.skipCrds: true` so that the CRD
+and operator Applications do not compete for CRD ownership.
 
-Argo CD 3.3 or later is required for safe operator Application deletion. Starting with 3.3, Argo CD maps the chart's Helm `pre-delete` cleanup hooks to the `PreDelete` phase.
+Argo CD 3.3 or later is required for safe operator Application deletion. Starting with 3.3, Argo CD maps the chart's
+Helm `pre-delete` cleanup hooks to the `PreDelete` phase.
 
-Delete the operator Application first and wait until its cleanup hooks and foreground deletion complete. Delete the CRD Application afterward only when the CRDs themselves must be removed. Deleting both Applications concurrently, or deleting the CRD Application first, can remove APIs that the operator cleanup Jobs still need.
+Delete the operator Application first and wait until its cleanup hooks and foreground deletion complete. Delete the CRD
+Application afterward only when the CRDs themselves must be removed. Deleting both Applications concurrently, or
+deleting the CRD Application first, can remove APIs that the operator cleanup Jobs still need.
+
+Keep managed custom-resource APIs, operators, and their RBAC available until managed resources finish finalizing.
+Cluster RBAC cleanup runs afterward. Do not remove finalizers manually during ordinary cleanup.
 
 ### 2. Install the Operator
 
@@ -174,6 +185,10 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
   --namespace monitoring \
   --create-namespace
 ```
+
+With `global.privilegedRights=false`, the managed Grafana and VictoriaMetrics operators use namespace-scoped watches
+and `Role` resources. The chart does not create operator-managed `ClusterRole` or `ClusterRoleBinding` resources for
+those operators.
 
 **What gets installed automatically:**
 
