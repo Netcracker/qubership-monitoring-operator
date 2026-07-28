@@ -1,0 +1,27 @@
+name: Validate Renovate Config
+run-name: "Ref: ${{ github.ref_name }}. On ${{ github.event_name }}"
+
+on:
+  push:
+    paths:
+      - renovate.json
+      - .github/workflows/renovate-config-lint.yaml
+  pull_request:
+    paths:
+      - renovate.json
+      - .github/workflows/renovate-config-lint.yaml
+
+jobs:
+  validate-renovate-config:
+    name: Validate renovate.json
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate renovate.json
+        run: docker run --rm -v "$PWD":/work -w /work renovate/renovate:latest renovate-config-validator --strict --no-global renovate.json

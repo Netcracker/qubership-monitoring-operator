@@ -1,12 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    "schedule:weekly",
+    "github>Netcracker/renovate-config:base",
+    "github>Netcracker/renovate-config:github-actions",
+    "github>Netcracker/renovate-config:go",
+    "github>Netcracker/renovate-config:netcracker-dependencies",
+    "github>Netcracker/renovate-config:annotated-versions",
     "github>Netcracker/renovate-config:test-pipelines"
-  ],
-  "labels": [
-    "dependencies"
   ],
   "ignorePaths": [
     "**/examples/**",
@@ -22,32 +22,17 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Update versions via inline renovate annotation comments",
+      "description": "Update prefixed VictoriaMetrics config-reloader tags in Helm templates",
       "managerFilePatterns": [
-        "/charts/qubership-monitoring-operator/templates/_images\\.tpl/",
-        "/charts/.+/templates/_helpers?\\.tpl/",
-        "/.github/workflows/integration-tests\\.yaml/"
+        "/^charts/qubership-monitoring-operator/templates/_images\\.tpl$/"
       ],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*:(?<currentValue>[^\\s\"'\\n]+)"
+        "\\{\\{-?[\\t ]*/\\*[\\t ]+#?[\\t ]*renovate: datasource=(?<datasource>docker) depName=(?<depName>victoriametrics/operator)[\\t ]*\\*/[\\t ]*-?\\}\\}[^\\S\\r\\n]*\\r?\\n[\\t ]*\\{\\{-?[\\t ]*print[\\t ]+\\\"[^\\\"\\r\\n]+:(?<currentValue>config-reloader-v\\d+\\.\\d+\\.\\d+)\\\"[\\t ]*-?\\}\\}"
       ],
-      "extractVersionTemplate": "^(?:config-reloader-)?v?(?<version>\\d+(?:\\.\\d+)*)"
-    },
-    {
-      "customType": "regex",
-      "description": "Update go install tool versions in Makefile",
-      "managerFilePatterns": ["/Makefile/"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*@v(?<currentValue>[0-9][^\\s\\n\\\\]*)"
-      ]
+      "versioningTemplate": "regex:^config-reloader-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     }
   ],
   "packageRules": [
-    {
-      "description": "Group all go module updates",
-      "matchManagers": ["gomod"],
-      "groupName": "go-dependencies"
-    },
     {
       "description": "Group Kubernetes-related go modules (overrides go-dependencies group)",
       "matchManagers": ["gomod"],
@@ -66,27 +51,9 @@
       "groupName": "k8s-go-modules"
     },
     {
-      "description": "Group all GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "github-actions",
-      "separateMajorMinor": false
-    },
-    {
       "description": "Group all third-party docker images, base images, and pip packages",
       "matchManagers": ["custom.regex", "dockerfile", "pip", "helm-values"],
       "groupName": "third-party-images",
-      "separateMajorMinor": false
-    },
-    {
-      "description": "Group Netcracker reusable workflows and GitHub Actions (overrides github-actions group)",
-      "matchManagers": ["github-actions", "custom.regex"],
-      "matchPackageNames": [
-        "Netcracker/qubership-test-pipelines",
-        "Netcracker/qubership-workflow-hub",
-        "netcracker/qubership-workflow-hub",
-        "Netcracker/qubership-core-infra"
-      ],
-      "groupName": "netcracker-workflows",
       "separateMajorMinor": false
     },
     {
