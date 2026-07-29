@@ -71,6 +71,7 @@
       "matchPackageNames": [
         "!sigs.k8s.io/controller-tools",
         "!Netcracker/qubership-test-pipelines",
+        "!alpine",
         "!golang",
         "!docker.io/library/golang",
         "!index.docker.io/library/golang",
