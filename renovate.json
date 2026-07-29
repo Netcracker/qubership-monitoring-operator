@@ -62,6 +62,7 @@
       "matchPackageNames": [
         "k8s.io/{/,}**",
         "sigs.k8s.io/{/,}**",
+        "github.com/openshift/**",
         "github.com/prometheus-operator/prometheus-operator{/,}**",
         "github.com/VictoriaMetrics/{/,}**"
       ],
