@@ -47,7 +47,7 @@
     {
       "description": "Group controller-gen Makefile tool into k8s-go-modules",
       "matchManagers": ["custom.regex"],
-      "matchPackageNames": ["kubernetes-sigs/controller-tools"],
+      "matchPackageNames": ["sigs.k8s.io/controller-tools"],
       "groupName": "k8s-go-modules"
     },
     {
