@@ -43,7 +43,8 @@
         "!github.com/openshift/**",
         "!go.opentelemetry.io/**",
         "!github.com/open-telemetry/**",
-        "!github.com/prometheus/**"
+        "!github.com/prometheus/**",
+        "!github.com/Netcracker/**"
       ],
       "groupName": "go-dependencies"
     },
@@ -66,7 +67,7 @@
     },
     {
       "description": "Group all third-party docker images, base images, and pip packages",
-      "matchManagers": ["custom.regex", "dockerfile", "pip", "helm-values"],
+      "matchManagers": ["custom.regex", "dockerfile", "pip_requirements", "helm-values"],
       "matchPackageNames": [
         "!sigs.k8s.io/controller-tools",
         "!golang",
