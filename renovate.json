@@ -70,12 +70,21 @@
       "matchManagers": ["custom.regex", "dockerfile", "pip_requirements", "helm-values"],
       "matchPackageNames": [
         "!sigs.k8s.io/controller-tools",
+        "!Netcracker/qubership-test-pipelines",
         "!golang",
         "!docker.io/library/golang",
         "!index.docker.io/library/golang",
         "!registry-1.docker.io/library/golang"
       ],
       "groupName": "third-party-images",
+      "separateMajorMinor": false
+    },
+    {
+      "description": "Group reusable test pipeline updates",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["github-tags"],
+      "matchPackageNames": ["Netcracker/qubership-test-pipelines"],
+      "groupName": "netcracker-workflows",
       "separateMajorMinor": false
     },
     {
