@@ -36,7 +36,7 @@ spec:
       {{- end }}
       serviceAccountName: {{ .Values.monitoringOperator.serviceAccount.name }}
       securityContext:
-        {{ include "monitoring.operator.securityContext" . }}
+        {{- include "monitoring.operator.securityContext" . | nindent 8 }}
       {{- if .Values.monitoringOperator.priorityClassName }}
       priorityClassName: {{ .Values.monitoringOperator.priorityClassName | quote }}
       {{- end }}
@@ -84,3 +84,10 @@ spec:
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
