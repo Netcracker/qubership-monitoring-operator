@@ -42,6 +42,9 @@ Ensure you have the following prerequisites in place before installation:
 
 For detailed prerequisites, see [Prerequisites](prerequisites.md).
 
+For the security constraints of etcd certificate discovery, see
+[Etcd certificate synchronization security constraints](etcd-certs-to-secret-security.md).
+
 ## Permissions
 
 The monitoring operator requires cluster-level permissions to create and manage the following components:
