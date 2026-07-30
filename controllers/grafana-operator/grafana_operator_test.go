@@ -9,6 +9,8 @@ import (
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +40,7 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test Deployment manifest", func(t *testing.T) {
-		m, err := grafanaOperatorDeployment(cr)
+		m, err := grafanaOperatorDeployment(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -51,6 +53,7 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
+		assertGrafanaOperatorHardening(t, m, false)
 	})
 	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
@@ -63,7 +66,7 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test Deployment manifest with nil labels and annotation", func(t *testing.T) {
-		m, err := grafanaOperatorDeployment(cr)
+		m, err := grafanaOperatorDeployment(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -80,13 +83,34 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 			utils.PrivilegedRights = privilegedRights
 		})
 
-		m, err := grafanaOperatorDeployment(cr)
+		m, err := grafanaOperatorDeployment(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		assert.Equal(t, cr.GetNamespace(), containerEnvValue(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName, "WATCH_NAMESPACE"))
 		assert.Empty(t, containerEnvValue(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName, "WATCH_NAMESPACE_SELECTOR"))
+	})
+	t.Run("Test OpenShift Deployment security context", func(t *testing.T) {
+		m, err := grafanaOperatorDeployment(cr, true)
+		require.NoError(t, err)
+		assertGrafanaOperatorHardening(t, m, true)
+	})
+	t.Run("Test configured IDs are preserved", func(t *testing.T) {
+		configuredCR := cr.DeepCopy()
+		configuredCR.Spec.Grafana.Operator.SecurityContext = &monv1.SecurityContext{
+			RunAsUser:  ptr.To(int64(3000)),
+			RunAsGroup: ptr.To(int64(3000)),
+			FSGroup:    ptr.To(int64(3000)),
+		}
+
+		m, err := grafanaOperatorDeployment(configuredCR, false)
+		require.NoError(t, err)
+		require.NotNil(t, m.Spec.Template.Spec.SecurityContext)
+		assert.Equal(t, int64(3000), *m.Spec.Template.Spec.SecurityContext.RunAsUser)
+		assert.Equal(t, int64(3000), *m.Spec.Template.Spec.SecurityContext.RunAsGroup)
+		assert.Equal(t, int64(3000), *m.Spec.Template.Spec.SecurityContext.FSGroup)
+		assertGrafanaOperatorHardening(t, m, false)
 	})
 	t.Run("Test ServiceAccount manifest", func(t *testing.T) {
 		crWithSALabels := &monv1.PlatformMonitoring{
@@ -248,4 +272,44 @@ func roleContainsRule(role *rbacv1.Role, apiGroup, resource string, verbs []stri
 		}
 	}
 	return false
+}
+
+func assertGrafanaOperatorHardening(t *testing.T, deployment *appsv1.Deployment, isOpenShift bool) {
+	t.Helper()
+
+	podSecurityContext := deployment.Spec.Template.Spec.SecurityContext
+	require.NotNil(t, podSecurityContext)
+	require.NotNil(t, podSecurityContext.RunAsNonRoot)
+	assert.True(t, *podSecurityContext.RunAsNonRoot)
+	require.NotNil(t, podSecurityContext.SeccompProfile)
+	assert.Equal(t, corev1.SeccompProfileTypeRuntimeDefault, podSecurityContext.SeccompProfile.Type)
+	if isOpenShift {
+		assert.Nil(t, podSecurityContext.RunAsUser)
+		assert.Nil(t, podSecurityContext.RunAsGroup)
+		assert.Nil(t, podSecurityContext.FSGroup)
+	} else {
+		require.NotNil(t, podSecurityContext.RunAsUser)
+		require.NotNil(t, podSecurityContext.RunAsGroup)
+		require.NotNil(t, podSecurityContext.FSGroup)
+	}
+
+	require.Len(t, deployment.Spec.Template.Spec.Containers, 1)
+	container := deployment.Spec.Template.Spec.Containers[0]
+	require.NotNil(t, container.SecurityContext)
+	require.NotNil(t, container.SecurityContext.AllowPrivilegeEscalation)
+	assert.False(t, *container.SecurityContext.AllowPrivilegeEscalation)
+	require.NotNil(t, container.SecurityContext.ReadOnlyRootFilesystem)
+	assert.True(t, *container.SecurityContext.ReadOnlyRootFilesystem)
+	require.NotNil(t, container.SecurityContext.Capabilities)
+	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
+	require.Len(t, container.VolumeMounts, 1)
+	assert.Equal(t, "tmp", container.VolumeMounts[0].Name)
+	assert.Equal(t, "/tmp", container.VolumeMounts[0].MountPath)
+
+	require.Len(t, deployment.Spec.Template.Spec.Volumes, 1)
+	volume := deployment.Spec.Template.Spec.Volumes[0]
+	assert.Equal(t, "tmp", volume.Name)
+	require.NotNil(t, volume.EmptyDir)
+	require.NotNil(t, volume.EmptyDir.SizeLimit)
+	assert.Equal(t, "16Mi", volume.EmptyDir.SizeLimit.String())
 }
