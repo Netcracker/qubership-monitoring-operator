@@ -14,28 +14,33 @@ Return securityContext for monitoring-operator.
   {{- end -}}
 {{- end -}}
 {{/*
-Return securityContext for etcd-certs-to-secret job.
+Return the container security context for the etcd-certs-to-secret job.
 */}}
 {{- define "etcdCertsJob.securityContext" -}}
-{{- if .Values.etcdCertsJob.securityContext -}}
-  {{- toYaml .Values.etcdCertsJob.securityContext | nindent 12 }}
-{{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- toYaml (dict "runAsUser" 0 "runAsGroup" 0) | nindent 12 }}
+{{- $required := dict
+  "allowPrivilegeEscalation" false
+  "readOnlyRootFilesystem" true
+  "capabilities" (dict "drop" (list "ALL")) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- $_ := set $required "runAsNonRoot" true -}}
 {{- else -}}
-{{- printf "{}" | nindent 12 }}
+{{- $_ := set $required "runAsUser" 0 -}}
+{{- $_ := set $required "runAsGroup" 0 -}}
 {{- end -}}
+{{- $configured := deepCopy (.Values.etcdCertsJob.securityContext | default dict) -}}
+{{- toYaml (mergeOverwrite $configured $required) -}}
 {{- end -}}
+
 {{/*
-Return securityContext for etcd-certs-to-secret job.
+Return the pod security context for etcd-certs-to-secret workloads.
+The Kubernetes workload runs as root because etcd private keys are commonly readable only by root.
 */}}
-{{- define "etcdCertsCronJob.securityContext" -}}
-{{- if .Values.etcdCertsJob.securityContext -}}
-  {{- toYaml .Values.etcdCertsJob.securityContext | nindent 16 }}
-{{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- toYaml (dict "runAsUser" 0 "runAsGroup" 0) | nindent 16 }}
-{{- else -}}
-{{- printf "{}" | nindent 16 }}
-{{- end -}}
+{{- define "etcdCertsJob.podSecurityContext" -}}
+seccompProfile:
+  type: RuntimeDefault
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+runAsNonRoot: true
+{{- end }}
 {{- end -}}
 {{/*
 Return securityContext for prometheus.

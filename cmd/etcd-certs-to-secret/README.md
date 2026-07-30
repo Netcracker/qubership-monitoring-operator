@@ -26,10 +26,10 @@ On each run:
      `ca-bundle.crt`) and Secret `etcd-metric-client` (keys `tls.crt` /
      `tls.key`) from namespace `openshift-etcd-operator`.
    - **Kubernetes**: locates a running etcd pod (label `component=etcd` in
-     `kube-system`), extracts cert paths from its `--peer-key-file`,
-     `--peer-trusted-ca-file`, `--peer-cert-file` arguments (falling back
-     to `/etc/kubernetes/pki/etcd/{peer.key,ca.crt,peer.crt}`), and reads
-     the files from the hostPath-mounted `/etc`.
+     `kube-system`), extracts cert paths from its container `command` and
+     `args` fields (falling back to
+     `/etc/kubernetes/pki/etcd/{peer.key,ca.crt,peer.crt}`), and reads the
+     files from the hostPath-mounted `/etc`.
 3. Verifies that each PEM block has the expected headers.
 4. Creates/updates a Secret (default name `kube-etcd-client-certs`) in the
    target namespace with keys `etcd-client.key`, `etcd-client-ca.crt`,
@@ -68,7 +68,12 @@ The binary needs:
   `etcd-metric-client` / `etcd-client`.
 
 On OpenShift it additionally needs `use` / `update` on the chart-supplied
-SecurityContextConstraint (the Job mounts `/etc` as hostPath read-only).
+SecurityContextConstraint. The OpenShift workload reads certificates through
+the Kubernetes API and does not mount the host filesystem.
+
+See the
+[etcd certificate synchronization security constraints](../../docs/installation/etcd-certs-to-secret-security.md)
+for platform-specific hardening details and the Kubernetes exception.
 
 ## Build
 
