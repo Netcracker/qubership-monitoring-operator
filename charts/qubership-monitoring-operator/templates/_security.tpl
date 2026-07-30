@@ -4,14 +4,18 @@
 Return securityContext for monitoring-operator.
 */}}
 {{- define "monitoring.operator.securityContext" -}}
-  {{- if .Values.monitoringOperator.securityContext -}}
-    {{- toYaml .Values.monitoringOperator.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $required := dict
+  "runAsNonRoot" true
+  "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $_ := set $defaults "runAsUser" 2000 -}}
+{{- $_ := set $defaults "runAsGroup" 2000 -}}
+{{- $_ := set $defaults "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := deepCopy (.Values.monitoringOperator.securityContext | default dict) -}}
+{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
+{{- toYaml (mergeOverwrite $configuredWithDefaults $required) -}}
 {{- end -}}
 {{/*
 Return the container security context for the etcd-certs-to-secret job.
