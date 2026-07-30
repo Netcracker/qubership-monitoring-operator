@@ -4,6 +4,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	kubernetes_monitors "github.com/Netcracker/qubership-monitoring-operator/controllers/kubernetes-monitors"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	secv1 "github.com/openshift/api/security/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/discovery"
@@ -12,6 +13,10 @@ import (
 
 type GrafanaOperatorReconciler struct {
 	*utils.ComponentReconciler
+}
+
+func (r *GrafanaOperatorReconciler) hasSecurityContextConstraintsAPI() bool {
+	return r.HasApi(secv1.GroupVersion, "SecurityContextConstraints")
 }
 
 func NewGrafanaOperatorReconciler(c client.Client, s *runtime.Scheme, dc discovery.DiscoveryInterface) *GrafanaOperatorReconciler {
