@@ -77,7 +77,7 @@ func (r *GrafanaReconciler) addGrafanaExtraVarsResourceVersions(
 }
 
 func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
-	m, err := grafana(cr)
+	m, err := grafana(cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
@@ -459,7 +459,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
-	m, err := grafana(cr)
+	m, err := grafana(cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err

@@ -55,7 +55,9 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 		return fmt.Errorf("checking legacy Grafana datasource: %w", err)
 	}
 
-	grafanaManifest, err := grafana(platformMonitoring)
+	// This manifest is used only to derive the Grafana object key. Platform-specific
+	// security fields are applied later by the normal reconciliation path.
+	grafanaManifest, err := grafana(platformMonitoring, false)
 	if err != nil {
 		return err
 	}
