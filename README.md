@@ -226,7 +226,7 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 
 - **[Installation Guide](https://netcracker.github.io/qubership-monitoring-operator/installation/)** - Detailed installation instructions
 - **[Configuration Guide](https://netcracker.github.io/qubership-monitoring-operator/configuration/)** - Complete configuration options
-- **[Troubleshooting](https://netcracker.github.io/qubership-monitoring-operator/troubleshooting/)** - Common issues and solutions
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
 ### MCP Integration
 
