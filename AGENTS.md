@@ -1,63 +1,70 @@
-# CLAUDE.md
+# Repository agent instructions
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Scope
 
-## Common commands
+- This repository builds the Go-based Qubership Monitoring Operator, its Helm charts, CRDs, documentation, and tests.
+- These instructions apply repository-wide; keep component-specific guidance next to the affected component.
 
-Build / test (from repo root):
+## Repository map
 
-- `make generate` — runs `controller-gen` to regenerate CRDs (into `charts/qubership-monitoring-operator/crds/`) and deepcopy methods. Must be re-run after any change to `api/v1/*.go`.
-- `make build-binary` — builds `bin/manager` (CGO disabled). Runs `generate`, `fmt`, `vet` first.
-- `make test` — unit tests. Runs `go test -race -vet=off --shuffle=on ./... -count=1` across all packages **except** `/test/envtests`.
-- `make run` — runs the operator locally against the cluster in `~/.kube/config`.
-- `make image` — builds the Docker image (tag `qubership-monitoring-operator`).
-- `make docs` — copies CRDs from charts into `docs/crds/`; `make update-crds` then syncs them into `charts/qubership-monitoring-crds/crds/`.
-- `make all` — full pipeline: `generate test build-binary image docs archives`.
+- `api/v1/` defines the `PlatformMonitoring` API and generated deepcopy code.
+- `cmd/operator/` contains the manager entry point; `controllers/` contains the main reconciler and component
+  reconcilers.
+- `charts/qubership-monitoring-operator/` is the deployable chart; `charts/qubership-monitoring-crds/` packages CRDs
+  separately.
+- `test/envtests/`, `test/robot-tests/`, and `test/alerts-tests/` cover envtest, deployed integration, and alert-rule
+  behavior respectively.
+- `docs/` is the published documentation source; `site/mkdocs.yml` configures the documentation build.
 
-Running a single Go test: `go test -v -run <TestName> ./controllers/<pkg>/...`.
+## Commands
 
-Envtests (`test/envtests/`) are Ginkgo suites that require real `kube-apiserver` + `etcd` binaries (controller-runtime `envtest`) and are excluded from the `make test` package list. CI runs them via `Netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml` with `install-envtest: true`, `kube-version: '1.30.0'`, `envtest-version: 'release-0.19'`. Locally use `setup-envtest` or the container workflow described in `test/envtests/README.md`. Run with `ginkgo ./test/envtests/...` once `KUBEBUILDER_ASSETS` is set.
+- Run commands from the repository root unless an instruction says otherwise.
+- Regenerate project CRDs and deepcopy methods after API type or marker changes: `make generate`.
+- Format, statically check, and run unit tests: `make fmt`, `make vet`, and `make test`.
+- Run one Go test: `go test -v -run '<TestName>' ./<package>/...`.
+- Build the operator binary: `make build-binary`; this also runs generation, formatting, and vetting.
+- Run the operator against the cluster in the active kubeconfig: `make run`; use it only for explicit live-cluster work.
+- Build the operator image tagged `qubership-monitoring-operator`: `make image`.
+- Refresh copied CRDs after CRD changes: `make docs`; it updates `docs/crds/` and the separate CRD chart.
+- Run the complete build pipeline, including image and archives, only when those artifacts are in scope: `make all`.
+- After setting `KUBEBUILDER_ASSETS`, run envtests with `ginkgo ./test/envtests/...`; use
+  `test/envtests/README.md` only for workstation or container setup.
 
-Helm install from source (see `README.md`): CRDs must be applied first (`kubectl apply -f charts/qubership-monitoring-crds/crds/ --server-side`), then `helm install monitoring-operator charts/qubership-monitoring-operator -n monitoring --create-namespace`.
+## Non-obvious invariants
 
-## Architecture
+- `controllers/platformmonitoring_controller.go` deliberately runs operator reconcilers before dependent custom
+  resources. Preserve CRD-before-CR ordering when adding or moving a component.
+- Component errors do not stop later reconcilers. Most add a `Failed` condition, but `kubernetes-monitors` only logs its
+  error. Any remaining `Failed` condition causes immediate requeue; otherwise the controller uses
+  `RECONCILIATION_INTERVAL`, which defaults to 60 seconds.
+- `FillEmptyWithDefaults()` supplies selected images and disables Prometheus when both Prometheus and the
+  VictoriaMetrics operator are enabled. Optional component specs remain nullable, so keep the existing nil checks in
+  component reconcilers.
+- An empty or unset `WATCH_NAMESPACE` makes the manager watch all namespaces; a non-empty value scopes its cache to
+  that namespace. Keep this behavior aligned with cross-namespace imports.
+- Status-only updates are filtered by `metadata.generation` in `ignoreDeletionPredicate`; preserve that guard when
+  changing event handling so status writes do not self-trigger reconciliation.
+- The manager registers Prometheus, VictoriaMetrics, Grafana, OpenShift SCC, and extension schemes. Use the discovery
+  client for APIs that may be absent from the target cluster instead of assuming every optional API is installed.
+- `make build-binary` injects revision, user, date, branch, and version through `GO_BUILD_LDFLAGS`; the operator
+  Dockerfile does not use those Makefile flags.
 
-This is a Kubernetes operator (controller-runtime / kubebuilder-style) that reconciles a **single custom resource**, `PlatformMonitoring` (group `monitoring.netcracker.com/v1`), and uses it as a single knob to install and configure an entire monitoring stack. There is one controller, `PlatformMonitoringReconciler` in `controllers/platformmonitoring_controller.go`.
+## Done when
 
-### How reconciliation is structured
+- Run `make fmt`, `make vet`, and the smallest relevant Go tests for Go changes; run `make test` when the full unit
+  suite is applicable.
+- After API or CRD source changes, run the relevant generation command and review all regenerated files.
+- For chart changes, follow the preparation steps in `.github/workflows/chart-test-linter.yaml`, then run
+  `ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts`.
+- Behavior changes have focused test coverage, and the final response lists checks run and checks that could not run.
 
-`Reconcile` is not a typical per-object loop — on each event it fans out to **many sub-reconcilers**, one per managed component, in a **deliberate order**:
+## Context routing
 
-1. `prometheus-operator` first (installs `Prometheus`, `ServiceMonitor`, `PodMonitor`, `Alertmanager`, `PrometheusRule` CRDs consumed by later steps).
-2. `etcd`, `kubernetes-monitors` (ServiceMonitors for kube components).
-3. VictoriaMetrics stack in order: `vm-operator` → `vmsingle` → `vmcluster` → `vmuser` → `vmagent` → `vmauth` → `vmalertmanager` → `vmalert`. The VM-operator must run first because it installs the `vmetricsv1b1` CRDs the others create.
-4. `prometheus` (Prometheus CR), `alertmanager`.
-5. Exporters: `kube-state-metrics`, `node-exporter`, `pushgateway`.
-6. `grafana-operator` before `grafana` (same CRD-before-CR pattern).
-7. `prometheus-rules` last.
-
-Each sub-reconciler lives in its own package under `controllers/` and exposes `NewXxxReconciler(...)` returning a struct that embeds `utils.ComponentReconciler` and implements `Run(cr *monv1.PlatformMonitoring) error` (a handful take `context.Context` as first arg). Failures in sub-reconcilers are **not fatal** — they are logged, the CR's `Status.Conditions` get a `Reason`-keyed entry via `prepareStatusForUpdate`, and the outer reconciler still continues through the remaining components. If any `Failed` condition remains at the end, the reconciler requeues immediately; otherwise it requeues after `RECONCILIATION_INTERVAL` seconds (default `60`, see `controllers/utils/env.go`).
-
-The manager is scoped to a **single namespace** via `WATCH_NAMESPACE` env (default `monitoring`), set in `main.go` through `cache.Options.DefaultNamespaces`. Leader election ID is `b0cb59fe.netcracker.com`.
-
-### CR shape
-
-`api/v1/platformmonitoring_types.go` defines `PlatformMonitoringSpec` as a big flat struct of optional component sub-specs (`AlertManager`, `Prometheus`, `Victoriametrics`, `Grafana`, `NodeExporter`, `KubeStateMetrics`, `KubernetesMonitors`, `GrafanaDashboards`, `PrometheusRules`, `Pushgateway`, `Promxy`, `Integration`, `OAuthProxy`, `Auth`, …). Each component typically has an `Install *bool` toggle and a `Paused bool` flag — sub-reconcilers early-return unless `IsInstall()` is true and `Paused` is false. `FillEmptyWithDefaults()` is called at the top of every reconcile to populate nil sub-structs with defaults, so downstream code can assume non-nil pointers for anything the CR "touches."
-
-Modifying the CR surface: after editing `platformmonitoring_types.go`, run `make generate` — this regenerates both `zz_generated.deepcopy.go` AND the CRD YAML under `charts/qubership-monitoring-operator/crds/`. The `generate` target also injects `helm.sh/hook: crd-install` / `hook-weight: "-5"` annotations into the generated CRDs via `sed`.
-
-### Event filtering
-
-`SetupWithManager` installs a predicate (`ignoreDeletionPredicate`) that ignores status-only updates (skips if `metadata.Generation` didn't change) and skips delete events whose state is already known. This matters because the reconciler itself patches status on every run — without the filter it would self-trigger infinitely.
-
-### External schemes
-
-`main.go` registers a long list of schemes into the manager so the client can read/write third-party CRs directly: `vmetricsv1b1` (VictoriaMetrics operator), `grafv1` (grafana-operator v4 integreatly/v1alpha1), `promv1` (prometheus-operator monitoring/v1), OpenShift `secv1` (SCC), and `apiextensions/v1beta1`. Sub-reconcilers use `DiscoveryClient` to probe which of these APIs are actually present in the cluster (e.g., Ingress v1 vs v1beta1, OpenShift Routes) and branch accordingly — see `controllers/grafana/reconciler.go` for the `HasIngressV1Api()` / `HasIngressV1beta1Api()` pattern.
-
-### Helm chart layout
-
-`charts/qubership-monitoring-operator/` is the deployable chart; it contains the operator templates plus **sub-charts** for each managed component (`victoriametrics-operator`, `prometheus-operator`, `grafana-operator`, `prometheus-adapter-operator`, and the exporters: `blackbox-exporter`, `cert-exporter`, `cloudwatch-exporter`, `json-exporter`, `node-exporter`-equivalents, `promxy`, etc.). The CRDs live in the sub-charts' `crds/` dirs; `make docs` / `make update-crds` / `make archive-crds` copy them into `docs/crds/`, `charts/qubership-monitoring-crds/crds/`, and the release zip respectively. The separate `qubership-monitoring-crds` chart exists so CRDs can be installed independently (and via ArgoCD with `ServerSideApply`) — this is the recommended way to avoid the kubectl last-applied-configuration annotation size limit on large CRDs.
-
-### Version ldflags
-
-Build version info is injected at link time via `-X github.com/Netcracker/qubership-monitoring-operator/version.{Revision,BuildUser,BuildDate,Branch,Version}` (see `Makefile` `GO_BUILD_LDFLAGS`). The `Dockerfile` does **not** pass these flags — only `make build-binary` does.
+- Before changing reconciliation flow, read `controllers/platformmonitoring_controller.go` and `docs/architecture.md`
+  to preserve component dependencies and status behavior.
+- Before changing installation or chart defaults, read the "Quick Start" section in `README.md` for the supported
+  CRD-first installation flow and `docs/configuration.md` for the user-facing configuration contract.
+- Before changing alert rules, read `docs/develoment/alert-rules-testing.md`; it defines the repository's rule rendering
+  and `vmalert-tool` test conventions.
+- Before running envtests, read `test/envtests/README.md` because they require external Kubernetes API server and etcd
+  binaries and are excluded from `make test`.
