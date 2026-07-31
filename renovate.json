@@ -5,6 +5,7 @@
     "github>Netcracker/renovate-config:github-actions",
     "github>Netcracker/renovate-config:go",
     "github>Netcracker/renovate-config:netcracker-dependencies",
+    "github>Netcracker/renovate-config:go-catch-all",
     "github>Netcracker/renovate-config:annotated-versions",
     "github>Netcracker/renovate-config:test-pipelines"
   ],
@@ -42,22 +43,7 @@
       "pinDigests": false
     },
     {
-      "description": "Other Go modules",
-      "matchManagers": ["gomod"],
-      "matchDatasources": ["go"],
-      "matchPackageNames": [
-        "!k8s.io/**",
-        "!sigs.k8s.io/**",
-        "!github.com/openshift/**",
-        "!go.opentelemetry.io/**",
-        "!github.com/open-telemetry/**",
-        "!github.com/prometheus/**",
-        "!github.com/Netcracker/**"
-      ],
-      "groupName": "go-dependencies"
-    },
-    {
-      "description": "Group Kubernetes-related go modules (overrides go-dependencies group)",
+      "description": "Group repository-specific Kubernetes-related Go modules",
       "matchManagers": ["gomod"],
       "matchPackageNames": [
         "k8s.io/{/,}**",
