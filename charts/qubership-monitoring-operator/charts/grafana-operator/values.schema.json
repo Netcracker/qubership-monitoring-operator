@@ -2,6 +2,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
+        "PAAS_PLATFORM": {
+            "type": "string",
+            "description": "Platform type; KUBERNETES pins hardened workloads to UID and GID 1000, while an empty value detects OpenShift through its SCC API"
+        },
         "affinity": {
             "type": "object",
             "description": "If specified, the pod's scheduling constraints",
@@ -454,7 +458,15 @@
                     "description": "Grafana basic authentication credentials",
                     "properties": {
                         "username": {"type": "string"},
-                        "password": {"type": "string"}
+                        "password": {"type": "string"},
+                        "passwordSecret": {
+                            "type": "object",
+                            "description": "Existing Secret containing the Grafana basic authentication password",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "key": {"type": "string", "default": "password"}
+                            }
+                        }
                     }
                 },
                 "orgId": {

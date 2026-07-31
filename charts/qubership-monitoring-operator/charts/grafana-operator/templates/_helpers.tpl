@@ -53,12 +53,35 @@ Find a mcp-grafana image in various places.
 Return securityContext for mcp-grafana.
 */}}
 {{- define "grafana.mcp.securityContext" -}}
-  {{- if .Values.mcp.securityContext -}}
-    {{- toYaml .Values.mcp.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
+  {{- $platform := default "" .Values.PAAS_PLATFORM -}}
+  {{- $isKubernetes := or (eq $platform "KUBERNETES") (and (eq $platform "") (not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints"))) -}}
+  {{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+  {{- if $isKubernetes -}}
+    {{- $_ := set $required "runAsUser" 1000 -}}
+    {{- $_ := set $required "runAsGroup" 1000 -}}
   {{- end -}}
+  {{- $context := mergeOverwrite (deepCopy (.Values.mcp.securityContext | default dict)) $required -}}
+  {{- toYaml $context | nindent 8 }}
+{{- end -}}
+
+{{/*
+Return the mandatory container securityContext for mcp-grafana, merged with
+additional user settings.
+*/}}
+{{- define "grafana.mcp.containerSecurityContext" -}}
+  {{- $platform := default "" .Values.PAAS_PLATFORM -}}
+  {{- $isKubernetes := or (eq $platform "KUBERNETES") (and (eq $platform "") (not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints"))) -}}
+  {{- $required := dict
+        "allowPrivilegeEscalation" false
+        "privileged" false
+        "readOnlyRootFilesystem" true
+        "runAsNonRoot" true
+        "seccompProfile" (dict "type" "RuntimeDefault")
+        "capabilities" (dict "add" (list) "drop" (list "ALL")) -}}
+  {{- if $isKubernetes -}}
+    {{- $_ := set $required "runAsUser" 1000 -}}
+    {{- $_ := set $required "runAsGroup" 1000 -}}
+  {{- end -}}
+  {{- $context := mergeOverwrite (deepCopy (.Values.mcp.containerSecurityContext | default dict)) $required -}}
+  {{- toYaml $context | nindent 12 }}
 {{- end -}}

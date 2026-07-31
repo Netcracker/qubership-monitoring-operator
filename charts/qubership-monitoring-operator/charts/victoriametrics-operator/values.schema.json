@@ -2,6 +2,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
+        "PAAS_PLATFORM": {
+            "type": "string",
+            "description": "Platform type; KUBERNETES pins hardened workloads to UID and GID 1000, while an empty value detects OpenShift through its SCC API"
+        },
         "cleanup": {
             "type": "object",
             "properties": {
@@ -155,6 +159,25 @@
                     "properties": {
                         "entrypoint": {"type": "string"},
                         "type": {"type": "string", "enum": ["single", "cluster"], "default": "single"},
+                        "tls": {
+                            "type": "object",
+                            "description": "TLS trust configuration for the VictoriaMetrics entrypoint",
+                            "properties": {
+                                "useBackendCA": {
+                                    "type": "boolean",
+                                    "description": "Mount the CA from the operator-managed backend TLS Secret when the chart generates the entrypoint",
+                                    "default": true
+                                },
+                                "caSecret": {
+                                    "type": "object",
+                                    "description": "Secret containing the CA certificate for the VictoriaMetrics entrypoint",
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "key": {"type": "string", "default": "ca.crt"}
+                                    }
+                                }
+                            }
+                        },
                         "bearerToken": {"type": "string"},
                         "bearerTokenSecret": {
                             "type": "object",
@@ -250,6 +273,7 @@
                 },
                 "resources": {"type": "object"},
                 "securityContext": {"type": "object"},
+                "containerSecurityContext": {"type": "object"},
                 "nodeSelector": {"type": "object"},
                 "affinity": {"type": "object"},
                 "tolerations": {"type": "array", "items": {"type": "object"}},

@@ -2,7 +2,11 @@
 {{- $name := include "grafana.mcp.fullname" . }}
 {{- $image := include "grafana.mcp.image" . }}
 {{- $listenPort := .Values.mcp.service.targetPort | default .Values.mcp.service.port }}
-{{- $allowedHosts := list (printf "localhost:%v" $listenPort) }}
+{{- $hasServiceAccountToken := or .Values.mcp.serviceAccountToken .Values.mcp.existingSecret.name }}
+{{- $serviceAccountTokenSecretName := default (default (printf "%s-token" $name) .Values.mcp.tokenSecret.name) .Values.mcp.existingSecret.name }}
+{{- $serviceAccountTokenSecretKey := default (default "token" .Values.mcp.tokenSecret.key) .Values.mcp.existingSecret.key }}
+{{- $serviceAccountTokenMountPath := "/var/run/secrets/mcp-grafana" }}
+{{- $allowedHosts := list (printf "localhost:%v" $listenPort) (printf "$(MCP_GRAFANA_POD_IP):%v" $listenPort) }}
 {{- range $host := .Values.mcp.allowedHosts }}
 {{- $allowedHosts = append $allowedHosts (tpl $host $) }}
 {{- end }}
@@ -55,9 +59,14 @@ spec:
         {{- if .Values.mcp.labels }}
         {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 8 }}
         {{- end }}
-      {{- if .Values.mcp.podAnnotations }}
+      {{- if or .Values.mcp.podAnnotations .Values.mcp.basicAuth.password }}
       annotations:
+        {{- if .Values.mcp.basicAuth.password }}
+        checksum/mcp-basic-auth: {{ .Values.mcp.basicAuth.password | sha256sum | quote }}
+        {{- end }}
+        {{- if .Values.mcp.podAnnotations }}
         {{- toYaml .Values.mcp.podAnnotations | nindent 8 }}
+        {{- end }}
       {{- end }}
     spec:
       automountServiceAccountToken: {{ .Values.mcp.automountServiceAccountToken }}
@@ -149,22 +158,27 @@ spec:
               containerPort: {{ $listenPort }}
               protocol: TCP
           env:
+            - name: MCP_GRAFANA_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
             - name: GRAFANA_URL
               value: {{ default (printf "http://grafana-service.%s.svc:3000" .Release.Namespace) .Values.mcp.grafanaUrl | quote }}
-            {{- if or .Values.mcp.serviceAccountToken .Values.mcp.existingSecret.name }}
-            - name: GRAFANA_SERVICE_ACCOUNT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ default (default (printf "%s-token" $name) .Values.mcp.tokenSecret.name) .Values.mcp.existingSecret.name }}
-                  key: {{ default (default "token" .Values.mcp.tokenSecret.key) .Values.mcp.existingSecret.key }}
+            {{- if $hasServiceAccountToken }}
+            - name: GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE
+              value: {{ printf "%s/token" $serviceAccountTokenMountPath | quote }}
             {{- end }}
             {{- if .Values.mcp.basicAuth.username }}
             - name: GRAFANA_USERNAME
               value: {{ .Values.mcp.basicAuth.username | quote }}
             {{- end }}
-            {{- if .Values.mcp.basicAuth.password }}
+            {{- if or .Values.mcp.basicAuth.password .Values.mcp.basicAuth.passwordSecret.name }}
             - name: GRAFANA_PASSWORD
-              value: {{ .Values.mcp.basicAuth.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-basic-auth" $name) .Values.mcp.basicAuth.passwordSecret.name }}
+                  key: {{ default "password" .Values.mcp.basicAuth.passwordSecret.key }}
             {{- end }}
             {{- if .Values.mcp.orgId }}
             - name: GRAFANA_ORG_ID
@@ -183,10 +197,8 @@ spec:
           envFrom:
             {{- toYaml .Values.mcp.envFrom | nindent 12 }}
           {{- end }}
-          {{- with .Values.mcp.containerSecurityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{ include "grafana.mcp.containerSecurityContext" . }}
           {{- with .Values.mcp.livenessProbe }}
           livenessProbe:
             {{- tpl (toYaml .) $ | nindent 12 }}
@@ -205,8 +217,15 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.mcp.resources | nindent 12 }}
-          {{- if .Values.mcp.volumeMounts }}
           volumeMounts:
+            - name: mcp-tmp
+              mountPath: /tmp
+          {{- if $hasServiceAccountToken }}
+            - name: mcp-grafana-token
+              mountPath: {{ $serviceAccountTokenMountPath | quote }}
+              readOnly: true
+          {{- end }}
+          {{- if .Values.mcp.volumeMounts }}
             {{- toYaml .Values.mcp.volumeMounts | nindent 12 }}
           {{- end }}
         {{- if .Values.mcp.extraContainers }}
@@ -237,8 +256,19 @@ spec:
       dnsConfig:
         {{- toYaml .Values.mcp.dnsConfig | nindent 8 }}
       {{- end }}
-      {{- if .Values.mcp.volumes }}
       volumes:
+        - name: mcp-tmp
+          emptyDir:
+            sizeLimit: 100Mi
+      {{- if $hasServiceAccountToken }}
+        - name: mcp-grafana-token
+          secret:
+            secretName: {{ $serviceAccountTokenSecretName | quote }}
+            items:
+              - key: {{ $serviceAccountTokenSecretKey | quote }}
+                path: token
+      {{- end }}
+      {{- if .Values.mcp.volumes }}
         {{- toYaml .Values.mcp.volumes | nindent 8 }}
       {{- end }}
 {{- end }}

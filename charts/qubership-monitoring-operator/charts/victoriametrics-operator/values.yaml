@@ -2,6 +2,11 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Platform type. Set to KUBERNETES to pin hardened workloads to UID/GID 1000.
+# When empty, the chart detects OpenShift through its SCC API and otherwise
+# treats the platform as Kubernetes.
+PAAS_PLATFORM: ""
+
 # Enable/Disable TLS for victoriametrics components.
 # Type: boolean
 # Default: false
@@ -2252,12 +2257,23 @@ mcp:
 
   vm:
     # Root VictoriaMetrics API URL reachable from the MCP pod.
-    # When empty, defaults to the operator-managed service matching type:
-    # http://vmsingle-k8s.<namespace>.svc:8428 for single or
-    # http://vmselect-k8s.<namespace>.svc:8481 for cluster.
+    # When empty, defaults to the operator-managed service matching type and
+    # uses https when victoriametrics.tlsEnabled is true:
+    # <scheme>://vmsingle-k8s.<namespace>.svc:8428 for single or
+    # <scheme>://vmselect-k8s.<namespace>.svc:8481 for cluster.
     entrypoint: ""
     # Use single for VMSingle and cluster for VMCluster/VMSelect.
     type: single
+    tls:
+      # Trust the CA from the operator-managed VMSingle or VMSelect TLS Secret
+      # when tlsEnabled is true and entrypoint is generated automatically.
+      # Disable this when the backend certificate uses the system trust store.
+      useBackendCA: true
+      caSecret:
+        # Override the generated backend TLS Secret name. For an explicit
+        # entrypoint, set this value to mount its CA certificate.
+        name: ""
+        key: ca.crt
     bearerToken: ""
     bearerTokenSecret:
       name: ""
@@ -2317,6 +2333,12 @@ mcp:
 
   resources: {}
   securityContext: {}
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
   nodeSelector: {}
   affinity: {}
   tolerations: []

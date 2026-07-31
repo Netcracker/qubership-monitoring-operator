@@ -76,9 +76,27 @@ operator-managed backend matching mcp.vm.type.
   {{- if .Values.mcp.vm.entrypoint -}}
     {{- .Values.mcp.vm.entrypoint -}}
   {{- else if eq (default "single" .Values.mcp.vm.type) "cluster" -}}
-    {{- printf "http://vmselect-k8s.%s.svc:8481" .Release.Namespace -}}
+    {{- printf "%s://vmselect-k8s.%s.svc:8481" (ternary "https" "http" .Values.tlsEnabled) .Release.Namespace -}}
   {{- else -}}
-    {{- printf "http://vmsingle-k8s.%s.svc:8428" .Release.Namespace -}}
+    {{- printf "%s://vmsingle-k8s.%s.svc:8428" (ternary "https" "http" .Values.tlsEnabled) .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Return the TLS Secret used by the operator-managed VictoriaMetrics backend.
+*/}}
+{{- define "vm.mcp.backendTLSSecretName" -}}
+  {{- $type := default "single" .Values.mcp.vm.type -}}
+  {{- $defaultName := ternary "vmselect-tls-secret" "vmsingle-tls-secret" (eq $type "cluster") -}}
+  {{- $tlsConfig := ternary .Values.vmCluster.vmSelectTlsConfig .Values.vmSingle.tlsConfig (eq $type "cluster") -}}
+  {{- if $tlsConfig.existingSecret -}}
+    {{- $tlsConfig.existingSecret -}}
+  {{- else if and $tlsConfig.generateCerts $tlsConfig.generateCerts.enabled -}}
+    {{- default $defaultName $tlsConfig.generateCerts.secretName -}}
+  {{- else if $tlsConfig.createSecret -}}
+    {{- default $defaultName $tlsConfig.createSecret.secretName -}}
+  {{- else -}}
+    {{- $defaultName -}}
   {{- end -}}
 {{- end -}}
 
@@ -98,12 +116,35 @@ Find a mcp-victoriametrics image in various places.
 Return securityContext for mcp-victoriametrics.
 */}}
 {{- define "vm.mcp.securityContext" -}}
-  {{- if .Values.mcp.securityContext -}}
-    {{- toYaml .Values.mcp.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
+  {{- $platform := default "" .Values.PAAS_PLATFORM -}}
+  {{- $isKubernetes := or (eq $platform "KUBERNETES") (and (eq $platform "") (not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints"))) -}}
+  {{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+  {{- if $isKubernetes -}}
+    {{- $_ := set $required "runAsUser" 1000 -}}
+    {{- $_ := set $required "runAsGroup" 1000 -}}
   {{- end -}}
+  {{- $context := mergeOverwrite (deepCopy (.Values.mcp.securityContext | default dict)) $required -}}
+  {{- toYaml $context | nindent 8 }}
+{{- end -}}
+
+{{/*
+Return the mandatory container securityContext for mcp-victoriametrics,
+merged with additional user settings.
+*/}}
+{{- define "vm.mcp.containerSecurityContext" -}}
+  {{- $platform := default "" .Values.PAAS_PLATFORM -}}
+  {{- $isKubernetes := or (eq $platform "KUBERNETES") (and (eq $platform "") (not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints"))) -}}
+  {{- $required := dict
+        "allowPrivilegeEscalation" false
+        "privileged" false
+        "readOnlyRootFilesystem" true
+        "runAsNonRoot" true
+        "seccompProfile" (dict "type" "RuntimeDefault")
+        "capabilities" (dict "add" (list) "drop" (list "ALL")) -}}
+  {{- if $isKubernetes -}}
+    {{- $_ := set $required "runAsUser" 1000 -}}
+    {{- $_ := set $required "runAsGroup" 1000 -}}
+  {{- end -}}
+  {{- $context := mergeOverwrite (deepCopy (.Values.mcp.containerSecurityContext | default dict)) $required -}}
+  {{- toYaml $context | nindent 12 }}
 {{- end -}}

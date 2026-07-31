@@ -428,7 +428,16 @@ This snippet is an example, not a set of universal values. Adjust it for your
 cluster:
 
 * `grafana.mcp.existingSecret` must point to the Secret that contains the
-  Grafana service account token.
+  Grafana service account token. The monitoring chart mounts the selected key
+  as a file and configures `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE`; it does not
+  expose the token value through a container environment variable.
+* Upstream does not provide `GRAFANA_PASSWORD_FILE`. Basic authentication
+  passwords referenced through `grafana.mcp.basicAuth.passwordSecret` are
+  hidden from the Deployment but still exposed to the MCP process through an
+  environment variable. Use a service account token or request-time forwarded
+  credentials when file-based secret handling is mandatory. Restart the MCP
+  Deployment after changing an existing password Secret in place. Inline
+  password changes trigger a rollout automatically.
 * `grafana.mcp.httpRoute.hostnames` must contain the desired MCP server host.
 * `grafana.mcp.httpRoute.parentRefs` must point to the Gateway that serves
   HTTPRoute traffic in your cluster.
@@ -602,19 +611,23 @@ endpoint:
 For local binary usage:
 
 ```bash
-claude mcp add grafana -- /path/to/mcp-grafana \
-  --disable-write \
-  -e GRAFANA_URL=https://grafana.example.com \
-  -e GRAFANA_SERVICE_ACCOUNT_TOKEN=<service-account-token>
+claude mcp add \
+  --env GRAFANA_URL=https://grafana.example.com \
+  --env GRAFANA_SERVICE_ACCOUNT_TOKEN="<service-account-token>" \
+  --transport stdio \
+  grafana \
+  -- /path/to/mcp-grafana --disable-write
 ```
 
 For `uvx` usage:
 
 ```bash
-claude mcp add grafana -- uvx mcp-grafana \
-  --disable-write \
-  -e GRAFANA_URL=https://grafana.example.com \
-  -e GRAFANA_SERVICE_ACCOUNT_TOKEN=<service-account-token>
+claude mcp add \
+  --env GRAFANA_URL=https://grafana.example.com \
+  --env GRAFANA_SERVICE_ACCOUNT_TOKEN="<service-account-token>" \
+  --transport stdio \
+  grafana \
+  -- uvx mcp-grafana --disable-write
 ```
 
 ### Cursor

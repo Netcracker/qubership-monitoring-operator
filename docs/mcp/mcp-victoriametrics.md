@@ -177,6 +177,44 @@ can read it.
 If the certificate is signed by a company or cluster CA, use that CA
 certificate, not the leaf server certificate.
 
+For an operator-managed VMSingle or VMSelect endpoint, the monitoring chart
+handles this connection automatically. When `victoriametrics.tlsEnabled=true`
+and `victoriametrics.mcp.vm.entrypoint` is empty, it generates an HTTPS URL,
+projects only `ca.crt` from the selected backend TLS Secret, and sets
+`SSL_CERT_FILE` to the mounted file:
+
+```yaml
+victoriametrics:
+  tlsEnabled: true
+  clusterIssuerName: monitoring-ca
+  vmSingle:
+    install: true
+  mcp:
+    install: true
+    vm:
+      type: single
+```
+
+The CA key defaults to `ca.crt`. Set
+`victoriametrics.mcp.vm.tls.caSecret.key` if the Secret uses another key, or set
+`victoriametrics.mcp.vm.tls.useBackendCA: false` when the backend certificate
+is already trusted through the container system trust store.
+
+For an explicit endpoint that uses a private CA, identify its Secret directly:
+
+```yaml
+victoriametrics:
+  mcp:
+    vm:
+      entrypoint: https://vmauth-monitoring.example.com
+      tls:
+        caSecret:
+          name: vmauth-ca
+          key: ca.crt
+```
+
+The chart does not mount `tls.crt` or `tls.key` from this Secret.
+
 The same rule applies to the opposite connection direction: if an MCP client
 connects to the MCP server through an HTTPRoute or Ingress with a self-signed
 certificate, the CA must be trusted by the machine where the MCP client runs.
@@ -245,13 +283,24 @@ This snippet is an example, not a set of universal values. Adjust it for your
 cluster:
 
 * For `VMSingle`, use `victoriametrics.mcp.vm.type: single`. The MCP entrypoint
-  defaults to the operator-managed `VMSingle` Service.
+  defaults to the operator-managed `VMSingle` Service, using HTTPS when
+  `victoriametrics.tlsEnabled=true` and HTTP otherwise.
 * For `VMCluster`, enable `victoriametrics.vmCluster.install`, disable
   `victoriametrics.vmSingle.install`, and use
   `victoriametrics.mcp.vm.type: cluster`. The entrypoint then defaults to the
-  operator-managed `VMSelect` Service.
+  operator-managed `VMSelect` Service with the same scheme selection.
 * Set `victoriametrics.mcp.vm.entrypoint` only to override the generated
   in-cluster URL, for example when MCP must connect through VMAuth.
+* For an automatically generated TLS endpoint, the chart trusts `ca.crt` from
+  the selected backend TLS Secret. Configure `victoriametrics.mcp.vm.tls` when
+  the CA comes from another Secret or is already in the system trust store.
+* Upstream `mcp-victoriametrics v1.20.2` does not support token or headers
+  files. `vm.bearerTokenSecret` and `vm.headersSecret` hide values from the
+  Deployment but expose them to the MCP process through environment variables;
+  inline `vm.bearerToken` and `vm.headers` also expose values in the Deployment.
+  When file-based secret handling is mandatory, leave static credentials empty
+  and configure `passthroughHeaders` so MCP clients provide request-time
+  authentication.
 * `victoriametrics.mcp.httpRoute.hostnames` must contain the desired MCP server
   host, and `parentRefs` must point to the Gateway used by the cluster.
 * Use `victoriametrics.mcp.ingress` instead of
@@ -505,10 +554,13 @@ and set `url` in `claude_desktop_config.json` to `http://localhost:8080/mcp`.
 For local source usage:
 
 ```bash
-claude mcp add victoriametrics -- /path/to/mcp-victoriametrics \
-  -e VM_INSTANCE_ENTRYPOINT=https://vmauth.example.com \
-  -e VM_INSTANCE_TYPE=single \
-  -e VM_INSTANCE_HEADERS="Authorization=Basic <base64-username-password>"
+claude mcp add \
+  --env VM_INSTANCE_ENTRYPOINT=https://vmauth.example.com \
+  --env VM_INSTANCE_TYPE=single \
+  --env VM_INSTANCE_HEADERS="Authorization=Basic <base64-username-password>" \
+  --transport stdio \
+  victoriametrics \
+  -- /path/to/mcp-victoriametrics
 ```
 
 ### Cursor

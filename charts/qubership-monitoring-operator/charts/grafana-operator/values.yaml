@@ -2,6 +2,11 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Platform type. Set to KUBERNETES to pin hardened workloads to UID/GID 1000.
+# When empty, the chart detects OpenShift through its SCC API and otherwise
+# treats the platform as Kubernetes.
+PAAS_PLATFORM: ""
+
 # Deploy an Grafana instance
 # Type: objects
 # Mandatory: no
@@ -767,7 +772,13 @@ mcp:
   # Optional basic auth. Prefer service account token.
   basicAuth:
     username: ""
+    # Optional inline password. Helm stores it in a generated Secret and the
+    # Deployment refers to that Secret instead of containing the password.
     password: ""
+    # Use an existing Secret instead of password for production environments.
+    passwordSecret:
+      name: ""
+      key: password
 
   orgId: ""
   debug: false
@@ -788,9 +799,9 @@ mcp:
   transport: streamable-http
   # Path for streamable-http transport. Ignored for sse transport.
   endpointPath: /
-  # Additional allowed Host header values. localhost:<targetPort> and enabled
-  # HTTPRoute/Ingress hosts are included automatically. Add Service DNS names
-  # explicitly only when clients connect directly through the Kubernetes Service.
+  # Additional allowed Host header values. localhost:<targetPort>, the Pod IP,
+  # and enabled HTTPRoute/Ingress hosts are included automatically. Add Service
+  # DNS names explicitly only when clients connect through the Kubernetes Service.
   allowedHosts: []
   allowedOrigins: []
 
@@ -876,9 +887,6 @@ mcp:
       drop:
         - ALL
     readOnlyRootFilesystem: true
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
   # mcp-grafana does not need Kubernetes API credentials.
   automountServiceAccountToken: false
   readinessProbe:
