@@ -84,7 +84,7 @@ func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *cor
 	return &podSpec.Containers[0]
 }
 
-func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
+func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -185,6 +185,30 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Configure container-level settings (EnvFrom, volumes, home dashboard, etc.).
 		podSpec := ensurePodSpecInitialized(&graf)
 		container := ensureGrafanaContainerInitialized(podSpec)
+		podSpec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+
+		hasTmpVolume := false
+		for _, volume := range podSpec.Volumes {
+			if volume.Name == "tmp" {
+				hasTmpVolume = true
+				break
+			}
+		}
+		if !hasTmpVolume {
+			podSpec.Volumes = append(podSpec.Volumes, utils.TmpVolume("100Mi"))
+		}
+
+		hasTmpMount := false
+		for _, volumeMount := range container.VolumeMounts {
+			if volumeMount.Name == "tmp" || volumeMount.MountPath == "/tmp" {
+				hasTmpMount = true
+				break
+			}
+		}
+		if !hasTmpMount {
+			container.VolumeMounts = append(container.VolumeMounts, utils.TmpVolumeMount())
+		}
 
 		// Attach envFrom so that grafana picks up extraVars / extraVarsSecret
 		// (GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH and other settings).
@@ -339,12 +363,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
+		// Preserve configured IDs while enforcing the hardening settings above.
 		if cr.Spec.Grafana.SecurityContext != nil {
-			podSpec := ensurePodSpecInitialized(&graf)
-			if podSpec.SecurityContext == nil {
-				podSpec.SecurityContext = &corev1.PodSecurityContext{}
-			}
 			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
 				podSpec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
 			}
