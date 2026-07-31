@@ -160,7 +160,7 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := vmOperatorDeployment(r, cr)
+	m, err := vmOperatorDeployment(r, cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -593,11 +593,36 @@ func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.Platfo
 	}
 	//Set parameters
 	e.SetLabels(m.GetLabels())
+	applyVmOperatorSCCPolicy(e, m)
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
 	}
 	return nil
+}
+
+func applyVmOperatorSCCPolicy(existing, desired *secv1.SecurityContextConstraints) {
+	existing.AllowPrivilegedContainer = desired.AllowPrivilegedContainer
+	existing.DefaultAddCapabilities = desired.DefaultAddCapabilities
+	existing.RequiredDropCapabilities = desired.RequiredDropCapabilities
+	existing.AllowedCapabilities = desired.AllowedCapabilities
+	existing.AllowHostDirVolumePlugin = desired.AllowHostDirVolumePlugin
+	existing.Volumes = desired.Volumes
+	existing.AllowedFlexVolumes = desired.AllowedFlexVolumes
+	existing.AllowHostNetwork = desired.AllowHostNetwork
+	existing.AllowHostPorts = desired.AllowHostPorts
+	existing.AllowHostPID = desired.AllowHostPID
+	existing.AllowHostIPC = desired.AllowHostIPC
+	existing.DefaultAllowPrivilegeEscalation = desired.DefaultAllowPrivilegeEscalation
+	existing.AllowPrivilegeEscalation = desired.AllowPrivilegeEscalation
+	existing.SELinuxContext = desired.SELinuxContext
+	existing.RunAsUser = desired.RunAsUser
+	existing.SupplementalGroups = desired.SupplementalGroups
+	existing.FSGroup = desired.FSGroup
+	existing.ReadOnlyRootFilesystem = desired.ReadOnlyRootFilesystem
+	existing.SeccompProfiles = desired.SeccompProfiles
+	existing.AllowedUnsafeSysctls = desired.AllowedUnsafeSysctls
+	existing.ForbiddenSysctls = desired.ForbiddenSysctls
 }
 
 func (r *VmOperatorReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -698,7 +723,7 @@ func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := vmOperatorDeployment(r, cr)
+	m, err := vmOperatorDeployment(r, cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
