@@ -11,7 +11,7 @@ import (
 )
 
 func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := pushgatewayDeployment(cr)
+	m, err := pushgatewayDeployment(cr, r.HasRouteApi())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -40,6 +40,7 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 	e.Spec.Template.SetAnnotations(m.Spec.Template.GetAnnotations())
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
@@ -163,7 +164,7 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitorin
 }
 
 func (r *PushgatewayReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := pushgatewayDeployment(cr)
+	m, err := pushgatewayDeployment(cr, r.HasRouteApi())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err

@@ -19,7 +19,7 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func pushgatewayDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PushgatewayDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -103,18 +103,6 @@ func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, er
 				break
 			}
 		}
-		// Set security context
-		if cr.Spec.Pushgateway.SecurityContext != nil {
-			if d.Spec.Template.Spec.SecurityContext == nil {
-				d.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			}
-			if cr.Spec.Pushgateway.SecurityContext.RunAsUser != nil {
-				d.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Pushgateway.SecurityContext.RunAsUser
-			}
-			if cr.Spec.Pushgateway.SecurityContext.FSGroup != nil {
-				d.Spec.Template.Spec.SecurityContext.FSGroup = cr.Spec.Pushgateway.SecurityContext.FSGroup
-			}
-		}
 		// Set tolerations for pushgateway
 		if cr.Spec.Pushgateway.Tolerations != nil {
 			d.Spec.Template.Spec.Tolerations = cr.Spec.Pushgateway.Tolerations
@@ -195,8 +183,64 @@ func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, er
 			d.Spec.Template.Spec.PriorityClassName = cr.Spec.Pushgateway.PriorityClassName
 		}
 	}
+	var configuredSecurityContext *monv1.SecurityContext
+	if cr.Spec.Pushgateway != nil {
+		configuredSecurityContext = cr.Spec.Pushgateway.SecurityContext
+	}
+	applyPushgatewayHardening(&d, isOpenShift, configuredSecurityContext)
 
 	return &d, nil
+}
+
+func applyPushgatewayHardening(
+	deployment *appsv1.Deployment,
+	isOpenShift bool,
+	configuredPodSecurityContext *monv1.SecurityContext,
+) {
+	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
+	if !isOpenShift && configuredPodSecurityContext != nil {
+		if configuredPodSecurityContext.RunAsUser != nil {
+			podSecurityContext.RunAsUser = configuredPodSecurityContext.RunAsUser
+		}
+		if configuredPodSecurityContext.RunAsGroup != nil {
+			podSecurityContext.RunAsGroup = configuredPodSecurityContext.RunAsGroup
+		}
+		if configuredPodSecurityContext.FSGroup != nil {
+			podSecurityContext.FSGroup = configuredPodSecurityContext.FSGroup
+		}
+	}
+	deployment.Spec.Template.Spec.SecurityContext = podSecurityContext
+
+	tmpVolume := utils.TmpVolume("100Mi")
+	hasTmpVolume := false
+	for i := range deployment.Spec.Template.Spec.Volumes {
+		if deployment.Spec.Template.Spec.Volumes[i].Name == tmpVolume.Name {
+			deployment.Spec.Template.Spec.Volumes[i] = tmpVolume
+			hasTmpVolume = true
+			break
+		}
+	}
+	if !hasTmpVolume {
+		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, tmpVolume)
+	}
+
+	for i := range deployment.Spec.Template.Spec.Containers {
+		container := &deployment.Spec.Template.Spec.Containers[i]
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		container.VolumeMounts = ensurePushgatewayTmpVolumeMount(container.VolumeMounts)
+	}
+}
+
+func ensurePushgatewayTmpVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
+	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+1)
+	required := utils.TmpVolumeMount()
+	for i := range volumeMounts {
+		if volumeMounts[i].Name == required.Name || volumeMounts[i].MountPath == required.MountPath {
+			continue
+		}
+		result = append(result, *volumeMounts[i].DeepCopy())
+	}
+	return append(result, required)
 }
 
 func pushgatewayPVC(cr *monv1.PlatformMonitoring) (*corev1.PersistentVolumeClaim, error) {
