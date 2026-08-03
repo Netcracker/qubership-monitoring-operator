@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/discovery/fake"
 	"k8s.io/utils/ptr"
 )
 
@@ -21,6 +22,14 @@ var (
 	annotationKey   = "annotation.key"
 	annotationValue = "annotation-value"
 )
+
+func TestNewPrometheusOperatorReconcilerStoresDiscoveryClient(t *testing.T) {
+	discoveryClient := &fake.FakeDiscovery{}
+
+	reconciler := NewPrometheusOperatorReconciler(nil, nil, discoveryClient)
+
+	assert.Same(t, discoveryClient, reconciler.Dc)
+}
 
 func TestPrometheusOperatorManifests(t *testing.T) {
 	cr = &monv1.PlatformMonitoring{
