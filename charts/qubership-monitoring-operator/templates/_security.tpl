@@ -50,14 +50,18 @@ runAsNonRoot: true
 Return securityContext for prometheus.
 */}}
 {{- define "prometheus.securityContext" -}}
-  {{- if .Values.prometheus.securityContext -}}
-    {{- toYaml .Values.prometheus.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- $required := dict
+  "runAsNonRoot" true
+  "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $_ := set $defaults "runAsUser" 2000 -}}
+{{- $_ := set $defaults "runAsGroup" 2000 -}}
+{{- $_ := set $defaults "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := deepCopy (.Values.prometheus.securityContext | default dict) -}}
+{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
+{{- toYaml (mergeOverwrite $configuredWithDefaults $required) | nindent 6 -}}
 {{- end -}}
 
 {{/*
