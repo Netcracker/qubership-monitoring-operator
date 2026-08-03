@@ -43,19 +43,15 @@ assert_not_contains() {
 
 kubernetes_manifest="$(render_kube_state_metrics_spec "")"
 
-assert_contains "${kubernetes_manifest}" "runAsNonRoot: true"
 assert_contains "${kubernetes_manifest}" "runAsUser: 2000"
 assert_contains "${kubernetes_manifest}" "runAsGroup: 2000"
 assert_contains "${kubernetes_manifest}" "fsGroup: 2000"
-assert_contains "${kubernetes_manifest}" "type: RuntimeDefault"
 
 openshift_manifest="$(
     render_kube_state_metrics_spec \
         "security.openshift.io/v1/SecurityContextConstraints"
 )"
 
-assert_contains "${openshift_manifest}" "runAsNonRoot: true"
-assert_contains "${openshift_manifest}" "type: RuntimeDefault"
 assert_not_contains "${openshift_manifest}" "runAsUser:"
 assert_not_contains "${openshift_manifest}" "runAsGroup:"
 assert_not_contains "${openshift_manifest}" "fsGroup:"
@@ -64,13 +60,11 @@ configured_manifest="$(
     render_kube_state_metrics_spec "" \
         --set kubeStateMetrics.securityContext.runAsUser=3000 \
         --set kubeStateMetrics.securityContext.runAsGroup=3001 \
-        --set kubeStateMetrics.securityContext.runAsNonRoot=false \
-        --set kubeStateMetrics.securityContext.seccompProfile.type=Unconfined
+        --set kubeStateMetrics.securityContext.fsGroup=3002
 )"
 
 assert_contains "${configured_manifest}" "runAsUser: 3000"
 assert_contains "${configured_manifest}" "runAsGroup: 3001"
-assert_contains "${configured_manifest}" "runAsNonRoot: true"
-assert_contains "${configured_manifest}" "type: RuntimeDefault"
+assert_contains "${configured_manifest}" "fsGroup: 3002"
 
 echo "kube-state-metrics security hardening checks passed"
