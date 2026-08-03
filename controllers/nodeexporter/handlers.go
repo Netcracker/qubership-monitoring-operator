@@ -98,7 +98,7 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
+	m, err := nodeExporterDaemonSet(cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
@@ -250,7 +250,7 @@ func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) deleteDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
+	m, err := nodeExporterDaemonSet(cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
