@@ -63,11 +63,10 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    # Temporary dependency on qubership-test-pipelines#275. Replace both refs with its upstream merge commit.
-    uses: IldarMinaev/qubership-test-pipelines/.github/workflows/monitoring.yaml@f2819f1ba7d8ffd9145ef7d1ac9ac504dec8dc2a # PR #275
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@edbd2ff8ec59df921e28f1311d42e0a974f19391 # v1.14.2
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'refs/pull/275/head'
+      pipeline_branch: 'edbd2ff8ec59df921e28f1311d42e0a974f19391' # v1.14.2 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       enable-owner-references-permission-enforcement: true
