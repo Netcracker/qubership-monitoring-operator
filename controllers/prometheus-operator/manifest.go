@@ -124,7 +124,7 @@ func prometheusOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1
 	return &clusterRoleBinding, nil
 }
 
-func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -133,6 +133,13 @@ func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deploym
 	d.SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"})
 	d.SetName(utils.PrometheusOperatorComponentName)
 	d.SetNamespace(cr.GetNamespace())
+	d.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
+	d.Spec.Template.Spec.Volumes = append(d.Spec.Template.Spec.Volumes, utils.TmpVolume("100Mi"))
+	for i := range d.Spec.Template.Spec.Containers {
+		container := &d.Spec.Template.Spec.Containers[i]
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		container.VolumeMounts = append(container.VolumeMounts, utils.TmpVolumeMount())
+	}
 
 	if cr.Spec.Prometheus != nil {
 
@@ -164,6 +171,9 @@ func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deploym
 			}
 			if cr.Spec.Prometheus.Operator.SecurityContext.RunAsUser != nil {
 				d.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Prometheus.Operator.SecurityContext.RunAsUser
+			}
+			if cr.Spec.Prometheus.Operator.SecurityContext.RunAsGroup != nil {
+				d.Spec.Template.Spec.SecurityContext.RunAsGroup = cr.Spec.Prometheus.Operator.SecurityContext.RunAsGroup
 			}
 			if cr.Spec.Prometheus.Operator.SecurityContext.FSGroup != nil {
 				d.Spec.Template.Spec.SecurityContext.FSGroup = cr.Spec.Prometheus.Operator.SecurityContext.FSGroup
