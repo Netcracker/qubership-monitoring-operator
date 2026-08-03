@@ -231,14 +231,18 @@ Return securityContext for grafana-operator.
 Return securityContext for kubeStateMetrics.
 */}}
 {{- define "kubeStateMetrics.securityContext" -}}
-  {{- if .Values.kubeStateMetrics.securityContext -}}
-    {{- toYaml .Values.kubeStateMetrics.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- $required := dict
+  "runAsNonRoot" true
+  "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $_ := set $defaults "runAsUser" 2000 -}}
+{{- $_ := set $defaults "runAsGroup" 2000 -}}
+{{- $_ := set $defaults "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := deepCopy (.Values.kubeStateMetrics.securityContext | default dict) -}}
+{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
+{{- toYaml (mergeOverwrite $configuredWithDefaults $required) | nindent 6 -}}
 {{- end -}}
 
 {{/*
