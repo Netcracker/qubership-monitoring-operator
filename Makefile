@@ -437,7 +437,7 @@ prepare-site-directory:
 	echo "=> Prepare site directory ..."
 	rm -rf $(SITE_FOLDER)/docs
 	mkdir -p $(SITE_FOLDER)
-	cp -r $(DOC_FOLDER) $(SITE_FOLDER)/
+	cp -rL $(DOC_FOLDER) $(SITE_FOLDER)/
 
 # Build the docs
 .PHONY: build-site

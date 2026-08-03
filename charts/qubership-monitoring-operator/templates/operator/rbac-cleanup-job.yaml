@@ -22,6 +22,7 @@ spec:
       labels:
         {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-rbac-cleanup-hook") | nindent 8 }}
     spec:
+      # The matching post-delete ClusterRoleBinding is rendered by rbac-cleanup-rbac.yaml.
       serviceAccountName: monitoring-rbac-cleanup-hook
       restartPolicy: OnFailure
       {{- with (get $cleanupHook "nodeSelector") }}
@@ -48,6 +49,7 @@ spec:
           image: {{ get $cleanupHook "image" | default "docker.io/rancher/kuberlr-kubectl:v8.0.0" }}
           imagePullPolicy: IfNotPresent
           {{- with (get $cleanupHook "resources") }}
+          # The cleanup hook defaults include a memory limit, which the render verifier checks.
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}

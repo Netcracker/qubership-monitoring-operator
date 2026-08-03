@@ -508,11 +508,20 @@ verify_rendered_resource_count "${rendered_manifest}" \
     .metadata.annotations."helm.sh/hook-delete-policy" == "before-hook-creation,hook-succeeded"' \
     3 "post-delete cluster RBAC cleanup hooks"
 verify_rendered_resource_count "${rendered_manifest}" \
+    '.kind == "ClusterRoleBinding" and .metadata.name == "monitoring-rbac-cleanup-hook" and
+    .roleRef.apiGroup == "rbac.authorization.k8s.io" and .roleRef.kind == "ClusterRole" and
+    .roleRef.name == "monitoring-rbac-cleanup-hook" and
+    (.subjects | any_c(.kind == "ServiceAccount" and .name == "monitoring-rbac-cleanup-hook" and
+    .namespace == "default"))' \
+    1 "post-delete cleanup ServiceAccount bindings"
+verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "Job" and .metadata.name == "monitoring-rbac-cleanup-hook" and
     .metadata.annotations."helm.sh/hook" == "post-delete" and
     .metadata.annotations."helm.sh/hook-weight" == "0" and
     .metadata.annotations."helm.sh/hook-delete-policy" == "before-hook-creation,hook-failed" and
     .spec.template.spec.serviceAccountName == "monitoring-rbac-cleanup-hook" and
+    (.spec.template.spec.containers |
+    any_c(.name == "kubectl" and .resources.limits.memory == "256Mi")) and
     .spec.ttlSecondsAfterFinished == 180' \
     1 "post-delete cluster RBAC cleanup Jobs"
 "${yq_binary}" eval-all \

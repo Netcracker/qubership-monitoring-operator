@@ -27,7 +27,7 @@ Envtests (`test/envtests/`) require `kube-apiserver` and `etcd` binaries and are
 against the minimum supported Kubernetes 1.25, and the build workflow also covers Kubernetes 1.30. Run `make envtest`;
 the target installs the pinned `setup-envtest` tool and downloads the requested Kubernetes assets.
 
-For a source install, follow the CRD ownership contract in the [README quick start](README.md#quick-start):
+For a source install, follow the CRD ownership contract in the [quick-start guide](README.md#quick-start):
 
 ```bash
 kubectl apply --server-side --force-conflicts -f charts/qubership-monitoring-crds/crds/
