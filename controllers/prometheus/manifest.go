@@ -100,7 +100,7 @@ func prometheusClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 	return &clusterRoleBinding, nil
 }
 
-func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
+func prometheus(cr *monv1.PlatformMonitoring, isOpenShift bool) (*promv1.Prometheus, error) {
 	prom := promv1.Prometheus{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.PrometheusAsset), 100).Decode(&prom); err != nil {
 		return nil, err
@@ -159,18 +159,6 @@ func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 			}
 			prom.Spec.Alerting.Alertmanagers = append(prom.Spec.Alerting.Alertmanagers, ae)
 		}
-		// Set security context
-		if cr.Spec.Prometheus.SecurityContext != nil {
-			if prom.Spec.SecurityContext == nil {
-				prom.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			}
-			if cr.Spec.Prometheus.SecurityContext.RunAsUser != nil {
-				prom.Spec.SecurityContext.RunAsUser = cr.Spec.Prometheus.SecurityContext.RunAsUser
-			}
-			if cr.Spec.Prometheus.SecurityContext.FSGroup != nil {
-				prom.Spec.SecurityContext.FSGroup = cr.Spec.Prometheus.SecurityContext.FSGroup
-			}
-		}
 		// Set resources for Prometheus deployment
 		if cr.Spec.Prometheus.Resources.Size() > 0 {
 			prom.Spec.Resources = cr.Spec.Prometheus.Resources
@@ -194,18 +182,6 @@ func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 		// Set additional volumes for StatefulSet
 		if cr.Spec.Prometheus.Volumes != nil {
 			prom.Spec.Volumes = cr.Spec.Prometheus.Volumes
-		}
-		// Set additional volumeMounts for each Prometheus container. The current container names are:
-		// `prometheus`, `prometheus-config-reloader`, `rules-configmap-reloader`, and `thanos-sidecar`
-		if cr.Spec.Prometheus.VolumeMounts != nil {
-			for it := range prom.Spec.Containers {
-				c := &prom.Spec.Containers[it]
-
-				// Set additional volumeMounts only for prometheus container
-				if c.Name == "prometheus" {
-					c.VolumeMounts = cr.Spec.Prometheus.VolumeMounts
-				}
-			}
 		}
 		// Set Retention - determines when to remove old data
 		if cr.Spec.Prometheus.Retention != "" {
@@ -447,8 +423,132 @@ func prometheus(cr *monv1.PlatformMonitoring) (*promv1.Prometheus, error) {
 		if cr.Spec.Prometheus.EnableFeatures != nil {
 			prom.Spec.EnableFeatures = cr.Spec.Prometheus.EnableFeatures
 		}
+
+		applyPrometheusHardening(&prom, isOpenShift, cr.Spec.Prometheus.SecurityContext, cr.Spec.Prometheus.VolumeMounts)
 	}
 	return &prom, nil
+}
+
+func applyPrometheusHardening(
+	prom *promv1.Prometheus,
+	isOpenShift bool,
+	configuredPodSecurityContext *monv1.SecurityContext,
+	configuredPrometheusVolumeMounts []corev1.VolumeMount,
+) {
+	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
+	if !isOpenShift && configuredPodSecurityContext != nil {
+		if configuredPodSecurityContext.RunAsUser != nil {
+			podSecurityContext.RunAsUser = configuredPodSecurityContext.RunAsUser
+		}
+		if configuredPodSecurityContext.RunAsGroup != nil {
+			podSecurityContext.RunAsGroup = configuredPodSecurityContext.RunAsGroup
+		}
+		if configuredPodSecurityContext.FSGroup != nil {
+			podSecurityContext.FSGroup = configuredPodSecurityContext.FSGroup
+		}
+	}
+	prom.Spec.SecurityContext = podSecurityContext
+	prom.Spec.Volumes = ensurePrometheusTmpVolume(prom.Spec.Volumes)
+	prom.Spec.Containers = hardenPrometheusContainers(prom.Spec.Containers)
+	prom.Spec.Containers = ensurePrometheusManagedContainer(
+		prom.Spec.Containers,
+		"prometheus",
+		configuredPrometheusVolumeMounts,
+	)
+	prom.Spec.Containers = ensurePrometheusManagedContainer(prom.Spec.Containers, "config-reloader", nil)
+}
+
+func ensurePrometheusTmpVolume(volumes []corev1.Volume) []corev1.Volume {
+	result := make([]corev1.Volume, len(volumes))
+	for i := range volumes {
+		volumes[i].DeepCopyInto(&result[i])
+	}
+
+	required := utils.TmpVolume("100Mi")
+	for i := range result {
+		if result[i].Name == required.Name {
+			result[i] = required
+			return result
+		}
+	}
+	return append(result, required)
+}
+
+func ensurePrometheusTmpVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
+	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+1)
+	required := utils.TmpVolumeMount()
+	for i := range volumeMounts {
+		if volumeMounts[i].Name == required.Name || volumeMounts[i].MountPath == required.MountPath {
+			continue
+		}
+		result = append(result, *volumeMounts[i].DeepCopy())
+	}
+	return append(result, required)
+}
+
+func hardenPrometheusContainers(containers []corev1.Container) []corev1.Container {
+	result := make([]corev1.Container, len(containers))
+	for i := range containers {
+		containers[i].DeepCopyInto(&result[i])
+		applyPrometheusContainerHardening(&result[i])
+	}
+	return result
+}
+
+func ensurePrometheusManagedContainer(
+	containers []corev1.Container,
+	name string,
+	volumeMounts []corev1.VolumeMount,
+) []corev1.Container {
+	for i := range containers {
+		if containers[i].Name != name {
+			continue
+		}
+		containers[i].VolumeMounts = mergePrometheusVolumeMounts(containers[i].VolumeMounts, volumeMounts)
+		containers[i].VolumeMounts = ensurePrometheusTmpVolumeMount(containers[i].VolumeMounts)
+		return containers
+	}
+
+	container := corev1.Container{Name: name, VolumeMounts: volumeMounts}
+	applyPrometheusContainerHardening(&container)
+	return append(containers, container)
+}
+
+func mergePrometheusVolumeMounts(
+	configured []corev1.VolumeMount,
+	additional []corev1.VolumeMount,
+) []corev1.VolumeMount {
+	result := make([]corev1.VolumeMount, len(configured))
+	for i := range configured {
+		configured[i].DeepCopyInto(&result[i])
+	}
+	for i := range additional {
+		replaced := false
+		for j := range result {
+			if result[j].Name == additional[i].Name || result[j].MountPath == additional[i].MountPath {
+				additional[i].DeepCopyInto(&result[j])
+				replaced = true
+				break
+			}
+		}
+		if !replaced {
+			result = append(result, *additional[i].DeepCopy())
+		}
+	}
+	return result
+}
+
+func applyPrometheusContainerHardening(container *corev1.Container) {
+	securityContext := utils.HardenedContainerSecurityContext()
+	if container.SecurityContext != nil {
+		securityContext = container.SecurityContext.DeepCopy()
+		required := utils.HardenedContainerSecurityContext()
+		securityContext.AllowPrivilegeEscalation = required.AllowPrivilegeEscalation
+		securityContext.ReadOnlyRootFilesystem = required.ReadOnlyRootFilesystem
+		securityContext.Capabilities = required.Capabilities
+	}
+	container.SecurityContext = securityContext
+	container.VolumeMounts = ensurePrometheusTmpVolumeMount(container.VolumeMounts)
 }
 
 func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
