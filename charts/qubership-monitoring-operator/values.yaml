@@ -1353,7 +1353,7 @@ prometheusRules:
   ruleGroups:
     - SelfMonitoring
     - AlertManager
-    - KubebernetesAlerts
+    - KubernetesAlerts
     - NodeProcesses
     - NodeExporters
     - DockerContainers
@@ -1368,6 +1368,9 @@ prometheusRules:
   #       for: 0m
   #       expr: min_over_time(prometheus_notifications_queue_length[20m]) > 0
   #       severity: high
+  #       annotations:
+  #         summary: Custom notification backlog summary
+  #         runbook_url: https://example.org/runbooks/prometheus-backlog
 
 pushgateway:
 

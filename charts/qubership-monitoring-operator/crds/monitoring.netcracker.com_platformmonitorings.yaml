@@ -18285,6 +18285,10 @@ spec:
                       properties:
                         alert:
                           type: string
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          type: object
                         expr:
                           type: string
                         for:

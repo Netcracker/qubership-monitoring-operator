@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -1768,12 +1768,13 @@ type GrafanaDashboards struct {
 
 // PrometheusRule handles parameters to override PrometheusRule: alerts of recording rules
 type PrometheusRule struct {
-	Group    string `json:"group,omitempty"`
-	Alert    string `json:"alert,omitempty"`
-	Record   string `json:"record,omitempty"`
-	For      string `json:"for,omitempty"`
-	Expr     string `json:"expr,omitempty"`
-	Severity string `json:"severity,omitempty"`
+	Group       string            `json:"group,omitempty"`
+	Alert       string            `json:"alert,omitempty"`
+	Record      string            `json:"record,omitempty"`
+	For         string            `json:"for,omitempty"`
+	Expr        string            `json:"expr,omitempty"`
+	Severity    string            `json:"severity,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // PrometheusRules help to add and override Prometheus rules
@@ -1787,10 +1788,6 @@ type PrometheusRules struct {
 type Promxy struct {
 	Install *bool  `json:"install,omitempty"`
 	Port    *int32 `json:"port,omitempty"`
-}
-
-func init() {
-	SchemeBuilder.Register(&PlatformMonitoring{}, &PlatformMonitoringList{})
 }
 
 // IsInstall check if AlertManager should be installed
@@ -2048,6 +2045,14 @@ func (pr *PrometheusRule) OverridePrometheusRule(rule *promv1.Rule) {
 	}
 	if pr.Severity != "" {
 		rule.Labels["severity"] = pr.Severity
+	}
+	if len(pr.Annotations) > 0 {
+		if rule.Annotations == nil {
+			rule.Annotations = make(map[string]string)
+		}
+		for key, value := range pr.Annotations {
+			rule.Annotations[key] = value
+		}
 	}
 }
 
