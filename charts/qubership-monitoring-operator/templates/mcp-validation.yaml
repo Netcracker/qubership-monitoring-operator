@@ -1,0 +1,24 @@
+{{- $grafana := .Values.grafana | default dict }}
+{{- $grafanaMcp := $grafana.mcp | default dict }}
+{{- if and ($grafanaMcp.install | default false) (not ($grafana.install | default false)) }}
+{{- fail "grafana.mcp.install requires grafana.install=true; standalone Grafana MCP deployment is not supported" }}
+{{- end }}
+
+{{- $vm := .Values.victoriametrics | default dict }}
+{{- $vmMcp := $vm.mcp | default dict }}
+{{- if ($vmMcp.install | default false) }}
+  {{- $vmOperator := $vm.vmOperator | default dict }}
+  {{- $vmSingle := $vm.vmSingle | default dict }}
+  {{- $vmCluster := $vm.vmCluster | default dict }}
+  {{- if not ($vmOperator.install | default false) }}
+    {{- fail "victoriametrics.mcp.install requires victoriametrics.vmOperator.install=true; standalone VictoriaMetrics MCP deployment is not supported" }}
+  {{- end }}
+  {{- $vmConnection := $vmMcp.vm | default dict }}
+  {{- $type := default "single" $vmConnection.type }}
+  {{- if and (eq $type "single") (not ($vmSingle.install | default false)) }}
+    {{- fail "victoriametrics.mcp.vm.type=single requires victoriametrics.vmSingle.install=true" }}
+  {{- end }}
+  {{- if and (eq $type "cluster") (not ($vmCluster.install | default false)) }}
+    {{- fail "victoriametrics.mcp.vm.type=cluster requires victoriametrics.vmCluster.install=true" }}
+  {{- end }}
+{{- end }}

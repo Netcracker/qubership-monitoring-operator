@@ -7,8 +7,10 @@ This section contains detailed configuration documentation for all monitoring co
 ### Core Monitoring Stack
 
 * **[AlertManager](prometheus-stack/alertmanager.md)** - Alert routing, grouping, and notification management
-* **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform 
+* **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform
+* **[Grafana MCP](grafana-stack/mcp.md)** - MCP server for Grafana tools
 * **[VictoriaMetrics](victoriametrics-stack/victoriametrics.md)** - Time series database and storage
+* **[VictoriaMetrics MCP](victoriametrics-stack/mcp.md)** - MCP server for VictoriaMetrics tools
 
 ### Prometheus Stack
 
@@ -96,4 +98,4 @@ securityContext:
 
 1. Review component-specific configuration files above
 2. See [Examples](../../examples/) for complete configuration examples
-3. Check [Configuration Best Practices](../../user-guides/best-practices.md) 
+3. Check [Configuration Best Practices](../../user-guides/best-practices.md)
