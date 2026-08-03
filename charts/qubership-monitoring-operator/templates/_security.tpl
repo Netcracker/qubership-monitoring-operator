@@ -262,12 +262,11 @@ Return securityContext for nodeExporter.
 Return securityContext for pushgateway.
 */}}
 {{- define "pushgateway.securityContext" -}}
-  {{- if .Values.pushgateway.securityContext -}}
-    {{- toYaml .Values.pushgateway.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
       {}
-  {{- end -}}
+{{- else -}}
+{{- $defaults := dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- $configured := deepCopy (.Values.pushgateway.securityContext | default dict) -}}
+{{- toYaml (mergeOverwrite $defaults $configured) | nindent 6 -}}
+{{- end -}}
 {{- end -}}
