@@ -144,24 +144,6 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 		// Set VmAuth image
 		vmauth.Spec.Image.Repository, vmauth.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAuth.Image)
 
-		if r != nil {
-			// Set security context
-			if cr.Spec.Victoriametrics.VmAuth.SecurityContext != nil {
-				if vmauth.Spec.SecurityContext == nil {
-					vmauth.Spec.SecurityContext = &vmetricsv1b1.SecurityContext{}
-				}
-				if cr.Spec.Victoriametrics.VmAuth.SecurityContext.RunAsUser != nil {
-					vmauth.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmAuth.SecurityContext.RunAsUser
-				}
-				if cr.Spec.Victoriametrics.VmAuth.SecurityContext.RunAsGroup != nil {
-					vmauth.Spec.SecurityContext.RunAsGroup = cr.Spec.Victoriametrics.VmAuth.SecurityContext.RunAsGroup
-				}
-				if cr.Spec.Victoriametrics.VmAuth.SecurityContext.FSGroup != nil {
-					vmauth.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmAuth.SecurityContext.FSGroup
-				}
-			}
-		}
-
 		vmauth.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmAuthComponentName
 
 		// Set secrets for VmAuth deployment
@@ -197,14 +179,7 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 
 		// Set additional volumeMounts for vmauth container.
 		if cr.Spec.Victoriametrics.VmAuth.VolumeMounts != nil {
-			for it := range vmauth.Spec.Containers {
-				c := &vmauth.Spec.Containers[it]
-
-				// Set additional volumeMounts only for VmAuth container
-				if c.Name == utils.VmAuthComponentName {
-					c.VolumeMounts = cr.Spec.Victoriametrics.VmAuth.VolumeMounts
-				}
-			}
+			vmauth.Spec.VolumeMounts = cr.Spec.Victoriametrics.VmAuth.VolumeMounts
 		}
 
 		// Set affinity for VmAuth
@@ -394,6 +369,13 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAuth.PriorityClassName)) > 0 {
 			vmauth.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmAuth.PriorityClassName
 		}
+
+		isOpenShift := r != nil && r.hasSecurityContextConstraintsAPI()
+		vmauth.Spec.SecurityContext = victoriametrics.HardenedSecurityContext(
+			isOpenShift, cr.Spec.Victoriametrics.VmAuth.SecurityContext)
+		vmauth.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmauth.Spec.Volumes)
+		vmauth.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmauth.Spec.VolumeMounts)
+		vmauth.Spec.Containers = victoriametrics.HardenContainers(vmauth.Spec.Containers)
 	}
 	return &vmauth, nil
 }

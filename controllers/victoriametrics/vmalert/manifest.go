@@ -107,21 +107,6 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 
 		vmalert.Spec.Image.Repository, vmalert.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAlert.Image)
 
-		if r != nil {
-			// Set security context
-			if cr.Spec.Victoriametrics.VmAlert.SecurityContext != nil {
-				if vmalert.Spec.SecurityContext == nil {
-					vmalert.Spec.SecurityContext = &vmetricsv1b1.SecurityContext{}
-				}
-				if cr.Spec.Victoriametrics.VmAlert.SecurityContext.RunAsUser != nil {
-					vmalert.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmAlert.SecurityContext.RunAsUser
-				}
-				if cr.Spec.Victoriametrics.VmAlert.SecurityContext.FSGroup != nil {
-					vmalert.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmAlert.SecurityContext.FSGroup
-				}
-			}
-		}
-
 		// Set resources for vmAlert
 		vmalert.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmAlertComponentName
 
@@ -149,14 +134,7 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		// Set additional volumeMounts for each vmAlert container. The current container names are:
 		// `vmalert`, `config-reloader`
 		if cr.Spec.Victoriametrics.VmAlert.VolumeMounts != nil {
-			for it := range vmalert.Spec.Containers {
-				c := &vmalert.Spec.Containers[it]
-
-				// Set additional volumeMounts only for vmAlert container
-				if c.Name == utils.VmAlertComponentName {
-					copy(c.VolumeMounts, cr.Spec.Victoriametrics.VmAlert.VolumeMounts)
-				}
-			}
+			vmalert.Spec.VolumeMounts = cr.Spec.Victoriametrics.VmAlert.VolumeMounts
 		}
 
 		if cr.Spec.Victoriametrics.VmAlert.NodeSelector != nil {
@@ -477,6 +455,13 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAlert.PriorityClassName)) > 0 {
 			vmalert.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmAlert.PriorityClassName
 		}
+
+		isOpenShift := r != nil && r.hasSecurityContextConstraintsAPI()
+		vmalert.Spec.SecurityContext = victoriametrics.HardenedSecurityContext(
+			isOpenShift, cr.Spec.Victoriametrics.VmAlert.SecurityContext)
+		vmalert.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmalert.Spec.Volumes)
+		vmalert.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmalert.Spec.VolumeMounts)
+		vmalert.Spec.Containers = victoriametrics.HardenContainers(vmalert.Spec.Containers)
 	}
 
 	return &vmalert, nil
