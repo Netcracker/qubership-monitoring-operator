@@ -94,3 +94,15 @@ func TestVmSingleUsesOperatorVmAlertURL(t *testing.T) {
 		manifest.Spec.ExtraArgs["vmalert.proxyURL"],
 	)
 }
+
+func TestVmSingleClusterRBACUsesInstallationNamespace(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	role, err := vmSingleClusterRole(cr, false, false)
+	require.NoError(t, err)
+	binding, err := vmSingleClusterRoleBinding(cr)
+	require.NoError(t, err)
+
+	assert.Equal(t, "monitoring", role.Labels["monitoring.netcracker.com/installation-namespace"])
+	assert.Equal(t, "monitoring", binding.Labels["monitoring.netcracker.com/installation-namespace"])
+}

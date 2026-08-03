@@ -117,3 +117,15 @@ func TestVmAgentUsesOperatorRemoteWriteURLs(t *testing.T) {
 		"http://vminsert-k8s.monitoring.svc:8480/insert/0/prometheus/api/v1/write",
 	}, urls)
 }
+
+func TestVmAgentClusterRBACUsesInstallationNamespace(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	role, err := vmAgentClusterRole(cr, false, false)
+	require.NoError(t, err)
+	binding, err := vmAgentClusterRoleBinding(cr)
+	require.NoError(t, err)
+
+	assert.Equal(t, "monitoring", role.Labels["monitoring.netcracker.com/installation-namespace"])
+	assert.Equal(t, "monitoring", binding.Labels["monitoring.netcracker.com/installation-namespace"])
+}

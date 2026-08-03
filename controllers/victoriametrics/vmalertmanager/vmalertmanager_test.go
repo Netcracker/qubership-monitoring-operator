@@ -69,3 +69,15 @@ func TestVmAlertManagerUsesTopLevelHTTPSProbes(t *testing.T) {
 	assert.Equal(t, "web", manifest.Spec.ReadinessProbe.HTTPGet.Port.StrVal)
 	assert.Equal(t, "HTTPS", string(manifest.Spec.ReadinessProbe.HTTPGet.Scheme))
 }
+
+func TestVmAlertManagerClusterRBACUsesInstallationNamespace(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	role, err := vmAlertManagerClusterRole(cr, false, false)
+	require.NoError(t, err)
+	binding, err := vmAlertManagerClusterRoleBinding(cr)
+	require.NoError(t, err)
+
+	assert.Equal(t, "monitoring", role.Labels["monitoring.netcracker.com/installation-namespace"])
+	assert.Equal(t, "monitoring", binding.Labels["monitoring.netcracker.com/installation-namespace"])
+}

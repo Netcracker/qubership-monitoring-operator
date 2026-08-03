@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -66,4 +67,16 @@ func TestVmAuthManifests(t *testing.T) {
 		},
 	}
 
+}
+
+func TestVmAuthClusterRBACUsesInstallationNamespace(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	role, err := vmAuthClusterRole(cr, false, false)
+	require.NoError(t, err)
+	binding, err := vmAuthClusterRoleBinding(cr)
+	require.NoError(t, err)
+
+	assert.Equal(t, "monitoring", role.Labels["monitoring.netcracker.com/installation-namespace"])
+	assert.Equal(t, "monitoring", binding.Labels["monitoring.netcracker.com/installation-namespace"])
 }
