@@ -32,8 +32,11 @@ const (
 
 type grafanaDataStorage struct {
 	AccessModes []corev1.PersistentVolumeAccessMode `json:"accessModes,omitempty"`
+	Annotations map[string]string                   `json:"annotations,omitempty"`
 	Class       string                              `json:"class,omitempty"`
+	Labels      map[string]string                   `json:"labels,omitempty"`
 	Size        resource.Quantity                   `json:"size,omitempty"`
+	VolumeName  string                              `json:"volumeName,omitempty"`
 }
 
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
@@ -136,11 +139,18 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 				Resources: &corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{corev1.ResourceStorage: dataStorage.Size},
 				},
+				VolumeName: dataStorage.VolumeName,
 			}
 			if dataStorage.Class != "" {
 				pvcSpec.StorageClassName = &dataStorage.Class
 			}
-			graf.Spec.PersistentVolumeClaim = &grafv1.PersistentVolumeClaimV1{Spec: pvcSpec}
+			graf.Spec.PersistentVolumeClaim = &grafv1.PersistentVolumeClaimV1{
+				ObjectMeta: grafv1.ObjectMeta{
+					Annotations: dataStorage.Annotations,
+					Labels:      dataStorage.Labels,
+				},
+				Spec: pvcSpec,
+			}
 
 			ensureDeploymentInitialized(&graf)
 			graf.Spec.Deployment.Spec.Strategy = &appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType}

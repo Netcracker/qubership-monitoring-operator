@@ -135,7 +135,7 @@ func TestGrafanaManifestPreservesDataStorage(t *testing.T) {
 		Spec: monv1.PlatformMonitoringSpec{
 			Grafana: &monv1.Grafana{
 				DataStorage: &runtime.RawExtension{
-					Raw: []byte(`{"accessModes":["ReadWriteOnce"],"class":"standard","size":"2Gi"}`),
+					Raw: []byte(`{"accessModes":["ReadWriteOnce"],"annotations":{"storage.example.com/owner":"monitoring"},"class":"standard","labels":{"app.example.com/tier":"data"},"size":"2Gi","volumeName":"grafana-static-pv"}`),
 				},
 			},
 		},
@@ -148,11 +148,16 @@ func TestGrafanaManifestPreservesDataStorage(t *testing.T) {
 
 	if assert.NotNil(t, manifest.Spec.PersistentVolumeClaim) &&
 		assert.NotNil(t, manifest.Spec.PersistentVolumeClaim.Spec) {
+		assert.Equal(t, map[string]string{"storage.example.com/owner": "monitoring"},
+			manifest.Spec.PersistentVolumeClaim.ObjectMeta.Annotations)
+		assert.Equal(t, map[string]string{"app.example.com/tier": "data"},
+			manifest.Spec.PersistentVolumeClaim.ObjectMeta.Labels)
 		assert.Equal(t, []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
 			manifest.Spec.PersistentVolumeClaim.Spec.AccessModes)
 		assert.Equal(t, "standard", *manifest.Spec.PersistentVolumeClaim.Spec.StorageClassName)
 		assert.Equal(t, "2Gi",
 			manifest.Spec.PersistentVolumeClaim.Spec.Resources.Requests.Storage().String())
+		assert.Equal(t, "grafana-static-pv", manifest.Spec.PersistentVolumeClaim.Spec.VolumeName)
 	}
 	if assert.NotNil(t, manifest.Spec.Deployment) &&
 		assert.NotNil(t, manifest.Spec.Deployment.Spec.Strategy) {
