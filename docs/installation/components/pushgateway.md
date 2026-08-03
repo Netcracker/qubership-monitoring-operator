@@ -14,7 +14,7 @@
 | httpRoute         | HTTPRoute allows to create Gateway API HTTPRoute for the pushgateway UI.                                                                                                                                                                                                                                                                                    | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                                         |
 | resources         | The resources that describe the compute resource requests and limits for single pods.                                                                                                                                                                                                                                                                      | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core)           |
 | nodeSelector      | Defines which nodes the pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                                                                                                                                                                         | map[string]string                                                                                                                      |
-| securityContext   | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                                                                                                                                                         | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)              |
+| securityContext   | SecurityContext configures pod-level numeric user and group IDs. Kubernetes defaults to `runAsUser: 2000`, `runAsGroup: 2000`, and `fsGroup: 2000`. OpenShift assigns these IDs through an SCC. The operator always enforces `runAsNonRoot: true` and the `RuntimeDefault` seccomp profile.                                                                            | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)              |
 | tolerations       | Tolerations allow the pods to schedule onto nodes with matching taints.                                                                                                                                                                                                                                                                                    | []v1.Toleration                                                                                                                        |
 | affinity                                            | If specified, the pod's scheduling constraints                                                                                                                                                                                      | *v1.Affinity                                                                                                                   |
 | annotations       | Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. For more information, refer to [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string                                                                                                                      |
@@ -24,6 +24,16 @@
 | storage           | PVC spec for Pushgateway. If specified, also adds flags --persistence.file=/data/pushgateway.data and --persistence.interval=5m, creates volume and volumeMount with name "storage-volume" in the deployment.                                                                                                                                              | [v1.PersistentVolumeClaimSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#persistentvolumeclaimspec-v1-core) |
 | priorityClassName | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                                                                                                                                                      | string                                                                                                                                 |
 <!-- markdownlint-enable line-length -->
+
+#### Security considerations
+
+The operator applies the baseline container security context and mounts a size-limited `emptyDir` at `/tmp`. When
+persistence is enabled, Pushgateway writes its data to the PVC mounted at `/data`.
+
+The `volumes` field accepts Kubernetes volume definitions without filtering their types. Do not configure `hostPath`
+volumes for Pushgateway. The operator preserves a user-supplied `hostPath` for backward compatibility, so admission
+policies must reject it when the cluster requires strict workload isolation. Use `storage` with a PVC for persistent
+data and `emptyDir` for other temporary writable paths.
 
 Parameter `extraArgs` can contain any flags that Pushgateway can handle.
 You can find them in the table bellow (relevant for Pushgateway v1.4.1).
@@ -77,10 +87,10 @@ pushgateway:
       memory: 30Mi
   securityContext:
     runAsUser: 2001
+    runAsGroup: 2001
     fsGroup: 2001
   tolerations: []
   annotations: {}
   labels: {}
   priorityClassName: priority-class
 ```
-
