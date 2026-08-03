@@ -68,11 +68,11 @@ spec:
             - >
               set -eu;
               kubectl delete clusterrolebindings.rbac.authorization.k8s.io
-              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator
+              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,monitoring.netcracker.com/installation-namespace={{ .Release.Namespace }}
               --ignore-not-found=true --wait=true
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
               kubectl delete clusterroles.rbac.authorization.k8s.io
-              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator
+              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,monitoring.netcracker.com/installation-namespace={{ .Release.Namespace }}
               --ignore-not-found=true --wait=true
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
 {{- end }}

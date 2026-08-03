@@ -59,7 +59,7 @@ func grafanaOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRo
 	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
 	clusterRole.SetName(cr.GetNamespace() + "-" + utils.GrafanaOperatorComponentName)
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.GrafanaOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.GrafanaOperatorComponentName), cr.GetNamespace())
 	return &clusterRole, nil
 }
 
@@ -79,7 +79,7 @@ func grafanaOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cl
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.GrafanaOperatorComponentName
 	}
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.GrafanaOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.GrafanaOperatorComponentName), cr.GetNamespace())
 	return &clusterRoleBinding, nil
 }
 

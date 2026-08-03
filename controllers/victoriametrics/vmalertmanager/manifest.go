@@ -59,7 +59,7 @@ func vmAlertManagerClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool
 		})
 	}
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -81,7 +81,7 @@ func vmAlertManagerClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clu
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }

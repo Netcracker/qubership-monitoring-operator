@@ -159,12 +159,34 @@ With `ServerSideApply=true`, Argo CD applies CRDs in the same manner as the `kub
 above. When the operator chart is deployed as a separate Application, set `source.helm.skipCrds: true` so that the CRD
 and operator Applications do not compete for CRD ownership.
 
+When upgrading from a release that contains Grafana Operator v4 CRDs, including `v0.88.0`, stage the first v5 upgrade
+without pruning:
+
+1. Disable automated sync and pruning for both the CRD and operator Applications. Wait for any in-progress sync to
+   finish before starting the upgrade.
+2. Update and manually sync the CRD Application without pruning. This installs the v5 CRDs while retaining the v4
+   Grafana and GrafanaDataSource CRDs needed as migration inputs.
+3. Set `source.helm.skipCrds: true` on the operator Application, update it to the same target revision, and manually sync
+   it without pruning.
+4. Wait for `PlatformMonitoring` to report `Successful=True`, the v5 Grafana resource to become ready, and every v5
+   GrafanaDatasource to report successful synchronization. Verify any datasource UID that must remain stable.
+5. Re-enable automated sync and pruning. Sync the operator Application first and the CRD Application afterward. The
+   operator Application can remain `OutOfSync` while it retains resources that are pending pruning.
+
+Do not delete the CRD Application or enable pruning for it before the v4-to-v5 migration succeeds. The legacy
+GrafanaDashboard CRD remains supported for the converter and is not removed by this procedure.
+
+CRDs in a Helm chart's `crds/` directory have a protected lifecycle. Argo CD updates CRDs that remain in the CRD chart,
+but it does not automatically delete CRDs removed from that directory. Treat removal of obsolete CRDs as a separate
+cluster-administration decision after confirming that no custom resources still use them.
+
 Argo CD 3.3 or later is required for safe operator Application deletion. Starting with 3.3, Argo CD maps the chart's
 Helm `pre-delete` cleanup hooks to the `PreDelete` phase.
 
 Delete the operator Application first and wait until its cleanup hooks and foreground deletion complete. Delete the CRD
-Application afterward only when the CRDs themselves must be removed. Deleting both Applications concurrently, or
-deleting the CRD Application first, can remove APIs that the operator cleanup Jobs still need.
+Application afterward if it is no longer needed. Deleting the CRD Application does not guarantee that Kubernetes CRDs
+are removed. Deleting both Applications concurrently, or deleting the CRD Application first, can remove APIs that the
+operator cleanup Jobs still need in deployments that track CRDs as ordinary manifests.
 
 Keep managed custom-resource APIs, operators, and their RBAC available until managed resources finish finalizing.
 Cluster RBAC cleanup runs afterward. Do not remove finalizers manually during ordinary cleanup.

@@ -92,7 +92,7 @@ func vmOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, e
 		Verbs:     []string{"get", "create", "list", "update", "watch"},
 	})
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmOperatorComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -114,7 +114,7 @@ func vmOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 		sub.Name = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmOperatorComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }

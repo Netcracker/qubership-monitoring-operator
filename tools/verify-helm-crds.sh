@@ -15,6 +15,8 @@ grafana_cleanup_role_manifest="${temporary_dir}/grafana-cleanup-role.yaml"
 grafana_cleanup_command="${temporary_dir}/grafana-cleanup-command.sh"
 rbac_cleanup_role_manifest="${temporary_dir}/rbac-cleanup-clusterrole.yaml"
 rbac_cleanup_command="${temporary_dir}/rbac-cleanup-command.sh"
+other_namespace_manifest="${temporary_dir}/other-namespace.yaml"
+other_namespace_rbac_cleanup_command="${temporary_dir}/other-namespace-rbac-cleanup-command.sh"
 root_crd_dir="${chart_dir}/crds"
 prometheus_crd_dir="${chart_dir}/charts/prometheus-operator/crds"
 victoriametrics_crd_dir="${chart_dir}/charts/victoriametrics-operator/crds"
@@ -547,6 +549,17 @@ verify_text_contains "${rbac_cleanup_command}" \
     "clusterroles.rbac.authorization.k8s.io" "qualified ClusterRole cleanup"
 verify_text_contains "${rbac_cleanup_command}" \
     "app.kubernetes.io/managed-by-operator=monitoring-operator" "operator-managed RBAC selector"
+verify_text_contains "${rbac_cleanup_command}" \
+    "monitoring.netcracker.com/installation-namespace=default" "installation-scoped RBAC selector"
+helm template monitoring "${chart_dir}" --namespace other-monitoring >"${other_namespace_manifest}"
+"${yq_binary}" eval-all \
+    'select(.kind == "Job" and .metadata.name == "monitoring-rbac-cleanup-hook") |
+    .spec.template.spec.containers[] | select(.name == "kubectl") | .command[-1]' \
+    "${other_namespace_manifest}" >"${other_namespace_rbac_cleanup_command}"
+verify_text_contains "${other_namespace_rbac_cleanup_command}" \
+    "monitoring.netcracker.com/installation-namespace=other-monitoring" "second installation RBAC selector"
+verify_text_excludes "${other_namespace_rbac_cleanup_command}" \
+    "monitoring.netcracker.com/installation-namespace=default" "first installation RBAC selector"
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "GrafanaDashboard" and
     (.metadata.name == "backup-daemon" or .metadata.name == "kafka-java-clients") and
