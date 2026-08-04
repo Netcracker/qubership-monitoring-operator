@@ -1,0 +1,9 @@
+title = "Qubership Monitoring Operator Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The TLS documentation contains an intentionally abbreviated private key example."
+targetRules = ["private-key"]
+paths = ['''(?:^|/)docs/monitoring-configuration/tls\.md$''']

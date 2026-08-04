@@ -1,4 +1,4 @@
-{{- if and .Values.cleanup.deleteCRs .Values.global.privilegedRights -}}
+{{- if .Values.cleanup.deleteCRs -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,8 +8,12 @@ metadata:
   annotations:
     "helm.sh/hook": pre-delete
     "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-failed
+    "helm.sh/resource-policy": keep
 spec:
+  {{- if .Values.cleanup.hook.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.cleanup.hook.ttlSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ include "vm.cleanup.rbac.fullname" . }}
@@ -48,14 +52,9 @@ spec:
             - /bin/sh
             - -c
             - >
+              set -eu;
               kubectl scale deployment --replicas=0 --selector app.kubernetes.io/component=qubership-monitoring-operator;
               sleep {{ .Values.cleanup.hook.timeout | default "10" }};
-              kubectl delete vmusers --all --ignore-not-found=true;
-              kubectl delete vmauths --all --ignore-not-found=true;
-              kubectl delete vmalerts --all --ignore-not-found=true;
-              kubectl delete vmagents --all --ignore-not-found=true;
-              kubectl delete vmsingles --all --ignore-not-found=true;
-              kubectl delete vmalertmanagers --all --ignore-not-found=true;
-              kubectl delete vmclusters --all --ignore-not-found=true;
-              sleep {{ .Values.cleanup.hook.timeout | default "10s" }};
+              kubectl delete vmusers,vmauths,vmalerts,vmagents,vmsingles,vmalertmanagers,vmclusters
+              --all --ignore-not-found=true --wait=true --timeout={{ .Values.cleanup.hook.deleteTimeout }};
 {{- end -}}

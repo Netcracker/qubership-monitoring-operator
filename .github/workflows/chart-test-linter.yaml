@@ -1,24 +1,49 @@
 name: Lint and Test Helm Charts
 
-permissions:
-  contents: read
+permissions: {}
+
+concurrency:
+  group: helm-chart-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   pull_request:
     branches:
       - 'main'
     paths:
+      - 'api/v1/**'
+      - '.gitattributes'
+      - '.github/workflows/chart-test-linter.yaml'
+      - 'tools/boilerplate.go.txt'
+      - 'go.mod'
+      - 'go.sum'
+      - 'controllers/**'
       - 'charts/**'
+      - 'tools/crd-update/**'
+      - 'tools/verify-helm-crds.sh'
+      - 'Makefile'
   push:
     branches:
       - main
     paths:
+      - 'api/v1/**'
+      - '.gitattributes'
+      - '.github/workflows/chart-test-linter.yaml'
+      - 'tools/boilerplate.go.txt'
+      - 'go.mod'
+      - 'go.sum'
+      - 'controllers/**'
       - 'charts/**'
+      - 'tools/crd-update/**'
+      - 'tools/verify-helm-crds.sh'
+      - 'Makefile'
   workflow_dispatch: null
 
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -26,8 +51,29 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
       - name: Set up Chart Testing
         uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
+
+      - name: Install CRD updater dependencies
+        run: |
+          uv venv .venv
+          uv pip install --python .venv/bin/python --only-binary=:all: --require-hashes \
+            -r tools/crd-update/requirements.txt
+
+      - name: Test CRD updater
+        run: .venv/bin/python -m unittest tools/crd-update/test_crd_update.py
+
+      - name: Verify generated files
+        run: make verify-generated PYTHON=.venv/bin/python
+
+      - name: Verify required CRDs
+        run: tools/verify-helm-crds.sh
 
       - name: Copy examples for ct in /charts/qubership-monitoring-operator/ci/
         run: |

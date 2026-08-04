@@ -35,6 +35,11 @@
                                 }
                             }
                         },
+                        "deleteTimeout": {
+                            "type": "string",
+                            "description": "Maximum time to wait for managed custom resources and RBAC to be deleted.\nType: string\nMandatory: no",
+                            "default": "5m"
+                        },
                         "image": {
                             "type": "string",
                             "description": "The container image for cleanup job.\nType: string\nMandatory: no\nDefault: docker.io/rancher/kuberlr-kubectl:v6.0.0"
@@ -88,6 +93,11 @@
                             "type": "integer",
                             "description": "Timeout between scale and delete commands in cleanup job. can be specified without units or with units.\nIf you want yo use units, check which units support the Linux command \"sleep\"\nType: string\nMandatory: no",
                             "default": 10
+                        },
+                        "ttlSecondsAfterFinished": {
+                            "type": "integer",
+                            "description": "Time to retain the completed cleanup Job before Kubernetes removes it.\nType: integer\nMandatory: no",
+                            "default": 180
                         },
                         "tolerations": {
                             "type": "object",
@@ -1519,7 +1529,7 @@
                 },
                 "image": {
                     "type": "string",
-                    "description": "Container image for vmOperator.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/operator:v0.65.0"
+                    "description": "Container image for vmOperator.\nType: string\nMandatory: no\nDefault: docker.io/victoriametrics/operator:v0.73.1"
                 },
                 "install": {
                     "type": "boolean",

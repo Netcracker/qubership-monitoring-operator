@@ -63,9 +63,10 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@ddc741b38bac5dc4834b8f6827c9f6d16abf0db8 # v1.14.1
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@edbd2ff8ec59df921e28f1311d42e0a974f19391 # v1.14.2
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'ddc741b38bac5dc4834b8f6827c9f6d16abf0db8' # v1.14.1 renovate: depName=Netcracker/qubership-test-pipelines
+      pipeline_branch: 'edbd2ff8ec59df921e28f1311d42e0a974f19391' # v1.14.2 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
+      enable-owner-references-permission-enforcement: true

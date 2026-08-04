@@ -30,7 +30,6 @@ VM_CRD_FOLDER=$(HELM_FOLDER)/charts/victoriametrics-operator/crds
 # Documents folders
 DOC_FOLDER := docs
 SITE_FOLDER := site
-CRD_DOC_FOLDER=$(DOC_FOLDER)/crds
 
 # Set build version
 ARTIFACT_NAME="qubership-monitoring-operator"
@@ -80,12 +79,40 @@ CONTAINER_NAME="qubership-monitoring-operator"
 DOCKERFILE=cmd/operator/Dockerfile
 
 # CRD update tool and operator versions (override on the command line, e.g.
-# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.90.1`)
+# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.92.1`)
 CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
 PYTHON?=python3
-PROMETHEUS_OPERATOR_VERSION?=0.90.1
-VICTORIAMETRICS_OPERATOR_VERSION?=0.66.0
-GRAFANA_OPERATOR_VERSION?=5.21.0
+PROMETHEUS_OPERATOR_VERSION?=0.92.1
+VICTORIAMETRICS_OPERATOR_VERSION?=0.73.1
+GRAFANA_OPERATOR_VERSION?=5.24.0
+LOCALBIN ?= $(CURDIR)/bin
+CONTROLLER_GEN_VERSION ?= 0.21.0
+CONTROLLER_GEN := $(LOCALBIN)/controller-gen-$(CONTROLLER_GEN_VERSION)
+SETUP_ENVTEST_VERSION ?= v0.0.0-20250308055145-5fe7bb3edc86
+SETUP_ENVTEST := $(LOCALBIN)/setup-envtest-$(SETUP_ENVTEST_VERSION)
+ENVTEST_K8S_VERSION ?= 1.25.x!
+YQ_VERSION ?= 4.53.2
+YQ := $(LOCALBIN)/yq-$(YQ_VERSION)
+YQ_OS := $(shell go env GOOS)
+YQ_ARCH := $(shell go env GOARCH)
+YQ_SHA256_linux_amd64 := d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b
+YQ_SHA256_linux_arm64 := 03061b2a50c7a498de2bbb92d7cb078ce433011f085a4994117c2726be4106ea
+YQ_SHA256_darwin_amd64 := 616b0a0f6a5b79d746f05a169c2b9bb40dee00c605ef165b9a1c1681bba738ac
+YQ_SHA256_darwin_arm64 := 541ba2287560df70f561955e2d7f7e1cd00cf2a15a884f6b5c87a4bfa887bc07
+YQ_SHA256 := $(YQ_SHA256_$(YQ_OS)_$(YQ_ARCH))
+
+CRD_COMPACTION_EXPRESSION := del(.. | select(tag == "!!map" and has("description") and (.description | tag == "!!str")).description) | del(.metadata.annotations."helm.sh/hook", .metadata.annotations."helm.sh/hook-weight")
+PLATFORM_MONITORING_CRD := $(MON_CRD_FOLDER)/monitoring.netcracker.com_platformmonitorings.yaml
+PLATFORM_MONITORING_COMPATIBILITY_EXPRESSION := del(.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.prometheus.properties.remoteRead.items.properties.url.pattern) | (.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.prometheus.properties.remoteRead.items.properties.oauth2.properties.tokenUrl |= (del(.pattern) | .minLength = 1)) | (.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.prometheus.properties.remoteWrite.items.properties.oauth2.properties.tokenUrl |= (del(.pattern) | .minLength = 1)) | .spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.victoriametrics.properties.vmAlertManager.properties.storage.properties.disableMountSubPath = {"type": "boolean"}
+
+GENERATED_PATHS := \
+	api/v1/zz_generated.deepcopy.go \
+	$(MON_CRD_FOLDER) \
+	$(GRAFANA_CRD_FOLDER) \
+	$(PROM_OPER_CRD_FOLDER) \
+	$(PROM_ADAPTER_CRD_FOLDER) \
+	$(VM_CRD_FOLDER) \
+	$(CRDS_HELM_CRDS_FOLDER)/crds
 
 ###########
 # Generic #
@@ -115,40 +142,50 @@ clean:
 
 # Generate code
 .PHONY: generate
-generate: controller-gen
+generate: controller-gen yq
 	echo "=> Generate CRDs and deepcopy ..."
-	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=256 \
+	$(CONTROLLER_GEN) crd:crdVersions={v1},maxDescLen=0 \
 					  object:headerFile="tools/boilerplate.go.txt" \
 					  paths="./..." \
 					  output:crd:artifacts:config=charts/qubership-monitoring-operator/crds/
+	"$(YQ)" eval -i '$(PLATFORM_MONITORING_COMPATIBILITY_EXPRESSION)' "$(PLATFORM_MONITORING_CRD)"
 
-	if [[ "$$OSTYPE" == "darwin"* ]]; then \
-	  SED_CMD="sed -i '' -e"; \
-	else \
-	  SED_CMD="sed -i"; \
+.PHONY: generate-all
+generate-all:
+	$(MAKE) generate
+	$(MAKE) update-operators-crds
+	$(MAKE) update-crds
+
+.PHONY: verify-generated
+verify-generated: generate-all
+	$(MAKE) verify-generated-drift
+
+.PHONY: verify-generated-drift
+verify-generated-drift:
+	@set -e; \
+	if ! git diff --quiet -- $(GENERATED_PATHS); then \
+	  echo "Generated files differ from the Git index:" >&2; \
+	  git diff --name-status -- $(GENERATED_PATHS) >&2; \
+	  exit 1; \
 	fi; \
-	find charts/qubership-monitoring-operator/crds -name '*.yaml' | while read f; do \
-	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook-weight: \"-5\"" "$$f"; \
-	  $$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook: crd-install" "$$f"; \
-	done
+	untracked_files="$$(git ls-files --others --exclude-standard -- $(GENERATED_PATHS))"; \
+	if [[ -n "$$untracked_files" ]]; then \
+	  echo "Generated files are untracked:" >&2; \
+	  printf '%s\n' "$$untracked_files" >&2; \
+	  exit 1; \
+	fi
 
-# Find or download controller-gen
-# download controller-gen if necessary
 .PHONY: controller-gen
 controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
+	@set -e; \
+	mkdir -p "$(LOCALBIN)"; \
+	if [[ ! -x "$(CONTROLLER_GEN)" ]]; then \
+	  temporary_dir="$$(mktemp -d "$(LOCALBIN)/.controller-gen.XXXXXX")"; \
+	  trap 'rm -rf "$$temporary_dir"' EXIT; \
+	  GOBIN="$$temporary_dir" go install \
+	    sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION); \
+	  mv "$$temporary_dir/controller-gen" "$(CONTROLLER_GEN)"; \
+	fi
 
 #########
 # Build #
@@ -199,45 +236,144 @@ unit-test:
 	echo "=> Run Golang unit-tests ..."
 	go test -race $(TEST_RUN_ARGS) $(pkgs) -count=1 -v
 
+.PHONY: setup-envtest
+setup-envtest:
+	@set -e; \
+	mkdir -p "$(LOCALBIN)"; \
+	if [[ ! -x "$(SETUP_ENVTEST)" ]]; then \
+	  temporary_dir="$$(mktemp -d "$(LOCALBIN)/.setup-envtest.XXXXXX")"; \
+	  trap 'rm -rf "$$temporary_dir"' EXIT; \
+	  GOBIN="$$temporary_dir" go install \
+	    sigs.k8s.io/controller-runtime/tools/setup-envtest@$(SETUP_ENVTEST_VERSION); \
+	  mv "$$temporary_dir/setup-envtest" "$(SETUP_ENVTEST)"; \
+	fi
+
+.PHONY: envtest
+envtest: setup-envtest
+	@set -e; \
+	mkdir -p "$(LOCALBIN)/.cache" "$(LOCALBIN)/.data"; \
+	kubebuilder_assets="$$( \
+	  XDG_CACHE_HOME="$(LOCALBIN)/.cache" \
+	  XDG_DATA_HOME="$(LOCALBIN)/.data" \
+	  "$(SETUP_ENVTEST)" use -p path "$(ENVTEST_K8S_VERSION)" \
+	)"; \
+	XDG_CACHE_HOME="$(LOCALBIN)/.cache" \
+	KUBEBUILDER_ASSETS="$$kubebuilder_assets" \
+	go test -tags=envtest -race ./test/envtests/... -count=1
+
+.PHONY: yq
+yq:
+	@set -e; \
+	mkdir -p "$(LOCALBIN)"; \
+	temporary_yq="$$(mktemp "$(LOCALBIN)/.yq-$(YQ_VERSION).XXXXXX")"; \
+	trap 'rm -f "$$temporary_yq"' EXIT; \
+	if [[ ! -x "$(YQ)" ]]; then \
+	  if [[ -z "$(YQ_SHA256)" ]]; then \
+	    echo "Unsupported yq platform: $(YQ_OS)/$(YQ_ARCH)" >&2; \
+	    exit 1; \
+	  fi; \
+	  curl -sSLf -o "$$temporary_yq" \
+	    "https://github.com/mikefarah/yq/releases/download/v$(YQ_VERSION)/yq_$(YQ_OS)_$(YQ_ARCH)"; \
+	  if command -v sha256sum >/dev/null 2>&1; then \
+	    actual_checksum="$$(sha256sum "$$temporary_yq" | awk '{print $$1}')"; \
+	  else \
+	    actual_checksum="$$(shasum -a 256 "$$temporary_yq" | awk '{print $$1}')"; \
+	  fi; \
+	  if [[ "$$actual_checksum" != "$(YQ_SHA256)" ]]; then \
+	    echo "Checksum verification failed for yq $(YQ_VERSION) on $(YQ_OS)/$(YQ_ARCH)." >&2; \
+	    exit 1; \
+	  fi; \
+	  chmod +x "$$temporary_yq"; \
+	  mv "$$temporary_yq" "$(YQ)"; \
+	fi
+
+.PHONY: test-crd-compaction
+test-crd-compaction: yq
+	@set -e; \
+	temp_dir=$$(mktemp -d); \
+	trap 'rm -rf "$$temp_dir"' EXIT; \
+	fixture="$$temp_dir/crd.yaml"; \
+	second_fixture="$$temp_dir/second-crd.yaml"; \
+	printf '%s\n' \
+	  'apiVersion: apiextensions.k8s.io/v1' \
+	  'kind: CustomResourceDefinition' \
+	  'metadata:' \
+	  '  annotations:' \
+	  '    helm.sh/hook: crd-install' \
+	  '    helm.sh/hook-weight: "-5"' \
+	  '    example.com/retained: "true"' \
+	  'spec:' \
+	  '  versions:' \
+	  '  - schema:' \
+	  '      openAPIV3Schema:' \
+	  '        description: root schema documentation' \
+	  '        type: object' \
+	  '        properties:' \
+	  '          spec:' \
+	  '            description: spec schema documentation' \
+	  '            type: object' \
+	  '            properties:' \
+	  '              description:' \
+	  '                description: user-provided description' \
+	  '                type: string' \
+	  '              properties:' \
+	  '                description: user-provided properties' \
+	  '                type: string' > "$$fixture"; \
+	cp "$$fixture" "$$second_fixture"; \
+	for crd in "$$temp_dir"/*.yaml; do \
+	  "$(YQ)" eval -i '$(CRD_COMPACTION_EXPRESSION)' "$$crd"; \
+	done; \
+	first_hashes="$$(sha256sum "$$temp_dir"/*.yaml)"; \
+	for crd in "$$temp_dir"/*.yaml; do \
+	  "$(YQ)" eval -i '$(CRD_COMPACTION_EXPRESSION)' "$$crd"; \
+	done; \
+	second_hashes="$$(sha256sum "$$temp_dir"/*.yaml)"; \
+	[[ "$$first_hashes" == "$$second_hashes" ]]; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema | has("description") | not' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema.properties.spec | has("description") | not' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.description | has("description") | not' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.description.type == "string"' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties | has("properties")' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.properties | has("description") | not' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.spec.versions[0].schema.openAPIV3Schema.properties.spec.properties.properties.type == "string"' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '(.metadata.annotations | has("helm.sh/hook") or has("helm.sh/hook-weight")) | not' "$$fixture" > /dev/null; \
+	"$(YQ)" eval -e '.metadata.annotations."example.com/retained" == "true"' "$$fixture" > /dev/null
+
 #################
 # Documentation #
 #################
 
 # Run document generation
 .PHONY: docs
-docs: docs/crd/v1 update-crds
-
-.PHONY: docs/crd/v1
-docs/crd/v1:
-	echo "=> Copy CRDs from charts to documentation ..."
-	rm -rf $(CRD_DOC_FOLDER)/*.yaml
-	cp $(MON_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
-	cp $(GRAFANA_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
-	cp $(PROM_OPER_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
-	cp $(PROM_ADAPTER_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
-	cp $(VM_CRD_FOLDER)/* $(CRD_DOC_FOLDER)/
+docs:
+	@echo "=> 'make docs' is deprecated; use 'make update-crds' instead."
+	$(MAKE) update-crds
 
 ##########################
 # Update CRDs Helm chart #
 ##########################
 
-# Copy CRDs from documentation to the qubership-monitoring-crds Helm chart
+# Copy CRDs from canonical chart directories to the qubership-monitoring-crds Helm chart
 .PHONY: update-crds
 update-crds:
 	echo "=> Update CRDs in dedicated Helm chart ..."
-	find $(CRD_DOC_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
+	rm -f $(CRDS_HELM_CRDS_FOLDER)/crds/*.yaml $(CRDS_HELM_CRDS_FOLDER)/crds/*.yml
+	cp $(MON_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
+	cp $(GRAFANA_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
+	cp $(PROM_OPER_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
+	cp $(PROM_ADAPTER_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
+	cp $(VM_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
 
 ###############
 # CRD update #
 ###############
 
 # Download upstream CRDs for managed operators and write them into the
-# corresponding subchart `crds/` folders. Versions can be overridden via
+# corresponding chart `crds/` folders. Versions can be overridden via
 # PROMETHEUS_OPERATOR_VERSION / VICTORIAMETRICS_OPERATOR_VERSION /
 # GRAFANA_OPERATOR_VERSION variables.
-# Note: Grafana CRDs are not updated currently because we are using old version of the operator.
 .PHONY: update-operators-crds
-update-operators-crds: update-prometheus-crds update-victoriametrics-crds
+update-operators-crds: update-prometheus-crds update-victoriametrics-crds update-grafana-crds compact-prometheus-adapter-crds
 
 .PHONY: update-prometheus-crds
 update-prometheus-crds:
@@ -246,6 +382,8 @@ update-prometheus-crds:
 		--operator prometheus \
 		--version $(PROMETHEUS_OPERATOR_VERSION) \
 		--output-dir $(PROM_OPER_CRD_FOLDER)
+	rm -f $(VM_CRD_FOLDER)/monitoring.coreos.com_*.yaml
+	cp $(PROM_OPER_CRD_FOLDER)/monitoring.coreos.com_*.yaml $(VM_CRD_FOLDER)/
 
 .PHONY: update-victoriametrics-crds
 update-victoriametrics-crds:
@@ -256,12 +394,22 @@ update-victoriametrics-crds:
 		--output-dir $(VM_CRD_FOLDER)
 
 .PHONY: update-grafana-crds
-update-grafana-crds:
+update-grafana-crds: yq
 	echo "=> Update grafana-operator CRDs (v$(GRAFANA_OPERATOR_VERSION)) ..."
 	$(PYTHON) $(CRD_UPDATE_TOOL) \
 		--operator grafana \
 		--version $(GRAFANA_OPERATOR_VERSION) \
 		--output-dir $(GRAFANA_CRD_FOLDER)
+	for crd in "$(GRAFANA_CRD_FOLDER)"/*.yaml; do \
+	  "$(YQ)" eval -i '$(CRD_COMPACTION_EXPRESSION)' "$$crd"; \
+	done
+
+.PHONY: compact-prometheus-adapter-crds
+compact-prometheus-adapter-crds: yq
+	echo "=> Compact prometheus-adapter-operator CRDs ..."
+	for crd in "$(PROM_ADAPTER_CRD_FOLDER)"/*.yaml; do \
+	  "$(YQ)" eval -i '$(CRD_COMPACTION_EXPRESSION)' "$$crd"; \
+	done
 
 ###################
 # Running locally #
@@ -289,7 +437,7 @@ prepare-site-directory:
 	echo "=> Prepare site directory ..."
 	rm -rf $(SITE_FOLDER)/docs
 	mkdir -p $(SITE_FOLDER)
-	cp -r $(DOC_FOLDER) $(SITE_FOLDER)/
+	cp -rL $(DOC_FOLDER) $(SITE_FOLDER)/
 
 # Build the docs
 .PHONY: build-site
@@ -317,12 +465,8 @@ prepare-charts:
 	echo "=> Copy Helm charts to contract directory for build ..."
 	mkdir -p $(OUTPUT_DIR)
 
-	# Create directories to copy CRDs
-	mkdir -p "$(CRDS_DIR)/qubership-monitoring-operator" \
-	"$(CRDS_DIR)/prometheus-adapter-operator" \
-	"$(CRDS_DIR)/prometheus-operator" \
-	"$(CRDS_DIR)/victoriametrics-operator" \
-	"$(CRDS_DIR)/grafana-operator"
+	# Create a directory for the flat CRD archive
+	mkdir -p "$(CRDS_DIR)"
 
 # Archive Helm chart separately from application manifest
 .PHONY: archive-helm-chart
@@ -340,12 +484,8 @@ archive-crds:
 	# Copy documentation how to apply CRDS
 	cp docs/user-guides/manual-create-crds.md "${BUILD_DIR}"/_crds/README.md
 
-	# Copy CRDs from different places in helm chart and subcharts
-	cp charts/qubership-monitoring-operator/crds/* "${BUILD_DIR}/_crds/qubership-monitoring-operator/"
-	cp charts/qubership-monitoring-operator/charts/prometheus-adapter-operator/crds/* "${BUILD_DIR}/_crds/prometheus-adapter-operator/"
-	cp charts/qubership-monitoring-operator/charts/prometheus-operator/crds/* "${BUILD_DIR}/_crds/prometheus-operator/"
-	cp charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/* "${BUILD_DIR}/_crds/victoriametrics-operator/"
-	cp charts/qubership-monitoring-operator/charts/grafana-operator/crds/* "${BUILD_DIR}/_crds/grafana-operator/"
+	# The standalone CRD chart is the generated, deduplicated aggregate.
+	cp charts/qubership-monitoring-crds/crds/* "${BUILD_DIR}/_crds/"
 
 	# Navigate to dir to avoid unnecessary directories in result archive\
 	# name like: qubership-monitoring-operator-0.60.0-crds.zip

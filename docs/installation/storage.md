@@ -187,9 +187,8 @@ provisioner: k8s.io/minikube-hostpath
 
 ```yaml
 grafana:
-  persistence:
-    enabled: true
-    storageClassName: "fast-ssd"
+  dataStorage:
+    class: fast-ssd
     size: 10Gi
     accessModes:
       - ReadWriteOnce
@@ -222,9 +221,8 @@ victoriametrics:
           storage: 100Gi
 
 grafana:
-  persistence:
-    enabled: true
-    storageClassName: fast-ssd
+  dataStorage:
+    class: fast-ssd
     size: 10Gi
     accessModes:
       - ReadWriteOnce
@@ -266,4 +264,4 @@ victoriametrics:
 
 - **[Prerequisites](prerequisites.md)** - Hardware and storage requirements
 - **[Basic Components](basic-components.md)** - Component resource requirements
-- **[VictoriaMetrics Configuration](components/victoriametrics-stack/victoriametrics.md)** - VictoriaMetrics-specific storage options 
+- **[VictoriaMetrics Configuration](components/victoriametrics-stack/victoriametrics.md)** - VictoriaMetrics-specific storage options

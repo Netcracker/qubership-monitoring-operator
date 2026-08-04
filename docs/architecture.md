@@ -18,28 +18,28 @@ graph TB
         KSM[kube-state-metrics]
         NE[node-exporter]
         EXPORTERS[Various Exporters]
-        
+
         subgraph "Application Namespaces"
             APP1[Application 1]
             APP2[Application 2]
             SM[ServiceMonitors]
         end
     end
-    
+
     MO -->|Manages| PM
     PM -->|Configures| TSDB
     PM -->|Configures| GRAF
     PM -->|Configures| AM
     GO -->|Manages| GRAF
-    
+
     TSDB -->|Scrapes| KSM
     TSDB -->|Scrapes| NE
     TSDB -->|Scrapes| EXPORTERS
     TSDB -->|Scrapes| APP1
     TSDB -->|Scrapes| APP2
-    
+
     GRAF -->|Queries| TSDB
-    
+
     SM -->|Configures| TSDB
 ```
 
@@ -58,7 +58,7 @@ graph LR
         RECONCILE[Reconcile Logic]
         APPLY[Apply Changes]
     end
-    
+
     CR[PlatformMonitoring CR] -->|Change Event| WATCH
     WATCH --> RECONCILE
     RECONCILE --> APPLY
@@ -80,14 +80,14 @@ graph TB
         PROM[Prometheus Server]
         AM[AlertManager]
         CR[Config Reloader]
-        
+
         subgraph "Monitoring Configuration"
             SM[ServiceMonitor CRs]
             PM[PodMonitor CRs]
             PR[PrometheusRule CRs]
         end
     end
-    
+
     PO -->|Manages| PROM
     PO -->|Manages| AM
     SM -->|Configures| PROM
@@ -112,13 +112,13 @@ graph TB
         VMAUTH[VMAuth]
         VMALERTMGR[VMAlertManager]
     end
-    
+
     VMO -->|Manages| VMAGENT
     VMO -->|Manages| VMSINGLE
     VMO -->|Manages| VMALERT
     VMO -->|Manages| VMAUTH
     VMO -->|Manages| VMALERTMGR
-    
+
     VMAGENT -->|Writes| VMSINGLE
     VMALERT -->|Queries| VMSINGLE
 ```
@@ -134,13 +134,13 @@ graph TB
     subgraph "Grafana Stack"
         GO[Grafana Operator]
         GRAF[Grafana Instance]
-        
+
         subgraph "Grafana Resources"
             GD[GrafanaDashboard CRs]
-            GDS[GrafanaDataSource CRs]
+            GDS[GrafanaDatasource CRs]
         end
     end
-    
+
     GO -->|Manages| GRAF
     GD -->|Provides| GRAF
     GDS -->|Configures| GRAF
@@ -227,11 +227,11 @@ graph TB
         APPS[Applications]
         EXPORTERS[External Exporters]
     end
-    
+
     subgraph "Time Series Database"
         TSDB[VictoriaMetrics OR Prometheus]
     end
-    
+
     KUBELET -->|/metrics| TSDB
     KSM -->|/metrics| TSDB
     NE -->|/metrics| TSDB
@@ -250,21 +250,21 @@ graph TB
         AZURE[Azure Monitor]
         GCP[Google Cloud Operations]
     end
-    
+
     subgraph "Cloud Exporters"
         CWE[CloudWatch Exporter]
         PROMITOR[Promitor Agent]
         SDE[Stackdriver Exporter]
     end
-    
+
     subgraph "Monitoring Stack"
         TSDB[VictoriaMetrics OR Prometheus]
     end
-    
+
     AWS -->|API| CWE
     AZURE -->|API| PROMITOR
     GCP -->|API| SDE
-    
+
     CWE -->|/metrics| TSDB
     PROMITOR -->|/metrics| TSDB
     SDE -->|/metrics| TSDB
@@ -281,36 +281,36 @@ graph TB
     subgraph "Deployment Process"
         HELM[Helm Chart]
         VALUES[values.yaml]
-        
+
         subgraph "Generated Resources"
             PM[PlatformMonitoring CR]
             OPERATORS[Operator Deployments]
             CONFIGS[ConfigMaps/Secrets]
         end
     end
-    
+
     subgraph "Operator Controllers"
         MO[Monitoring Operator]
         TSDB_OP[VM Operator OR Prometheus Operator]
         GO[Grafana Operator]
     end
-    
+
     subgraph "Monitoring Components"
         TSDB[VictoriaMetrics OR Prometheus]
         GRAF[Grafana]
         AM[AlertManager]
     end
-    
+
     HELM -->|Creates| PM
     HELM -->|Creates| OPERATORS
     HELM -->|Creates| CONFIGS
     VALUES -->|Configures| HELM
-    
+
     MO -->|Watches| PM
     MO -->|Manages| TSDB
     MO -->|Manages| GRAF
     MO -->|Manages| AM
-    
+
     TSDB_OP -->|Manages| TSDB
     GO -->|Manages| GRAF
 ```
@@ -330,25 +330,25 @@ graph TB
         PR[PrometheusRule]
         AC[AlertmanagerConfig]
     end
-    
+
     subgraph "Admin Extensions"
         PLATFORMMON[PlatformMonitoring]
         HELM[Helm Values]
         CRD[Custom CRDs]
     end
-    
+
     subgraph "Monitoring Stack"
         TSDB[VictoriaMetrics OR Prometheus]
         GRAF[Grafana]
         AM[AlertManager]
     end
-    
+
     SM -->|Configures| TSDB
     PM -->|Configures| TSDB
     GD -->|Provides| GRAF
     PR -->|Configures| TSDB
     AC -->|Configures| AM
-    
+
     PLATFORMMON -->|Controls| TSDB
     PLATFORMMON -->|Controls| GRAF
     PLATFORMMON -->|Controls| AM
@@ -368,21 +368,21 @@ graph TB
         BASIC[Basic Auth]
         LDAP[LDAP]
     end
-    
+
     subgraph "Monitoring UIs"
         GRAF[Grafana]
         TSDB[VictoriaMetrics OR Prometheus]
         AM[AlertManager]
     end
-    
+
     subgraph "Proxy Layer"
         OAUTH2PROXY[oauth2-proxy]
     end
-    
+
     OAUTH -->|Native| GRAF
     LDAP -->|Native| GRAF
     BASIC -->|Native| GRAF
-    
+
     OAUTH -->|via Proxy| OAUTH2PROXY
     OAUTH2PROXY -->|Protects| TSDB
     OAUTH2PROXY -->|Protects| AM
@@ -395,10 +395,10 @@ The system supports various authentication methods, including OAuth/OIDC, basic 
 The following table shows the relationships between different components:
 
 | Component | Managed By | Configures | Provides Data To |
-|-----------|------------|------------|------------------|
+| --------- | ---------- | ---------- | ---------------- |
 | Prometheus | Prometheus Operator | ServiceMonitor, PodMonitor | Grafana, AlertManager |
 | VictoriaMetrics | VM Operator | VMServiceScrape, VMPodScrape | Grafana, VMAlert |
-| Grafana | Grafana Operator | GrafanaDashboard, GrafanaDataSource | Users |
+| Grafana | Grafana Operator | GrafanaDashboard, GrafanaDatasource | Users |
 | AlertManager | Prometheus Operator | AlertmanagerConfig | Notification channels |
 | kube-state-metrics | Monitoring Operator | Built-in config | Prometheus, VictoriaMetrics |
 | node-exporter | Monitoring Operator | Built-in config | Prometheus, VictoriaMetrics |
@@ -416,4 +416,4 @@ The Qubership Monitoring Operator architecture provides several key benefits:
 7. **Extensibility**: Allows users and administrators to extend functionality through custom resources
 8. **Security**: Provides multiple authentication and authorization options
 
-This architecture enables organizations to deploy and maintain a production-ready monitoring stack with minimal operational overhead while providing the flexibility to customize and extend the system as needed. 
+This architecture enables organizations to deploy and maintain a production-ready monitoring stack with minimal operational overhead while providing the flexibility to customize and extend the system as needed.

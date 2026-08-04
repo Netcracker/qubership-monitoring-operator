@@ -1,6 +1,8 @@
-This document describes how to manually create, update or delete Monitoring Custom Resource Definitions (CRDs).
+# Manage CRDs Manually
 
-# When is it needed?
+## When is it needed?
+
+This document describes how to manually create, update, or delete Monitoring Custom Resource Definitions (CRDs).
 
 Almost all Qubership applications and microservices are integrated with Monitoring. This integration means
 that almost all microservices during deploy can create `ServiceMonitor`/`PodMonitor`/`Probe` objects from the API
@@ -12,9 +14,9 @@ Similar objects allow providing alerts, recording rules and Grafana dashboards.
 Also, it means that before deploying applications and microservices in Kubernetes all Custom Resource Definitions
 (CRDs) must already created in Kubernetes. Otherwise, the deployment will fail.
 
-The deployment process (helm chart) of Monitoring will automatically install or update all required CRDs.
-But there are environments where Monitoring can't or doesn't make sense to deploy. In such cases, there is
-an ability to create or update CRDs manually.
+Helm installs CRDs during a fresh Monitoring installation, but Helm does not upgrade existing CRDs. Apply the complete
+CRD set manually before every Monitoring upgrade so existing CRDs are updated and newly introduced CRDs are created.
+The same procedure can install CRDs in environments where Monitoring itself is not deployed.
 
 In the list of Monitoring artifacts, you can find an archive with the name
 
@@ -24,56 +26,62 @@ monitoring-operator-<version>-crds.zip
 
 that contains all CRDs required for Monitoring. How to use this archive and CRDs inside you can read below.
 
-# Before you begin
+Sources: [project][p], [Prometheus][po], [VictoriaMetrics][vm], [Grafana][g], [Adapter][a]; [standalone][s] is generated.
+
+[p]: ../../charts/qubership-monitoring-operator/crds/
+[po]: ../../charts/qubership-monitoring-operator/charts/prometheus-operator/crds/
+[vm]: ../../charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/
+[g]: ../../charts/qubership-monitoring-operator/charts/grafana-operator/crds/
+[a]: ../../charts/qubership-monitoring-operator/charts/prometheus-adapter-operator/crds/
+[s]: ../../charts/qubership-monitoring-crds/crds/
+
+## Before you begin
 
 * You should have cluster-wide permissions enough to operate with CRDs (cluster admin is not required)
 * You should configure a context for your `kubectl` and make sure the connection configured to correct Kubernetes
 
-# How to manage CRDs
+## How to manage CRDs
 
 This section describes different cases of manual manipulation with CRDs.
 
-## Create
+### Create
 
 To create CRDs for Monitoring you need to execute the command:
 
 ```bash
-kubectl create -f path/to/crds/directory/
+kubectl apply --server-side --recursive -f path/to/crds/directory/
 ```
 
-**Warning!** Never use the `kubectl apply` command! This command will generate the annotation
-`kubectl.kubernetes.io/last-applied-configuration` that will contain the whole content of CRD.
-It means that the object size will be increasing two times and it may lead to problems with storing
-this CRD in Etcd.
+The `--server-side` option avoids the large `kubectl.kubernetes.io/last-applied-configuration` annotation created by
+client-side apply.
 
 ```bash
 mkdir /tmp/crds/
 unzip -d /tmp/crds/ monitoring-operator-<version>-crds.zip
-kubectl create -f /tmp/crds/*
+kubectl apply --server-side --recursive -f /tmp/crds/
 ```
 
-## Upgrade
+### Upgrade
 
 To upgrade CRDs for Monitoring you need to execute the command:
 
 ```bash
-kubectl replace -f path/to/crds/directory/
+kubectl apply --server-side --force-conflicts --recursive -f path/to/crds/directory/
 ```
 
-**Warning!** Never use the `kubectl apply` command! This command will generate the annotation
-`kubectl.kubernetes.io/last-applied-configuration` that will contain the whole content of CRD.
-It means that the object size will be increasing two times and it may lead to problems with storing
-this CRD in Etcd.
+Apply the complete CRD set before upgrading controller images. Unlike `kubectl replace`, server-side apply creates CRDs
+introduced by a newer release and updates CRDs that already exist. `--force-conflicts` transfers fields previously
+managed by Helm to this server-side apply operation.
 
 For example, if you will use the archive with CRDs providing Monitoring:
 
 ```bash
 mkdir /tmp/crds/
 unzip -d /tmp/crds/ monitoring-operator-<version>-crds.zip
-kubectl replace -f /tmp/crds/*
+kubectl apply --server-side --force-conflicts --recursive -f /tmp/crds/
 ```
 
-## Remove
+### Remove
 
 **Warning!** This step removes **all CRDs** for Monitoring and deleting these CRDs causes the deletion of
 **all resources** of their type in **all namespaces**.
@@ -83,45 +91,5 @@ To remove CRDs and all Custom Resources (CRs) like ServiceMonitor or GrafanaDash
 for Monitoring you need to execute the command:
 
 ```bash
-# monitoring-operator CRDs
-kubectl delete crd platformmonitorings.monitoring.netcracker.com
-
-# prometheus-adapter-operator CRDs
-kubectl delete crd customscalemetricrules.monitoring.netcracker.com
-kubectl delete crd prometheusadapters.monitoring.netcracker.com
-
-# grafana-operator CRDs
-kubectl delete crd grafanas.integreatly.org
-kubectl delete crd grafanadashboards.integreatly.org
-kubectl delete crd grafanafolders.integreatly.org
-kubectl delete crd grafanadatasources.integreatly.org
-kubectl delete crd grafananotificationchannels.integreatly.org
-
-# prometheus-operator CRDs
-kubectl delete crd alertmanagers.monitoring.coreos.com
-kubectl delete crd alertmanagerconfigs.monitoring.coreos.com
-kubectl delete crd podmonitors.monitoring.coreos.com
-kubectl delete crd probes.monitoring.coreos.com
-kubectl delete crd prometheusagents.monitoring.coreos.com
-kubectl delete crd prometheuses.monitoring.coreos.com
-kubectl delete crd prometheusrules.monitoring.coreos.com
-kubectl delete crd scrapeconfigs.monitoring.coreos.com
-kubectl delete crd servicemonitors.monitoring.coreos.com
-kubectl delete crd thanosrulers.monitoring.coreos.com
-
-# victoriametrics-operator CRDs
-kubectl delete crd vmagents.operator.victoriametrics.com
-kubectl delete crd vmalertmanagerconfigs..operator.victoriametrics.com
-kubectl delete crd vmalerts.operator.victoriametrics.com
-kubectl delete crd vmalertmanagers.operator.victoriametrics.com
-kubectl delete crd vmauths.operator.victoriametrics.com
-kubectl delete crd vmclusters.operator.victoriametrics.com
-kubectl delete crd vmnodescrapes.operator.victoriametrics.com
-kubectl delete crd vmpodscrapes.operator.victoriametrics.com
-kubectl delete crd vmprobes.operator.victoriametrics.com
-kubectl delete crd vmrules.operator.victoriametrics.com
-kubectl delete crd vmservicescrapes.operator.victoriametrics.com
-kubectl delete crd vmsingles.operator.victoriametrics.com
-kubectl delete crd vmstaticscrapes.operator.victoriametrics.com
-kubectl delete crd vmusers.operator.victoriametrics.com
+kubectl delete --recursive -f path/to/extracted/crds/
 ```

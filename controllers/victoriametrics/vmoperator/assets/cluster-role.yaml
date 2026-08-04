@@ -9,7 +9,7 @@ metadata:
 rules:
   ############################################### Kubernetes API Groups ################################################
 
-    # nonResourceURLs
+  # nonResourceURLs
   # This is needed for metrics endpoint access
   - nonResourceURLs:
       - /metrics
@@ -139,7 +139,18 @@ rules:
       - watch
 
   # autoscaling
-  # This is needed for horizontal pod autoscaler creation
+  # This is needed for horizontal and vertical pod autoscaler creation
+  - apiGroups:
+      - autoscaling.k8s.io
+    resources:
+      - verticalpodautoscalers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
   - apiGroups:
       - autoscaling
     resources:
@@ -173,6 +184,20 @@ rules:
     verbs:
       - get
       - list
+      - watch
+
+  # gateway.networking.k8s.io
+  # This is needed for HTTPRoute creation when VM_GATEWAY_API_ENABLED is set.
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
       - watch
   # Permissions to handle Ingresses finalizers
   - apiGroups:
@@ -280,6 +305,7 @@ rules:
       - vmauths
       - vmclusters
       - vmdistributed
+      - vmanomalyconfigs
       - vmsingles
       - vmusers
       - vtclusters
@@ -321,6 +347,8 @@ rules:
       - vmclusters/status
       - vmdistributed/finalizers
       - vmdistributed/status
+      - vmanomalyconfigs/finalizers
+      - vmanomalyconfigs/status
       - vmnodescrapes/finalizers
       - vmnodescrapes/status
       - vmpodscrapes/finalizers
