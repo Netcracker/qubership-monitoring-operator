@@ -21,6 +21,7 @@ import (
 	core "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/api/networking/v1beta1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
@@ -105,17 +106,16 @@ func (r *ComponentReconciler) GetApiVersionForKind(group, kind string) (string, 
 // ResourceExists returns true if the given resource kind exists
 // in the given api groupversion
 func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind string) (bool, error) {
-	_, apiLists, err := dc.ServerGroupsAndResources()
+	apiList, err := dc.ServerResourcesForGroupVersion(apiGroupVersion)
+	if apierrors.IsNotFound(err) {
+		return false, nil
+	}
 	if err != nil {
 		return false, err
 	}
-	for _, apiList := range apiLists {
-		if apiList.GroupVersion == apiGroupVersion {
-			for _, r := range apiList.APIResources {
-				if r.Kind == kind {
-					return true, nil
-				}
-			}
+	for _, resource := range apiList.APIResources {
+		if resource.Kind == kind {
+			return true, nil
 		}
 	}
 	return false, nil
