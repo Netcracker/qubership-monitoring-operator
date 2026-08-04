@@ -19,13 +19,21 @@ Image can be found from:
 Return securityContext for promitor-agent-resource-discovery.
 */}}
 {{- define "promitor.agentResourceDiscovery.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 10000
-        runAsGroup: 10000
-        runAsNonRoot: true
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 10000 "runAsGroup" 10000 "fsGroup" 10000 -}}
+{{- end -}}
+{{- $configured := deepCopy (.Values.securityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "promitor.agentResourceDiscovery.containerSecurityContext" -}}
+{{- $configured := omit (.Values.containerSecurityContext | default dict) "enabled" -}}
+{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite (deepCopy $configured) $required) -}}
 {{- end -}}
