@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/VictoriaMetrics/operator/api v0.73.1
 	github.com/distribution/reference v0.6.0
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-task/slim-sprig v2.20.0+incompatible
 	github.com/grafana/grafana-operator/v5 v5.24.0 // Required for v1beta1 API
