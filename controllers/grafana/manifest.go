@@ -344,6 +344,7 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 					Name:            "grafana-plugins-init",
 					Image:           cr.Spec.Grafana.Operator.InitContainerImage,
 					ImagePullPolicy: corev1.PullIfNotPresent,
+					SecurityContext: utils.HardenedContainerSecurityContext(),
 					Env: []corev1.EnvVar{
 						{
 							Name:  "GRAFANA_PLUGINS",
@@ -355,6 +356,7 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 							Name:      pluginsVolumeName,
 							MountPath: pluginsInitMountPath,
 						},
+						utils.TmpVolumeMount(),
 					},
 				})
 			}

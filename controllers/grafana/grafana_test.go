@@ -364,6 +364,28 @@ func TestGrafanaManifests(t *testing.T) {
 		assert.Equal(t, int64(3000), *podSpec.SecurityContext.FSGroup)
 		assertGrafanaHardening(t, m, false)
 	})
+	t.Run("Test plugins init container hardening", func(t *testing.T) {
+		pluginsCR := cr.DeepCopy()
+		pluginsCR.Spec.Grafana.Operator = monv1.GrafanaOperator{
+			InitContainerImage: "grafana-plugins-init:test",
+		}
+
+		m, err := grafana(pluginsCR, false)
+		require.NoError(t, err)
+		podSpec := grafanaPodSpec(t, m)
+		require.Len(t, podSpec.InitContainers, 1)
+
+		initContainer := podSpec.InitContainers[0]
+		assert.Equal(t, "grafana-plugins-init", initContainer.Name)
+		require.NotNil(t, initContainer.SecurityContext)
+		require.NotNil(t, initContainer.SecurityContext.AllowPrivilegeEscalation)
+		assert.False(t, *initContainer.SecurityContext.AllowPrivilegeEscalation)
+		require.NotNil(t, initContainer.SecurityContext.ReadOnlyRootFilesystem)
+		assert.True(t, *initContainer.SecurityContext.ReadOnlyRootFilesystem)
+		require.NotNil(t, initContainer.SecurityContext.Capabilities)
+		assert.Equal(t, []corev1.Capability{"ALL"}, initContainer.SecurityContext.Capabilities.Drop)
+		assert.Contains(t, initContainer.VolumeMounts, utils.TmpVolumeMount())
+	})
 	t.Run("Test hardening is merged into the generated Deployment", func(t *testing.T) {
 		m, err := grafana(cr, false)
 		require.NoError(t, err)
