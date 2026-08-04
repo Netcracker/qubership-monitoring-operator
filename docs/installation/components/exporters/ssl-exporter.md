@@ -203,6 +203,14 @@ sslExporter:
 ```
 
 ### Security and access notes
+
 - When using the `kubernetes` module, RBAC permissions to read `secrets` (get/list/watch) are required.
-- For reading files/crypto-material from the host, use `additionalHostPathVolumes` and ensure the pod has read-only access to those paths.
-- Default modules and CA paths are safe; avoid weakening TLS verification unless absolutely necessary (`insecure_skip_verify: true`).
+- The default `additionalHostPathVolumes` mount `/etc/ssl/cert.pem` and `/etc/ssl/certs` read-only. Set this value to an
+  empty list when the exporter does not inspect node-local files.
+- OpenShift requires an SCC that permits `hostPath` for file and kubeconfig probes. The chart does not create this SCC;
+  a cluster administrator must bind a narrowly scoped SCC to the SSL Exporter ServiceAccount.
+- The exporter runs with `runAsNonRoot: true`. It cannot read root-owned files with mode `0600`, even when an SCC allows
+  `hostPath`. Reading such files requires safe permission changes or an approved exception for the target environment.
+- `RunAsAny` alone does not grant access to host files and does not override the pod-level non-root requirement.
+- Default modules and CA paths are safe. Avoid weakening TLS verification unless required for an explicitly trusted
+  target (`insecure_skip_verify: true`).
