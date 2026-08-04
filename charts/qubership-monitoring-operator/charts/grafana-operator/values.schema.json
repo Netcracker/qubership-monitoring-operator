@@ -154,6 +154,21 @@
                     "default": false,
                     "description": "Enable plugin update checks for Grafana analytics"
                 },
+                "GF_PLUGINS_PLUGIN_ADMIN_ENABLED": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Allow plugin installation, updates, and removal in the Grafana user interface"
+                },
+                "GF_PLUGINS_PREINSTALL_AUTO_UPDATE": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically update preinstalled Grafana plugins"
+                },
+                "GF_PLUGINS_PREINSTALL_DISABLED": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Disable Grafana preinstalled plugin installation"
+                },
                 "GF_AUTH_ANONYMOUS_HIDE_VERSION": {
                     "type": "boolean",
                     "default": true,
