@@ -148,6 +148,73 @@
         "extraVars": {
             "type": "object",
             "description": "Additional Grafana environment variables. Values override matching settings from grafana.ini. Ref: https://grafana.com/docs/grafana/latest/administration/configuration/#configure-with-environment-variables",
+            "properties": {
+                "GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable plugin update checks for Grafana analytics"
+                },
+                "GF_PLUGINS_PLUGIN_ADMIN_ENABLED": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Allow plugin installation, updates, and removal in the Grafana user interface"
+                },
+                "GF_PLUGINS_PREINSTALL_AUTO_UPDATE": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically update preinstalled Grafana plugins"
+                },
+                "GF_PLUGINS_PREINSTALL_DISABLED": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Disable Grafana preinstalled plugin installation"
+                },
+                "GF_AUTH_ANONYMOUS_HIDE_VERSION": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Hide Grafana version when anonymous access is enabled"
+                },
+                "GF_AUTH_LOGIN_COOKIE_NAME": {
+                    "type": "string",
+                    "default": "__Host-grafana_session",
+                    "description": "Name of the Grafana login cookie"
+                },
+                "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": {
+                    "type": "string",
+                    "default": "/etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json",
+                    "description": "Path to the default Grafana home dashboard file"
+                },
+                "GF_LIVE_ALLOWED_ORIGINS": {
+                    "type": "string",
+                    "default": "*",
+                    "description": "Allowed origins for Grafana live streaming"
+                },
+                "GF_SECURITY_ANGULAR_SUPPORT_ENABLED": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable Angular support security settings in Grafana"
+                },
+                "GF_SECURITY_CONTENT_SECURITY_POLICY": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable Grafana content security policy"
+                },
+                "GF_SECURITY_COOKIE_SAMESITE": {
+                    "type": "string",
+                    "default": "strict",
+                    "description": "SameSite setting for Grafana cookies"
+                },
+                "GF_SECURITY_COOKIE_SECURE": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Require secure Grafana cookies"
+                },
+                "GF_SERVER_ENFORCE_DOMAIN": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enforce Grafana server domain"
+                }
+            },
             "additionalProperties": {
                 "type": [
                     "string",
