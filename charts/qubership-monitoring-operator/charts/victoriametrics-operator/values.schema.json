@@ -1719,7 +1719,7 @@
                     "properties": {
                         "maxLabelsPerTimeseries": {
                             "type": "string",
-                            "default": "40"
+                            "default": "60"
                         }
                     },
                     "description": "Additional vmSingle container arguments.\nType: map[string]string\nMandatory: no\nDefault: {}"

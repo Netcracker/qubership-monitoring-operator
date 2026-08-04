@@ -523,7 +523,7 @@ vmSingle:
   # Default: {}
   #
   extraArgs:
-    maxLabelsPerTimeseries: "40"
+    maxLabelsPerTimeseries: "60"
 
   # Allows set extra system environment variables for vmSingle.
   # Type: list[object]

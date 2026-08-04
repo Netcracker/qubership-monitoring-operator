@@ -8,9 +8,6 @@ repos:
     rev: v0.9.0
     hooks:
       - id: pre-commit-update
-        args:
-          - --bleeding-edge
-          - pre-commit-golang
   - repo: https://github.com/pre-commit/pre-commit-hooks # General checks
     rev: v6.0.0
     hooks:
