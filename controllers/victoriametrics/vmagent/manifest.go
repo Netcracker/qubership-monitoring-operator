@@ -367,7 +367,8 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		vmagent.Spec.SecurityContext = victoriametrics.HardenedSecurityContextFromPlatformSpec(
 			isOpenShift, cr.Spec.Victoriametrics.VmAgent.SecurityContext)
 		vmagent.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmagent.Spec.Volumes)
-		vmagent.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmagent.Spec.VolumeMounts)
+		// VictoriaMetrics Operator mounts the VMAgent persistent queue below /tmp. Mounting a separate
+		// volume over the parent directory prevents VictoriaMetrics Operator from reconciling VMAgent.
 		vmagent.Spec.Containers = victoriametrics.HardenContainers(vmagent.Spec.Containers)
 	}
 	return &vmagent, nil

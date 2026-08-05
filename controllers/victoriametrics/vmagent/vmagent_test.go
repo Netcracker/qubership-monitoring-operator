@@ -70,7 +70,11 @@ func TestVmAgentManifests(t *testing.T) {
 		assert.Equal(t, false, *m.Spec.SecurityContext.AllowPrivilegeEscalation)
 		assert.Equal(t, true, *m.Spec.SecurityContext.ReadOnlyRootFilesystem)
 		assert.Contains(t, m.Spec.Volumes, utils.TmpVolume("100Mi"))
-		assert.Contains(t, m.Spec.VolumeMounts, utils.TmpVolumeMount())
+		assert.NotContains(t, m.Spec.VolumeMounts, utils.TmpVolumeMount())
+		for _, volumeMount := range m.Spec.VolumeMounts {
+			assert.NotEqual(t, "/tmp", volumeMount.MountPath,
+				"VMAgent must leave /tmp available for the operator-managed persistent queue mount")
+		}
 	})
 	t.Run("Test Vmagent manifest with nil maxScrapeInternal and minScrapeInternal", func(t *testing.T) {
 		m, err := vmAgent(nil, cr)
