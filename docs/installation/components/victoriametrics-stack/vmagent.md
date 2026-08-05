@@ -53,6 +53,24 @@
 | tlsConfig                                     | TLS configuration for VMAgent. Must be specified if `victoriametrics.tlsEnabled` is set to `true`                                                                                                                                                                                                                                            | [TLSConfig](#tls-config)                                                                                                     |
 <!-- markdownlint-enable line-length -->
 
+##### Security hardening
+
+VMAgent uses the common non-root, read-only-root-filesystem security baseline. Unlike other VictoriaMetrics
+components, its custom resource does not mount the hardening `emptyDir` over `/tmp`. VictoriaMetrics Operator mounts
+the VMAgent persistent queue at `/tmp/vmagent-remotewrite-data`; another volume mounted over the parent `/tmp`
+directory prevents the operator from reconciling VMAgent.
+
+VictoriaMetrics Operator creates the `persistent-queue-data` `emptyDir` without a Kubernetes `sizeLimit`. VMAgent
+limits each remote-write queue through `remoteWriteSettings.maxDiskUsagePerURL`, which defaults to 1 GiB in
+VictoriaMetrics Operator 0.73.1. A Kubernetes volume limit must account for every configured remote-write URL and
+queue overhead. The monitoring operator therefore does not impose its generic `100Mi` temporary-volume limit on the
+persistent queue. Configure `remoteWriteSettings.maxDiskUsagePerURL` according to the available ephemeral storage.
+The `PlatformMonitoring` VMAgent API does not expose the upstream stateful mode. Supporting a queue that survives pod
+replacement requires a separate API extension.
+
+Do not add a VMAgent-level volume mount at `/tmp`. Additional sidecar containers still receive the separate,
+size-limited `tmp` volume when the monitoring operator hardens their explicit container definitions.
+
 Example:
 
 ```yaml
