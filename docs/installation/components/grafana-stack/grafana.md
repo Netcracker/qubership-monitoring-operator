@@ -100,6 +100,26 @@ grafana:
   priorityClassName: priority-class
 ```
 
+#### Automatic internet access
+
+The chart disables Grafana's automatic plugin preinstallation and selected background update, analytics, plugin key,
+and news requests. The following environment variables are reserved and cannot be overridden through `extraVars` or
+`extraVarsSecret`:
+
+- `GF_PLUGINS_PREINSTALL_DISABLED=true`
+- `GF_PLUGINS_PUBLIC_KEY_RETRIEVAL_DISABLED=true`
+- `GF_ANALYTICS_CHECK_FOR_UPDATES=false`
+- `GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false`
+- `GF_ANALYTICS_REPORTING_ENABLED=false`
+- `GF_NEWS_NEWS_FEED_ENABLED=false`
+
+Grafana plugins must be included in the `qubership-grafana-plugins-init` image. To add or update a plugin, release a new
+version of that image and update `grafana.operator.initContainerImage` in this chart. Grafana's `preinstall` and
+`preinstall_sync` options, including private download URLs, are not supported.
+
+These settings do not provide general network isolation. Data sources, OAuth providers, webhooks, and user actions can
+still initiate external requests. Use a NetworkPolicy or an equivalent firewall to enforce production egress rules.
+
 
 #### grafana-operator
 
@@ -203,4 +223,3 @@ grafana:
     port: 8282
     priorityClassName: priority-class
 ```
-

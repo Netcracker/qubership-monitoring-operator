@@ -149,10 +149,20 @@
             "type": "object",
             "description": "Allows set extra system environment variables for grafana. The properties used to override values from grafana.ini. Ref: https://grafana.com/docs/grafana/latest/administration/configuration/#configure-with-environment-variables",
             "properties": {
+                "GF_ANALYTICS_CHECK_FOR_UPDATES": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Disable Grafana update checks"
+                },
                 "GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable plugin update checks for Grafana analytics"
+                    "description": "Disable automatic plugin update checks"
+                },
+                "GF_ANALYTICS_REPORTING_ENABLED": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Disable anonymous usage reporting"
                 },
                 "GF_AUTH_ANONYMOUS_HIDE_VERSION": {
                     "type": "boolean",
@@ -173,6 +183,21 @@
                     "type": "string",
                     "default": "*",
                     "description": "Allowed origins for Grafana live streaming"
+                },
+                "GF_NEWS_NEWS_FEED_ENABLED": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Disable the Grafana news feed"
+                },
+                "GF_PLUGINS_PREINSTALL_DISABLED": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Disable automatic plugin preinstallation"
+                },
+                "GF_PLUGINS_PUBLIC_KEY_RETRIEVAL_DISABLED": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Disable automatic plugin public key retrieval"
                 },
                 "GF_SECURITY_ANGULAR_SUPPORT_ENABLED": {
                     "type": "boolean",

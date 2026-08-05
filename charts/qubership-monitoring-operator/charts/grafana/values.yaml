@@ -241,7 +241,9 @@ disableDefaultAdminSecret: false
 #   size: 2Gi               # Requested size, e.g. `10Gi`
 #   class: local-storage    # Storage class name
 
-# Allows set extra system environment variables for grafana. The properties used to override values from grafana.ini.
+# Allows set extra system environment variables for Grafana. The properties are used to override values from grafana.ini.
+# The six offline settings below are enforced by the chart and cannot be overridden through extraVars or
+# extraVarsSecret.
 # Ref: https://grafana.com/docs/grafana/latest/administration/configuration/#configure-with-environment-variables
 # Type: object
 # Mandatory: no
@@ -249,7 +251,12 @@ disableDefaultAdminSecret: false
 extraVars:
   GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json
   GF_LIVE_ALLOWED_ORIGINS: "*"
+  GF_PLUGINS_PREINSTALL_DISABLED: true
+  GF_PLUGINS_PUBLIC_KEY_RETRIEVAL_DISABLED: true
+  GF_ANALYTICS_CHECK_FOR_UPDATES: false
   GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: false
+  GF_ANALYTICS_REPORTING_ENABLED: false
+  GF_NEWS_NEWS_FEED_ENABLED: false
   GF_SECURITY_ANGULAR_SUPPORT_ENABLED: true
   GF_SECURITY_CONTENT_SECURITY_POLICY: true
   GF_SECURITY_COOKIE_SECURE: true
@@ -265,7 +272,8 @@ extraVars:
 
 # Allows set extra system environment variables for Grafana like an extraVars,
 # but set variables into the Secret instead of ConfigMap.
-# If extraVars and ExtraVarsSecret have variables with equals keys, value will be taken from the Secret.
+# If extraVars and extraVarsSecret have equal keys, the value is taken from the Secret, except for the enforced offline
+# settings listed in extraVars.
 # Type: object
 # Mandatory: no
 # Default: {}
