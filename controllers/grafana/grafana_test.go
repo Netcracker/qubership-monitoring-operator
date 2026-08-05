@@ -20,9 +20,37 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
+
+func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
+			Annotations: map[string]string{"example.com/user-annotation": "retained"},
+		}},
+	})
+	assert.NoError(t, err)
+
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
+		&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name: "grafana-extra-vars", Namespace: "monitoring", ResourceVersion: "config-version",
+		}},
+		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name: "grafana-extra-vars-secret", Namespace: "monitoring", ResourceVersion: "secret-version",
+		}},
+	)}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest)
+	assert.NoError(t, err)
+	assert.Equal(t, "config-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation])
+	assert.Equal(t, "secret-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsSecretResourceVersionAnnotation])
+	assert.Equal(t, "retained", manifest.Spec.Deployment.Spec.Template.Annotations["example.com/user-annotation"])
+}
 
 var (
 	cr              *monv1.PlatformMonitoring

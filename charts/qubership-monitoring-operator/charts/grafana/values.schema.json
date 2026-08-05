@@ -192,7 +192,15 @@
                 "GF_PLUGINS_PREINSTALL_DISABLED": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Disable automatic plugin preinstallation"
+                    "description": "Disable automatic plugin preinstallation when no custom preinstall list is configured"
+                },
+                "GF_PLUGINS_PREINSTALL": {
+                    "type": "string",
+                    "description": "Comma-separated plugins to install asynchronously, optionally with pinned versions and custom URLs"
+                },
+                "GF_PLUGINS_PREINSTALL_SYNC": {
+                    "type": "string",
+                    "description": "Comma-separated plugins to install synchronously, optionally with pinned versions and custom URLs"
                 },
                 "GF_PLUGINS_PUBLIC_KEY_RETRIEVAL_DISABLED": {
                     "type": "boolean",

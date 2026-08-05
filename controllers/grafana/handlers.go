@@ -26,10 +26,43 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+const (
+	grafanaExtraVarsConfigMapResourceVersionAnnotation = "monitoring.netcracker.com/grafana-extra-vars-configmap-resource-version"
+	grafanaExtraVarsSecretResourceVersionAnnotation    = "monitoring.netcracker.com/grafana-extra-vars-secret-resource-version"
+)
+
+func (r *GrafanaReconciler) addGrafanaExtraVarsResourceVersions(
+	ctx context.Context,
+	namespace string,
+	manifest *grafv1.Grafana,
+) error {
+	configMap, err := r.KubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, "grafana-extra-vars", metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("cannot get Grafana extra-vars ConfigMap: %w", err)
+	}
+	secret, err := r.KubeClient.CoreV1().Secrets(namespace).Get(ctx, "grafana-extra-vars-secret", metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("cannot get Grafana extra-vars Secret: %w", err)
+	}
+
+	annotations := manifest.Spec.Deployment.Spec.Template.Annotations
+	if annotations == nil {
+		annotations = make(map[string]string)
+		manifest.Spec.Deployment.Spec.Template.Annotations = annotations
+	}
+	annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation] = configMap.ResourceVersion
+	annotations[grafanaExtraVarsSecretResourceVersionAnnotation] = secret.ResourceVersion
+	return nil
+}
+
 func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 	m, err := grafana(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
+		return err
+	}
+	if err = r.addGrafanaExtraVarsResourceVersions(context.TODO(), m.GetNamespace(), m); err != nil {
+		r.Log.Error(err, "Failed adding Grafana extra-vars resource versions")
 		return err
 	}
 
