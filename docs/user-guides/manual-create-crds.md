@@ -29,10 +29,10 @@ that contains all CRDs required for Monitoring. How to use this archive and CRDs
 Sources: [project][p], [Prometheus][po], [VictoriaMetrics][vm], [Grafana][g], [Adapter][a]; [standalone][s] is generated.
 
 [p]: ../../charts/qubership-monitoring-operator/crds/
-[po]: ../../charts/qubership-monitoring-operator/charts/prometheus-operator/crds/
-[vm]: ../../charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/
-[g]: ../../charts/qubership-monitoring-operator/charts/grafana-operator/crds/
-[a]: ../../charts/qubership-monitoring-operator/charts/prometheus-adapter-operator/crds/
+[po]: ../../charts/qubership-monitoring-operator/charts/prometheus/crds/
+[vm]: ../../charts/qubership-monitoring-operator/charts/victoriametrics/crds/
+[g]: ../../charts/qubership-monitoring-operator/charts/grafana/crds/
+[a]: ../../charts/qubership-monitoring-operator/charts/prometheusAdapter/crds/
 [s]: ../../charts/qubership-monitoring-crds/crds/
 
 ## Before you begin

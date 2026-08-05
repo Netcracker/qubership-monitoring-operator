@@ -19,8 +19,10 @@ on:
       - 'go.sum'
       - 'controllers/**'
       - 'charts/**'
+      - 'docs/examples/deploy-parameters/**'
       - 'tools/crd-update/**'
       - 'tools/verify-helm-crds.sh'
+      - 'tools/verify-subchart-paths.sh'
       - 'Makefile'
   push:
     branches:
@@ -34,8 +36,10 @@ on:
       - 'go.sum'
       - 'controllers/**'
       - 'charts/**'
+      - 'docs/examples/deploy-parameters/**'
       - 'tools/crd-update/**'
       - 'tools/verify-helm-crds.sh'
+      - 'tools/verify-subchart-paths.sh'
       - 'Makefile'
   workflow_dispatch: null
 
@@ -74,6 +78,9 @@ jobs:
 
       - name: Verify required CRDs
         run: tools/verify-helm-crds.sh
+
+      - name: Verify subchart paths
+        run: tools/verify-subchart-paths.sh
 
       - name: Copy examples for ct in /charts/qubership-monitoring-operator/ci/
         run: |
