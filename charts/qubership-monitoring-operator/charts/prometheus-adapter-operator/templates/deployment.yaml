@@ -39,7 +39,7 @@ spec:
       priorityClassName: {{ .Values.operator.priorityClassName | quote }}
       {{- end }}
       securityContext:
-        {{ include "prometheusAdapter.operator.securityContext" . }}
+        {{- include "prometheusAdapter.operator.securityContext" . | nindent 8 }}
       serviceAccountName: {{ .Values.name }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -57,4 +57,13 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           {{ include "prometheusAdapter.operator.resources" $ }}
+        securityContext:
+          {{- include "prometheusAdapter.operator.containerSecurityContext" . | nindent 10 }}
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{- end }}
