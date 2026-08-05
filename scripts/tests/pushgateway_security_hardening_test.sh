@@ -13,8 +13,7 @@ render_pushgateway_spec() {
         --api-versions "${platform_api}" \
         --set pushgateway.install=true \
         --show-only templates/operator/platformmonitoring.yaml \
-        "$@" \
-        | awk '
+        "$@" | awk '
             /^  pushgateway:$/ { in_pushgateway = 1 }
             in_pushgateway && /^  [a-zA-Z]/ && !/^  pushgateway:$/ { exit }
             in_pushgateway { print }

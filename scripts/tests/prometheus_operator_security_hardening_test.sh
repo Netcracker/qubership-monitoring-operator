@@ -13,8 +13,7 @@ render_operator_security_context() {
         --api-versions "${platform}" \
         --set prometheus.install=true \
         --show-only templates/operator/platformmonitoring.yaml \
-        "$@" \
-        | awk '
+        "$@" | awk '
             /^  prometheus:$/ { in_prometheus = 1; next }
             in_prometheus && /^    operator:$/ { in_operator = 1 }
             in_operator && /^      serviceAccount:$/ { exit }

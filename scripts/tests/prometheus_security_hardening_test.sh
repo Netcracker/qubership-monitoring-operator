@@ -13,8 +13,7 @@ render_prometheus_spec() {
         --api-versions "${platform_api}" \
         --set prometheus.install=true \
         --show-only templates/operator/platformmonitoring.yaml \
-        "$@" \
-        | awk '
+        "$@" | awk '
             /^  prometheus:$/ { in_prometheus = 1 }
             in_prometheus && /^    operator:$/ { exit }
             in_prometheus { print }

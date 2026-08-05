@@ -13,8 +13,7 @@ render_kube_state_metrics_spec() {
         --api-versions "${platform_api}" \
         --set kubeStateMetrics.install=true \
         --show-only templates/operator/platformmonitoring.yaml \
-        "$@" \
-        | awk '
+        "$@" | awk '
             /^  kubeStateMetrics:$/ { in_kube_state_metrics = 1 }
             in_kube_state_metrics && /^  [a-zA-Z]/ && !/^  kubeStateMetrics:$/ { exit }
             in_kube_state_metrics { print }

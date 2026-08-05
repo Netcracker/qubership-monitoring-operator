@@ -13,8 +13,7 @@ render_alertmanager_spec() {
         --api-versions "${platform_api}" \
         --set alertManager.install=true \
         --show-only templates/operator/platformmonitoring.yaml \
-        "$@" \
-        | awk '
+        "$@" | awk '
             /^  alertManager:$/ { in_alertmanager = 1 }
             in_alertmanager && /^  [a-zA-Z]/ && !/^  alertManager:$/ { exit }
             in_alertmanager { print }
