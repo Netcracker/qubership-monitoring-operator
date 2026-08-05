@@ -198,7 +198,7 @@ verify_prometheus_deprecation_note() {
     local output_file="${temporary_dir}/prometheus-deprecation-${case_name}.txt"
     helm install "prometheus-deprecation-${case_name}" "${chart_dir}" \
         --namespace monitoring \
-        --dry-run=client \
+        --dry-run \
         "$@" \
         >"${output_file}"
 
