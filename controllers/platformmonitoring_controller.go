@@ -42,14 +42,17 @@ import (
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics/vmsingle"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics/vmuser"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -317,9 +320,50 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 // SetupWithManager sets up the controller with the Manager.
 func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&qubershiporgv1.PlatformMonitoring{}).
-		WithEventFilter(ignoreDeletionPredicate()).
+		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(ignoreDeletionPredicate())).
+		Watches(
+			&corev1.ConfigMap{},
+			handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap)),
+		).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret)),
+		).
 		Complete(r)
+}
+
+func isGrafanaExtraVarsConfigMap(object client.Object) bool {
+	return object.GetName() == "grafana-extra-vars"
+}
+
+func isGrafanaExtraVarsSecret(object client.Object) bool {
+	return object.GetName() == "grafana-extra-vars-secret"
+}
+
+func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
+	ctx context.Context,
+	object client.Object,
+) []reconcile.Request {
+	platformMonitorings := &qubershiporgv1.PlatformMonitoringList{}
+	if err := r.List(ctx, platformMonitorings); err != nil {
+		r.Log.Error(err, "Cannot list PlatformMonitoring resources for Grafana extra-vars update")
+		return nil
+	}
+
+	requests := make([]reconcile.Request, 0, len(platformMonitorings.Items))
+	for i := range platformMonitorings.Items {
+		platformMonitoring := &platformMonitorings.Items[i]
+		grafanaNamespace := platformMonitoring.GetNamespace()
+		if platformMonitoring.Spec.Grafana != nil && platformMonitoring.Spec.Grafana.Namespace != "" {
+			grafanaNamespace = platformMonitoring.Spec.Grafana.Namespace
+		}
+		if grafanaNamespace == object.GetNamespace() {
+			requests = append(requests, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(platformMonitoring)})
+		}
+	}
+	return requests
 }
 
 func ignoreDeletionPredicate() predicate.Predicate {
