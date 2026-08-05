@@ -180,11 +180,11 @@ fi
 
 conflicting_preinstall_message="$(<"${conflicting_preinstall_error}")"
 case "${conflicting_preinstall_message}" in
-    *"GF_PLUGINS_PREINSTALL_DISABLED=true conflicts with GF_PLUGINS_PREINSTALL or GF_PLUGINS_PREINSTALL_SYNC"*) ;;
-    *)
-        echo "Grafana rejected conflicting preinstall settings without the expected error." >&2
-        exit 1
-        ;;
+*"GF_PLUGINS_PREINSTALL_DISABLED=true conflicts with GF_PLUGINS_PREINSTALL or GF_PLUGINS_PREINSTALL_SYNC"*) ;;
+*)
+    echo "Grafana rejected conflicting preinstall settings without the expected error." >&2
+    exit 1
+    ;;
 esac
 
 echo "Grafana offline settings render verification passed."
