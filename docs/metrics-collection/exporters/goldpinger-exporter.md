@@ -8,9 +8,9 @@ Goldpinger is a Kubernetes DaemonSet that continuously tests and visualizes netw
 in your cluster. It provides a web UI and exposes Prometheus metrics for monitoring network health and diagnosing
 connectivity issues. More details in the [official documentation](https://github.com/bloomberg/goldpinger/blob/master/README.md)
 
-| Application   | Metrics Port | Metrics Endpoint | Need Exporter? | Auth? | Is Exporter Third Party? |
+| Application | Metrics Port | Metrics Endpoint | Need Exporter? | Auth? | Is Exporter Third Party? |
 | ------------- | ------------ | --------------- | -------------- | ----- | ------------------------ |
-| Goldpinger    | `8081`       | `/metrics`      | Yes            | No    | Yes                      |
+| Goldpinger | `8081` | `/metrics` | Yes | No | Yes |
 
 ---
 
