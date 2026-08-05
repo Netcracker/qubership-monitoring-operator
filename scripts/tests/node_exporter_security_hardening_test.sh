@@ -13,8 +13,7 @@ render_node_exporter_spec() {
         --api-versions "${platform_api}" \
         --set nodeExporter.install=true \
         --show-only templates/operator/platformmonitoring.yaml \
-        "$@" \
-        | awk '
+        "$@" | awk '
             /^  nodeExporter:$/ { in_node_exporter = 1 }
             in_node_exporter && /^  [a-zA-Z]/ && !/^  nodeExporter:$/ { exit }
             in_node_exporter { print }
