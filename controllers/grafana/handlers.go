@@ -31,27 +31,45 @@ const (
 	grafanaExtraVarsSecretResourceVersionAnnotation    = "monitoring.netcracker.com/grafana-extra-vars-secret-resource-version"
 )
 
+func grafanaPodTemplateAnnotations(manifest *grafv1.Grafana) map[string]string {
+	if manifest == nil || manifest.Spec.Deployment == nil || manifest.Spec.Deployment.Spec.Template == nil {
+		return nil
+	}
+	return manifest.Spec.Deployment.Spec.Template.Annotations
+}
+
 func (r *GrafanaReconciler) addGrafanaExtraVarsResourceVersions(
 	ctx context.Context,
 	namespace string,
 	manifest *grafv1.Grafana,
+	existingAnnotations map[string]string,
 ) error {
 	configMap, err := r.KubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, "grafana-extra-vars", metav1.GetOptions{})
-	if err != nil {
+	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("cannot get Grafana extra-vars ConfigMap: %w", err)
 	}
+	configMapFound := err == nil
 	secret, err := r.KubeClient.CoreV1().Secrets(namespace).Get(ctx, "grafana-extra-vars-secret", metav1.GetOptions{})
-	if err != nil {
+	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("cannot get Grafana extra-vars Secret: %w", err)
 	}
+	secretFound := err == nil
 
 	annotations := manifest.Spec.Deployment.Spec.Template.Annotations
 	if annotations == nil {
 		annotations = make(map[string]string)
 		manifest.Spec.Deployment.Spec.Template.Annotations = annotations
 	}
-	annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation] = configMap.ResourceVersion
-	annotations[grafanaExtraVarsSecretResourceVersionAnnotation] = secret.ResourceVersion
+	if configMapFound {
+		annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation] = configMap.ResourceVersion
+	} else if resourceVersion, ok := existingAnnotations[grafanaExtraVarsConfigMapResourceVersionAnnotation]; ok {
+		annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation] = resourceVersion
+	}
+	if secretFound {
+		annotations[grafanaExtraVarsSecretResourceVersionAnnotation] = secret.ResourceVersion
+	} else if resourceVersion, ok := existingAnnotations[grafanaExtraVarsSecretResourceVersionAnnotation]; ok {
+		annotations[grafanaExtraVarsSecretResourceVersionAnnotation] = resourceVersion
+	}
 	return nil
 }
 
@@ -61,24 +79,32 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
 	}
-	if err = r.addGrafanaExtraVarsResourceVersions(context.TODO(), m.GetNamespace(), m); err != nil {
-		r.Log.Error(err, "Failed adding Grafana extra-vars resource versions")
-		return err
-	}
-
 	// Note: Config.AuthGenericOauth access removed as Config is now runtime.RawExtension in grafana-operator v5
 	// OAuth configuration is handled in manifest.go during Grafana creation
 	// Explicit GVK ensures correct API group (grafana.integreatly.org/v1beta1) for v5
 	e := &grafv1.Grafana{ObjectMeta: m.ObjectMeta}
 	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return r.migrateLegacyGrafanaResources(context.TODO(), cr, m)
-		}
+	err = r.GetResource(e)
+	grafanaExists := err == nil
+	if err != nil && !errors.IsNotFound(err) {
 		return err
+	}
+
+	var existingAnnotations map[string]string
+	if grafanaExists {
+		existingAnnotations = grafanaPodTemplateAnnotations(e)
+	}
+	if err = r.addGrafanaExtraVarsResourceVersions(
+		context.TODO(), m.GetNamespace(), m, existingAnnotations,
+	); err != nil {
+		r.Log.Error(err, "Failed adding Grafana extra-vars resource versions")
+		return err
+	}
+	if !grafanaExists {
+		if err = r.CreateResource(cr, m); err != nil {
+			return err
+		}
+		return r.migrateLegacyGrafanaResources(context.TODO(), cr, m)
 	}
 
 	if applyGrafanaDesiredState(e, m) {
