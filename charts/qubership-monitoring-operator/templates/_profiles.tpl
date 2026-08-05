@@ -4,38 +4,36 @@
 Return resources for monitoring-operator by HWE profile.
 */}}
 {{- define "monitoring.operator.resources" -}}
-  {{- if .Values.monitoringOperator -}}
-    {{- if .Values.monitoringOperator.resources -}}
-      {{- toYaml .Values.monitoringOperator.resources | nindent 12 }}
-    {{- else if eq .Values.global.profile "small" -}}
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 70m
-              memory: 256Mi
-    {{- else if eq .Values.global.profile "medium" -}}
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
-    {{- else if eq .Values.global.profile "large" -}}
-            requests:
-              cpu: 70m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
-    {{- else -}}
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
-    {{- end -}}
+  {{- if .Values.monitoringOperator.resources -}}
+    {{- toYaml .Values.monitoringOperator.resources }}
+  {{- else if eq .Values.global.profile "small" -}}
+requests:
+  cpu: 50m
+  memory: 64Mi
+limits:
+  cpu: 70m
+  memory: 256Mi
+  {{- else if eq .Values.global.profile "medium" -}}
+requests:
+  cpu: 50m
+  memory: 64Mi
+limits:
+  cpu: 100m
+  memory: 256Mi
+  {{- else if eq .Values.global.profile "large" -}}
+requests:
+  cpu: 70m
+  memory: 64Mi
+limits:
+  cpu: 200m
+  memory: 256Mi
+  {{- else -}}
+requests:
+  cpu: 50m
+  memory: 64Mi
+limits:
+  cpu: 100m
+  memory: 256Mi
   {{- end -}}
 {{- end -}}
 
