@@ -1,6 +1,6 @@
 {{ $.Chart.Name }} has been installed. Check pod statuses by running the command:
 kubectl --namespace {{ $.Release.Namespace }} get pods -l "app.kubernetes.io/part-of=monitoring"
-{{- if and .Values.prometheus .Values.prometheus.install }}
+{{- with include "monitoring.prometheusDeprecationWarning" . }}
 
-WARNING: Managed Prometheus is deprecated and will be removed in the next release. Migrate to VictoriaMetrics.
+WARNING: {{ . }}
 {{- end }}

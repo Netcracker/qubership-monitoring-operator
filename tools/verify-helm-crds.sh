@@ -189,6 +189,18 @@ verify_kubernetes_version_guard "${chart_dir}"
 verify_kubernetes_version_guard "${chart_dir}/../qubership-monitoring-crds"
 
 prometheus_deprecation_warning="Managed Prometheus is deprecated and will be removed in the next release. Migrate to VictoriaMetrics."
+prometheus_deprecation_chart="${temporary_dir}/prometheus-deprecation-chart"
+
+cp -R "${chart_dir}" "${prometheus_deprecation_chart}"
+cat >"${prometheus_deprecation_chart}/templates/prometheus-deprecation-test.yaml" <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-deprecation-notes-test
+data:
+  warning: |-
+{{ include "monitoring.prometheusDeprecationWarning" . | nindent 4 }}
+EOF
 
 verify_prometheus_deprecation_note() {
     local case_name="$1"
@@ -196,9 +208,9 @@ verify_prometheus_deprecation_note() {
     shift 2
 
     local output_file="${temporary_dir}/prometheus-deprecation-${case_name}.txt"
-    helm install "prometheus-deprecation-${case_name}" "${chart_dir}" \
+    helm template "prometheus-deprecation-${case_name}" "${prometheus_deprecation_chart}" \
         --namespace monitoring \
-        --dry-run \
+        --show-only templates/prometheus-deprecation-test.yaml \
         "$@" \
         >"${output_file}"
 
