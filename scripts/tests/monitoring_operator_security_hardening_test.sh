@@ -39,6 +39,8 @@ assert_contains "${kubernetes_manifest}" "readOnlyRootFilesystem: true"
 assert_contains "${kubernetes_manifest}" "- ALL"
 assert_contains "${kubernetes_manifest}" "mountPath: /tmp"
 assert_contains "${kubernetes_manifest}" "sizeLimit: 16Mi"
+assert_contains "${kubernetes_manifest}" "ephemeral-storage: 16Mi"
+assert_contains "${kubernetes_manifest}" "ephemeral-storage: 128Mi"
 
 openshift_manifest="$(
     helm template monitoring-operator "${chart_dir}" \

@@ -69,7 +69,7 @@ configuration proxies requests to remote Prometheus-compatible servers and does 
 
 Do not add `--storage.tsdb.path` through `extraArgs` unless it points to a writable mounted path. This chart does not
 currently expose a dedicated data volume for Promxy. Using a path on the read-only root filesystem prevents startup;
-using `/tmp` makes the data ephemeral and subjects it to the `100Mi` limit. Persistent local storage requires a chart
+using `/tmp` makes the data ephemeral and subjects it to the `100Mi` limit. Local persistent storage requires a chart
 extension that adds a dedicated volume and mount.
 
 Promxy also needs network access to every configured server group. Any NetworkPolicy must allow those outbound
