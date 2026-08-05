@@ -42,13 +42,70 @@ func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
 		}},
 	)}
 
-	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest)
+	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "config-version",
 		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation])
 	assert.Equal(t, "secret-version",
 		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsSecretResourceVersionAnnotation])
 	assert.Equal(t, "retained", manifest.Spec.Deployment.Spec.Template.Annotations["example.com/user-annotation"])
+}
+
+func TestAddGrafanaExtraVarsResourceVersionsWhenResourcesAreMissing(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
+			Annotations: map[string]string{"example.com/user-annotation": "retained"},
+		}},
+	})
+	assert.NoError(t, err)
+
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest, nil)
+	assert.NoError(t, err)
+	assert.NotContains(t, manifest.Spec.Deployment.Spec.Template.Annotations,
+		grafanaExtraVarsConfigMapResourceVersionAnnotation)
+	assert.NotContains(t, manifest.Spec.Deployment.Spec.Template.Annotations,
+		grafanaExtraVarsSecretResourceVersionAnnotation)
+	assert.Equal(t, "retained", manifest.Spec.Deployment.Spec.Template.Annotations["example.com/user-annotation"])
+}
+
+func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	assert.NoError(t, err)
+
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
+		&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name: "grafana-extra-vars", Namespace: "monitoring", ResourceVersion: "new-config-version",
+		}},
+	)}
+	existingAnnotations := map[string]string{
+		grafanaExtraVarsConfigMapResourceVersionAnnotation: "old-config-version",
+		grafanaExtraVarsSecretResourceVersionAnnotation:    "old-secret-version",
+	}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(
+		context.Background(), "monitoring", manifest, existingAnnotations)
+	assert.NoError(t, err)
+	assert.Equal(t, "new-config-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation])
+	assert.Equal(t, "old-secret-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsSecretResourceVersionAnnotation])
+}
+
+func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	assert.NoError(t, err)
+	manifest.Spec.Deployment.Spec.Template = nil
+
+	assert.Nil(t, grafanaPodTemplateAnnotations(manifest))
 }
 
 var (
