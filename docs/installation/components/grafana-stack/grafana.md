@@ -1,3 +1,7 @@
+<!-- This fragment is included in assembled documentation, where its heading level and cross-file anchors are valid. -->
+<!-- Keep the existing wide reference tables unchanged to avoid unrelated formatting churn. -->
+<!-- markdownlint-disable MD041 MD051 MD060 -->
+
 ### grafana
 
 <!-- markdownlint-disable line-length -->
@@ -119,7 +123,6 @@ version of that image and update `grafana.operator.initContainerImage` in this c
 
 These settings do not provide general network isolation. Data sources, OAuth providers, webhooks, and user actions can
 still initiate external requests. Use a NetworkPolicy or an equivalent firewall to enforce production egress rules.
-
 
 #### grafana-operator
 
