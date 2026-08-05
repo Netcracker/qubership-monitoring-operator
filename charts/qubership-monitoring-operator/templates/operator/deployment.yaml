@@ -76,8 +76,23 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+          {{- $resources := include "monitoring.operator.resources" . | fromYaml }}
+          {{- $requests := get $resources "requests" | default (dict) }}
+          {{- $limits := get $resources "limits" | default (dict) }}
           resources:
-            {{ include "monitoring.operator.resources" . }}
+            requests:
+              ephemeral-storage: {{ get $requests "ephemeral-storage" | default "16Mi" }}
+              {{- with omit $requests "ephemeral-storage" }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            limits:
+              ephemeral-storage: {{ get $limits "ephemeral-storage" | default "128Mi" }}
+              {{- with omit $limits "ephemeral-storage" }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with omit $resources "requests" "limits" }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
