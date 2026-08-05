@@ -192,15 +192,19 @@ prometheus_deprecation_warning="Managed Prometheus is deprecated and will be rem
 prometheus_deprecation_chart="${temporary_dir}/prometheus-deprecation-chart"
 
 cp -R "${chart_dir}" "${prometheus_deprecation_chart}"
-cat >"${prometheus_deprecation_chart}/templates/prometheus-deprecation-test.yaml" <<'EOF'
+prometheus_deprecation_notes="${prometheus_deprecation_chart}/templates/NOTES.txt"
+prometheus_deprecation_test_template="${prometheus_deprecation_chart}/templates/prometheus-deprecation-test.yaml"
+{
+    cat <<'EOF'
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-deprecation-notes-test
 data:
-  warning: |-
-{{ include "monitoring.prometheusDeprecationWarning" . | nindent 4 }}
+  notes: |-
 EOF
+    sed 's/^/    /' "${prometheus_deprecation_notes}"
+} >"${prometheus_deprecation_test_template}"
 
 verify_prometheus_deprecation_note() {
     local case_name="$1"
