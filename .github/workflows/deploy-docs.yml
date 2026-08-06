@@ -11,6 +11,7 @@ on:
       - 'site/mkdocs.yml'
       - 'site/requirements.txt'
       - '.github/workflows/deploy-docs.yml'
+      - 'Makefile'
   pull_request:
     branches:
       - '**'
@@ -19,6 +20,7 @@ on:
       - 'site/mkdocs.yml'
       - 'site/requirements.txt'
       - '.github/workflows/deploy-docs.yml'
+      - 'Makefile'
 
 permissions:
   contents: read
@@ -55,7 +57,7 @@ jobs:
           python-version: 3.x
 
       - name: Setup cache
-        run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+        run: echo "cache_id=$(date --utc '+%V')" >> "$GITHUB_ENV"
 
       - name: Cache MkDocs
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
