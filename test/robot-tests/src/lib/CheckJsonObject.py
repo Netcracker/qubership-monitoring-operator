@@ -356,7 +356,7 @@ def add_security_context_to_deployment(path_to_file, namespace):
             fs_group = pod.spec.security_context.fs_group
             run_as_user = pod.spec.security_context.run_as_user
             break
-    if fs_group == None and run_as_user == None:
+    if fs_group is None and run_as_user is None:
         return deployment
     deployment['spec']['template']['spec']['securityContext'] = dict(fsGroup=fs_group, runAsUser=run_as_user)
     return deployment
