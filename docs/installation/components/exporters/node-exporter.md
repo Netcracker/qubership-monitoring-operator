@@ -1,4 +1,4 @@
-### node-exporter
+# node-exporter
 
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |
@@ -17,7 +17,7 @@
 | collectorTextfileDirectory | Directory for textfile. For more information, refer to [https://github.com/prometheus/node_exporter#textfile-collector](https://github.com/prometheus/node_exporter#textfile-collector)                                | string                                                                                                                       |
 | extraArgs                  | Additional arguments for node-exporter container. For example: "--collector.systemd".                                                                                                                                  | list[string]                                                                                                                 |
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                  | string                                                                                                                       |
-| serviceMonitor             | Service monitor configuration for pulling metrics.                                                                                                                                                                     | [Monitor](#monitor)                                                                                                          |
+| serviceMonitor             | Service monitor configuration for pulling metrics.                                                                                                                                                                     | [Monitor](../../api/platform-monitoring.md#monitor)                                                                                                          |
 <!-- markdownlint-enable line-length -->
 
 #### Security considerations
