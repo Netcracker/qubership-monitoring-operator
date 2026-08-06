@@ -20,6 +20,7 @@ on:
       - 'controllers/**'
       - 'charts/**'
       - 'tools/crd-update/**'
+      - 'tools/verify-grafana-offline-settings.sh'
       - 'tools/verify-helm-crds.sh'
       - 'Makefile'
   push:
@@ -35,6 +36,7 @@ on:
       - 'controllers/**'
       - 'charts/**'
       - 'tools/crd-update/**'
+      - 'tools/verify-grafana-offline-settings.sh'
       - 'tools/verify-helm-crds.sh'
       - 'Makefile'
   workflow_dispatch: null
@@ -74,6 +76,9 @@ jobs:
 
       - name: Verify required CRDs
         run: tools/verify-helm-crds.sh
+
+      - name: Verify Grafana offline settings
+        run: tools/verify-grafana-offline-settings.sh
 
       - name: Copy examples for ct in /charts/qubership-monitoring-operator/ci/
         run: |
