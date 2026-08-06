@@ -65,6 +65,14 @@ type PlatformMonitoringReconciler struct {
 	DiscoveryClient discovery.DiscoveryInterface
 }
 
+const (
+	prometheusDeprecationType    = "Deprecated"
+	prometheusDeprecationStatus  = "True"
+	prometheusDeprecationReason  = "PrometheusDeprecated"
+	prometheusDeprecationMessage = "Managed Prometheus is deprecated and will be removed in the next release. " +
+		"Migrate to VictoriaMetrics."
+)
+
 // +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings/finalizers,verbs=update
@@ -92,7 +100,9 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
+	managedPrometheusEnabled := managedPrometheusExplicitlyEnabled(customResourceInstance)
 	customResourceInstance.FillEmptyWithDefaults()
+	r.syncPrometheusDeprecationCondition(customResourceInstance, managedPrometheusEnabled)
 
 	r.Log.Info("Reconciliation started")
 	if err = r.updateStatus(customResourceInstance, "In progress", "False", "ReconcileCycleStatus", "Monitoring service reconcile cycle in progress"); err != nil {
@@ -359,6 +369,43 @@ func (r *PlatformMonitoringReconciler) removeStatus(customResourceInstance *qube
 		return true
 	}
 	return false
+}
+
+func managedPrometheusExplicitlyEnabled(customResourceInstance *qubershiporgv1.PlatformMonitoring) bool {
+	return customResourceInstance.Spec.Prometheus != nil &&
+		customResourceInstance.Spec.Prometheus.Install != nil &&
+		*customResourceInstance.Spec.Prometheus.Install
+}
+
+func (r *PlatformMonitoringReconciler) syncPrometheusDeprecationCondition(
+	customResourceInstance *qubershiporgv1.PlatformMonitoring,
+	enabled bool,
+) bool {
+	if !enabled {
+		return r.removeStatus(customResourceInstance, prometheusDeprecationReason)
+	}
+
+	idx, existingCondition := r.getCondition(customResourceInstance, prometheusDeprecationReason)
+	if existingCondition != nil &&
+		existingCondition.Type == prometheusDeprecationType &&
+		existingCondition.Status == prometheusDeprecationStatus &&
+		existingCondition.Message == prometheusDeprecationMessage {
+		return false
+	}
+
+	condition := qubershiporgv1.PlatformMonitoringCondition{
+		Type:               prometheusDeprecationType,
+		Status:             prometheusDeprecationStatus,
+		Reason:             prometheusDeprecationReason,
+		Message:            prometheusDeprecationMessage,
+		LastTransitionTime: metav1.Now().String(),
+	}
+	if existingCondition == nil {
+		customResourceInstance.Status.Conditions = append(customResourceInstance.Status.Conditions, condition)
+	} else {
+		customResourceInstance.Status.Conditions[idx] = condition
+	}
+	return true
 }
 
 // updateStatus updates condition of custom resource instance

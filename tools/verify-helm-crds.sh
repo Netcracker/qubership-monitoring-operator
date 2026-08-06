@@ -188,6 +188,52 @@ verify_kubernetes_version_guard() {
 verify_kubernetes_version_guard "${chart_dir}"
 verify_kubernetes_version_guard "${chart_dir}/../qubership-monitoring-crds"
 
+prometheus_deprecation_warning="Managed Prometheus is deprecated and will be removed in the next release. Migrate to VictoriaMetrics."
+prometheus_deprecation_chart="${temporary_dir}/prometheus-deprecation-chart"
+
+cp -R "${chart_dir}" "${prometheus_deprecation_chart}"
+prometheus_deprecation_notes="${prometheus_deprecation_chart}/templates/NOTES.txt"
+prometheus_deprecation_test_template="${prometheus_deprecation_chart}/templates/prometheus-deprecation-test.yaml"
+{
+    cat <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-deprecation-notes-test
+data:
+  notes: |-
+EOF
+    sed 's/^/    /' "${prometheus_deprecation_notes}"
+} >"${prometheus_deprecation_test_template}"
+
+verify_prometheus_deprecation_note() {
+    local case_name="$1"
+    local expected_count="$2"
+    shift 2
+
+    local output_file="${temporary_dir}/prometheus-deprecation-${case_name}.txt"
+    helm template "prometheus-deprecation-${case_name}" "${prometheus_deprecation_chart}" \
+        --namespace monitoring \
+        --show-only templates/prometheus-deprecation-test.yaml \
+        "$@" \
+        >"${output_file}"
+
+    local actual_count
+    actual_count="$(grep -Fc "${prometheus_deprecation_warning}" "${output_file}" || true)"
+    if [[ "${actual_count}" -ne "${expected_count}" ]]; then
+        echo "The ${case_name} Helm notes contain ${actual_count} Prometheus deprecation warnings;" \
+            "expected ${expected_count}." >&2
+        exit 1
+    fi
+}
+
+verify_prometheus_deprecation_note default 0
+verify_prometheus_deprecation_note disabled 0 --set prometheus.install=false
+verify_prometheus_deprecation_note enabled 1 --set prometheus.install=true
+verify_prometheus_deprecation_note with-victoriametrics 1 \
+    --set prometheus.install=true \
+    --set victoriametrics.vmOperator.install=true
+
 verify_servicemonitor_crd_count() {
     local prometheus_install="$1"
     local victoriametrics_install="$2"
