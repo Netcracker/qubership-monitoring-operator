@@ -115,7 +115,7 @@ if ! "${yq_binary}" eval-all -e "${required_config_expression}" "${default_manif
 fi
 
 export EXPECTED_GRAFANA_RENDERER_URL="http://grafana-image-renderer:8081/render" # NOSONAR -- cluster-local service
-export EXPECTED_GRAFANA_CALLBACK_URL="http://grafana-service:3000/"             # NOSONAR -- cluster-local service
+export EXPECTED_GRAFANA_CALLBACK_URL="http://grafana-service:3000/"              # NOSONAR -- cluster-local service
 if ! "${yq_binary}" eval-all -e \
     'select(.kind == "ConfigMap" and .metadata.name == "grafana-extra-vars") |
         .data.UNRELATED_CONFIG_VALUE == "retained" and
