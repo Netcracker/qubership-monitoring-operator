@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +36,19 @@ func TestRequestsForGrafanaExtraVars(t *testing.T) {
 	assert.Equal(t, []reconcile.Request{{NamespacedName: types.NamespacedName{
 		Name: "custom", Namespace: "monitoring",
 	}}}, requests)
+}
+
+func TestRequestsForGrafanaExtraVarsReturnsNoRequestsWhenListFails(t *testing.T) {
+	reconciler := &PlatformMonitoringReconciler{
+		Client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build(),
+		Log:    logr.Discard(),
+	}
+
+	requests := reconciler.requestsForPlatformMonitorings(context.Background(), &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars", Namespace: "grafana"},
+	})
+
+	assert.Empty(t, requests)
 }
 
 func TestGrafanaExtraVarsResourcePredicates(t *testing.T) {
