@@ -20,7 +20,7 @@
 | serviceMonitor | Service monitor configuration for pulling metrics. | [Monitor](../../../api/platform-monitoring.md#monitor) |
 <!-- markdownlint-enable line-length -->
 
-#### Security considerations
+## Security considerations
 
 Node Exporter reads host-level metrics that no container-scoped view can provide: process and network state from the
 node's own namespaces, and filesystem statistics from the node's root, `/proc`, `/sys`, and `/run`. The DaemonSet
