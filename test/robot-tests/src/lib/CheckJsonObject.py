@@ -1,10 +1,10 @@
 import base64
 import json
 import re
+from urllib.parse import urlparse
 
 import yaml
 from PlatformLibrary import PlatformLibrary
-from urllib.parse import urlparse
 
 
 def get_object_data(response):

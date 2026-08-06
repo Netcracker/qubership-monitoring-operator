@@ -3,7 +3,6 @@ import types
 import unittest
 from unittest import mock
 
-
 # PlatformLibrary is provided by the integration-tests base image, not requirements.txt.
 _fake_platform = types.ModuleType("PlatformLibrary")
 
