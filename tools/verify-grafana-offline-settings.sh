@@ -114,6 +114,8 @@ if ! "${yq_binary}" eval-all -e "${required_config_expression}" "${default_manif
     exit 1
 fi
 
+export EXPECTED_GRAFANA_RENDERER_URL="http://grafana-image-renderer:8081/render" # NOSONAR -- cluster-local service
+export EXPECTED_GRAFANA_CALLBACK_URL="http://grafana-service:3000/"             # NOSONAR -- cluster-local service
 if ! "${yq_binary}" eval-all -e \
     'select(.kind == "ConfigMap" and .metadata.name == "grafana-extra-vars") |
         .data.UNRELATED_CONFIG_VALUE == "retained" and
@@ -123,8 +125,8 @@ if ! "${yq_binary}" eval-all -e \
         .data.GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES == "true" and
         .data.GF_ANALYTICS_REPORTING_ENABLED == "true" and
         .data.GF_NEWS_NEWS_FEED_ENABLED == "true" and
-        .data.GF_RENDERING_SERVER_URL == "http://grafana-image-renderer:8081/render" and
-        .data.GF_RENDERING_CALLBACK_URL == "http://grafana-service:3000/"' \
+        .data.GF_RENDERING_SERVER_URL == strenv(EXPECTED_GRAFANA_RENDERER_URL) and
+        .data.GF_RENDERING_CALLBACK_URL == strenv(EXPECTED_GRAFANA_CALLBACK_URL)' \
     "${override_manifest}" >/dev/null; then
     echo "The rendered grafana-extra-vars ConfigMap does not preserve unrelated values." >&2
     exit 1

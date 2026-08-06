@@ -331,16 +331,10 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(ignoreDeletionPredicate())).
-		Watches(
-			&corev1.ConfigMap{},
-			handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
-			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap)),
-		).
-		Watches(
-			&corev1.Secret{},
-			handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
-			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret)),
-		).
+		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap))).
+		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret))).
 		Complete(r)
 }
 

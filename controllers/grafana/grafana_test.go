@@ -10,6 +10,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
+	"github.com/go-logr/logr"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,8 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -98,6 +101,55 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t
 		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsSecretResourceVersionAnnotation])
 }
 
+func TestAddGrafanaExtraVarsResourceVersionsPreservesMissingConfigMapVersion(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	assert.NoError(t, err)
+
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
+		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name: "grafana-extra-vars-secret", Namespace: "monitoring", ResourceVersion: "new-secret-version",
+		}},
+	)}
+	existingAnnotations := map[string]string{
+		grafanaExtraVarsConfigMapResourceVersionAnnotation: "old-config-version",
+	}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(
+		context.Background(), "monitoring", manifest, existingAnnotations)
+	assert.NoError(t, err)
+	assert.Equal(t, "old-config-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation])
+	assert.Equal(t, "new-secret-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsSecretResourceVersionAnnotation])
+}
+
+func TestAddGrafanaExtraVarsResourceVersionsInitializesAnnotations(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	assert.NoError(t, err)
+	manifest.Spec.Deployment.Spec.Template.Annotations = nil
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
+		&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name: "grafana-extra-vars", Namespace: "monitoring", ResourceVersion: "config-version",
+		}},
+		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name: "grafana-extra-vars-secret", Namespace: "monitoring", ResourceVersion: "secret-version",
+		}},
+	)}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "config-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation])
+	assert.Equal(t, "secret-version",
+		manifest.Spec.Deployment.Spec.Template.Annotations[grafanaExtraVarsSecretResourceVersionAnnotation])
+}
+
 func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
@@ -107,6 +159,108 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest.Spec.Deployment.Spec.Template = nil
 
 	assert.Nil(t, grafanaPodTemplateAnnotations(manifest))
+	manifest, err = grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, grafanaPodTemplateAnnotations(manifest))
+}
+
+func TestHandleGrafanaCreatesResourceWithoutExtraVarsResources(t *testing.T) {
+	testScheme := runtime.NewScheme()
+	assert.NoError(t, monv1.AddToScheme(testScheme))
+	assert.NoError(t, grafv1.AddToScheme(testScheme))
+	controllerClient := fake.NewClientBuilder().WithScheme(testScheme).Build()
+	reconciler := &GrafanaReconciler{
+		KubeClient: kubernetesfake.NewSimpleClientset(),
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: controllerClient,
+			Scheme: testScheme,
+			Log:    logr.Discard(),
+		},
+	}
+	platformMonitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+
+	err := reconciler.handleGrafana(platformMonitoring)
+	assert.NoError(t, err)
+
+	created := &grafv1.Grafana{}
+	err = controllerClient.Get(context.Background(), types.NamespacedName{
+		Name: "grafana", Namespace: "monitoring",
+	}, created)
+	assert.NoError(t, err)
+	assert.NotNil(t, created.Spec.Deployment)
+}
+
+func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) {
+	testScheme := runtime.NewScheme()
+	assert.NoError(t, monv1.AddToScheme(testScheme))
+	assert.NoError(t, grafv1.AddToScheme(testScheme))
+	platformMonitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+	existing, err := grafana(platformMonitoring)
+	assert.NoError(t, err)
+	existing.Spec.Deployment.Spec.Template = nil
+	controllerClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
+	kubeClient := kubernetesfake.NewSimpleClientset()
+	kubeClient.PrependReactor("get", "configmaps", func(k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, apierrors.NewForbidden(
+			schema.GroupResource{Resource: "configmaps"}, "grafana-extra-vars", assert.AnError)
+	})
+	reconciler := &GrafanaReconciler{
+		KubeClient: kubeClient,
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: controllerClient,
+			Scheme: testScheme,
+			Log:    logr.Discard(),
+		},
+	}
+
+	err = reconciler.handleGrafana(platformMonitoring)
+	assert.ErrorContains(t, err, "cannot get Grafana extra-vars ConfigMap")
+}
+
+func TestHandleGrafanaReturnsClientError(t *testing.T) {
+	reconciler := &GrafanaReconciler{
+		KubeClient: kubernetesfake.NewSimpleClientset(),
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build(),
+			Scheme: runtime.NewScheme(),
+			Log:    logr.Discard(),
+		},
+	}
+	platformMonitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+
+	err := reconciler.handleGrafana(platformMonitoring)
+	assert.Error(t, err)
+}
+
+func TestAddGrafanaExtraVarsResourceVersionsReturnsSecretAPIError(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	assert.NoError(t, err)
+	kubeClient := kubernetesfake.NewSimpleClientset(&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+		Name: "grafana-extra-vars", Namespace: "monitoring",
+	}})
+	kubeClient.PrependReactor("get", "secrets", func(k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, apierrors.NewForbidden(
+			schema.GroupResource{Resource: "secrets"}, "grafana-extra-vars-secret", assert.AnError)
+	})
+	reconciler := &GrafanaReconciler{KubeClient: kubeClient}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest, nil)
+	assert.ErrorContains(t, err, "cannot get Grafana extra-vars Secret")
 }
 
 var (
