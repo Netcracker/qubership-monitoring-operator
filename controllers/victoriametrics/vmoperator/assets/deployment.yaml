@@ -53,6 +53,7 @@ spec:
           value: 50Mi
         - name: VM_VMALERTMANAGER_CONFIGRELOADERMEMORY
           value: 50Mi
+        # renovate-vm-operator
         image: victoriametrics/operator:v0.73.1
         imagePullPolicy: IfNotPresent
         name: victoriametrics-operator
