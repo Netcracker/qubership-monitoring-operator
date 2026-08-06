@@ -71,13 +71,22 @@ spec:
               value: "true"
             - name: GRAFANA_HOST
               {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
+                {{- if contains "*" .Values.grafana.ingress.host }}
+              value: ""
+                {{- else }}
               value: {{ .Values.grafana.ingress.host | quote }}
+                {{- end }}
               {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
-              value: {{ (index .Values.grafana.ingress.rules 0).host }}
+                {{- $rulesHost := (index .Values.grafana.ingress.rules 0).host }}
+                {{- if contains "*" $rulesHost }}
+              value: ""
+                {{- else }}
+              value: {{ $rulesHost | quote }}
+                {{- end }}
               {{- else if and .Values.grafana.httpRoute.install .Values.grafana.httpRoute.hostnames }}
               value: {{ .Values.grafana.httpRoute.hostnames | first | quote }}
               {{- else }}
-              value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
+              value: {{ printf "grafana-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
               {{- end }}
             {{- else }}
             - name: GRAFANA

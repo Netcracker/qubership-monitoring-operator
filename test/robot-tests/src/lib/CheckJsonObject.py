@@ -1,10 +1,10 @@
 import base64
 import json
 import re
+from urllib.parse import urlparse
 
 import yaml
 from PlatformLibrary import PlatformLibrary
-from urllib.parse import urlparse
 
 
 def get_object_data(response):
@@ -104,6 +104,86 @@ def _get_http_route_hostnames(k8s_lib, namespace, base_name):
     return obj.get("spec", {}).get("hostnames") or []
 
 
+def _is_wildcard_host(host_or_url):
+    """True if the hostname part of host_or_url contains '*'."""
+    if not host_or_url:
+        return False
+    value = str(host_or_url).strip()
+    parsed = urlparse(value if "://" in value else f"//{value}", scheme="")
+    hostname = parsed.hostname or parsed.netloc or value
+    # urlparse may leave userinfo/port in netloc; strip those for the check
+    if "@" in hostname:
+        hostname = hostname.rsplit("@", 1)[-1]
+    if ":" in hostname and not hostname.startswith("["):
+        hostname = hostname.split(":", 1)[0]
+    return "*" in hostname
+
+
+def _ingress_lb_address(k8s_lib, name, namespace):
+    """Return Ingress status.loadBalancer address (hostname preferred, else ip)."""
+    try:
+        ingress = k8s_lib.get_ingress(name, namespace)
+    except Exception:
+        return ""
+    status = getattr(ingress, "status", None)
+    if status is None:
+        return ""
+    load_balancer = getattr(status, "load_balancer", None)
+    if load_balancer is None:
+        return ""
+    entries = getattr(load_balancer, "ingress", None) or []
+    if not entries:
+        return ""
+    entry = entries[0]
+    hostname = getattr(entry, "hostname", None) or ""
+    if hostname:
+        return hostname
+    return getattr(entry, "ip", None) or ""
+
+
+def _resolve_ingress_url(url_or_host, k8s_lib, ingress_name, namespace):
+    """Replace a wildcard Ingress host/URL with the LB address from status.
+
+    Non-wildcard values are returned unchanged. When the host contains '*',
+    return the LB hostname/ip (preserving http/https scheme when present).
+    Return "" when the Ingress has no ready LB address so callers can retry.
+    """
+    if not url_or_host or not _is_wildcard_host(url_or_host):
+        return url_or_host or ""
+    lb_address = _ingress_lb_address(k8s_lib, ingress_name, namespace)
+    if not lb_address:
+        return ""
+    value = str(url_or_host).strip()
+    if value.lower().startswith("https://"):
+        return f"https://{lb_address}"
+    if value.lower().startswith("http://"):
+        return f"http://{lb_address}"
+    return lb_address
+
+
+def resolve_ingress_host(host, ingress_name, namespace):
+    """Robot-callable: resolve empty/wildcard host from Ingress LB status.
+
+    Non-empty non-wildcard hosts are returned unchanged. Empty or wildcard
+    hosts are replaced with status.loadBalancer address for the named Ingress.
+    """
+    k8s_lib = PlatformLibrary()
+    host = host or ""
+    if host and not _is_wildcard_host(host):
+        return host
+    # Empty or wildcard: resolve from Ingress status.loadBalancer
+    if host and _is_wildcard_host(host):
+        resolved = _resolve_ingress_url(host, k8s_lib, ingress_name, namespace)
+    else:
+        resolved = _ingress_lb_address(k8s_lib, ingress_name, namespace)
+    if not resolved:
+        raise AssertionError(
+            f"Ingress {namespace}/{ingress_name} has no status.loadBalancer "
+            "address yet (needed for empty/wildcard GRAFANA_HOST)"
+        )
+    return resolved
+
+
 def check_cr_service_exists(response, service, parentservice=None):
     if service in response.keys():
         service_child = response.get(service)
@@ -161,7 +241,8 @@ def check_route_or_ingress(response, service_in_cr, service, namespace, parentse
         if not _is_install_enabled(ingress_cfg.get('install')):
             return ""
     if (check_cr_service_exists(sub_service, 'ingress')):
-        return k8s_lib.get_ingress_url(service, namespace) or ""
+        ingress_url = k8s_lib.get_ingress_url(service, namespace) or ""
+        return _resolve_ingress_url(ingress_url, k8s_lib, service, namespace)
     return ""
 
 
@@ -275,7 +356,7 @@ def add_security_context_to_deployment(path_to_file, namespace):
             fs_group = pod.spec.security_context.fs_group
             run_as_user = pod.spec.security_context.run_as_user
             break
-    if fs_group == None and run_as_user == None:
+    if fs_group is None and run_as_user is None:
         return deployment
     deployment['spec']['template']['spec']['securityContext'] = dict(fsGroup=fs_group, runAsUser=run_as_user)
     return deployment
