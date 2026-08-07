@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
+	k8sptr "k8s.io/utils/ptr"
 )
 
 //go:embed  assets/*.yaml
@@ -28,6 +29,10 @@ var assets embed.FS
 const (
 	grafanaCleanupLabelKey   = "app.kubernetes.io/managed-by-operator"
 	grafanaCleanupLabelValue = "monitoring-operator"
+
+	// grafanaLegacySecurityContextID is the UID/GID the v4 Grafana deployment ran as.
+	// Kept as the default so upgrades can still read data on an existing PVC.
+	grafanaLegacySecurityContextID int64 = 2000
 )
 
 type grafanaDataStorage struct {
@@ -187,6 +192,13 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 		container := ensureGrafanaContainerInitialized(podSpec)
 		podSpec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
 		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		if !isOpenShift {
+			// Grafana keeps running as UID/GID 2000 (instead of the shared hardening default) so that
+			// upgrades from the v4 deployment can still read data on an existing PVC created under 2000.
+			podSpec.SecurityContext.RunAsUser = k8sptr.To(grafanaLegacySecurityContextID)
+			podSpec.SecurityContext.RunAsGroup = k8sptr.To(grafanaLegacySecurityContextID)
+			podSpec.SecurityContext.FSGroup = k8sptr.To(grafanaLegacySecurityContextID)
+		}
 
 		hasTmpVolume := false
 		for _, volume := range podSpec.Volumes {
