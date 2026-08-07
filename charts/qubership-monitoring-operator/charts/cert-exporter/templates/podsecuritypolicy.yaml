@@ -22,12 +22,8 @@ spec:
   hostNetwork: false
   hostIPC: false
   hostPID: false
-  hostPorts:
-    - min: 0
-      max: 65535
   runAsUser:
-    # Permits the container to run with root privileges as well.
-    rule: 'RunAsAny'
+    rule: 'MustRunAsNonRoot'
   seLinux:
     # This policy assumes the nodes are using AppArmor rather than SELinux.
     rule: 'RunAsAny'
@@ -42,6 +38,10 @@ spec:
       - min: 0
         max: 65535
   readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  allowedCapabilities: []
+  requiredDropCapabilities:
+    - 'ALL'
       {{- end }}
     {{- end }}
   {{- end }}

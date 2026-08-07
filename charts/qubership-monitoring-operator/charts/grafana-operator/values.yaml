@@ -250,6 +250,9 @@ extraVars:
   GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json
   GF_LIVE_ALLOWED_ORIGINS: "*"
   GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: false
+  GF_PLUGINS_PLUGIN_ADMIN_ENABLED: false
+  GF_PLUGINS_PREINSTALL_AUTO_UPDATE: false
+  GF_PLUGINS_PREINSTALL_DISABLED: true
   GF_SECURITY_ANGULAR_SUPPORT_ENABLED: true
   GF_SECURITY_CONTENT_SECURITY_POLICY: true
   GF_SECURITY_COOKIE_SECURE: true
@@ -702,6 +705,7 @@ imageRenderer:
   # extra environment variables
   extraEnvs:
     LOG_LEVEL: info
+    BROWSER_FLAGS: --ignore-certificate-errors --disable-dev-shm-usage --disable-accelerated-2d-canvas --window-size=1280x758
     RENDERING_ARGS: --no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--disable-gpu,--window-size=1280x758
     IGNORE_HTTPS_ERRORS: true
     # RENDERING_MODE: clustered

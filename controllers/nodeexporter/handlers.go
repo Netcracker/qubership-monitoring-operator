@@ -3,6 +3,7 @@ package nodeexporter
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	secv1 "github.com/openshift/api/security/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -97,8 +98,56 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 	return nil
 }
 
+func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
+	m, err := nodeExporterSecurityContextConstraints()
+	if err != nil {
+		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
+		return err
+	}
+
+	utils.SetLabelsForResource(m, utils.BaseOnlyLabelInput(m.GetName(), utils.NodeExporterComponentName), nil)
+
+	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	//Set parameters
+	e.SetLabels(m.GetLabels())
+	utils.ApplySecurityContextConstraintsPolicy(e, m)
+
+	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
+	m, err := nodeExporterSecurityContextConstraints()
+	if err != nil {
+		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
+		return err
+	}
+	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	if err = r.DeleteResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
+	m, err := nodeExporterDaemonSet(cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
@@ -250,7 +299,7 @@ func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) deleteDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
+	m, err := nodeExporterDaemonSet(cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err

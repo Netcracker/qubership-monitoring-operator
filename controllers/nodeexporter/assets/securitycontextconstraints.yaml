@@ -1,0 +1,41 @@
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: node-exporter
+  labels:
+    app.kubernetes.io/component: node-exporter
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+priority: 0
+users: []
+groups: []
+readOnlyRootFilesystem: true
+allowPrivilegeEscalation: false
+defaultAllowPrivilegeEscalation: false
+requiredDropCapabilities:
+- ALL
+defaultAddCapabilities: []
+allowedCapabilities: []
+runAsUser:
+  type: MustRunAsRange
+seLinuxContext:
+  type: MustRunAs
+fsGroup:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+seccompProfiles:
+- runtime/default
+allowPrivilegedContainer: false
+allowHostDirVolumePlugin: true
+allowHostNetwork: true
+allowHostPID: true
+allowHostPorts: true
+allowHostIPC: false
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- hostPath
+- projected
+- secret
