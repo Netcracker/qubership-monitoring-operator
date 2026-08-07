@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	defaultSecurityContextID int64 = 2000
+	defaultSecurityContextID int64 = 1000
 	tmpVolumeName                  = "tmp"
 	tmpMountPath                   = "/tmp"
 )
