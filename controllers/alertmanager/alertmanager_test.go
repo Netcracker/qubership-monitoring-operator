@@ -111,7 +111,7 @@ func TestAlertmanagerManifests(t *testing.T) {
 			},
 		}}
 
-		result := ensureAlertmanagerTmpVolume(volumes)
+		result := utils.EnsureTmpVolume(volumes, "100Mi")
 
 		require.Len(t, result, 1)
 		require.NotNil(t, result[0].EmptyDir)

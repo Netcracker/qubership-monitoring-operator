@@ -200,27 +200,8 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 			podSpec.SecurityContext.FSGroup = k8sptr.To(grafanaLegacySecurityContextID)
 		}
 
-		hasTmpVolume := false
-		for _, volume := range podSpec.Volumes {
-			if volume.Name == "tmp" {
-				hasTmpVolume = true
-				break
-			}
-		}
-		if !hasTmpVolume {
-			podSpec.Volumes = append(podSpec.Volumes, utils.TmpVolume("100Mi"))
-		}
-
-		hasTmpMount := false
-		for _, volumeMount := range container.VolumeMounts {
-			if volumeMount.Name == "tmp" || volumeMount.MountPath == "/tmp" {
-				hasTmpMount = true
-				break
-			}
-		}
-		if !hasTmpMount {
-			container.VolumeMounts = append(container.VolumeMounts, utils.TmpVolumeMount())
-		}
+		podSpec.Volumes = utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 
 		// Attach envFrom so that grafana picks up extraVars / extraVarsSecret
 		// (GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH and other settings).

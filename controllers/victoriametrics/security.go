@@ -55,32 +55,12 @@ func hardenedSecurityContext(isOpenShift bool, runAsUser, runAsGroup, fsGroup *i
 
 // EnsureTmpVolume returns a copy of the volumes containing the required size-limited temporary volume.
 func EnsureTmpVolume(volumes []corev1.Volume) []corev1.Volume {
-	result := make([]corev1.Volume, len(volumes))
-	for i := range volumes {
-		volumes[i].DeepCopyInto(&result[i])
-	}
-
-	required := utils.TmpVolume(tmpVolumeSize)
-	for i := range result {
-		if result[i].Name == required.Name {
-			result[i] = required
-			return result
-		}
-	}
-	return append(result, required)
+	return utils.EnsureTmpVolume(volumes, tmpVolumeSize)
 }
 
 // EnsureTmpVolumeMount returns a copy of the mounts containing the required temporary-directory mount.
 func EnsureTmpVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
-	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+1)
-	required := utils.TmpVolumeMount()
-	for i := range volumeMounts {
-		if volumeMounts[i].Name == required.Name || volumeMounts[i].MountPath == required.MountPath {
-			continue
-		}
-		result = append(result, *volumeMounts[i].DeepCopy())
-	}
-	return append(result, required)
+	return utils.EnsureTmpVolumeMount(volumeMounts)
 }
 
 // HardenContainers returns hardened copies of explicitly configured application containers.
@@ -88,15 +68,7 @@ func HardenContainers(containers []corev1.Container) []corev1.Container {
 	result := make([]corev1.Container, len(containers))
 	for i := range containers {
 		containers[i].DeepCopyInto(&result[i])
-		securityContext := utils.HardenedContainerSecurityContext()
-		if result[i].SecurityContext != nil {
-			securityContext = result[i].SecurityContext.DeepCopy()
-			required := utils.HardenedContainerSecurityContext()
-			securityContext.AllowPrivilegeEscalation = required.AllowPrivilegeEscalation
-			securityContext.ReadOnlyRootFilesystem = required.ReadOnlyRootFilesystem
-			securityContext.Capabilities = required.Capabilities
-		}
-		result[i].SecurityContext = securityContext
+		result[i].SecurityContext = utils.MergeContainerSecurityContext(result[i].SecurityContext)
 		result[i].VolumeMounts = EnsureTmpVolumeMount(result[i].VolumeMounts)
 	}
 	return result
