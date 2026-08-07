@@ -43,9 +43,15 @@ func (r *NodeExporterReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				// Create SecurityContextConstraints if run on OpenShift so that
 				// the node-exporter ServiceAccount is allowed to use hostNetwork/hostPID/hostPath.
 				// Checks that necessary API exists and prints a message if no suitable API is found.
+				// cr.Spec.NodeExporter.SetupSecurityContext defaults to true (see the CRD), so this
+				// only skips SCC management when a user explicitly opts out.
 				if r.hasSecurityContextConstraintsAPI() {
-					if err := r.handleSecurityContextConstraints(cr); err != nil {
-						return err
+					if cr.Spec.NodeExporter.SetupSecurityContext {
+						if err := r.handleSecurityContextConstraints(cr); err != nil {
+							return err
+						}
+					} else {
+						r.Log.Info("setupSecurityContext is disabled, skip creating SCC for node-exporter")
 					}
 				} else {
 					r.Log.Info("there is no SecurityContextConstraints API found, skip creating SCC for node-exporter")

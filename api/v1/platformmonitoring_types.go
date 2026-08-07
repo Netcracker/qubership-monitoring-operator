@@ -1380,7 +1380,10 @@ type NodeExporter struct {
 	// Can be changed for already deployed service and the service
 	// will be removed during next reconciliation iteration
 	Install *bool `json:"install,omitempty"`
-	// SetupSecurityContext indicates is PSP or SCC (depends on cluster type) need to be created.
+	// SetupSecurityContext creates a SecurityContextConstraints on OpenShift/MicroShift so
+	// node-exporter can use hostNetwork, hostPID, and hostPath. Defaults to true.
+	// PodSecurityPolicy is not created: Kubernetes removed the API in 1.25.
+	// +kubebuilder:default=true
 	SetupSecurityContext bool `json:"setupSecurityContext,omitempty"`
 	// Image to use for a `node-exporter` deployment.
 	// The `node-exporter` is an exporter to collect metrics from VM
