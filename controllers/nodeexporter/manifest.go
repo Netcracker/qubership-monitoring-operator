@@ -7,6 +7,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	secv1 "github.com/openshift/api/security/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -67,6 +68,18 @@ func nodeExporterClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clust
 	}
 	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.NodeExporterComponentName), cr.GetNamespace())
 	return &clusterRoleBinding, nil
+}
+
+func nodeExporterSecurityContextConstraints() (*secv1.SecurityContextConstraints, error) {
+	scc := secv1.SecurityContextConstraints{}
+	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterSecurityContextConstraintsAsset), 100).Decode(&scc); err != nil {
+		return nil, err
+	}
+	//Set parameters
+	scc.SetGroupVersionKind(schema.GroupVersionKind{Group: "security.openshift.io", Version: "v1", Kind: "SecurityContextConstraints"})
+	scc.SetName(utils.NodeExporterComponentName)
+
+	return &scc, nil
 }
 
 func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring, isOpenShift bool) (*appsv1.DaemonSet, error) {
