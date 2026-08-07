@@ -63,10 +63,18 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@edbd2ff8ec59df921e28f1311d42e0a974f19391 # v1.14.2
+    strategy:
+      fail-fast: false
+      matrix:
+        cluster_engine: [kind, microshift]
+    # TEST BRANCH ONLY: pinned to the feat/monitoring-openshift branch so the
+    # cluster_engine=microshift leg can be exercised before that branch is merged
+    # and released. Must be re-pinned to a tagged qubership-test-pipelines SHA
+    # (with the matching renovate depName comment) before this is merged to main.
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@feat/monitoring-openshift
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'edbd2ff8ec59df921e28f1311d42e0a974f19391' # v1.14.2 renovate: depName=Netcracker/qubership-test-pipelines
+      pipeline_branch: 'feat/monitoring-openshift'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
-      enable-owner-references-permission-enforcement: true
+      cluster_engine: ${{ matrix.cluster_engine }}
