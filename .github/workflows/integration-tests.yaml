@@ -49,7 +49,7 @@ jobs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
       - name: Wait for build.yaml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@8c6dbeb901920bae9f40d7d7b646d8d9127e1ce7 # v2.4.0
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         id: wait
         with:
           workflow: build.yaml
@@ -78,3 +78,4 @@ jobs:
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       cluster_engine: ${{ matrix.cluster_engine }}
+      enable-owner-references-permission-enforcement: true

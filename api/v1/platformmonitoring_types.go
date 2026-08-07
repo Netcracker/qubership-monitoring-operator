@@ -1003,9 +1003,9 @@ type VmAlertManager struct {
 	TLSConfig *VmTLSConfig `json:"tlsConfig,omitempty"`
 	// WebConfig defines configuration for webserver
 	// https://github.com/prometheus/alertmanager/blob/main/docs/https.md
-	WebConfig *vmetricsv1b1.AlertmanagerWebConfig `json:"webConfig,omitempty"`
+	WebConfig *vmetricsv1b1.VMAlertmanagerWebConfig `json:"webConfig,omitempty"`
 	// GossipConfig defines gossip TLS configuration for Alertmanager cluster
-	GossipConfig *vmetricsv1b1.AlertmanagerGossipConfig `json:"gossipConfig,omitempty"`
+	GossipConfig *vmetricsv1b1.VMAlertmanagerGossipConfig `json:"gossipConfig,omitempty"`
 }
 
 type VmAlert struct {
@@ -1787,10 +1787,6 @@ type PrometheusRules struct {
 type Promxy struct {
 	Install *bool  `json:"install,omitempty"`
 	Port    *int32 `json:"port,omitempty"`
-}
-
-func init() {
-	SchemeBuilder.Register(&PlatformMonitoring{}, &PlatformMonitoringList{})
 }
 
 // IsInstall check if AlertManager should be installed

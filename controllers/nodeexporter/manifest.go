@@ -44,6 +44,7 @@ func nodeExporterClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) 
 			ResourceNames: []string{utils.NodeExporterComponentName},
 		})
 	}
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.NodeExporterComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -64,6 +65,7 @@ func nodeExporterClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clust
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.NodeExporterComponentName
 	}
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.NodeExporterComponentName), cr.GetNamespace())
 	return &clusterRoleBinding, nil
 }
 

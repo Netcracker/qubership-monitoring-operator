@@ -92,7 +92,7 @@ func vmOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, e
 		Verbs:     []string{"get", "create", "list", "update", "watch"},
 	})
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmOperatorComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -114,7 +114,7 @@ func vmOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 		sub.Name = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmOperatorComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }
@@ -222,6 +222,14 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 				}
 			}
 		}
+		if !utils.PrivilegedRights {
+			for it := range d.Spec.Template.Spec.Containers {
+				c := &d.Spec.Template.Spec.Containers[it]
+				if c.Name == utils.VmOperatorComponentName {
+					c.Env = setEnvValue(c.Env, "WATCH_NAMESPACE", cr.GetNamespace())
+				}
+			}
+		}
 
 		// Set security context for VmOperator container.
 		if cr.Spec.Victoriametrics.VmOperator.ContainerSecurityContext != nil {
@@ -277,6 +285,17 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 	d.Spec.Template.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
 
 	return &d, nil
+}
+
+func setEnvValue(env []corev1.EnvVar, name, value string) []corev1.EnvVar {
+	for i := range env {
+		if env[i].Name == name {
+			env[i].Value = value
+			env[i].ValueFrom = nil
+			return env
+		}
+	}
+	return append(env, corev1.EnvVar{Name: name, Value: value})
 }
 
 func vmOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

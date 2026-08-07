@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Check if tag exists
         id: check_tag
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@8c6dbeb901920bae9f40d7d7b646d8d9127e1ce7 # v2.4.0
+        uses: netcracker/qubership-workflow-hub/actions/tag-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         with:
           ref: ${{ github.ref }}
           check-tag: "true"
@@ -48,7 +48,7 @@ jobs:
       platforms: ${{ steps.load_component.outputs.platforms }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Change Chart Version Action
-        uses: netcracker/qubership-workflow-hub/actions/chart-version@8c6dbeb901920bae9f40d7d7b646d8d9127e1ce7 # v2.4.0
+        uses: netcracker/qubership-workflow-hub/actions/chart-version@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         with:
           new-chart-version: ${{ github.event.inputs.version }}
           chart-app-version: ${{ github.event.inputs.appVersion }}
@@ -108,7 +108,7 @@ jobs:
           git push origin "HEAD:${REF_NAME}"
 
       - name: "Create release tag"
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@8c6dbeb901920bae9f40d7d7b646d8d9127e1ce7 # v2.4.0
+        uses: netcracker/qubership-workflow-hub/actions/tag-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         with:
           ref: ${{ github.ref }}
           check-tag: "false"
@@ -128,7 +128,7 @@ jobs:
     steps:
       - name: "Docker Build"
         id: docker_build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@8c6dbeb901920bae9f40d7d7b646d8d9127e1ce7 # v2.4.0
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         with:
           ref: v${{ inputs.appVersion }}
           download-artifact: false
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -180,7 +180,7 @@ jobs:
           tar -cf dist/docs.tar -C . docs
 
       - name: Upload assets to release
-        uses: netcracker/qubership-workflow-hub/actions/assets-action@8c6dbeb901920bae9f40d7d7b646d8d9127e1ce7 # v2.4.0
+        uses: netcracker/qubership-workflow-hub/actions/assets-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         with:
           tag: v${{ github.event.inputs.appVersion }}
           item-path: ./dist

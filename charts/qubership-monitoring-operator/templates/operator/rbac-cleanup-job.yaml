@@ -1,0 +1,78 @@
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- if .Values.global.privilegedRights }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: monitoring-rbac-cleanup-hook
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-rbac-cleanup-hook") | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-failed
+    "helm.sh/resource-policy": keep
+spec:
+  {{- if (get $cleanupHook "ttlSecondsAfterFinished" | default 180) }}
+  ttlSecondsAfterFinished: {{ get $cleanupHook "ttlSecondsAfterFinished" | default 180 }}
+  {{- end }}
+  template:
+    metadata:
+      name: monitoring-rbac-cleanup-hook
+      labels:
+        {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-rbac-cleanup-hook") | nindent 8 }}
+    spec:
+      # The matching post-delete ClusterRoleBinding is rendered by rbac-cleanup-rbac.yaml.
+      serviceAccountName: monitoring-rbac-cleanup-hook
+      restartPolicy: OnFailure
+      {{- with (get $cleanupHook "nodeSelector") }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (get $cleanupHook "affinity") }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (get $cleanupHook "tolerations") }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
+        runAsUser: 2000
+        fsGroup: 2000
+        {{- else }}
+        {}
+        {{- end }}
+      containers:
+        - name: kubectl
+          image: {{ get $cleanupHook "image" | default "docker.io/rancher/kuberlr-kubectl:v8.0.0" }}
+          imagePullPolicy: IfNotPresent
+          {{- with (get $cleanupHook "resources") }}
+          # The cleanup hook defaults include a memory limit, which the render verifier checks.
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- with (get $cleanupHook "containerSecurityContext") }}
+            {{- toYaml . | nindent 12 }}
+            {{- else }}
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - >
+              set -eu;
+              kubectl delete clusterrolebindings.rbac.authorization.k8s.io
+              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,monitoring.netcracker.com/installation-namespace={{ .Release.Namespace }}
+              --ignore-not-found=true --wait=true
+              --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
+              kubectl delete clusterroles.rbac.authorization.k8s.io
+              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,monitoring.netcracker.com/installation-namespace={{ .Release.Namespace }}
+              --ignore-not-found=true --wait=true
+              --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
+{{- end }}

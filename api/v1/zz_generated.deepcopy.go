@@ -2287,12 +2287,12 @@ func (in *VmAlertManager) DeepCopyInto(out *VmAlertManager) {
 	}
 	if in.WebConfig != nil {
 		in, out := &in.WebConfig, &out.WebConfig
-		*out = new(v1beta1.AlertmanagerWebConfig)
+		*out = new(v1beta1.VMAlertmanagerWebConfig)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.GossipConfig != nil {
 		in, out := &in.GossipConfig, &out.GossipConfig
-		*out = new(v1beta1.AlertmanagerGossipConfig)
+		*out = new(v1beta1.VMAlertmanagerGossipConfig)
 		(*in).DeepCopyInto(*out)
 	}
 }
