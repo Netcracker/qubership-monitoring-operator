@@ -227,7 +227,7 @@ func TestVmOperatorManifests(t *testing.T) {
 			Volumes:                  []secv1.FSType{"*"},
 		}
 
-		applyVmOperatorSCCPolicy(existing, desired)
+		utils.ApplySecurityContextConstraintsPolicy(existing, desired)
 
 		assert.Equal(t, desired.RequiredDropCapabilities, existing.RequiredDropCapabilities)
 		assert.Equal(t, desired.Volumes, existing.Volumes)

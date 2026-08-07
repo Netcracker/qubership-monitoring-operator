@@ -207,51 +207,11 @@ func applyAlertmanagerHardening(
 	isOpenShift bool,
 	configuredPodSecurityContext *monv1.SecurityContext,
 ) {
-	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
-	if !isOpenShift && configuredPodSecurityContext != nil {
-		if configuredPodSecurityContext.RunAsUser != nil {
-			podSecurityContext.RunAsUser = configuredPodSecurityContext.RunAsUser
-		}
-		if configuredPodSecurityContext.RunAsGroup != nil {
-			podSecurityContext.RunAsGroup = configuredPodSecurityContext.RunAsGroup
-		}
-		if configuredPodSecurityContext.FSGroup != nil {
-			podSecurityContext.FSGroup = configuredPodSecurityContext.FSGroup
-		}
-	}
-	alertmanager.Spec.SecurityContext = podSecurityContext
-	alertmanager.Spec.Volumes = ensureAlertmanagerTmpVolume(alertmanager.Spec.Volumes)
+	alertmanager.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	alertmanager.Spec.Volumes = utils.EnsureTmpVolume(alertmanager.Spec.Volumes, "100Mi")
 	alertmanager.Spec.Containers = hardenAlertmanagerContainers(alertmanager.Spec.Containers)
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "alertmanager")
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "config-reloader")
-}
-
-func ensureAlertmanagerTmpVolume(volumes []corev1.Volume) []corev1.Volume {
-	result := make([]corev1.Volume, len(volumes))
-	for i := range volumes {
-		volumes[i].DeepCopyInto(&result[i])
-	}
-
-	required := utils.TmpVolume("100Mi")
-	for i := range result {
-		if result[i].Name == required.Name {
-			result[i] = required
-			return result
-		}
-	}
-	return append(result, required)
-}
-
-func ensureAlertmanagerTmpVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
-	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+1)
-	required := utils.TmpVolumeMount()
-	for i := range volumeMounts {
-		if volumeMounts[i].Name == required.Name || volumeMounts[i].MountPath == required.MountPath {
-			continue
-		}
-		result = append(result, *volumeMounts[i].DeepCopy())
-	}
-	return append(result, required)
 }
 
 func hardenAlertmanagerContainers(containers []corev1.Container) []corev1.Container {
@@ -276,16 +236,8 @@ func ensureAlertmanagerManagedContainer(containers []corev1.Container, name stri
 }
 
 func applyAlertmanagerContainerHardening(container *corev1.Container) {
-	securityContext := utils.HardenedContainerSecurityContext()
-	if container.SecurityContext != nil {
-		securityContext = container.SecurityContext.DeepCopy()
-		required := utils.HardenedContainerSecurityContext()
-		securityContext.AllowPrivilegeEscalation = required.AllowPrivilegeEscalation
-		securityContext.ReadOnlyRootFilesystem = required.ReadOnlyRootFilesystem
-		securityContext.Capabilities = required.Capabilities
-	}
-	container.SecurityContext = securityContext
-	container.VolumeMounts = ensureAlertmanagerTmpVolumeMount(container.VolumeMounts)
+	container.SecurityContext = utils.MergeContainerSecurityContext(container.SecurityContext)
+	container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 }
 
 func alertmanagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
