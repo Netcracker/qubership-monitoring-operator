@@ -199,50 +199,14 @@ func applyNodeExporterHardening(
 	isOpenShift bool,
 	configuredPodSecurityContext *monv1.SecurityContext,
 ) {
-	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
-	if !isOpenShift && configuredPodSecurityContext != nil {
-		if configuredPodSecurityContext.RunAsUser != nil {
-			podSecurityContext.RunAsUser = configuredPodSecurityContext.RunAsUser
-		}
-		if configuredPodSecurityContext.RunAsGroup != nil {
-			podSecurityContext.RunAsGroup = configuredPodSecurityContext.RunAsGroup
-		}
-		if configuredPodSecurityContext.FSGroup != nil {
-			podSecurityContext.FSGroup = configuredPodSecurityContext.FSGroup
-		}
-	}
-	daemonSet.Spec.Template.Spec.SecurityContext = podSecurityContext
-
-	tmpVolume := utils.TmpVolume("100Mi")
-	hasTmpVolume := false
-	for i := range daemonSet.Spec.Template.Spec.Volumes {
-		if daemonSet.Spec.Template.Spec.Volumes[i].Name == tmpVolume.Name {
-			daemonSet.Spec.Template.Spec.Volumes[i] = tmpVolume
-			hasTmpVolume = true
-			break
-		}
-	}
-	if !hasTmpVolume {
-		daemonSet.Spec.Template.Spec.Volumes = append(daemonSet.Spec.Template.Spec.Volumes, tmpVolume)
-	}
+	daemonSet.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	daemonSet.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(daemonSet.Spec.Template.Spec.Volumes, "100Mi")
 
 	for i := range daemonSet.Spec.Template.Spec.Containers {
 		container := &daemonSet.Spec.Template.Spec.Containers[i]
 		container.SecurityContext = utils.HardenedContainerSecurityContext()
-		container.VolumeMounts = ensureNodeExporterTmpVolumeMount(container.VolumeMounts)
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 	}
-}
-
-func ensureNodeExporterTmpVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMount {
-	result := make([]corev1.VolumeMount, 0, len(volumeMounts)+1)
-	required := utils.TmpVolumeMount()
-	for i := range volumeMounts {
-		if volumeMounts[i].Name == required.Name || volumeMounts[i].MountPath == required.MountPath {
-			continue
-		}
-		result = append(result, *volumeMounts[i].DeepCopy())
-	}
-	return append(result, required)
 }
 
 func nodeExporterService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

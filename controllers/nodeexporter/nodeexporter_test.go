@@ -6,12 +6,18 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
+	secv1 "github.com/openshift/api/security/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -242,4 +248,79 @@ func assertNodeExporterHostAccess(t *testing.T, daemonSet *appsv1.DaemonSet) {
 	require.NotNil(t, podSpec.Containers[0].VolumeMounts[0].MountPropagation)
 	assert.Equal(t, corev1.MountPropagationHostToContainer,
 		*podSpec.Containers[0].VolumeMounts[0].MountPropagation)
+}
+
+func TestNodeExporterSecurityContextConstraintsManifest(t *testing.T) {
+	m, err := nodeExporterSecurityContextConstraints()
+	require.NoError(t, err)
+
+	assert.Equal(t, utils.NodeExporterComponentName, m.GetName())
+	assert.True(t, m.AllowHostNetwork)
+	assert.True(t, m.AllowHostPID)
+	assert.False(t, m.AllowHostIPC)
+	assert.True(t, m.AllowHostDirVolumePlugin)
+	assert.False(t, m.AllowPrivilegedContainer)
+	assert.True(t, m.ReadOnlyRootFilesystem)
+	assert.Equal(t, []corev1.Capability{"ALL"}, m.RequiredDropCapabilities)
+}
+
+func newNodeExporterTestReconciler(objects ...runtime.Object) *NodeExporterReconciler {
+	testScheme := scheme.Scheme
+	_ = secv1.AddToScheme(testScheme)
+	kubeClient := fake.NewClientBuilder().WithScheme(testScheme).WithRuntimeObjects(objects...).Build()
+	return &NodeExporterReconciler{
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: kubeClient,
+			Scheme: testScheme,
+			Log:    utils.Logger("nodeexporter_test"),
+		},
+	}
+}
+
+func TestHandleSecurityContextConstraintsCreatesWhenMissing(t *testing.T) {
+	reconciler := newNodeExporterTestReconciler()
+	testCR := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	require.NoError(t, reconciler.handleSecurityContextConstraints(testCR))
+
+	scc := &secv1.SecurityContextConstraints{}
+	require.NoError(t, reconciler.Client.Get(t.Context(),
+		client.ObjectKey{Name: utils.NodeExporterComponentName}, scc))
+	assert.True(t, scc.AllowHostNetwork)
+}
+
+func TestHandleSecurityContextConstraintsUpdatesExisting(t *testing.T) {
+	existing := &secv1.SecurityContextConstraints{
+		ObjectMeta:               metav1.ObjectMeta{Name: utils.NodeExporterComponentName},
+		AllowHostDirVolumePlugin: false,
+		Volumes:                  []secv1.FSType{"*"},
+	}
+	reconciler := newNodeExporterTestReconciler(existing)
+	testCR := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	require.NoError(t, reconciler.handleSecurityContextConstraints(testCR))
+
+	scc := &secv1.SecurityContextConstraints{}
+	require.NoError(t, reconciler.Client.Get(t.Context(),
+		client.ObjectKey{Name: utils.NodeExporterComponentName}, scc))
+	assert.True(t, scc.AllowHostDirVolumePlugin, "the policy fields must be brought in line with the desired manifest")
+	assert.NotEqual(t, []secv1.FSType{"*"}, scc.Volumes)
+}
+
+func TestDeleteSecurityContextConstraintsRemovesExisting(t *testing.T) {
+	existing := &secv1.SecurityContextConstraints{ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName}}
+	reconciler := newNodeExporterTestReconciler(existing)
+	testCR := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	require.NoError(t, reconciler.deleteSecurityContextConstraints(testCR))
+
+	err := reconciler.Client.Get(t.Context(), client.ObjectKey{Name: utils.NodeExporterComponentName}, &secv1.SecurityContextConstraints{})
+	assert.True(t, errors.IsNotFound(err))
+}
+
+func TestDeleteSecurityContextConstraintsNoopWhenMissing(t *testing.T) {
+	reconciler := newNodeExporterTestReconciler()
+	testCR := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"}}
+
+	assert.NoError(t, reconciler.deleteSecurityContextConstraints(testCR))
 }

@@ -119,36 +119,12 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 	}
 	//Set parameters
 	e.SetLabels(m.GetLabels())
-	applyNodeExporterSCCPolicy(e, m)
+	utils.ApplySecurityContextConstraintsPolicy(e, m)
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
 	}
 	return nil
-}
-
-func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) {
-	existing.AllowPrivilegedContainer = desired.AllowPrivilegedContainer
-	existing.DefaultAddCapabilities = desired.DefaultAddCapabilities
-	existing.RequiredDropCapabilities = desired.RequiredDropCapabilities
-	existing.AllowedCapabilities = desired.AllowedCapabilities
-	existing.AllowHostDirVolumePlugin = desired.AllowHostDirVolumePlugin
-	existing.Volumes = desired.Volumes
-	existing.AllowedFlexVolumes = desired.AllowedFlexVolumes
-	existing.AllowHostNetwork = desired.AllowHostNetwork
-	existing.AllowHostPorts = desired.AllowHostPorts
-	existing.AllowHostPID = desired.AllowHostPID
-	existing.AllowHostIPC = desired.AllowHostIPC
-	existing.DefaultAllowPrivilegeEscalation = desired.DefaultAllowPrivilegeEscalation
-	existing.AllowPrivilegeEscalation = desired.AllowPrivilegeEscalation
-	existing.SELinuxContext = desired.SELinuxContext
-	existing.RunAsUser = desired.RunAsUser
-	existing.SupplementalGroups = desired.SupplementalGroups
-	existing.FSGroup = desired.FSGroup
-	existing.ReadOnlyRootFilesystem = desired.ReadOnlyRootFilesystem
-	existing.SeccompProfiles = desired.SeccompProfiles
-	existing.AllowedUnsafeSysctls = desired.AllowedUnsafeSysctls
-	existing.ForbiddenSysctls = desired.ForbiddenSysctls
 }
 
 func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
