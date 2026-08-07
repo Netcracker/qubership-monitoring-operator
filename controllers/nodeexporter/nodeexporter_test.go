@@ -6,6 +6,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
+	secv1 "github.com/openshift/api/security/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -120,5 +121,26 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.NotNil(t, m, "ServiceAccount manifest should not be empty")
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey], "ServiceAccount.Labels should be merged")
+	})
+	t.Run("Test SecurityContextConstraints manifest", func(t *testing.T) {
+		m, err := nodeExporterSecurityContextConstraints()
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "SecurityContextConstraints manifest should not be empty")
+		assert.Equal(t, utils.NodeExporterComponentName, m.GetName())
+		assert.True(t, m.AllowHostNetwork, "node-exporter needs hostNetwork to scrape host-level metrics")
+		assert.True(t, m.AllowHostPID, "node-exporter needs hostPID to scrape host-level metrics")
+		assert.True(t, m.AllowHostPorts)
+		assert.True(t, m.AllowHostDirVolumePlugin, "node-exporter mounts /proc, /sys, and / as hostPath volumes")
+		assert.False(t, m.AllowPrivilegedContainer)
+		// Without an explicit seccompProfiles entry, the SCC admission plugin silently drops this
+		// SCC from the candidate list for pods that set securityContext.seccompProfile - no error,
+		// it's just never tried, and the DaemonSet falls back to the built-in SCCs and fails.
+		assert.Contains(t, m.SeccompProfiles, "runtime/default")
+		// MustRunAsRange (not RunAsAny) makes the SCC assign a UID from the namespace's allocated
+		// range. The node-exporter image sets a non-numeric USER (nobody), so without an assigned
+		// UID the kubelet can't verify runAsNonRoot and refuses to start the container.
+		assert.Equal(t, secv1.RunAsUserStrategyMustRunAsRange, m.RunAsUser.Type)
 	})
 }

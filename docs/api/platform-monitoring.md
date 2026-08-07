@@ -210,7 +210,7 @@ NodeExporter defines the desired state for some part of the node-exporter deploy
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
 | install | Install indicates is node-exporter will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
-| setupSecurityContext | SetupSecurityContext indicates is PSP or SCC (depends on cluster type) need to be created. | bool | false |
+| setupSecurityContext | SetupSecurityContext creates a SecurityContextConstraints on OpenShift/MicroShift so node-exporter can use hostNetwork, hostPID, and hostPath. Defaults to true. PodSecurityPolicy is not created: Kubernetes removed the API in 1.25. | bool | false |
 | image | Image to use for a `node-exporter` deployment. The `node-exporter` is an exporter to collect metrics from VM More info: [https://github.com/prometheus/node_exporter](https://github.com/prometheus/node_exporter) | string | true |
 | port | Port for `node-exporter` daemonset and service | int32 | true |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
