@@ -1,4 +1,6 @@
 <!-- markdownlint-disable MD013 -->
+# PlatformMonitoring API reference
+
 This section describes the types introduced by the Monitoring Operator.
 
 
@@ -9,7 +11,7 @@ This section describes the types introduced by the Monitoring Operator.
 AlertManager defines the desired state for some part of the prometheus-operator deployment.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | image | Image to use for a `AlertManager` deployment. The `AlertManager` is alerting system which read metrics from Prometheus More info: [https://prometheus.io/docs/alerting/alertmanager/](https://prometheus.io/docs/alerting/alertmanager/) | string | true |
 | port | Port for alertManager service | int32 | false |
 | install | Install indicates is AlertManager will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
@@ -34,13 +36,13 @@ AlertManager defines the desired state for some part of the prometheus-operator 
 Auth handles parameters to set up Platform Monitoring auth for services. It currently supports:\n * IDP
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| clientId |  | string | true |
-| clientSecret |  | string | true |
-| loginUrl |  | string | true |
-| tokenUrl |  | string | true |
-| userInfoUrl |  | string | true |
-| tlsConfig |  | *[TLSConfig](#tlsconfig) | false |
+| --- | --- | --- | --- |
+| clientId | | string | true |
+| clientSecret | | string | true |
+| loginUrl | | string | true |
+| tokenUrl | | string | true |
+| userInfoUrl | | string | true |
+| tlsConfig | | *[TLSConfig](#tlsconfig) | false |
 
 
 
@@ -50,7 +52,7 @@ Auth handles parameters to set up Platform Monitoring auth for services. It curr
 EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta Only fields which are relevant to embedded resources are included.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | annotations | Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) | map[string]string | false |
 | labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
 
@@ -61,28 +63,28 @@ EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimac
 
 Grafana defines the desired state for some part of the grafana-operator deployment.
 
-| Field                      | Description                                                                                                                                                                                                                                                                                                                         | Scheme                                                                                                                       | Required |
-|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|----------|
-| image                      | Image to use for a `grafana` deployment. The `grafana` is a web ui to show graphics. More info: [https://github.com/grafana/grafana](https://github.com/grafana/grafana)                                                                                                                                                            | string                                                                                                                       | true     |
-| operator                   | Operator parameters                                                                                                                                                                                                                                                                                                                 | [GrafanaOperator](#grafanaoperator)                                                                                          | true     |
-| install                    | Install indicates is Grafana will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration                                                                                                                                                                    | *bool                                                                                                                        | false    |
-| securityContext            | SecurityContext holds pod-level security attributes.                                                                                                                                                                                                                                                                                | *[SecurityContext](#securitycontext)                                                                                         | false    |
-| resources                  | Resources defines resources requests and limits for single Pods.                                                                                                                                                                                                                                                                    | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false    |
-| ingress                    | Ingress allows to create Ingress for Grafana UI.                                                                                                                                                                                                                                                                                    | *[Ingress](#ingress)                                                                                                         | false    |
-| config                     | Config allows to override Config for Grafana.                                                                                                                                                                                                                                                                                       | grafv1alpha1.GrafanaConfig                                                                                                   | false    |
-| grafanaHomeDashboard       | Custom grafana home dashboard                                                                                                                                                                                                                                                                                                       | bool                                                                                                                         | false    |
-| backupDaemonDashboard      | Enables Backup Daemon Dashboard installation.                                                                                                                                                                                                                                                                                       | bool                                                                                                                         | false    |
-| dashboardLabelSelector     | Allows to query over a set of resources according to labels.<br/>The result of matchLabels and matchExpressions are ANDed.<br/>An empty label selector matches all objects. A null label selector matches no objects.                                                                                                               | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)        | false    |
-| dashboardNamespaceSelector | Allows to query over a set of resources in namespaces that fits label selector.                                                                                                                                                                                                                                                     | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)          | false    |
-| paused                     | Set paused to reconciliation                                                                                                                                                                                                                                                                                                        | bool                                                                                                                         | false    |
-| tolerations                | Tolerations allow the pods to schedule onto nodes with matching taints.                                                                                                                                                                                                                                                             | []v1.Toleration                                                                                                              | false    |
-| nodeSelector               | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                                                                                                                                      | map[string]string                                                                                                            | false    |
-| podMonitor                 | Pod monitor for self monitoring                                                                                                                                                                                                                                                                                                     | *[Monitor](#monitor)                                                                                                         | false    |
-| dataStorage                | DataStorage provides a means to configure the grafana data storage                                                                                                                                                                                                                                                                  | *grafv1alpha1.GrafanaDataStorage                                                                                             | false    |
-| labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)                                                          | map[string]string                                                                                                            | false    |
-| annotations                | Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string                                                                                                            | false    |
-| replicas                   | Set replicas                                                                                                                                                                                                                                                                                                                        | *int32                                                                                                                       | false    |
-| serviceAccount             | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Grafana for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata.                                                                                                               | *[EmbeddedObjectMetadata](#embeddedobjectmetadata)                                                                           | false    |
+| Field | Description | Scheme | Required |
+| --- | --- | --- | --- |
+| image | Image to use for a `grafana` deployment. The `grafana` is a web ui to show graphics. More info: [https://github.com/grafana/grafana](https://github.com/grafana/grafana) | string | true |
+| operator | Operator parameters | [GrafanaOperator](#grafanaoperator) | true |
+| install | Install indicates is Grafana will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
+| securityContext | SecurityContext holds pod-level security attributes. | *[SecurityContext](#securitycontext) | false |
+| resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
+| ingress | Ingress allows to create Ingress for Grafana UI. | *[Ingress](#ingress) | false |
+| config | Config allows to override Config for Grafana. | grafv1alpha1.GrafanaConfig | false |
+| grafanaHomeDashboard | Custom grafana home dashboard | bool | false |
+| backupDaemonDashboard | Enables Backup Daemon Dashboard installation. | bool | false |
+| dashboardLabelSelector | Allows to query over a set of resources according to labels.<br/>The result of matchLabels and matchExpressions are ANDed.<br/>An empty label selector matches all objects. A null label selector matches no objects. | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta) | false |
+| dashboardNamespaceSelector | Allows to query over a set of resources in namespaces that fits label selector. | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta) | false |
+| paused | Set paused to reconciliation | bool | false |
+| tolerations | Tolerations allow the pods to schedule onto nodes with matching taints. | []v1.Toleration | false |
+| nodeSelector | NodeSelector Define which Nodes the Pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\" | map[string]string | false |
+| podMonitor | Pod monitor for self monitoring | *[Monitor](#monitor) | false |
+| dataStorage | DataStorage provides a means to configure the grafana data storage | *grafv1alpha1.GrafanaDataStorage | false |
+| labels | Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| annotations | Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: [https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) | map[string]string | false |
+| replicas | Set replicas | *int32 | false |
+| serviceAccount | ServiceAccount is a structure which allow specify annotations and labels for Service Account which will use by Grafana for work in Kubernetes. Cna be use by external tools to store and retrieve arbitrary metadata. | *[EmbeddedObjectMetadata](#embeddedobjectmetadata) | false |
 
 
 
@@ -92,9 +94,9 @@ Grafana defines the desired state for some part of the grafana-operator deployme
 GrafanaDashboards contains parameters for specifying the dashboards to install.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| install |  | *bool | false |
-| list |  | []string | false |
+| --- | --- | --- | --- |
+| install | | *bool | false |
+| list | | []string | false |
 
 
 
@@ -104,7 +106,7 @@ GrafanaDashboards contains parameters for specifying the dashboards to install.
 GrafanaOperator defines the desired state for some part of the grafana-operator deployment.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | image | Image to use for a `grafana-operator` deployment. The `grafana-operator` is a control, deploy and process custom resources into Grafana entities. More info: [https://github.com/grafana/grafana-operator](https://github.com/grafana/grafana-operator) | string | true |
 | initContainerImage | Image to use to initialize Grafana deployment. | string | true |
 | namespaces | Namespaces to scope the interaction of the Grafana operator. | string | false |
@@ -129,7 +131,7 @@ for services authentication. For more information, refer
 to [https://github.com/kubernetes/ingress-nginx](https://github.com/kubernetes/ingress-nginx).
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is Ingress will be installed. | *bool | false |
 | host | Host for routing. | string | false |
 | labels | Labels allows to set additional labels to the Ingress. Basic labels will be saved. | map[string]string | false |
@@ -145,9 +147,9 @@ Integration handles parameters to set up the Platform Monitoring integration wit
 \n * Google Cloud Platform (integration with Google Cloud Operations).
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| stackdriver |  | *[StackDriverIntegrationConfig](#stackdriverintegrationconfig) | false |
-| jaeger |  | *[Jaeger](#jaeger) | false |
+| --- | --- | --- | --- |
+| stackdriver | | *[StackDriverIntegrationConfig](#stackdriverintegrationconfig) | false |
+| jaeger | | *[Jaeger](#jaeger) | false |
 
 
 
@@ -157,7 +159,7 @@ Integration handles parameters to set up the Platform Monitoring integration wit
 Jaeger holds parameters to set up Platform Monitoring integration with Jaeger.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | createGrafanaDataSource | If true, looking for Jaeger Service in all namespaces and add Grafana DataSource for it service if it is found. | bool | false |
 
 
@@ -168,7 +170,7 @@ Jaeger holds parameters to set up Platform Monitoring integration with Jaeger.
 KubeStateMetrics defines the desired state for some part of the kube-state-metrics deployment.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is kube-state-metrics will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | image | Image to use for a `kube-state-metrics` deployment. The `kube-state-metrics` is an exporter to collect Kubernetes metrics More info: [https://github.com/kubernetes/kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) | string | true |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
@@ -192,13 +194,13 @@ KubeStateMetrics defines the desired state for some part of the kube-state-metri
 Monitor handles parameters to set up Service or Pod Monitor.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| install |  | *bool | false |
-| interval |  | string | false |
-| scrapeTimeout |  | string | false |
-| relabelings |  | []*promv1.RelabelConfig | false |
-| metricRelabelings |  | []*promv1.RelabelConfig | false |
-| Selector |  | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#labelselector-v1-meta) | false |
+| --- | --- | --- | --- |
+| install | | *bool | false |
+| interval | | string | false |
+| scrapeTimeout | | string | false |
+| relabelings | | []*promv1.RelabelConfig | false |
+| metricRelabelings | | []*promv1.RelabelConfig | false |
+| Selector | | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#labelselector-v1-meta) | false |
 
 
 
@@ -208,7 +210,7 @@ Monitor handles parameters to set up Service or Pod Monitor.
 NodeExporter defines the desired state for some part of the node-exporter deployment.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is node-exporter will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | setupSecurityContext | SetupSecurityContext creates a SecurityContextConstraints on OpenShift/MicroShift so node-exporter can use hostNetwork, hostPID, and hostPath. Defaults to true. PodSecurityPolicy is not created: Kubernetes removed the API in 1.25. | bool | false |
 | image | Image to use for a `node-exporter` deployment. The `node-exporter` is an exporter to collect metrics from VM More info: [https://github.com/prometheus/node_exporter](https://github.com/prometheus/node_exporter) | string | true |
@@ -236,8 +238,8 @@ OAuthProxy handles parameters to set up Platform Monitoring oauth proxy for serv
 * AlertManager
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| image |  | string | true |
+| --- | --- | --- | --- |
+| image | | string | true |
 
 
 
@@ -247,10 +249,10 @@ OAuthProxy handles parameters to set up Platform Monitoring oauth proxy for serv
 PlatformMonitoring is the Schema for the platformmonitorings API.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta) | false |
-| spec |  | [PlatformMonitoringSpec](#platformmonitoringspec) | false |
-| status |  | [PlatformMonitoringStatus](#platformmonitoringstatus) | false |
+| --- | --- | --- | --- |
+| metadata | | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta) | false |
+| spec | | [PlatformMonitoringSpec](#platformmonitoringspec) | false |
+| status | | [PlatformMonitoringStatus](#platformmonitoringstatus) | false |
 
 
 
@@ -260,12 +262,12 @@ PlatformMonitoring is the Schema for the platformmonitorings API.
 PlatformMonitoringCondition contains the description of the status of PlatformMonitoring.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| type |  | string | true |
-| status |  | string | true |
-| reason |  | string | true |
-| message |  | string | true |
-| lastTransitionTime |  | string | true |
+| --- | --- | --- | --- |
+| type | | string | true |
+| status | | string | true |
+| reason | | string | true |
+| message | | string | true |
+| lastTransitionTime | | string | true |
 
 
 
@@ -275,9 +277,9 @@ PlatformMonitoringCondition contains the description of the status of PlatformMo
 PlatformMonitoringList contains a list of PlatformMonitoring.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#listmeta-v1-meta) | false |
-| items |  | \[\][PlatformMonitoring](#platformmonitoring) | true |
+| --- | --- | --- | --- |
+| metadata | | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#listmeta-v1-meta) | false |
+| items | | \[\][PlatformMonitoring](#platformmonitoring) | true |
 
 
 
@@ -287,22 +289,22 @@ PlatformMonitoringList contains a list of PlatformMonitoring.
 PlatformMonitoringSpec defines the desired state of PlatformMonitoring.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| alertManager |  | *[AlertManager](#alertmanager) | false |
-| kubeStateMetrics |  | *[KubeStateMetrics](#kubestatemetrics) | false |
-| prometheus |  | *[Prometheus](#prometheus) | false |
-| nodeExporter |  | *[NodeExporter](#nodeexporter) | false |
-| grafana |  | *[Grafana](#grafana) | false |
-| integration |  | *[Integration](#integration) | false |
-| auth |  | *[Auth](#auth) | false |
-| oAuthProxy |  | *[OAuthProxy](#oauthproxy) | false |
-| kubernetesMonitors |  | map\[string\][Monitor](#monitor) | false |
-| grafanaDashboards |  | *[GrafanaDashboards](#grafanadashboards) | false |
-| prometheusRules |  | *[PrometheusRules](#prometheusrules) | false |
-| promxy |  | *[Promxy](#promxy) | false |
-| pushgateway |  | *[Pushgateway](#pushgateway) | false |
-| publicCloudName |  | string | false |
-| victoriametrics |  | \*[Victoriametrics](#victoriametrics) | false |
+| --- | --- | --- | --- |
+| alertManager | | *[AlertManager](#alertmanager) | false |
+| kubeStateMetrics | | *[KubeStateMetrics](#kubestatemetrics) | false |
+| prometheus | | *[Prometheus](#prometheus) | false |
+| nodeExporter | | *[NodeExporter](#nodeexporter) | false |
+| grafana | | *[Grafana](#grafana) | false |
+| integration | | *[Integration](#integration) | false |
+| auth | | *[Auth](#auth) | false |
+| oAuthProxy | | *[OAuthProxy](#oauthproxy) | false |
+| kubernetesMonitors | | map\[string\][Monitor](#monitor) | false |
+| grafanaDashboards | | *[GrafanaDashboards](#grafanadashboards) | false |
+| prometheusRules | | *[PrometheusRules](#prometheusrules) | false |
+| promxy | | *[Promxy](#promxy) | false |
+| pushgateway | | *[Pushgateway](#pushgateway) | false |
+| publicCloudName | | string | false |
+| victoriametrics | | \*[Victoriametrics](#victoriametrics) | false |
 
 
 
@@ -312,8 +314,8 @@ PlatformMonitoringSpec defines the desired state of PlatformMonitoring.
 PlatformMonitoringStatus defines the observed state of PlatformMonitoring.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| conditions |  | \[\][PlatformMonitoringCondition](#platformmonitoringcondition) | true |
+| --- | --- | --- | --- |
+| conditions | | \[\][PlatformMonitoringCondition](#platformmonitoringcondition) | true |
 
 
 
@@ -323,7 +325,7 @@ PlatformMonitoringStatus defines the observed state of PlatformMonitoring.
 Prometheus defines the link to PrometheusSpec objects from prometheus-operator.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | image | Image to use for a `prometheus` deployment. The `prometheus` is a systems and service monitoring system. It collects metrics from configured targets at given intervals. More info: [https://github.com/prometheus/prometheus](https://github.com/prometheus/prometheus) | string | true |
 | operator | Operator parameters | [PrometheusOperator](#prometheusoperator) | true |
 | install | Install indicates is Prometheus will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
@@ -372,7 +374,7 @@ Prometheus defines the link to PrometheusSpec objects from prometheus-operator.
 PrometheusOperator defines the desired state for some part of the prometheus-operator deployment.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | image | Image to use for a `prometheus-operator` deployment. The `prometheus-operator` makes the Prometheus configuration Kubernetes native and manages and operates Prometheus and Alertmanager clusters. More info: [https://github.com/prometheus-operator/prometheus-operator](https://github.com/prometheus-operator/prometheus-operator) | string | true |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
 | securityContext | SecurityContext holds pod-level security attributes. | *[SecurityContext](#securitycontext) | false |
@@ -393,13 +395,13 @@ PrometheusOperator defines the desired state for some part of the prometheus-ope
 PrometheusRule handles parameters to override PrometheusRule: alerts of recording rules.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| group |  | string | false |
-| alert |  | string | false |
-| record |  | string | false |
-| for |  | string | false |
-| expr |  | string | false |
-| severity |  | string | false |
+| --- | --- | --- | --- |
+| group | | string | false |
+| alert | | string | false |
+| record | | string | false |
+| for | | string | false |
+| expr | | string | false |
+| severity | | string | false |
 
 
 
@@ -409,10 +411,10 @@ PrometheusRule handles parameters to override PrometheusRule: alerts of recordin
 PrometheusRules help to add and override Prometheus rules.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| install |  | *bool | false |
-| ruleGroups |  | []string | false |
-| override |  | \[\][PrometheusRule](#prometheusrule) | false |
+| --- | --- | --- | --- |
+| install | | *bool | false |
+| ruleGroups | | []string | false |
+| override | | \[\][PrometheusRule](#prometheusrule) | false |
 
 
 
@@ -422,9 +424,9 @@ PrometheusRules help to add and override Prometheus rules.
 Promxy handles parameters to set up Platform Monitoring with Prometheus proxy.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| install |  | *bool | false |
-| port |  | *int32 | false |
+| --- | --- | --- | --- |
+| install | | *bool | false |
+| port | | *int32 | false |
 
 
 
@@ -434,7 +436,7 @@ Promxy handles parameters to set up Platform Monitoring with Prometheus proxy.
 Pushgateway defines the desired state for some part of pushgateway deployment
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is pushgateway will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | image | Image to use for a `pushgateway` deployment. The `pushgateway` is an exporter to collect metrics from VM More info: [https://github.com/prometheus/pushgateway](https://github.com/prometheus/pushgateway) | string | true |
 | replicas | Set replicas | *int32 | false |
@@ -465,9 +467,9 @@ SecurityContext holds pod-level security attributes. The parameters are required
 the Kubernetes cluster and required if a Security Context Constraints is enabled for the OpenShift cluster.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | runAsUser | The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. | *int64 | false |
-| fsGroup | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod:\n\n1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw  | *int64 | false |
+| fsGroup | A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod:\n\n1. The owning GID will be the FSGroup 2. The setgid bit is set (new files created in the volume will be owned by FSGroup) 3. The permission bits are OR'd with rw-rw | *int64 | false |
 
 
 
@@ -479,7 +481,7 @@ GCO). Integration schema:\n * Send metrics from Prometheus to GCO by deploying '
 container\n as sidecar to Prometheus pod. It allows to specify filters for metrics to be sent.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | image | Image of 'stackdriver-prometheus-sidecar'. This service is deploying as sidecar container to Prometheus pod and send metrics from Prometheus to GCO. | string | true |
 | projectId | Identificator of project in Google Cloud | string | true |
 | location | Location where project is deployed in Google Cloud | string | true |
@@ -494,11 +496,11 @@ container\n as sidecar to Prometheus pod. It allows to specify filters for metri
 TLSConfig extends the safe TLS configuration with file parameters.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| caSecret |  | *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretkeyselector-v1-core) | false |
-| certSecret |  | *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretkeyselector-v1-core) | false |
-| keySecret |  | *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretkeyselector-v1-core) | false |
-| insecureSkipVerify |  | *bool | false |
+| --- | --- | --- | --- |
+| caSecret | | *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretkeyselector-v1-core) | false |
+| certSecret | | *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretkeyselector-v1-core) | false |
+| keySecret | | *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secretkeyselector-v1-core) | false |
+| insecureSkipVerify | | *bool | false |
 
 
 
@@ -506,12 +508,12 @@ TLSConfig extends the safe TLS configuration with file parameters.
 ## Victoriametrics
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
-| vmOperator |  | [VmOperator](#vmoperator) | false |
-| vmSingle |  | [VmSingle](#vmsingle) | false |
-| vmAgent |  | [VmAgent](#vmagent) | false |
-| vmAlertManager |  | [VmAlertManager](#vmalertmanager) | false |
-| vmAlert |  | [VmAlert](#vmalert) | false |
+| --- | --- | --- | --- |
+| vmOperator | | [VmOperator](#vmoperator) | false |
+| vmSingle | | [VmSingle](#vmsingle) | false |
+| vmAgent | | [VmAgent](#vmagent) | false |
+| vmAlertManager | | [VmAlertManager](#vmalertmanager) | false |
+| vmAlert | | [VmAlert](#vmalert) | false |
 
 
 
@@ -521,7 +523,7 @@ TLSConfig extends the safe TLS configuration with file parameters.
 VmOperator defines the desired state for some part of the victoriametrics-operator deployment.
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is victoriametrics-operator will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | image | Image to use for a `victoriametrics-operator` deployment. The `victoriametrics-operator` makes the vmoperator configuration Kubernetes native and manages and operates More info: [https://github.com/VictoriaMetrics/operator](https://github.com/VictoriaMetrics/operator) | string | true |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
@@ -540,7 +542,7 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 ## VmAgent
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is vmagent will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | image | Image to use for a `vmagent` deployment. The `victoriametrics-operator` makes the VmAgent configuration Kubernetes native and manages and operates More info: [https://docs.victoriametrics.com/vmalert.html](https://docs.victoriametrics.com/vmalert.html) | string | true |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
@@ -574,7 +576,7 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 ## VmSingle
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is vmsingle will be installed. Can be changed for already deployed CR will be removed during next reconciliation iteration | *bool | false |
 | image | Image to use for a `vmsingle` deployment. The `vmsingle` makes the vmsingle configuration Kubernetes native and manages and operates More info: [https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html](https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html) | string | true |
 | resources | Resources defines resources requests and limits for single Pods. | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#resourcerequirements-v1-core) | false |
@@ -600,7 +602,7 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 ## VmAlert
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is VmAlert will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | image | Image - Docker image settings for VMAlert if no specified operator uses default config version | string | true |
 | ingress | Ingress allows to create Ingress for VM UI. | *[Ingress](#ingress) | false |
@@ -638,7 +640,7 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 ## VmAlertManager
 
 | Field | Description | Scheme | Required |
-| ----- | ----------- | ------ | -------- |
+| --- | --- | --- | --- |
 | install | Install indicates is AlertManager will be installed. Can be changed for already deployed service and the service will be removed during next reconciliation iteration | *bool | false |
 | image | Image to use for a `AlertManager` deployment. The `AlertManager` is alerting system which read metrics from Prometheus More info: [https://prometheus.io/docs/alerting/alertmanager/](https://prometheus.io/docs/alerting/alertmanager/) | string | true |
 | ingress | Ingress allows to create Ingress for VM UI. | *[Ingress](#ingress) | false |
@@ -665,5 +667,4 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output deploy definition. VolumeMounts specified will be appended to other VolumeMounts in the alertmanager container, that are generated as a result of StorageSpec objects. | []v1.VolumeMount | false |
 | extraArgs | ExtraArgs that will be passed to  VMAlertmanager pod for example log.level: debug | map[string]string | false |
 | extraEnvs | ExtraEnvs that will be added to VMAlertmanager pod | []v1.EnvVar | false |
-
 
