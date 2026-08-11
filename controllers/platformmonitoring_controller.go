@@ -43,6 +43,7 @@ import (
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/victoriametrics/vmuser"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -105,11 +106,22 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 	}
 	managedPrometheusEnabled := managedPrometheusExplicitlyEnabled(customResourceInstance)
 	customResourceInstance.FillEmptyWithDefaults()
-	r.syncPrometheusDeprecationCondition(customResourceInstance, managedPrometheusEnabled)
+	rInterval, intervalErr := strconv.ParseInt(utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL"), 10, 64)
 
 	r.Log.Info("Reconciliation started")
-	if err = r.updateStatus(customResourceInstance, "In progress", "False", "ReconcileCycleStatus", "Monitoring service reconcile cycle in progress"); err != nil {
-		r.Log.Error(err, "Error while update status")
+	_, cycleCondition := r.getCondition(customResourceInstance, "ReconcileCycleStatus")
+	publishProgress := cycleCondition == nil ||
+		customResourceInstance.Generation != customResourceInstance.Status.ObservedGeneration ||
+		intervalErr != nil
+	if publishProgress {
+		r.syncPrometheusDeprecationCondition(customResourceInstance, managedPrometheusEnabled)
+		if err = r.updateStatus(customResourceInstance, "In progress", "False", "ReconcileCycleStatus", "Monitoring service reconcile cycle in progress"); err != nil {
+			r.Log.Error(err, "Error while update status")
+		}
+	}
+	statusBeforeReconcile := customResourceInstance.Status.DeepCopy()
+	if !publishProgress {
+		r.syncPrometheusDeprecationCondition(customResourceInstance, managedPrometheusEnabled)
 	}
 
 	// Prometheus Operator should create first because it should create CRDs:
@@ -291,18 +303,20 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		r.removeStatus(customResourceInstance, "ReconcilePushgatewayStatus")
 	}
 
-	rInterval, err := strconv.ParseInt(utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL"), 10, 64)
-	if err != nil {
-		return reconcile.Result{}, err
+	if intervalErr != nil {
+		return reconcile.Result{}, intervalErr
 	}
 
 	failedStatus := hasFailedComponentCondition(customResourceInstance.Status.Conditions)
 
 	if failedStatus {
 		r.prepareStatusForUpdate(customResourceInstance, "Failed", "False", "ReconcileCycleStatus", "Monitoring service reconcile cycle failed")
+		customResourceInstance.Status.ObservedGeneration = customResourceInstance.Generation
 
-		if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
-			r.Log.Error(err, "Update status failed.")
+		if !apiequality.Semantic.DeepEqual(statusBeforeReconcile, &customResourceInstance.Status) {
+			if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
+				r.Log.Error(err, "Update status failed.")
+			}
 		}
 
 		r.Log.Info("Reconciliation failed. Run reconciliation again.")
@@ -310,10 +324,13 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 	}
 
 	r.prepareStatusForUpdate(customResourceInstance, "Successful", "True", "ReconcileCycleStatus", "Monitoring service reconcile cycle succeeded")
+	customResourceInstance.Status.ObservedGeneration = customResourceInstance.Generation
 	r.Log.Info("Reconciliation finished successful, next reconciliation after " + utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL") + " seconds")
 
-	if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
-		r.Log.Error(err, "Update status failed")
+	if !apiequality.Semantic.DeepEqual(statusBeforeReconcile, &customResourceInstance.Status) {
+		if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
+			r.Log.Error(err, "Update status failed")
+		}
 	}
 
 	return reconcile.Result{RequeueAfter: time.Duration(rInterval) * time.Second}, nil
