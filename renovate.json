@@ -28,9 +28,12 @@
         "/^charts/qubership-monitoring-operator/templates/_images\\.tpl$/"
       ],
       "matchStrings": [
-        "\\{\\{-?[\\t ]*/\\*[\\t ]+#?[\\t ]*renovate: datasource=(?<datasource>docker) depName=(?<depName>victoriametrics/operator)[\\t ]*\\*/[\\t ]*-?\\}\\}[^\\S\\r\\n]*\\r?\\n[\\t ]*\\{\\{-?[\\t ]*print[\\t ]+\\\"[^\\\"\\r\\n]+:(?<currentValue>config-reloader-v\\d+\\.\\d+\\.\\d+)\\\"[\\t ]*-?\\}\\}"
+        "\\{\\{-?[\\t ]*/\\*[\\t ]+#?[\\t ]*renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced[\\t ]*\\*/[\\t ]*-?\\}\\}[^\\S\\r\\n]*\\r?\\n[\\t ]*\\{\\{-?[\\t ]*print[\\t ]+\\\"[^\\\"\\r\\n]+:config-reloader-v(?<currentValue>\\d+\\.\\d+\\.\\d+)\\\"[\\t ]*-?\\}\\}"
       ],
-      "versioningTemplate": "regex:^config-reloader-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "depNameTemplate": "VictoriaMetrics/operator",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver-coerced",
+      "depTypeTemplate": "annotated-version"
     },
     {
       "customType": "regex",
@@ -41,21 +44,13 @@
       "matchStrings": [
         "# renovate-vm-operator[^\\S\\r\\n]*\\r?\\n[\\t ]*image:[\\t ]+victoriametrics/operator:v(?<currentValue>\\d+\\.\\d+\\.\\d+)"
       ],
-      "depNameTemplate": "victoriametrics/operator",
-      "datasourceTemplate": "docker",
+      "depNameTemplate": "VictoriaMetrics/operator",
+      "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver-coerced",
       "depTypeTemplate": "annotated-version"
     }
   ],
   "packageRules": [
-    {
-      "description": "Disable digest pinning for prefixed VictoriaMetrics tags",
-      "matchManagers": ["custom.regex"],
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["victoriametrics/operator"],
-      "matchCurrentVersion": "/^config-reloader-v/",
-      "pinDigests": false
-    },
     {
       "description": "Group controller-gen Makefile tool with Kubernetes Go modules",
       "matchManagers": ["custom.regex"],
@@ -89,10 +84,10 @@
       "description": "Keep Prometheus Operator APIs, runtime images, and CRD source version together",
       "matchPackageNames": [
         "github.com/prometheus-operator/prometheus-operator{/,}**",
-        "quay.io/prometheus-operator/prometheus-operator",
-        "quay.io/prometheus-operator/prometheus-config-reloader"
+        "prometheus-operator/prometheus-operator"
       ],
       "groupName": "Prometheus Operator",
+      "minimumGroupSize": 4,
       "prBodyNotes": [
         "This repository bundles Prometheus Operator APIs and assets. Run `make generate-all`, review the generated CRDs and API changes, synchronize custom deployment/RBAC assets when upstream changed them, and commit the reviewed results."
       ]
@@ -101,9 +96,10 @@
       "description": "Keep VictoriaMetrics Operator APIs, runtime images, and CRD source version together",
       "matchPackageNames": [
         "github.com/VictoriaMetrics/operator{/,}**",
-        "victoriametrics/operator"
+        "VictoriaMetrics/operator"
       ],
       "groupName": "VictoriaMetrics Operator",
+      "minimumGroupSize": 9,
       "prBodyNotes": [
         "This repository bundles VictoriaMetrics Operator APIs and assets. Run `make generate-all`, review the generated CRDs and API changes, synchronize custom deployment/RBAC assets when upstream changed them, and commit the reviewed results."
       ]
