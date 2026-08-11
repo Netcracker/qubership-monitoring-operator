@@ -82,7 +82,9 @@ DOCKERFILE=cmd/operator/Dockerfile
 # `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.92.1`)
 CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
 PYTHON?=python3
+# renovate: datasource=docker depName=quay.io/prometheus-operator/prometheus-operator
 PROMETHEUS_OPERATOR_VERSION?=0.92.1
+# renovate: datasource=docker depName=victoriametrics/operator
 VICTORIAMETRICS_OPERATOR_VERSION?=0.73.1
 GRAFANA_OPERATOR_VERSION?=5.24.0
 LOCALBIN ?= $(CURDIR)/bin
