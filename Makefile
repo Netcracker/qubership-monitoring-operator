@@ -154,7 +154,6 @@ generate: controller-gen yq
 
 .PHONY: generate-all
 generate-all:
-	$(MAKE) generate
 	$(MAKE) update-operators-crds
 	$(MAKE) update-crds
 
@@ -347,9 +346,8 @@ test-crd-compaction: yq
 
 # Run document generation
 .PHONY: docs
-docs:
+docs: update-crds
 	@echo "=> 'make docs' is deprecated; use 'make update-crds' instead."
-	$(MAKE) update-crds
 
 ##########################
 # Update CRDs Helm chart #
@@ -357,7 +355,7 @@ docs:
 
 # Copy CRDs from canonical chart directories to the qubership-monitoring-crds Helm chart
 .PHONY: update-crds
-update-crds:
+update-crds: generate
 	echo "=> Update CRDs in dedicated Helm chart ..."
 	rm -f $(CRDS_HELM_CRDS_FOLDER)/crds/*.yaml $(CRDS_HELM_CRDS_FOLDER)/crds/*.yml
 	cp $(MON_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
@@ -454,7 +452,7 @@ build-site: prepare-site-directory install-site-dependencies
 
 # Run archives with helm chart and crds creation
 .PHONY: archives
-archives: cleanup prepare-charts archive-helm-chart archive-crds
+archives: archive-helm-chart archive-crds
 
 # Remove build dir
 .PHONY: cleanup
@@ -463,7 +461,7 @@ cleanup:
 
 # Copy Helm charts to the /helm directory because the builder expect it in this dir
 .PHONY: prepare-charts
-prepare-charts:
+prepare-charts: cleanup
 	echo "=> Copy Helm charts to contract directory for build ..."
 	mkdir -p $(OUTPUT_DIR)
 
@@ -472,7 +470,7 @@ prepare-charts:
 
 # Archive Helm chart separately from application manifest
 .PHONY: archive-helm-chart
-archive-helm-chart:
+archive-helm-chart: prepare-charts update-crds
 	echo "=> Archive Helm charts ..."
 
 	# Navigate to dir to avoid unnecessary directories in result archive
@@ -481,7 +479,7 @@ archive-helm-chart:
 
 # Archive CRDs separately from helm chart
 .PHONY: archive-crds
-archive-crds:
+archive-crds: prepare-charts update-crds
 	echo "=> Archive CRDs ..."
 	# Copy documentation how to apply CRDS
 	cp docs/user-guides/manual-create-crds.md "${BUILD_DIR}"/_crds/README.md
