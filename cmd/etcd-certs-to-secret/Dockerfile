@@ -1,6 +1,6 @@
 # Build the etcd-certs-to-secret binary
 # Build context must be the repository root.
-FROM --platform=$BUILDPLATFORM golang:1.26.4-alpine3.23 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.5-alpine3.23@sha256:622e56dbc11a8cfe87cafa2331e9a201877271cbff918af53d3be315f3da88cc AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
