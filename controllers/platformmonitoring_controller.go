@@ -296,15 +296,7 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		return reconcile.Result{}, err
 	}
 
-	status := customResourceInstance.Status.Conditions
-	failedStatus := false
-
-	for i := range status {
-		if status[i].Type == "Failed" {
-			failedStatus = true
-			break
-		}
-	}
+	failedStatus := hasFailedComponentCondition(customResourceInstance.Status.Conditions)
 
 	if failedStatus {
 		r.prepareStatusForUpdate(customResourceInstance, "Failed", "False", "ReconcileCycleStatus", "Monitoring service reconcile cycle failed")
@@ -381,6 +373,15 @@ func ignoreDeletionPredicate() predicate.Predicate {
 			return !e.DeleteStateUnknown
 		},
 	}
+}
+
+func hasFailedComponentCondition(conditions []qubershiporgv1.PlatformMonitoringCondition) bool {
+	for i := range conditions {
+		if conditions[i].Type == "Failed" && conditions[i].Reason != "ReconcileCycleStatus" {
+			return true
+		}
+	}
+	return false
 }
 
 // getCondition retrieves condition of custom resource instance by given reason.
@@ -460,22 +461,31 @@ func (r *PlatformMonitoringReconciler) updateStatus(customResourceInstance *qube
 
 // prepareStatusForUpdate checks if old condition with same reason exist and change it on the new condition
 func (r *PlatformMonitoringReconciler) prepareStatusForUpdate(customResourceInstance *qubershiporgv1.PlatformMonitoring, statusType string, status string, reason string, message string) bool {
-	// get status timestamp
-	transitionTime := metav1.Now()
+	idx, oldCondition := r.getCondition(customResourceInstance, reason)
+
+	if oldCondition == nil {
+		newCondition := qubershiporgv1.PlatformMonitoringCondition{
+			Type:               statusType,
+			Status:             status,
+			Reason:             reason,
+			Message:            message,
+			LastTransitionTime: metav1.Now().String(),
+		}
+		customResourceInstance.Status.Conditions = append(customResourceInstance.Status.Conditions, newCondition)
+		return true
+	}
+
+	transitionTime := oldCondition.LastTransitionTime
+	if oldCondition.Type != statusType || oldCondition.Status != status || transitionTime == "" {
+		transitionTime = metav1.Now().String()
+	}
 	newCondition := qubershiporgv1.PlatformMonitoringCondition{
 		Type:               statusType,
 		Status:             status,
 		Reason:             reason,
 		Message:            message,
-		LastTransitionTime: transitionTime.String(),
+		LastTransitionTime: transitionTime,
 	}
-	idx, oldCondition := r.getCondition(customResourceInstance, newCondition.Reason)
-
-	if oldCondition == nil {
-		customResourceInstance.Status.Conditions = append(customResourceInstance.Status.Conditions, newCondition)
-		return true
-	}
-
 	isEqual := newCondition.Type == oldCondition.Type &&
 		newCondition.Status == oldCondition.Status &&
 		newCondition.Reason == oldCondition.Reason &&
