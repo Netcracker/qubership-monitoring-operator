@@ -21,6 +21,15 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
+const (
+	nodeExporterSCCOwnerNameAnnotation      = "monitoring.netcracker.com/platform-monitoring-name"
+	nodeExporterSCCOwnerNamespaceAnnotation = "monitoring.netcracker.com/platform-monitoring-namespace"
+)
+
+func nodeExporterSecurityContextConstraintsName(cr *monv1.PlatformMonitoring) string {
+	return cr.GetNamespace() + "-" + utils.NodeExporterComponentName
+}
+
 func nodeExporterClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbacv1.ClusterRole, error) {
 	clusterRole := rbacv1.ClusterRole{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterClusterRoleAsset), 100).Decode(&clusterRole); err != nil {
@@ -42,7 +51,7 @@ func nodeExporterClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) 
 			Resources:     []string{"securitycontextconstraints"},
 			Verbs:         []string{"use"},
 			APIGroups:     []string{"security.openshift.io"},
-			ResourceNames: []string{utils.NodeExporterComponentName},
+			ResourceNames: []string{nodeExporterSecurityContextConstraintsName(cr)},
 		})
 	}
 	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.NodeExporterComponentName), cr.GetNamespace())
@@ -70,14 +79,20 @@ func nodeExporterClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clust
 	return &clusterRoleBinding, nil
 }
 
-func nodeExporterSecurityContextConstraints() (*secv1.SecurityContextConstraints, error) {
+func nodeExporterSecurityContextConstraints(cr *monv1.PlatformMonitoring) (*secv1.SecurityContextConstraints, error) {
 	scc := secv1.SecurityContextConstraints{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterSecurityContextConstraintsAsset), 100).Decode(&scc); err != nil {
 		return nil, err
 	}
-	//Set parameters
+	// Cluster-scoped resources cannot use a namespaced PlatformMonitoring as an owner reference.
+	// Record the installation identity explicitly so reconciliation never adopts a foreign SCC.
 	scc.SetGroupVersionKind(schema.GroupVersionKind{Group: "security.openshift.io", Version: "v1", Kind: "SecurityContextConstraints"})
-	scc.SetName(utils.NodeExporterComponentName)
+	scc.SetName(nodeExporterSecurityContextConstraintsName(cr))
+	utils.SetClusterScopedLabelsForResource(&scc, utils.BaseOnlyLabelInput(scc.GetName(), utils.NodeExporterComponentName), cr.GetNamespace())
+	scc.SetAnnotations(map[string]string{
+		nodeExporterSCCOwnerNameAnnotation:      cr.GetName(),
+		nodeExporterSCCOwnerNamespaceAnnotation: cr.GetNamespace(),
+	})
 
 	return &scc, nil
 }

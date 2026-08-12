@@ -1,6 +1,8 @@
 package nodeexporter
 
 import (
+	"fmt"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	secv1 "github.com/openshift/api/security/v1"
@@ -99,23 +101,29 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterSecurityContextConstraints()
+	m, err := nodeExporterSecurityContextConstraints(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
 		return err
 	}
 
-	utils.SetLabelsForResource(m, utils.BaseOnlyLabelInput(m.GetName(), utils.NodeExporterComponentName), nil)
-
 	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
 	if err = r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
+			if err = r.CreateResource(cr, m, false); err != nil {
 				return err
 			}
 			return nil
 		}
 		return err
+	}
+	if !isNodeExporterSCCOwnedBy(e, cr) {
+		return fmt.Errorf(
+			"cannot reconcile SecurityContextConstraints %q: it is not owned by PlatformMonitoring %s/%s",
+			e.GetName(),
+			cr.GetNamespace(),
+			cr.GetName(),
+		)
 	}
 	//Set parameters
 	e.SetLabels(m.GetLabels())
@@ -125,6 +133,12 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 		return err
 	}
 	return nil
+}
+
+func isNodeExporterSCCOwnedBy(scc *secv1.SecurityContextConstraints, cr *monv1.PlatformMonitoring) bool {
+	annotations := scc.GetAnnotations()
+	return annotations[nodeExporterSCCOwnerNameAnnotation] == cr.GetName() &&
+		annotations[nodeExporterSCCOwnerNamespaceAnnotation] == cr.GetNamespace()
 }
 
 func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) {
@@ -152,7 +166,7 @@ func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstrai
 }
 
 func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterSecurityContextConstraints()
+	m, err := nodeExporterSecurityContextConstraints(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
 		return err
@@ -163,6 +177,13 @@ func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.Plat
 			return nil
 		}
 		return err
+	}
+	if !isNodeExporterSCCOwnedBy(e, cr) {
+		r.Log.Info(
+			"Skip deleting SecurityContextConstraints because it is owned by another installation",
+			"name", e.GetName(),
+		)
+		return nil
 	}
 	if err = r.DeleteResource(e); err != nil {
 		return err

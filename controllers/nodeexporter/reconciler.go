@@ -51,7 +51,9 @@ func (r *NodeExporterReconciler) Run(cr *monv1.PlatformMonitoring) error {
 							return err
 						}
 					} else {
-						r.Log.Info("setupSecurityContext is disabled, skip creating SCC for node-exporter")
+						if err := r.deleteSecurityContextConstraints(cr); err != nil {
+							return err
+						}
 					}
 				} else {
 					r.Log.Info("there is no SecurityContextConstraints API found, skip creating SCC for node-exporter")

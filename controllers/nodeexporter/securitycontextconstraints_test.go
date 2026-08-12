@@ -35,16 +35,18 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 		actual := &secv1.SecurityContextConstraints{}
 		require.NoError(t, kubeClient.Get(
 			context.Background(),
-			client.ObjectKey{Name: utils.NodeExporterComponentName},
+			client.ObjectKey{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 			actual,
 		))
 		assert.True(t, actual.AllowHostNetwork)
 		assert.True(t, actual.AllowHostPID)
 		assert.Contains(t, actual.Labels, "app.kubernetes.io/managed-by")
+		assert.True(t, isNodeExporterSCCOwnedBy(actual, platformMonitoring))
 	})
 
 	t.Run("updates policy and preserves subjects", func(t *testing.T) {
-		desired, err := nodeExporterSecurityContextConstraints()
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		desired, err := nodeExporterSecurityContextConstraints(platformMonitoring)
 		require.NoError(t, err)
 
 		existing := desired.DeepCopy()
@@ -57,12 +59,12 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 		existing.Groups = []string{"system:serviceaccounts:custom"}
 
 		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, existing)
-		require.NoError(t, reconciler.handleSecurityContextConstraints(newNodeExporterPlatformMonitoring(true)))
+		require.NoError(t, reconciler.handleSecurityContextConstraints(platformMonitoring))
 
 		actual := &secv1.SecurityContextConstraints{}
 		require.NoError(t, kubeClient.Get(
 			context.Background(),
-			client.ObjectKey{Name: utils.NodeExporterComponentName},
+			client.ObjectKey{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 			actual,
 		))
 		assert.Equal(t, desired.AllowHostNetwork, actual.AllowHostNetwork)
@@ -74,22 +76,52 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 		assert.Equal(t, existing.Groups, actual.Groups)
 	})
 
+	t.Run("refuses to update a foreign SCC", func(t *testing.T) {
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		foreign, err := nodeExporterSecurityContextConstraints(platformMonitoring)
+		require.NoError(t, err)
+		foreign.SetAnnotations(nil)
+		foreign.AllowHostNetwork = false
+
+		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, foreign)
+		err = reconciler.handleSecurityContextConstraints(platformMonitoring)
+		require.ErrorContains(t, err, "is not owned by PlatformMonitoring monitoring/platform-monitoring")
+
+		actual := &secv1.SecurityContextConstraints{}
+		require.NoError(t, kubeClient.Get(context.Background(), client.ObjectKeyFromObject(foreign), actual))
+		assert.False(t, actual.AllowHostNetwork)
+		assert.Empty(t, actual.Annotations)
+	})
+
 	t.Run("deletes SCC idempotently", func(t *testing.T) {
-		existing, err := nodeExporterSecurityContextConstraints()
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		existing, err := nodeExporterSecurityContextConstraints(platformMonitoring)
 		require.NoError(t, err)
 
 		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, existing)
-		platformMonitoring := newNodeExporterPlatformMonitoring(true)
-
 		require.NoError(t, reconciler.deleteSecurityContextConstraints(platformMonitoring))
 		require.NoError(t, reconciler.deleteSecurityContextConstraints(platformMonitoring))
 
 		err = kubeClient.Get(
 			context.Background(),
-			client.ObjectKey{Name: utils.NodeExporterComponentName},
+			client.ObjectKey{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 			&secv1.SecurityContextConstraints{},
 		)
 		assert.True(t, apierrors.IsNotFound(err))
+	})
+
+	t.Run("preserves a foreign SCC during deletion", func(t *testing.T) {
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		foreign, err := nodeExporterSecurityContextConstraints(platformMonitoring)
+		require.NoError(t, err)
+		foreign.SetAnnotations(map[string]string{
+			nodeExporterSCCOwnerNameAnnotation:      "another-platform-monitoring",
+			nodeExporterSCCOwnerNamespaceAnnotation: platformMonitoring.GetNamespace(),
+		})
+
+		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, foreign)
+		require.NoError(t, reconciler.deleteSecurityContextConstraints(platformMonitoring))
+		assertResourceExists(t, kubeClient, foreign)
 	})
 
 	t.Run("returns create error", func(t *testing.T) {
@@ -136,7 +168,8 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 	})
 
 	t.Run("returns update error", func(t *testing.T) {
-		existing, err := nodeExporterSecurityContextConstraints()
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		existing, err := nodeExporterSecurityContextConstraints(platformMonitoring)
 		require.NoError(t, err)
 		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, existing)
 		expectedErr := errors.New("update SCC")
@@ -153,7 +186,7 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 
 		assert.ErrorIs(
 			t,
-			reconciler.handleSecurityContextConstraints(newNodeExporterPlatformMonitoring(true)),
+			reconciler.handleSecurityContextConstraints(platformMonitoring),
 			expectedErr,
 		)
 	})
@@ -181,7 +214,8 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 	})
 
 	t.Run("returns delete error", func(t *testing.T) {
-		existing, err := nodeExporterSecurityContextConstraints()
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		existing, err := nodeExporterSecurityContextConstraints(platformMonitoring)
 		require.NoError(t, err)
 		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, existing)
 		expectedErr := errors.New("delete SCC")
@@ -198,7 +232,7 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 
 		assert.ErrorIs(
 			t,
-			reconciler.deleteSecurityContextConstraints(newNodeExporterPlatformMonitoring(true)),
+			reconciler.deleteSecurityContextConstraints(platformMonitoring),
 			expectedErr,
 		)
 	})
@@ -218,14 +252,14 @@ func TestNodeExporterReconcilesSecurityContextConstraints(t *testing.T) {
 		require.NoError(t, reconciler.Run(platformMonitoring))
 		require.NoError(t, reconciler.Run(platformMonitoring))
 		assertResourceExists(t, kubeClient, &secv1.SecurityContextConstraints{
-			ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName},
+			ObjectMeta: metav1.ObjectMeta{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 		})
 
 		install := false
 		platformMonitoring.Spec.NodeExporter.Install = &install
 		require.NoError(t, reconciler.Run(platformMonitoring))
 		assertResourceDoesNotExist(t, kubeClient, &secv1.SecurityContextConstraints{
-			ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName},
+			ObjectMeta: metav1.ObjectMeta{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 		})
 	})
 
@@ -251,7 +285,7 @@ func TestNodeExporterReconcilesSecurityContextConstraints(t *testing.T) {
 
 	t.Run("continues uninstall after SCC deletion error", func(t *testing.T) {
 		platformMonitoring := newNodeExporterPlatformMonitoring(true)
-		existing, err := nodeExporterSecurityContextConstraints()
+		existing, err := nodeExporterSecurityContextConstraints(platformMonitoring)
 		require.NoError(t, err)
 		serviceAccount, err := nodeExporterServiceAccount(platformMonitoring)
 		require.NoError(t, err)
@@ -275,14 +309,44 @@ func TestNodeExporterReconcilesSecurityContextConstraints(t *testing.T) {
 		assertResourceDoesNotExist(t, kubeClient, serviceAccount)
 	})
 
-	t.Run("skips SCC when setup is disabled", func(t *testing.T) {
+	t.Run("deletes an owned SCC after setup is disabled", func(t *testing.T) {
 		reconciler, kubeClient := newNodeExporterTestReconciler(t, true)
-		platformMonitoring := newNodeExporterPlatformMonitoring(false)
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
 
 		require.NoError(t, reconciler.Run(platformMonitoring))
-		assertResourceDoesNotExist(t, kubeClient, &secv1.SecurityContextConstraints{
-			ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName},
+		assertResourceExists(t, kubeClient, &secv1.SecurityContextConstraints{
+			ObjectMeta: metav1.ObjectMeta{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 		})
+
+		platformMonitoring.Spec.NodeExporter.SetupSecurityContext = false
+		require.NoError(t, reconciler.Run(platformMonitoring))
+		assertResourceDoesNotExist(t, kubeClient, &secv1.SecurityContextConstraints{
+			ObjectMeta: metav1.ObjectMeta{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
+		})
+	})
+
+	t.Run("preserves a foreign SCC when setup is disabled", func(t *testing.T) {
+		platformMonitoring := newNodeExporterPlatformMonitoring(false)
+		foreign, err := nodeExporterSecurityContextConstraints(platformMonitoring)
+		require.NoError(t, err)
+		foreign.SetAnnotations(nil)
+		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, foreign)
+
+		require.NoError(t, reconciler.Run(platformMonitoring))
+		assertResourceExists(t, kubeClient, foreign)
+	})
+
+	t.Run("preserves a foreign SCC during uninstall", func(t *testing.T) {
+		platformMonitoring := newNodeExporterPlatformMonitoring(true)
+		foreign, err := nodeExporterSecurityContextConstraints(platformMonitoring)
+		require.NoError(t, err)
+		foreign.SetAnnotations(nil)
+		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, foreign)
+
+		install := false
+		platformMonitoring.Spec.NodeExporter.Install = &install
+		require.NoError(t, reconciler.Run(platformMonitoring))
+		assertResourceExists(t, kubeClient, foreign)
 	})
 
 	t.Run("skips SCC when API is unavailable", func(t *testing.T) {
@@ -291,7 +355,7 @@ func TestNodeExporterReconcilesSecurityContextConstraints(t *testing.T) {
 
 		require.NoError(t, reconciler.Run(platformMonitoring))
 		assertResourceDoesNotExist(t, kubeClient, &secv1.SecurityContextConstraints{
-			ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName},
+			ObjectMeta: metav1.ObjectMeta{Name: nodeExporterSecurityContextConstraintsName(platformMonitoring)},
 		})
 	})
 }
