@@ -40,6 +40,16 @@ func TestApplyGrafanaDesiredStateRemovesStaleAnnotation(t *testing.T) {
 	assert.Nil(t, live.Spec.Deployment.Spec.Template.Annotations)
 }
 
+func TestApplyGrafanaDesiredStateUpdatesChangedLabels(t *testing.T) {
+	desired, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.Labels = map[string]string{"example.com/stale": "value"}
+
+	assert.True(t, applyGrafanaDesiredState(live, desired))
+	assert.Equal(t, desired.Labels, live.Labels)
+}
+
 func grafanaComparisonPlatformMonitoring(annotations map[string]string) *monv1.PlatformMonitoring {
 	return &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Name: "platformmonitoring", Namespace: "monitoring"},
