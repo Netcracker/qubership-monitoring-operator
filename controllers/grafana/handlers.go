@@ -48,19 +48,7 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 		return err
 	}
 
-	//Set parameters
-	// Only update if something actually changed to avoid unnecessary updates
-	needsUpdate := false
-	if !reflect.DeepEqual(e.Spec, m.Spec) {
-		e.Spec = m.Spec
-		needsUpdate = true
-	}
-	if !reflect.DeepEqual(e.GetLabels(), m.GetLabels()) {
-		e.SetLabels(m.GetLabels())
-		needsUpdate = true
-	}
-
-	if needsUpdate {
+	if applyGrafanaDesiredState(e, m) {
 		if err = r.UpdateResource(e); err != nil {
 			return err
 		}
@@ -72,6 +60,19 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Waiting grafana-deployment")
 	time.Sleep(30 * time.Second)
 	return nil
+}
+
+func applyGrafanaDesiredState(existing, desired *grafv1.Grafana) bool {
+	needsUpdate := false
+	if !reflect.DeepEqual(existing.Spec, desired.Spec) {
+		existing.Spec = desired.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(existing.GetLabels(), desired.GetLabels()) {
+		existing.SetLabels(desired.GetLabels())
+		needsUpdate = true
+	}
+	return needsUpdate
 }
 
 func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {

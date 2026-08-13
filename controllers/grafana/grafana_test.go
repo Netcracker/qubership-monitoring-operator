@@ -12,6 +12,7 @@ import (
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -126,6 +127,23 @@ func TestGrafanaManifests(t *testing.T) {
 		}
 		assert.NotNil(t, m, "PodMonitor manifest should not be empty")
 		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.GrafanaComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
+	})
+}
+
+func TestGrafanaPodTemplateAnnotations(t *testing.T) {
+	t.Run("keeps annotations nil when none are configured", func(t *testing.T) {
+		manifest, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+		require.NoError(t, err)
+
+		assert.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
+	})
+
+	t.Run("preserves configured annotations", func(t *testing.T) {
+		annotations := map[string]string{"example.com/key": "value"}
+		manifest, err := grafana(grafanaComparisonPlatformMonitoring(annotations))
+		require.NoError(t, err)
+
+		assert.Equal(t, annotations, manifest.Spec.Deployment.Spec.Template.Annotations)
 	})
 }
 

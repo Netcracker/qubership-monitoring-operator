@@ -502,10 +502,10 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 		}
 
-		if deployment.Spec.Template.Annotations == nil {
-			deployment.Spec.Template.Annotations = make(map[string]string)
-		}
-		if cr.Spec.Grafana.Annotations != nil {
+		if len(cr.Spec.Grafana.Annotations) > 0 {
+			if deployment.Spec.Template.Annotations == nil {
+				deployment.Spec.Template.Annotations = make(map[string]string, len(cr.Spec.Grafana.Annotations))
+			}
 			for k, v := range cr.Spec.Grafana.Annotations {
 				deployment.Spec.Template.Annotations[k] = v
 			}
