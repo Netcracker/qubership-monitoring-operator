@@ -79,7 +79,7 @@ CONTAINER_NAME="qubership-monitoring-operator"
 DOCKERFILE=cmd/operator/Dockerfile
 
 # CRD update tool and operator versions (override on the command line, e.g.
-# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.92.1`)
+# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.93.0`)
 CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
 PYTHON?=python3
 # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced

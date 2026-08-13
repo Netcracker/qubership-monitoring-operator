@@ -33,7 +33,7 @@ evaluationInterval: 30s
 # image: prom/prometheus:v3.13.1
 
 # A docker image to use for prometheus-cofig-reloader deployment with prometheus pod
-#  configReloaderImage: prometheus-operator/prometheus-config-reloader:v0.92.1
+#  configReloaderImage: prometheus-operator/prometheus-config-reloader:v0.93.0
 
 # Pod monitor for self-monitoring
 # Type: object
@@ -538,7 +538,7 @@ operator:
   # Type: string
   # Mandatory: yes
   #
-  # image: quay.io/prometheus-operator/prometheus-operator:v0.92.1
+  # image: quay.io/prometheus-operator/prometheus-operator:v0.93.0
 
   # Set paused to reconciliation for prometheus-operator
   # Type: boolean

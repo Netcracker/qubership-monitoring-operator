@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.21.0
-    operator.prometheus.io/version: 0.92.1
+    operator.prometheus.io/version: 0.93.0
   name: podmonitors.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -52,15 +52,19 @@ spec:
                 type: string
               keepDroppedTargets:
                 format: int64
+                minimum: 0
                 type: integer
               labelLimit:
                 format: int64
+                minimum: 0
                 type: integer
               labelNameLengthLimit:
                 format: int64
+                minimum: 0
                 type: integer
               labelValueLengthLimit:
                 format: int64
+                minimum: 0
                 type: integer
               namespaceSelector:
                 properties:
@@ -73,6 +77,7 @@ spec:
                 type: object
               nativeHistogramBucketLimit:
                 format: int64
+                minimum: 0
                 type: integer
               nativeHistogramMinBucketFactor:
                 anyOf:
@@ -187,6 +192,7 @@ spec:
                             type: string
                           modulus:
                             format: int64
+                            minimum: 0
                             type: integer
                           regex:
                             type: string
@@ -450,6 +456,7 @@ spec:
                             type: string
                           modulus:
                             format: int64
+                            minimum: 0
                             type: integer
                           regex:
                             type: string
@@ -582,6 +589,7 @@ spec:
                 type: array
               sampleLimit:
                 format: int64
+                minimum: 0
                 type: integer
               scrapeClass:
                 minLength: 1
@@ -634,6 +642,7 @@ spec:
                 type: string
               targetLimit:
                 format: int64
+                minimum: 0
                 type: integer
             required:
             - selector

@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.21.0
-    operator.prometheus.io/version: 0.92.1
+    operator.prometheus.io/version: 0.93.0
   name: prometheusagents.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -1492,23 +1492,29 @@ spec:
                 type: string
               enforcedKeepDroppedTargets:
                 format: int64
+                minimum: 0
                 type: integer
               enforcedLabelLimit:
                 format: int64
+                minimum: 0
                 type: integer
               enforcedLabelNameLengthLimit:
                 format: int64
+                minimum: 0
                 type: integer
               enforcedLabelValueLengthLimit:
                 format: int64
+                minimum: 0
                 type: integer
               enforcedNamespaceLabel:
                 type: string
               enforcedSampleLimit:
                 format: int64
+                minimum: 0
                 type: integer
               enforcedTargetLimit:
                 format: int64
+                minimum: 0
                 type: integer
               excludedFromEnforcement:
                 items:
@@ -2307,15 +2313,19 @@ spec:
                 type: array
               keepDroppedTargets:
                 format: int64
+                minimum: 0
                 type: integer
               labelLimit:
                 format: int64
+                minimum: 0
                 type: integer
               labelNameLengthLimit:
                 format: int64
+                minimum: 0
                 type: integer
               labelValueLengthLimit:
                 format: int64
+                minimum: 0
                 type: integer
               listenLocal:
                 type: boolean
@@ -3108,6 +3118,7 @@ spec:
                             type: string
                           modulus:
                             format: int64
+                            minimum: 0
                             type: integer
                           regex:
                             type: string
@@ -3185,6 +3196,7 @@ spec:
                 type: object
               sampleLimit:
                 format: int64
+                minimum: 0
                 type: integer
               schedulerName:
                 minLength: 1
@@ -3258,6 +3270,7 @@ spec:
                             type: string
                           modulus:
                             format: int64
+                            minimum: 0
                             type: integer
                           regex:
                             type: string
@@ -3307,6 +3320,7 @@ spec:
                             type: string
                           modulus:
                             format: int64
+                            minimum: 0
                             type: integer
                           regex:
                             type: string
@@ -3672,6 +3686,7 @@ spec:
                 - message: topology can only be defined when mode is set to 'Topology'
                   rule: '!has(self.topology) || (has(self.mode) && self.mode == ''Topology'')'
               shards:
+                default: 1
                 format: int32
                 type: integer
               storage:
@@ -3965,6 +3980,7 @@ spec:
                 type: object
               targetLimit:
                 format: int64
+                minimum: 0
                 type: integer
               terminationGracePeriodSeconds:
                 format: int64
@@ -4180,6 +4196,14 @@ spec:
                 type: object
               tsdb:
                 properties:
+                  chunkEncoding:
+                    properties:
+                      floats:
+                        enum:
+                        - Xor
+                        - Xor2
+                        type: string
+                    type: object
                   outOfOrderTimeWindow:
                     pattern: ^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$
                     type: string

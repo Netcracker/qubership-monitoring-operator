@@ -227,8 +227,8 @@ expected_images=(
     "docker.io/victoriametrics/vmalert:v1.148.0"
     "docker.io/victoriametrics/vmauth:v1.148.0"
     "quay.io/grafana-operator/grafana-operator:v5.24.0"
-    "quay.io/prometheus-operator/prometheus-config-reloader:v0.92.1"
-    "quay.io/prometheus-operator/prometheus-operator:v0.92.1"
+    "quay.io/prometheus-operator/prometheus-config-reloader:v0.93.0"
+    "quay.io/prometheus-operator/prometheus-operator:v0.93.0"
 )
 
 for expected_image in "${expected_images[@]}"; do
