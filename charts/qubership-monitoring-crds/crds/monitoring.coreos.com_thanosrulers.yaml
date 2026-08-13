@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.21.0
-    operator.prometheus.io/version: 0.92.1
+    operator.prometheus.io/version: 0.93.0
   name: thanosrulers.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -2868,6 +2868,7 @@ spec:
                             type: string
                           modulus:
                             format: int64
+                            minimum: 0
                             type: integer
                           regex:
                             type: string

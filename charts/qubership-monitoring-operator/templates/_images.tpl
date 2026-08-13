@@ -80,7 +80,7 @@ Image can be found from:
     {{- printf "%s" .Values.prometheus.operator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced */ -}}
-    {{- print "quay.io/prometheus-operator/prometheus-operator:v0.92.1" -}}
+    {{- print "quay.io/prometheus-operator/prometheus-operator:v0.93.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -95,7 +95,7 @@ Image can be found from:
     {{- printf "%s" .Values.prometheus.configReloaderImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced */ -}}
-    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.92.1" -}}
+    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.93.0" -}}
   {{- end -}}
 {{- end -}}
 
