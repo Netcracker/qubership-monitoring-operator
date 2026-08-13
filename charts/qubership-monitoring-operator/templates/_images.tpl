@@ -79,7 +79,7 @@ Image can be found from:
   {{- if .Values.prometheus.operator.image -}}
     {{- printf "%s" .Values.prometheus.operator.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=quay.io/prometheus-operator/prometheus-operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced */ -}}
     {{- print "quay.io/prometheus-operator/prometheus-operator:v0.92.1" -}}
   {{- end -}}
 {{- end -}}
@@ -94,7 +94,7 @@ Image can be found from:
   {{- if .Values.prometheus.configReloaderImage -}}
     {{- printf "%s" .Values.prometheus.configReloaderImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=quay.io/prometheus-operator/prometheus-config-reloader */ -}}
+    {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced */ -}}
     {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.92.1" -}}
   {{- end -}}
 {{- end -}}
@@ -141,7 +141,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmOperator.image -}}
     {{- printf "%s" .Values.victoriametrics.vmOperator.image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
     {{- print "docker.io/victoriametrics/operator:v0.73.1" -}}
   {{- end -}}
 {{- end -}}
@@ -156,7 +156,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmOperator.configReloaderImage -}}
     {{- printf "%s" .Values.victoriametrics.vmOperator.configReloaderImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
     {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
   {{- end -}}
 {{- end -}}
@@ -186,7 +186,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAgent.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAgent.configReloadImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
     {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
   {{- end -}}
 {{- end -}}
@@ -216,7 +216,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlert.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAlert.configReloadImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
     {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
   {{- end -}}
 {{- end -}}
@@ -246,7 +246,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAlertManager.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAlertManager.configReloadImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
     {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
   {{- end -}}
 {{- end -}}
@@ -321,7 +321,7 @@ Image can be found from:
   {{- if .Values.victoriametrics.vmAuth.configReloadImage -}}
     {{- printf "%s" .Values.victoriametrics.vmAuth.configReloadImage -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=victoriametrics/operator */ -}}
+    {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
     {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
   {{- end -}}
 {{- end -}}

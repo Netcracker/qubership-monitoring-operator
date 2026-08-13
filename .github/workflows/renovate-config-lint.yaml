@@ -3,12 +3,22 @@ name: Validate Renovate Config
 on:
   push:
     paths:
+      - .github/scripts/test-renovate-operator-groups.mjs
       - renovate.json
       - .github/workflows/renovate-config-lint.yaml
+      - Makefile
+      - charts/qubership-monitoring-operator/templates/_images.tpl
+      - controllers/victoriametrics/vmoperator/assets/deployment.yaml
+      - go.mod
   pull_request:
     paths:
+      - .github/scripts/test-renovate-operator-groups.mjs
       - renovate.json
       - .github/workflows/renovate-config-lint.yaml
+      - Makefile
+      - charts/qubership-monitoring-operator/templates/_images.tpl
+      - controllers/victoriametrics/vmoperator/assets/deployment.yaml
+      - go.mod
   schedule:
     - cron: "30 7 * * 1"
   workflow_dispatch: {}
@@ -86,6 +96,27 @@ jobs:
             echo "::error::Renovate preset resolution exited with code $renovate_status"
             exit "$renovate_status"
           fi
+
+      - name: Test managed operator groups
+        shell: bash
+        env:
+          GITHUB_COM_TOKEN: ${{ github.token }}
+          LOG_FORMAT: json
+          LOG_LEVEL: debug
+          RENOVATE_CONFIG: >-
+            {"includePaths":["Makefile","charts/qubership-monitoring-operator/templates/_images.tpl","controllers/victoriametrics/vmoperator/assets/deployment.yaml","go.mod"]}
+          RENOVATE_ENABLED_MANAGERS: custom.regex,gomod
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+
+          if ! renovate --platform=local --dry-run=extract > "$log_file" 2>&1; then
+            cat "$log_file"
+            exit 1
+          fi
+
+          node .github/scripts/test-renovate-operator-groups.mjs "$log_file"
 
   lookup-renovate-dependencies:
     name: Look up Renovate dependencies
