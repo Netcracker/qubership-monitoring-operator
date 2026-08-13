@@ -1,8 +1,8 @@
-### ssl-exporter
+# SSL Exporter
 
 SSL exporter allows probing SSL/TLS certificates for various targets (external/internal HTTPS endpoints, files on the host, Kubernetes secrets, and kubeconfig) and exposes metrics for Prometheus.
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length MD060 -->
 | Field                                                | Description                                                                                                                                                                                                                                       | Scheme |
 |------------------------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | install                                              | Enables or disables deployment of ssl-exporter.                                                                                                                                                                                                     | bool   |
@@ -17,7 +17,7 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 | service.protocol                                     | Service protocol.                                                                                                                                                                                                                                    | string |
 | service.name                                         | Service port name.                                                                                                                                                                                                                                   | string |
 | service.labels                                       | Additional labels for the Service.                                                                                                                                                                                                                   | object |
-| image                                                | Full container image (`repository:tag`). If unset, the chart default is defined in `charts/ssl-exporter/templates/_helpers.tpl` (`ribbybibby/ssl-exporter:2.4.3`).                                                                                     | string |
+| image                                                | Full container image (`repository:tag`). If unset, the chart default is defined in `charts/qubership-monitoring-operator/charts/sslExporter/templates/_helpers.tpl` (`ribbybibby/ssl-exporter:2.4.3`).                                                | string |
 | imagePullPolicy                                      | Image pull policy.                                                                                                                                                                                                                                   | string |
 | imagePullSecrets                                     | Pull secrets for the pod (same as Kubernetes `imagePullSecrets`, e.g. `- name: my-registry-secret`).                                                                                                                                               | list   |
 | rbac.create                                          | Create RBAC objects (ClusterRole/Binding). Required when using the `kubernetes` module to read secrets.                                                                                                                                              | bool   |
@@ -61,9 +61,9 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 | prometheusRule.namespace                             | Explicit namespace for `PrometheusRule`. Defaults to the release namespace.                                                                                                                                                                          | string |
 | prometheusRule.labels                                | Additional labels for `PrometheusRule`.                                                                                                                                                                                                              | object |
 | prometheusRule.rules                                 | List of alerting rules (same format as in the PrometheusRule CR).                                                                                                                                                                                    | list[object] |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length MD060 -->
 
-### Example: basic installation
+## Example: Basic Installation
 
 The chart installs ssl-exporter and, when `serviceMonitor.enabled` is true, a single ServiceMonitor that scrapes **`/metrics`** on the workload Service. For **per-target** active checks via **`/probe`**, the chart renders **`Probe`** resources from `sslExporter.probes.targets`. You can also create your own manual `Probe` resources if you need something custom. See [ssl-exporter metrics](../../../metrics-collection/exporters/ssl-exporter.md).
 
@@ -126,7 +126,7 @@ sslExporter:
         interval: 30s
 ```
 
-### Example: custom manual Probe
+## Example: Custom Manual Probe
 
 If you do not want to manage probe targets through chart values, create a manual `Probe` resource and point it at the ssl-exporter Service:
 
@@ -152,7 +152,7 @@ spec:
         - google.com:443
 ```
 
-### Example: overriding modules
+## Example: Overriding Modules
 
 ```yaml
 sslExporter:
@@ -173,7 +173,7 @@ sslExporter:
       timeout: 30s
 ```
 
-### Example: custom PrometheusRule alerting rules
+## Example: Custom PrometheusRule Alerting Rules
 
 ```yaml
 sslExporter:
@@ -202,7 +202,8 @@ sslExporter:
           description: "The SSL certificate for {{ $labels.instance }} has expired."
 ```
 
-### Security and access notes
+## Security and Access Notes
+
 - When using the `kubernetes` module, RBAC permissions to read `secrets` (get/list/watch) are required.
 - For reading files/crypto-material from the host, use `additionalHostPathVolumes` and ensure the pod has read-only access to those paths.
 - Default modules and CA paths are safe; avoid weakening TLS verification unless absolutely necessary (`insecure_skip_verify: true`).

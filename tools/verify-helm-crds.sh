@@ -18,8 +18,8 @@ rbac_cleanup_command="${temporary_dir}/rbac-cleanup-command.sh"
 other_namespace_manifest="${temporary_dir}/other-namespace.yaml"
 other_namespace_rbac_cleanup_command="${temporary_dir}/other-namespace-rbac-cleanup-command.sh"
 root_crd_dir="${chart_dir}/crds"
-prometheus_crd_dir="${chart_dir}/charts/prometheus-operator/crds"
-victoriametrics_crd_dir="${chart_dir}/charts/victoriametrics-operator/crds"
+prometheus_crd_dir="${chart_dir}/charts/prometheus/crds"
+victoriametrics_crd_dir="${chart_dir}/charts/victoriametrics/crds"
 standalone_crd_dir="${chart_dir}/../qubership-monitoring-crds/crds"
 grafana_cluster_role="${script_dir}/../controllers/grafana-operator/assets/grafana-operator/cluster-role.yaml"
 grafana_role="${script_dir}/../controllers/grafana-operator/assets/grafana-operator/role.yaml"
@@ -71,9 +71,9 @@ verify_crd_compaction() {
     local crd
     local -a crd_dirs=(
         "${root_crd_dir}"
-        "${chart_dir}/charts/grafana-operator/crds"
+        "${chart_dir}/charts/grafana/crds"
         "${prometheus_crd_dir}"
-        "${chart_dir}/charts/prometheus-adapter-operator/crds"
+        "${chart_dir}/charts/prometheusAdapter/crds"
         "${victoriametrics_crd_dir}"
     )
 
@@ -106,9 +106,9 @@ verify_standalone_crds() {
     mkdir -p "${expected_dir}"
 
     cp "${root_crd_dir}"/* "${expected_dir}/"
-    cp "${chart_dir}/charts/grafana-operator/crds/"* "${expected_dir}/"
+    cp "${chart_dir}/charts/grafana/crds/"* "${expected_dir}/"
     cp "${prometheus_crd_dir}/"* "${expected_dir}/"
-    cp "${chart_dir}/charts/prometheus-adapter-operator/crds/"* "${expected_dir}/"
+    cp "${chart_dir}/charts/prometheusAdapter/crds/"* "${expected_dir}/"
     cp "${victoriametrics_crd_dir}/"* "${expected_dir}/"
 
     if ! diff -qr "${expected_dir}" "${standalone_crd_dir}" >/dev/null; then

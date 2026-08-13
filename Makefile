@@ -22,10 +22,10 @@ CRDS_DIR=$(BUILD_DIR)/_crds
 
 # CRDs inside the subcharts
 MON_CRD_FOLDER=$(HELM_FOLDER)/crds
-GRAFANA_CRD_FOLDER=$(HELM_FOLDER)/charts/grafana-operator/crds
-PROM_OPER_CRD_FOLDER=$(HELM_FOLDER)/charts/prometheus-operator/crds
-PROM_ADAPTER_CRD_FOLDER=$(HELM_FOLDER)/charts/prometheus-adapter-operator/crds
-VM_CRD_FOLDER=$(HELM_FOLDER)/charts/victoriametrics-operator/crds
+GRAFANA_CRD_FOLDER=$(HELM_FOLDER)/charts/grafana/crds
+PROM_OPER_CRD_FOLDER=$(HELM_FOLDER)/charts/prometheus/crds
+PROM_ADAPTER_CRD_FOLDER=$(HELM_FOLDER)/charts/prometheusAdapter/crds
+VM_CRD_FOLDER=$(HELM_FOLDER)/charts/victoriametrics/crds
 
 # Documents folders
 DOC_FOLDER := docs

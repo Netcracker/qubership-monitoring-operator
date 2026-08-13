@@ -26,7 +26,7 @@ AWS credentials are mounted as a file at `/root/.aws/credentials`.
 The chart does not set `AWS_CREDENTIAL_PROFILES_FILE` and `AWS_SHARED_CREDENTIALS_FILE`.
 When a non-default path is used, volume mount path and these two environment variables
 must be adjusted in
-`charts/qubership-monitoring-operator/charts/cloudwatch-exporter/templates/deployment.yaml`.
+`charts/qubership-monitoring-operator/charts/cloudwatchExporter/templates/deployment.yaml`.
 
 <!-- markdownlint-disable line-length -->
 | Field                                       | Description                                                                                                                                                                                                                                                    | Scheme                                                                                                                       |
