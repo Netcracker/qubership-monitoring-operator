@@ -1260,6 +1260,28 @@ kubernetesMonitors:
     metricRelabelings: []
     relabelings: []
 
+openshiftOOBServiceMonitors:
+  # Disabled by default. Individual servicemonitor flags works only if general install flag is set to true
+  install: false
+  installDnsOperator: false
+  installAuthenticationOperator: false
+  installOauthOpenshift: false
+  installClusterSamplesOperator: false
+  installConfigOperator: false
+  installConsoleOperator: false
+  installConsole: false
+  installOpenshiftControllerManagerOperator: false
+  installOpenshiftControllerManager: false
+  installImageRegistry: false
+  installImageRegistryOperator: false
+  installIngressOperator: false
+  installRouterDefault: false
+  installNetworkOperator: false
+  installMonitorOvnControlPlaneMetrics: false
+  installMonitorOvnNode: false
+  installOpenshiftRouteControllerManager: false
+  installServiceCaOperator: false
+
 # List of grafana dashboards which can be imported to grafana.
 # Remove dashboard name to remove dashboard from grafana.
 #

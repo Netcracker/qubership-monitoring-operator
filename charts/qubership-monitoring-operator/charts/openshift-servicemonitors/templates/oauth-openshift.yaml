@@ -1,0 +1,31 @@
+{{- if and .Values.install .Values.installOauthOpenshift }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  generation: 1
+  name: oauth-openshift
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: oauth-openshift
+  namespaceSelector:
+    matchNames:
+    - openshift-authentication
+{{- end }}

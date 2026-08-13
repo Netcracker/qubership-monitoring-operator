@@ -1,0 +1,20 @@
+{{- if and .Values.install .Values.installImageRegistry }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: image-registry
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /extensions/v2/metrics
+    port: 5000-tcp
+    scheme: https
+    targetPort: 5000
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+    - openshift-image-registry
+  selector: {}
+{{- end }}

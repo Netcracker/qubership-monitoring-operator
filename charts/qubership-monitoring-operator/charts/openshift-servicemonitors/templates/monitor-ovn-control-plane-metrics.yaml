@@ -1,0 +1,25 @@
+{{- if and .Values.install .Values.installMonitorOvnControlPlaneMetrics }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: ovnkube-control-plane
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+  name: monitor-ovn-control-plane-metrics
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    port: metrics
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: app
+  namespaceSelector:
+    matchNames:
+    - openshift-ovn-kubernetes
+  selector:
+    matchLabels:
+      app: ovnkube-control-plane
+{{- end }}

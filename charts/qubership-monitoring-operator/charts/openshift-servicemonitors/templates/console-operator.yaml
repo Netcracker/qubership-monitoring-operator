@@ -1,0 +1,25 @@
+{{- if and .Values.install .Values.installConsoleOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: console-operator
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  selector:
+    matchLabels:
+      name: console-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-console-operator
+{{- end }}

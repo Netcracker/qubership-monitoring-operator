@@ -1,0 +1,24 @@
+{{- if and .Values.install .Values.installServiceCaOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+  name: service-ca-operator
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - openshift-service-ca-operator
+  selector:
+    matchLabels:
+      app: service-ca-operator
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if and .Values.install .Values.installOpenshiftRouteControllerManager }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+  name: openshift-route-controller-manager
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  selector:
+    matchLabels:
+      prometheus: route-controller-manager
+  namespaceSelector:
+    matchNames:
+    - openshift-route-controller-manager
+{{- end }}

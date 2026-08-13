@@ -1,0 +1,23 @@
+{{- if and .Values.install .Values.installImageRegistryOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: image-registry-operator
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    scheme: https
+    targetPort: 60000
+    tlsConfig:
+      insecureSkipVerify: true
+  selector:
+    matchLabels:
+      name: image-registry-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-image-registry
+{{- end }}

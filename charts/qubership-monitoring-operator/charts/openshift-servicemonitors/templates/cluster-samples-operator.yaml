@@ -1,0 +1,23 @@
+{{- if and .Values.install .Values.installClusterSamplesOperator }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cluster-samples-operator
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    scheme: https
+    targetPort: 60000
+    tlsConfig:
+      insecureSkipVerify: true
+  selector:
+    matchLabels:
+      name: cluster-samples-operator
+  namespaceSelector:
+    matchNames:
+    - openshift-cluster-samples-operator
+{{- end }}
