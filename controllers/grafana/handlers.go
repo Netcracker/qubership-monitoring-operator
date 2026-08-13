@@ -56,19 +56,22 @@ func (r *GrafanaReconciler) addGrafanaExtraVarsResourceVersions(
 	secretFound := err == nil
 
 	annotations := manifest.Spec.Deployment.Spec.Template.Annotations
-	if annotations == nil {
-		annotations = make(map[string]string)
-		manifest.Spec.Deployment.Spec.Template.Annotations = annotations
+	setAnnotation := func(key, value string) {
+		if annotations == nil {
+			annotations = make(map[string]string)
+			manifest.Spec.Deployment.Spec.Template.Annotations = annotations
+		}
+		annotations[key] = value
 	}
 	if configMapFound {
-		annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation] = configMap.ResourceVersion
+		setAnnotation(grafanaExtraVarsConfigMapResourceVersionAnnotation, configMap.ResourceVersion)
 	} else if resourceVersion, ok := existingAnnotations[grafanaExtraVarsConfigMapResourceVersionAnnotation]; ok {
-		annotations[grafanaExtraVarsConfigMapResourceVersionAnnotation] = resourceVersion
+		setAnnotation(grafanaExtraVarsConfigMapResourceVersionAnnotation, resourceVersion)
 	}
 	if secretFound {
-		annotations[grafanaExtraVarsSecretResourceVersionAnnotation] = secret.ResourceVersion
+		setAnnotation(grafanaExtraVarsSecretResourceVersionAnnotation, secret.ResourceVersion)
 	} else if resourceVersion, ok := existingAnnotations[grafanaExtraVarsSecretResourceVersionAnnotation]; ok {
-		annotations[grafanaExtraVarsSecretResourceVersionAnnotation] = resourceVersion
+		setAnnotation(grafanaExtraVarsSecretResourceVersionAnnotation, resourceVersion)
 	}
 	return nil
 }

@@ -75,6 +75,21 @@ func TestAddGrafanaExtraVarsResourceVersionsWhenResourcesAreMissing(t *testing.T
 	assert.Equal(t, "retained", manifest.Spec.Deployment.Spec.Template.Annotations["example.com/user-annotation"])
 }
 
+func TestAddGrafanaExtraVarsResourceVersionsKeepsAnnotationsNilWhenResourcesAreMissing(t *testing.T) {
+	manifest, err := grafana(&monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	})
+	require.NoError(t, err)
+	require.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
+
+	err = reconciler.addGrafanaExtraVarsResourceVersions(context.Background(), "monitoring", manifest, nil)
+
+	require.NoError(t, err)
+	assert.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
+}
+
 func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t *testing.T) {
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
