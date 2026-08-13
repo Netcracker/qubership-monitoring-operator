@@ -164,7 +164,9 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
 	assert.NoError(t, err)
-	assert.NotNil(t, grafanaPodTemplateAnnotations(manifest))
+	assert.Nil(t, grafanaPodTemplateAnnotations(manifest))
+	manifest.Spec.Deployment.Spec.Template.Annotations = map[string]string{"custom": "value"}
+	assert.Equal(t, map[string]string{"custom": "value"}, grafanaPodTemplateAnnotations(manifest))
 }
 
 func TestHandleGrafanaCreatesResourceWithoutExtraVarsResources(t *testing.T) {
