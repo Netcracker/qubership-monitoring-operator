@@ -21,6 +21,7 @@ on:
       - 'charts/**'
       - 'docs/examples/deploy-parameters/**'
       - 'tools/crd-update/**'
+      - 'tools/verify-grafana-offline-settings.sh'
       - 'tools/verify-helm-crds.sh'
       - 'tools/verify-subchart-paths.sh'
       - 'Makefile'
@@ -38,6 +39,7 @@ on:
       - 'charts/**'
       - 'docs/examples/deploy-parameters/**'
       - 'tools/crd-update/**'
+      - 'tools/verify-grafana-offline-settings.sh'
       - 'tools/verify-helm-crds.sh'
       - 'tools/verify-subchart-paths.sh'
       - 'Makefile'
@@ -81,6 +83,9 @@ jobs:
 
       - name: Verify subchart paths
         run: tools/verify-subchart-paths.sh
+
+      - name: Verify Grafana offline settings
+        run: tools/verify-grafana-offline-settings.sh
 
       - name: Copy examples for ct in /charts/qubership-monitoring-operator/ci/
         run: |

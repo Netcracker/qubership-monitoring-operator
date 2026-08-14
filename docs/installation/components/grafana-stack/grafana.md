@@ -1,3 +1,7 @@
+<!-- This fragment is included in assembled documentation, where its heading level and cross-file anchors are valid. -->
+<!-- Keep the existing wide reference tables unchanged to avoid unrelated formatting churn. -->
+<!-- markdownlint-disable MD041 MD051 MD060 -->
+
 ### grafana
 
 <!-- markdownlint-disable line-length -->
@@ -100,6 +104,32 @@ grafana:
   priorityClassName: priority-class
 ```
 
+#### Automatic internet access
+
+The chart disables Grafana's automatic suggested-plugin preinstallation and selected background update, analytics,
+plugin key, and news requests by default:
+
+- `GF_PLUGINS_PREINSTALL_DISABLED=true`
+- `GF_PLUGINS_PUBLIC_KEY_RETRIEVAL_DISABLED=true`
+- `GF_ANALYTICS_CHECK_FOR_UPDATES=false`
+- `GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false`
+- `GF_ANALYTICS_REPORTING_ENABLED=false`
+- `GF_NEWS_NEWS_FEED_ENABLED=false`
+
+Override these settings through `extraVars` or `extraVarsSecret` for a connected environment. A nonempty effective
+`GF_PLUGINS_PREINSTALL` or `GF_PLUGINS_PREINSTALL_SYNC` value enables plugin preinstallation. Values from
+`extraVarsSecret` take precedence over duplicate `extraVars` keys. The plugin list supports pinned versions and private
+download URLs. The chart rejects a plugin list combined with an explicit `GF_PLUGINS_PREINSTALL_DISABLED=true` value.
+
+Plugins not configured through a preinstall list come from the `qubership-grafana-plugins-init` image. To change that
+set, release a new version of the image and update `grafana.operator.initContainerImage`.
+
+The monitoring operator copies the resource versions of `grafana-extra-vars` and `grafana-extra-vars-secret` to the
+Grafana pod template. In `WATCH_NAMESPACE`, changing either resource triggers a rollout without exposing the values in
+pod annotations. Resources in another namespace are detected during periodic reconciliation.
+
+These settings do not provide general network isolation. Data sources, OAuth providers, webhooks, and user actions can
+still initiate external requests. Use a NetworkPolicy or an equivalent firewall to enforce production egress rules.
 
 #### grafana-operator
 
@@ -203,4 +233,3 @@ grafana:
     port: 8282
     priorityClassName: priority-class
 ```
-
