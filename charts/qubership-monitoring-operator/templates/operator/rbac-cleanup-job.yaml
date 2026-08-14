@@ -75,4 +75,13 @@ spec:
               --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,monitoring.netcracker.com/installation-namespace={{ .Release.Namespace }}
               --ignore-not-found=true --wait=true
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
+              {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+              if kubectl get securitycontextconstraints/{{ printf "%s-node-exporter" .Release.Namespace }}
+              -o jsonpath='{.metadata.labels.monitoring\.netcracker\.com/installation-namespace}' 2>/dev/null
+              | grep -qx {{ .Release.Namespace | quote }}; then
+              kubectl delete securitycontextconstraints/{{ printf "%s-node-exporter" .Release.Namespace }}
+              --ignore-not-found=true --wait=true
+              --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
+              fi;
+              {{- end }}
 {{- end }}
