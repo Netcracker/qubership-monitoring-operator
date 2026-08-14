@@ -125,6 +125,7 @@ prometheusAdapter:
 | Field             | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | image             | A docker image to use for prometheus-adapter-operator deployment                                                                                                                                                       | string                                                                                                                       |
+| leaderElect       | Enable leader election for the prometheus-adapter-operator Deployment. By default - `false`. Set `true` when replicas > 1.                                                                                             | boolean                                                                                                                      |
 | resources         | Resources defines resources requests and limits for single Pods.                                                                                                                                                       | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core) |
 | securityContext   | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)    |
 | nodeSelector      | NodeSelector defines which nodes the pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                        | map[string]string                                                                                                            |
@@ -140,6 +141,7 @@ prometheusAdapter:
 prometheusAdapter:
   operator:
     image: "ghcr.io/netcracker/qubership-prometheus-adapter-operator:latest"
+    leaderElect: false
     securityContext:
       runAsUser: 2000
       fsGroup: 2000

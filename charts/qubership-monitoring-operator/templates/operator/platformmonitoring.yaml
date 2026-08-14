@@ -342,6 +342,7 @@ spec:
         {{- end }}
       {{- end }}
       replicas: {{ .Values.victoriametrics.vmOperator.replicas }}
+      leaderElect: {{ .Values.victoriametrics.vmOperator.leaderElect | default false }}
       {{- if .Values.victoriametrics.vmOperator.serviceMonitor }}
       serviceMonitor:
         install: {{ .Values.victoriametrics.vmOperator.serviceMonitor.install }}
@@ -1280,6 +1281,7 @@ spec:
       namespaces: {{ .Values.grafana.operator.namespaces }}
       {{- end }}
       paused: {{ .Values.grafana.operator.paused | default false }}
+      leaderElect: {{ .Values.grafana.operator.leaderElect | default false }}
       {{- if .Values.grafana.operator.priorityClassName }}
       priorityClassName: {{ .Values.grafana.operator.priorityClassName }}
       {{- end }}

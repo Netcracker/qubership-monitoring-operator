@@ -5,6 +5,7 @@
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | install                          | Allow to enable or disable deploy vmOperator via monitoring-operator.                                                                                                                                                  | boolean                                                                                                                      |
 | paused                           | Set paused to reconciliation for vmOperator                                                                                                                                                                            | boolean                                                                                                                      |
+| leaderElect                      | Enable leader election for the vmOperator Deployment. By default - `false`. Set `true` when replicas > 1.                                                                                                              | boolean                                                                                                                      |
 | serviceMonitor                   | ServiceMonitor holds configuration attributes for vmoperator.                                                                                                                                                          | object                                                                                                                       |
 | serviceMonitor.install           | Allow to enable or disable deploy vmOperator service monitor                                                                                                                                                           | boolean                                                                                                                      |
 | serviceMonitor.interval          | Allow to change metrics scrape interval.                                                                                                                                                                               | string                                                                                                                       |
@@ -33,6 +34,7 @@ victoriametrics:
   vmOperator:
     install: true
     paused: false
+    leaderElect: false
     serviceMonitor:
       install: true
       interval: 30s
@@ -61,6 +63,7 @@ victoriametrics:
   vmOperator:
     install: true
     paused: false
+    leaderElect: false
     serviceMonitor:
       install: true
       interval: 30s

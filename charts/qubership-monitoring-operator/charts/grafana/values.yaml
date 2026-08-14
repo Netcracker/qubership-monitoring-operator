@@ -439,6 +439,14 @@ operator:
   #
   paused: false
 
+  # Enable Kubernetes leader election for grafana-operator.
+  # Leave false for a single replica. Set true when running more than one replica.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  leaderElect: false
+
   ## Comma separated list of namespaces to monitor in non-privileged mode.
   # This parameter is unnecessary if the grafana-operator has ClusterRole on all namespaces.
   # Type string

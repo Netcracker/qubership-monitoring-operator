@@ -2543,6 +2543,11 @@ func (in *VmOperator) DeepCopyInto(out *VmOperator) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.LeaderElect != nil {
+		in, out := &in.LeaderElect, &out.LeaderElect
+		*out = new(bool)
+		**out = **in
+	}
 	in.Resources.DeepCopyInto(&out.Resources)
 	if in.SecurityContext != nil {
 		in, out := &in.SecurityContext, &out.SecurityContext

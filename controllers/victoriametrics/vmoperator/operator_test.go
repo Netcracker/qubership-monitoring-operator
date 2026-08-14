@@ -1,14 +1,18 @@
 package vmoperator
 
 import (
+	"strings"
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	ktesting "k8s.io/client-go/testing"
 	"k8s.io/utils/ptr"
 )
 
@@ -204,6 +208,53 @@ func TestVmOperatorManifests(t *testing.T) {
 	// })
 }
 
+func TestVmOperatorLeaderElect(t *testing.T) {
+	base := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{VmOperator: monv1.VmOperator{}},
+		},
+	}
+
+	t.Run("omits flag when unset", func(t *testing.T) {
+		m, err := vmOperatorDeployment(nil, base)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Empty(t, leaderElectFlags(vmOperatorContainerArgs(m.Spec.Template.Spec.Containers)))
+	})
+	t.Run("passes --leader-elect=true", func(t *testing.T) {
+		cr := base.DeepCopy()
+		cr.Spec.Victoriametrics.VmOperator.LeaderElect = ptr.To(true)
+		m, err := vmOperatorDeployment(nil, cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, []string{"--leader-elect=true"}, leaderElectFlags(vmOperatorContainerArgs(m.Spec.Template.Spec.Containers)))
+	})
+	t.Run("passes --leader-elect=false", func(t *testing.T) {
+		cr := base.DeepCopy()
+		cr.Spec.Victoriametrics.VmOperator.LeaderElect = ptr.To(false)
+		m, err := vmOperatorDeployment(nil, cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, []string{"--leader-elect=false"}, leaderElectFlags(vmOperatorContainerArgs(m.Spec.Template.Spec.Containers)))
+	})
+	t.Run("keeps disableCRDOwnership on Route API independently of leaderElect", func(t *testing.T) {
+		r := routeAPIReconciler()
+		cr := base.DeepCopy()
+		cr.Spec.Victoriametrics.VmOperator.LeaderElect = ptr.To(true)
+		m, err := vmOperatorDeployment(r, cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		args := vmOperatorContainerArgs(m.Spec.Template.Spec.Containers)
+		assert.Contains(t, args, "--controller.disableCRDOwnership=true")
+		assert.Equal(t, []string{"--leader-elect=true"}, leaderElectFlags(args))
+	})
+}
+
 func clusterRoleContains(role *rbacv1.ClusterRole, resource string) bool {
 	for _, rule := range role.Rules {
 		for _, candidate := range rule.Resources {
@@ -213,6 +264,37 @@ func clusterRoleContains(role *rbacv1.ClusterRole, resource string) bool {
 		}
 	}
 	return false
+}
+
+func routeAPIReconciler() *VmOperatorReconciler {
+	return &VmOperatorReconciler{
+		ComponentReconciler: &utils.ComponentReconciler{
+			Dc: &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{Resources: []*metav1.APIResourceList{{
+				GroupVersion: routev1.GroupVersion.String(),
+				APIResources: []metav1.APIResource{{Name: "routes", Kind: "Route"}},
+			}}}},
+			Log: utils.Logger("vmoperator_test"),
+		},
+	}
+}
+
+func vmOperatorContainerArgs(containers []corev1.Container) []string {
+	for _, container := range containers {
+		if container.Name == utils.VmOperatorComponentName {
+			return container.Args
+		}
+	}
+	return nil
+}
+
+func leaderElectFlags(args []string) []string {
+	var out []string
+	for _, arg := range args {
+		if arg == "--leader-elect" || strings.HasPrefix(arg, "--leader-elect=") {
+			out = append(out, arg)
+		}
+	}
+	return out
 }
 
 func vmOperatorContainerEnvValue(containers []corev1.Container, envName string) string {

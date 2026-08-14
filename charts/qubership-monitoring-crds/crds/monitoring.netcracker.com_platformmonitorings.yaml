@@ -23586,6 +23586,8 @@ spec:
                           additionalProperties:
                             type: string
                           type: object
+                        leaderElect:
+                          type: boolean
                         nodeSelector:
                           additionalProperties:
                             type: string

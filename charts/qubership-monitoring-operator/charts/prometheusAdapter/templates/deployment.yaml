@@ -51,8 +51,10 @@ spec:
       containers:
       - name: {{ .Values.name }}
         command: ["/manager"]
+        {{- if .Values.operator.leaderElect }}
         args:
           - "--enable-leader-election"
+        {{- end }}
         image: {{ template "prometheusAdapter.operator.image" . }}
         imagePullPolicy: IfNotPresent
         resources:

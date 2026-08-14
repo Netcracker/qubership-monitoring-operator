@@ -231,6 +231,14 @@ auth: {}
 # priorityClassName: "priorityClassName"
 
 operator:
+  # Enable Kubernetes leader election for prometheus-adapter-operator.
+  # Leave false for a single replica. Set true when running more than one replica.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  leaderElect: false
+
   # A docker image to use for prometheus-adapter-operator deployment
   # Type: string
   # Mandatory: yes

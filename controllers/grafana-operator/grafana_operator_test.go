@@ -1,6 +1,7 @@
 package grafana_operator
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 var (
@@ -164,6 +166,60 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		assert.NotNil(t, m, "PodMonitor manifest should not be empty")
 		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.GrafanaOperatorComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 	})
+}
+
+func TestGrafanaOperatorLeaderElect(t *testing.T) {
+	base := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{Operator: monv1.GrafanaOperator{}},
+		},
+	}
+
+	t.Run("omits flag when unset", func(t *testing.T) {
+		m, err := grafanaOperatorDeployment(base)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Empty(t, leaderElectFlags(containerArgs(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName)))
+	})
+	t.Run("passes --leader-elect=true", func(t *testing.T) {
+		cr := base.DeepCopy()
+		cr.Spec.Grafana.Operator.LeaderElect = ptr.To(true)
+		m, err := grafanaOperatorDeployment(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, []string{"--leader-elect=true"}, leaderElectFlags(containerArgs(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName)))
+	})
+	t.Run("passes --leader-elect=false", func(t *testing.T) {
+		cr := base.DeepCopy()
+		cr.Spec.Grafana.Operator.LeaderElect = ptr.To(false)
+		m, err := grafanaOperatorDeployment(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, []string{"--leader-elect=false"}, leaderElectFlags(containerArgs(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName)))
+	})
+}
+
+func containerArgs(containers []corev1.Container, containerName string) []string {
+	for _, container := range containers {
+		if container.Name == containerName {
+			return container.Args
+		}
+	}
+	return nil
+}
+
+func leaderElectFlags(args []string) []string {
+	var out []string
+	for _, arg := range args {
+		if arg == "--leader-elect" || strings.HasPrefix(arg, "--leader-elect=") {
+			out = append(out, arg)
+		}
+	}
+	return out
 }
 
 func containerEnvValue(containers []corev1.Container, containerName, envName string) string {
