@@ -2,6 +2,7 @@ package vmoperator
 
 import (
 	"embed"
+	"fmt"
 	"strings"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -176,8 +177,9 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 
 				if r != nil && r.HasRouteApi() {
 					c.Args = append(c.Args, "--controller.disableCRDOwnership=true")
-				} else {
-					c.Args = append(c.Args, "--leader-elect")
+				}
+				if cr.Spec.Victoriametrics.VmOperator.LeaderElect != nil {
+					c.Args = append(c.Args, fmt.Sprintf("--leader-elect=%t", *cr.Spec.Victoriametrics.VmOperator.LeaderElect))
 				}
 				break
 			}

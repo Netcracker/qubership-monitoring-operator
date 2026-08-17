@@ -230,7 +230,8 @@ type GrafanaOperator struct {
 	Namespaces string `json:"namespaces,omitempty"`
 	// NamespaceScope limits the operator to its own namespace when set true.
 	NamespaceScope bool `json:"namespaceScope,omitempty"`
-	// LeaderElect enables leader election.
+	// LeaderElect enables leader election for the grafana-operator Deployment.
+	// Unset or false: do not enable. Set true when running more than one replica.
 	LeaderElect *bool `json:"leaderElect,omitempty"`
 	// WatchNamespaces defines comma separated namespaces to watch.
 	WatchNamespaces string `json:"watchNamespaces,omitempty"`
@@ -612,6 +613,9 @@ type VmOperator struct {
 	Install *bool `json:"install,omitempty"`
 	//Number of replicas of victoriametrics-operator
 	Replicas *int32 `json:"replicas,omitempty"`
+	// LeaderElect enables leader election for the victoriametrics-operator Deployment.
+	// Unset or false: do not enable (no lease renewals). Set true when running more than one replica.
+	LeaderElect *bool `json:"leaderElect,omitempty"`
 	// Image to use for a `victoriametrics-operator` deployment.
 	// The `victoriametrics-operator` makes the vmoperator configuration Kubernetes native and manages and operates
 	// More info: https://github.com/VictoriaMetrics/operator

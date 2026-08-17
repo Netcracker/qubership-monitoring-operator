@@ -138,6 +138,7 @@ still initiate external requests. Use a NetworkPolicy or an equivalent firewall 
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | image              | A Docker image to be used for the grafana-operator deployment.                                                                                                                                                         | string                                                                                                                       |
 | paused             | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                         |
+| leaderElect        | Enable leader election for the grafana-operator Deployment. By default - `false`. Set `true` when replicas > 1.                                                                                                        | bool                                                                                                                         |
 | initContainerImage | A Docker image to be used into initContainer in the Grafana deployment.                                                                                                                                                | string                                                                                                                       |
 | resources          | The resources that describe the compute resource requests and limits for single Pods.                                                                                                                                  | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core) |
 | securityContext    | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)    |
@@ -155,6 +156,7 @@ grafana:
   operator:
     image: integreatly/grafana-operator:latest
     paused: false
+    leaderElect: false
     initContainerImage: integreatly/grafana_plugins_init:latest
     resources:
       limits:

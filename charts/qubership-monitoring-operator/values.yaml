@@ -102,6 +102,14 @@ monitoringOperator:
 
   name: monitoring-operator
 
+  # Enable Kubernetes leader election for monitoring-operator.
+  # Leave false for a single replica. Set true when running more than one replica.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  leaderElect: false
+
   clusterRole:
     install: true
     name: ""
