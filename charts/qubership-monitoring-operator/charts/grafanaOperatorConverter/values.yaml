@@ -1,34 +1,30 @@
-# -- If the operator should run in namespace-scope or not,
-# if true the operator will only be able to manage instances in the same namespace
+# Parent chart security mode. The monitoring chart overrides this global value.
+global:
+  privilegedRights: true
+
+# -- Use the operator namespace for watches and RBAC when `watchNamespaces` is empty.
 namespaceScope: false
 
 # -- If you want to run multiple replicas of the grafana-operator, this is not recommended.
 leaderElect: false
 
-# -- Sets the WATCH_NAMESPACE environment variable,
-# it defines which namespaces the operator should be listening for.
-# By default it's all namespaces, if you only want to listen for the same namespace as the operator is deployed to look at namespaceScope.
+# -- Sets `WATCH_NAMESPACE` to the exact comma-separated namespace list. A nonempty list must contain at least one
+# namespace. An empty value uses cluster scope unless `namespaceScope` is true.
 watchNamespaces: ""
 
-# -- Sets the WATCH_NAMESPACE_SELECTOR environment variable,
-# it defines which namespaces the operator should be listening for based on label and key-value pair added on namespace kind.
-# By default it's all namespaces.
+# -- Reserved for compatibility and rejected when set. Converter informers cannot apply dynamic namespace selection.
 watchNamespaceSelector: ""
 
-# -- RBAC-related settings
-rbac:
-  # -- Set to false to skip ClusterRole creation
-  createClusterRole: true
-  # -- Set to false to skip ClusterRoleBinding creation
-  createClusterRoleBinding: true
+# -- Deprecated compatibility value. The converter does not access OpenShift Route resources.
+isOpenShift: false
 
-# -- Additional environment variables
+# -- Additional environment variables. WATCH_NAMESPACE and WATCH_NAMESPACE_SELECTOR are reserved.
 env: []
-# -- grafana image, e.g. docker.io/grafana/grafana:9.1.6, overwrites the default grafana image defined in the operator
-# - name: RELATED_IMAGE_GRAFANA
-# value: "docker.io/grafana/grafana:9.1.6"
-# - name: MY_VAR
-# value: "myvalue"
+  # -- grafana image, e.g. docker.io/grafana/grafana:9.1.6, overwrites the default grafana image defined in the operator
+  # - name: RELATED_IMAGE_GRAFANA
+  #   value: "docker.io/grafana/grafana:9.1.6"
+  # - name: MY_VAR
+  #   value: "myvalue"
 
 image:
   # -- grafana operator converter image repository
@@ -36,7 +32,7 @@ image:
   # -- The image pull policy to use in grafana operator container
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
-  tag: "main"
+  tag: "main@sha256:02f2f3cb32a5db2aaaebdfb9d29a4a7d972c8c2e3a3064697279b1cf52e33eec"
 
 # -- image pull secrets
 imagePullSecrets: []
@@ -116,6 +112,7 @@ serviceMonitor:
   # -- Set relabel_configs as per https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
   relabelings: []
 
+
 # Creates Grafana resources
 # from group integreatly.org version v1alpha1 to group grafana.integreatly.org v1beta1
 # Type: object
@@ -125,9 +122,11 @@ grafana:
   converter:
     enable: true
     dashboard: true
-    datasource: true
-    folder: true
-    notification: true
+    # The monitoring CRD bundle retains only the legacy GrafanaDashboard CRD. Enable the other converters only when
+    # their corresponding integreatly.org CRDs are installed separately.
+    datasource: false
+    folder: false
+    notification: false
     instanceSelector:
       matchLabels:
         app.kubernetes.io/component: grafana

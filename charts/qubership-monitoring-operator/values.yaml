@@ -1850,6 +1850,11 @@ grafanaConverter:
   nameOverride: qubership-grafana-operator-converter
   # Install by default as a migration helper for Grafana Operator v5
   install: true
+  # Restrict watches and RBAC to the release namespace. This is enabled automatically when
+  # global.privilegedRights is false and watchNamespaces is empty.
+  namespaceScope: false
+  # Comma-separated namespaces to watch. An empty value watches all namespaces when privileged rights are enabled.
+  watchNamespaces: ""
 
 # Exporter to check SSL certificates
 sslExporter:

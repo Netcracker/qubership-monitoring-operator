@@ -20,6 +20,8 @@ other_namespace_rbac_cleanup_command="${temporary_dir}/other-namespace-rbac-clea
 openshift_rendered_manifest="${temporary_dir}/openshift-manifest.yaml"
 openshift_rbac_cleanup_role_manifest="${temporary_dir}/openshift-rbac-cleanup-clusterrole.yaml"
 openshift_rbac_cleanup_command="${temporary_dir}/openshift-rbac-cleanup-command.sh"
+converter_manifest="${temporary_dir}/grafana-converter.yaml"
+converter_rbac_manifest="${temporary_dir}/grafana-converter-rbac.yaml"
 root_crd_dir="${chart_dir}/crds"
 prometheus_crd_dir="${chart_dir}/charts/prometheus/crds"
 victoriametrics_crd_dir="${chart_dir}/charts/victoriametrics/crds"
@@ -763,6 +765,108 @@ if ! "${yq_binary}" eval -e \
     '.spec.template.spec.containers[] | select(.name == "victoriametrics-operator") | .image == "victoriametrics/operator:v0.73.1"' \
     "${victoriametrics_deployment}" >/dev/null; then
     echo "The VictoriaMetrics operator asset does not use v0.73.1." >&2
+    exit 1
+fi
+
+converter_selector='.metadata.labels."app.kubernetes.io/name" == "qubership-grafana-operator-converter"'
+
+helm template monitoring "${chart_dir}" >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"ClusterRole\" and ${converter_selector}" 1 "Grafana converter ClusterRoles"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"ClusterRoleBinding\" and ${converter_selector}" 1 "Grafana converter ClusterRoleBindings"
+"${yq_binary}" eval-all \
+    "select(.kind == \"ClusterRole\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" grafana.integreatly.org grafanadashboards \
+    "create,get,update"
+if ! "${yq_binary}" eval -e \
+    '[.rules[].resources[] | select(. == "grafanadatasources" or . == "grafanafolders" or
+    . == "grafananotificationchannels" or . == "grafanacontactpoints")] | length == 0' \
+    "${converter_rbac_manifest}" >/dev/null; then
+    echo "The default Grafana converter RBAC enables a converter without its bundled legacy CRD." >&2
+    exit 1
+fi
+if "${yq_binary}" eval -r '.rules[].verbs[]' "${converter_rbac_manifest}" | grep -Fxq '*'; then
+    echo "The Grafana converter ClusterRole contains a wildcard verb." >&2
+    exit 1
+fi
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] |
+    select(.name == \"qubership-grafana-operator-converter\") |
+    .image == \"ghcr.io/netcracker/qubership-grafana-operator-converter:main@sha256:02f2f3cb32a5db2aaaebdfb9d29a4a7d972c8c2e3a3064697279b1cf52e33eec\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The default Grafana converter deployment does not use the pinned image." >&2
+    exit 1
+fi
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] |
+    select(.name == \"qubership-grafana-operator-converter\") |
+    .env[] | select(.name == \"WATCH_NAMESPACE\") | .value == \"\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The default Grafana converter deployment does not watch all namespaces." >&2
+    exit 1
+fi
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
+    .data."parameters.yaml" | from_yaml |
+    select(.dashboard == true) | select(.datasource == false) |
+    select(.folder == false) | select(.notification == false)' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter does not default to dashboard-only migration." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set global.privilegedRights=false \
+    >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"ClusterRole\" and ${converter_selector}" 0 "non-privileged Grafana converter ClusterRoles"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"Role\" and ${converter_selector} and .metadata.namespace == \"default\"" \
+    1 "non-privileged Grafana converter Roles"
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] | .env[] |
+    select(.name == \"WATCH_NAMESPACE\") | .value == \"default\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The non-privileged Grafana converter does not watch the release namespace." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set global.privilegedRights=false \
+    --set-string 'grafanaConverter.watchNamespaces=monitoring\,tenant-a' \
+    >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"Role\" and ${converter_selector}" 2 "multi-namespace Grafana converter Roles"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"RoleBinding\" and ${converter_selector}" 2 "multi-namespace Grafana converter RoleBindings"
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] | .env[] |
+    select(.name == \"WATCH_NAMESPACE\") | .value == \"monitoring,tenant-a\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter does not pass the normalized namespace list to WATCH_NAMESPACE." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.install=false \
+    >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    "${converter_selector}" 0 "Grafana converter resources when disabled"
+
+helm template pr322-converter-smoke "${chart_dir}/charts/grafanaOperatorConverter" \
+    --set leaderElect=true \
+    >"${converter_manifest}"
+if ! "${yq_binary}" eval-all -e \
+    '[select(.metadata.name != null and (.metadata.name | length) > 63)] | length == 0' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter renders a resource name longer than 63 characters." >&2
     exit 1
 fi
 

@@ -4,8 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-resources-converter
-  labels:
-    {{- include "monitoring.labels" (dict "ctx" . "name" "grafana-resources-converter") | nindent 4 }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
 data:
   parameters.yaml: |-
     {{- toYaml .Values.grafana.converter | nindent 4 }}

@@ -295,6 +295,14 @@
                 "install": {
                     "type": "boolean",
                     "default": true
+                },
+                "namespaceScope": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "watchNamespaces": {
+                    "type": "string",
+                    "default": ""
                 }
             }
         },
