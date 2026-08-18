@@ -860,13 +860,41 @@ helm template monitoring "${chart_dir}" \
 verify_rendered_resource_count "${converter_manifest}" \
     "${converter_selector}" 0 "Grafana converter resources when disabled"
 
-helm template pr322-converter-smoke "${chart_dir}/charts/grafanaOperatorConverter" \
+helm template monitoring-operator-production-long "${chart_dir}/charts/grafanaOperatorConverter" \
+    --namespace monitoring \
+    --set global.privilegedRights=false \
     --set leaderElect=true \
     >"${converter_manifest}"
 if ! "${yq_binary}" eval-all -e \
     '[select(.metadata.name != null and (.metadata.name | length) > 63)] | length == 0' \
     "${converter_manifest}" >/dev/null; then
     echo "The Grafana converter renders a resource name longer than 63 characters." >&2
+    exit 1
+fi
+duplicate_converter_rbac="$(
+    "${yq_binary}" eval -r \
+        'select(.kind == "Role" or .kind == "RoleBinding") |
+        [.kind, .metadata.namespace, .metadata.name] | @tsv' \
+        "${converter_manifest}" | sort | uniq -d
+)"
+if [[ -n "${duplicate_converter_rbac}" ]]; then
+    echo "The Grafana converter renders duplicate namespaced RBAC identities:" >&2
+    echo "${duplicate_converter_rbac}" >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}/charts/grafanaOperatorConverter" \
+    --namespace monitoring \
+    --set namespaceOverride=converter-ns \
+    --set serviceMonitor.enabled=true \
+    >"${converter_manifest}"
+if ! "${yq_binary}" eval -e \
+    'select(.kind == "ServiceMonitor" and
+    .metadata.namespace == "converter-ns" and
+    .spec.namespaceSelector.matchNames[0] == "converter-ns" and
+    (.spec.namespaceSelector.matchNames | length) == 1)' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter ServiceMonitor does not select its override namespace." >&2
     exit 1
 fi
 

@@ -16,7 +16,7 @@ spec:
   jobLabel: {{ .Release.Name }}
   namespaceSelector:
     matchNames:
-      - {{ .Release.Namespace }}
+      - {{ include "grafana-operator-converter.namespace" . }}
   selector:
     matchLabels:
       {{- include "grafana-operator-converter.selectorLabels" . | nindent 6 }}

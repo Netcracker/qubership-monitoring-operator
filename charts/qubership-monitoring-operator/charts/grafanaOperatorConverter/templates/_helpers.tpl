@@ -52,7 +52,8 @@ Create names for resources that append a suffix to the full name.
 {{- end }}
 
 {{- define "grafana-operator-converter.leaderElectionName" -}}
-{{- printf "%s-leader-election" (include "grafana-operator-converter.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- $baseName := include "grafana-operator-converter.fullname" . | trunc 47 | trimSuffix "-" -}}
+{{- printf "%s-leader-election" $baseName -}}
 {{- end }}
 
 {{/*
