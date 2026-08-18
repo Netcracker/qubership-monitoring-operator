@@ -640,8 +640,11 @@ fi
     "${openshift_rendered_manifest}" >"${openshift_rbac_cleanup_command}"
 verify_text_contains "${openshift_rbac_cleanup_command}" \
     "kubectl get securitycontextconstraints/default-node-exporter" "pre-deletion SCC ownership check"
+expected_scc_ownership_jsonpath='{.metadata.labels.app\.kubernetes\.io/managed-by}{"|"}{.metadata.labels.monitoring\.netcracker\.com/installation-namespace}{"|"}{.metadata.annotations.monitoring\.netcracker\.com/platform-monitoring-name}{"|"}{.metadata.annotations.monitoring\.netcracker\.com/platform-monitoring-namespace}'
 verify_text_contains "${openshift_rbac_cleanup_command}" \
-    "monitoring.netcracker.com/installation-namespace" "SCC ownership label lookup"
+    "${expected_scc_ownership_jsonpath}" "complete SCC ownership metadata lookup"
+verify_text_contains "${openshift_rbac_cleanup_command}" \
+    "monitoring-operator|default|platformmonitoring|default" "complete SCC ownership value check"
 verify_text_contains "${openshift_rbac_cleanup_command}" \
     "kubectl delete securitycontextconstraints/default-node-exporter" "namespace-derived SCC cleanup"
 

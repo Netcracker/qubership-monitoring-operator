@@ -77,8 +77,8 @@ spec:
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
               {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
               if kubectl get securitycontextconstraints/{{ printf "%s-node-exporter" .Release.Namespace }}
-              -o jsonpath='{.metadata.labels.monitoring\.netcracker\.com/installation-namespace}' 2>/dev/null
-              | grep -qx {{ .Release.Namespace | quote }}; then
+              -o jsonpath='{.metadata.labels.app\.kubernetes\.io/managed-by}{"|"}{.metadata.labels.monitoring\.netcracker\.com/installation-namespace}{"|"}{.metadata.annotations.monitoring\.netcracker\.com/platform-monitoring-name}{"|"}{.metadata.annotations.monitoring\.netcracker\.com/platform-monitoring-namespace}' 2>/dev/null
+              | grep -Fqx {{ printf "monitoring-operator|%s|platformmonitoring|%s" .Release.Namespace .Release.Namespace | quote }}; then
               kubectl delete securitycontextconstraints/{{ printf "%s-node-exporter" .Release.Namespace }}
               --ignore-not-found=true --wait=true
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
