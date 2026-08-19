@@ -310,7 +310,7 @@ func TestVmOperatorLeaderElect(t *testing.T) {
 	}
 
 	t.Run("omits flag when unset", func(t *testing.T) {
-		m, err := vmOperatorDeployment(nil, base)
+		m, err := vmOperatorDeployment(nil, base, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -319,7 +319,7 @@ func TestVmOperatorLeaderElect(t *testing.T) {
 	t.Run("passes --leader-elect=true", func(t *testing.T) {
 		cr := base.DeepCopy()
 		cr.Spec.Victoriametrics.VmOperator.LeaderElect = ptr.To(true)
-		m, err := vmOperatorDeployment(nil, cr)
+		m, err := vmOperatorDeployment(nil, cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -328,7 +328,7 @@ func TestVmOperatorLeaderElect(t *testing.T) {
 	t.Run("passes --leader-elect=false", func(t *testing.T) {
 		cr := base.DeepCopy()
 		cr.Spec.Victoriametrics.VmOperator.LeaderElect = ptr.To(false)
-		m, err := vmOperatorDeployment(nil, cr)
+		m, err := vmOperatorDeployment(nil, cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -338,7 +338,7 @@ func TestVmOperatorLeaderElect(t *testing.T) {
 		r := routeAPIReconciler()
 		cr := base.DeepCopy()
 		cr.Spec.Victoriametrics.VmOperator.LeaderElect = ptr.To(true)
-		m, err := vmOperatorDeployment(r, cr)
+		m, err := vmOperatorDeployment(r, cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
