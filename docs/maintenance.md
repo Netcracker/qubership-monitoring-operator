@@ -191,6 +191,7 @@ After executing the command, all Monitoring components are removed from the sele
 objects are not removed:
 
 * `monitoring-operator`
+* Persistent VMSingle PVCs
 * Some cluster entities like ClusterRoles, ClusterRoleBindings, Security Context Constraints (SCC), and Pod Security
   Policy (PSP)
 
@@ -209,6 +210,11 @@ helm list -n <namespace>
 ```
 
 The command removes all the Kubernetes/OpenShift components associated with the chart and deletes the release.
+
+Persistent VMSingle PVCs remain after uninstall. Reinstalling the same monitoring
+instance can reuse them. To remove the stored metrics, identify and delete the exact
+PVC manually; persistent-volume retention then follows the storage class reclaim
+policy.
 
 #### Remove all Created CRDs
 

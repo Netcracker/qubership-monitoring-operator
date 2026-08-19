@@ -55,6 +55,8 @@ spec:
               set -eu;
               kubectl scale deployment --replicas=0 --selector app.kubernetes.io/component=qubership-monitoring-operator;
               sleep {{ .Values.cleanup.hook.timeout | default "10" }};
-              kubectl delete vmusers,vmauths,vmalerts,vmagents,vmsingles,vmalertmanagers,vmclusters
+              kubectl delete vmsingles --all --ignore-not-found=true --wait=true
+              --cascade=orphan --timeout={{ .Values.cleanup.hook.deleteTimeout }};
+              kubectl delete vmusers,vmauths,vmalerts,vmagents,vmalertmanagers,vmclusters
               --all --ignore-not-found=true --wait=true --timeout={{ .Values.cleanup.hook.deleteTimeout }};
 {{- end -}}

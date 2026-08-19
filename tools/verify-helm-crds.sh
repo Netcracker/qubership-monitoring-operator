@@ -588,6 +588,12 @@ verify_exact_rbac_verbs "${rbac_cleanup_role_manifest}" rbac.authorization.k8s.i
     "${rendered_manifest}" >"${cleanup_command}"
 verify_text_excludes "${cleanup_command}" "clusterrolebindings" "cluster RBAC deletion before operators stop"
 verify_text_excludes "${cleanup_command}" "clusterroles" "cluster RBAC deletion before operators stop"
+verify_text_contains "${cleanup_command}" \
+    "kubectl delete vmsingles --all" "separate VMSingle cleanup"
+verify_text_contains "${cleanup_command}" \
+    "--cascade=orphan" "VMSingle PVC-preserving cleanup"
+verify_text_excludes "${cleanup_command}" \
+    "vmagents,vmsingles" "VMSingle deletion in the cascading VM resource cleanup"
 "${yq_binary}" eval-all \
     'select(.kind == "Job" and .metadata.name == "monitoring-rbac-cleanup-hook") |
     .spec.template.spec.containers[] | select(.name == "kubectl") | .command[-1]' \
