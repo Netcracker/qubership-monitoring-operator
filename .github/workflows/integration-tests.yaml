@@ -63,15 +63,10 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    # TEST BRANCH ONLY: pinned to the feat/monitoring-openshift branch so the kind and
-    # microshift legs (both now produced by that workflow's own scope: pr matrix) can be
-    # exercised before that branch is merged and released. Must be re-pinned to a tagged
-    # qubership-test-pipelines SHA (with the matching renovate depName comment) before this
-    # is merged to main.
-    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@feat/monitoring-openshift
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@57a9fbc96d458a7bdc37cb919bad53937d7d08dd # v1.15.0
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'feat/monitoring-openshift'
+      pipeline_branch: '57a9fbc96d458a7bdc37cb919bad53937d7d08dd'
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       enable-owner-references-permission-enforcement: true
