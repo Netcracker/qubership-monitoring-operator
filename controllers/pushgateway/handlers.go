@@ -34,17 +34,20 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Template.SetAnnotations(m.Spec.Template.GetAnnotations())
-	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
-	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-	e.Spec.Replicas = m.Spec.Replicas
-	e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
+	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
+	changed = utils.SetAnnotationsIfChanged(&e.Spec.Template, m.Spec.Template.GetAnnotations()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
+	changed = utils.SetIfChanged(&e.Spec.Replicas, m.Spec.Replicas) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -92,9 +95,12 @@ func (r *PushgatewayReconciler) handleService(cr *monv1.PlatformMonitoring) erro
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -120,10 +126,13 @@ func (r *PushgatewayReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) er
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
+	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -150,11 +159,14 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitorin
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err

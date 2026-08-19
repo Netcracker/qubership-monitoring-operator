@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -39,9 +40,11 @@ func (r *VmOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -68,7 +71,10 @@ func (r *VmOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -95,7 +101,10 @@ func (r *VmOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) e
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -122,9 +131,11 @@ func (r *VmOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) e
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -151,7 +162,10 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -183,16 +197,19 @@ func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) er
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Selector = m.Spec.Selector
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
-	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
-	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-	e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
-	e.Spec.Replicas = m.Spec.Replicas
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Replicas, m.Spec.Replicas) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -219,9 +236,12 @@ func (r *VmOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -248,9 +268,12 @@ func (r *VmOperatorReconciler) handleKubeletService(cr *monv1.PlatformMonitoring
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -298,8 +321,11 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 	}
 
 	//Set parameters
-	e.SetLabels(eps.GetLabels())
-	e.Subsets = eps.Subsets
+	changed := utils.SetLabelsIfChanged(e, eps.GetLabels())
+	changed = utils.SetIfChanged(&e.Subsets, eps.Subsets) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -332,9 +358,12 @@ func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *monv1.PlatformMoni
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -383,8 +412,11 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.Pla
 	}
 
 	//Set parameters
-	e.SetLabels(eps.GetLabels())
-	e.Subsets = eps.Subsets
+	changed := utils.SetLabelsIfChanged(e, eps.GetLabels())
+	changed = utils.SetIfChanged(&e.Subsets, eps.Subsets) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -416,9 +448,12 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *monv1.Plat
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -467,8 +502,11 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *m
 	}
 
 	//Set parameters
-	e.SetLabels(eps.GetLabels())
-	e.Subsets = eps.Subsets
+	changed := utils.SetLabelsIfChanged(e, eps.GetLabels())
+	changed = utils.SetIfChanged(&e.Subsets, eps.Subsets) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -537,6 +575,20 @@ func getNodeAddresses(nodes *corev1.NodeList) ([]corev1.EndpointAddress, []error
 		})
 	}
 
+	sort.Slice(addresses, func(i, j int) bool {
+		if addresses[i].IP != addresses[j].IP {
+			return addresses[i].IP < addresses[j].IP
+		}
+		ni, nj := "", ""
+		if addresses[i].TargetRef != nil {
+			ni = addresses[i].TargetRef.Name
+		}
+		if addresses[j].TargetRef != nil {
+			nj = addresses[j].TargetRef.Name
+		}
+		return ni < nj
+	})
+
 	return addresses, ers
 }
 
@@ -561,10 +613,13 @@ func (r *VmOperatorReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -592,7 +647,10 @@ func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.Platfo
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err

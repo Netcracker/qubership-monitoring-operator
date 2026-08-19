@@ -30,7 +30,10 @@ func (r *VmSingleReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) 
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -56,9 +59,11 @@ func (r *VmSingleReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) err
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -85,7 +90,10 @@ func (r *VmSingleReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitori
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -120,8 +128,11 @@ func (r *VmSingleReconciler) handleVmSingle(cr *monv1.PlatformMonitoring) error 
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec, m.Spec) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -156,10 +167,13 @@ func (r *VmSingleReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
+	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err

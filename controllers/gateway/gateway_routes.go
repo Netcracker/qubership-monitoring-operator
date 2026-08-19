@@ -114,9 +114,12 @@ func applyGatewayResource(r *utils.ComponentReconciler, resolver *gatewayAPIReso
 	}
 
 	logHTTPRouteParentStatus(r, current)
-	current.SetLabels(desired.GetLabels())
-	current.SetAnnotations(desired.GetAnnotations())
-	current.Object["spec"] = desired.Object["spec"]
+	changed := utils.SetLabelsIfChanged(current, desired.GetLabels())
+	changed = utils.SetAnnotationsIfChanged(current, desired.GetAnnotations()) || changed
+	changed = utils.SetUnstructuredFieldIfChanged(current.Object, "spec", desired.Object["spec"]) || changed
+	if !changed {
+		return nil
+	}
 	if err := r.Client.Update(context.TODO(), current); err != nil {
 		return err
 	}

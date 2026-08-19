@@ -31,7 +31,10 @@ func (r *NodeExporterReconciler) handleServiceAccount(cr *monv1.PlatformMonitori
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -61,9 +64,11 @@ func (r *NodeExporterReconciler) handleClusterRole(cr *monv1.PlatformMonitoring)
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -92,7 +97,10 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -126,8 +134,11 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 		)
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	applyNodeExporterSCCPolicy(e, m)
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = applyNodeExporterSCCPolicy(e, m) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -141,28 +152,30 @@ func isNodeExporterSCCOwnedBy(scc *secv1.SecurityContextConstraints, cr *monv1.P
 		annotations[nodeExporterSCCOwnerNamespaceAnnotation] == cr.GetNamespace()
 }
 
-func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) {
-	existing.AllowPrivilegedContainer = desired.AllowPrivilegedContainer
-	existing.DefaultAddCapabilities = desired.DefaultAddCapabilities
-	existing.RequiredDropCapabilities = desired.RequiredDropCapabilities
-	existing.AllowedCapabilities = desired.AllowedCapabilities
-	existing.AllowHostDirVolumePlugin = desired.AllowHostDirVolumePlugin
-	existing.Volumes = desired.Volumes
-	existing.AllowedFlexVolumes = desired.AllowedFlexVolumes
-	existing.AllowHostNetwork = desired.AllowHostNetwork
-	existing.AllowHostPorts = desired.AllowHostPorts
-	existing.AllowHostPID = desired.AllowHostPID
-	existing.AllowHostIPC = desired.AllowHostIPC
-	existing.DefaultAllowPrivilegeEscalation = desired.DefaultAllowPrivilegeEscalation
-	existing.AllowPrivilegeEscalation = desired.AllowPrivilegeEscalation
-	existing.SELinuxContext = desired.SELinuxContext
-	existing.RunAsUser = desired.RunAsUser
-	existing.SupplementalGroups = desired.SupplementalGroups
-	existing.FSGroup = desired.FSGroup
-	existing.ReadOnlyRootFilesystem = desired.ReadOnlyRootFilesystem
-	existing.SeccompProfiles = desired.SeccompProfiles
-	existing.AllowedUnsafeSysctls = desired.AllowedUnsafeSysctls
-	existing.ForbiddenSysctls = desired.ForbiddenSysctls
+func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) bool {
+	changed := false
+	changed = utils.SetIfChanged(&existing.AllowPrivilegedContainer, desired.AllowPrivilegedContainer) || changed
+	changed = utils.SetIfChanged(&existing.DefaultAddCapabilities, desired.DefaultAddCapabilities) || changed
+	changed = utils.SetIfChanged(&existing.RequiredDropCapabilities, desired.RequiredDropCapabilities) || changed
+	changed = utils.SetIfChanged(&existing.AllowedCapabilities, desired.AllowedCapabilities) || changed
+	changed = utils.SetIfChanged(&existing.AllowHostDirVolumePlugin, desired.AllowHostDirVolumePlugin) || changed
+	changed = utils.SetIfChanged(&existing.Volumes, desired.Volumes) || changed
+	changed = utils.SetIfChanged(&existing.AllowedFlexVolumes, desired.AllowedFlexVolumes) || changed
+	changed = utils.SetIfChanged(&existing.AllowHostNetwork, desired.AllowHostNetwork) || changed
+	changed = utils.SetIfChanged(&existing.AllowHostPorts, desired.AllowHostPorts) || changed
+	changed = utils.SetIfChanged(&existing.AllowHostPID, desired.AllowHostPID) || changed
+	changed = utils.SetIfChanged(&existing.AllowHostIPC, desired.AllowHostIPC) || changed
+	changed = utils.SetIfChanged(&existing.DefaultAllowPrivilegeEscalation, desired.DefaultAllowPrivilegeEscalation) || changed
+	changed = utils.SetIfChanged(&existing.AllowPrivilegeEscalation, desired.AllowPrivilegeEscalation) || changed
+	changed = utils.SetIfChanged(&existing.SELinuxContext, desired.SELinuxContext) || changed
+	changed = utils.SetIfChanged(&existing.RunAsUser, desired.RunAsUser) || changed
+	changed = utils.SetIfChanged(&existing.SupplementalGroups, desired.SupplementalGroups) || changed
+	changed = utils.SetIfChanged(&existing.FSGroup, desired.FSGroup) || changed
+	changed = utils.SetIfChanged(&existing.ReadOnlyRootFilesystem, desired.ReadOnlyRootFilesystem) || changed
+	changed = utils.SetIfChanged(&existing.SeccompProfiles, desired.SeccompProfiles) || changed
+	changed = utils.SetIfChanged(&existing.AllowedUnsafeSysctls, desired.AllowedUnsafeSysctls) || changed
+	changed = utils.SetIfChanged(&existing.ForbiddenSysctls, desired.ForbiddenSysctls) || changed
+	return changed
 }
 
 func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
@@ -214,9 +227,12 @@ func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) e
 		return r.CreateResource(cr, m)
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.Spec.Template.Spec = m.Spec.Template.Spec
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec, m.Spec.Template.Spec) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -245,9 +261,12 @@ func (r *NodeExporterReconciler) handleService(cr *monv1.PlatformMonitoring) err
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -274,11 +293,14 @@ func (r *NodeExporterReconciler) handleServiceMonitor(cr *monv1.PlatformMonitori
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
