@@ -33,6 +33,17 @@ rules:
       - get
       - list
       - watch
+  {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+  - apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - {{ printf "%s-node-exporter" .Release.Namespace }}
+    verbs:
+      - delete
+      - get
+  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

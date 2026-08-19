@@ -4652,6 +4652,7 @@ spec:
                           type: string
                       type: object
                     setupSecurityContext:
+                      default: true
                       type: boolean
                     tolerations:
                       items:

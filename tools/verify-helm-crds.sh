@@ -17,6 +17,9 @@ rbac_cleanup_role_manifest="${temporary_dir}/rbac-cleanup-clusterrole.yaml"
 rbac_cleanup_command="${temporary_dir}/rbac-cleanup-command.sh"
 other_namespace_manifest="${temporary_dir}/other-namespace.yaml"
 other_namespace_rbac_cleanup_command="${temporary_dir}/other-namespace-rbac-cleanup-command.sh"
+openshift_rendered_manifest="${temporary_dir}/openshift-manifest.yaml"
+openshift_rbac_cleanup_role_manifest="${temporary_dir}/openshift-rbac-cleanup-clusterrole.yaml"
+openshift_rbac_cleanup_command="${temporary_dir}/openshift-rbac-cleanup-command.sh"
 root_crd_dir="${chart_dir}/crds"
 prometheus_crd_dir="${chart_dir}/charts/prometheus/crds"
 victoriametrics_crd_dir="${chart_dir}/charts/victoriametrics/crds"
@@ -606,6 +609,45 @@ verify_text_contains "${other_namespace_rbac_cleanup_command}" \
     "monitoring.netcracker.com/installation-namespace=other-monitoring" "second installation RBAC selector"
 verify_text_excludes "${other_namespace_rbac_cleanup_command}" \
     "monitoring.netcracker.com/installation-namespace=default" "first installation RBAC selector"
+verify_text_excludes "${rbac_cleanup_command}" \
+    "securitycontextconstraints" "SCC cleanup on clusters without the SCC API"
+if [[ "$("${yq_binary}" eval \
+    '[.rules[] | select(.apiGroups | any_c(. == "security.openshift.io"))] | length' \
+    "${rbac_cleanup_role_manifest}")" != "0" ]]; then
+    echo "${rbac_cleanup_role_manifest} grants SCC access on clusters without the SCC API." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --api-versions security.openshift.io/v1/SecurityContextConstraints \
+    >"${openshift_rendered_manifest}"
+"${yq_binary}" eval-all \
+    'select(.kind == "ClusterRole" and .metadata.name == "monitoring-rbac-cleanup-hook")' \
+    "${openshift_rendered_manifest}" >"${openshift_rbac_cleanup_role_manifest}"
+verify_exact_rbac_verbs "${openshift_rbac_cleanup_role_manifest}" security.openshift.io securitycontextconstraints \
+    "delete,get"
+if ! "${yq_binary}" eval -e \
+    '.rules[] | select(.apiGroups | any_c(. == "security.openshift.io")) |
+    select(.resources | any_c(. == "securitycontextconstraints")) |
+    (((.resourceNames | length) == 1) and (.resourceNames[0] == "default-node-exporter"))' \
+    "${openshift_rbac_cleanup_role_manifest}" >/dev/null; then
+    echo "${openshift_rbac_cleanup_role_manifest} does not scope securitycontextconstraints to the namespace-derived SCC name." >&2
+    exit 1
+fi
+"${yq_binary}" eval-all \
+    'select(.kind == "Job" and .metadata.name == "monitoring-rbac-cleanup-hook") |
+    .spec.template.spec.containers[] | select(.name == "kubectl") | .command[-1]' \
+    "${openshift_rendered_manifest}" >"${openshift_rbac_cleanup_command}"
+verify_text_contains "${openshift_rbac_cleanup_command}" \
+    "kubectl get securitycontextconstraints/default-node-exporter" "pre-deletion SCC ownership check"
+expected_scc_ownership_jsonpath='{.metadata.labels.app\.kubernetes\.io/managed-by}{"|"}{.metadata.labels.monitoring\.netcracker\.com/installation-namespace}{"|"}{.metadata.annotations.monitoring\.netcracker\.com/platform-monitoring-name}{"|"}{.metadata.annotations.monitoring\.netcracker\.com/platform-monitoring-namespace}'
+verify_text_contains "${openshift_rbac_cleanup_command}" \
+    "${expected_scc_ownership_jsonpath}" "complete SCC ownership metadata lookup"
+verify_text_contains "${openshift_rbac_cleanup_command}" \
+    "monitoring-operator|default|platformmonitoring|default" "complete SCC ownership value check"
+verify_text_contains "${openshift_rbac_cleanup_command}" \
+    "kubectl delete securitycontextconstraints/default-node-exporter" "namespace-derived SCC cleanup"
+
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "GrafanaDashboard" and
     (.metadata.name == "backup-daemon" or .metadata.name == "kafka-java-clients") and
