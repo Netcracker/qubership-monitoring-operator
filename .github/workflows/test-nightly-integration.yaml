@@ -4,15 +4,16 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '0 0 * * *'
+  push
+#  schedule:
+#    - cron: '0 0 * * *'
 
 jobs:
   Nightly-Monitoring-Pipeline:
-    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@edbd2ff8ec59df921e28f1311d42e0a974f19391 # v1.14.2
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@feat/update_monitoring_pipeline # v1.14.2
     with:
       service_branch: main
-      pipeline_branch: 'edbd2ff8ec59df921e28f1311d42e0a974f19391' # v1.14.2 renovate: depName=Netcracker/qubership-test-pipelines
+      pipeline_branch: 'feat/update_monitoring_pipeline' # v1.14.2 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       scope: 'nightly'
