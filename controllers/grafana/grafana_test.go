@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,7 +35,7 @@ func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
 		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
 			Annotations: map[string]string{"example.com/user-annotation": "retained"},
 		}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -61,7 +62,7 @@ func TestAddGrafanaExtraVarsResourceVersionsWhenResourcesAreMissing(t *testing.T
 		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
 			Annotations: map[string]string{"example.com/user-annotation": "retained"},
 		}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
@@ -79,7 +80,7 @@ func TestAddGrafanaExtraVarsResourceVersionsKeepsAnnotationsNilWhenResourcesAreM
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	require.NoError(t, err)
 	require.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
@@ -94,7 +95,7 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -120,7 +121,7 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesMissingConfigMapVersion(t *
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -145,7 +146,7 @@ func TestAddGrafanaExtraVarsResourceVersionsInitializesAnnotations(t *testing.T)
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	manifest.Spec.Deployment.Spec.Template.Annotations = nil
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -169,7 +170,7 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	manifest.Spec.Deployment.Spec.Template = nil
 
@@ -177,7 +178,7 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest, err = grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	assert.Nil(t, grafanaPodTemplateAnnotations(manifest))
 	manifest.Spec.Deployment.Spec.Template.Annotations = map[string]string{"custom": "value"}
@@ -194,6 +195,7 @@ func TestHandleGrafanaCreatesResourceWithoutExtraVarsResources(t *testing.T) {
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: controllerClient,
 			Scheme: testScheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -221,7 +223,7 @@ func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) 
 		ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	}
-	existing, err := grafana(platformMonitoring)
+	existing, err := grafana(platformMonitoring, false)
 	assert.NoError(t, err)
 	existing.Spec.Deployment.Spec.Template = nil
 	controllerClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
@@ -235,6 +237,7 @@ func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) 
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: controllerClient,
 			Scheme: testScheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -249,6 +252,7 @@ func TestHandleGrafanaReturnsClientError(t *testing.T) {
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build(),
 			Scheme: runtime.NewScheme(),
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -265,7 +269,7 @@ func TestAddGrafanaExtraVarsResourceVersionsReturnsSecretAPIError(t *testing.T) 
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	kubeClient := kubernetesfake.NewSimpleClientset(&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
 		Name: "grafana-extra-vars", Namespace: "monitoring",
@@ -462,7 +466,7 @@ func TestGrafanaManifests(t *testing.T) {
 
 func TestGrafanaPodTemplateAnnotations(t *testing.T) {
 	t.Run("keeps annotations nil when none are configured", func(t *testing.T) {
-		manifest, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+		manifest, err := grafana(grafanaComparisonPlatformMonitoring(nil), false)
 		require.NoError(t, err)
 
 		assert.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
@@ -470,7 +474,7 @@ func TestGrafanaPodTemplateAnnotations(t *testing.T) {
 
 	t.Run("preserves configured annotations", func(t *testing.T) {
 		annotations := map[string]string{"example.com/key": "value"}
-		manifest, err := grafana(grafanaComparisonPlatformMonitoring(annotations))
+		manifest, err := grafana(grafanaComparisonPlatformMonitoring(annotations), false)
 		require.NoError(t, err)
 
 		assert.Equal(t, annotations, manifest.Spec.Deployment.Spec.Template.Annotations)

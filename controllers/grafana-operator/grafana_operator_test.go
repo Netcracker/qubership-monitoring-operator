@@ -201,7 +201,7 @@ func TestGrafanaOperatorLeaderElect(t *testing.T) {
 	}
 
 	t.Run("omits flag when unset", func(t *testing.T) {
-		m, err := grafanaOperatorDeployment(base)
+		m, err := grafanaOperatorDeployment(base, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -210,7 +210,7 @@ func TestGrafanaOperatorLeaderElect(t *testing.T) {
 	t.Run("passes --leader-elect=true", func(t *testing.T) {
 		cr := base.DeepCopy()
 		cr.Spec.Grafana.Operator.LeaderElect = ptr.To(true)
-		m, err := grafanaOperatorDeployment(cr)
+		m, err := grafanaOperatorDeployment(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -219,7 +219,7 @@ func TestGrafanaOperatorLeaderElect(t *testing.T) {
 	t.Run("passes --leader-elect=false", func(t *testing.T) {
 		cr := base.DeepCopy()
 		cr.Spec.Grafana.Operator.LeaderElect = ptr.To(false)
-		m, err := grafanaOperatorDeployment(cr)
+		m, err := grafanaOperatorDeployment(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
