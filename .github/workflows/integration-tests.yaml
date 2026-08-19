@@ -66,7 +66,7 @@ jobs:
     uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@57a9fbc96d458a7bdc37cb919bad53937d7d08dd # v1.15.0
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: '57a9fbc96d458a7bdc37cb919bad53937d7d08dd'
+      pipeline_branch: '57a9fbc96d458a7bdc37cb919bad53937d7d08dd' # v1.15.0 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
       enable-owner-references-permission-enforcement: true
