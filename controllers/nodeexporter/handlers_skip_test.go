@@ -52,6 +52,25 @@ func TestHandleDaemonSetSkipsAPIDefaultedPodSpec(t *testing.T) {
 	assert.Equal(t, "default-scheduler", got.Spec.Template.Spec.SchedulerName)
 }
 
+func TestHandleDaemonSetUpdatesChangedImage(t *testing.T) {
+	cr := newNodeExporterPlatformMonitoring(true)
+	desired, err := nodeExporterDaemonSet(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	require.NotEmpty(t, live.Spec.Template.Spec.Containers)
+	live.Spec.Template.Spec.Containers[0].Image = "stale:old"
+	live.ResourceVersion = "1"
+
+	r, kubeClient := newNodeExporterTestReconciler(t, false, cr, live)
+	require.NoError(t, r.handleDaemonSet(cr))
+
+	got := &appsv1.DaemonSet{}
+	require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "image change must trigger Update")
+	require.NotEmpty(t, got.Spec.Template.Spec.Containers)
+	assert.Equal(t, cr.Spec.NodeExporter.Image, got.Spec.Template.Spec.Containers[0].Image)
+}
+
 func applyAPIDefaultedPodSpec(spec *corev1.PodSpec) {
 	if spec.DNSPolicy == "" {
 		spec.DNSPolicy = corev1.DNSClusterFirst

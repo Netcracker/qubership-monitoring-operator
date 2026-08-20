@@ -33,6 +33,23 @@ func TestHandlePrometheusSkipsCRDDefaultedSpec(t *testing.T) {
 	assert.Equal(t, "web", got.Spec.PortName)
 }
 
+func TestHandlePrometheusUpdatesChangedSpec(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := prometheus(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.Spec.ScrapeInterval = "15s"
+
+	r := newPrometheusSkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handlePrometheus(cr))
+
+	got := &promv1.Prometheus{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "spec change must trigger Update")
+	assert.Equal(t, promv1.Duration("30s"), got.Spec.ScrapeInterval)
+}
+
 func skipTestPlatformMonitoring() *monv1.PlatformMonitoring {
 	install := true
 	return &monv1.PlatformMonitoring{

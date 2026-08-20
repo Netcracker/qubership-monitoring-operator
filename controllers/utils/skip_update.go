@@ -32,21 +32,6 @@ func SetLabelsIfChanged(obj metav1.Object, labels map[string]string) bool {
 	return true
 }
 
-// SetManagedAnnotationsIfChanged copies keys from annotations onto obj without
-// removing keys obj already has (for example Deployment revision). Empty
-// annotations are a no-op. Returns true when annotations were updated.
-func SetManagedAnnotationsIfChanged(obj metav1.Object, annotations map[string]string) bool {
-	if len(annotations) == 0 {
-		return false
-	}
-	merged := maps.Clone(obj.GetAnnotations())
-	if merged == nil {
-		merged = make(map[string]string, len(annotations))
-	}
-	maps.Copy(merged, annotations)
-	return SetAnnotationsIfChanged(obj, merged)
-}
-
 // SetAnnotationsIfChanged assigns annotations when they differ. Nil and empty
 // maps are treated as equal. Callers that must distinguish omitted versus empty
 // should canonicalize before calling. Returns true when annotations were updated.

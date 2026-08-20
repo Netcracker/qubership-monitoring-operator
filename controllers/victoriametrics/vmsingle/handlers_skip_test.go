@@ -41,6 +41,35 @@ func TestHandleVmSingleSkipsNoOpUpdate(t *testing.T) {
 	assert.Equal(t, "1", got.ResourceVersion, "no-op reconcile must not bump resourceVersion")
 }
 
+func TestHandleVmSingleUpdatesChangedSpec(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "platformmonitoring",
+			Namespace: "monitoring",
+			UID:       types.UID("platform-monitoring-uid"),
+		},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmSingle: monv1.VmSingle{Image: "vmsingle:current"},
+			},
+		},
+	}
+	r := newVmSingleSkipTestReconciler(t, cr)
+	desired, err := vmSingle(r, cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.Spec.Image.Tag = "stale"
+
+	r = newVmSingleSkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleVmSingle(cr))
+
+	got := &vmetricsv1b1.VMSingle{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "spec change must trigger Update")
+	assert.Equal(t, desired.Spec.Image, got.Spec.Image)
+}
+
 func newVmSingleSkipTestReconciler(t *testing.T, objs ...client.Object) *VmSingleReconciler {
 	t.Helper()
 	scheme := runtime.NewScheme()

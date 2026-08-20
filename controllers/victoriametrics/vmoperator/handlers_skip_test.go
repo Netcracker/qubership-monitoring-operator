@@ -71,6 +71,66 @@ func TestHandleKubeletServiceEndpointsSkipsAPIDefaultedPortProtocol(t *testing.T
 	assert.Equal(t, corev1.ProtocolTCP, got.Subsets[0].Ports[0].Protocol)
 }
 
+func TestHandleServiceUpdatesChangedPort(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := vmOperatorService(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	require.NotEmpty(t, live.Spec.Ports)
+	live.Spec.Ports[0].Port = 9999
+
+	r := newVmOperatorSkipTestReconciler(t, nil, cr, live)
+	require.NoError(t, r.handleService(cr))
+
+	got := &corev1.Service{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "port change must trigger Update")
+	require.NotEmpty(t, got.Spec.Ports)
+	assert.Equal(t, desired.Spec.Ports[0].Port, got.Spec.Ports[0].Port)
+}
+
+func TestHandleKubeletServiceEndpointsUpdatesChangedPort(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{Name: "kind-control-plane", UID: "node-uid"},
+		Status: corev1.NodeStatus{
+			Addresses: []corev1.NodeAddress{{Type: corev1.NodeInternalIP, Address: "172.18.0.2"}},
+		},
+	}
+	kubeClient := kubernetesfake.NewSimpleClientset(node)
+
+	nodes, err := kubeClient.CoreV1().Nodes().List(t.Context(), metav1.ListOptions{})
+	require.NoError(t, err)
+	addresses, addressErrs := getNodeAddresses(nodes)
+	require.Empty(t, addressErrs)
+
+	desired, err := vmKubeletServiceEndpoints(cr)
+	require.NoError(t, err)
+	desired.Subsets[0].Addresses = addresses
+	desired.Labels["name"] = utils.TruncLabel(desired.GetName())
+	desired.Labels["app.kubernetes.io/name"] = utils.TruncLabel(desired.GetName())
+	desired.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(desired.GetName(), desired.GetNamespace())
+	desired.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
+	applyAPIDefaultedEndpointPorts(desired.Subsets)
+
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	require.NotEmpty(t, live.Subsets)
+	require.NotEmpty(t, live.Subsets[0].Ports)
+	live.Subsets[0].Ports[0].Port = 1
+
+	r := newVmOperatorSkipTestReconciler(t, kubeClient, cr, live)
+	require.NoError(t, r.handleKubeletServiceEndpoints(cr))
+
+	got := &corev1.Endpoints{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "port change must trigger Update")
+	require.NotEmpty(t, got.Subsets)
+	require.NotEmpty(t, got.Subsets[0].Ports)
+	assert.Equal(t, int32(10250), got.Subsets[0].Ports[0].Port)
+}
+
 func skipTestPlatformMonitoring() *monv1.PlatformMonitoring {
 	install := true
 	return &monv1.PlatformMonitoring{

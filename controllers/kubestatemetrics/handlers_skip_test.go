@@ -37,6 +37,25 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	assert.Equal(t, "1", got.ResourceVersion, "API-defaulted container and PodSpec fields must not trigger Update")
 }
 
+func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := kubeStateMetricsDeployment(cr, false)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	require.NotEmpty(t, live.Spec.Template.Spec.Containers)
+	live.Spec.Template.Spec.Containers[0].Image = "stale:old"
+
+	r := newKubeStateMetricsSkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "image change must trigger Update")
+	require.NotEmpty(t, got.Spec.Template.Spec.Containers)
+	assert.Equal(t, cr.Spec.KubeStateMetrics.Image, got.Spec.Template.Spec.Containers[0].Image)
+}
+
 func skipTestPlatformMonitoring() *monv1.PlatformMonitoring {
 	install := true
 	return &monv1.PlatformMonitoring{

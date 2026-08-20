@@ -37,6 +37,45 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	assert.Equal(t, int32(0), got.Spec.Template.Spec.Containers[0].Ports[0].HostPort)
 }
 
+func TestHandleDeploymentUpdatesChangedReplicas(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := pushgatewayDeployment(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	stale := int32(5)
+	live.Spec.Replicas = &stale
+
+	r := newPushgatewaySkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "replica change must trigger Update")
+	require.NotNil(t, got.Spec.Replicas)
+	assert.Equal(t, int32(1), *got.Spec.Replicas)
+}
+
+func TestHandleDeploymentRemovesDroppedAnnotationsAndKeepsRevision(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := pushgatewayDeployment(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.SetAnnotations(map[string]string{
+		"deployment.kubernetes.io/revision": "1",
+		"example.com/stale":                 "drop-me",
+	})
+
+	r := newPushgatewaySkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "removed CR annotation must trigger Update")
+	assert.Equal(t, map[string]string{"deployment.kubernetes.io/revision": "1"}, got.GetAnnotations())
+}
+
 func skipTestPlatformMonitoring() *monv1.PlatformMonitoring {
 	install := true
 	return &monv1.PlatformMonitoring{

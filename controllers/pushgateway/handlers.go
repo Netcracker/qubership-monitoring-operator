@@ -1,6 +1,8 @@
 package pushgateway
 
 import (
+	"maps"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -36,8 +38,8 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 	//Set parameters
 	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
 	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
-	changed = utils.SetManagedAnnotationsIfChanged(e, m.GetAnnotations()) || changed
-	changed = utils.SetManagedAnnotationsIfChanged(&e.Spec.Template, m.Spec.Template.GetAnnotations()) || changed
+	changed = utils.SetAnnotationsIfChanged(e, annotationsForDeploymentUpdate(e.GetAnnotations(), m.GetAnnotations())) || changed
+	changed = utils.SetAnnotationsIfChanged(&e.Spec.Template, m.Spec.Template.GetAnnotations()) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
@@ -53,6 +55,23 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 		return err
 	}
 	return nil
+}
+
+const deploymentRevisionAnnotation = "deployment.kubernetes.io/revision"
+
+// annotationsForDeploymentUpdate keeps full-replace semantics for controller-owned
+// annotations (including removal) while copying kube's revision so idle skip holds.
+func annotationsForDeploymentUpdate(live, desired map[string]string) map[string]string {
+	ann := maps.Clone(desired)
+	rev, ok := live[deploymentRevisionAnnotation]
+	if !ok {
+		return ann
+	}
+	if ann == nil {
+		ann = map[string]string{}
+	}
+	ann[deploymentRevisionAnnotation] = rev
+	return ann
 }
 
 func (r *PushgatewayReconciler) handlePVC(cr *monv1.PlatformMonitoring) error {

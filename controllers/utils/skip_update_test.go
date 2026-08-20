@@ -97,26 +97,13 @@ func TestSetAnnotationsIfChangedUpdates(t *testing.T) {
 	assert.Equal(t, map[string]string{"k": "new"}, obj.GetAnnotations())
 }
 
-func TestSetManagedAnnotationsIfChangedEmptyIsNoOp(t *testing.T) {
+func TestSetAnnotationsIfChangedRemovesKeys(t *testing.T) {
 	obj := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"deployment.kubernetes.io/revision": "1"}},
+		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"keep": "v", "drop": "x"}},
 	}
 
-	assert.False(t, SetManagedAnnotationsIfChanged(obj, nil))
-	assert.False(t, SetManagedAnnotationsIfChanged(obj, map[string]string{}))
-	assert.Equal(t, map[string]string{"deployment.kubernetes.io/revision": "1"}, obj.GetAnnotations())
-}
-
-func TestSetManagedAnnotationsIfChangedMergesWithoutDroppingExisting(t *testing.T) {
-	obj := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"deployment.kubernetes.io/revision": "1"}},
-	}
-
-	assert.True(t, SetManagedAnnotationsIfChanged(obj, map[string]string{"k": "v"}))
-	assert.Equal(t, map[string]string{
-		"deployment.kubernetes.io/revision": "1",
-		"k":                                 "v",
-	}, obj.GetAnnotations())
+	assert.True(t, SetAnnotationsIfChanged(obj, map[string]string{"keep": "v"}))
+	assert.Equal(t, map[string]string{"keep": "v"}, obj.GetAnnotations())
 }
 
 func TestSetUnstructuredFieldIfChangedNoOp(t *testing.T) {

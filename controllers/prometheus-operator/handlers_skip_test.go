@@ -54,6 +54,47 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	assert.Equal(t, "1", got.ResourceVersion, "API-defaulted container fields must not trigger Update")
 }
 
+func TestHandleServiceUpdatesChangedPort(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := prometheusOperatorService(cr)
+	require.NoError(t, err)
+	desired.Spec.Selector = map[string]string{
+		"app.kubernetes.io/name": utils.TruncLabel(utils.PrometheusOperatorComponentName),
+	}
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	require.NotEmpty(t, live.Spec.Ports)
+	live.Spec.Ports[0].Port = 9999
+
+	r := newPrometheusOperatorSkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleService(cr))
+
+	got := &corev1.Service{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "port change must trigger Update")
+	require.NotEmpty(t, got.Spec.Ports)
+	assert.Equal(t, int32(8080), got.Spec.Ports[0].Port)
+}
+
+func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := prometheusOperatorDeployment(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	require.NotEmpty(t, live.Spec.Template.Spec.Containers)
+	live.Spec.Template.Spec.Containers[0].Image = "stale:old"
+
+	r := newPrometheusOperatorSkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "image change must trigger Update")
+	require.NotEmpty(t, got.Spec.Template.Spec.Containers)
+	assert.Equal(t, cr.Spec.Prometheus.Operator.Image, got.Spec.Template.Spec.Containers[0].Image)
+}
+
 func skipTestPlatformMonitoring() *monv1.PlatformMonitoring {
 	install := true
 	return &monv1.PlatformMonitoring{

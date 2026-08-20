@@ -43,3 +43,35 @@ func TestHandleApiServerServiceMonitorSkipsNoOpUpdate(t *testing.T) {
 	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
 	assert.Equal(t, "1", got.ResourceVersion, "no-op reconcile must not bump resourceVersion")
 }
+
+func TestHandleApiServerServiceMonitorUpdatesChangedJobLabel(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "platformmonitoring",
+			Namespace: "monitoring",
+			UID:       types.UID("platform-monitoring-uid"),
+		},
+	}
+	desired, err := kubernetesMonitorsApiServerServiceMonitor(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.Spec.JobLabel = "stale"
+
+	scheme := runtime.NewScheme()
+	require.NoError(t, monv1.AddToScheme(scheme))
+	require.NoError(t, promv1.AddToScheme(scheme))
+	r := &KubernetesMonitorsReconciler{
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr, live).Build(),
+			Scheme: scheme,
+			Log:    utils.Logger("kubernetes_monitors_skip_test"),
+		},
+	}
+	require.NoError(t, r.handleApiServerServiceMonitor(cr))
+
+	got := &promv1.ServiceMonitor{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "JobLabel change must trigger Update")
+	assert.Equal(t, desired.Spec.JobLabel, got.Spec.JobLabel)
+}
