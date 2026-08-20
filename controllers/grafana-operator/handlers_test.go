@@ -159,3 +159,22 @@ func TestHandleDeploymentSkipsNoOpUpdateWithPreservedSelector(t *testing.T) {
 	assert.Equal(t, "1", got.ResourceVersion, "no-op reconcile must not bump resourceVersion")
 	assert.Equal(t, desired.Spec.Selector, got.Spec.Selector)
 }
+
+func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
+	cr := testPlatformMonitoring()
+	desired, err := grafanaOperatorDeployment(cr)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	require.NotEmpty(t, live.Spec.Template.Spec.Containers)
+	live.Spec.Template.Spec.Containers[0].Image = "stale:old"
+
+	r := newGrafanaOperatorWorkloadTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "image change must trigger Update")
+	require.NotEmpty(t, got.Spec.Template.Spec.Containers)
+	assert.Equal(t, desired.Spec.Template.Spec.Containers[0].Image, got.Spec.Template.Spec.Containers[0].Image)
+}
