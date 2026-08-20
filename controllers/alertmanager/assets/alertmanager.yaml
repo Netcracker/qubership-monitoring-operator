@@ -23,9 +23,9 @@ spec:
         topologyKey: "kubernetes.io/hostname"
   alertmanagerConfigNamespaceSelector:
     matchExpressions:
-      - key: openshift.io/cluster-monitoring
-        operator: NotIn
-        values: ["true"]
+    - key: openshift.io/cluster-monitoring
+      operator: NotIn
+      values: ["true"]
   alertmanagerConfigSelector: {}
   alertmanagerConfigMatcherStrategy:
     type: OnNamespace

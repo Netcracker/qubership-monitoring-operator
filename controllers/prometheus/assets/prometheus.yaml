@@ -41,25 +41,25 @@ spec:
   portName: web
   ruleNamespaceSelector:
     matchExpressions:
-      - key: openshift.io/cluster-monitoring
-        operator: NotIn
-        values: ["true"]
+    - key: openshift.io/cluster-monitoring
+      operator: NotIn
+      values: ["true"]
   ruleSelector: {}
   podMonitorNamespaceSelector:
     matchExpressions:
-      - key: openshift.io/cluster-monitoring
-        operator: NotIn
-        values: ["true"]
+    - key: openshift.io/cluster-monitoring
+      operator: NotIn
+      values: ["true"]
   podMonitorSelector: {}
   probeNamespaceSelector:
     matchExpressions:
-      - key: openshift.io/cluster-monitoring
-        operator: NotIn
-        values: ["true"]
+    - key: openshift.io/cluster-monitoring
+      operator: NotIn
+      values: ["true"]
   probeSelector: {}
   serviceMonitorNamespaceSelector:
     matchExpressions:
-      - key: openshift.io/cluster-monitoring
-        operator: NotIn
-        values: ["true"]
+    - key: openshift.io/cluster-monitoring
+      operator: NotIn
+      values: ["true"]
   serviceMonitorSelector: {}
