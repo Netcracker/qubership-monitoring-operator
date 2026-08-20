@@ -36,8 +36,8 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 	//Set parameters
 	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
 	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
-	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
-	changed = utils.SetAnnotationsIfChanged(&e.Spec.Template, m.Spec.Template.GetAnnotations()) || changed
+	changed = utils.SetManagedAnnotationsIfChanged(e, m.GetAnnotations()) || changed
+	changed = utils.SetManagedAnnotationsIfChanged(&e.Spec.Template, m.Spec.Template.GetAnnotations()) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed

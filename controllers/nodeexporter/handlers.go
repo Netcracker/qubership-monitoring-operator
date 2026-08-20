@@ -226,10 +226,21 @@ func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) e
 		}
 		return r.CreateResource(cr, m)
 	}
-	//Set parameters
+	// Set only fields this controller writes. Copying the whole PodSpec would
+	// overwrite API-defaulted values (dnsPolicy, restartPolicy, schedulerName,
+	// terminationGracePeriodSeconds, deprecated serviceAccount) every cycle.
 	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
 	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec, m.Spec.Template.Spec) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Tolerations, m.Spec.Template.Spec.Tolerations) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.HostNetwork, m.Spec.Template.Spec.HostNetwork) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.HostPID, m.Spec.Template.Spec.HostPID) || changed
 	if !changed {
 		return nil
 	}

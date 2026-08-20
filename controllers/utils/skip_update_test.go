@@ -49,6 +49,13 @@ func TestSetIfChangedTreatsNilAndEmptyMapAsEqual(t *testing.T) {
 	assert.Nil(t, dst)
 }
 
+func TestSetIfChangedDoesNotEquateEmptyAndDefaultProtocol(t *testing.T) {
+	dst := []corev1.ServicePort{{Name: "webhook", Port: 443}}
+	src := []corev1.ServicePort{{Name: "webhook", Port: 443, Protocol: corev1.ProtocolTCP}}
+
+	assert.True(t, SetIfChanged(&dst, src), "Semantic.DeepEqual does not treat omitted protocol as TCP")
+}
+
 func TestSetLabelsIfChangedNoOp(t *testing.T) {
 	obj := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app": "x"}},
@@ -88,6 +95,28 @@ func TestSetAnnotationsIfChangedUpdates(t *testing.T) {
 
 	assert.True(t, SetAnnotationsIfChanged(obj, map[string]string{"k": "new"}))
 	assert.Equal(t, map[string]string{"k": "new"}, obj.GetAnnotations())
+}
+
+func TestSetManagedAnnotationsIfChangedEmptyIsNoOp(t *testing.T) {
+	obj := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"deployment.kubernetes.io/revision": "1"}},
+	}
+
+	assert.False(t, SetManagedAnnotationsIfChanged(obj, nil))
+	assert.False(t, SetManagedAnnotationsIfChanged(obj, map[string]string{}))
+	assert.Equal(t, map[string]string{"deployment.kubernetes.io/revision": "1"}, obj.GetAnnotations())
+}
+
+func TestSetManagedAnnotationsIfChangedMergesWithoutDroppingExisting(t *testing.T) {
+	obj := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"deployment.kubernetes.io/revision": "1"}},
+	}
+
+	assert.True(t, SetManagedAnnotationsIfChanged(obj, map[string]string{"k": "v"}))
+	assert.Equal(t, map[string]string{
+		"deployment.kubernetes.io/revision": "1",
+		"k":                                 "v",
+	}, obj.GetAnnotations())
 }
 
 func TestSetUnstructuredFieldIfChangedNoOp(t *testing.T) {

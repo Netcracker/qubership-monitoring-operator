@@ -36,6 +36,9 @@ spec:
   enableAdminAPI: false
   serviceAccountName: monitoring-prometheus
   externalLabels: {}
+  scrapeInterval: 30s
+  evaluationInterval: 30s
+  portName: web
   ruleNamespaceSelector:
     matchExpressions:
       - key: openshift.io/cluster-monitoring
