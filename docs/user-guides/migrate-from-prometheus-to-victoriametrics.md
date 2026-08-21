@@ -106,8 +106,9 @@ Endpoint has optional parameter `skip_head=<bool>` - skip data present in the he
 
 Step 2. Download on local host/another storage in Kubernetes
 
-When snapshot is done you should to save on local host or another storage in Kubernetes. It needs to be done because
-during update from Prometheus to VictoriaMetrics all Prometheus components will be deleted and data will be cleaned.
+When the snapshot is ready, save it to a local host or another storage location in Kubernetes. Disabling managed
+Prometheus removes its workload but retains its persistent volume claim. Keep an independent snapshot until the
+migration is complete because PVC availability still depends on the cluster and its storage system.
 
 For copying snapshots on local host you can use `cp` command in `kubectl` tool:
 
@@ -247,3 +248,17 @@ Step 5. Check data in VictoriaMetrics
       `container_cpu_system_seconds_total` metric.
 
    4. You should see list of metrics.
+
+Step 6. Remove retained Prometheus storage when it is no longer needed
+
+Keep the Prometheus PVC until the VictoriaMetrics deployment is healthy, the required historical metrics are available,
+and rollback to Prometheus is no longer required. Then list the claims, identify the exact Prometheus PVC, and delete it
+explicitly:
+
+```bash
+kubectl get pvc -n <platform-monitoring-namespace>
+kubectl delete pvc <prometheus-pvc-name> -n <platform-monitoring-namespace>
+```
+
+Deleting the PVC is irreversible from the monitoring operator's perspective. The underlying PV and storage asset follow
+their configured reclaim policy.
