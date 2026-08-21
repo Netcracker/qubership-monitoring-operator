@@ -1190,7 +1190,7 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .Values.grafana }}
-  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
+  {{- if .Values.grafana.install }}
   grafana:
     install: {{ .Values.grafana.install }}
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
