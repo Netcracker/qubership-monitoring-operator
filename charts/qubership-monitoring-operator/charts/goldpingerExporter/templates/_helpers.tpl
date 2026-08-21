@@ -26,3 +26,19 @@ Image can be found from:
 {{- print "bloomberg/goldpinger:3.11.2" -}}
 {{- end -}}
 {{- end -}}
+
+{{/* Return the enforced pod security context. */}}
+{{- define "goldpinger.podSecurityContext" -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $configured := deepCopy (.Values.podSecurityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite $configured $required) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "goldpinger.containerSecurityContext" -}}
+{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite (deepCopy (.Values.containerSecurityContext | default dict)) $required) -}}
+{{- end -}}

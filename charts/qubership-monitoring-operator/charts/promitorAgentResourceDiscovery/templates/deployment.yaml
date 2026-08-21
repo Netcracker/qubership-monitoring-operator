@@ -44,7 +44,7 @@ spec:
       automountServiceAccountToken: true
       {{- end }}
       securityContext:
-        {{ include "promitor.agentResourceDiscovery.securityContext" . }}
+        {{- include "promitor.agentResourceDiscovery.securityContext" . | nindent 8 }}
       {{- if .Values.serviceAccount.install }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
@@ -70,21 +70,19 @@ spec:
               protocol: TCP
           resources:
             {{ include "promitor.agentResourceDiscovery.resources" $ }}
-          {{- if .Values.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
-          {{- end }}
+          securityContext:
+            {{- include "promitor.agentResourceDiscovery.containerSecurityContext" . | nindent 12 }}
           volumeMounts:
           - name: config
             mountPath: /config/
+            readOnly: true
           {{- if or .Values.azureAuthentication.identity.key .Values.azureAuthentication.appKey (eq .Values.secrets.createSecret false) }}
           - name: azure-auth-secret
             mountPath: /etc/promitor/secrets
             readOnly: true
           {{- end }}
-          {{- if and .Values.containerSecurityContext.enabled .Values.containerSecurityContext.readOnlyRootFilesystem }}
           - name: tmp
             mountPath: /tmp/
-          {{- end }}
           {{- if .Values.extraVolumeMounts }}
             {{ toYaml .Values.extraVolumeMounts | nindent 10 }}
           {{- end }}
@@ -124,10 +122,9 @@ spec:
               - key: {{ .Values.secrets.appKeySecret }}
                 path: appkey
         {{- end }}
-        {{- if and .Values.containerSecurityContext.enabled .Values.containerSecurityContext.readOnlyRootFilesystem }}
-        - emptyDir: {}
-          name: tmp
-        {{- end }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
         {{- if .Values.extraVolumes }}
           {{ toYaml .Values.extraVolumes | nindent 8 }}
         {{- end }}

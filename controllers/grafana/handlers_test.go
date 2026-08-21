@@ -11,7 +11,7 @@ import (
 
 func TestApplyGrafanaDesiredStateSkipsAPICanonicalEmptyAnnotations(t *testing.T) {
 	cr := grafanaComparisonPlatformMonitoring(nil)
-	desired, err := grafana(cr)
+	desired, err := grafana(cr, false)
 	require.NoError(t, err)
 
 	live := desired.DeepCopy()
@@ -21,7 +21,7 @@ func TestApplyGrafanaDesiredStateSkipsAPICanonicalEmptyAnnotations(t *testing.T)
 }
 
 func TestApplyGrafanaDesiredStateUpdatesChangedAnnotation(t *testing.T) {
-	desired, err := grafana(grafanaComparisonPlatformMonitoring(map[string]string{"example.com/key": "desired"}))
+	desired, err := grafana(grafanaComparisonPlatformMonitoring(map[string]string{"example.com/key": "desired"}), false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.Spec.Deployment.Spec.Template.Annotations["example.com/key"] = "stale"
@@ -31,7 +31,7 @@ func TestApplyGrafanaDesiredStateUpdatesChangedAnnotation(t *testing.T) {
 }
 
 func TestApplyGrafanaDesiredStateRemovesStaleAnnotation(t *testing.T) {
-	desired, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+	desired, err := grafana(grafanaComparisonPlatformMonitoring(nil), false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.Spec.Deployment.Spec.Template.Annotations = map[string]string{"example.com/stale": "value"}
@@ -41,7 +41,7 @@ func TestApplyGrafanaDesiredStateRemovesStaleAnnotation(t *testing.T) {
 }
 
 func TestApplyGrafanaDesiredStateUpdatesChangedLabels(t *testing.T) {
-	desired, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+	desired, err := grafana(grafanaComparisonPlatformMonitoring(nil), false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.Labels = map[string]string{"example.com/stale": "value"}

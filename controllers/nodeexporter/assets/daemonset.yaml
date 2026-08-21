@@ -52,6 +52,7 @@ spec:
             - mountPath: /var/spool/monitoring
               name: node-exporter-textfile
               readOnly: true
+      # Node exporter needs the host network, PID namespace, and filesystem mounts to collect node-level metrics.
       hostNetwork: true
       hostPID: true
       serviceAccountName: monitoring-node-exporter

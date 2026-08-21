@@ -118,7 +118,7 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 	// * PodMonitor
 	// * Alertmanager
 	// * PrometheusRule
-	poReconciler := prometheusoperator.NewPrometheusOperatorReconciler(r.Client, r.Scheme)
+	poReconciler := prometheusoperator.NewPrometheusOperatorReconciler(r.Client, r.Scheme, r.DiscoveryClient)
 	err = poReconciler.Run(customResourceInstance)
 	if err != nil {
 		r.Log.Error(err, "Reconciliation of prometheus-operator failed")

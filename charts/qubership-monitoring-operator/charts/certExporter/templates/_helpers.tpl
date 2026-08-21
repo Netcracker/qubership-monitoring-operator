@@ -19,28 +19,33 @@ Image can be found from:
 Return securityContext for deployment certExporter.
 */}}
 {{- define "certExporter.deployment.securityContext" -}}
-  {{- if .Values.deployment.securityContext -}}
-    {{- toYaml .Values.deployment.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "certExporter.securityContext" (dict "root" . "configured" .Values.deployment.securityContext) -}}
 {{- end -}}
 
 {{/*
 Return securityContext for daemonset certExporter.
 */}}
 {{- define "certExporter.daemonset.securityContext" -}}
-  {{- if .Values.daemonset.securityContext -}}
-    {{- toYaml .Values.daemonset.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "certExporter.securityContext" (dict "root" . "configured" .Values.daemonset.securityContext) -}}
+{{- end -}}
+
+{{/* Return the enforced pod security context. */}}
+{{- define "certExporter.securityContext" -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := deepCopy (.configured | default dict) -}}
+{{- if .root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "certExporter.containerSecurityContext" -}}
+{{- toYaml (dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL"))) -}}
 {{- end -}}
 
 {{/*

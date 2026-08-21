@@ -34,12 +34,23 @@ Image can be found from:
 Return securityContext for vm cleanup.
 */}}
 {{- define "vm.cleanup.securityContext" -}}
-  {{- if .Values.cleanup.securityContext -}}
-    {{- toYaml .Values.cleanup.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $legacySecurityContext := .Values.cleanup.securityContext | default dict -}}
+{{- $configured := deepCopy (.Values.cleanup.hook.securityContext | default $legacySecurityContext) -}}
+{{- $required := dict "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $_ := set $required "runAsNonRoot" true -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- else -}}
+{{- $_ := unset $configured "runAsNonRoot" -}}{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for the VM cleanup hook.
+*/}}
+{{- define "vm.cleanup.containerSecurityContext" -}}
+{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite (deepCopy (.Values.cleanup.hook.containerSecurityContext | default dict)) $required) -}}
 {{- end -}}

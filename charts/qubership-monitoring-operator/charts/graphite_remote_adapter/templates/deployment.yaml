@@ -41,9 +41,6 @@ spec:
         - name: {{ .Values.name }}
           image: {{ template "graphiteRemoteAdapter.image" . }}
           imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - name: config
-              mountPath: /graphite-remote-adapter
           args:
             - '--config.file=/graphite-remote-adapter/additionalGraphiteConfig.yaml'
             - '--web.listen-address=0.0.0.0:9201'
@@ -59,15 +56,26 @@ spec:
               name: http
           resources:
             {{ include "graphiteRemoteAdapter.resources" $ }}
+          securityContext:
+            {{- include "graphiteRemoteAdapter.containerSecurityContext" . | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /graphite-remote-adapter
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
           terminationMessagePath: /dev/termination-log
       volumes:
         - name: config
           configMap:
             name: graphite-config
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       securityContext:
-        {{ include "graphiteRemoteAdapter.securityContext" . }}
+        {{- include "graphiteRemoteAdapter.securityContext" . | nindent 8 }}
       terminationGracePeriodSeconds: 30
       serviceAccountName: {{ .Values.name }}
       {{- if .Values.tolerations }}

@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,7 +35,7 @@ func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
 		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
 			Annotations: map[string]string{"example.com/user-annotation": "retained"},
 		}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -61,7 +62,7 @@ func TestAddGrafanaExtraVarsResourceVersionsWhenResourcesAreMissing(t *testing.T
 		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
 			Annotations: map[string]string{"example.com/user-annotation": "retained"},
 		}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
@@ -79,7 +80,7 @@ func TestAddGrafanaExtraVarsResourceVersionsKeepsAnnotationsNilWhenResourcesAreM
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	require.NoError(t, err)
 	require.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
@@ -94,7 +95,7 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -120,7 +121,7 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesMissingConfigMapVersion(t *
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -145,7 +146,7 @@ func TestAddGrafanaExtraVarsResourceVersionsInitializesAnnotations(t *testing.T)
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	manifest.Spec.Deployment.Spec.Template.Annotations = nil
 	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(
@@ -169,7 +170,7 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	manifest.Spec.Deployment.Spec.Template = nil
 
@@ -177,7 +178,7 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest, err = grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	assert.Nil(t, grafanaPodTemplateAnnotations(manifest))
 	manifest.Spec.Deployment.Spec.Template.Annotations = map[string]string{"custom": "value"}
@@ -194,6 +195,7 @@ func TestHandleGrafanaCreatesResourceWithoutExtraVarsResources(t *testing.T) {
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: controllerClient,
 			Scheme: testScheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -221,7 +223,7 @@ func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) 
 		ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	}
-	existing, err := grafana(platformMonitoring)
+	existing, err := grafana(platformMonitoring, false)
 	assert.NoError(t, err)
 	existing.Spec.Deployment.Spec.Template = nil
 	controllerClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
@@ -235,6 +237,7 @@ func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) 
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: controllerClient,
 			Scheme: testScheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -249,6 +252,7 @@ func TestHandleGrafanaReturnsClientError(t *testing.T) {
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build(),
 			Scheme: runtime.NewScheme(),
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -265,7 +269,7 @@ func TestAddGrafanaExtraVarsResourceVersionsReturnsSecretAPIError(t *testing.T) 
 	manifest, err := grafana(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
-	})
+	}, false)
 	assert.NoError(t, err)
 	kubeClient := kubernetesfake.NewSimpleClientset(&corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
 		Name: "grafana-extra-vars", Namespace: "monitoring",
@@ -301,7 +305,7 @@ func TestGrafanaManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test Grafana manifest", func(t *testing.T) {
-		m, err := grafana(cr)
+		m, err := grafana(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -315,12 +319,13 @@ func TestGrafanaManifests(t *testing.T) {
 		assert.Equal(t, annotationValue, m.Spec.Deployment.Spec.Template.Annotations[annotationKey])
 		assert.NotNil(t, m.GetAnnotations())
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
+		assertGrafanaHardening(t, m, false)
 	})
 	t.Run("Test Grafana manifest preserves cleanup label", func(t *testing.T) {
 		cr.Spec.Grafana.Labels["app.kubernetes.io/managed-by"] = "custom-manager"
 		cr.Spec.Grafana.Labels["app.kubernetes.io/managed-by-operator"] = "custom-manager"
 
-		m, err := grafana(cr)
+		m, err := grafana(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -338,9 +343,82 @@ func TestGrafanaManifests(t *testing.T) {
 	}
 	// Disabled for v5: in v5 labels/annotations live in Deployment.Spec.Template, not Deployment
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {
-	//	m, err := grafana(cr)
+	//	m, err := grafana(cr, false)
 	//	...
 	//})
+	t.Run("Test OpenShift Grafana security context", func(t *testing.T) {
+		m, err := grafana(cr, true)
+		require.NoError(t, err)
+		assertGrafanaHardening(t, m, true)
+	})
+	t.Run("Test configured IDs are preserved", func(t *testing.T) {
+		configuredCR := cr.DeepCopy()
+		configuredCR.Spec.Grafana.SecurityContext = &monv1.SecurityContext{
+			RunAsUser:  ptr(int64(3000)),
+			RunAsGroup: ptr(int64(3000)),
+			FSGroup:    ptr(int64(3000)),
+		}
+
+		m, err := grafana(configuredCR, false)
+		require.NoError(t, err)
+		podSpec := grafanaPodSpec(t, m)
+		require.NotNil(t, podSpec.SecurityContext)
+		assert.Equal(t, int64(3000), *podSpec.SecurityContext.RunAsUser)
+		assert.Equal(t, int64(3000), *podSpec.SecurityContext.RunAsGroup)
+		assert.Equal(t, int64(3000), *podSpec.SecurityContext.FSGroup)
+		assertGrafanaHardening(t, m, false)
+	})
+	t.Run("Test plugins init container hardening", func(t *testing.T) {
+		pluginsCR := cr.DeepCopy()
+		pluginsCR.Spec.Grafana.Operator = monv1.GrafanaOperator{
+			InitContainerImage: "grafana-plugins-init:test",
+		}
+
+		m, err := grafana(pluginsCR, false)
+		require.NoError(t, err)
+		podSpec := grafanaPodSpec(t, m)
+		require.Len(t, podSpec.InitContainers, 1)
+
+		initContainer := podSpec.InitContainers[0]
+		assert.Equal(t, "grafana-plugins-init", initContainer.Name)
+		require.NotNil(t, initContainer.SecurityContext)
+		require.NotNil(t, initContainer.SecurityContext.AllowPrivilegeEscalation)
+		assert.False(t, *initContainer.SecurityContext.AllowPrivilegeEscalation)
+		require.NotNil(t, initContainer.SecurityContext.ReadOnlyRootFilesystem)
+		assert.True(t, *initContainer.SecurityContext.ReadOnlyRootFilesystem)
+		require.NotNil(t, initContainer.SecurityContext.Capabilities)
+		assert.Equal(t, []corev1.Capability{"ALL"}, initContainer.SecurityContext.Capabilities.Drop)
+		assert.Contains(t, initContainer.VolumeMounts, utils.TmpVolumeMount())
+	})
+	t.Run("Test hardening is merged into the generated Deployment", func(t *testing.T) {
+		m, err := grafana(cr, false)
+		require.NoError(t, err)
+
+		deployment := &appsv1.Deployment{
+			Spec: appsv1.DeploymentSpec{
+				Template: corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{
+						Volumes: []corev1.Volume{{Name: "grafana-data"}},
+						Containers: []corev1.Container{{
+							Name:  "grafana",
+							Image: "grafana/grafana:latest",
+						}},
+					},
+				},
+			},
+		}
+		require.NoError(t, grafv1.Merge(deployment, m.Spec.Deployment))
+
+		require.NotNil(t, deployment.Spec.Template.Spec.SecurityContext)
+		assert.True(t, *deployment.Spec.Template.Spec.SecurityContext.RunAsNonRoot)
+		require.Len(t, deployment.Spec.Template.Spec.Containers, 1)
+		container := deployment.Spec.Template.Spec.Containers[0]
+		assert.Equal(t, "grafana/grafana:latest", container.Image)
+		assert.True(t, *container.SecurityContext.ReadOnlyRootFilesystem)
+		assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
+		assert.Contains(t, deployment.Spec.Template.Spec.Volumes, corev1.Volume{Name: "grafana-data"})
+		assert.Contains(t, deployment.Spec.Template.Spec.Volumes, utils.TmpVolume("100Mi"))
+	})
 	t.Run("Test GrafanaDatasource manifest", func(t *testing.T) {
 		m, err := grafanaDataSource(cr, nil, nil, nil)
 		if err != nil {
@@ -388,7 +466,7 @@ func TestGrafanaManifests(t *testing.T) {
 
 func TestGrafanaPodTemplateAnnotations(t *testing.T) {
 	t.Run("keeps annotations nil when none are configured", func(t *testing.T) {
-		manifest, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+		manifest, err := grafana(grafanaComparisonPlatformMonitoring(nil), false)
 		require.NoError(t, err)
 
 		assert.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
@@ -396,7 +474,7 @@ func TestGrafanaPodTemplateAnnotations(t *testing.T) {
 
 	t.Run("preserves configured annotations", func(t *testing.T) {
 		annotations := map[string]string{"example.com/key": "value"}
-		manifest, err := grafana(grafanaComparisonPlatformMonitoring(annotations))
+		manifest, err := grafana(grafanaComparisonPlatformMonitoring(annotations), false)
 		require.NoError(t, err)
 
 		assert.Equal(t, annotations, manifest.Spec.Deployment.Spec.Template.Annotations)
@@ -415,7 +493,7 @@ func TestGrafanaManifestPreservesDataStorage(t *testing.T) {
 		},
 	}
 
-	manifest, err := grafana(monitoring)
+	manifest, err := grafana(monitoring, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -682,4 +760,61 @@ func TestMigrateLegacyGrafanaResourcesSkipsFreshInstall(t *testing.T) {
 
 func ptr[T any](value T) *T {
 	return &value
+}
+
+func assertGrafanaHardening(t *testing.T, manifest *grafv1.Grafana, isOpenShift bool) {
+	t.Helper()
+
+	podSpec := grafanaPodSpec(t, manifest)
+	require.NotNil(t, podSpec.SecurityContext)
+	require.NotNil(t, podSpec.SecurityContext.RunAsNonRoot)
+	assert.True(t, *podSpec.SecurityContext.RunAsNonRoot)
+	require.NotNil(t, podSpec.SecurityContext.SeccompProfile)
+	assert.Equal(t, corev1.SeccompProfileTypeRuntimeDefault, podSpec.SecurityContext.SeccompProfile.Type)
+	if isOpenShift {
+		assert.Nil(t, podSpec.SecurityContext.RunAsUser)
+		assert.Nil(t, podSpec.SecurityContext.RunAsGroup)
+		assert.Nil(t, podSpec.SecurityContext.FSGroup)
+	} else {
+		require.NotNil(t, podSpec.SecurityContext.RunAsUser)
+		require.NotNil(t, podSpec.SecurityContext.RunAsGroup)
+		require.NotNil(t, podSpec.SecurityContext.FSGroup)
+	}
+
+	require.NotEmpty(t, podSpec.Containers)
+	container := podSpec.Containers[0]
+	require.NotNil(t, container.SecurityContext)
+	require.NotNil(t, container.SecurityContext.AllowPrivilegeEscalation)
+	assert.False(t, *container.SecurityContext.AllowPrivilegeEscalation)
+	require.NotNil(t, container.SecurityContext.ReadOnlyRootFilesystem)
+	assert.True(t, *container.SecurityContext.ReadOnlyRootFilesystem)
+	require.NotNil(t, container.SecurityContext.Capabilities)
+	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
+
+	tmpMounts := 0
+	for _, volumeMount := range container.VolumeMounts {
+		if volumeMount.Name == "tmp" && volumeMount.MountPath == "/tmp" {
+			tmpMounts++
+		}
+	}
+	assert.Equal(t, 1, tmpMounts)
+
+	tmpVolumes := 0
+	for _, volume := range podSpec.Volumes {
+		if volume.Name == "tmp" {
+			tmpVolumes++
+			require.NotNil(t, volume.EmptyDir)
+			require.NotNil(t, volume.EmptyDir.SizeLimit)
+			assert.Equal(t, "100Mi", volume.EmptyDir.SizeLimit.String())
+		}
+	}
+	assert.Equal(t, 1, tmpVolumes)
+}
+
+func grafanaPodSpec(t *testing.T, manifest *grafv1.Grafana) *grafv1.DeploymentV1PodSpec {
+	t.Helper()
+	require.NotNil(t, manifest.Spec.Deployment)
+	require.NotNil(t, manifest.Spec.Deployment.Spec.Template)
+	require.NotNil(t, manifest.Spec.Deployment.Spec.Template.Spec)
+	return manifest.Spec.Deployment.Spec.Template.Spec
 }
