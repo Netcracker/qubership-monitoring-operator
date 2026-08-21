@@ -51,6 +51,9 @@ theme:
     - navigation.sections
     - navigation.path
     - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
     - navigation.top
     - toc.follow
     - search.suggest
@@ -178,7 +181,6 @@ nav:
   # Architecture & Components - "I want to understand how the system works"
   - Architecture & Components:
     - Architecture Overview: architecture.md
-    - Basic Configuration: configuration.md
     - API Reference:
       - Platform Monitoring: api/platform-monitoring.md
       - Prometheus Adapter: api/prometheus-adapter.md
