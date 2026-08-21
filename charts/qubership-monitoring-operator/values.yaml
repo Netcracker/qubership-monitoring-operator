@@ -110,6 +110,16 @@ monitoringOperator:
   #
   leaderElect: false
 
+  # Seconds between successful PlatformMonitoring repair reconciles.
+  # Source watches (PM spec/metadata and owned children) enqueue immediately.
+  # 0 disables the periodic repair (no hot loop). Default 3600 (1h) covers
+  # inputs that are not watched (cross-namespace Jaeger/ClickHouse, Nodes).
+  # Type: integer
+  # Mandatory: no
+  # Default: 3600
+  #
+  reconciliationInterval: 3600
+
   clusterRole:
     install: true
     name: ""

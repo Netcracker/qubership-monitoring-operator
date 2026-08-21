@@ -85,7 +85,7 @@ reconciliation begins.
 
 Each component has a sub-reconciler under `controllers/`. Reconciliation continues after component failures. Every
 component except `kubernetes-monitors` records failures in `Status.Conditions`; `kubernetes-monitors` failures are
-logged only. A remaining failed condition causes an immediate requeue; otherwise, the default interval is 60 seconds.
+logged only. A remaining failed condition causes an immediate requeue; otherwise the default repair interval is 3600 seconds. Owned-child and PlatformMonitoring watches enqueue sooner. Status-only child updates are ignored.
 
 The chart sets `WATCH_NAMESPACE` to the release namespace. If the binary receives an unset or empty
 `WATCH_NAMESPACE`, it leaves `cache.Options.DefaultNamespaces` unset and watches all namespaces. Leader election ID is
@@ -102,10 +102,12 @@ Modifying the CR surface: after editing `platformmonitoring_types.go`, run `make
 
 ### Event filtering
 
-`SetupWithManager` installs a predicate (`ignoreDeletionPredicate`) that ignores status-only updates (skips if
-`metadata.Generation` did not change) and unknown-final-state delete tombstones, while accepting confirmed delete
-events. This matters because the reconciler itself patches status on every run; without the filter it would
-self-trigger indefinitely.
+`SetupWithManager` watches `PlatformMonitoring` with `platformMonitoringPredicate` (generation, labels, or
+annotations; status-only PM updates are ignored). Owned-child watches are on by default (`WATCH_BASED_RECONCILE=false|0`
+disables them). With watches enabled, the controller `Owns` same-namespace `Deployment`, plus `Grafana` and
+`GrafanaDashboard` when those GVKs are served at start (`ownedChildPredicate`: generation or labels; status/RV ignored).
+CRDs installed later require a manager restart. Privileged installs also map Jaeger Services in the cache namespace;
+other-namespace Jaeger, ClusterRole, Nodes, and OpenShift Route wait on the 3600s repair requeue.
 
 ### External schemes
 
