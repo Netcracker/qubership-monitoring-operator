@@ -46,7 +46,6 @@ func pushgatewayDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, er
 				for p := range c.Ports {
 					port := &c.Ports[p]
 					if port.Name == utils.PushgatewayPortName {
-						port.HostPort = portValue
 						port.ContainerPort = portValue
 					}
 				}
