@@ -715,9 +715,11 @@ verify_text_excludes "${grafana_cleanup_command}" \
 
 helm template monitoring "${chart_dir}" \
     --set grafana.install=false \
-    --set grafana.operator.install=false \
     --set commonDashboards.install=true \
     >"${rendered_manifest}"
+verify_rendered_resource_count "${rendered_manifest}" \
+    '.kind == "PlatformMonitoring" and (.spec | has("grafana"))' \
+    0 "PlatformMonitoring Grafana specs in common-dashboard-only mode"
 "${yq_binary}" eval-all \
     'select(.kind == "Job" and .metadata.name == "monitoring-grafana-cleanup-hook") |
     .spec.template.spec.containers[] | select(.name == "kubectl") | .command[-1]' \
