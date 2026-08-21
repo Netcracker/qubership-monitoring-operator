@@ -159,6 +159,10 @@ With `ServerSideApply=true`, Argo CD applies CRDs in the same manner as the `kub
 above. When the operator chart is deployed as a separate Application, set `source.helm.skipCrds: true` so that the CRD
 and operator Applications do not compete for CRD ownership.
 
+The Grafana Operator v4-to-v5 upgrade does not preserve every existing configuration behavior. Before upgrading,
+review the [Grafana v5 upgrade limitations](docs/user-guides/grafana-v5-upgrade.md) and confirm that the existing
+`PlatformMonitoring` configuration uses the supported profile.
+
 When upgrading from a release that contains Grafana Operator v4 CRDs, including `v0.88.0`, stage the first v5 upgrade
 without pruning:
 

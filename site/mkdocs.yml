@@ -1,4 +1,6 @@
 site_name: Qubership Monitoring Operator
+# Zensical accepts the compact indentation used by the existing navigation tree.
+# yamllint disable rule:indentation
 site_description: Comprehensive monitoring solution for Kubernetes
 site_url: https://netcracker.github.io/qubership-monitoring-operator
 
@@ -139,6 +141,7 @@ nav:
       - Components Overview: installation/basic-components.md
       - Storage Configuration: installation/storage.md
       - Deployment: installation/deploy.md
+      - Grafana v5 Upgrade: user-guides/grafana-v5-upgrade.md
       - Post-Deploy Checks: installation/post-deploy-checks.md
       - Component Configuration:
           - Overview: installation/components/README.md
