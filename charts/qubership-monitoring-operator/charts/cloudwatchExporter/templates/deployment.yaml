@@ -41,6 +41,8 @@ spec:
         - name: {{ .Values.name }}
           image: {{ template "cloudwatch-exporter.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            {{- include "cloudwatch-exporter.containerSecurityContext" . | nindent 12 }}
           {{- if .Values.command }}
           command: {{ toYaml .Values.command | nindent 12 -}}
           {{- end }}
@@ -71,11 +73,14 @@ spec:
           volumeMounts:
             - name: vol-cloudwatch-exporter
               mountPath: /config
+              readOnly: true
             {{- if include "cloudwatch-exporter.awsCredentialsEnabled" . }}
             - name: aws-credentials
               mountPath: /root
               readOnly: true
             {{- end }}
+            - name: tmp
+              mountPath: /tmp
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{ toYaml . | nindent 8 }}
@@ -89,7 +94,7 @@ spec:
         {{ toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{ include "cloudwatch-exporter.securityContext" . }}
+        {{- include "cloudwatch-exporter.securityContext" . | nindent 8 }}
       {{- if .Values.serviceAccount.install }}
       serviceAccount: {{ .Values.serviceAccount.name }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
@@ -99,6 +104,9 @@ spec:
           defaultMode: 420
           name: {{ .Values.name }}
         name: vol-cloudwatch-exporter
+      - name: tmp
+        emptyDir:
+          sizeLimit: 100Mi
       {{- if include "cloudwatch-exporter.awsCredentialsEnabled" . }}
       - name: aws-credentials
         secret:

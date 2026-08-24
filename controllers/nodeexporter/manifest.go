@@ -97,7 +97,7 @@ func nodeExporterSecurityContextConstraints(cr *monv1.PlatformMonitoring) (*secv
 	return &scc, nil
 }
 
-func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring) (*appsv1.DaemonSet, error) {
+func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring, isOpenShift bool) (*appsv1.DaemonSet, error) {
 	daemonSet := appsv1.DaemonSet{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.NodeExporterDaemonSetAsset), 100).Decode(&daemonSet); err != nil {
 		return nil, err
@@ -200,8 +200,28 @@ func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring) (*appsv1.DaemonSet, err
 		}
 	}
 	daemonSet.Spec.Template.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.NodeExporterComponentName
+	var configuredSecurityContext *monv1.SecurityContext
+	if cr.Spec.NodeExporter != nil {
+		configuredSecurityContext = cr.Spec.NodeExporter.SecurityContext
+	}
+	applyNodeExporterHardening(&daemonSet, isOpenShift, configuredSecurityContext)
 
 	return &daemonSet, nil
+}
+
+func applyNodeExporterHardening(
+	daemonSet *appsv1.DaemonSet,
+	isOpenShift bool,
+	configuredPodSecurityContext *monv1.SecurityContext,
+) {
+	daemonSet.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	daemonSet.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(daemonSet.Spec.Template.Spec.Volumes, "100Mi")
+
+	for i := range daemonSet.Spec.Template.Spec.Containers {
+		container := &daemonSet.Spec.Template.Spec.Containers[i]
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
+	}
 }
 
 func nodeExporterService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

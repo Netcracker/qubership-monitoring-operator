@@ -12,13 +12,18 @@ priority: 0
 users: []
 groups: []
 readOnlyRootFilesystem: true
-requiredDropCapabilities: []
+requiredDropCapabilities:
+  - ALL
 defaultAddCapabilities: []
 allowedCapabilities: []
+allowPrivilegeEscalation: false
+defaultAllowPrivilegeEscalation: false
 runAsUser:
   type: RunAsAny
 seLinuxContext:
   type: RunAsAny
+seccompProfiles:
+  - runtime/default
 allowPrivilegedContainer: false
 allowHostDirVolumePlugin: true
 allowHostNetwork: false
@@ -26,7 +31,12 @@ allowHostPID: false
 allowHostPorts: false
 allowHostIPC: false
 volumes:
-- '*'
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - hostPath
+  - projected
+  - secret
       {{- end }}
     {{- end }}
   {{- end }}

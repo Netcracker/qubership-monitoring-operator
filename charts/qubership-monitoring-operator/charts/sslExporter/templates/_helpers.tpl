@@ -1,5 +1,25 @@
 {{/* vim: set filetype=mustache: */}}
 
+{{/* Return the enforced pod security context. */}}
+{{- define "ssl-exporter.podSecurityContext" -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := deepCopy (.Values.podSecurityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "ssl-exporter.containerSecurityContext" -}}
+{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite (deepCopy (.Values.securityContext | default dict)) $required) -}}
+{{- end -}}
+
 {{/*
 Create the name of the service account to use
 */}}

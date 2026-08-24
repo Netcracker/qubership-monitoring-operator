@@ -299,7 +299,8 @@ func runningEtcdPod(pods []corev1.Pod) (corev1.Pod, error) {
 func certPathsFromPod(pod corev1.Pod, peerKey string, caCrt string, peerCrt string) (string, string, string) {
 	for _, container := range pod.Spec.Containers {
 		if container.Name == "etcd" {
-			return certPathsFromArgs(container.Command, peerKey, caCrt, peerCrt)
+			peerKey, caCrt, peerCrt = certPathsFromArgs(container.Command, peerKey, caCrt, peerCrt)
+			return certPathsFromArgs(container.Args, peerKey, caCrt, peerCrt)
 		}
 	}
 	return peerKey, caCrt, peerCrt

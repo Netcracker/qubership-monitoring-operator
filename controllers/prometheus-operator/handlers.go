@@ -150,7 +150,7 @@ func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.Platfo
 }
 
 func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusOperatorDeployment(cr)
+	m, err := prometheusOperatorDeployment(cr, r.HasRouteApi())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -178,6 +178,7 @@ func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonito
 	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
@@ -350,7 +351,7 @@ func (r *PrometheusOperatorReconciler) deleteClusterRoleBinding(cr *monv1.Platfo
 }
 
 func (r *PrometheusOperatorReconciler) deletePrometheusOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusOperatorDeployment(cr)
+	m, err := prometheusOperatorDeployment(cr, r.HasRouteApi())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
