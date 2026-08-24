@@ -9,8 +9,10 @@ import (
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	routev1 "github.com/openshift/api/route/v1"
+	secv1 "github.com/openshift/api/security/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	fakediscovery "k8s.io/client-go/discovery/fake"
@@ -246,6 +248,108 @@ func TestOwnedChildPredicateDeploymentDelete(t *testing.T) {
 	}
 	if p.Delete(event.DeleteEvent{Object: d, DeleteStateUnknown: true}) {
 		t.Fatal("unknown delete must not enqueue")
+	}
+}
+
+func TestClusterScopedWatchRequiresPrivilegedRights(t *testing.T) {
+	prev := utils.PrivilegedRights
+	t.Cleanup(func() { utils.PrivilegedRights = prev })
+	utils.PrivilegedRights = false
+	if clusterScopedWatchAllowed() {
+		t.Fatal("namespaced installs must not start ClusterRole/SCC informers")
+	}
+	utils.PrivilegedRights = true
+	if !clusterScopedWatchAllowed() {
+		t.Fatal("privileged installs may register cluster-scoped watches")
+	}
+}
+
+func TestMapClusterScopedToPlatformMonitoring(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := monv1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	pm := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "pm", Namespace: "monitoring"}}
+	other := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "other", Namespace: "other"}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(pm, other).Build()
+	r := &PlatformMonitoringReconciler{Client: c, Log: log.Log}
+
+	role := &rbacv1.ClusterRole{ObjectMeta: metav1.ObjectMeta{
+		Name:   "monitoring-node-exporter",
+		Labels: map[string]string{utils.InstallationNamespaceLabelKey: "monitoring"},
+	}}
+	reqs := r.mapClusterScopedToPlatformMonitoring(t.Context(), role)
+	if len(reqs) != 1 || reqs[0].Name != "pm" || reqs[0].Namespace != "monitoring" {
+		t.Fatalf("got %#v, want the PlatformMonitoring in the installation namespace", reqs)
+	}
+
+	unlabeled := &rbacv1.ClusterRole{ObjectMeta: metav1.ObjectMeta{Name: "system:monitoring"}}
+	if reqs := r.mapClusterScopedToPlatformMonitoring(t.Context(), unlabeled); len(reqs) != 0 {
+		t.Fatalf("unlabeled ClusterRole must not enqueue, got %#v", reqs)
+	}
+}
+
+func TestMapSecurityContextConstraintsToPlatformMonitorings(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := monv1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	pm := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "pm", Namespace: "monitoring"}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(pm).Build()
+	r := &PlatformMonitoringReconciler{Client: c, Log: log.Log}
+
+	t.Run("installation-namespace label", func(t *testing.T) {
+		scc := &secv1.SecurityContextConstraints{ObjectMeta: metav1.ObjectMeta{
+			Name:   "monitoring-node-exporter",
+			Labels: map[string]string{utils.InstallationNamespaceLabelKey: "monitoring"},
+		}}
+		reqs := r.mapSecurityContextConstraintsToPlatformMonitorings(t.Context(), scc)
+		if len(reqs) != 1 || reqs[0].Name != "pm" {
+			t.Fatalf("got %#v", reqs)
+		}
+	})
+	t.Run("node-exporter owner annotations", func(t *testing.T) {
+		scc := &secv1.SecurityContextConstraints{ObjectMeta: metav1.ObjectMeta{
+			Name: "monitoring-node-exporter",
+			Annotations: map[string]string{
+				nodeExporterSCCOwnerNameAnnotation:      "pm",
+				nodeExporterSCCOwnerNamespaceAnnotation: "monitoring",
+			},
+		}}
+		reqs := r.mapSecurityContextConstraintsToPlatformMonitorings(t.Context(), scc)
+		if len(reqs) != 1 || reqs[0].Namespace != "monitoring" || reqs[0].Name != "pm" {
+			t.Fatalf("got %#v", reqs)
+		}
+	})
+	t.Run("fixed VM operator name", func(t *testing.T) {
+		scc := &secv1.SecurityContextConstraints{ObjectMeta: metav1.ObjectMeta{Name: utils.VmOperatorComponentName}}
+		reqs := r.mapSecurityContextConstraintsToPlatformMonitorings(t.Context(), scc)
+		if len(reqs) != 1 || reqs[0].Name != "pm" {
+			t.Fatalf("got %#v", reqs)
+		}
+	})
+	t.Run("unrelated SCC", func(t *testing.T) {
+		scc := &secv1.SecurityContextConstraints{ObjectMeta: metav1.ObjectMeta{Name: "privileged"}}
+		if reqs := r.mapSecurityContextConstraintsToPlatformMonitorings(t.Context(), scc); len(reqs) != 0 {
+			t.Fatalf("unrelated SCC must not enqueue, got %#v", reqs)
+		}
+	})
+}
+
+func TestOwnIfServedSkipsMissingGVK(t *testing.T) {
+	dc := &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}}
+	dc.Resources = []*metav1.APIResourceList{
+		{
+			GroupVersion: grafv1.SchemeGroupVersion.String(),
+			APIResources: []metav1.APIResource{{Kind: "Grafana"}},
+		},
+	}
+	r := &PlatformMonitoringReconciler{DiscoveryClient: dc, Log: log.Log}
+	if r.hasKind(grafv1.SchemeGroupVersion.String(), "GrafanaDatasource") {
+		t.Fatal("GrafanaDatasource must be reported absent")
+	}
+	if !r.hasKind(grafv1.SchemeGroupVersion.String(), "Grafana") {
+		t.Fatal("Grafana must be reported served")
 	}
 }
 
