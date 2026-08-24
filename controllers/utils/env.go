@@ -4,7 +4,7 @@ import "os"
 
 var (
 	_defaultEnvValues = map[string]string{
-		"RECONCILIATION_INTERVAL": "60",
+		"RECONCILIATION_INTERVAL": "3600",
 	}
 )
 

@@ -18,8 +18,6 @@ package controllers
 
 import (
 	"context"
-	"strconv"
-	"time"
 
 	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/alertmanager"
@@ -51,7 +49,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -291,11 +288,6 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		r.removeStatus(customResourceInstance, "ReconcilePushgatewayStatus")
 	}
 
-	rInterval, err := strconv.ParseInt(utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL"), 10, 64)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
 	status := customResourceInstance.Status.Conditions
 	failedStatus := false
 
@@ -318,24 +310,37 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 	}
 
 	r.prepareStatusForUpdate(customResourceInstance, "Successful", "True", "ReconcileCycleStatus", "Monitoring service reconcile cycle succeeded")
-	r.Log.Info("Reconciliation finished successful, next reconciliation after " + utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL") + " seconds")
+
+	result, resultErr := successfulReconcileResult()
+	if resultErr != nil {
+		r.Log.Error(resultErr, "Invalid RECONCILIATION_INTERVAL")
+		return result, resultErr
+	}
+	if result.RequeueAfter == 0 {
+		r.Log.Info("Reconciliation finished successful; waiting for watch events (no periodic requeue)")
+	} else {
+		r.Log.Info("Reconciliation finished successful, next reconciliation after " + utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL") + " seconds")
+	}
 
 	if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
 		r.Log.Error(err, "Update status failed")
 	}
 
-	return reconcile.Result{RequeueAfter: time.Duration(rInterval) * time.Second}, nil
+	return result, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(ignoreDeletionPredicate())).
+	b := ctrl.NewControllerManagedBy(mgr).
+		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(platformMonitoringPredicate())).
 		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
 			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap))).
 		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
-			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret))).
-		Complete(r)
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret)))
+	if watchBasedReconcileEnabled() {
+		b = r.addWatchBasedSources(b)
+	}
+	return b.Complete(r)
 }
 
 func isGrafanaExtraVarsConfigMap(object client.Object) bool {
@@ -368,19 +373,6 @@ func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
 		}
 	}
 	return requests
-}
-
-func ignoreDeletionPredicate() predicate.Predicate {
-	return predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			// Ignore updates to CR status in which case metadata.Generation does not change
-			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			// Evaluates to false if the object has been confirmed deleted.
-			return !e.DeleteStateUnknown
-		},
-	}
 }
 
 // getCondition retrieves condition of custom resource instance by given reason.

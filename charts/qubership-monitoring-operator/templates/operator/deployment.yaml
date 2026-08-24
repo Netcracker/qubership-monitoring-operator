@@ -64,6 +64,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: RECONCILIATION_INTERVAL
+              value: {{ .Values.monitoringOperator.reconciliationInterval | default 3600 | quote }}
           ports:
           - containerPort: 8080
             name: http
