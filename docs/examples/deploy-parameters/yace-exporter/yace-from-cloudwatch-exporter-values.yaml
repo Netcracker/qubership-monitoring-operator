@@ -1,0 +1,173 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example.
+#
+# Deploy-parameter equivalent of an existing cloudwatchExporter block. The credentials come from the
+# same source; only the exporter and the configuration schema change. The jobs below use
+# `customNamespace`, which filters by dimension names and therefore needs no `tag:GetResources`
+# permission, so it is the closest match to a cloudwatch-exporter configuration.
+
+yaceExporter:
+  install: true
+  resources:
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+  # Prefer IRSA through serviceAccount.annotations. Use static keys only when IRSA is unavailable.
+  aws:
+    aws_access_key_id: <access_key_id>
+    aws_secret_access_key: <secret_access_key>
+  config: |-
+    apiVersion: v1alpha1
+    sts-region: us-east-1
+    customNamespace:
+      - name: rds
+        namespace: AWS/RDS
+        regions: [us-east-1]
+        dimensionNameRequirements: [DBInstanceIdentifier]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: DatabaseConnections
+            statistics: [Maximum, Sum]
+          - name: CPUUtilization
+            statistics: [Average]
+          - name: FreeableMemory
+            statistics: [Average]
+          - name: ReadLatency
+            statistics: [Maximum]
+          - name: WriteLatency
+            statistics: [Maximum]
+          - name: DiskQueueDepth
+            statistics: [Average]
+          - name: SwapUsage
+            statistics: [Average]
+      - name: alb-tg-az
+        namespace: AWS/ApplicationELB
+        regions: [us-east-1]
+        dimensionNameRequirements: [LoadBalancer, TargetGroup, AvailabilityZone]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: UnHealthyHostCount
+            statistics: [Maximum]
+          - name: RequestCount
+            statistics: [Sum]
+          - name: TargetResponseTime
+            statistics: [Average]
+          - name: HTTPCode_Target_2XX_Count
+            statistics: [Sum]
+          - name: HTTPCode_Target_3XX_Count
+            statistics: [Sum]
+          - name: HTTPCode_Target_4XX_Count
+            statistics: [Sum]
+          - name: HTTPCode_Target_5XX_Count
+            statistics: [Sum]
+      - name: alb-lb
+        namespace: AWS/ApplicationELB
+        regions: [us-east-1]
+        dimensionNameRequirements: [LoadBalancer]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: HTTPCode_ELB_4XX_Count
+            statistics: [Sum]
+          - name: HTTPCode_ELB_5XX_Count
+            statistics: [Sum]
+          - name: ProcessedBytes
+            statistics: [Sum]
+      - name: efs
+        namespace: AWS/EFS
+        regions: [us-east-1]
+        dimensionNameRequirements: [FileSystemId]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: TotalIOBytes
+            statistics: [Sum]
+          - name: DataWriteIOBytes
+            statistics: [Sum]
+          - name: DataReadIOBytes
+            statistics: [Sum]
+          - name: BurstCreditBalance
+            statistics: [Average]
+          - name: PermittedThroughput
+            statistics: [Average]
+          - name: PercentIOLimit
+            statistics: [Average]
+          - name: ClientConnections
+            statistics: [Sum]
+      - name: efs-storage
+        namespace: AWS/EFS
+        regions: [us-east-1]
+        dimensionNameRequirements: [FileSystemId, StorageClass]
+        period: 86400
+        length: 172800
+        delay: 60
+        addCloudwatchTimestamp: false
+        metrics:
+          - name: StorageBytes
+            statistics: [Average]
+      - name: s3-storage
+        namespace: AWS/S3
+        regions: [us-east-1]
+        dimensionNameRequirements: [BucketName, StorageType]
+        period: 86400
+        length: 172800
+        delay: 60
+        addCloudwatchTimestamp: false
+        metrics:
+          - name: BucketSizeBytes
+            statistics: [Average]
+          - name: NumberOfObjects
+            statistics: [Average]
+      - name: s3-requests
+        namespace: AWS/S3
+        regions: [us-east-1]
+        dimensionNameRequirements: [BucketName]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: 4xxErrors
+            statistics: [Sum]
+          - name: 5xxErrors
+            statistics: [Sum]
+          - name: TotalRequestLatency
+            statistics: [Average]
+      - name: nlb-tg-az
+        namespace: AWS/NetworkELB
+        regions: [us-east-1]
+        dimensionNameRequirements: [AvailabilityZone, LoadBalancer, TargetGroup]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: UnHealthyHostCount
+            statistics: [Maximum]
+      - name: nlb-lb
+        namespace: AWS/NetworkELB
+        regions: [us-east-1]
+        dimensionNameRequirements: [LoadBalancer]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: TCP_Target_Reset_Count
+            statistics: [Sum]
+      - name: nlb-az
+        namespace: AWS/NetworkELB
+        regions: [us-east-1]
+        dimensionNameRequirements: [AvailabilityZone, LoadBalancer]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: TCP_ELB_Reset_Count
+            statistics: [Sum]

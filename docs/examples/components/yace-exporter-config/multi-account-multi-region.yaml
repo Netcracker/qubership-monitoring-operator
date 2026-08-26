@@ -1,0 +1,63 @@
+# Multiple AWS accounts and multiple regions for yace-exporter.
+# Paste into `.Values.yaceExporter.config`.
+#
+# One Deployment / one home identity (IRSA or keys). Extra accounts are
+# roles[] (sts:AssumeRole). Extra regions are regions[] on the job.
+# YACE scrapes every role x every region listed on that job.
+#
+# sts-region is a single STS endpoint (not a list).
+
+apiVersion: v1alpha1
+sts-region: us-east-1
+
+# Example A: same jobs in two accounts and two regions (2 x 2 scrapes).
+customNamespace:
+  - name: rds-all
+    namespace: AWS/RDS
+    regions:
+      - us-east-1
+      - eu-central-1
+    roles:
+      - roleArn: "arn:aws:iam::111111111111:role/yace-cloudwatch"
+      - roleArn: "arn:aws:iam::222222222222:role/yace-cloudwatch"
+        # externalId: "shared-external-identifier"
+    dimensionNameRequirements: [DBInstanceIdentifier]
+    period: 120
+    length: 180
+    delay: 60
+    metrics:
+      - name: CPUUtilization
+        statistics: [Average]
+      - name: DatabaseConnections
+        statistics: [Maximum, Sum]
+
+# Example B: account A only in us-east-1, account B only in eu-central-1.
+# Use separate jobs so you do not scrape empty regions.
+# customNamespace:
+#   - name: rds-account-a
+#     namespace: AWS/RDS
+#     regions: [us-east-1]
+#     roles:
+#       - roleArn: "arn:aws:iam::111111111111:role/yace-cloudwatch"
+#     dimensionNameRequirements: [DBInstanceIdentifier]
+#     period: 120
+#     length: 180
+#     delay: 60
+#     metrics:
+#       - name: CPUUtilization
+#         statistics: [Average]
+#   - name: rds-account-b
+#     namespace: AWS/RDS
+#     regions: [eu-central-1]
+#     roles:
+#       - roleArn: "arn:aws:iam::222222222222:role/yace-cloudwatch"
+#     dimensionNameRequirements: [DBInstanceIdentifier]
+#     period: 120
+#     length: 180
+#     delay: 60
+#     metrics:
+#       - name: CPUUtilization
+#         statistics: [Average]
+
+# discovery.jobs[] and static[] use the same roles / regions fields.
+# Omit roles to scrape only the home account (the pod IRSA role or access keys).

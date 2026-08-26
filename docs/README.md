@@ -21,7 +21,7 @@ Production-ready monitoring stack for Kubernetes in a single Custom Resource.
 | Grafana & Grafana Operator | Visualization, dashboards, data-sources |
 | AlertManager / VMAlert | Alert routing & notifications |
 | Exporters | node-exporter, kube-state-metrics, blackbox-exporter, cert-exporter, json-exporter, network-latency-exporter, version-exporter, etc. |
-| Cloud Exporters | cloudwatch-exporter, promitor-agent, stackdriver-exporter |
+| Cloud Exporters | cloudwatch-exporter, yace-exporter, promitor-agent, stackdriver-exporter |
 | Prometheus Adapter | Custom & external metrics for HPA/KEDA |
 | Optional Tools | promxy, graphite-remote-adapter, Pushgateway |
 

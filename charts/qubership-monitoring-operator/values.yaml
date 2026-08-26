@@ -1825,6 +1825,12 @@ cloudwatchExporter:
   # Disable by default
   install: false
 
+# Exporter to request metrics from AWS CloudWatch using the GetMetricData API, with tag-based
+# auto-discovery, cross-account roles and static jobs (Yet Another CloudWatch Exporter)
+yaceExporter:
+  # Disable by default
+  install: false
+
 # Exporter to request metrics from Azure Monitor about different Azure Managed Services
 promitorAgentScraper:
   # Disable by default

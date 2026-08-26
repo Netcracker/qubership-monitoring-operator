@@ -65,6 +65,7 @@ By default, the following components are installed:
 
 #### Cloud Exporters
 * **`cloudwatch-exporter`** - AWS CloudWatch metrics
+* **`yace-exporter`** - AWS CloudWatch metrics through the `GetMetricData` API
 * **`promitor-agent-scraper`** - Azure Monitor metrics
 * **`stackdriver-exporter`** - Google Cloud metrics
 

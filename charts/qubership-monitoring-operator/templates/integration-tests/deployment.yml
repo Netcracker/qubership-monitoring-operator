@@ -105,6 +105,8 @@ spec:
               value: {{ if .Values.certExporter }}{{ default "false" .Values.certExporter.install | quote }}{{ else }}"false"{{ end }}
             - name: CLOUDWATCH-EXPORTER
               value: {{ if .Values.cloudwatchExporter }}{{ default "false" .Values.cloudwatchExporter.install | quote }}{{ else }}"false"{{ end }}
+            - name: YACE-EXPORTER
+              value: {{ if .Values.yaceExporter }}{{ default "false" .Values.yaceExporter.install | quote }}{{ else }}"false"{{ end }}
             - name: GRAPHITE-REMOTE-ADAPTER
               value: {{ if .Values.graphite_remote_adapter }}{{ default "false" .Values.graphite_remote_adapter.install | quote }}{{ else }}"false"{{ end }}
             - name: NETWORK-LATENCY-EXPORTER
