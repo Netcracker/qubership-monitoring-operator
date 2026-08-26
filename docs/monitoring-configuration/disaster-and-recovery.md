@@ -1,3 +1,7 @@
+---
+icon: lucide/archive-restore
+---
+
 This document describes how to configure Monitoring work in Disaster and Recovery mode (DR).
 
 # Metrics

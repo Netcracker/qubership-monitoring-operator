@@ -1,3 +1,7 @@
+---
+icon: lucide/rocket
+---
+
 # Deployment Guide
 
 This guide covers the deployment process for the Qubership Monitoring Operator using Helm.
@@ -494,6 +498,6 @@ kubectl get ingress -n monitoring
 After successful deployment:
 
 1. **[Post-Deploy Checks](post-deploy-checks.md)** - Verify installation
-2. **[Configuration](../configuration.md)** - Customize your setup
+2. **[Configuration](../configuration/README.md)** - Customize your setup
 3. **[Storage](storage.md)** - Configure persistent storage
 4. **[Component Configuration](components/)** - Fine-tune individual components

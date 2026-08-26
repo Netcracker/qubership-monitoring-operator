@@ -1,3 +1,7 @@
+---
+icon: lucide/network
+---
+
 # Architecture
 
 This document describes the detailed architecture of the Qubership Monitoring Operator, a Kubernetes operator that manages the deployment and configuration of a comprehensive monitoring stack. It covers the core components, their relationships, control flows, and integration points.

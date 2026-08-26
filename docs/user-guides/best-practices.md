@@ -1,3 +1,7 @@
+---
+icon: lucide/thumbs-up
+---
+
 This document provides information about best practices for working
 with components and resources that can be used in the monitoring-operator.
 

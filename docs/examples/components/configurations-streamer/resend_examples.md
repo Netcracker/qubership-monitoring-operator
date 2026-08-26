@@ -1,3 +1,7 @@
+---
+icon: lucide/repeat
+---
+
 This section provides details and examples of `configurations-streamer` resend APIs.
 
 ## HTTP Basic Authentication

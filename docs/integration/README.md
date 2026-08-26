@@ -1,3 +1,7 @@
+---
+icon: lucide/plug
+---
+
 This document describes the integration capabilities with various third party monitoring systems.
 
 # Overview

@@ -1,3 +1,7 @@
+---
+icon: lucide/download
+---
+
 # Installation
 
 This page provides comprehensive instructions for installing the Qubership Monitoring Operator into Kubernetes or OpenShift environments. The documentation covers prerequisites, supported versions, installation procedures, and post-installation verification.
@@ -166,7 +170,7 @@ After successful installation, you can:
 
 - Configure component-specific settings, see [Components](components/)
 - Set up persistent storage, see [Storage Configuration](storage.md)
-- Configure monitoring parameters, see [Configuration](../configuration.md)
+- Configure monitoring parameters, see [Configuration](../configuration/README.md)
 - Configure authentication and security, see [Authentication](../monitoring-configuration/authentication.md)
 - Set up alerting rules, see [Troubleshooting](../troubleshooting.md)
 - Review maintenance procedures, see [Maintenance](../maintenance.md)

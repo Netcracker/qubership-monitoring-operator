@@ -1,3 +1,7 @@
+---
+icon: lucide/circle-check-big
+---
+
 # Post-Deploy Checks
 
 There are many ways to check whether Monitoring is working correctly and collecting metrics after deployment. This guide covers both common verification steps and specific validation techniques.
@@ -382,7 +386,7 @@ chmod +x monitoring-health-check.sh
 
 After successful verification:
 
-1. **[Configuration](../configuration.md)** - Customize monitoring setup
+1. **[Configuration](../configuration/README.md)** - Customize monitoring setup
 2. **[Component Configuration](components/)** - Fine-tune individual components  
 3. **[Troubleshooting](../troubleshooting.md)** - Handle common issues
 4. **[Maintenance](../maintenance.md)** - Ongoing operations 

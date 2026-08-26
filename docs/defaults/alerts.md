@@ -1,3 +1,7 @@
+---
+icon: lucide/siren
+---
+
 # Alerts OOB
 
 * [Alerts OOB](#alerts-oob)

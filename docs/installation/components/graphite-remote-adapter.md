@@ -1,3 +1,7 @@
+---
+icon: lucide/share-2
+---
+
 ### graphite-remote-adapter
 
 <!-- markdownlint-disable line-length -->

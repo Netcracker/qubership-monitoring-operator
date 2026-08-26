@@ -1,3 +1,7 @@
+---
+icon: lucide/activity
+---
+
 # pprof
 
 pprof reads a collection of profiling samples to visualize and help analyze the data.
