@@ -1,0 +1,155 @@
+# Non-empty YACE v1alpha1 configuration (same AWS account).
+# Paste this YAML as the value of `.Values.yaceExporter.config`.
+#
+# Before use:
+#   1. Replace `us-east-1` with your AWS region (also used as sts-region).
+#   2. Keep `roles` omitted for same-account / IRSA (recommended).
+#   3. Discovery only finds tagged resources. Remove `searchTags` to scrape
+#      every tagged resource of that service, or set the tag key/value you use.
+#   4. For cross-account collection, see the commented `roles` example below.
+#
+# IAM on the role used by the pod:
+#   cloudwatch:GetMetricData, cloudwatch:GetMetricStatistics, cloudwatch:ListMetrics
+#   tag:GetResources
+# Cross-account additionally needs sts:AssumeRole on each target role.
+
+apiVersion: v1alpha1
+sts-region: us-east-1
+discovery:
+  exportedTagsOnMetrics:
+    AWS/RDS:
+      - Name
+      - environment
+    AWS/EBS:
+      - Name
+    AWS/S3:
+      - Name
+    AWS/ApplicationELB:
+      - Name
+    AWS/EFS:
+      - Name
+  jobs:
+    - type: AWS/RDS
+      regions:
+        - us-east-1
+      # Uncomment to limit discovery to resources with this tag (value is a regex).
+      # searchTags:
+      #   - key: environment
+      #     value: production
+      period: 300
+      length: 600
+      metrics:
+        - name: CPUUtilization
+          statistics: [Average, Maximum]
+        - name: DatabaseConnections
+          statistics: [Average]
+        - name: FreeStorageSpace
+          statistics: [Average, Minimum]
+        - name: FreeableMemory
+          statistics: [Average]
+        - name: ReadLatency
+          statistics: [Average]
+        - name: WriteLatency
+          statistics: [Average]
+        - name: DiskQueueDepth
+          statistics: [Average]
+
+    - type: AWS/EBS
+      regions:
+        - us-east-1
+      period: 300
+      length: 600
+      metrics:
+        - name: VolumeReadBytes
+          statistics: [Sum]
+        - name: VolumeWriteBytes
+          statistics: [Sum]
+        - name: VolumeReadOps
+          statistics: [Sum]
+        - name: VolumeWriteOps
+          statistics: [Sum]
+        - name: VolumeQueueLength
+          statistics: [Average]
+        - name: BurstBalance
+          statistics: [Average]
+
+    - type: AWS/S3
+      regions:
+        - us-east-1
+      period: 86400
+      length: 86400
+      metrics:
+        - name: BucketSizeBytes
+          statistics: [Average]
+        - name: NumberOfObjects
+          statistics: [Average]
+
+    - type: AWS/ApplicationELB
+      regions:
+        - us-east-1
+      period: 300
+      length: 600
+      metrics:
+        - name: RequestCount
+          statistics: [Sum]
+        - name: TargetResponseTime
+          statistics: [Average]
+        - name: HTTPCode_Target_5XX_Count
+          statistics: [Sum]
+        - name: HTTPCode_ELB_5XX_Count
+          statistics: [Sum]
+        - name: HealthyHostCount
+          statistics: [Minimum]
+        - name: UnHealthyHostCount
+          statistics: [Maximum]
+        - name: ActiveConnectionCount
+          statistics: [Sum]
+
+    - type: AWS/EFS
+      regions:
+        - us-east-1
+      period: 300
+      length: 600
+      metrics:
+        - name: PercentIOLimit
+          statistics: [Average]
+        - name: ClientConnections
+          statistics: [Sum]
+        - name: DataReadIOBytes
+          statistics: [Sum]
+        - name: DataWriteIOBytes
+          statistics: [Sum]
+        - name: BurstCreditBalance
+          statistics: [Average]
+
+    # Cross-account: copy any job above and add roles for each target account.
+    # Do not list the IRSA role of the monitoring account here.
+    # - type: AWS/RDS
+    #   regions:
+    #     - us-east-1
+    #   roles:
+    #     - roleArn: "arn:aws:iam::111111111111:role/yace-exporter"
+    #     - roleArn: "arn:aws:iam::222222222222:role/yace-exporter"
+    #       externalId: "shared-external-identifier"
+    #   period: 300
+    #   length: 600
+    #   metrics:
+    #     - name: CPUUtilization
+    #       statistics: [Average]
+
+# Static job: use when you know the exact dimension values (no tag discovery).
+# Delete this block if you do not need it.
+static: []
+# static:
+#   - name: autoscaling-in-service
+#     namespace: AWS/AutoScaling
+#     regions:
+#       - us-east-1
+#     dimensions:
+#       - name: AutoScalingGroupName
+#         value: my-asg
+#     metrics:
+#       - name: GroupInServiceInstances
+#         statistics: [Minimum]
+#         period: 60
+#         length: 300

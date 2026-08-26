@@ -158,6 +158,7 @@ nav:
               - Promitor Agent Scraper: installation/components/exporters/promitor-agent-scraper.md
               - Stackdriver Exporter: installation/components/exporters/stackdriver-exporter.md
               - Version Exporter: installation/components/exporters/version-exporter.md
+              - Yace Exporter: installation/components/exporters/yace-exporter.md
           - VictoriaMetrics Stack:
               - Overview: installation/components/victoriametrics-stack/victoriametrics.md
               - VMAgent: installation/components/victoriametrics-stack/vmagent.md
@@ -277,6 +278,7 @@ nav:
       - Overview: examples/README.md
       - Component Configurations:
         - CloudWatch Exporter: examples/components/cloudwatch-exporter-config/README.md
+        - Yace Exporter: examples/components/yace-exporter-config/README.md
       - Custom Resources:
         - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
         - Grafana Dashboards: examples/custom-resources/grafana-dashboard/README.md

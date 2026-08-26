@@ -894,6 +894,43 @@ Return resources for cloudwatchExporter by HWE profile.
 {{- end -}}
 
 {{/*
+Return resources for yaceExporter by HWE profile.
+*/}}
+{{- define "yaceExporter.resources" -}}
+  {{- if .Values.resources -}}
+      {{- toYaml .Values.resources | nindent 12 }}
+  {{- else if eq .Values.global.profile "small" -}}
+            requests:
+              cpu: 50m
+              memory: 100Mi
+            limits:
+              cpu: 70m
+              memory: 150Mi
+  {{- else if eq .Values.global.profile "medium" -}}
+            requests:
+              cpu: 100m
+              memory: 150Mi
+            limits:
+              cpu: 150m
+              memory: 250Mi
+  {{- else if eq .Values.global.profile "large" -}}
+            requests:
+              cpu: 150m
+              memory: 200Mi
+            limits:
+              cpu: 250m
+              memory: 300Mi
+  {{- else -}}
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Return resources for configurations-streamer by HWE profile.
 */}}
 {{- define "configurationsStreamer.resources" -}}
