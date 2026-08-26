@@ -1,6 +1,6 @@
 ---
 
-name: Conventional Commits PR Check
+name: "PR: Conventional Commits Check"
 
 on:
   pull_request:
