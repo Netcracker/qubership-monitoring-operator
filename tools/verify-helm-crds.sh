@@ -7,6 +7,8 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 yq_binary="${script_dir}/../bin/yq-4.53.2"
 temporary_dir="$(mktemp -d)"
 rendered_manifest="${temporary_dir}/manifest.yaml"
+prometheus_empty_remote_write_manifest="${temporary_dir}/prometheus-empty-remote-write-manifest.yaml"
+prometheus_remote_write_manifest="${temporary_dir}/prometheus-remote-write-manifest.yaml"
 operator_rbac_manifest="${temporary_dir}/operator-rbac.yaml"
 operator_role_manifest="${temporary_dir}/operator-role.yaml"
 cleanup_role_manifest="${temporary_dir}/cleanup-role.yaml"
@@ -502,6 +504,33 @@ verify_exact_rbac_verbs "${operator_rbac_manifest}" apps deployments/scale "get,
 verify_exact_rbac_verbs "${operator_role_manifest}" apps deployments/scale "get,patch,update"
 
 helm template monitoring "${chart_dir}" >"${rendered_manifest}"
+helm template monitoring "${chart_dir}" \
+    --set prometheus.install=true \
+    >"${prometheus_empty_remote_write_manifest}"
+if ! "${yq_binary}" eval-all -e \
+    'select(.apiVersion == "monitoring.netcracker.com/v1" and .kind == "PlatformMonitoring") |
+    (.spec.prometheus.remoteWrite | tag) == "!!seq" and (.spec.prometheus.remoteWrite | length) == 0' \
+    "${prometheus_empty_remote_write_manifest}" >/dev/null; then
+    echo "The default Prometheus remoteWrite value is not an empty array." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set prometheus.install=true \
+    --set-string 'prometheus.remoteWrite[0].name=primary' \
+    --set-string 'prometheus.remoteWrite[0].url=https://remote-write.example/api/v1/write' \
+    >"${prometheus_remote_write_manifest}"
+if ! "${yq_binary}" eval-all -e \
+    'select(.apiVersion == "monitoring.netcracker.com/v1" and .kind == "PlatformMonitoring") |
+    (.spec.prometheus.remoteWrite | tag) == "!!seq" and
+    (.spec.prometheus.remoteWrite | length) == 1 and
+    .spec.prometheus.remoteWrite[0].name == "primary" and
+    .spec.prometheus.remoteWrite[0].url == "https://remote-write.example/api/v1/write"' \
+    "${prometheus_remote_write_manifest}" >/dev/null; then
+    echo "The chart does not preserve a configured Prometheus remoteWrite endpoint." >&2
+    exit 1
+fi
+
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "Job" and
     .metadata.labels."app.kubernetes.io/component" == "etcd-certs-to-secret" and
