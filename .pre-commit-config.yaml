@@ -20,7 +20,8 @@ repos:
       - id: mixed-line-ending
       - id: end-of-file-fixer
       - id: check-yaml
-        exclude: ^(charts/.*/crds/|charts/.*/templates/)
+        # Zensical supports Python tags that the safe YAML loader cannot construct.
+        exclude: ^(charts/.*/crds/|charts/.*/templates/|site/mkdocs\.yml$)
       - id: check-added-large-files
   - repo: https://github.com/compilerla/conventional-pre-commit # Conventional commits https://www.conventionalcommits.org
     rev: v4.4.0

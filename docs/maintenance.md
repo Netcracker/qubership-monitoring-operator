@@ -152,6 +152,10 @@ To update CRDs need:
 Server-side apply updates existing CRDs, creates CRDs introduced by the target release, and avoids the large
 client-side last-applied-configuration annotation. Ordinary `helm upgrade` does not upgrade CRDs.
 
+The Grafana Operator v4-to-v5 upgrade does not preserve every existing configuration behavior. Before upgrading,
+review the [Grafana v5 upgrade limitations](user-guides/grafana-v5-upgrade.md) and confirm that the existing
+`PlatformMonitoring` configuration uses the supported profile.
+
 Before upgrading from Grafana Operator v4, migrate legacy
 [`GrafanaDataSource` resources](examples/custom-resources/grafana-datasource/README.md#migrate-v4-resources).
 Legacy dashboards remain available to the Grafana operator converter and must not be removed before conversion.
