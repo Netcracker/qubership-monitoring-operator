@@ -1,3 +1,7 @@
+---
+icon: lucide/package
+---
+
 # Monitoring Pack Quickstart
 
 ## Why Monitoring Pack?

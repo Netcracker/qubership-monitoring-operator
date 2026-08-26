@@ -1,3 +1,7 @@
+---
+icon: lucide/upload
+---
+
 ### pushgateway
 
 <!-- markdownlint-disable line-length -->

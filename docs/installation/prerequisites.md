@@ -1,3 +1,7 @@
+---
+icon: lucide/clipboard-check
+---
+
 # Prerequisites
 
 This section describes the prerequisites that should be checked before deploying the Qubership Monitoring Operator.

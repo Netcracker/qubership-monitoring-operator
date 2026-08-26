@@ -1,3 +1,7 @@
+---
+icon: lucide/flask-conical
+---
+
 # Integration tests Helm values
 
 Robot-based integration tests are optional. Enable them with `integrationTests.install: true` in `charts/qubership-monitoring-operator/values.yaml`.

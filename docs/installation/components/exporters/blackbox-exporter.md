@@ -5,7 +5,7 @@ code and response time. Also Blackbox exporter check SSL certificate state (if p
 with SSL certificate).
 
 Details, how to configure Probes for use with Blackbox exporter please read in
-[Configuration documentation](../../../configuration.md#probe).
+[Configuration documentation](../../../configuration/README.md#probe).
 
 <!-- markdownlint-disable line-length -->
 | Field                                               | Description                                                                                                                                                                                                                         | Scheme                                                                                                                         |

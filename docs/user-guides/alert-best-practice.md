@@ -1,3 +1,7 @@
+---
+icon: lucide/bell
+---
+
 This document should provide requirements and recommendations on how to write alerts for Prometheus
 (and for AMS in the future) and provide answers on questions:
 

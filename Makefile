@@ -31,6 +31,17 @@ VM_CRD_FOLDER=$(HELM_FOLDER)/charts/victoriametrics/crds
 DOC_FOLDER := docs
 SITE_FOLDER := site
 
+# Address of the local documentation preview server
+SITE_ADDR ?= localhost:8000
+
+# Python environment for the documentation toolchain. An already activated virtual environment is reused; otherwise
+# the site targets create $(SITE_FOLDER)/.venv. Distributions that mark the system Python as externally managed
+# (Debian, Ubuntu, Fedora, PEP 668) reject `pip install` outside a virtual environment, so the targets never call the
+# system pip. Override with `make build-site SITE_VENV=/path/to/venv`.
+SITE_VENV ?= $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV),$(SITE_FOLDER)/.venv)
+SITE_PYTHON = $(SITE_VENV)/bin/python
+SITE_ZENSICAL = $(SITE_VENV)/bin/zensical
+
 # Set build version
 ARTIFACT_NAME="qubership-monitoring-operator"
 VERSION?=0.88.0
@@ -427,11 +438,17 @@ run: generate fmt vet
 # Building docs #
 #################
 
-# Install the dependencies
+# Install the dependencies into $(SITE_VENV), creating the virtual environment on first run
 .PHONY: install-site-dependencies
 install-site-dependencies:
-	echo "=> Install site dependencies ..."
-	pip install -r site/requirements.txt
+	echo "=> Install site dependencies into $(SITE_VENV) ..."
+	test -x "$(SITE_PYTHON)" || $(PYTHON) -m venv "$(SITE_VENV)" || { \
+		echo "Cannot create a virtual environment at $(SITE_VENV)."; \
+		echo "On Debian and Ubuntu, install the venv module first: sudo apt install python3-venv"; \
+		exit 1; \
+	}
+	"$(SITE_PYTHON)" -m pip install --quiet --upgrade pip
+	"$(SITE_PYTHON)" -m pip install --quiet -r $(SITE_FOLDER)/requirements.txt
 
 # Prepare the docs directory
 .PHONY: prepare-site-directory
@@ -445,7 +462,16 @@ prepare-site-directory:
 .PHONY: build-site
 build-site: prepare-site-directory install-site-dependencies
 	echo "=> Build site ..."
-	zensical build -f site/mkdocs.yml --clean
+	"$(SITE_ZENSICAL)" build -f $(SITE_FOLDER)/mkdocs.yml --clean
+
+# Serve the docs locally on $(SITE_ADDR) with live reload
+# The server watches $(SITE_FOLDER)/docs, which is a copy of $(DOC_FOLDER). After editing a page in $(DOC_FOLDER),
+# run `make prepare-site-directory` in another shell to copy the change over; the browser reloads on its own.
+# Override the address with `make serve-site SITE_ADDR=0.0.0.0:8080`.
+.PHONY: serve-site
+serve-site: prepare-site-directory install-site-dependencies
+	echo "=> Serve site on http://$(SITE_ADDR) ..."
+	"$(SITE_ZENSICAL)" serve -f $(SITE_FOLDER)/mkdocs.yml -a $(SITE_ADDR)
 
 
 ############

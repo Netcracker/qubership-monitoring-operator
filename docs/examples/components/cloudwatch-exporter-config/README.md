@@ -1,3 +1,7 @@
+---
+icon: lucide/cloud
+---
+
 # CloudWatch Exporter Configuration Examples
 
 This section contains ready-to-use CloudWatch Exporter configurations for various AWS services.

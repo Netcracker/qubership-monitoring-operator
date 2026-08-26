@@ -1,3 +1,7 @@
+---
+icon: lucide/gauge
+---
+
 # Hardware sizing guide
 
 This document describes how to calculate resources requirements for Platform Monitoring components.

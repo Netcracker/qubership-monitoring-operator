@@ -1,3 +1,7 @@
+---
+icon: lucide/split
+---
+
 ### promxy
 
 <!-- markdownlint-disable line-length -->

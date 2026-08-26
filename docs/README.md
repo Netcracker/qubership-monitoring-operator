@@ -1,3 +1,7 @@
+---
+icon: lucide/house
+---
+
 # Qubership Monitoring Operator
 
 Production-ready monitoring stack for Kubernetes in a single Custom Resource.
@@ -50,12 +54,14 @@ kubectl port-forward svc/monitoring-grafana -n monitoring 3000:3000
 
 ## Documentation
 
-* **Install / Upgrade** – [Installation Guide](installation/README.md)
-* **Configure** – [Configuration Reference](configuration.md)
-* **Architecture** – [Architecture Overview](architecture.md)
-* **Cookbook & Examples** – [Recipes](cookbook/README.md)
+* **Install** – [Installation Guide](installation/README.md)
+* **Understand** – [Architecture Overview](architecture/README.md)
+* **Configure** – [Configuration Reference](configuration/README.md)
+* **Look up** – [Metrics, Alerts, and Dashboards](reference/README.md)
+* **Integrate** – [External Monitoring Systems](integration/README.md)
+* **Operate** – [Troubleshooting and Maintenance](operations/README.md)
 * **API** – [PlatformMonitoring CRD](api/platform-monitoring.md)
-* **Troubleshooting** – [Common Issues](troubleshooting.md)
+* **Examples** – [Working Manifests](examples/README.md)
 
 ## Community & Support
 
