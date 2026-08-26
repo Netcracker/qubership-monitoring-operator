@@ -4,17 +4,13 @@ This page provides comprehensive instructions for installing the Qubership Monit
 
 ## Supported Versions
 
-The Qubership Monitoring Operator follows the N±2 Kubernetes version support policy. Currently, the recommended Kubernetes version is 1.26.x.
+Kubernetes 1.25 or later is required by the managed Prometheus and
+VictoriaMetrics operators. OpenShift 4.12 is the minimum equivalent release.
 
-| Kubernetes version   | Support Status     |
-| -------------------- | ------------------ |
-| 1.24.x               | Tested             |
-| 1.25.x               | Tested             |
-| 1.26.x (recommended) | Tested             |
-| 1.27.x               | Forward compatible |
-| 1.28.x               | Forward compatible |
-
-For OpenShift compatibility, refer to the equivalent Kubernetes version. For example, OpenShift 4.12 is based on Kubernetes 1.25.0.
+| Platform   | Minimum version |
+| ---------- | --------------- |
+| Kubernetes | 1.25            |
+| OpenShift  | 4.12            |
 
 **Cloud Platform Support:**
 
@@ -24,7 +20,7 @@ For OpenShift compatibility, refer to the equivalent Kubernetes version. For exa
 | Azure Kubernetes Service (AKS)       | ✓       |
 | Google Kubernetes Engine (GKE)       | ✓       |
 | On-premise Kubernetes >= 1.25        | ✓       |
-| On-premise OpenShift >= 4.10         | ✓       |
+| On-premise OpenShift >= 4.12         | ✓       |
 
 ## Prerequisites
 
@@ -32,8 +28,8 @@ For OpenShift compatibility, refer to the equivalent Kubernetes version. For exa
 
 Ensure you have the following prerequisites in place before installation:
 
-- Kubernetes 1.19+ or OpenShift 3.11+ cluster
-- `kubectl` 1.19+ or `oc` 3.11+ CLI tools
+- Kubernetes 1.25+ or OpenShift 4.12+ cluster
+- `kubectl` or `oc` compatible with the target cluster
 - Helm 3.0+
 - Pre-created namespace for installation
 - Appropriate permissions for deployment
@@ -134,6 +130,16 @@ For detailed information about components, see [Components](components/).
 !!! note "CRD Management"
     Helm does not update or remove CRDs. For upgrades involving CRD changes, manual updates are required.
 
+Apply the complete CRD bundle, or synchronize the dedicated
+`qubership-monitoring-crds` chart, before upgrading the monitoring operator.
+Verify that the installed PlatformMonitoring CRD contains
+`status.observedGeneration`, then upgrade the operator chart. An older
+structural schema prunes this status field and prevents the controller from
+identifying an already observed resource generation.
+
+For Argo CD deployments, complete the CRD application synchronization before
+synchronizing the monitoring operator application.
+
 ## Post-Installation Verification
 
 After installing the monitoring operator, verify that all components are running correctly:
@@ -154,12 +160,12 @@ After installing the monitoring operator, verify that all components are running
    ```
 
 4. **Access Grafana dashboard:**
-   
+
    If ingress is configured, access via URL. Otherwise, use port-forwarding:
    ```bash
    kubectl port-forward svc/grafana 3000:3000 -n monitoring
    ```
-   
+
    Default login for Grafana is typically admin/admin unless configured otherwise.
 
 For complete verification procedures, see [Post-Deploy Checks](post-deploy-checks.md).
@@ -173,4 +179,4 @@ After successful installation, you can:
 - Configure monitoring parameters, see [Configuration](../configuration.md)
 - Configure authentication and security, see [Authentication](../monitoring-configuration/authentication.md)
 - Set up alerting rules, see [Troubleshooting](../troubleshooting.md)
-- Review maintenance procedures, see [Maintenance](../maintenance.md) 
+- Review maintenance procedures, see [Maintenance](../maintenance.md)

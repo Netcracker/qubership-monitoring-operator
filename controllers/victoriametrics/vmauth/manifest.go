@@ -64,7 +64,7 @@ func vmAuthClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rbac
 		})
 	}
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAuthComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAuthComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -86,7 +86,7 @@ func vmAuthClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAuthComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAuthComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAuthComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }

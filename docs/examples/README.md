@@ -24,10 +24,10 @@ Custom resource which allow declaratively specify rules for AlertManager for ale
 
 ### GrafanaDashboard
 
-Custom resource which allow specifying grafana dashboard json with name and list of plugins (or link to download this
+Custom resource which allows specifying a Grafana dashboard JSON with a name and list of plugins (or link to download the
 dashboard). The Grafana Operator automatically import all found dashboards to Grafana.
 
-### GrafanaDataSource
+### GrafanaDatasource
 
 Custom resource which allow specifying grafana datasources.
 The Grafana Operator automatically import all found datasources _in current namespace_ to Grafana.
@@ -38,7 +38,7 @@ The Grafana Operator automatically import all found datasources _in current name
 * [PodMonitor](custom-resources/pod-monitor/README.md)
 * [PrometheusRule](custom-resources/prometheus-rule/README.md)
 * [GrafanaDashboard](custom-resources/grafana-dashboard/README.md)
-* [GrafanaDataSource](custom-resources/grafana-datasource/README.md)
+* [GrafanaDatasource](custom-resources/grafana-datasource/README.md)
 
 ## Complex examples
 
@@ -46,6 +46,3 @@ The Grafana Operator automatically import all found datasources _in current name
 * [Collect metrics and add alarms](custom-resources/service-with-alarms/README.md)
 * [Collect metrics from custom endpoints](custom-resources/custom-endpoint/README.md)
 * [Collect metrics from HTTPS endpoints](custom-resources/service-with-tls/README.md)
-
-
-

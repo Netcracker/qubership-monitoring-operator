@@ -73,7 +73,7 @@ func prometheusClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRole, e
 	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
 	clusterRole.SetName(cr.GetNamespace() + "-" + utils.PrometheusComponentName)
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.PrometheusComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.PrometheusComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -95,7 +95,7 @@ func prometheusClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 		sub.Namespace = cr.GetNamespace()
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.PrometheusComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.PrometheusComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }

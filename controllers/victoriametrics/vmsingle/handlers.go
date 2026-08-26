@@ -1,6 +1,8 @@
 package vmsingle
 
 import (
+	"context"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -9,6 +11,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (r *VmSingleReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -237,9 +240,14 @@ func (r *VmSingleReconciler) deleteVmSingle(cr *monv1.PlatformMonitoring) error 
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err = r.Client.Delete(
+		context.TODO(),
+		e,
+		client.PropagationPolicy(metav1.DeletePropagationOrphan),
+	); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", utils.ResourceKey, e.GetObjectKind().GroupVersionKind().Kind)
 	return nil
 }
 

@@ -95,12 +95,20 @@ gatewayApi:
 #   * Prometheus        - a resource which describe a Prometheus deployment
 #   * AlertManager      - a resource which describe an AlertManager deployment
 #   * Grafana           - a resource which describe a Grafana deployment
-#   * GrafanaDataSource - a resource which describe a default Grafana datasource
+#   * GrafanaDatasource - a resource which describes a default Grafana datasource
 # Type: object
 #
 monitoringOperator:
 
   name: monitoring-operator
+
+  # Enable Kubernetes leader election for monitoring-operator.
+  # Leave false for a single replica. Set true when running more than one replica.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  leaderElect: false
 
   clusterRole:
     install: true
@@ -1368,6 +1376,9 @@ prometheusRules:
   #       for: 0m
   #       expr: min_over_time(prometheus_notifications_queue_length[20m]) > 0
   #       severity: high
+  #       annotations:
+  #         summary: Custom notification backlog summary
+  #         runbook_url: https://example.org/runbooks/prometheus-backlog
 
 pushgateway:
 
