@@ -1731,6 +1731,9 @@ type PlatformMonitoringCondition struct {
 // PlatformMonitoringStatus defines the observed state of PlatformMonitoring
 type PlatformMonitoringStatus struct {
 	Conditions []PlatformMonitoringCondition `json:"conditions"`
+	// ObservedGeneration is the latest PlatformMonitoring generation that reached a terminal reconciliation result.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }

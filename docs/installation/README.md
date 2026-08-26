@@ -130,6 +130,16 @@ For detailed information about components, see [Components](components/).
 !!! note "CRD Management"
     Helm does not update or remove CRDs. For upgrades involving CRD changes, manual updates are required.
 
+Apply the complete CRD bundle, or synchronize the dedicated
+`qubership-monitoring-crds` chart, before upgrading the monitoring operator.
+Verify that the installed PlatformMonitoring CRD contains
+`status.observedGeneration`, then upgrade the operator chart. An older
+structural schema prunes this status field and prevents the controller from
+identifying an already observed resource generation.
+
+For Argo CD deployments, complete the CRD application synchronization before
+synchronizing the monitoring operator application.
+
 ## Post-Installation Verification
 
 After installing the monitoring operator, verify that all components are running correctly:

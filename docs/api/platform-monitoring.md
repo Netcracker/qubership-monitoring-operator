@@ -316,6 +316,7 @@ PlatformMonitoringStatus defines the observed state of PlatformMonitoring.
 | Field | Description | Scheme | Required |
 | --- | --- | --- | --- |
 | conditions | | \[\][PlatformMonitoringCondition](#platformmonitoringcondition) | true |
+| observedGeneration | ObservedGeneration is the latest PlatformMonitoring generation that reached a terminal reconciliation result. | int64 | false |
 
 
 
@@ -667,4 +668,3 @@ VmOperator defines the desired state for some part of the victoriametrics-operat
 | volumeMounts | VolumeMounts allows configuration of additional VolumeMounts on the output deploy definition. VolumeMounts specified will be appended to other VolumeMounts in the alertmanager container, that are generated as a result of StorageSpec objects. | []v1.VolumeMount | false |
 | extraArgs | ExtraArgs that will be passed to  VMAlertmanager pod for example log.level: debug | map[string]string | false |
 | extraEnvs | ExtraEnvs that will be added to VMAlertmanager pod | []v1.EnvVar | false |
-
