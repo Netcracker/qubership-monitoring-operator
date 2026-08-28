@@ -1,0 +1,35 @@
+{{- $root := . -}}
+{{- range $name, $cfg := .Values.serviceMonitors.exporters }}
+{{- if $cfg.install }}
+{{- $sanitizedName := $name | replace "_" "-" | replace "." "-" | lower }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ default (printf "%s-%s" (include "monitoring-pack-two.fullname" $root) $sanitizedName) $cfg.name }}
+  namespace: {{ default (include "monitoring-pack-two.namespace" $root) $cfg.namespace }}
+  labels:
+    {{- include "monitoring-pack-two.standardLabels" $root | nindent 4 }}
+    monitoring-pack: "two"
+    monitoring-pack-two/exporter: {{ $name }}
+    {{- $labelCtx := dict "commonLabels" $root.Values.commonLabels "componentLabels" ($cfg.labels | default dict) }}
+    {{- include "monitoring-pack-two.metadata.labels" $labelCtx | nindent 4 }}
+  {{- $annotationCtx := dict "commonAnnotations" $root.Values.commonAnnotations "componentAnnotations" ($cfg.annotations | default dict) }}
+  {{- include "monitoring-pack-two.metadata.annotations" $annotationCtx | nindent 2 }}
+spec:
+{{- if $cfg.jobLabel }}
+  jobLabel: {{ $cfg.jobLabel }}
+{{- end }}
+  selector:
+{{ toYaml $cfg.selector | indent 4 }}
+  namespaceSelector:
+    matchNames:
+      - {{ default (include "monitoring-pack-two.namespace" $root) $cfg.namespace }}
+  endpoints:
+{{- if $cfg.endpoints }}
+{{ toYaml $cfg.endpoints | indent 4 }}
+{{- else }}
+    - port: metrics
+{{- end }}
+{{- end }}
+{{- end }}

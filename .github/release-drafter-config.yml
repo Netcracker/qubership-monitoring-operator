@@ -18,7 +18,11 @@ categories:
     labels:
       - refactor
   - title: "🧰 Maintenance"
-    label: chore
+    labels:
+      - chore
+  - title: "🔍 Other Changes"
+    labels:
+      - "*"
   - title: "⬆️ Dependencies"
     collapse-after: 8
     labels:
@@ -67,7 +71,7 @@ autolabeler:
     files:
       - '*.md'
       - 'docs/**'
-  - label: 'bug'
+  - label: 'fix'
     branch:
       - '/fix\/.+/'
     title:

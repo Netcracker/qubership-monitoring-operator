@@ -1,0 +1,99 @@
+---
+name: "Tests: Go test with Sonar"
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+      - Makefile
+      - test/envtests/**
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/test-sonar-go-coverage.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+      - Makefile
+      - test/envtests/**
+
+permissions:
+  contents: read
+
+jobs:
+  envtest-minimum-kubernetes:
+    name: Envtest with Kubernetes 1.25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Run envtests
+        run: make envtest ENVTEST_K8S_VERSION=1.25.x!
+
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      sonar-project-key: ${{ steps.config.outputs.sonar-project-key }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve sonar project key based on restricted actors
+        id: config
+        env:
+          ACTOR: ${{ github.actor }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+        run: |
+          restricted=$(python3 -c "
+          import yaml, os
+          with open('.github/config/build-config.yaml') as f:
+              config = yaml.safe_load(f)
+          actors = config.get('restricted-actors', [])
+          current_actors = [os.environ['ACTOR'], os.environ.get('PR_AUTHOR', '')]
+          print('true' if any(actor in actors for actor in current_actors) else 'false')
+          ")
+          if [ "$restricted" = "true" ]; then
+            echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
+          else
+            echo "sonar-project-key=${SONAR_PROJECT_KEY}" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    needs: prepare
+    name: Build and test with coverage
+    uses: Netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@71206242f5967ac6691337913593f8623863f711 # v2.5.2
+    with:
+      go-module-dir: '.'
+      sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
+      cover-packages: './api/...,./cmd/...,./controllers/...'
+      install-envtest: true
+      kube-version: '1.30.0'
+      envtest-version: 'release-0.19'
+      skip-docker: true
+    secrets: inherit # zizmor: ignore[secrets-inherit] generic-go-build requires inherited SONAR_TOKEN.
+    permissions:
+      contents: read
+      pull-requests: write
+      packages: write

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: monitoring-pack-one
+description: Example Helm chart that deploys the OPS Team monitoring pack with remote write configuration.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

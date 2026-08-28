@@ -72,7 +72,7 @@ spec:
           "title": "Pod Resources",
           "tooltip": "",
           "type": "link",
-          "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace﻿﻿﻿﻿&var-pod=﻿﻿$instance"
+          "url": "./d/{% printf `%.40s` (printf `%s-%s` .Release.Namespace (index .DashboardsUIDs `kubernetes-pod-resources`) ) %}/kubernetes-pod-resources?var-datasource=$datasource&var-cluster=$cluster&var-namespace=$namespace&var-pod=$instance"
         }
       ],
       "liveNow": false,

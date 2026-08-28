@@ -1,5 +1,3 @@
-This section describes the various configurations that can be performed on Monitoring.
-
 # Configuration
 
 This section describes all the configurations and extension points that are provided by Monitoring.
@@ -803,7 +801,7 @@ For more information, see [Dashboard by URL](#dashboard-by-url).
 This option allows to provide a Grafana dashboard's JSON inline into a custom resource.
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: inline-json-dashboard
@@ -833,7 +831,7 @@ data:
     { ... }
 
 ---
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: dashboard-from-cm
@@ -856,7 +854,7 @@ the official site, [https://grafana.com](https://grafana.com).
 For example,
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: dashboard-from-grafana-com
@@ -882,7 +880,7 @@ This option allows to download the dashboard using a URL from any server.
 For example,
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
+apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: helm-example-dashboard-by-url
@@ -1374,15 +1372,14 @@ than 30 seconds.
 The Grafana Custom Resource (CR) allows to provide settings for Grafana that are applied during the start
 of the Grafana instance.
 
-#### GrafanaDataSource
+#### GrafanaDatasource
 
-The GrafanaDataSource Custom Resource (CR) allows to provide settings to create the Grafana DataSource during the start
-of the Grafana instance.
+The GrafanaDatasource Custom Resource (CR) provides settings for creating a data source in the Grafana instance.
 
 The DataSource in Grafana is a data provider that Grafana uses to fetch data from any source (for example,
 from Prometheus, ClickHouse, and so on).
 
-Currently, GrafanaDataSource is discovered and read only in the namespace where Monitoring is deployed. You can deploy
+Currently, GrafanaDatasource is discovered and read only in the namespace where Monitoring is deployed. You can deploy
 this custom resource in any other namespace, but grafana-operator will not discover it.
 
 **Note**: This is a known limitation and the community already has plans to change this behavior.
@@ -1404,8 +1401,8 @@ By default, Monitoring creates Grafana DataSources for:
 Example of Prometheus datasource is as follows.
 
 ```yaml
-apiVersion: integreatly.org/v1alpha1
-kind: GrafanaDataSource
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
 metadata:
   name: platform-monitoring-prometheus
   labels:
@@ -1413,9 +1410,12 @@ metadata:
     app.kubernetes.io/component: monitoring  # Mandatory label
     app.kubernetes.io/managed-by: monitoring-operator
 spec:
-  name: platform-monitoring.yaml
-  datasources:
-  - access: proxy
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  datasource:
+    access: proxy
     editable: true
     isDefault: true
     jsonData:

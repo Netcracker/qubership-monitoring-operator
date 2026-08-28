@@ -147,7 +147,7 @@ graph TB
 
         subgraph "Grafana Resources"
             GD[GrafanaDashboard CRs]
-            GDS[GrafanaDataSource CRs]
+            GDS[GrafanaDatasource CRs]
         end
     end
 
@@ -413,7 +413,7 @@ The following table shows the relationships between different components:
 | ------------------ | ------------------- | ----------------------------------- | --------------------------- |
 | Prometheus         | Prometheus Operator | ServiceMonitor, PodMonitor          | Grafana, AlertManager       |
 | VictoriaMetrics    | VM Operator         | VMServiceScrape, VMPodScrape        | Grafana, VMAlert            |
-| Grafana            | Grafana Operator    | GrafanaDashboard, GrafanaDataSource | Users                       |
+| Grafana            | Grafana Operator    | GrafanaDashboard, GrafanaDatasource | Users                       |
 | AlertManager       | Prometheus Operator | AlertmanagerConfig                  | Notification channels       |
 | kube-state-metrics | Monitoring Operator | Built-in config                     | Prometheus, VictoriaMetrics |
 | node-exporter      | Monitoring Operator | Built-in config                     | Prometheus, VictoriaMetrics |

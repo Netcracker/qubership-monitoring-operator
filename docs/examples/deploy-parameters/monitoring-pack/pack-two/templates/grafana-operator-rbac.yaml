@@ -1,0 +1,122 @@
+{{- if .Values.grafana.install }}
+# Role for Grafana Operator to manage Grafana resources in pack-two namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-operator-pack-two
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - configmaps
+      - secrets
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanas
+      - grafanas/status
+      - grafanas/finalizers
+      - grafanadashboards
+      - grafanadashboards/status
+      - grafanadatasources
+      - grafanadatasources/status
+      - grafanafolders
+      - grafanafolders/status
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - watch
+---
+# RoleBinding to grant Grafana Operator permissions in pack-two namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-operator-pack-two
+  namespace: {{ include "monitoring-pack-two.namespace" . }}
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: monitoring-operator
+    monitoring-pack: "two"
+subjects:
+  - kind: ServiceAccount
+    name: monitoring-grafana-operator
+    namespace: monitoring
+roleRef:
+  kind: Role
+  name: grafana-operator-pack-two
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

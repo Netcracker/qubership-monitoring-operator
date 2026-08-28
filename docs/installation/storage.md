@@ -199,9 +199,8 @@ provisioner: k8s.io/minikube-hostpath
 
 ```yaml
 grafana:
-  persistence:
-    enabled: true
-    storageClassName: "fast-ssd"
+  dataStorage:
+    class: fast-ssd
     size: 10Gi
     accessModes:
       - ReadWriteOnce
@@ -234,9 +233,8 @@ victoriametrics:
           storage: 100Gi
 
 grafana:
-  persistence:
-    enabled: true
-    storageClassName: fast-ssd
+  dataStorage:
+    class: fast-ssd
     size: 10Gi
     accessModes:
       - ReadWriteOnce

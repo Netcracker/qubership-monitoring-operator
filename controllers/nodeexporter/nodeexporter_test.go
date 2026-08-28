@@ -6,6 +6,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
+	secv1 "github.com/openshift/api/security/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -21,6 +22,7 @@ var (
 func TestNodeExporterManifests(t *testing.T) {
 	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
+			Name:      "platform-monitoring",
 			Namespace: "monitoring",
 		},
 		Spec: monv1.PlatformMonitoringSpec{
@@ -47,6 +49,7 @@ func TestNodeExporterManifests(t *testing.T) {
 	})
 	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
+			Name:      "platform-monitoring",
 			Namespace: "monitoring",
 		},
 		Spec: monv1.PlatformMonitoringSpec{
@@ -65,11 +68,12 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.Nil(t, m.Spec.Template.Annotations)
 	})
 	t.Run("Test ClusterRole manifest", func(t *testing.T) {
-		m, err := nodeExporterClusterRole(cr, true, false)
+		m, err := nodeExporterClusterRole(cr, false, true)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ClusterRole manifest should not be empty")
+		assert.Equal(t, []string{"monitoring-node-exporter"}, m.Rules[0].ResourceNames)
 	})
 	t.Run("Test ClusterRoleBinding manifest", func(t *testing.T) {
 		m, err := nodeExporterClusterRoleBinding(cr)
@@ -120,5 +124,29 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.NotNil(t, m, "ServiceAccount manifest should not be empty")
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey], "ServiceAccount.Labels should be merged")
+	})
+	t.Run("Test SecurityContextConstraints manifest", func(t *testing.T) {
+		m, err := nodeExporterSecurityContextConstraints(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "SecurityContextConstraints manifest should not be empty")
+		assert.Equal(t, "monitoring-node-exporter", m.GetName())
+		assert.Equal(t, "monitoring", m.GetAnnotations()[nodeExporterSCCOwnerNamespaceAnnotation])
+		assert.Equal(t, "platform-monitoring", m.GetAnnotations()[nodeExporterSCCOwnerNameAnnotation])
+		assert.Equal(t, "monitoring", m.GetLabels()[utils.InstallationNamespaceLabelKey])
+		assert.True(t, m.AllowHostNetwork, "node-exporter needs hostNetwork to scrape host-level metrics")
+		assert.True(t, m.AllowHostPID, "node-exporter needs hostPID to scrape host-level metrics")
+		assert.True(t, m.AllowHostPorts)
+		assert.True(t, m.AllowHostDirVolumePlugin, "node-exporter mounts /proc, /sys, and / as hostPath volumes")
+		assert.False(t, m.AllowPrivilegedContainer)
+		// Without an explicit seccompProfiles entry, the SCC admission plugin silently drops this
+		// SCC from the candidate list for pods that set securityContext.seccompProfile - no error,
+		// it's just never tried, and the DaemonSet falls back to the built-in SCCs and fails.
+		assert.Contains(t, m.SeccompProfiles, "runtime/default")
+		// MustRunAsRange (not RunAsAny) makes the SCC assign a UID from the namespace's allocated
+		// range. The node-exporter image sets a non-numeric USER (nobody), so without an assigned
+		// UID the kubelet can't verify runAsNonRoot and refuses to start the container.
+		assert.Equal(t, secv1.RunAsUserStrategyMustRunAsRange, m.RunAsUser.Type)
 	})
 }

@@ -8,9 +8,9 @@ Goldpinger is a Kubernetes DaemonSet that continuously tests and visualizes netw
 in your cluster. It provides a web UI and exposes Prometheus metrics for monitoring network health and diagnosing
 connectivity issues. More details in the [official documentation](https://github.com/bloomberg/goldpinger/blob/master/README.md)
 
-| Application   | Metrics Port | Metrics Endpoint | Need Exporter? | Auth? | Is Exporter Third Party? |
+| Application | Metrics Port | Metrics Endpoint | Need Exporter? | Auth? | Is Exporter Third Party? |
 | ------------- | ------------ | --------------- | -------------- | ----- | ------------------------ |
-| Goldpinger    | `8081`       | `/metrics`      | Yes            | No    | Yes                      |
+| Goldpinger | `8081` | `/metrics` | Yes | No | Yes |
 
 ---
 
@@ -33,7 +33,7 @@ Goldpinger exposes Prometheus metrics on port `8081` by default.
 ### ServiceMonitor Example
 
 To collect metrics using Prometheus Operator, configure a
-[ServiceMonitor](https://github.com/Netcracker/qubership-monitoring-operator/tree/main/charts/qubership-monitoring-operator/charts/goldpinger-exporter/templates/servicemonitor.yaml)
+[ServiceMonitor](https://github.com/Netcracker/qubership-monitoring-operator/blob/main/charts/qubership-monitoring-operator/charts/goldpingerExporter/templates/servicemonitor.yaml)
 as example:
 
 ```yaml
@@ -86,7 +86,7 @@ Goldpinger exports the following key metrics:
 
 ## Example PrometheusRule
 
-You can set up [alerts](https://github.com/Netcracker/qubership-monitoring-operator/tree/main/charts/qubership-monitoring-operator/charts/goldpinger-exporter/templates/prometheusrule.yaml)
+You can set up [alerts](https://github.com/Netcracker/qubership-monitoring-operator/blob/main/charts/qubership-monitoring-operator/charts/goldpingerExporter/templates/prometheusrule.yaml)
 for unhealthy nodes, as example:
 
 ```yaml
@@ -120,5 +120,5 @@ spec:
 ---
 
 **If you need to enable or configure Goldpinger, refer to the
-[values.yaml](https://github.com/Netcracker/qubership-monitoring-operator/tree/main/charts/qubership-monitoring-operator/charts/goldpinger-exporter/values.yaml) in the Helm chart
-for all available options.** 
+[values.yaml](https://github.com/Netcracker/qubership-monitoring-operator/blob/main/charts/qubership-monitoring-operator/charts/goldpingerExporter/values.yaml) in the Helm chart
+for all available options.**

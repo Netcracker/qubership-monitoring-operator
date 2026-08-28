@@ -1,6 +1,12 @@
-This guide describes how to migrate from Prometheus to VictoriaMetrics.
+# Migrate from Prometheus to VictoriaMetrics
 
-# Overview
+## Overview
+
+> **Deprecated:** The Prometheus instance managed by `prometheus.install` remains available in this release but will be
+> removed in the next release. Migrate metric storage and scraping to VictoriaMetrics.
+>
+> This deprecation does not apply to PromQL, Prometheus-format metrics, `ServiceMonitor`, `PodMonitor`,
+> `PrometheusRule`, Alertmanager, or Prometheus Operator APIs shared with VictoriaMetrics.
 
 Monitoring can work with Prometheus or VictoriaMetrics stack. It is two different TSDB and you can choose between them.
 We recommend use VictoriaMetrics instead of Prometheus since monitoring-operator `v0.55`. If you used Prometheus before
@@ -157,8 +163,8 @@ for all parameters [see here](../installation/README.md#victoria-metrics)
 
 Step 4. Run `vmctl` tool
 
-After successful deploy you can import snapshots to the TSDB. VictoriaMetrics has `vmctl` tool for it. More information
-[VictoriaMetrics: vmctl](https://docs.victoriametrics.com/vmctl.html#migrating-data-from-prometheus).
+After successful deploy you can import snapshots to the TSDB. VictoriaMetrics has `vmctl` tool for it. See the
+[vmctl migration documentation](https://docs.victoriametrics.com/vmctl.html#migrating-data-from-prometheus).
 
 * You can run tool locally:
 

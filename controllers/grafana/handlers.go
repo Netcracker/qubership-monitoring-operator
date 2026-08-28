@@ -26,49 +26,115 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+const (
+	grafanaExtraVarsConfigMapResourceVersionAnnotation = "monitoring.netcracker.com/grafana-extra-vars-configmap-resource-version"
+	grafanaExtraVarsSecretResourceVersionAnnotation    = "monitoring.netcracker.com/grafana-extra-vars-secret-resource-version"
+)
+
+func grafanaPodTemplateAnnotations(manifest *grafv1.Grafana) map[string]string {
+	if manifest == nil || manifest.Spec.Deployment == nil || manifest.Spec.Deployment.Spec.Template == nil {
+		return nil
+	}
+	return manifest.Spec.Deployment.Spec.Template.Annotations
+}
+
+func (r *GrafanaReconciler) addGrafanaExtraVarsResourceVersions(
+	ctx context.Context,
+	namespace string,
+	manifest *grafv1.Grafana,
+	existingAnnotations map[string]string,
+) error {
+	configMap, err := r.KubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, "grafana-extra-vars", metav1.GetOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return fmt.Errorf("cannot get Grafana extra-vars ConfigMap: %w", err)
+	}
+	configMapFound := err == nil
+	secret, err := r.KubeClient.CoreV1().Secrets(namespace).Get(ctx, "grafana-extra-vars-secret", metav1.GetOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return fmt.Errorf("cannot get Grafana extra-vars Secret: %w", err)
+	}
+	secretFound := err == nil
+
+	annotations := manifest.Spec.Deployment.Spec.Template.Annotations
+	setAnnotation := func(key, value string) {
+		if annotations == nil {
+			annotations = make(map[string]string)
+			manifest.Spec.Deployment.Spec.Template.Annotations = annotations
+		}
+		annotations[key] = value
+	}
+	if configMapFound {
+		setAnnotation(grafanaExtraVarsConfigMapResourceVersionAnnotation, configMap.ResourceVersion)
+	} else if resourceVersion, ok := existingAnnotations[grafanaExtraVarsConfigMapResourceVersionAnnotation]; ok {
+		setAnnotation(grafanaExtraVarsConfigMapResourceVersionAnnotation, resourceVersion)
+	}
+	if secretFound {
+		setAnnotation(grafanaExtraVarsSecretResourceVersionAnnotation, secret.ResourceVersion)
+	} else if resourceVersion, ok := existingAnnotations[grafanaExtraVarsSecretResourceVersionAnnotation]; ok {
+		setAnnotation(grafanaExtraVarsSecretResourceVersionAnnotation, resourceVersion)
+	}
+	return nil
+}
+
 func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 	m, err := grafana(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
 	}
-
 	// Note: Config.AuthGenericOauth access removed as Config is now runtime.RawExtension in grafana-operator v5
 	// OAuth configuration is handled in manifest.go during Grafana creation
 	// Explicit GVK ensures correct API group (grafana.integreatly.org/v1beta1) for v5
 	e := &grafv1.Grafana{ObjectMeta: m.ObjectMeta}
 	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
+	err = r.GetResource(e)
+	grafanaExists := err == nil
+	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 
-	//Set parameters
-	// Only update if something actually changed to avoid unnecessary updates
-	needsUpdate := false
-	if !reflect.DeepEqual(e.Spec, m.Spec) {
-		e.Spec = m.Spec
-		needsUpdate = true
+	var existingAnnotations map[string]string
+	if grafanaExists {
+		existingAnnotations = grafanaPodTemplateAnnotations(e)
 	}
-	if !reflect.DeepEqual(e.GetLabels(), m.GetLabels()) {
-		e.SetLabels(m.GetLabels())
-		needsUpdate = true
+	if err = r.addGrafanaExtraVarsResourceVersions(
+		context.TODO(), m.GetNamespace(), m, existingAnnotations,
+	); err != nil {
+		r.Log.Error(err, "Failed adding Grafana extra-vars resource versions")
+		return err
+	}
+	if !grafanaExists {
+		if err = r.CreateResource(cr, m); err != nil {
+			return err
+		}
+		return r.migrateLegacyGrafanaResources(context.TODO(), cr, m)
 	}
 
-	if needsUpdate {
+	if applyGrafanaDesiredState(e, m) {
 		if err = r.UpdateResource(e); err != nil {
 			return err
 		}
+	}
+	if err = r.migrateLegacyGrafanaResources(context.TODO(), cr, e); err != nil {
+		return err
 	}
 	// WA for https://github.com/grafana-operator/grafana-operator/issues/652
 	r.Log.Info("Waiting grafana-deployment")
 	time.Sleep(30 * time.Second)
 	return nil
+}
+
+func applyGrafanaDesiredState(existing, desired *grafv1.Grafana) bool {
+	needsUpdate := false
+	if !reflect.DeepEqual(existing.Spec, desired.Spec) {
+		existing.Spec = desired.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(existing.GetLabels(), desired.GetLabels()) {
+		existing.SetLabels(desired.GetLabels())
+		needsUpdate = true
+	}
+	return needsUpdate
 }
 
 func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
@@ -100,12 +166,18 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
+			if err = r.adoptExistingDatasourceUID(context.TODO(), cr, m); err != nil {
+				return err
+			}
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
 			}
 			return nil
 		}
 		return err
+	}
+	if m.Spec.CustomUID == "" {
+		m.Spec.CustomUID = checkObj.Spec.CustomUID
 	}
 
 	// Only update if something actually changed to avoid unnecessary updates
@@ -148,12 +220,18 @@ func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	if err = r.GetResource(checkObj); err != nil {
 		if errors.IsNotFound(err) {
+			if err = r.adoptExistingDatasourceUID(context.TODO(), cr, m); err != nil {
+				return err
+			}
 			if err = r.CreateResource(cr, m); err != nil {
 				return err
 			}
 			return nil
 		}
 		return err
+	}
+	if m.Spec.CustomUID == "" {
+		m.Spec.CustomUID = checkObj.Spec.CustomUID
 	}
 
 	// Set parameters
@@ -286,6 +364,7 @@ func (r *GrafanaReconciler) handleGrafanaCredentialsSecret(cr *monv1.PlatformMon
 	return nil
 }
 
+//nolint:unused // Kept for manual Grafana credential recovery.
 func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring) (err error) {
 	// Waiting Grafana Pods readiness
 	r.Log.Info("Waiting for Grafana pods statuses", "kind", "Deployment", "name", utils.GrafanaDeploymentName)
@@ -370,7 +449,6 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 			return fmt.Errorf("error: %v; stdout: %s; stderr: %s;", err, stdout.String(), stderr.String())
 		}
 
-		isSecretUpdated = false
 		r.Log.Info("Grafana Credentials Reset was finished")
 	}
 	if errors.IsNotFound(err) {

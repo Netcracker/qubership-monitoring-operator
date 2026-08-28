@@ -2,10 +2,8 @@
 
 This guide covers the deployment process for the Qubership Monitoring Operator using Helm.
 
-!!! warning "Legacy Kubernetes Support"
-    If you want to deploy the `monitoring-operator` into **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower,
-    you must work with _v1beta1_ CRDs manually.
-    For more information see [Maintenance Guide: Work with legacy CRDs](../maintenance.md#work-with-legacy-crds).
+!!! warning "Supported cluster versions"
+    The chart requires Kubernetes 1.25+ or OpenShift 4.12+.
 
 ## Overview
 
@@ -162,9 +160,8 @@ victoriametrics:
 ### Customizing Ingress Routing and TLS Rules
 
 You can define custom ingress routing rules for individual components using the `ingress.rules` parameter.
-Refer the ingress description in
-[official documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
-
+Refer to the ingress description in the
+[official Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
 For example:
 
 ```yaml
