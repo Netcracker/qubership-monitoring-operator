@@ -61,14 +61,14 @@ For more information, refer to
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#webtlsconfig](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#webtlsconfig)
 
 <!-- markdownlint-disable line-length -->
-| Field | Description | Scheme |
-| ----- | ----------- | ------ |
-| keySecret | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core) | object |
-| cert | Contains the TLS certificate for the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap) | object |
-| client_ca | Contains the CA certificate for client certificate authentication to the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap) | object |
-| clientAuthType | Server policy for client authentication. Maps to ClientAuth Policies. For more detail on clientAuth options: [ClientAuthType](https://golang.org/pkg/crypto/tls/#ClientAuthType) | string |
-| generateCerts | Allows to configure generation of TLS certificate for Prometheus by [cert-manager](https://cert-manager.io/). | object |
-| createSecret | Specifies content for secret that will be created. | object |
+| Field          | Description                                                                                                                                                                                                                                         | Scheme |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| keySecret      | Secret containing the TLS key for the server. For more information, refer to *[v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core)                                                | object |
+| cert           | Contains the TLS certificate for the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap)                                     | object |
+| client_ca      | Contains the CA certificate for client certificate authentication to the server. For more information, refer to [SecretOrConfigMap](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#secretorconfigmap) | object |
+| clientAuthType | Server policy for client authentication. Maps to ClientAuth Policies. For more detail on clientAuth options: [ClientAuthType](https://golang.org/pkg/crypto/tls/#ClientAuthType)                                                                    | string |
+| generateCerts  | Allows to configure generation of TLS certificate for Prometheus by [cert-manager](https://cert-manager.io/).                                                                                                                                       | object |
+| createSecret   | Specifies content for secret that will be created.                                                                                                                                                                                                  | object |
 <!-- markdownlint-enable line-length -->
 
 ### webTLSConfig

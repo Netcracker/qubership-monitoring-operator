@@ -65,7 +65,7 @@ cleanup:
     #image: rancher/kuberlr-kubectl:v6.0.0
 
     # If specified, the pod's scheduling constraints
-    # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+    # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
     # Type: object
     # Mandatory: no
     #
@@ -248,7 +248,7 @@ vmOperator:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -441,7 +441,7 @@ vmSingle:
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   ## SecurityContext holds pod-level security attributes.
@@ -480,7 +480,7 @@ vmSingle:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -710,7 +710,7 @@ vmAgent:
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   ## SecurityContext holds pod-level security attributes.
@@ -763,7 +763,7 @@ vmAgent:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -900,7 +900,7 @@ vmAgent:
 
   # Volumes allows configuration of additional volumes on the output StatefulSet definition.
   # Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -910,7 +910,7 @@ vmAgent:
   # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
   # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
   # that are generated as a result of StorageSpec objects.
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1093,7 +1093,7 @@ vmAlertManager:
   # This can be used to allow adding an authentication proxy to a VMAlertmanager pod or to change
   # the behavior of an operator generated container.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   ## SecurityContext holds pod-level security attributes.
@@ -1125,7 +1125,7 @@ vmAlertManager:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1372,7 +1372,7 @@ vmAlert:
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   ## SecurityContext holds pod-level security attributes.
@@ -1404,7 +1404,7 @@ vmAlert:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1655,7 +1655,7 @@ vmAuth:
   # Containers property allows to inject additions sidecars or to patch existing containers.
   # It can be useful for proxies, backup, etc.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   ## SecurityContext holds pod-level security attributes.
@@ -1687,7 +1687,7 @@ vmAuth:
     # fsGroup: 2000
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set

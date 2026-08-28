@@ -15,7 +15,7 @@
                     "properties": {
                         "affinity": {
                             "type": "object",
-                            "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no"
+                            "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no"
                         },
                         "containerSecurityContext": {
                             "description": "ContainerSecurityContext holds container-level security attributes. Parameters set to support deploy with\n\"restricted\" PSS.\nType: object\nMandatory: no",
@@ -127,11 +127,11 @@
                 },
                 "affinity": {
                     "type": "object",
-                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
                 },
                 "containers": {
                     "type": "array",
-                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core",
                     "default": []
                 },
                 "externalLabels": {
@@ -358,12 +358,12 @@
                 },
                 "volumeMounts": {
                     "type": "object",
-                    "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.\nVolumeMounts specified will be appended to other VolumeMounts in the prometheus container,\nthat are generated as a result of StorageSpec objects.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core\nType: object\nMandatory: no\nDefault: not set",
+                    "description": "VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.\nVolumeMounts specified will be appended to other VolumeMounts in the prometheus container,\nthat are generated as a result of StorageSpec objects.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core\nType: object\nMandatory: no\nDefault: not set",
                     "default": {}
                 },
                 "volumes": {
                     "type": "object",
-                    "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition.\nVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core\nType: object\nMandatory: no\nDefault: not set",
+                    "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition.\nVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core\nType: object\nMandatory: no\nDefault: not set",
                     "default": {}
                 }
             },
@@ -374,11 +374,11 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
                 },
                 "containers": {
                     "type": "array",
-                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core",
                     "default": []
                 },
                 "externalLabels": {
@@ -592,7 +592,7 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
                 },
                 "configNamespaceSelector": {
                     "type": "object",
@@ -609,7 +609,7 @@
                 },
                 "containers": {
                     "type": "array",
-                    "description": "Containers allows injecting additional containers or modifying operator generated containers.\nThis can be used to allow adding an authentication proxy to a VMAlertmanager pod or to change\nthe behavior of an operator generated container.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core",
+                    "description": "Containers allows injecting additional containers or modifying operator generated containers.\nThis can be used to allow adding an authentication proxy to a VMAlertmanager pod or to change\nthe behavior of an operator generated container.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core",
                     "default": []
                 },
                 "disableNamespaceMatcher": {
@@ -798,7 +798,7 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
                 },
                 "configMaps": {
                     "type": "array",
@@ -807,7 +807,7 @@
                 },
                 "containers": {
                     "type": "array",
-                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core",
                     "default": []
                 },
                 "extraArgs": {
@@ -1516,7 +1516,7 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
                 },
                 "containerSecurityContext": {
                     "type": "object",
@@ -1707,11 +1707,11 @@
             "properties": {
                 "affinity": {
                     "type": "object",
-                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
+                    "description": "If specified, the pod's scheduling constraints\nMore info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core\nType: object\nMandatory: no\nDefault: not set"
                 },
                 "containers": {
                     "type": "array",
-                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#container-v1-core",
+                    "description": "Containers property allows to inject additions sidecars or to patch existing containers.\nIt can be useful for proxies, backup, etc.\nEach item of the list should be described as standard Kubernetes container:\nhttps://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core",
                     "default": []
                 },
                 "extraArgs": {
