@@ -1,6 +1,6 @@
 # pushgateway
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field             | Description                                                                                                                                                                                                                                                                                                                                                                                                            | Scheme                                                                                                                                 |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | install           | Allow to disable create Pushgateway during deploy.                                                                                                                                                                                                                                                                                                                                                                     | boolean                                                                                                                                |
@@ -23,12 +23,12 @@
 | volumeMounts      | VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition. VolumeMounts specified will be appended to other VolumeMounts in the prometheus container, that are generated as a result of StorageSpec objects.                                                                                                                                                                   | [v1.VolumeMount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core)                             |
 | storage           | PVC spec for Pushgateway. If specified, also adds flags --persistence.file=/data/pushgateway.data and --persistence.interval=5m, creates volume and volumeMount with name "storage-volume" in the deployment.                                                                                                                                                                                                          | [v1.PersistentVolumeClaimSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#persistentvolumeclaimspec-v1-core) |
 | priorityClassName | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                                                                                                                                                                                                                  | string                                                                                                                                 |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Parameter `extraArgs` can contain any flags that Pushgateway can handle.
 You can find them in the table bellow (relevant for Pushgateway v1.4.1).
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Flag                               | Default  | Description                                                                                    |
 | ---------------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `-h`, `--help`                     |          | Show context-sensitive help.                                                                   |
@@ -44,7 +44,7 @@ You can find them in the table bellow (relevant for Pushgateway v1.4.1).
 | `--push.disable-consistency-check` | false    | Do not check consistency of pushed metrics. DANGEROUS.                                         |
 | `--log.level`                      | info     | Only log messages with the given severity or above. One of: [debug, info, warn, error].        |
 | `--log.format`                     | logfmt   | Output format of log messages. One of: [logfmt, json].                                         |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Example:
 

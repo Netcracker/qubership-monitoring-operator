@@ -1,6 +1,6 @@
 # vmsingle
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field                      | Description                                                                                                                                                                                                                                 | Scheme                                                                                                                       |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | install                    | Allow to enable or disable deploy vmSingle via monitoring-operator.                                                                                                                                                                         | boolean                                                                                                                      |
@@ -30,7 +30,7 @@
 | volumeMounts               | VolumeMounts allows configuration of additional VolumeMounts on the output deploy definition. VolumeMounts specified will be appended to other VolumeMounts in the vmsingle container that are generated as a result of StorageSpec objects | []v1.VolumeMount                                                                                                             |
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                                        | string                                                                                                                       |
 | tlsConfig                  | TLS configuration for VMSingle. Must be specified if `victoriametrics.tlsEnabled` is set to `true`                                                                                                                                          | [TLSConfig](#tls-config)                                                                                                     |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Example:
 

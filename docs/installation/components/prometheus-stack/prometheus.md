@@ -1,6 +1,6 @@
 # prometheus
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Scheme                                                                                                                       |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | image                                         | The image to be used for the `prometheus` deployment. The `prometheus` is a systems and service monitoring system. It collects metrics from configured targets at given intervals. For more information, refer to [https://github.com/prometheus/prometheus](https://github.com/prometheus/prometheus)                                                                                                                                                               | string                                                                                                                       |
@@ -57,7 +57,7 @@
 | scrapeTimeout                                 | Number of seconds to wait for target to respond before erroring. Default: `10s`                                                                                                                                                                                                                                                                                                                                                                                      | string                                                                                                                       |
 | evaluationInterval                            | Interval between consecutive evaluations. Default: `30s`                                                                                                                                                                                                                                                                                                                                                                                                             | string                                                                                                                       |
 | priorityClassName                             | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                                                                                                                                                                                                                                                                | string                                                                                                                       |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Example:
 
@@ -183,7 +183,7 @@ prometheus:
 
 ## prometheus-operator
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field             | Description                                                                                                                                                                                                                                                                                                                                                           | Scheme                                                                                                                       |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | image             | The image to be used for the `prometheus-operator` deployment. The `prometheus-operator` makes the Prometheus configuration Kubernetes native, and manages and operates Prometheus and Alertmanager clusters. For more information, refer to [https://github.com/prometheus-operator/prometheus-operator](https://github.com/prometheus-operator/prometheus-operator) | string                                                                                                                       |
@@ -198,7 +198,7 @@ prometheus:
 | podMonitor        | Pod monitor for self monitoring.                                                                                                                                                                                                                                                                                                                                      | *[Monitor](#monitor)                                                                                                         |
 | priorityClassName | PriorityClassName assigned to the prometheus-operator Pods to prevent them from evicting                                                                                                                                                                                                                                                                              | string                                                                                                                       |
 
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Example:
 

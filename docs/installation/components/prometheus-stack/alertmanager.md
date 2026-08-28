@@ -2,7 +2,7 @@
 
 AlertManager is a specification of the desired behavior of the AlertManager cluster.
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field             | Description                                                                                                                                                                                                            | Scheme                                                                                                                       |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | install           | Allows to disable deploy AlertManager. If AlertManager was not deployed during the deployment using helm, it can be deployed using change custom resource PlatformMonitoring.                                          | bool                                                                                                                         |
@@ -20,7 +20,7 @@ AlertManager is a specification of the desired behavior of the AlertManager clus
 | securityContext   | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podsecuritycontext-v1-core)    |
 | podMonitor        | Pod monitor for self monitoring.                                                                                                                                                                                       | *[Monitor](#monitor)                                                                                                         |
 | priorityClassName | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                  | string                                                                                                                       |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Example:
 

@@ -24,6 +24,10 @@ prometheus:
         maxShards: 30
 ```
 
+<!-- These links point to sections of the assembled installation document. -->
+<!-- markdownlint-disable link-fragments -->
 The full list of parameters can be viewed at:
 
 * [Prometheus](#prometheus)
+
+<!-- markdownlint-enable link-fragments -->

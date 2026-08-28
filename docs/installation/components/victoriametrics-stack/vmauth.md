@@ -1,6 +1,6 @@
 # vmauth
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field                         | Description                                                                                                                                                                                                                                                  | Scheme                                                                                                                       | Required |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | -------- |
 | install                       | Allows to enable or disable deploy vmauth.                                                                                                                                                                                                                   | boolean                                                                                                                      | false    |
@@ -29,7 +29,7 @@
 | terminationGracePeriodSeconds | Defines period for container graceful termination.                                                                                                                                                                                                           | string                                                                                                                       | false    |
 | priorityClassName             | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                                                         | string                                                                                                                       | false    |
 | tlsConfig                     | TLS configuration for VMAuth. Must be specified if `victoriametrics.tlsEnabled` is set to `true`                                                                                                                                                             | [TLSConfig](#tls-config)                                                                                                     | false    |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 ```yaml
   vmAuth:

@@ -1,6 +1,6 @@
 # vmagent
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length link-fragments -->
 | Field                                         | Description                                                                                                                                                                                                                                                                                                                                  | Scheme                                                                                                                       |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | install                                       | Allows to enable or disable deploy vmagent.                                                                                                                                                                                                                                                                                                  | boolean                                                                                                                      |
@@ -51,7 +51,7 @@
 | minScrapeInterval                             | MinScrapeInterval allows limiting minimal scrape interval for VMServiceScrape, VMPodScrape and other scrapes                                                                                                                                                                                                                                 | string                                                                                                                       |
 | priorityClassName                             | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                                                                                                                                         | string                                                                                                                       |
 | tlsConfig                                     | TLS configuration for VMAgent. Must be specified if `victoriametrics.tlsEnabled` is set to `true`                                                                                                                                                                                                                                            | [TLSConfig](#tls-config)                                                                                                     |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length link-fragments -->
 
 Example:
 

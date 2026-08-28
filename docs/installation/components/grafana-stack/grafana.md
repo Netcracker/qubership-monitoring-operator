@@ -182,8 +182,8 @@ grafana:
 <!-- markdownlint-disable line-length -->
 **Warning**: The grafana-image-renderer requires two extra environment variables in Grafana:
 
-* GF_RENDERING_SERVER_URL - `http://<image-renderer-address>:<port>/render`
-* GF_RENDERING_CALLBACK_URL - `http://<grafana-adderss>:<port>/`
+- GF_RENDERING_SERVER_URL - `http://<image-renderer-address>:<port>/render`
+- GF_RENDERING_CALLBACK_URL - `http://<grafana-adderss>:<port>/`
 
 These variables have been set by default for local renderer and Grafana services. You don't have to override them. You
 need change them in case if youare yousing external renderer.
