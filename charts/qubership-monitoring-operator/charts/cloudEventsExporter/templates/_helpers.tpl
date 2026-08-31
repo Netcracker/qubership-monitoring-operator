@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.2" -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.3" -}}
   {{- end -}}
 {{- end -}}
 
