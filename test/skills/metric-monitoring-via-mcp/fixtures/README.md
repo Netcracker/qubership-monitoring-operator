@@ -53,16 +53,16 @@ Kubernetes API, pod exec, service-proxy, or repository-fixture access.
 Apply only the fixtures needed by the selected eval, for example:
 
 ```bash
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/recording-rule-chain.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/dashboard-no-data.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/alert-rule.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/alert-error-no-data.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/metric-temporal-semantics.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/dashboard-expensive-query.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/dashboard-display-mismatch.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/historical-recovered-alert.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/recording-rule-broken-chain.yaml
-kubectl apply -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/grafana-managed-alert.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/recording-rule-chain.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/dashboard-no-data.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/alert-rule.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/alert-error-no-data.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/metric-temporal-semantics.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/dashboard-expensive-query.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/dashboard-display-mismatch.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/historical-recovered-alert.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/recording-rule-broken-chain.yaml
+kubectl apply -f test/skills/metric-monitoring-via-mcp/fixtures/grafana-managed-alert.yaml
 ```
 
 Do not start the eval immediately. Poll the live systems until:
@@ -108,16 +108,16 @@ or adjust the fixture and matching expected output together.
 Delete the same manifests after the eval:
 
 ```bash
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/recording-rule-chain.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/dashboard-no-data.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/alert-rule.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/alert-error-no-data.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/metric-temporal-semantics.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/dashboard-expensive-query.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/dashboard-display-mismatch.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/historical-recovered-alert.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/recording-rule-broken-chain.yaml
-kubectl delete --ignore-not-found -f .agents/skills/metric-monitoring-via-mcp/evals/fixtures/grafana-managed-alert.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/recording-rule-chain.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/dashboard-no-data.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/alert-rule.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/alert-error-no-data.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/metric-temporal-semantics.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/dashboard-expensive-query.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/dashboard-display-mismatch.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/historical-recovered-alert.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/recording-rule-broken-chain.yaml
+kubectl delete --ignore-not-found -f test/skills/metric-monitoring-via-mcp/fixtures/grafana-managed-alert.yaml
 ```
 
 The shared label key `skill-eval` and the purpose annotation make these resources
