@@ -6,18 +6,18 @@ files for the agent under evaluation.
 
 ## Mapping
 
-| Eval | Fixture | Expected live state |
-| --- | --- | --- |
-| 1 — recording-rule chain | `recording-rule-chain.yaml` | Two healthy recording rules produce `skill_eval:up:sum_by_job` and `skill_eval:up:double_by_job`. |
-| 3 — dashboard No Data | `dashboard-no-data.yaml` | The panel selects the deliberately absent job value `skill-eval-nonexistent`. |
-| 4 — alert investigation | `alert-rule.yaml` | `SkillEvalApiServerReplicaShortage` becomes pending and then firing when fewer than two healthy `kube-apiserver` targets are visible. |
-| 7 — alert error versus No Data | `alert-error-no-data.yaml` | One alert rule has a runtime vector-matching error; the other is healthy but has no matching input series. |
-| 8 — counter reset and gaps | `metric-temporal-semantics.yaml` | One synthetic counter resets every minute; another is absent during a repeatable part of each 30-second cycle. |
-| 9 — expensive query | `dashboard-expensive-query.yaml` | A panel stores an intentionally broad all-metrics query over 24 hours with a one-second interval. |
-| 10 — display mismatch | `dashboard-display-mismatch.yaml` | The backend stores 1.5 seconds while the Grafana panel formats the value as milliseconds. |
-| 11 — recovered incident | `historical-recovered-alert.yaml` | A periodic signal is true for 90 seconds and then recovers, leaving historical metric evidence after the active instance disappears. |
-| 12 — broken rule dependencies | `recording-rule-broken-chain.yaml` | One chain terminates at a missing producer and another contains a two-rule cycle. |
-| 13 — Grafana-managed alert | `grafana-managed-alert.yaml` | A Grafana expression rule evaluates to one and becomes active independently of vmalert. |
+| Eval                           | Fixture                            | Expected live state                                                                                                                   |
+| ------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 — recording-rule chain       | `recording-rule-chain.yaml`        | Two healthy recording rules produce `skill_eval:up:sum_by_job` and `skill_eval:up:double_by_job`.                                     |
+| 3 — dashboard No Data          | `dashboard-no-data.yaml`           | The panel selects the deliberately absent job value `skill-eval-nonexistent`.                                                         |
+| 4 — alert investigation        | `alert-rule.yaml`                  | `SkillEvalApiServerReplicaShortage` becomes pending and then firing when fewer than two healthy `kube-apiserver` targets are visible. |
+| 7 — alert error versus No Data | `alert-error-no-data.yaml`         | One alert rule has a runtime vector-matching error; the other is healthy but has no matching input series.                            |
+| 8 — counter reset and gaps     | `metric-temporal-semantics.yaml`   | One synthetic counter resets every minute; another is absent during a repeatable part of each 30-second cycle.                        |
+| 9 — expensive query            | `dashboard-expensive-query.yaml`   | A panel stores an intentionally broad all-metrics query over 24 hours with a one-second interval.                                     |
+| 10 — display mismatch          | `dashboard-display-mismatch.yaml`  | The backend stores 1.5 seconds while the Grafana panel formats the value as milliseconds.                                             |
+| 11 — recovered incident        | `historical-recovered-alert.yaml`  | A periodic signal is true for 90 seconds and then recovers, leaving historical metric evidence after the active instance disappears.  |
+| 12 — broken rule dependencies  | `recording-rule-broken-chain.yaml` | One chain terminates at a missing producer and another contains a two-rule cycle.                                                     |
+| 13 — Grafana-managed alert     | `grafana-managed-alert.yaml`       | A Grafana expression rule evaluates to one and becomes active independently of vmalert.                                               |
 
 Eval 5 was retired because logs and traces are outside the skill scope. Evals 2,
 6, and 14 do not use Kubernetes fixtures. Eval 2 requires the deployment's
