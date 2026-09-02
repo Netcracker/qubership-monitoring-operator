@@ -1,6 +1,6 @@
 {{- $values := .Values | toJson | fromJson -}}
 {{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
-{{- if or .Values.grafana.install .Values.grafana.operator.install .Values.commonDashboards.install }}
+{{- if or .Values.grafana.install .Values.commonDashboards.install }}
 apiVersion: batch/v1
 kind: Job
 metadata:

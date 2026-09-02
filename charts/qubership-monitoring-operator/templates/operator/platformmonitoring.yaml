@@ -130,6 +130,7 @@ spec:
       {{- toYaml .Values.prometheus.externalLabels | nindent 6 }}
     externalUrl:
       {{- toYaml .Values.prometheus.externalUrl | nindent 6 }}
+    {{- if .Values.prometheus.remoteWrite }}
     remoteWrite:
       {{- range .Values.prometheus.remoteWrite }}
       {{- if .url }}
@@ -203,6 +204,9 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+    {{- else }}
+    remoteWrite: []
+    {{- end }}
     remoteRead:
       {{- toYaml .Values.prometheus.remoteRead | nindent 6 }}
     secrets:
@@ -1190,7 +1194,7 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .Values.grafana }}
-  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
+  {{- if .Values.grafana.install }}
   grafana:
     install: {{ .Values.grafana.install }}
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}

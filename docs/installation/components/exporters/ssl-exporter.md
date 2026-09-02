@@ -1,6 +1,7 @@
 # SSL Exporter
 
-SSL exporter allows probing SSL/TLS certificates for various targets (external/internal HTTPS endpoints, files on the host, Kubernetes secrets, and kubeconfig) and exposes metrics for Prometheus.
+SSL exporter allows probing SSL/TLS certificates for various targets (external/internal HTTPS endpoints,
+files on the host, Kubernetes secrets, and kubeconfig) and exposes metrics for Prometheus.
 
 <!-- markdownlint-disable line-length MD060 -->
 | Field                                                | Description                                                                                                                                                                                                                                       | Scheme |
@@ -65,7 +66,12 @@ SSL exporter allows probing SSL/TLS certificates for various targets (external/i
 
 ## Example: Basic Installation
 
-The chart installs ssl-exporter and, when `serviceMonitor.enabled` is true, a single ServiceMonitor that scrapes **`/metrics`** on the workload Service. For **per-target** active checks via **`/probe`**, the chart renders **`Probe`** resources from `sslExporter.probes.targets`. You can also create your own manual `Probe` resources if you need something custom. See [ssl-exporter metrics](../../../metrics-collection/exporters/ssl-exporter.md).
+The chart installs ssl-exporter and, when `serviceMonitor.enabled` is true, a single ServiceMonitor
+that scrapes **`/metrics`** on the workload Service. For **per-target** active checks via **`/probe`**,
+the chart renders **`Probe`** resources from `sslExporter.probes.targets`.
+
+You can also create your own manual `Probe` resources if you need something custom.
+See [ssl-exporter metrics](../../../metrics-collection/exporters/ssl-exporter.md).
 
 ```yaml
 sslExporter:
@@ -128,7 +134,8 @@ sslExporter:
 
 ## Example: Custom Manual Probe
 
-If you do not want to manage probe targets through chart values, create a manual `Probe` resource and point it at the ssl-exporter Service:
+If you do not want to manage probe targets through chart values, create a manual `Probe` resource
+and point it at the ssl-exporter Service:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -205,5 +212,7 @@ sslExporter:
 ## Security and Access Notes
 
 - When using the `kubernetes` module, RBAC permissions to read `secrets` (get/list/watch) are required.
-- For reading files/crypto-material from the host, use `additionalHostPathVolumes` and ensure the pod has read-only access to those paths.
-- Default modules and CA paths are safe; avoid weakening TLS verification unless absolutely necessary (`insecure_skip_verify: true`).
+- For reading files/crypto-material from the host, use `additionalHostPathVolumes`
+  and ensure the pod has read-only access to those paths.
+- Default modules and CA paths are safe; avoid weakening TLS verification unless absolutely
+  necessary (`insecure_skip_verify: true`).

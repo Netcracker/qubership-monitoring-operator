@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable line-length table-column-style first-line-heading no-multiple-blanks no-inline-html -->
 This section describes the types introduced by the Prometheus Adapter Operator.
 
 
@@ -26,7 +26,7 @@ CustomScaleMetricRule is the Schema for the customscalemetricrules API.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#objectmeta-v1-meta) | false |
+| metadata |  | [metav1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#objectmeta-v1-meta) | false |
 | spec |  | [CustomScaleMetricRuleSpec](#customscalemetricrulespec) | false |
 | status |  | CustomScaleMetricRuleStatus | false |
 
@@ -39,7 +39,7 @@ CustomScaleMetricRuleList contains a list of CustomScaleMetricRule.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#listmeta-v1-meta) | false |
+| metadata |  | [metav1.ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#listmeta-v1-meta) | false |
 | items |  | \[\][CustomScaleMetricRule](#customscalemetricrule) | true |
 
 
@@ -74,7 +74,7 @@ NameMapping specifies how to convert Prometheus metrics to or from the custom me
 
 ## RegexFilter
 
-RegexFilter is a filter that matches positively or negatively against a regex. Only one field may be set at a time.
+RegexFilter is a filter that matches positively or negatively against a regular expression. Only one field may be set at a time.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
@@ -88,5 +88,5 @@ ResourceMapping specifies how to map Kubernetes resources to Prometheus labels.
 
 | Field | Description | Scheme | Required |
 | ----- | ----------- | ------ | -------- |
-| template | Template specifies a golang string template for converting a Kubernetes group-resource to a Prometheus label.  The template object contains the `.Group` and `.Resource` fields.  The `.Group` field will have dots replaced with underscores, and the `.Resource` field will be singularized.  The delimiters are `<<` and `>>`. | string | false |
+| template | Template specifies a Go string template for converting a Kubernetes group-resource to a Prometheus label.  The template object contains the `.Group` and `.Resource` fields.  The `.Group` field will have dots replaced with underscores, and the `.Resource` field will be singularized.  The delimiters are `<<` and `>>`. | string | false |
 | overrides | Overrides specifies exceptions to the above template, mapping label names to group-resources | map\[string\][GroupResource](#groupresource) | false |
