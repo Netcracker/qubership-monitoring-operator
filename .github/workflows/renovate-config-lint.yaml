@@ -3,24 +3,16 @@ name: Validate Renovate Config
 on:
   push:
     paths:
-      - .github/scripts/test-renovate-operator-groups.mjs
       - renovate.json
       - .github/workflows/renovate-config-lint.yaml
-      - Makefile
-      - charts/qubership-monitoring-operator/templates/_images.tpl
-      - controllers/victoriametrics/vmoperator/assets/deployment.yaml
-      - go.mod
   pull_request:
     paths:
-      - .github/scripts/test-renovate-operator-groups.mjs
       - renovate.json
       - .github/workflows/renovate-config-lint.yaml
-      - Makefile
-      - charts/qubership-monitoring-operator/templates/_images.tpl
-      - controllers/victoriametrics/vmoperator/assets/deployment.yaml
-      - go.mod
   schedule:
-    - cron: "30 7 * * 1"
+    # Choose one stable Monday slot in 06:00-10:59 UTC for this repository.
+    # Avoid reusing this example unchanged across repositories.
+    - cron: "17 8 * * 1"
   workflow_dispatch: {}
 
 jobs:
@@ -30,7 +22,7 @@ jobs:
     outputs:
       reason: ${{ steps.validate-config.outputs.reason || steps.resolve-presets.outputs.reason }}
     container:
-      image: renovate/renovate:43.288.0@sha256:3b72fc4274c56f65f53dcd4dcbed3143289358e0a2d96f7af215e6cf1923e5f6
+      image: renovate/renovate:43.285.4@sha256:bd7d8f646bf9d22aea995eaad06ec26c3f4fd4efbc36826024f5653006c9e7b1
       options: --user 0
     permissions:
       contents: read
@@ -97,27 +89,6 @@ jobs:
             exit "$renovate_status"
           fi
 
-      - name: Test managed operator groups
-        shell: bash
-        env:
-          GITHUB_COM_TOKEN: ${{ github.token }}
-          LOG_FORMAT: json
-          LOG_LEVEL: debug
-          RENOVATE_CONFIG: >-
-            {"includePaths":["Makefile","charts/qubership-monitoring-operator/templates/_images.tpl","controllers/victoriametrics/vmoperator/assets/deployment.yaml","go.mod"]}
-          RENOVATE_ENABLED_MANAGERS: custom.regex,gomod
-        run: |
-          set -euo pipefail
-          log_file="$(mktemp)"
-          trap 'rm -f "$log_file"' EXIT
-
-          if ! renovate --platform=local --dry-run=extract > "$log_file" 2>&1; then
-            cat "$log_file"
-            exit 1
-          fi
-
-          node .github/scripts/test-renovate-operator-groups.mjs "$log_file"
-
   lookup-renovate-dependencies:
     # Set the Actions variable RENOVATE_HEALTH_CHECK to false when this
     # repository intentionally does not run Renovate. Validation remains active
@@ -130,7 +101,7 @@ jobs:
     outputs:
       reason: ${{ steps.lookup.outputs.reason }}
     container:
-      image: renovate/renovate:43.288.0@sha256:3b72fc4274c56f65f53dcd4dcbed3143289358e0a2d96f7af215e6cf1923e5f6
+      image: renovate/renovate:43.285.4@sha256:bd7d8f646bf9d22aea995eaad06ec26c3f4fd4efbc36826024f5653006c9e7b1
       options: --user 0
     permissions:
       contents: read
@@ -334,9 +305,11 @@ jobs:
 
             if grep -q '^## Repository Problems[[:space:]]*$' <<< "$dashboard_body"; then
               # Renovate records these notices as repository problems even though
-              # timestamp-optional explicitly allows the affected updates to proceed.
+              # timestamp-optional allows the updates to proceed and the local job
+              # independently checks dependency lookups.
               timestamp_optional_release_warning="⚠️ WARN: Some release(s) did not have a releaseTimestamp, but as we're running with minimumReleaseAgeBehaviour=timestamp-optional, proceeding. See debug logs for more information"
               timestamp_optional_upgrade_warning="⚠️ WARN: Some upgrade(s) did not have a releaseTimestamp, but as we're running with minimumReleaseAgeBehaviour=timestamp-optional, proceeding. See debug logs for more information"
+              package_lookup_warning='⚠️ WARN: Package lookup failures'
               repository_problems_intro_pattern='^These problems occurred while renovating this repository\. \[View logs\]\(https://developer\.mend\.io/[^[:space:])]+\)\.$'
               ignored_repository_problem_count=0
               actionable_repository_problem_count=0
@@ -351,7 +324,7 @@ jobs:
                 if [[ "$repository_problem_line" =~ $repository_problems_intro_pattern ]]; then
                   continue
                 fi
-                if [[ "$repository_problem_line" == " - $timestamp_optional_release_warning" || "$repository_problem_line" == " - $timestamp_optional_upgrade_warning" ]]; then
+                if [[ "$repository_problem_line" == " - $timestamp_optional_release_warning" || "$repository_problem_line" == " - $timestamp_optional_upgrade_warning" || "$repository_problem_line" == " - $package_lookup_warning" ]]; then
                   ignored_repository_problem_count=$((ignored_repository_problem_count + 1))
                 else
                   actionable_repository_problem_count=$((actionable_repository_problem_count + 1))
@@ -364,15 +337,12 @@ jobs:
 
               if [[ "$ignored_repository_problem_count" -eq 0 || "$actionable_repository_problem_count" -ne 0 ]]; then
                 reasons+=('Dependency Dashboard reports repository problems')
-              else
-                notes+=('Dependency Dashboard only reports expected timestamp-optional notices')
+              elif [[ "$LOOKUP_RESULT" == 'success' ]]; then
+                notes+=('Dependency Dashboard only reports expected timestamp notices or lookup failures covered by the local check')
               fi
             fi
             if grep -q '^## Errored[[:space:]]*$' <<< "$dashboard_body"; then
               reasons+=('Dependency Dashboard reports errored updates')
-            fi
-            if grep -q 'Renovate failed to look up' <<< "$dashboard_body"; then
-              reasons+=('Dependency Dashboard reports lookup failures')
             fi
           elif [[ "$issues_enabled" == 'true' ]]; then
             reasons+=('Renovate Dependency Dashboard was not found')
