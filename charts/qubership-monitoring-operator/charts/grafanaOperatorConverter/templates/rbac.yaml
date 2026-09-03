@@ -1,0 +1,161 @@
+{{- $watchNamespaces := include "grafana-operator-converter.watchNamespaces" . }}
+{{- $namespaceScoped := ne $watchNamespaces "" }}
+{{- $rbacNamespaces := list "" }}
+{{- if $namespaceScoped }}
+{{- $rbacNamespaces = splitList "," $watchNamespaces }}
+{{- end }}
+{{- if .Values.grafana.converter.enable }}
+{{- range $rbacNamespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ if not $namespaceScoped }}Cluster{{ end }}Role
+metadata:
+  {{- if $namespaceScoped }}
+  namespace: {{ . }}
+  {{- end }}
+  name: {{ include "grafana-operator-converter.fullname" $ }}
+  labels:
+    {{- include "grafana-operator-converter.labels" $ | nindent 4 }}
+    {{- with $.Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+  {{- if $.Values.grafana.converter.dashboard }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $.Values.grafana.converter.datasource }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $.Values.grafana.converter.folder }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $.Values.grafana.converter.notification }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafananotificationchannels
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanacontactpoints
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ if not $namespaceScoped }}Cluster{{ end }}RoleBinding
+metadata:
+  name: {{ include "grafana-operator-converter.fullname" $ }}
+  {{- if $namespaceScoped }}
+  namespace: {{ . }}
+  {{- end }}
+  labels:
+    {{- include "grafana-operator-converter.labels" $ | nindent 4 }}
+    {{- with $.Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "grafana-operator-converter.serviceAccountName" $ }}
+    namespace: {{ include "grafana-operator-converter.namespace" $ }}
+roleRef:
+  kind: {{ if not $namespaceScoped }}Cluster{{ end }}Role
+  name: {{ include "grafana-operator-converter.fullname" $ }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
+{{- if .Values.leaderElect }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "grafana-operator-converter.leaderElectionName" . }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" . | nindent 4 }}
+    {{- with .Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "grafana-operator-converter.leaderElectionName" . }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" . | nindent 4 }}
+    {{- with .Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "grafana-operator-converter.serviceAccountName" . }}
+    namespace: {{ include "grafana-operator-converter.namespace" . }}
+roleRef:
+  kind: Role
+  name: {{ include "grafana-operator-converter.leaderElectionName" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
