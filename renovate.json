@@ -52,6 +52,12 @@
   ],
   "packageRules": [
     {
+      "description": "Automerge Go module and GitHub Actions updates once every check on the branch has passed",
+      "matchManagers": ["gomod", "github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
       "description": "Group controller-gen Makefile tool with Kubernetes Go modules",
       "matchManagers": ["custom.regex"],
       "matchPackageNames": ["sigs.k8s.io/controller-tools"],
@@ -131,6 +137,18 @@
       "groupName": "netcracker-images",
       "separateMajorMinor": false,
       "ignoreUnstable": false
+    },
+    {
+      "description": "Keep bundled operator upgrades manual: they need make generate-all and a review of the regenerated CRDs and assets",
+      "matchPackageNames": [
+        "github.com/prometheus-operator/prometheus-operator{/,}**",
+        "prometheus-operator/prometheus-operator",
+        "github.com/VictoriaMetrics/operator{/,}**",
+        "VictoriaMetrics/operator"
+      ],
+      "automerge": false
     }
-  ]
+  ],
+  "platformAutomerge": false,
+  "automergeSchedule": ["at any time"]
 }
