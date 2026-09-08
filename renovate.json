@@ -150,5 +150,6 @@
     }
   ],
   "platformAutomerge": false,
-  "automergeSchedule": ["at any time"]
+  "automergeSchedule": ["at any time"],
+  "autoApprove": true
 }
