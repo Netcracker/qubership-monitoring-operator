@@ -65,11 +65,16 @@ jobs:
           )
           pattern="$(IFS='|'; printf '%s' "${patterns[*]}")"
 
-          changed="$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}")"
+          # --no-renames lists both endpoints of a move, so a file renamed out of
+          # a watched directory still counts as a change to that directory.
+          changed="$(git diff --no-renames --name-only "${BASE_SHA}...${HEAD_SHA}")"
           echo "Changed files:"
           printf '%s\n' "${changed}"
 
-          if printf '%s\n' "${changed}" | grep -qE "${pattern}"; then
+          # A here-string rather than a pipe: grep -q exits on its first match, and
+          # under pipefail a still-writing printf would take SIGPIPE and turn a
+          # match into a false negative once the file list outgrows the pipe buffer.
+          if grep -qE "${pattern}" <<< "${changed}"; then
             echo 'go=true' >> "${GITHUB_OUTPUT}"
           else
             echo 'go=false' >> "${GITHUB_OUTPUT}"
