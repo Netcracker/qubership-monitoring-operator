@@ -22,6 +22,21 @@ global:
   #
   privilegedRights: true
 
+  # When true, guest VictoriaMetrics Operator and Grafana Operator watch only
+  # the release namespace.
+  # Does not flip privilegedRights and does not confine managed-workload
+  # discovery (VMAgent, VMAlert, VMAlertmanager, VMAuth, kube-state-metrics,
+  # Prometheus). Default: false.
+  #
+  # A namespaced guest next to cluster-wide monitoring still needs:
+  #   * helm --skip-crds (CRDs stay with the host)
+  #   * a different nodeExporter.port if the host already binds hostPort 9900
+  #
+  # Type: boolean.
+  # Mandatory: no.
+  #
+  namespaceScope: false
+
   # Provide a name of HWE profile.
   # Allow values:
   #  * small - 1 million points per minute
