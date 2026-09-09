@@ -7,7 +7,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A comprehensive Kubernetes operator that simplifies the deployment and management of production-ready monitoring stacks.
-Built to handle complex monitoring environments with minimal operational overhead while providing maximum flexibility and scalability.
+Built to handle complex monitoring environments with minimal operational overhead while providing maximum
+flexibility and scalability.
 
 ## What is Qubership Monitoring Operator?
 
@@ -125,6 +126,7 @@ cd qubership-monitoring-operator
 kubectl apply --server-side --force-conflicts -f charts/qubership-monitoring-crds/crds/
 
 ```
+
 Ordinary `helm upgrade` does not upgrade CRDs. Alternatively, an Argo CD Application pointed to the CRD Helm chart
 can apply the complete CRD set. Before transferring existing Helm-managed CRDs to Argo CD, run the one-time
 `kubectl apply --server-side --force-conflicts` command above so Argo CD does not encounter field-ownership conflicts.
@@ -271,29 +273,40 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 
 ### Quick Guides
 
-- **[Installation Guide](https://netcracker.github.io/qubership-monitoring-operator/installation/)** - Detailed installation instructions
-- **[Configuration Guide](https://netcracker.github.io/qubership-monitoring-operator/configuration/)** - Complete configuration options
+- **[Installation Guide][installation-guide]** - Detailed installation instructions
+- **[Configuration Guide][configuration-guide]** - Complete configuration options
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
 ### API Reference
 
-- **[PlatformMonitoring](https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/)** - Main custom resource reference
-- **[PrometheusAdapter](https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/)** - HPA metrics adapter configuration
+- **[PlatformMonitoring][platformmonitoring-api]** - Main custom resource reference
+- **[PrometheusAdapter][prometheusadapter-api]** - HPA metrics adapter configuration
 
 ### Default Monitoring
 
-- **[Metrics](https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/)** - Out-of-the-box metrics collection
-- **[Alerts](https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/)** - Pre-configured alerting rules
-- **[Dashboards](https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/)** - Built-in Grafana dashboards
+- **[Metrics][default-metrics]** - Out-of-the-box metrics collection
+- **[Alerts][default-alerts]** - Pre-configured alerting rules
+- **[Dashboards][default-dashboards]** - Built-in Grafana dashboards
 
 ### Examples
 
-- **[Service Monitoring](https://netcracker.github.io/qubership-monitoring-operator/examples/)** - Monitor your applications
-- **[Cloud Watch Integration](https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/)** - Cloud provider integrations
+- **[Service Monitoring][service-monitoring-examples]** - Monitor your applications
+- **[Cloud Watch Integration][cloudwatch-exporter-example]** - Cloud provider integrations
 
 ### Architecture Overview
 
-- **[Architecture Overview](https://netcracker.github.io/qubership-monitoring-operator/architecture/)** - Detailed system architecture
+- **[Architecture Overview][architecture-overview]** - Detailed system architecture
+
+[architecture-overview]: https://netcracker.github.io/qubership-monitoring-operator/architecture/
+[cloudwatch-exporter-example]: https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/
+[configuration-guide]: https://netcracker.github.io/qubership-monitoring-operator/configuration/
+[default-alerts]: https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/
+[default-dashboards]: https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/
+[default-metrics]: https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/
+[installation-guide]: https://netcracker.github.io/qubership-monitoring-operator/installation/
+[platformmonitoring-api]: https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/
+[prometheusadapter-api]: https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/
+[service-monitoring-examples]: https://netcracker.github.io/qubership-monitoring-operator/examples/
 
 ## Contributing
 

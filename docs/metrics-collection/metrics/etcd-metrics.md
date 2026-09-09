@@ -10,10 +10,12 @@ Etcd already exposes its metrics in Prometheus format and doesn't require to use
 
 ## How to Collect
 
-Currently, etcd certificates for the metrics endpoint are retrieved by the `etcd-certs-to-secret` post-install and post-upgrade job.
-This job creates or updates a Secret containing the certificates and a ServiceMonitor configured to reference this Secret in the monitoring namespace.
+The `etcd-certs-to-secret` post-install and post-upgrade job retrieves the etcd certificates for the metrics
+endpoint. This job creates or updates a Secret containing the certificates and a ServiceMonitor configured to
+reference this Secret in the monitoring namespace.
 It also creates or updates an etcd Service in the namespace where etcd is deployed.
-However, this approach does not work on public cloud platforms (such as AWS, Azure, GKE, etc.) because access to control plane nodes is restricted.
+However, this approach does not work on public cloud platforms (such as AWS, Azure, GKE, etc.) because access to
+control plane nodes is restricted.
 
 The chart installs this job only when `publicCloudName` is not set and `global.privilegedRights` is `true`.
 The job reads the certificates from the etcd pod in Kubernetes, or from the etcd operator namespace in OpenShift, and
@@ -22,7 +24,9 @@ In a namespace-scoped installation (`global.privilegedRights: false`), the job, 
 deployed. Creating the `kube-etcd-client-certs` secret then becomes a manual prerequisite for etcd metrics; see
 [How to find certificates for Etcd](#how-to-find-certificates-for-etcd).
 
-Metrics are exposed on port `2379` at the `/metrics` endpoint. By default, etcd uses certificate-based authentication. Since etcd does not expose a Service by default, a Service must be created in the namespace where etcd is deployed (typically `kube-system` in Kubernetes) in order to collect metrics.
+Metrics are exposed on port `2379` at the `/metrics` endpoint. By default, etcd uses certificate-based
+authentication. Since etcd does not expose a Service by default, a Service must be created in the namespace where
+etcd is deployed (typically `kube-system` in Kubernetes) in order to collect metrics.
 
 Config of etcd Service:
 
@@ -84,7 +88,8 @@ spec:
 
 ### How to find certificates for Etcd
 
-If you configure etcd monitoring manually, you need to populate the empty Secret used by the monitoring system with the appropriate etcd certificates. For example:
+If you configure etcd monitoring manually, you need to populate the empty Secret used by the monitoring system with
+the appropriate etcd certificates. For example:
 
 ```yaml
 apiVersion: v1
@@ -120,7 +125,8 @@ kubectl exec "$etcd_pod" -n kube-system -- cat /etc/kubernetes/pki/etcd/peer.crt
 kubectl exec "$etcd_pod" -n kube-system -- cat /etc/kubernetes/pki/etcd/peer.key | base64 | tr -d '\n'
 ```
 
-If your etcd pod uses non-default certificate paths, inspect the etcd container command arguments for `--peer-key-file`, `--peer-trusted-ca-file`, and `--peer-cert-file`, then replace the paths in the commands above.
+If your etcd pod uses non-default certificate paths, inspect the etcd container command arguments for
+`--peer-key-file`, `--peer-trusted-ca-file`, and `--peer-cert-file`, then replace the paths in the commands above.
 
 #### For OpenShift 4.x
 
@@ -135,7 +141,8 @@ oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o jsonpath
 oc get secret etcd-metric-client --namespace=openshift-etcd-operator -o jsonpath='{.data.tls\.key}'
 ```
 
-For OpenShift 4.x, the `etcd-certs-to-secret` job configures the ServiceMonitor to use namespace `openshift-etcd` and port `etcd-metrics`.
+For OpenShift 4.x, the `etcd-certs-to-secret` job configures the ServiceMonitor to use namespace `openshift-etcd`
+and port `etcd-metrics`.
 This resource can be found in the namespace where monitoring is deployed and typically has a name similar to `<namespace>-etcd-service-monitor`.
 
 If you configure etcd monitoring manually, make the following changes:
