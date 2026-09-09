@@ -1850,7 +1850,11 @@ sslExporter:
   # Enable for testing
   install: false
 
-# Settings for a job to copy certificates from etcd to a secret
+# Settings for a job to copy certificates from etcd to a secret.
+# The job, its cronjob, and their RBAC are installed only when `publicCloudName` is empty and
+# `global.privilegedRights` is `true`. The job reads the certificates from the etcd pod or from the etcd operator
+# namespace, which requires cluster-wide access. With `global.privilegedRights` set to `false`, create the
+# `kube-etcd-client-certs` secret in the monitoring namespace manually before collecting etcd metrics.
 etcdCertsJob:
   # A name to use for the job and cronjob
   # Type: string

@@ -215,6 +215,9 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 With `global.privilegedRights=false`, the managed Grafana and VictoriaMetrics operators use namespace-scoped watches
 and `Role` resources. The chart does not create operator-managed `ClusterRole` or `ClusterRoleBinding` resources for
 those operators.
+The chart also skips the `etcd-certs-to-secret` job, which needs cluster-wide access to read the etcd certificates.
+To collect etcd metrics in this mode, create the `kube-etcd-client-certs` secret in the monitoring namespace yourself;
+see [etcd metrics](docs/metrics-collection/metrics/etcd-metrics.md).
 
 **What gets installed automatically:**
 

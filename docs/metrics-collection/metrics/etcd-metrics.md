@@ -15,6 +15,13 @@ This job creates or updates a Secret containing the certificates and a ServiceMo
 It also creates or updates an etcd Service in the namespace where etcd is deployed.
 However, this approach does not work on public cloud platforms (such as AWS, Azure, GKE, etc.) because access to control plane nodes is restricted.
 
+The chart installs this job only when `publicCloudName` is not set and `global.privilegedRights` is `true`.
+The job reads the certificates from the etcd pod in Kubernetes, or from the etcd operator namespace in OpenShift, and
+both sources require cluster-wide access.
+In a namespace-scoped installation (`global.privilegedRights: false`), the job, its cronjob, and their RBAC are not
+deployed. Creating the `kube-etcd-client-certs` secret then becomes a manual prerequisite for etcd metrics; see
+[How to find certificates for Etcd](#how-to-find-certificates-for-etcd).
+
 Metrics are exposed on port `2379` at the `/metrics` endpoint. By default, etcd uses certificate-based authentication. Since etcd does not expose a Service by default, a Service must be created in the namespace where etcd is deployed (typically `kube-system` in Kubernetes) in order to collect metrics.
 
 Config of etcd Service:
