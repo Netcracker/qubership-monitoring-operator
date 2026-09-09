@@ -75,7 +75,7 @@ Preparation Session For External Service
     IF  not ${has_scheme}
         ${use_url}=  Determine Protocol  ${external_url}  ${auth}
     END
-    Create Session  ${session}  ${use_url}  auth=${auth}
+    Create Session  ${session}  ${use_url}  auth=${auth}  verify=${False}
 
 Check Pod's List Is Not Empty
     [Arguments]  ${list_of_pods}
