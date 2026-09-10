@@ -46,7 +46,7 @@ spec:
   backoffLimit: 2
 ```
 
-Notice that the job uses a `vmctl` docker image and the `args` section contains the necessary options to
+Notice that the job uses a `vmctl` Docker image and the `args` section contains the necessary options to
 perform the data migration. The `--vm-native-src-addr` option specifies the source VictoriaMetrics
 instance and the `--vm-native-dst-addr` option specifies the destination VictoriaMetrics instance.
 Both Ingress URL and the internal service URL may be used for the source and destination addresses.

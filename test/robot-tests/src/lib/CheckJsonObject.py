@@ -1,10 +1,10 @@
 import base64
 import json
 import re
+from urllib.parse import urlparse
 
 import yaml
 from PlatformLibrary import PlatformLibrary
-from urllib.parse import urlparse
 
 
 def get_object_data(response):
@@ -104,6 +104,154 @@ def _get_http_route_hostnames(k8s_lib, namespace, base_name):
     return obj.get("spec", {}).get("hostnames") or []
 
 
+def _extract_hostname(host_or_url):
+    """Return the hostname part of a bare host or http(s) URL."""
+    if not host_or_url:
+        return ""
+    value = str(host_or_url).strip()
+    parsed = urlparse(value if "://" in value else f"//{value}", scheme="")
+    hostname = parsed.hostname or parsed.netloc or value
+    if "@" in hostname:
+        hostname = hostname.rsplit("@", 1)[-1]
+    if ":" in hostname and not hostname.startswith("["):
+        hostname = hostname.split(":", 1)[0]
+    return hostname
+
+
+def _is_wildcard_host(host_or_url):
+    """True if the hostname is a Kubernetes Ingress wildcard (*.suffix)."""
+    hostname = _extract_hostname(host_or_url)
+    return bool(hostname) and hostname.startswith("*.") and "*" not in hostname[2:]
+
+
+def _hostname_matches_ingress_wildcard(hostname, wildcard_pattern):
+    """True if hostname matches a K8s Ingress wildcard host rule.
+
+    Per Kubernetes, ``*.example.com`` matches exactly one DNS label
+    (``foo.example.com``) and does not match ``example.com`` or
+    ``bar.foo.example.com``.
+    """
+    if not hostname or not wildcard_pattern:
+        return False
+    hostname = str(hostname).strip().lower()
+    wildcard_pattern = str(wildcard_pattern).strip().lower()
+    if not _is_wildcard_host(wildcard_pattern):
+        return hostname == wildcard_pattern
+    suffix = wildcard_pattern[1:]  # ".example.com"
+    if not hostname.endswith(suffix):
+        return False
+    prefix = hostname[: -len(suffix)]
+    return bool(prefix) and "." not in prefix and "*" not in prefix
+
+
+def _ingress_spec_hosts(ingress):
+    """Collect host values from Ingress.spec.rules[].host."""
+    hosts = []
+    spec = getattr(ingress, "spec", None)
+    rules = getattr(spec, "rules", None) or []
+    for rule in rules:
+        host = getattr(rule, "host", None) or ""
+        if host:
+            hosts.append(host)
+    return hosts
+
+
+def _select_matching_lb_hostname(ingress, wildcard_pattern):
+    """Pick a status.loadBalancer hostname that matches the wildcard pattern.
+
+    Inspects all loadBalancer.ingress entries. IPs and non-matching hostnames
+    are ignored so they are never used as HTTP Host / TLS SNI.
+    """
+    status = getattr(ingress, "status", None)
+    if status is None:
+        return ""
+    load_balancer = getattr(status, "load_balancer", None)
+    if load_balancer is None:
+        return ""
+    entries = getattr(load_balancer, "ingress", None) or []
+    for entry in entries:
+        hostname = getattr(entry, "hostname", None) or ""
+        if hostname and _hostname_matches_ingress_wildcard(hostname, wildcard_pattern):
+            return hostname
+    return ""
+
+
+def _matching_ingress_lb_hostname(k8s_lib, name, namespace, wildcard_pattern):
+    """Fetch Ingress and return a matching LB hostname, or "".
+
+    Propagates Kubernetes API / client errors from get_ingress. An empty
+    return means status.loadBalancer has no matching hostname yet.
+    """
+    ingress = k8s_lib.get_ingress(name, namespace)
+    return _select_matching_lb_hostname(ingress, wildcard_pattern)
+
+
+def _resolve_ingress_url(url_or_host, k8s_lib, ingress_name, namespace):
+    """Replace a wildcard Ingress host/URL with a matching LB hostname.
+
+    Non-wildcard values are returned unchanged. When the host is a wildcard,
+    only a status.loadBalancer hostname that matches Kubernetes wildcard
+    semantics is accepted (preserving http/https scheme). IPs and unrelated
+    hostnames are never used as request authority.
+
+    Raises AssertionError when the host is a wildcard but no matching LB
+    hostname is ready yet, so Robot ``Wait Until Keyword Succeeds`` can retry
+    instead of treating the check as a soft skip.
+    """
+    if not url_or_host or not _is_wildcard_host(url_or_host):
+        return url_or_host or ""
+    pattern = _extract_hostname(url_or_host)
+    lb_hostname = _matching_ingress_lb_hostname(
+        k8s_lib, ingress_name, namespace, pattern
+    )
+    if not lb_hostname:
+        raise AssertionError(
+            f"Ingress {namespace}/{ingress_name} has no status.loadBalancer "
+            f"hostname matching wildcard {pattern!r} yet"
+        )
+    value = str(url_or_host).strip()
+    if value.lower().startswith("https://"):
+        return f"https://{lb_hostname}"
+    if value.lower().startswith("http://"):
+        return f"http://{lb_hostname}"
+    return lb_hostname
+
+
+def resolve_ingress_host(host, ingress_name, namespace):
+    """Robot-callable: resolve empty/wildcard host from matching Ingress LB hostname.
+
+    Non-empty non-wildcard hosts are returned unchanged. Empty or wildcard
+    hosts require a status.loadBalancer hostname that matches the Ingress
+    wildcard pattern (from the argument or Ingress.spec.rules). API errors
+    from get_ingress are propagated.
+    """
+    k8s_lib = PlatformLibrary()
+    host = host or ""
+    if host and not _is_wildcard_host(host):
+        return host
+
+    ingress = k8s_lib.get_ingress(ingress_name, namespace)
+    if host and _is_wildcard_host(host):
+        pattern = _extract_hostname(host)
+    else:
+        pattern = next(
+            (h for h in _ingress_spec_hosts(ingress) if _is_wildcard_host(h)),
+            "",
+        )
+    if not pattern:
+        raise AssertionError(
+            f"Ingress {namespace}/{ingress_name} has no wildcard host pattern "
+            "available to resolve GRAFANA_HOST"
+        )
+    matched = _select_matching_lb_hostname(ingress, pattern)
+    if not matched:
+        raise AssertionError(
+            f"Ingress {namespace}/{ingress_name} has no status.loadBalancer "
+            f"hostname matching wildcard {pattern!r} yet"
+        )
+    return matched
+
+
 def check_cr_service_exists(response, service, parentservice=None):
     if service in response.keys():
         service_child = response.get(service)
@@ -161,7 +309,8 @@ def check_route_or_ingress(response, service_in_cr, service, namespace, parentse
         if not _is_install_enabled(ingress_cfg.get('install')):
             return ""
     if (check_cr_service_exists(sub_service, 'ingress')):
-        return k8s_lib.get_ingress_url(service, namespace) or ""
+        ingress_url = k8s_lib.get_ingress_url(service, namespace) or ""
+        return _resolve_ingress_url(ingress_url, k8s_lib, service, namespace)
     return ""
 
 
@@ -275,7 +424,7 @@ def add_security_context_to_deployment(path_to_file, namespace):
             fs_group = pod.spec.security_context.fs_group
             run_as_user = pod.spec.security_context.run_as_user
             break
-    if fs_group == None and run_as_user == None:
+    if fs_group is None and run_as_user is None:
         return deployment
     deployment['spec']['template']['spec']['securityContext'] = dict(fsGroup=fs_group, runAsUser=run_as_user)
     return deployment

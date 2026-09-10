@@ -70,7 +70,7 @@ AWS CLI Reference at [https://awscli.amazonaws.com/v2/documentation/api/latest/r
 | ElastiCache                                 | AWS/Elasticache     | [https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheMetrics.Redis.html](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheMetrics.Redis.html)                                                         |
 | Elastic Compute Cloud (EC2)                 | AWS/EC2             | [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html)                                               |
 | Elastic File System                         | AWS/EFS             | [https://docs.aws.amazon.com/efs/latest/ug/efs-metrics.html](https://docs.aws.amazon.com/efs/latest/ug/efs-metrics.html)                                                                                                           |
-| ElasticSearch                               | AWS/ES              | [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html) |
+| Elasticsearch                               | AWS/ES              | [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html) |
 | Kinesis Data Stream                         | AWS/Kinesis         | [https://docs.aws.amazon.com/streams/latest/dev/monitoring-with-cloudwatch.html](https://docs.aws.amazon.com/streams/latest/dev/monitoring-with-cloudwatch.html)                                                                   |
 | Network Firewall                            | AWS/NetworkFirewall | [https://docs.aws.amazon.com/network-firewall/latest/developerguide/monitoring-cloudwatch.html](https://docs.aws.amazon.com/network-firewall/latest/developerguide/monitoring-cloudwatch.html)                                     |
 | NAT Gateway                                 | AWS/NATGateway      | [https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway-cloudwatch.html](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway-cloudwatch.html)                                                               |
@@ -122,7 +122,7 @@ Examples of cloudwatch-exporter configuration for some managed services:
         aws_statistics: [Average]
         period_seconds: 86400
     ```
-  
+
 The configuration must contain metrics (with statistics, dimensions, and so on) that you want to see in Prometheus.
 The official AWS documentation has information about each metric, the most useful statistics for it, and the possible sets
 of dimensions.
@@ -406,7 +406,7 @@ To create a user:
 
 1. Open IAM, and select Users.
 2. Click `Add Users`.
-3. Enter the user name and do not forget to set `Access key - Programmatic access` to generate the access key.
+3. Enter the username and do not forget to set `Access key - Programmatic access` to generate the access key.
 4. Select the earlier created group or permissions.
 5. Create the user and save the `Access Key ID` and `Secret Access Key`.
 
@@ -459,7 +459,7 @@ For the lists of full metrics, refer to [CloudWatch Metrics](#cloudwatch-metrics
 
 ```yaml
 cloudwatchExporter:
-  serviceMonitor: 
+  serviceMonitor:
    interval: 2m
   config:
     period_seconds: 120
@@ -570,7 +570,8 @@ Read installation guide [cloudwatch-exporter section](../installation/components
 
 ### EFS
 
-AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json) required following Cloudwatch-exporter configuration:
+AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -618,7 +619,8 @@ metrics:
 
 ### EBS
 
-AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json) required following Cloudwatch-exporter configuration:
+AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -658,7 +660,8 @@ metrics:
 
 ### S3
 
-AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json) required following Cloudwatch-exporter configuration:
+AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -678,8 +681,8 @@ metrics:
 
 ### Classic ELB
 
-AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json) required following Cloudwatch-exporter
-configuration:
+AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -723,8 +726,8 @@ metrics:
 
 ### Application ELB
 
-AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json) required following
-Cloudwatch-exporter configuration:
+AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -788,8 +791,8 @@ metrics:
 
 ### Network ELB
 
-AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json) required following Cloudwatch-exporter
-configuration:
+AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -865,8 +868,8 @@ metrics:
 
 ### RabbitMQ
 
-AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json) required following Cloudwatch-exporter
-configuration:
+AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -946,8 +949,8 @@ metrics:
 
 ### Cassandra
 
-AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json) required following Cloudwatch-exporter
-configuration:
+AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -1122,8 +1125,8 @@ Metrics ingested into a workspace are stored for 150 days, and are then automati
 
 #### Set up IAM Roles for Service Accounts
 
-**Warning**: Before creating an IAM role for Kubernetes, do not forget to configure the OIDC provider for EKS. For more information,
-see IAM Roles for Service Accounts at
+**Warning**: Before creating an IAM role for Kubernetes, do not forget to configure the OIDC provider for EKS.
+For more information, see IAM Roles for Service Accounts at
 [https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
 in the Amazon EKS Security Guide.
 
@@ -1204,7 +1207,7 @@ In deployment parameters for Monitoring, specify the following set:
 prometheus:
   ...
   serviceAccount:
-    annotations: 
+    annotations:
       eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
   remoteWrite:
     - url: https://aps-workspaces.<AWS_REGION>.amazonaws.com/workspaces/<WORKSPACE_ID>/api/v1/remote_write
@@ -1274,7 +1277,7 @@ Add the following parameters:
   prometheus:
     ...
     serviceAccounts:
-      annotations: 
+      annotations:
         eks.amazonaws.com/sts-regional-endpoints: true
   ```
 
@@ -1309,7 +1312,7 @@ prometheus:
         - name: AWS_STS_REGIONAL_ENDPOINTS
           value: regional
   serviceAccounts:
-    annotations: 
+    annotations:
       eks.amazonaws.com/sts-regional-endpoints: true
       eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
   remoteWrite:
@@ -1347,7 +1350,7 @@ apply external labels on all instances of a high-availability group, so that
 Amazon Managed Service for Prometheus can identify them. Also, set the
 `replicaExternalLabelName` and `externalLabels` parameters for Monitoring deployment.
 
-For example, in the following yaml, `cluster` is added to `externalLabel` to identify a Prometheus
+For example, in the following YAML, `cluster` is added to `externalLabel` to identify a Prometheus
 instance agent as part of a high-availability group, and `replicaExternalLabels` identifies
 each replica in the group.
 

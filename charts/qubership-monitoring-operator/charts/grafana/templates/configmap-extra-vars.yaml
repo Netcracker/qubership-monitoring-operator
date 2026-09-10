@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-extra-vars
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" "grafana-extra-vars") | nindent 4 }}
+{{- $offlineDefaults := dict
+  "GF_PLUGINS_PREINSTALL_DISABLED" true
+  "GF_PLUGINS_PUBLIC_KEY_RETRIEVAL_DISABLED" true
+  "GF_ANALYTICS_CHECK_FOR_UPDATES" false
+  "GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES" false
+  "GF_ANALYTICS_REPORTING_ENABLED" false
+  "GF_NEWS_NEWS_FEED_ENABLED" false
+-}}
+{{- $userExtraVars := deepCopy (.Values.extraVars | default dict) }}
+{{- $secretExtraVars := .Values.extraVarsSecret | default dict }}
+{{- $effectivePreinstall := get $userExtraVars "GF_PLUGINS_PREINSTALL" }}
+{{- if hasKey $secretExtraVars "GF_PLUGINS_PREINSTALL" }}
+  {{- $effectivePreinstall = get $secretExtraVars "GF_PLUGINS_PREINSTALL" }}
+{{- end }}
+{{- $effectivePreinstallSync := get $userExtraVars "GF_PLUGINS_PREINSTALL_SYNC" }}
+{{- if hasKey $secretExtraVars "GF_PLUGINS_PREINSTALL_SYNC" }}
+  {{- $effectivePreinstallSync = get $secretExtraVars "GF_PLUGINS_PREINSTALL_SYNC" }}
+{{- end }}
+{{- $preinstallCandidates := list $effectivePreinstall $effectivePreinstallSync }}
+{{- $hasCustomPreinstall := false }}
+{{- range $candidate := $preinstallCandidates }}
+  {{- if ne (trim (toString $candidate)) "" }}
+    {{- $hasCustomPreinstall = true }}
+  {{- end }}
+{{- end }}
+{{- $preinstallDisabledIsExplicit := false }}
+{{- $preinstallDisabled := false }}
+{{- if hasKey $userExtraVars "GF_PLUGINS_PREINSTALL_DISABLED" }}
+  {{- $preinstallDisabledIsExplicit = true }}
+  {{- $preinstallDisabled = eq (lower (toString (get $userExtraVars "GF_PLUGINS_PREINSTALL_DISABLED"))) "true" }}
+{{- end }}
+{{- if hasKey $secretExtraVars "GF_PLUGINS_PREINSTALL_DISABLED" }}
+  {{- $preinstallDisabledIsExplicit = true }}
+  {{- $preinstallDisabled = eq (lower (toString (get $secretExtraVars "GF_PLUGINS_PREINSTALL_DISABLED"))) "true" }}
+{{- end }}
+{{- if and $hasCustomPreinstall $preinstallDisabledIsExplicit $preinstallDisabled }}
+  {{- fail "GF_PLUGINS_PREINSTALL_DISABLED=true conflicts with GF_PLUGINS_PREINSTALL or GF_PLUGINS_PREINSTALL_SYNC" }}
+{{- end }}
+{{- $extraVars := mergeOverwrite (deepCopy $offlineDefaults) $userExtraVars }}
+{{- if $hasCustomPreinstall }}
+  {{- $_ := set $extraVars "GF_PLUGINS_PREINSTALL_DISABLED" false }}
+{{- end }}
+{{- if .Values.imageRenderer.install }}
+  {{- if not (get $extraVars "GF_RENDERING_SERVER_URL") }}
+    {{- $_ := set $extraVars "GF_RENDERING_SERVER_URL" "http://grafana-image-renderer:8081/render" }}
+  {{- end }}
+  {{- if not (get $extraVars "GF_RENDERING_CALLBACK_URL") }}
+    {{- $_ := set $extraVars "GF_RENDERING_CALLBACK_URL" "http://grafana-service:3000/" }}
+  {{- end }}
+{{- end }}
+data:
+  {{- range $key, $val := $extraVars }}
+  {{ $key | quote | indent 4}}: {{ $val | quote }}
+  {{- end }}

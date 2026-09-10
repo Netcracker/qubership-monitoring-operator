@@ -1,6 +1,7 @@
 # Component Configuration
 
-This section contains detailed configuration documentation for all monitoring components that can be deployed with the Qubership Monitoring Operator.
+This section contains detailed configuration documentation for all monitoring components that can be deployed
+with the Qubership Monitoring Operator.
 
 ## Component Categories
 
@@ -55,12 +56,15 @@ This section contains detailed configuration documentation for all monitoring co
 ## Common Configuration Patterns
 
 ### Authentication
-<!-- Most components support authentication configuration via the global `auth` section. See [Authentication](../monitoring-configuration/authentication.md) for details. -->
+<!-- Most components support authentication configuration via the global `auth` section.
+See [Authentication](../monitoring-configuration/authentication.md) for details. -->
 
 ### TLS Configuration
-<!-- Components can be configured with TLS certificates for secure communication. See [TLS Configuration](../monitoring-configuration/tls.md). -->
+<!-- Components can be configured with TLS certificates for secure communication.
+See [TLS Configuration](../monitoring-configuration/tls.md). -->
 
 ### Resource Management
+
 All components support resource requests and limits configuration:
 
 ```yaml
@@ -74,6 +78,7 @@ resources:
 ```
 
 ### Ingress Configuration
+
 Web-based components (Grafana, AlertManager, VictoriaMetrics) can be exposed via ingress:
 
 ```yaml
@@ -85,6 +90,7 @@ ingress:
 ```
 
 ### Security Context
+
 Components can run with specific security contexts:
 
 ```yaml

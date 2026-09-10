@@ -59,7 +59,7 @@ func vmAgentClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rba
 		})
 	}
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAgentComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAgentComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -81,7 +81,7 @@ func vmAgentClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRol
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAgentComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAgentComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAgentComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }
@@ -245,7 +245,7 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key",
 				}
 			}
-			vmagentRemoteWrite.URL = vmSingle.AsURL() + "/api/v1/write"
+			vmagentRemoteWrite.URL = vmSingle.AsURL(false) + "/api/v1/write"
 
 			addVmSingle := true
 			for _, rw := range vmagent.Spec.RemoteWrite {
@@ -276,7 +276,7 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key",
 				}
 			}
-			vmagentRemoteWrite.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus/api/v1/write"
+			vmagentRemoteWrite.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert, false) + "/insert/0/prometheus/api/v1/write"
 			addVmInsert := true
 			for _, rw := range vmagent.Spec.RemoteWrite {
 				if rw.URL == vmagentRemoteWrite.URL {

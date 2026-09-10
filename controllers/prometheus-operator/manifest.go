@@ -100,7 +100,7 @@ func prometheusOperatorClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.Cluste
 		Resources: []string{"services", "services/finalizers", "endpoints"},
 		Verbs:     []string{"get", "create", "list", "update", "watch"},
 	})
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.PrometheusOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.PrometheusOperatorComponentName), cr.GetNamespace())
 	return &clusterRole, nil
 }
 
@@ -120,7 +120,7 @@ func prometheusOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1
 		sub.Namespace = cr.GetNamespace()
 		sub.Name = cr.GetNamespace() + "-" + utils.PrometheusOperatorComponentName
 	}
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.PrometheusOperatorComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.PrometheusOperatorComponentName), cr.GetNamespace())
 	return &clusterRoleBinding, nil
 }
 

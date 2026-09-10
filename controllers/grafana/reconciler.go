@@ -11,8 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var isSecretUpdated = false
-
 // isManageAdminSecret returns true when Helm (and therefore this operator) manages
 // the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
 // When the flag is true the user is responsible for the secret; we skip validation.

@@ -817,7 +817,7 @@ func (r *VmOperatorReconciler) deleteAllCRDObjects(cr *monv1.PlatformMonitoring)
 
 func getListObjectType(list client.ObjectList) reflect.Type {
 	objType := reflect.ValueOf(list).Elem().FieldByName("Items").Type().Elem()
-	if objType.Kind() == reflect.Ptr {
+	if objType.Kind() == reflect.Pointer {
 		objType = objType.Elem()
 	}
 

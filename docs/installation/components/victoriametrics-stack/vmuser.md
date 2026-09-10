@@ -1,4 +1,4 @@
-#### vmuser
+# vmuser
 
 <!-- markdownlint-disable line-length -->
 | Field            | Description                                                                                  | Scheme                | Required |
@@ -124,5 +124,3 @@ Here is the config example.
 Default paths for vmselect:
 
 * `/select/.*`
-
-

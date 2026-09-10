@@ -8,7 +8,7 @@ All metrics collected by Monitoring can be classified into next categories:
 * Kubernetes node metrics (VM specific, like node CPU, Memory, FS, Disk)
 * Kubernetes components metrics (metrics from `kube-apiserver`, `etcd`, and so on)
 * Kubernetes microservices metrics (metrics about pods, containers, deployments and so on)
-* Metrics about microservice runtime (like JVM, and Golang runtime)
+* Metrics about microservice runtime (like JVM, and Go runtime)
 * Microservice metrics (how microservice do any work)
 * Custom metrics (for example, from any VMs outside the Cloud)
 
@@ -123,7 +123,7 @@ How to use matchLabels and `matchExpressions` you can read:
 
 * [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels)
 * [https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/](https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/)
-* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)
+* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)
 
 There are two approaches how to use label selectors:
 
@@ -207,7 +207,7 @@ How to use matchLabels and `matchExpressions` you can read:
 
 * [https://kubernetes.io/docs/concepts/overview/working-with-objects/labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels)
 * [https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/](https://riyafa.wordpress.com/2020/06/07/kubernetes-matchexpressions-explained/)
-* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)
+* [https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)
 
 There are two approaches how to use namespaceSelectors:
 

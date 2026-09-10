@@ -37,7 +37,7 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 			vmuser.Spec.Name = cr.Spec.Victoriametrics.VmUser.Name
 		}
 		if cr.Spec.Victoriametrics.VmUser.UserName != nil {
-			vmuser.Spec.UserName = cr.Spec.Victoriametrics.VmUser.UserName
+			vmuser.Spec.Username = cr.Spec.Victoriametrics.VmUser.UserName
 		}
 		if cr.Spec.Victoriametrics.VmUser.PasswordRef != nil {
 			vmuser.Spec.PasswordRef = cr.Spec.Victoriametrics.VmUser.PasswordRef
@@ -59,9 +59,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 			if cr.Spec.Victoriametrics.VmSingle.IsInstall() {
 				targetRef := vmetricsv1b1.TargetRef{
 					CRD: &vmetricsv1b1.CRDRef{
-						Kind:      "VMSingle",
-						Name:      "k8s",
-						Namespace: cr.GetNamespace(),
+						Kind: "VMSingle",
+						NamespacedName: vmetricsv1b1.NamespacedName{
+							Name:      "k8s",
+							Namespace: cr.GetNamespace(),
+						},
 					},
 					Paths: []string{""},
 				}
@@ -70,9 +72,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 				if cr.Spec.Victoriametrics.VmAgent.IsInstall() {
 					targetRef := vmetricsv1b1.TargetRef{
 						CRD: &vmetricsv1b1.CRDRef{
-							Kind:      "VMAgent",
-							Name:      "k8s",
-							Namespace: cr.GetNamespace(),
+							Kind: "VMAgent",
+							NamespacedName: vmetricsv1b1.NamespacedName{
+								Name:      "k8s",
+								Namespace: cr.GetNamespace(),
+							},
 						},
 						Paths: []string{""},
 					}
@@ -84,9 +88,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 				if cr.Spec.Victoriametrics.VmCluster.VmSelect != nil {
 					targetRef := vmetricsv1b1.TargetRef{
 						CRD: &vmetricsv1b1.CRDRef{
-							Kind:      "VMCluster/vmselect",
-							Name:      "k8s",
-							Namespace: cr.GetNamespace(),
+							Kind: "VMCluster/vmselect",
+							NamespacedName: vmetricsv1b1.NamespacedName{
+								Name:      "k8s",
+								Namespace: cr.GetNamespace(),
+							},
 						},
 						Paths: vmSelectPaths(),
 					}
@@ -95,9 +101,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 				if cr.Spec.Victoriametrics.VmCluster.VmStorage != nil {
 					targetRef := vmetricsv1b1.TargetRef{
 						CRD: &vmetricsv1b1.CRDRef{
-							Kind:      "VMCluster/vmstorage",
-							Name:      "k8s",
-							Namespace: cr.GetNamespace(),
+							Kind: "VMCluster/vmstorage",
+							NamespacedName: vmetricsv1b1.NamespacedName{
+								Name:      "k8s",
+								Namespace: cr.GetNamespace(),
+							},
 						},
 						Paths: []string{""},
 					}
@@ -106,9 +114,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 				if cr.Spec.Victoriametrics.VmCluster.VmInsert != nil {
 					targetRef := vmetricsv1b1.TargetRef{
 						CRD: &vmetricsv1b1.CRDRef{
-							Kind:      "VMCluster/vminsert",
-							Name:      "k8s",
-							Namespace: cr.GetNamespace(),
+							Kind: "VMCluster/vminsert",
+							NamespacedName: vmetricsv1b1.NamespacedName{
+								Name:      "k8s",
+								Namespace: cr.GetNamespace(),
+							},
 						},
 						Paths: vmInsertPaths(),
 					}
@@ -131,9 +141,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 				}
 				targetRef := vmetricsv1b1.TargetRef{
 					CRD: &vmetricsv1b1.CRDRef{
-						Kind:      "VMAlert",
-						Name:      "k8s",
-						Namespace: cr.GetNamespace(),
+						Kind: "VMAlert",
+						NamespacedName: vmetricsv1b1.NamespacedName{
+							Name:      "k8s",
+							Namespace: cr.GetNamespace(),
+						},
 					},
 					Paths: vmAlertPaths(),
 				}
@@ -144,9 +156,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 			if cr.Spec.Victoriametrics.VmAlertManager.IsInstall() {
 				targetRef := vmetricsv1b1.TargetRef{
 					CRD: &vmetricsv1b1.CRDRef{
-						Kind:      "VMAlertmanager",
-						Name:      "k8s",
-						Namespace: cr.GetNamespace(),
+						Kind: "VMAlertmanager",
+						NamespacedName: vmetricsv1b1.NamespacedName{
+							Name:      "k8s",
+							Namespace: cr.GetNamespace(),
+						},
 					},
 					Paths: vmAlertManagerPaths(),
 				}
@@ -156,9 +170,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 			if cr.Spec.Victoriametrics.VmAgent.IsInstall() {
 				targetRef := vmetricsv1b1.TargetRef{
 					CRD: &vmetricsv1b1.CRDRef{
-						Kind:      "VMAgent",
-						Name:      "k8s",
-						Namespace: cr.GetNamespace(),
+						Kind: "VMAgent",
+						NamespacedName: vmetricsv1b1.NamespacedName{
+							Name:      "k8s",
+							Namespace: cr.GetNamespace(),
+						},
 					},
 					Paths: vmAgentPaths(),
 				}
@@ -171,9 +187,11 @@ func vmUser(cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VMUser, error) {
 				}
 				targetRef := vmetricsv1b1.TargetRef{
 					CRD: &vmetricsv1b1.CRDRef{
-						Kind:      "VMSingle",
-						Name:      "k8s",
-						Namespace: cr.GetNamespace(),
+						Kind: "VMSingle",
+						NamespacedName: vmetricsv1b1.NamespacedName{
+							Name:      "k8s",
+							Namespace: cr.GetNamespace(),
+						},
 					},
 					Paths: vmSPaths,
 				}

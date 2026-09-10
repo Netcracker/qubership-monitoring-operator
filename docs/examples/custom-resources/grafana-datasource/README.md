@@ -1,15 +1,16 @@
-# Grafana DataSource example
+# Grafana datasource example
 
 * [Grafana DataSource example](#grafana-datasource-example)
   * [Overview](#overview)
   * [DataSource](#datasource)
+  * [Migrate v4 resources](#migrate-v4-resources)
   * [Files](#files)
   * [How to apply the simple example](#how-to-apply-the-simple-example)
   * [Links](#links)
 
 **[Back](../../README.md)**
 
-This example show how to add Grafana DataSource to collect data from different sources.
+This example shows how to add a Grafana datasource that collects data from another source.
 
 ## Overview
 
@@ -33,9 +34,11 @@ This document describes how to add Grafana datasource as Custom Resource for the
 ```yaml
 ...
 spec:
-  name: simple-datasource-example.yaml
-  datasources:
-  - name: Prometheus datasource
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+  datasource:
+    name: Prometheus datasource
     type: prometheus
     access: proxy
     ...
@@ -43,10 +46,27 @@ spec:
 
 It means that datasource with name `Prometheus datasource` and type `prometheus` will be added to Grafana.
 
-One DataSource CR can handle multiple datasources with unique names.
+Each GrafanaDatasource CR defines one datasource. Create a separate CR for each additional datasource.
 
 Required fields for every datasource: `name`, `type`, `access`. Full list of parameters is unique for each
 type of datasource.
+
+## Migrate v4 resources
+
+Grafana Operator v5 does not reconcile the former `integreatly.org/v1alpha1` `GrafanaDataSource` resource. Before
+upgrading, inventory those resources:
+
+```bash
+kubectl get grafanadatasources.integreatly.org --all-namespaces
+```
+
+For every item in the old `spec.datasources` array, create one `grafana.integreatly.org/v1beta1`
+`GrafanaDatasource`. Move the item to singular `spec.datasource`, give each resource a unique `metadata.name`, and add
+an `instanceSelector` that matches the target Grafana instance. Apply and verify the replacement resources before
+removing the old resources or CRD.
+
+The [Grafana operator converter](https://github.com/Netcracker/qubership-grafana-operator-converter) migrates legacy
+Grafana dashboards only; it does not migrate datasources.
 
 ## Files
 
@@ -54,7 +74,7 @@ type of datasource.
 * [Full DataSource example](full-datasource-example.yaml)
 
 See more examples in the
-[`grafana-operator` repository](https://github.com/grafana/grafana-operator/tree/v4.10.1/deploy/examples/datasources).
+[`grafana-operator` documentation](https://grafana.github.io/grafana-operator/docs/examples/datasource/).
 
 ## How to apply the simple example
 
@@ -75,7 +95,6 @@ oc apply -f simple-datasource-example.yaml
 * Grafana official documentation
   * [Configuration of datasource example](https://grafana.com/docs/grafana/latest/administration/provisioning/#data-sources)
   * [Add a data source (via UI)](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source)
-* Grafana-operator
-  * [Working with data sources](https://github.com/grafana/grafana-operator/blob/v4/documentation/datasources.md)
-  * [Plugins](https://github.com/grafana/grafana-operator/blob/v4/documentation/plugins.md)
-  * [Examples of data sources](https://github.com/grafana/grafana-operator/tree/v4.10.1/deploy/examples/datasources)
+* Grafana Operator
+  * [GrafanaDatasource examples](https://grafana.github.io/grafana-operator/docs/examples/datasource/)
+  * [Plugin management](https://grafana.github.io/grafana-operator/docs/examples/datasource/plugins/readme/)

@@ -40,6 +40,24 @@ func (r *NodeExporterReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 			// Reconcile ClusterRole and ClusterRoleBinding only if privileged mode used
 			if utils.PrivilegedRights {
+				// Create SecurityContextConstraints if run on OpenShift so that
+				// the node-exporter ServiceAccount is allowed to use hostNetwork/hostPID/hostPath.
+				// Checks that necessary API exists and prints a message if no suitable API is found.
+				// cr.Spec.NodeExporter.SetupSecurityContext defaults to true (see the CRD), so this
+				// only skips SCC management when a user explicitly opts out.
+				if r.hasSecurityContextConstraintsAPI() {
+					if cr.Spec.NodeExporter.SetupSecurityContext {
+						if err := r.handleSecurityContextConstraints(cr); err != nil {
+							return err
+						}
+					} else {
+						if err := r.deleteSecurityContextConstraints(cr); err != nil {
+							return err
+						}
+					}
+				} else {
+					r.Log.Info("there is no SecurityContextConstraints API found, skip creating SCC for node-exporter")
+				}
 				if err := r.handleClusterRole(cr); err != nil {
 					return err
 				}
@@ -83,6 +101,11 @@ func (r *NodeExporterReconciler) Run(cr *monv1.PlatformMonitoring) error {
 // uninstall deletes all resources related to the component
 func (r *NodeExporterReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	if utils.PrivilegedRights {
+		if r.hasSecurityContextConstraintsAPI() {
+			if err := r.deleteSecurityContextConstraints(cr); err != nil {
+				r.Log.Error(err, "Can not delete SecurityContextConstraints")
+			}
+		}
 		if err := r.deleteClusterRole(cr); err != nil {
 			r.Log.Error(err, "Can not delete ClusterRole")
 		}

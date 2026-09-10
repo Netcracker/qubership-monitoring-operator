@@ -163,6 +163,17 @@ func TestSetLabelsForResource(t *testing.T) {
 	})
 }
 
+func TestSetClusterScopedLabelsForResource(t *testing.T) {
+	obj := &objWithLabels{ObjectMeta: metav1.ObjectMeta{
+		Name:   "monitoring-grafana-operator",
+		Labels: map[string]string{InstallationNamespaceLabelKey: "other"},
+	}}
+	SetClusterScopedLabelsForResource(obj, BaseOnlyLabelInput(obj.Name, "grafana-operator"), "monitoring")
+
+	assert.Equal(t, "monitoring", obj.Labels[InstallationNamespaceLabelKey])
+	assert.Equal(t, OperatorDeploymentName, obj.Labels["app.kubernetes.io/managed-by-operator"])
+}
+
 func TestSetLabelsForWorkload(t *testing.T) {
 	podLabels := make(map[string]string)
 	obj := &objWithLabels{ObjectMeta: metav1.ObjectMeta{Name: "w", Namespace: "ns"}}

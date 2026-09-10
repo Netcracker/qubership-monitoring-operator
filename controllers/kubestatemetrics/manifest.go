@@ -56,7 +56,7 @@ func kubeStateMetricsClusterRole(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterR
 	clusterRole.SetGroupVersionKind(schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"})
 	clusterRole.SetName(cr.GetNamespace() + "-" + utils.KubestatemetricsComponentName)
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.KubestatemetricsComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.KubestatemetricsComponentName), cr.GetNamespace())
 	return &clusterRole, nil
 }
 
@@ -76,7 +76,7 @@ func kubeStateMetricsClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.C
 		sub.Name = cr.GetNamespace() + "-" + utils.KubestatemetricsComponentName
 		sub.Namespace = cr.GetNamespace()
 	}
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.KubestatemetricsComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.KubestatemetricsComponentName), cr.GetNamespace())
 	return &clusterRoleBinding, nil
 }
 

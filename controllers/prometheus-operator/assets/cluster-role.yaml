@@ -52,20 +52,35 @@ rules:
       - prometheuses/finalizers
       - prometheuses/status
       - prometheusagents
+      - prometheusagents/finalizers
       - prometheusagents/status
       - thanosrulers
       - thanosrulers/finalizers
+      - thanosrulers/status
       - servicemonitors
+      - servicemonitors/status
       - podmonitors
+      - podmonitors/status
       - probes
+      - probes/status
       - prometheusrules
+      - prometheusrules/status
       - scrapeconfigs
+      - scrapeconfigs/status
     verbs:
       - "get"
       - "list"
       - "watch"
       - "update"
       - "patch"
+
+  - apiGroups:
+      - "events.k8s.io"
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
 
   - apiGroups:
       - ""

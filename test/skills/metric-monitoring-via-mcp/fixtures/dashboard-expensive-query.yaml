@@ -1,0 +1,96 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: monitoring-skill-eval-expensive-query
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: monitoring
+    skill-eval: expensive-query
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-9
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: |
+    {
+      "id": null,
+      "uid": "monitoring-skill-eval-expensive-query",
+      "title": "Skill Eval / Expensive Query",
+      "tags": ["self-monitor", "skill-eval"],
+      "editable": false,
+      "timezone": "utc",
+      "schemaVersion": 41,
+      "version": 1,
+      "refresh": "",
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Everything by source",
+          "description": "Intentionally broad eval query. The intended question is current scrape-target availability by job.",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "sum by (__name__, namespace, pod, container, instance, job) ({__name__=~\".+\"})",
+              "legendFormat": "{{__name__}} / {{job}} / {{instance}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "maxDataPoints": 86400,
+          "interval": "1s"
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "label": "Datasource",
+            "type": "datasource",
+            "query": "prometheus",
+            "refresh": 1,
+            "current": {
+              "text": "Platform Monitoring Prometheus"
+            },
+            "options": []
+          }
+        ]
+      },
+      "annotations": {
+        "list": []
+      },
+      "links": []
+    }

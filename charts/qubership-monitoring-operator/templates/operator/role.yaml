@@ -54,6 +54,19 @@ rules:
       - pods/exec
     verbs:
       - create
+  - apiGroups:
+      - ""
+    resources:
+      - pods/eviction
+    verbs:
+      - create
+  - apiGroups:
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
 
   # apps
   # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
@@ -77,6 +90,27 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets/status
+      - deployments/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments/scale
+    verbs:
+      - get
+      - patch
+      - update
   - apiGroups:
       - extensions
     resources:
@@ -111,6 +145,7 @@ rules:
       - delete
       - get
       - list
+      - patch
       - update
       - watch
 
@@ -120,8 +155,14 @@ rules:
       - policy
     resources:
       - poddisruptionbudgets
+      - poddisruptionbudgets/finalizers
     verbs:
+      - create
+      - delete
+      - get
       - list
+      - patch
+      - update
       - watch
 
   # autoscaling
@@ -131,13 +172,32 @@ rules:
     resources:
       - verticalpodautoscalers
     verbs:
+      - create
+      - delete
+      - get
       - list
+      - update
       - watch
   - apiGroups:
       - autoscaling
     resources:
       - horizontalpodautoscalers
     verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # discovery.k8s.io
+  # This is needed for EndpointSlice discovery
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - get
       - list
       - watch
 
@@ -205,6 +265,7 @@ rules:
       - deletecollection
       - get
       - list
+      - patch
       - update
       - watch
 
@@ -219,6 +280,7 @@ rules:
       - delete
       - get
       - list
+      - patch
       - update
       - watch
 
@@ -240,7 +302,22 @@ rules:
       - update
       - watch
 
-  # integreatly.org
+  # Legacy grafana-operator v4 Grafana CRs are removed after their native resources are adopted by v5.
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanas
+    verbs:
+      - delete
+      - get
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - get
+
+  # grafana.integreatly.org
   # This is needed for managing Grafana custom resources
   - apiGroups:
       - grafana.integreatly.org
@@ -274,6 +351,26 @@ rules:
       - create
       - delete
       - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - "*/finalizers"
+    verbs:
+      - patch
+      - update
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanamanifests
+      - grafanamanifests/status
+    verbs:
+      - create
+      - delete
       - get
       - list
       - patch
@@ -358,6 +455,7 @@ rules:
       - vmauths
       - vmclusters
       - vmdistributed
+      - vmanomalyconfigs
       - vmsingles
       - vmusers
       - vtclusters
@@ -399,6 +497,8 @@ rules:
       - vmdistributed/finalizers
       - vmdistributed/status
       - vmdistributed/status
+      - vmanomalyconfigs/finalizers
+      - vmanomalyconfigs/status
       - vmnodescrapes/finalizers
       - vmnodescrapes/status
       - vmpodscrapes/finalizers

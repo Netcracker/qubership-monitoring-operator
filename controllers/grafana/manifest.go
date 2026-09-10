@@ -13,8 +13,10 @@ import (
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
@@ -23,11 +25,18 @@ import (
 //go:embed  assets/*.yaml
 var assets embed.FS
 
-func getGrafanaRootURL(protocol string, host string) string {
-	if protocol == "" {
-		protocol = "http"
-	}
-	return fmt.Sprintf("%v://%v/", protocol, host)
+const (
+	grafanaCleanupLabelKey   = "app.kubernetes.io/managed-by-operator"
+	grafanaCleanupLabelValue = "monitoring-operator"
+)
+
+type grafanaDataStorage struct {
+	AccessModes []corev1.PersistentVolumeAccessMode `json:"accessModes,omitempty"`
+	Annotations map[string]string                   `json:"annotations,omitempty"`
+	Class       string                              `json:"class,omitempty"`
+	Labels      map[string]string                   `json:"labels,omitempty"`
+	Size        resource.Quantity                   `json:"size,omitempty"`
+	VolumeName  string                              `json:"volumeName,omitempty"`
 }
 
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
@@ -103,6 +112,9 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		//   - disableDefaultAdminSecret=true: user creates the secret manually (optional).
 		// In both cases we do not want grafana-operator to generate a random secret on its own.
 		graf.Spec.DisableDefaultAdminSecret = true
+		// Preserve the existing PlatformMonitoring pod security context. The v5 container defaults use UID/GID 10001,
+		// which cannot read data created by the v4 deployment running as UID/GID 2000.
+		graf.Spec.DisableDefaultSecurityContext = "Container"
 
 		// IMPORTANT: propagate PlatformMonitoring.spec.grafana.image into Grafana.spec.version.
 		// In grafana-operator v5, spec.version accepts either a tag (e.g. "12.3.3") or a full image reference
@@ -116,15 +128,49 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// We explicitly set it to nil for safety (though it should already be nil after decoding the asset).
 		graf.Spec.Ingress = nil
 
-		// Config is now runtime.RawExtension in grafana-operator v5
-		// Only set Config if it's provided as RawExtension, otherwise configure Config fields below
-		configProvidedAsRawExtension := cr.Spec.Grafana.Config != nil
-		if configProvidedAsRawExtension {
-			// Config is runtime.RawExtension, but graf.Spec.Config expects map[string]map[string]string
-			// We need to unmarshal RawExtension to set Config properly
-			// For now, skip setting Config if provided as RawExtension - it will be handled by grafana-operator
+		if cr.Spec.Grafana.DataStorage != nil && len(cr.Spec.Grafana.DataStorage.Raw) > 0 {
+			dataStorage := grafanaDataStorage{}
+			if err := json.Unmarshal(cr.Spec.Grafana.DataStorage.Raw, &dataStorage); err != nil {
+				return nil, fmt.Errorf("cannot decode Grafana data storage: %w", err)
+			}
+
+			pvcSpec := &grafv1.PersistentVolumeClaimV1Spec{
+				AccessModes: dataStorage.AccessModes,
+				Resources: &corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceStorage: dataStorage.Size},
+				},
+				VolumeName: dataStorage.VolumeName,
+			}
+			if dataStorage.Class != "" {
+				pvcSpec.StorageClassName = &dataStorage.Class
+			}
+			graf.Spec.PersistentVolumeClaim = &grafv1.PersistentVolumeClaimV1{
+				ObjectMeta: grafv1.ObjectMeta{
+					Annotations: dataStorage.Annotations,
+					Labels:      dataStorage.Labels,
+				},
+				Spec: pvcSpec,
+			}
+
+			ensureDeploymentInitialized(&graf)
+			graf.Spec.Deployment.Spec.Strategy = &appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType}
+
+			podSpec := ensurePodSpecInitialized(&graf)
+			container := ensureGrafanaContainerInitialized(podSpec)
+			podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+				Name: "grafana-data",
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: fmt.Sprintf("%s-pvc", graf.GetName()),
+					},
+				},
+			})
+			container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+				Name:      "grafana-data",
+				MountPath: "/var/lib/grafana",
+			})
 		}
-		// DataStorage removed in grafana-operator v5
+
 		// EnvFrom configuration moved to container-level in v5
 		if cr.Spec.Grafana.Replicas != nil {
 			// Replicas moved to Deployment.Spec.Replicas in v5
@@ -293,14 +339,6 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Only configure Config fields if Config was not provided as RawExtension
-		// Note: In v5, Config is map[string]map[string]string or runtime.RawExtension
-		// We need to work with Config as runtime.RawExtension and marshal/unmarshal JSON
-		if cr.Spec.Auth != nil && !configProvidedAsRawExtension {
-			// In grafana-operator v5, Config structure changed significantly
-			// OAuth configuration needs to be handled via runtime.RawExtension or removed
-			// Note: This functionality may need to be reimplemented for v5 API
-		}
 		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
 		if cr.Spec.Grafana.SecurityContext != nil {
 			podSpec := ensurePodSpecInitialized(&graf)
@@ -425,7 +463,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			graf.Labels["app.kubernetes.io/part-of"] = "monitoring"
 		}
 
-		// Allow overriding any labels (including component and part-of) via cr.Spec.Grafana.Labels
+		// Allow overriding user-facing labels (including component and part-of) via cr.Spec.Grafana.Labels
 		// This allows different Grafana instances to have different labels for different dashboards
 		// Users can set custom labels like "dashboards: custom" and use them in GrafanaDashboard instanceSelector
 		if cr.Spec.Grafana.Labels != nil {
@@ -433,6 +471,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 				graf.Labels[k] = v
 			}
 		}
+		// The cleanup hook uses this lifecycle label, so it must not be user-overridable.
+		graf.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 		if graf.Annotations == nil && cr.Spec.Grafana.Annotations != nil {
 			graf.SetAnnotations(cr.Spec.Grafana.Annotations)
@@ -441,59 +481,34 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 				graf.Annotations[k] = v
 			}
 		}
-		// Set labels on Deployment pod template - in v5, labels are in Deployment.Spec.Template.Labels
-		// In grafana-operator v5, Labels and Annotations moved from Deployment to Deployment.Spec.Template
+		// Set labels and annotations on the deployment pod template.
 		ensureDeploymentInitialized(&graf)
-		// Ensure PodSpec is initialized first (needed for Template.Spec access)
 		ensurePodSpecInitialized(&graf)
 
-		// Access Template through deployment and set labels/annotations
-		// Use recover to safely handle any nil pointer issues that may occur due to v5 API structure changes
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					// If we panic, Template structure might not be accessible (e.g., Spec or Template are nil pointers)
-					// This is OK - labels/annotations are already set on the Grafana resource itself
-				}
-			}()
-			deployment := graf.Spec.Deployment
-			if deployment != nil {
-				// Initialize Labels if nil
-				if deployment.Spec.Template.Labels == nil {
-					deployment.Spec.Template.Labels = make(map[string]string)
-				}
-				// Set labels
-				deployment.Spec.Template.Labels["name"] = utils.TruncLabel(graf.GetName())
-				deployment.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(graf.GetName())
-				deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
-				deployment.Spec.Template.Labels["app.kubernetes.io/component"] = "grafana"
-				deployment.Spec.Template.Labels["app.kubernetes.io/part-of"] = "monitoring"
-				deployment.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
-				deployment.Spec.Template.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
-				if cr.Spec.Grafana.Labels != nil {
-					for k, v := range cr.Spec.Grafana.Labels {
-						deployment.Spec.Template.Labels[k] = v
-					}
-				}
-
-				// Initialize Annotations if nil
-				if deployment.Spec.Template.Annotations == nil {
-					deployment.Spec.Template.Annotations = make(map[string]string)
-				}
-				// Set annotations
-				if cr.Spec.Grafana.Annotations != nil {
-					for k, v := range cr.Spec.Grafana.Annotations {
-						deployment.Spec.Template.Annotations[k] = v
-					}
-				}
+		deployment := graf.Spec.Deployment
+		if deployment.Spec.Template.Labels == nil {
+			deployment.Spec.Template.Labels = make(map[string]string)
+		}
+		deployment.Spec.Template.Labels["name"] = utils.TruncLabel(graf.GetName())
+		deployment.Spec.Template.Labels["app.kubernetes.io/name"] = utils.TruncLabel(graf.GetName())
+		deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(graf.GetName(), graf.GetNamespace())
+		deployment.Spec.Template.Labels["app.kubernetes.io/component"] = "grafana"
+		deployment.Spec.Template.Labels["app.kubernetes.io/part-of"] = "monitoring"
+		deployment.Spec.Template.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
+		deployment.Spec.Template.Labels["app.kubernetes.io/managed-by"] = "monitoring-operator"
+		if cr.Spec.Grafana.Labels != nil {
+			for k, v := range cr.Spec.Grafana.Labels {
+				deployment.Spec.Template.Labels[k] = v
 			}
-		}()
+		}
 
-		// ServiceAccount in v5 uses different structure - Annotations and Labels may be in different location
-		// Note: ServiceAccount configuration may need to be handled differently in v5
-		if graf.Spec.ServiceAccount != nil && cr.Spec.Grafana.ServiceAccount != nil {
-			// In v5, ServiceAccountV1 structure changed - handle accordingly
-			// Annotations and Labels may need to be set via ServiceAccount metadata
+		if len(cr.Spec.Grafana.Annotations) > 0 {
+			if deployment.Spec.Template.Annotations == nil {
+				deployment.Spec.Template.Annotations = make(map[string]string, len(cr.Spec.Grafana.Annotations))
+			}
+			for k, v := range cr.Spec.Grafana.Annotations {
+				deployment.Spec.Template.Annotations[k] = v
+			}
 		}
 	}
 	return &graf, nil
@@ -507,7 +522,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 		return nil, err
 	}
 	// Set Interval for Grafana datasource
-	var grafanaDatasourceInterval string = "30s"
+	grafanaDatasourceInterval := "30s"
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmOperator.IsInstall() {
 		if cr.Spec.Victoriametrics.VmSingle.IsInstall() {
 			vmSingle := vmetricsv1b1.VMSingle{}
@@ -518,7 +533,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 				maps.Copy(vmSingle.Spec.ExtraArgs, map[string]string{"tls": "true"})
 			}
 			if dataSource.Spec.Datasource != nil {
-				dataSource.Spec.Datasource.URL = vmSingle.AsURL()
+				dataSource.Spec.Datasource.URL = vmSingle.AsURL(false)
 			}
 		}
 		if cr.Spec.Victoriametrics.VmCluster.IsInstall() {
@@ -531,7 +546,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 				maps.Copy(vmCluster.Spec.VMSelect.ExtraArgs, map[string]string{"tls": "true"})
 			}
 			if dataSource.Spec.Datasource != nil {
-				dataSource.Spec.Datasource.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect) + "/select/0/prometheus"
+				dataSource.Spec.Datasource.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentSelect, false) + "/select/0/prometheus"
 			}
 		}
 		if cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
@@ -541,6 +556,10 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	// Set parameters
 	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	dataSource.SetNamespace(cr.GetNamespace())
+	if dataSource.Labels == nil {
+		dataSource.Labels = make(map[string]string)
+	}
+	dataSource.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 	// In v5, one GrafanaDatasource CR = one datasource. Promxy is a separate CR (grafanaPromxyDataSource).
 
@@ -587,6 +606,10 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	// Set parameters
 	dataSource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
 	dataSource.SetNamespace(cr.GetNamespace())
+	if dataSource.Labels == nil {
+		dataSource.Labels = make(map[string]string)
+	}
+	dataSource.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 	// Set Promxy URL with port from CR (default: 9090)
 	promxyPort := int32(9090)
@@ -598,7 +621,7 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	}
 
 	// Set JSONData for timeInterval - in v5, JSONData is json.RawMessage
-	var grafanaDatasourceInterval string = "30s"
+	grafanaDatasourceInterval := "30s"
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
 		grafanaDatasourceInterval = cr.Spec.Victoriametrics.VmAgent.ScrapeInterval
 	}

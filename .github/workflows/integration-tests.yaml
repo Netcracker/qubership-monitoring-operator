@@ -49,7 +49,7 @@ jobs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
       - name: Wait for build.yaml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@6a2de8d62ac5b6998e30f923613c998c263ea9f2 # v2.2.2
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@b6bee6f61fdc8b367777c1173fc852a58878a6a7 # v2.5.0
         id: wait
         with:
           workflow: build.yaml
@@ -63,12 +63,13 @@ jobs:
           github.event.pull_request.user.login != 'dependabot[bot]' &&
           github.event.pull_request.user.login != 'renovate[bot]'
         )
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@c46738acd2481dcea8b4cd0bee83e3f4f4539f2c # v1.11.0
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@57a9fbc96d458a7bdc37cb919bad53937d7d08dd # v1.15.0
     with:
       service_branch: ${{ github.sha }}
-      pipeline_branch: 'c46738acd2481dcea8b4cd0bee83e3f4f4539f2c' # this value must match the value after '@' in 'uses'
+      pipeline_branch: '57a9fbc96d458a7bdc37cb919bad53937d7d08dd' # v1.15.0 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
+      enable-owner-references-permission-enforcement: true
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
       AWS_S3_ACCESS_KEY_SECRET: ${{ secrets.AWS_S3_ACCESS_KEY_SECRET }}

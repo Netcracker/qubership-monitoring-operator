@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,7 +98,7 @@ type AlertManager struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -108,7 +108,7 @@ type AlertManager struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -127,7 +127,7 @@ type AlertManager struct {
 // EmbeddedObjectMetadata contains a subset of the fields included in k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta
 // Only fields which are relevant to embedded resources are included.
 type EmbeddedObjectMetadata struct {
-	// Annotations is an unstructured key value map stored with a resource that may be set
+	// Annotations is an unstructured key-value map stored with a resource that may be set
 	// by external tools to store and retrieve arbitrary metadata. They are not queryable and should be
 	// preserved when modifying objects.
 	// More info: http://kubernetes.io/docs/user-guide/annotations
@@ -183,7 +183,7 @@ type Grafana struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -196,7 +196,7 @@ type Grafana struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -230,7 +230,8 @@ type GrafanaOperator struct {
 	Namespaces string `json:"namespaces,omitempty"`
 	// NamespaceScope limits the operator to its own namespace when set true.
 	NamespaceScope bool `json:"namespaceScope,omitempty"`
-	// LeaderElect enables leader election.
+	// LeaderElect enables leader election for the grafana-operator Deployment.
+	// Unset or false: do not enable. Set true when running more than one replica.
 	LeaderElect *bool `json:"leaderElect,omitempty"`
 	// WatchNamespaces defines comma separated namespaces to watch.
 	WatchNamespaces string `json:"watchNamespaces,omitempty"`
@@ -256,7 +257,7 @@ type GrafanaOperator struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -266,7 +267,7 @@ type GrafanaOperator struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -327,7 +328,7 @@ type Prometheus struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Resources defines resources requests and limits for single Pods.
 	Resources v1.ResourceRequirements `json:"resources,omitempty"`
@@ -336,12 +337,12 @@ type Prometheus struct {
 	Storage *promv1.StorageSpec `json:"storage,omitempty"`
 	// Volumes allows configuration of additional volumes on the output StatefulSet definition.
 	// Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
 	Volumes []v1.Volume `json:"volumes,omitempty"`
 	// VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
 	// VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
 	// that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// Ingress allows to create Ingress for Prometheus UI.
 	Ingress *Ingress `json:"ingress,omitempty"`
@@ -395,7 +396,7 @@ type Prometheus struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -454,7 +455,7 @@ type KubeStateMetrics struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Service monitor for pulling metrics
 	ServiceMonitor *Monitor `json:"serviceMonitor,omitempty"`
@@ -464,7 +465,7 @@ type KubeStateMetrics struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -499,7 +500,7 @@ type PrometheusOperator struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Pod monitor for self monitoring
 	PodMonitor *Monitor `json:"podMonitor,omitempty"`
@@ -511,7 +512,7 @@ type PrometheusOperator struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -612,6 +613,9 @@ type VmOperator struct {
 	Install *bool `json:"install,omitempty"`
 	//Number of replicas of victoriametrics-operator
 	Replicas *int32 `json:"replicas,omitempty"`
+	// LeaderElect enables leader election for the victoriametrics-operator Deployment.
+	// Unset or false: do not enable (no lease renewals). Set true when running more than one replica.
+	LeaderElect *bool `json:"leaderElect,omitempty"`
 	// Image to use for a `victoriametrics-operator` deployment.
 	// The `victoriametrics-operator` makes the vmoperator configuration Kubernetes native and manages and operates
 	// More info: https://github.com/VictoriaMetrics/operator
@@ -633,7 +637,7 @@ type VmOperator struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -641,7 +645,7 @@ type VmOperator struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -682,7 +686,7 @@ type VmSingle struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -690,7 +694,7 @@ type VmSingle struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -783,7 +787,7 @@ type VmAgent struct {
 	// Specified just as map[string]string. For example: "type: compute"
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -791,7 +795,7 @@ type VmAgent struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -815,16 +819,16 @@ type VmAgent struct {
 	// +optional
 	VMAgentExternalLabelName *string `json:"vmAgentExternalLabelName,omitempty"`
 	// ExternalLabels The labels to add to any time series scraped by vmagent.
-	// it doesn't affect metrics ingested directly by push API's
+	// it doesn't affect metrics ingested directly by push APIs
 	// +optional
 	ExternalLabels map[string]string `json:"externalLabels,omitempty"`
 	// RemoteWrite list of victoria metrics to some other remote write system
 	// for vm it must look like: http://victoria-metrics-single:8429/api/v1/write
-	// or for cluster different url
+	// or for cluster different URL
 	// https://github.com/VictoriaMetrics/VictoriaMetrics/tree/master/app/vmagent#splitting-data-streams-among-multiple-systems
 	// +optional
 	RemoteWrite []vmetricsv1b1.VMAgentRemoteWriteSpec `json:"remoteWrite,omitempty"`
-	// RemoteWriteSettings defines global settings for all remoteWrite urls.
+	// RemoteWriteSettings defines global settings for all remoteWrite URLs.
 	// + optional
 	RemoteWriteSettings *vmetricsv1b1.VMAgentRemoteWriteSettings `json:"remoteWriteSettings,omitempty"`
 	// RelabelConfig ConfigMap with global relabel config -remoteWrite.relabelConfig
@@ -969,7 +973,7 @@ type VmAlertManager struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -1003,9 +1007,9 @@ type VmAlertManager struct {
 	TLSConfig *VmTLSConfig `json:"tlsConfig,omitempty"`
 	// WebConfig defines configuration for webserver
 	// https://github.com/prometheus/alertmanager/blob/main/docs/https.md
-	WebConfig *vmetricsv1b1.AlertmanagerWebConfig `json:"webConfig,omitempty"`
+	WebConfig *vmetricsv1b1.VMAlertmanagerWebConfig `json:"webConfig,omitempty"`
 	// GossipConfig defines gossip TLS configuration for Alertmanager cluster
-	GossipConfig *vmetricsv1b1.AlertmanagerGossipConfig `json:"gossipConfig,omitempty"`
+	GossipConfig *vmetricsv1b1.VMAlertmanagerGossipConfig `json:"gossipConfig,omitempty"`
 }
 
 type VmAlert struct {
@@ -1013,7 +1017,7 @@ type VmAlert struct {
 	// Can be changed for already deployed service and the service
 	// will be removed during next reconciliation iteration
 	Install *bool `json:"install,omitempty"`
-	// Image - docker image settings for VMAlert
+	// Image - Docker image settings for VMAlert
 	// if no specified operator uses default config version
 	Image string `json:"image"`
 	// Ingress allows to create Ingress for VM UI.
@@ -1108,7 +1112,7 @@ type VmAlert struct {
 	// only one of notifier options could be chosen: notifierConfigRef or notifiers +  notifier
 	// +optional
 	NotifierConfigRef *v1.SecretKeySelector `json:"notifierConfigRef,omitempty"`
-	// Datasource Victoria Metrics or VMSelect url. Required parameter. e.g. http://127.0.0.1:8428
+	// Datasource Victoria Metrics or VMSelect URL. Required parameter. e.g. http://127.0.0.1:8428
 	Datasource *vmetricsv1b1.VMAlertDatasourceSpec `json:"datasource,omitempty"`
 
 	// ExtraArgs that will be passed to  VMAlert pod
@@ -1135,7 +1139,7 @@ type VmAlert struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -1241,7 +1245,7 @@ type VmAuth struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -1376,7 +1380,10 @@ type NodeExporter struct {
 	// Can be changed for already deployed service and the service
 	// will be removed during next reconciliation iteration
 	Install *bool `json:"install,omitempty"`
-	// SetupSecurityContext indicates is PSP or SCC (depends on cluster type) need to be created.
+	// SetupSecurityContext creates a SecurityContextConstraints on OpenShift/MicroShift so
+	// node-exporter can use hostNetwork, hostPID, and hostPath. Defaults to true.
+	// PodSecurityPolicy is not created: Kubernetes removed the API in 1.25.
+	// +kubebuilder:default=true
 	SetupSecurityContext bool `json:"setupSecurityContext,omitempty"`
 	// Image to use for a `node-exporter` deployment.
 	// The `node-exporter` is an exporter to collect metrics from VM
@@ -1397,7 +1404,7 @@ type NodeExporter struct {
 	// Tolerations allow the pods to schedule onto nodes with matching taints.
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Map of string keys and values that can be used to organize and categorize
 	// (scope and select) objects. May match selectors of replication controllers
@@ -1405,7 +1412,7 @@ type NodeExporter struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -1445,12 +1452,12 @@ type Pushgateway struct {
 	ExtraArgs []string `json:"extraArgs,omitempty"`
 	// Volumes allows configuration of additional volumes on the output StatefulSet definition.
 	// Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volume-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
 	Volumes []v1.Volume `json:"volumes,omitempty"`
 	// VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
 	// VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
 	// that are generated as a result of StorageSpec objects.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#volumemount-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// PVC spec for Pushgateway. If specified, also adds flags
 	// --persistence.file and --persistence.interval with default values,
@@ -1469,7 +1476,7 @@ type Pushgateway struct {
 	// NodeSelector select nodes for deploy
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// If specified, the pod's scheduling constraints.
-	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+	// More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Set paused to reconsilation
 	Paused bool `json:"paused,omitempty"`
@@ -1483,7 +1490,7 @@ type Pushgateway struct {
 	// More info: https://kubernetes.io/docs/user-guide/labels
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// Annotations is an unstructured key value map stored with a resource that may be
+	// Annotations is an unstructured key-value map stored with a resource that may be
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
@@ -1724,6 +1731,9 @@ type PlatformMonitoringCondition struct {
 // PlatformMonitoringStatus defines the observed state of PlatformMonitoring
 type PlatformMonitoringStatus struct {
 	Conditions []PlatformMonitoringCondition `json:"conditions"`
+	// ObservedGeneration is the latest PlatformMonitoring generation that reached a terminal reconciliation result.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }
@@ -1768,12 +1778,13 @@ type GrafanaDashboards struct {
 
 // PrometheusRule handles parameters to override PrometheusRule: alerts of recording rules
 type PrometheusRule struct {
-	Group    string `json:"group,omitempty"`
-	Alert    string `json:"alert,omitempty"`
-	Record   string `json:"record,omitempty"`
-	For      string `json:"for,omitempty"`
-	Expr     string `json:"expr,omitempty"`
-	Severity string `json:"severity,omitempty"`
+	Group       string            `json:"group,omitempty"`
+	Alert       string            `json:"alert,omitempty"`
+	Record      string            `json:"record,omitempty"`
+	For         string            `json:"for,omitempty"`
+	Expr        string            `json:"expr,omitempty"`
+	Severity    string            `json:"severity,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // PrometheusRules help to add and override Prometheus rules
@@ -1790,7 +1801,7 @@ type Promxy struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&PlatformMonitoring{}, &PlatformMonitoringList{})
+	objectTypes = append(objectTypes, &PlatformMonitoring{}, &PlatformMonitoringList{})
 }
 
 // IsInstall check if AlertManager should be installed
@@ -2048,6 +2059,14 @@ func (pr *PrometheusRule) OverridePrometheusRule(rule *promv1.Rule) {
 	}
 	if pr.Severity != "" {
 		rule.Labels["severity"] = pr.Severity
+	}
+	if len(pr.Annotations) > 0 {
+		if rule.Annotations == nil {
+			rule.Annotations = make(map[string]string)
+		}
+		for key, value := range pr.Annotations {
+			rule.Annotations[key] = value
+		}
 	}
 }
 
