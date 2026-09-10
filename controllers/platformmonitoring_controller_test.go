@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	"github.com/go-logr/logr"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
@@ -29,6 +31,20 @@ import (
 	clientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+func TestIsGrafanaDatasourceMigrationPending(t *testing.T) {
+	t.Parallel()
+
+	assert.True(t, isGrafanaDatasourceMigrationPending(
+		fmt.Errorf("wrap: %w", grafana.ErrDatasourceMigrationPending)))
+}
+
+func TestIsGrafanaDatasourceMigrationPendingFalseForOrdinaryError(t *testing.T) {
+	t.Parallel()
+
+	assert.False(t, isGrafanaDatasourceMigrationPending(
+		fmt.Errorf("listing Grafana datasources for migration: boom")))
+}
 
 func TestRequestsForGrafanaExtraVars(t *testing.T) {
 	scheme := runtime.NewScheme()
