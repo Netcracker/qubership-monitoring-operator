@@ -628,6 +628,30 @@ func TestAdoptExistingDatasourceUIDFailsOnUnauthorized(t *testing.T) {
 	assert.Empty(t, datasource.Spec.CustomUID)
 }
 
+func TestIsTemporaryGrafanaAdminAPIErrorTimeout(t *testing.T) {
+	t.Parallel()
+
+	assert.True(t, isTemporaryGrafanaAdminAPIError(timeoutNetError{}))
+}
+
+func TestIsTemporaryGrafanaAdminAPIErrorTemporary(t *testing.T) {
+	t.Parallel()
+
+	assert.True(t, isTemporaryGrafanaAdminAPIError(temporaryNetError{}))
+}
+
+type timeoutNetError struct{}
+
+func (timeoutNetError) Error() string   { return "timeout" }
+func (timeoutNetError) Timeout() bool   { return true }
+func (timeoutNetError) Temporary() bool { return false }
+
+type temporaryNetError struct{}
+
+func (temporaryNetError) Error() string   { return "temporary" }
+func (temporaryNetError) Timeout() bool   { return false }
+func (temporaryNetError) Temporary() bool { return true }
+
 func TestAdoptExistingDatasourceUIDPendingWhenGrafanaReturnsServerError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
 		writer.WriteHeader(http.StatusServiceUnavailable)

@@ -3,6 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,7 +21,9 @@ import (
 	v1beta1ext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery/fake"
@@ -345,6 +350,84 @@ func TestReconcileStatusWrites(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReconcileGrafanaDatasourceMigrationPending(t *testing.T) {
+	resource := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "monitoring",
+			Namespace:  "monitoring",
+			Generation: 2,
+		},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{
+				Operator: monv1.GrafanaOperator{Paused: true},
+			},
+		},
+		Status: monv1.PlatformMonitoringStatus{
+			ObservedGeneration: 1,
+			Conditions: []monv1.PlatformMonitoringCondition{
+				{
+					Type:               "Failed",
+					Status:             "False",
+					Reason:             "ReconcileGrafanaStatus",
+					Message:            "Grafana reconcile cycle failed",
+					LastTransitionTime: "2026-08-11 12:00:00 +0000 UTC",
+				},
+				{
+					Type:               "Successful",
+					Status:             "True",
+					Reason:             "ReconcileCycleStatus",
+					Message:            "Monitoring service reconcile cycle succeeded",
+					LastTransitionTime: "2026-08-11 12:00:00 +0000 UTC",
+				},
+			},
+		},
+	}
+	legacyDatasource := &unstructured.Unstructured{}
+	legacyDatasource.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "integreatly.org",
+		Version: "v1alpha1",
+		Kind:    "GrafanaDataSource",
+	})
+	legacyDatasource.SetName("platform-monitoring-prometheus")
+	legacyDatasource.SetNamespace("monitoring")
+
+	reconciler, countingClient := newStatusTestReconciler(t, resource, legacyDatasource)
+	reconciler.Config.Host = "https://kube.example.invalid"
+	reconciler.Config.Transport = kubeAPINotFoundTransport{}
+
+	result, err := reconciler.Reconcile(
+		context.Background(),
+		ctrl.Request{NamespacedName: client.ObjectKeyFromObject(resource)},
+	)
+
+	require.NoError(t, err)
+	assert.Equal(t, 10*time.Second, result.RequeueAfter)
+	assert.False(t, result.Requeue)
+	assert.Equal(t, 2, countingClient.statusWriter.updates)
+
+	stored := &monv1.PlatformMonitoring{}
+	require.NoError(t, countingClient.Get(context.Background(), client.ObjectKeyFromObject(resource), stored))
+	require.Len(t, stored.Status.Conditions, 1)
+	assert.Equal(t, "ReconcileCycleStatus", stored.Status.Conditions[0].Reason)
+	assert.Equal(t, "In progress", stored.Status.Conditions[0].Type)
+	assert.Equal(t, "False", stored.Status.Conditions[0].Status)
+	assert.Equal(t, int64(2), stored.Status.ObservedGeneration)
+}
+
+type kubeAPINotFoundTransport struct{}
+
+func (kubeAPINotFoundTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	const body = `{"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"not found","reason":"NotFound","code":404}`
+	response := &http.Response{
+		StatusCode: http.StatusNotFound,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Request:    request,
+	}
+	response.Header.Set("Content-Type", "application/json")
+	return response, nil
 }
 
 func TestReconcileStatusRecoversFromPriorFailure(t *testing.T) {
