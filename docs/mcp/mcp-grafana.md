@@ -379,12 +379,13 @@ The binary is installed to:
 $HOME/go/bin/mcp-grafana
 ```
 
-For `stdio` usage, configure the MCP client with this binary path. For
+For `stdio` usage, configure the MCP client with this binary path.
+
 The listener binds `127.0.0.1`, so only the workstation reaches the MCP
 endpoint. Bind a routable address only when the deployment puts authentication
 in front of MCP.
 
-standalone local HTTP usage, start it explicitly:
+For standalone local HTTP usage, start it explicitly:
 
 ```bash
 export GRAFANA_URL="https://grafana.example.com"
@@ -533,7 +534,7 @@ reference when configuring an in-cluster deployment.
 | `GRAFANA_FORWARD_HEADERS`            | Comma-separated list of incoming headers to forward to Grafana. Applies only to SSE or streamable HTTP transports.                                      | No                                  |
 | `--transport`, `-t`                  | MCP transport: `stdio`, `sse`, or `streamable-http`. Defaults to `stdio` for the binary; the Docker image entrypoint defaults to SSE.                   | No                                  |
 | `--address`                          | Listen address for SSE or streamable HTTP. Defaults to `localhost:8000`.                                                                                | No                                  |
-| `--endpoint-path`                    | Endpoint path for streamable HTTP. Defaults to `/`.                                                                                                     | No                                  |
+| `--endpoint-path`                    | Endpoint path for streamable HTTP. The binary defaults to `/mcp`; the monitoring chart sets `/`.                                                        | No                                  |
 | `--allowed-hosts`                    | Comma-separated allowlist for HTTP `Host` headers. Required when exposing the server through HTTPRoute or Ingress with an external hostname.            | No                                  |
 | `--allowed-origins`                  | Comma-separated allowlist for HTTP `Origin` headers. Usually not needed for desktop MCP clients.                                                        | No                                  |
 | `--disable-write`                    | Disable write operations against Grafana. Recommended by default.                                                                                       | No                                  |
