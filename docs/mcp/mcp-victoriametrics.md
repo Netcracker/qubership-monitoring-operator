@@ -11,8 +11,7 @@ Desktop, Claude Code, Cursor, and other tools that support MCP.
 This guide uses upstream distributions for local installation with Docker, a
 binary, or source code. In-cluster Helm installation uses the Qubership
 Monitoring Operator chart and its `victoriametrics.mcp` values. Upstream Helm
-chart values use a different schema and cannot be copied into the monitoring
-chart.
+chart values use a different schema and cannot be copied into the monitoring chart.
 
 ## Table of Contents
 
@@ -41,10 +40,10 @@ chart.
 
 Before installation, prepare the following:
 
-* An operator-managed VictoriaMetrics backend: normally `VMSingle` with
+- An operator-managed VictoriaMetrics backend: normally `VMSingle` with
   `victoriametrics.vmSingle.install: true`, or `VMCluster` with
   `victoriametrics.vmCluster.install: true`.
-* An MCP-compatible client.
+- An MCP-compatible client.
 
 ## Choose VictoriaMetrics Endpoint
 
@@ -282,28 +281,28 @@ victoriametrics:
 This snippet is an example, not a set of universal values. Adjust it for your
 cluster:
 
-* For `VMSingle`, use `victoriametrics.mcp.vm.type: single`. The MCP entrypoint
+- For `VMSingle`, use `victoriametrics.mcp.vm.type: single`. The MCP entrypoint
   defaults to the operator-managed `VMSingle` Service, using HTTPS when
   `victoriametrics.tlsEnabled=true` and HTTP otherwise.
-* For `VMCluster`, enable `victoriametrics.vmCluster.install`, disable
+- For `VMCluster`, enable `victoriametrics.vmCluster.install`, disable
   `victoriametrics.vmSingle.install`, and use
   `victoriametrics.mcp.vm.type: cluster`. The entrypoint then defaults to the
   operator-managed `VMSelect` Service with the same scheme selection.
-* Set `victoriametrics.mcp.vm.entrypoint` only to override the generated
+- Set `victoriametrics.mcp.vm.entrypoint` only to override the generated
   in-cluster URL, for example when MCP must connect through VMAuth.
-* For an automatically generated TLS endpoint, the chart trusts `ca.crt` from
+- For an automatically generated TLS endpoint, the chart trusts `ca.crt` from
   the selected backend TLS Secret. Configure `victoriametrics.mcp.vm.tls` when
   the CA comes from another Secret or is already in the system trust store.
-* Upstream `mcp-victoriametrics v1.20.2` does not support token or headers
+- Upstream `mcp-victoriametrics v1.20.2` does not support token or headers
   files. `vm.bearerTokenSecret` and `vm.headersSecret` hide values from the
   Deployment but expose them to the MCP process through environment variables;
   inline `vm.bearerToken` and `vm.headers` also expose values in the Deployment.
   When file-based secret handling is mandatory, leave static credentials empty
   and configure `passthroughHeaders` so MCP clients provide request-time
   authentication.
-* `victoriametrics.mcp.httpRoute.hostnames` must contain the desired MCP server
+- `victoriametrics.mcp.httpRoute.hostnames` must contain the desired MCP server
   host, and `parentRefs` must point to the Gateway used by the cluster.
-* Use `victoriametrics.mcp.ingress` instead of
+- Use `victoriametrics.mcp.ingress` instead of
   `victoriametrics.mcp.httpRoute` when the cluster exposes applications through
   Ingress.
 
@@ -428,10 +427,10 @@ http://localhost:8080/mcp
 
 The server also exposes:
 
-* `/` - setup page and tool inspection in HTTP mode
-* `/metrics` - MCP server metrics in Prometheus format
-* `/health/liveness` - liveness probe
-* `/health/readiness` - readiness probe
+- `/` - setup page and tool inspection in HTTP mode
+- `/metrics` - MCP server metrics in Prometheus format
+- `/health/liveness` - liveness probe
+- `/health/readiness` - readiness probe
 
 ### Source
 
@@ -686,6 +685,6 @@ source directory as well.
 
 ## References
 
-* [VictoriaMetrics MCP Server GitHub repository](https://github.com/VictoriaMetrics/mcp-victoriametrics)
-* [VictoriaMetrics MCP Server releases](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases)
-* [Upstream standalone VictoriaMetrics MCP Helm chart](https://docs.victoriametrics.com/helm/victoria-metrics-mcp/)
+- [VictoriaMetrics MCP Server GitHub repository](https://github.com/VictoriaMetrics/mcp-victoriametrics)
+- [VictoriaMetrics MCP Server releases](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases)
+- [Upstream standalone VictoriaMetrics MCP Helm chart](https://docs.victoriametrics.com/helm/victoria-metrics-mcp/)

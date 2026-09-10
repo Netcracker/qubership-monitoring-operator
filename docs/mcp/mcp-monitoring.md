@@ -125,19 +125,19 @@ Host values that are not present in the route configuration.
 
 Use the detailed guides for component-specific installation and configuration:
 
-* [Installing mcp-grafana](mcp-grafana.md)
-* [Installing mcp-victoriametrics](mcp-victoriametrics.md)
-* [Grafana MCP Helm parameters](../installation/components/grafana-stack/mcp.md)
-* [VictoriaMetrics MCP Helm parameters](../installation/components/victoriametrics-stack/mcp.md)
+- [Installing mcp-grafana](mcp-grafana.md)
+- [Installing mcp-victoriametrics](mcp-victoriametrics.md)
+- [Grafana MCP Helm parameters](../installation/components/grafana-stack/mcp.md)
+- [VictoriaMetrics MCP Helm parameters](../installation/components/victoriametrics-stack/mcp.md)
 
 The detailed guides include:
 
-* prerequisites for the operator-managed monitoring stack;
-* endpoint selection for local and in-cluster MCP deployments;
-* authentication and TLS configuration;
-* installation examples;
-* MCP client configuration examples;
-* available tools and smoke-test prompts.
+- prerequisites for the operator-managed monitoring stack;
+- endpoint selection for local and in-cluster MCP deployments;
+- authentication and TLS configuration;
+- installation examples;
+- MCP client configuration examples;
+- available tools and smoke-test prompts.
 
 ## How to Use MCP Servers
 
@@ -184,13 +184,13 @@ depending on configuration.
 
 Follow these rules:
 
-* Prefer read-only operation unless write access is explicitly required.
-* Use Grafana service account tokens with the minimum required permissions.
-* Protect MCP servers exposed through HTTPRoute, Ingress, or API Gateway with
+- Prefer read-only operation unless write access is explicitly required.
+- Use Grafana service account tokens with the minimum required permissions.
+- Protect MCP servers exposed through HTTPRoute, Ingress, or API Gateway with
   gateway-level authentication such as OAuth2/OIDC, Basic Auth, mTLS, IP
   allowlists, or private network access.
-* Do not expose local-only MCP servers to shared networks.
-* For self-signed certificates, trust the issuing CA on the machine or
+- Do not expose local-only MCP servers to shared networks.
+- For self-signed certificates, trust the issuing CA on the machine or
   container that initiates the TLS connection.
-* Rotate tokens if they were shared outside the intended local or test
+- Rotate tokens if they were shared outside the intended local or test
   environment.

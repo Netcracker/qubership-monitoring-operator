@@ -42,11 +42,11 @@ different schema and cannot be copied into the monitoring chart.
 
 Before installation, prepare the following:
 
-* Grafana enabled with `grafana.install: true`.
-* Grafana 9.0 or later.
-* An MCP-compatible client.
-* A Grafana service account token, or Grafana username and password.
-* `uv`, only if you plan to run local `stdio` mode through `uvx`.
+- Grafana enabled with `grafana.install: true`.
+- Grafana 9.0 or later.
+- An MCP-compatible client.
+- A Grafana service account token, or Grafana username and password.
+- `uv`, only if you plan to run local `stdio` mode through `uvx`.
 
 Prefer a Grafana service account token. Use username/password only for local
 debugging or when service accounts are not available.
@@ -181,11 +181,11 @@ If the MCP server is exposed through HTTPRoute, Ingress, or API Gateway,
 protect it at that layer. Use one of the mechanisms already supported by your
 gateway, for example:
 
-* OAuth2/OIDC authentication.
-* Basic Auth.
-* mTLS client certificates.
-* IP allowlists or private network access.
-* Kubernetes NetworkPolicy when the endpoint is internal.
+- OAuth2/OIDC authentication.
+- Basic Auth.
+- mTLS client certificates.
+- IP allowlists or private network access.
+- Kubernetes NetworkPolicy when the endpoint is internal.
 
 Before choosing gateway-level authentication, verify that the MCP client can
 send the required credentials to a remote HTTP MCP server. If the client cannot
@@ -312,8 +312,8 @@ http://localhost:8000/
 
 The server also exposes:
 
-* `/healthz` - health endpoint
-* `/metrics` - MCP server metrics, when started with `--metrics`
+- `/healthz` - health endpoint
+- `/metrics` - MCP server metrics, when started with `--metrics`
 
 ### Binary Release
 
@@ -427,26 +427,26 @@ grafana:
 This snippet is an example, not a set of universal values. Adjust it for your
 cluster:
 
-* `grafana.mcp.existingSecret` must point to the Secret that contains the
+- `grafana.mcp.existingSecret` must point to the Secret that contains the
   Grafana service account token. The monitoring chart mounts the selected key
   as a file and configures `GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE`; it does not
   expose the token value through a container environment variable.
-* Upstream does not provide `GRAFANA_PASSWORD_FILE`. Basic authentication
+- Upstream does not provide `GRAFANA_PASSWORD_FILE`. Basic authentication
   passwords referenced through `grafana.mcp.basicAuth.passwordSecret` are
   hidden from the Deployment but still exposed to the MCP process through an
   environment variable. Use a service account token or request-time forwarded
   credentials when file-based secret handling is mandatory. Restart the MCP
   Deployment after changing an existing password Secret in place. Inline
   password changes trigger a rollout automatically.
-* `grafana.mcp.httpRoute.hostnames` must contain the desired MCP server host.
-* `grafana.mcp.httpRoute.parentRefs` must point to the Gateway that serves
+- `grafana.mcp.httpRoute.hostnames` must contain the desired MCP server host.
+- `grafana.mcp.httpRoute.parentRefs` must point to the Gateway that serves
   HTTPRoute traffic in your cluster.
-* HTTPRoute and Ingress hosts are added to `--allowed-hosts` automatically.
+- HTTPRoute and Ingress hosts are added to `--allowed-hosts` automatically.
   Use `grafana.mcp.allowedHosts` only for additional Host values, such as a
   hostname produced by a proxy that rewrites the original Host header.
-* Keep `grafana.mcp.disableWrite: true` unless the MCP client is expected to
+- Keep `grafana.mcp.disableWrite: true` unless the MCP client is expected to
   create or modify Grafana resources.
-* Use `grafana.mcp.ingress` instead of `grafana.mcp.httpRoute` when the cluster
+- Use `grafana.mcp.ingress` instead of `grafana.mcp.httpRoute` when the cluster
   exposes applications through Ingress.
 
 See the complete
@@ -808,8 +808,8 @@ longer needed.
 
 ## References
 
-* [`mcp-grafana` upstream repository](https://github.com/grafana/mcp-grafana)
-* [`mcp-grafana` releases](https://github.com/grafana/mcp-grafana/releases)
-* [Upstream standalone `grafana-mcp` Helm chart](https://github.com/grafana-community/helm-charts/tree/main/charts/grafana-mcp)
-* [Grafana service account documentation](https://grafana.com/docs/grafana/latest/administration/service-accounts/)
-* [Model Context Protocol](https://modelcontextprotocol.io/)
+- [`mcp-grafana` upstream repository](https://github.com/grafana/mcp-grafana)
+- [`mcp-grafana` releases](https://github.com/grafana/mcp-grafana/releases)
+- [Upstream standalone `grafana-mcp` Helm chart](https://github.com/grafana-community/helm-charts/tree/main/charts/grafana-mcp)
+- [Grafana service account documentation](https://grafana.com/docs/grafana/latest/administration/service-accounts/)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
