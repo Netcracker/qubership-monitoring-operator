@@ -2,6 +2,7 @@ package grafana
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -544,6 +545,188 @@ func TestAdoptExistingDatasourceUIDSkipsFreshInstall(t *testing.T) {
 
 	assert.NoError(t, reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource))
 	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+func TestAdoptExistingDatasourceUIDPendingWhenAdminURLEmpty(t *testing.T) {
+	reconciler, platformMonitoring, datasource := newAdoptDatasourceUIDFixture(t, "", nil)
+
+	err := reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
+
+	assert.ErrorIs(t, err, ErrDatasourceMigrationPending)
+	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+func TestAdoptExistingDatasourceUIDPendingWhenGrafanaUnreachable(t *testing.T) {
+	reconciler, platformMonitoring, datasource := newAdoptDatasourceUIDFixture(t, "http://127.0.0.1:1", nil)
+
+	err := reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
+
+	assert.ErrorIs(t, err, ErrDatasourceMigrationPending)
+	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+func TestAdoptExistingDatasourceUIDFailsWhenAdminSecretMissing(t *testing.T) {
+	scheme := runtime.NewScheme()
+	assert.NoError(t, grafv1.AddToScheme(scheme))
+	assert.NoError(t, corev1.AddToScheme(scheme))
+
+	currentGrafana := &grafv1.Grafana{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: "monitoring"},
+		Status:     grafv1.GrafanaStatus{AdminURL: "http://grafana.monitoring.svc:3000"},
+	}
+	legacyDatasource := &unstructured.Unstructured{}
+	legacyDatasource.SetGroupVersionKind(legacyGrafanaDatasourceGVK)
+	legacyDatasource.SetName("platform-monitoring-prometheus")
+	legacyDatasource.SetNamespace("monitoring")
+	reconciler := &GrafanaReconciler{
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(currentGrafana, legacyDatasource).Build(),
+			Scheme: scheme,
+			Log:    utils.Logger("grafana_test"),
+		},
+	}
+	platformMonitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "platformmonitoring", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+	datasource, err := grafanaDataSource(platformMonitoring, nil, nil, nil)
+	assert.NoError(t, err)
+
+	err = reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
+
+	assert.Error(t, err)
+	assert.NotErrorIs(t, err, ErrDatasourceMigrationPending)
+	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+func TestAdoptExistingDatasourceUIDFailsWhenAdminSecretReadIsForbidden(t *testing.T) {
+	reconciler, platformMonitoring, datasource := newAdoptDatasourceUIDFixture(
+		t, "http://grafana.monitoring.svc:3000", nil)
+	reconciler.Client = secretReadErrorClient{
+		Client: reconciler.Client,
+		err:    apierrors.NewForbidden(schema.GroupResource{Resource: "secrets"}, "grafana-admin-credentials", errors.New("forbidden")),
+	}
+
+	err := reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
+
+	assert.Error(t, err)
+	assert.NotErrorIs(t, err, ErrDatasourceMigrationPending)
+	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+func TestAdoptExistingDatasourceUIDFailsOnUnauthorized(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		writer.WriteHeader(http.StatusUnauthorized)
+	}))
+	t.Cleanup(server.Close)
+	reconciler, platformMonitoring, datasource := newAdoptDatasourceUIDFixture(t, server.URL, nil)
+
+	err := reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
+
+	assert.Error(t, err)
+	assert.NotErrorIs(t, err, ErrDatasourceMigrationPending)
+	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+func TestIsTemporaryGrafanaAdminAPIErrorTimeout(t *testing.T) {
+	t.Parallel()
+
+	assert.True(t, isTemporaryGrafanaAdminAPIError(timeoutNetError{}))
+}
+
+func TestIsTemporaryGrafanaAdminAPIErrorTemporary(t *testing.T) {
+	t.Parallel()
+
+	assert.True(t, isTemporaryGrafanaAdminAPIError(temporaryNetError{}))
+}
+
+type timeoutNetError struct{}
+
+func (timeoutNetError) Error() string   { return "timeout" }
+func (timeoutNetError) Timeout() bool   { return true }
+func (timeoutNetError) Temporary() bool { return false }
+
+type temporaryNetError struct{}
+
+func (temporaryNetError) Error() string   { return "temporary" }
+func (temporaryNetError) Timeout() bool   { return false }
+func (temporaryNetError) Temporary() bool { return true }
+
+func TestAdoptExistingDatasourceUIDPendingWhenGrafanaReturnsServerError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		writer.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	t.Cleanup(server.Close)
+	reconciler, platformMonitoring, datasource := newAdoptDatasourceUIDFixture(t, server.URL, nil)
+
+	err := reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
+
+	assert.ErrorIs(t, err, ErrDatasourceMigrationPending)
+	assert.Empty(t, datasource.Spec.CustomUID)
+}
+
+type secretReadErrorClient struct {
+	client.Client
+	err error
+}
+
+func (c secretReadErrorClient) Get(
+	ctx context.Context,
+	key client.ObjectKey,
+	obj client.Object,
+	opts ...client.GetOption,
+) error {
+	if _, isSecret := obj.(*corev1.Secret); isSecret {
+		return c.err
+	}
+	return c.Client.Get(ctx, key, obj, opts...)
+}
+
+func newAdoptDatasourceUIDFixture(
+	t *testing.T,
+	adminURL string,
+	handler http.Handler,
+) (*GrafanaReconciler, *monv1.PlatformMonitoring, *grafv1.GrafanaDatasource) {
+	t.Helper()
+	if handler != nil {
+		server := httptest.NewServer(handler)
+		t.Cleanup(server.Close)
+		adminURL = server.URL
+	}
+
+	scheme := runtime.NewScheme()
+	assert.NoError(t, grafv1.AddToScheme(scheme))
+	assert.NoError(t, corev1.AddToScheme(scheme))
+
+	currentGrafana := &grafv1.Grafana{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: "monitoring"},
+		Status:     grafv1.GrafanaStatus{AdminURL: adminURL},
+	}
+	credentials := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials", Namespace: "monitoring"},
+		Data: map[string][]byte{
+			"GF_SECURITY_ADMIN_USER":     []byte("admin"),
+			"GF_SECURITY_ADMIN_PASSWORD": []byte("password"),
+		},
+	}
+	legacyDatasource := &unstructured.Unstructured{}
+	legacyDatasource.SetGroupVersionKind(legacyGrafanaDatasourceGVK)
+	legacyDatasource.SetName("platform-monitoring-prometheus")
+	legacyDatasource.SetNamespace("monitoring")
+	reconciler := &GrafanaReconciler{
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(currentGrafana, credentials, legacyDatasource).Build(),
+			Scheme: scheme,
+			Log:    utils.Logger("grafana_test"),
+		},
+	}
+	platformMonitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "platformmonitoring", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+	datasource, err := grafanaDataSource(platformMonitoring, nil, nil, nil)
+	assert.NoError(t, err)
+	return reconciler, platformMonitoring, datasource
 }
 
 func TestMigrateLegacyGrafanaResources(t *testing.T) {
