@@ -317,6 +317,58 @@ helm install monitoring-operator charts/monitoring-operator \
   --values development-values.yaml
 ```
 
+### Namespaced guest beside cluster-wide monitoring
+
+A second Helm release in another namespace is a CI / overlay case, not a second
+cloud-wide stack. Host and guest are the same monitoring-operator product.
+
+Set `global.namespaceScope: true` so this release's VictoriaMetrics Operator
+and Grafana Operator watch only the release namespace. The etcd certificate
+job's cluster-scoped RBAC/SCC names must be unique values. The core
+`monitoring-operator` already watches its Pod namespace. Managed-workload
+discovery stays at chart defaults.
+
+`namespaceScope` does **not** flip `privilegedRights`. Leave
+`privilegedRights: true` so the guest still gets ClusterRoles under unique
+names. `privilegedRights: false` is Role-only RBAC and does not, by itself,
+unique the etcd ClusterRole.
+
+Host VM and Grafana operators stay cluster-wide. Optional host overlay
+[host-values.yaml](../examples/deploy-parameters/namespaced-guest/host-values.yaml)
+makes host VMAgent / VMAlert / VMAlertmanager skip the guest namespace.
+This filters the host workloads' scrape, rule, and alert-routing inputs; it
+does not prevent the cluster-wide host VictoriaMetrics Operator from
+reconciling guest VM workload CRs. It has broad cluster-scoped access but
+cannot create or update guest Deployments and StatefulSets, so expected
+reconciliation errors remain in host operator logs for the guest release's
+lifetime. Use this only for temporary guest installs; see
+[the example's limitation](../examples/deploy-parameters/namespaced-guest/README.md#temporary-coexistence-limitation).
+Always `--skip-crds` on the guest (CRDs stay with the host; see
+[namespaced-guest/README.md](../examples/deploy-parameters/namespaced-guest/README.md)).
+Small host/guest content differences are acceptable; a material CRD conflict
+is handled manually when it arises. If the host node-exporter already binds
+hostPort `9900`, set `nodeExporter.port` to another value (the example uses
+`9901`).
+
+Example values:
+[host-values.yaml](../examples/deploy-parameters/namespaced-guest/host-values.yaml)
+and
+[values.yaml](../examples/deploy-parameters/namespaced-guest/values.yaml).
+
+```bash
+kubectl create namespace monitoring-test
+
+helm upgrade --install monitoring-operator charts/qubership-monitoring-operator \
+  --namespace monitoring \
+  --skip-crds \
+  --values docs/examples/deploy-parameters/namespaced-guest/host-values.yaml
+
+helm install monitoring-operator-guest charts/qubership-monitoring-operator \
+  --namespace monitoring-test \
+  --skip-crds \
+  --values docs/examples/deploy-parameters/namespaced-guest/values.yaml
+```
+
 ### Cloud-Specific Deployments
 
 #### AWS EKS
