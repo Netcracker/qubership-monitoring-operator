@@ -165,7 +165,7 @@ docker run -d --name mcp-victoriametrics \
   -e VM_INSTANCE_TYPE=single \
   -e MCP_SERVER_MODE=http \
   -e MCP_LISTEN_ADDR=:8080 \
-  -p 8080:8080 \
+  -p 127.0.0.1:8080:8080 \
   ghcr.io/victoriametrics/mcp-victoriametrics
 ```
 
@@ -369,13 +369,17 @@ For `stdio` usage, do not start the binary manually. Configure the MCP client
 with `command: /usr/local/bin/mcp-victoriametrics` and the required environment
 variables. The client will start the process itself.
 
+The listener binds `127.0.0.1`, so only the workstation reaches the MCP
+endpoint. Bind a routable address only when the deployment puts authentication
+in front of MCP.
+
 For standalone local HTTP usage, start the binary explicitly:
 
 ```bash
 export VM_INSTANCE_ENTRYPOINT="https://vmauth.example.com"
 export VM_INSTANCE_TYPE="single"
 export MCP_SERVER_MODE="http"
-export MCP_LISTEN_ADDR=":8080"
+export MCP_LISTEN_ADDR="127.0.0.1:8080"
 
 mcp-victoriametrics
 ```
@@ -392,13 +396,18 @@ Use Docker when the MCP server should run locally or as a standalone HTTP/SSE
 service. For local usage, `VM_INSTANCE_ENTRYPOINT` should point to the external
 `VMAuth` URL that proxies to `VMSingle` or if `VMAuth` is disabled then `VMSingle` ingress or http route host.
 
+These examples publish the port on `127.0.0.1`, so only the workstation reaches
+the MCP endpoint. The listener inside the container stays on `:8080` because
+Docker forwards the published port to it. Publish a routable address only
+when the deployment puts authentication in front of MCP.
+
 ```bash
 docker run -d --name mcp-victoriametrics \
   -e VM_INSTANCE_ENTRYPOINT=https://vmauth.example.com \
   -e VM_INSTANCE_TYPE=single \
   -e MCP_SERVER_MODE=http \
   -e MCP_LISTEN_ADDR=:8080 \
-  -p 8080:8080 \
+  -p 127.0.0.1:8080:8080 \
   ghcr.io/victoriametrics/mcp-victoriametrics
 ```
 
@@ -412,7 +421,7 @@ docker run -d --name mcp-victoriametrics \
   -e MCP_SERVER_MODE=http \
   -e MCP_LISTEN_ADDR=:8080 \
   -e VM_INSTANCE_HEADERS="Authorization=Basic <base64-username-password>" \
-  -p 8080:8080 \
+  -p 127.0.0.1:8080:8080 \
   ghcr.io/victoriametrics/mcp-victoriametrics
 ```
 

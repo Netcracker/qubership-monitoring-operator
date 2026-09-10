@@ -128,8 +128,10 @@ For the operator-managed Grafana admin credentials, the secret is usually
 `grafana-admin-credentials`:
 
 ```bash
-kubectl get secret grafana-admin-credentials -n monitoring -o jsonpath='{.data.admin-user}' | base64 -d
-kubectl get secret grafana-admin-credentials -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
+kubectl get secret grafana-admin-credentials -n monitoring \
+  -o jsonpath='{.data.GF_SECURITY_ADMIN_USER}' | base64 -d
+kubectl get secret grafana-admin-credentials -n monitoring \
+  -o jsonpath='{.data.GF_SECURITY_ADMIN_PASSWORD}' | base64 -d
 ```
 
 Use these credentials to create a service account token in Grafana instead of
@@ -218,7 +220,7 @@ docker run -d --name mcp-grafana \
   -v /path/to/api-gateway-ca.crt:/certs/api-gateway-ca.crt:ro,z \
   -e GRAFANA_URL=https://grafana.example.com \
   -e GRAFANA_SERVICE_ACCOUNT_TOKEN=<service-account-token> \
-  -p 8000:8000 \
+  -p 127.0.0.1:8000:8000 \
   grafana/mcp-grafana \
   -t streamable-http \
   --address 0.0.0.0:8000 \
@@ -291,11 +293,17 @@ uvx mcp-grafana --disable-write
 Use Docker when the MCP server should run locally as a standalone streamable
 HTTP server. Configure the MCP client with the local URL.
 
+These examples publish the port on `127.0.0.1`, so only the workstation reaches
+the MCP endpoint. The listener inside the container stays on `0.0.0.0:8000` because
+Docker forwards the published port to it. `--allowed-hosts` blocks DNS rebinding; it does not authenticate clients.
+Publish a routable address only
+when the deployment puts authentication in front of MCP.
+
 ```bash
 docker run -d --name mcp-grafana \
   -e GRAFANA_URL=https://grafana.example.com \
   -e GRAFANA_SERVICE_ACCOUNT_TOKEN=<service-account-token> \
-  -p 8000:8000 \
+  -p 127.0.0.1:8000:8000 \
   grafana/mcp-grafana \
   -t streamable-http \
   --address 0.0.0.0:8000 \
@@ -338,6 +346,10 @@ For `stdio` usage, do not start the binary manually. Configure the MCP client
 with `command: /usr/local/bin/mcp-grafana` and the required environment
 variables. The client will start the process itself.
 
+The listener binds `127.0.0.1`, so only the workstation reaches the MCP
+endpoint. Bind a routable address only when the deployment puts authentication
+in front of MCP.
+
 For standalone local HTTP usage, start the binary explicitly:
 
 ```bash
@@ -346,7 +358,7 @@ export GRAFANA_SERVICE_ACCOUNT_TOKEN="<service-account-token>"
 
 mcp-grafana \
   -t streamable-http \
-  --address 0.0.0.0:8000 \
+  --address 127.0.0.1:8000 \
   --endpoint-path /mcp \
   --allowed-hosts localhost:8000 \
   --disable-write
@@ -368,6 +380,10 @@ $HOME/go/bin/mcp-grafana
 ```
 
 For `stdio` usage, configure the MCP client with this binary path. For
+The listener binds `127.0.0.1`, so only the workstation reaches the MCP
+endpoint. Bind a routable address only when the deployment puts authentication
+in front of MCP.
+
 standalone local HTTP usage, start it explicitly:
 
 ```bash
@@ -376,7 +392,7 @@ export GRAFANA_SERVICE_ACCOUNT_TOKEN="<service-account-token>"
 
 "$HOME/go/bin/mcp-grafana" \
   -t streamable-http \
-  --address 0.0.0.0:8000 \
+  --address 127.0.0.1:8000 \
   --endpoint-path /mcp \
   --allowed-hosts localhost:8000 \
   --disable-write

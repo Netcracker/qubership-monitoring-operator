@@ -4,7 +4,10 @@
 {{- $listenPort := .Values.mcp.service.targetPort | default .Values.mcp.service.port }}
 {{- $hasServiceAccountToken := or .Values.mcp.serviceAccountToken .Values.mcp.existingSecret.name }}
 {{- $serviceAccountTokenSecretName := default (default (printf "%s-token" $name) .Values.mcp.tokenSecret.name) .Values.mcp.existingSecret.name }}
-{{- $serviceAccountTokenSecretKey := default (default "token" .Values.mcp.tokenSecret.key) .Values.mcp.existingSecret.key }}
+{{- $serviceAccountTokenSecretKey := default "token" .Values.mcp.tokenSecret.key }}
+{{- if .Values.mcp.existingSecret.name }}
+{{- $serviceAccountTokenSecretKey = default "token" .Values.mcp.existingSecret.key }}
+{{- end }}
 {{- $serviceAccountTokenMountPath := "/var/run/secrets/mcp-grafana" }}
 {{- $allowedHosts := list (printf "localhost:%v" $listenPort) (printf "$(MCP_GRAFANA_POD_IP):%v" $listenPort) }}
 {{- range $host := .Values.mcp.allowedHosts }}
