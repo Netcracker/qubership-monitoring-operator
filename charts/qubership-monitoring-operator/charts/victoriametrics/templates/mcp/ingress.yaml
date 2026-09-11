@@ -1,0 +1,50 @@
+{{- if and (include "vm.mcp.enabled" .) .Values.mcp.ingress.install }}
+{{- $name := include "vm.mcp.fullname" . }}
+{{- $servicePort := default 8080 .Values.mcp.service.port }}
+{{- if eq (len .Values.mcp.ingress.hosts) 0 }}
+{{- fail "victoriametrics.mcp.ingress.hosts must contain at least one host when Ingress is enabled" }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-victoriametrics") | nindent 4 }}
+  {{- if .Values.mcp.ingress.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.ingress.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.mcp.ingress.className }}
+  ingressClassName: {{ .Values.mcp.ingress.className | quote }}
+  {{- end }}
+  {{- if .Values.mcp.ingress.tls }}
+  tls:
+    {{- toYaml .Values.mcp.ingress.tls | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.mcp.ingress.hosts }}
+    - host: {{ tpl (toString .host) $ | quote }}
+      http:
+        paths:
+          {{- if .paths }}
+          {{- range .paths }}
+          - path: {{ .path | default "/" | quote }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $name }}
+                port:
+                  number: {{ $servicePort }}
+          {{- end }}
+          {{- else }}
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}
+                port:
+                  number: {{ $servicePort }}
+          {{- end }}
+    {{- end }}
+{{- end }}
