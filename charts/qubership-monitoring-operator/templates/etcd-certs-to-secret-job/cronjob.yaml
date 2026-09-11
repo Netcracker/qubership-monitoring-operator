@@ -37,6 +37,8 @@ spec:
             {{- toYaml .Values.etcdCertsJob.annotations | nindent 12 }}
           {{- end }}
         spec:
+          securityContext:
+            {{- include "etcdCertsJob.podSecurityContext" . | nindent 12 }}
           {{- if .Values.etcdCertsJob.nodeSelector }}
           nodeSelector:
             {{- toYaml .Values.etcdCertsJob.nodeSelector | nindent 12 }}
@@ -64,11 +66,15 @@ spec:
               resources:
                 {{- toYaml .Values.etcdCertsJob.resources | nindent 16 }}
               volumeMounts:
+                {{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
                 - name: etc
                   mountPath: /etc
                   readOnly: true
+                {{- end }}
+                - name: tmp
+                  mountPath: /tmp
               securityContext:
-                {{ include "etcdCertsCronJob.securityContext" . }}
+                {{- include "etcdCertsJob.securityContext" . | nindent 16 }}
           {{- if .Values.etcdCertsJob.priorityClassName }}
           priorityClassName: {{ .Values.etcdCertsJob.priorityClassName }}
           {{- end }}
@@ -76,7 +82,12 @@ spec:
           serviceAccountName: {{ .Values.etcdCertsJob.rbac.serviceAccountName }}
           automountServiceAccountToken: {{ .Values.etcdCertsJob.automountServiceAccountToken }}
           volumes:
+            {{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
             - name: etc
               hostPath:
                 path: /etc
+            {{- end }}
+            - name: tmp
+              emptyDir:
+                sizeLimit: 16Mi
 {{- end }}

@@ -11,24 +11,37 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: {{ template "monitoring.instance" . }}
     app.kubernetes.io/version:  {{ template "monitoring.operator.version" . }}
-allowHostDirVolumePlugin: true
+allowHostDirVolumePlugin: false
 allowHostIPC: false
 allowHostNetwork: false
 allowHostPID: false
 allowHostPorts: false
 allowPrivilegedContainer: false
+allowPrivilegeEscalation: false
 allowedCapabilities: []
 defaultAddCapabilities: []
+defaultAllowPrivilegeEscalation: false
 groups: []
 priority: 0
 readOnlyRootFilesystem: true
-requiredDropCapabilities: []
+requiredDropCapabilities:
+  - ALL
 runAsUser:
-  type: RunAsAny
+  type: MustRunAsNonRoot
 seLinuxContext:
+  type: MustRunAs
+seccompProfiles:
+  - runtime/default
+supplementalGroups:
+  type: RunAsAny
+fsGroup:
   type: RunAsAny
 users: []
 volumes:
-- '*'
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - projected
+  - secret
 {{- end }}
 {{- end }}

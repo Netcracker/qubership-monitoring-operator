@@ -104,12 +104,11 @@ resources: {}
 securityContext: {}
   # The UID to run the entrypoint of the container process.
   # Defaults to user specified in image metadata if unspecified.
-  # The default value is set to "0",
-  # because otherwise the exporter does not work correctly.
+  # The default value is set to "2001" to match the non-root user in the default image.
   # Type: integer
   # Mandatory: no
   #
-  # runAsUser: "0"
+  # runAsUser: 2001
 
   # A special supplemental group that applies to all containers in a pod.
   # Some volume types allow the Kubelet to change the ownership of that volume

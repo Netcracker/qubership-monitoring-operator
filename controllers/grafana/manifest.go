@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
+	k8sptr "k8s.io/utils/ptr"
 )
 
 //go:embed  assets/*.yaml
@@ -28,6 +29,10 @@ var assets embed.FS
 const (
 	grafanaCleanupLabelKey   = "app.kubernetes.io/managed-by-operator"
 	grafanaCleanupLabelValue = "monitoring-operator"
+
+	// grafanaLegacySecurityContextID is the UID/GID the v4 Grafana deployment ran as.
+	// Kept as the default so upgrades can still read data on an existing PVC.
+	grafanaLegacySecurityContextID int64 = 2000
 )
 
 type grafanaDataStorage struct {
@@ -84,7 +89,7 @@ func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *cor
 	return &podSpec.Containers[0]
 }
 
-func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
+func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -185,6 +190,18 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Configure container-level settings (EnvFrom, volumes, home dashboard, etc.).
 		podSpec := ensurePodSpecInitialized(&graf)
 		container := ensureGrafanaContainerInitialized(podSpec)
+		podSpec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		if !isOpenShift {
+			// Grafana keeps running as UID/GID 2000 (instead of the shared hardening default) so that
+			// upgrades from the v4 deployment can still read data on an existing PVC created under 2000.
+			podSpec.SecurityContext.RunAsUser = k8sptr.To(grafanaLegacySecurityContextID)
+			podSpec.SecurityContext.RunAsGroup = k8sptr.To(grafanaLegacySecurityContextID)
+			podSpec.SecurityContext.FSGroup = k8sptr.To(grafanaLegacySecurityContextID)
+		}
+
+		podSpec.Volumes = utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 
 		// Attach envFrom so that grafana picks up extraVars / extraVarsSecret
 		// (GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH and other settings).
@@ -320,6 +337,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					Name:            "grafana-plugins-init",
 					Image:           cr.Spec.Grafana.Operator.InitContainerImage,
 					ImagePullPolicy: corev1.PullIfNotPresent,
+					SecurityContext: utils.HardenedContainerSecurityContext(),
 					Env: []corev1.EnvVar{
 						{
 							Name:  "GRAFANA_PLUGINS",
@@ -331,6 +349,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 							Name:      pluginsVolumeName,
 							MountPath: pluginsInitMountPath,
 						},
+						utils.TmpVolumeMount(),
 					},
 				})
 			}
@@ -339,12 +358,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
-		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
+		// Preserve configured IDs while enforcing the hardening settings above.
 		if cr.Spec.Grafana.SecurityContext != nil {
-			podSpec := ensurePodSpecInitialized(&graf)
-			if podSpec.SecurityContext == nil {
-				podSpec.SecurityContext = &corev1.PodSecurityContext{}
-			}
 			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
 				podSpec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
 			}

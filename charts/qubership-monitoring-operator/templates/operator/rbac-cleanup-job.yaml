@@ -21,6 +21,10 @@ spec:
       name: monitoring-rbac-cleanup-hook
       labels:
         {{- include "monitoring.labels" (dict "ctx" . "name" "monitoring-rbac-cleanup-hook") | nindent 8 }}
+      {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+      annotations:
+        openshift.io/required-scc: restricted-v2
+      {{- end }}
     spec:
       # The matching post-delete ClusterRoleBinding is rendered by rbac-cleanup-rbac.yaml.
       serviceAccountName: monitoring-rbac-cleanup-hook
@@ -38,12 +42,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
-        runAsUser: 2000
-        fsGroup: 2000
-        {{- else }}
-        {}
-        {{- end }}
+        {{- include "monitoring.cleanup.securityContext" . | nindent 8 }}
       containers:
         - name: kubectl
           image: {{ get $cleanupHook "image" | default "docker.io/rancher/kuberlr-kubectl:v8.0.0" }}
@@ -54,14 +53,13 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           securityContext:
-            {{- with (get $cleanupHook "containerSecurityContext") }}
-            {{- toYaml . | nindent 12 }}
-            {{- else }}
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            {{- end }}
+            {{- include "monitoring.cleanup.containerSecurityContext" . | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: HOME
+              value: /tmp
           command:
             - /bin/sh
             - -c
@@ -84,4 +82,8 @@ spec:
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
               fi;
               {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{- end }}

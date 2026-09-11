@@ -379,6 +379,10 @@
                 "annotations": {
                     "type": "object"
                 },
+                "containerSecurityContext": {
+                    "type": "object",
+                    "description": "Container-level security attributes. The chart enforces the restricted baseline fields."
+                },
                 "install": {
                     "type": "boolean"
                 },

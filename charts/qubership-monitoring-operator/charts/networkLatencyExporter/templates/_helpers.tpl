@@ -19,14 +19,34 @@ Image can be found from:
 Return securityContext for network-latency-exporter.
 */}}
 {{- define "networkLatencyExporter.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 0
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2001 "runAsGroup" 2001 "fsGroup" 2001 -}}
+{{- end -}}
+{{- $configured := deepCopy (.Values.securityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context.
+Privileged mode remains an explicit compatibility override.
+*/}}
+{{- define "networkLatencyExporter.containerSecurityContext" -}}
+{{- if .Values.rbac.privileged -}}
+allowPrivilegeEscalation: true
+privileged: true
+readOnlyRootFilesystem: true
+{{- else -}}
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
+capabilities:
+  drop:
+    - ALL
+{{- end -}}
 {{- end -}}
 
 {{/*

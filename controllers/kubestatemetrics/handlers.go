@@ -92,7 +92,7 @@ func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *monv1.Platform
 }
 
 func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api())
+	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api(), r.HasRouteApi())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -119,6 +119,7 @@ func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitori
 	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
@@ -250,7 +251,7 @@ func (r *KubeStateMetricsReconciler) deleteClusterRoleBinding(cr *monv1.Platform
 }
 
 func (r *KubeStateMetricsReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api())
+	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api(), r.HasRouteApi())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err

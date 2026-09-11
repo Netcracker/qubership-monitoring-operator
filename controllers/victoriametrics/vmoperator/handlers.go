@@ -160,7 +160,7 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := vmOperatorDeployment(r, cr)
+	m, err := vmOperatorDeployment(r, cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -593,6 +593,7 @@ func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.Platfo
 	}
 	//Set parameters
 	e.SetLabels(m.GetLabels())
+	utils.ApplySecurityContextConstraintsPolicy(e, m)
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -698,7 +699,7 @@ func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := vmOperatorDeployment(r, cr)
+	m, err := vmOperatorDeployment(r, cr, r.hasSecurityContextConstraintsAPI())
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err

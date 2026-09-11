@@ -80,7 +80,7 @@ func kubeStateMetricsClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.C
 	return &clusterRoleBinding, nil
 }
 
-func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress bool) (*appsv1.Deployment, error) {
+func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress, isOpenShift bool) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.KubestatemetricsDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -132,18 +132,6 @@ func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress bool) (
 				break
 			}
 		}
-		// Set security context
-		if cr.Spec.KubeStateMetrics.SecurityContext != nil {
-			if d.Spec.Template.Spec.SecurityContext == nil {
-				d.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			}
-			if cr.Spec.KubeStateMetrics.SecurityContext.RunAsUser != nil {
-				d.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.KubeStateMetrics.SecurityContext.RunAsUser
-			}
-			if cr.Spec.KubeStateMetrics.SecurityContext.FSGroup != nil {
-				d.Spec.Template.Spec.SecurityContext.FSGroup = cr.Spec.KubeStateMetrics.SecurityContext.FSGroup
-			}
-		}
 		// Set tolerations for KubeStateMetrics
 		if cr.Spec.KubeStateMetrics.Tolerations != nil {
 			d.Spec.Template.Spec.Tolerations = cr.Spec.KubeStateMetrics.Tolerations
@@ -192,8 +180,28 @@ func kubeStateMetricsDeployment(cr *monv1.PlatformMonitoring, hasIngress bool) (
 		}
 	}
 	d.Spec.Template.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.KubestatemetricsComponentName
+	var configuredSecurityContext *monv1.SecurityContext
+	if cr.Spec.KubeStateMetrics != nil {
+		configuredSecurityContext = cr.Spec.KubeStateMetrics.SecurityContext
+	}
+	applyKubeStateMetricsHardening(&d, isOpenShift, configuredSecurityContext)
 
 	return &d, nil
+}
+
+func applyKubeStateMetricsHardening(
+	deployment *appsv1.Deployment,
+	isOpenShift bool,
+	configuredPodSecurityContext *monv1.SecurityContext,
+) {
+	deployment.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	deployment.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(deployment.Spec.Template.Spec.Volumes, "100Mi")
+
+	for i := range deployment.Spec.Template.Spec.Containers {
+		container := &deployment.Spec.Template.Spec.Containers[i]
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
+	}
 }
 
 func kubeStateMetricsService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
