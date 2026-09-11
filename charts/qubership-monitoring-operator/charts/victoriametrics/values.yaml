@@ -2364,6 +2364,8 @@ mcp:
   tolerations: []
   volumes: []
   volumeMounts: []
+  # Extra labels for the Deployment and its pods. The app key is reserved for the
+  # selector and is ignored here.
   labels: {}
   annotations: {}
   podAnnotations: {}

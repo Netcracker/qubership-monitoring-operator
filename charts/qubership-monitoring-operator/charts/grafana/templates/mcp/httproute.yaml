@@ -3,6 +3,9 @@
 {{- if eq (len .Values.mcp.httpRoute.parentRefs) 0 }}
 {{- fail "grafana.mcp.httpRoute.parentRefs must contain at least one Gateway reference when HTTPRoute is enabled" }}
 {{- end }}
+{{- if and (not .Values.mcp.httpRoute.hostnames) (not .Values.mcp.allowedHosts) }}
+{{- fail "grafana.mcp.httpRoute.hostnames must contain at least one hostname, or grafana.mcp.allowedHosts must list the Gateway host; mcp-grafana rejects requests whose Host header is not allowed" }}
+{{- end }}
 apiVersion: {{ .Values.mcp.httpRoute.apiVersion }}
 kind: {{ .Values.mcp.httpRoute.kind }}
 metadata:

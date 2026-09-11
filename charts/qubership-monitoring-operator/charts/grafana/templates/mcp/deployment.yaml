@@ -38,8 +38,8 @@ metadata:
     {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 4 }}
     app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
     app: {{ $name }}
-    {{- if .Values.mcp.labels }}
-    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 4 }}
+    {{- with omit .Values.mcp.labels "app" }}
+    {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .) | nindent 4 }}
     {{- end }}
   {{- if .Values.mcp.annotations }}
   annotations:
@@ -56,11 +56,11 @@ spec:
         app: {{ $name }}
         {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 8 }}
         app.kubernetes.io/instance: {{ cat $name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-        {{- if .Values.mcp.podLabels }}
-        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.podLabels) | nindent 8 }}
+        {{- with omit .Values.mcp.podLabels "app" }}
+        {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .) | nindent 8 }}
         {{- end }}
-        {{- if .Values.mcp.labels }}
-        {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.labels) | nindent 8 }}
+        {{- with omit .Values.mcp.labels "app" }}
+        {{- include "monitoring.extraLabels" (dict "ctx" $ "extraLabels" .) | nindent 8 }}
         {{- end }}
       {{- if or .Values.mcp.podAnnotations .Values.mcp.basicAuth.password }}
       annotations:

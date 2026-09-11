@@ -863,6 +863,9 @@ mcp:
     install: false
     apiVersion: gateway.networking.k8s.io/v1
     kind: HTTPRoute
+    # Hostnames the route matches. Each one is added to the mcp-grafana Host
+    # allowlist. Leave empty only when allowedHosts lists the Gateway host,
+    # because mcp-grafana rejects requests with an unknown Host header.
     hostnames: []
     parentRefs: []
     rules: []
@@ -935,7 +938,10 @@ mcp:
   extraContainers: []
   volumes: []
   volumeMounts: []
+  # Extra labels for the Deployment and its pods. The app key is reserved for the
+  # selector and is ignored here.
   labels: {}
   annotations: {}
   podAnnotations: {}
+  # Extra pod labels. The app key is reserved for the selector and is ignored here.
   podLabels: {}
