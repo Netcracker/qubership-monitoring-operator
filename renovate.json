@@ -52,7 +52,7 @@
   ],
   "packageRules": [
     {
-      "description": "Automerge Go module and GitHub Actions updates once every check on the branch has passed",
+      "description": "Automerge eligible Go module and GitHub Actions updates through GitHub after the required gates pass",
       "matchManagers": ["gomod", "github-actions"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
@@ -149,7 +149,7 @@
       "automerge": false
     }
   ],
-  "platformAutomerge": false,
-  "automergeSchedule": ["at any time"],
-  "autoApprove": true
+  "automergeType": "pr",
+  "platformAutomerge": true,
+  "automergeSchedule": ["at any time"]
 }
