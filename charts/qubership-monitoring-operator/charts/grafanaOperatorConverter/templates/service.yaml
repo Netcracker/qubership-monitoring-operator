@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grafana-operator-converter.metricsServiceName" . }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" . | nindent 4 }}
+    {{- with .Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.metricsService.type }}
+  ports:
+    - port: {{ .Values.metricsService.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "grafana-operator-converter.selectorLabels" . | nindent 4 }}

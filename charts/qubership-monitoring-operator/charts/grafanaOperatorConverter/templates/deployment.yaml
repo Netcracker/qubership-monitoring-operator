@@ -1,0 +1,115 @@
+{{- if .Values.watchNamespaceSelector }}
+{{- fail "watchNamespaceSelector is not supported because converter informers cannot apply dynamic namespace selection. Use watchNamespaces instead." }}
+{{- end }}
+{{- range .Values.env }}
+{{- if or (eq .name "WATCH_NAMESPACE") (eq .name "WATCH_NAMESPACE_SELECTOR") }}
+{{- fail (printf "env cannot override %s because namespace scope is managed by watchNamespaces" .name) }}
+{{- end }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grafana-operator-converter.fullname" . }}
+  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" . | nindent 4 }}
+    {{- with .Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grafana-operator-converter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "grafana-operator-converter.selectorLabels" . | nindent 8 }}
+        {{- with .Values.additionalLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "grafana-operator-converter.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "grafana-operator-converter.name" . }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: WATCH_NAMESPACE
+              value: {{ include "grafana-operator-converter.watchNamespaces" . | quote }}
+            {{- with .Values.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          args:
+            - --health-probe-bind-address=:8081
+            - --metrics-bind-address=0.0.0.0:{{ .Values.metricsService.metricsPort }}
+            {{- if .Values.leaderElect }}
+            - --leader-elect
+            {{- end }}
+          volumeMounts:
+            - name: dashboards-dir
+              mountPath: /tmp/dashboards
+            {{- if .Values.grafana.converter }}
+            {{- if .Values.grafana.converter.enable }}
+            - name: grafana-converter-parameters
+              mountPath: /opt/grafana-converter
+            {{- end }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.metricsService.metricsPort }}
+              name: metrics
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8081
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: dashboards-dir
+          emptyDir: {}
+        {{- if .Values.grafana.converter }}
+        {{- if .Values.grafana.converter.enable }}
+        - name: grafana-converter-parameters
+          configMap:
+            name: grafana-resources-converter
+            defaultMode: 420
+        {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
