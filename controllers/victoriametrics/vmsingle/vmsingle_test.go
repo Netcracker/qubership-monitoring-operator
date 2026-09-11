@@ -12,6 +12,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	ktesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -151,7 +153,9 @@ func TestHandleVmSingleDisablesPVCRemovalOnUpgrade(t *testing.T) {
 		},
 	}
 	controllerClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(existing).Build()
-	reconciler := NewVmSingleReconciler(controllerClient, scheme, nil)
+	// The manifest probes the SecurityContextConstraints API, so the reconciler needs a discovery client.
+	dc := &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}}
+	reconciler := NewVmSingleReconciler(controllerClient, scheme, dc)
 	cr := &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "platformmonitoring",
