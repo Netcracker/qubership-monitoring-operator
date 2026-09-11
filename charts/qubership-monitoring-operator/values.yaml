@@ -1663,6 +1663,12 @@ integrationTests:
   #
   securityContext: {}
 
+  # SecurityContext holds container-level security attributes. The chart enforces the restricted baseline fields.
+  # Type: object
+  # Mandatory: no
+  #
+  containerSecurityContext: {}
+
   # Labels set which will create in service
   # Type: map[string]string
   # Mandatory: no

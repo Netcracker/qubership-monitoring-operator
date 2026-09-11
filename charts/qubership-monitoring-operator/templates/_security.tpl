@@ -17,6 +17,65 @@ Return securityContext for monitoring-operator.
 {{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
 {{- toYaml (mergeOverwrite $configuredWithDefaults $required) -}}
 {{- end -}}
+
+{{/*
+Return the enforced pod security context for root-chart cleanup hooks.
+*/}}
+{{- define "monitoring.cleanup.securityContext" -}}
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- $configured := deepCopy (get $cleanupHook "securityContext" | default dict) -}}
+{{- $required := dict
+  "runAsNonRoot" true
+  "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for root-chart cleanup hooks.
+*/}}
+{{- define "monitoring.cleanup.containerSecurityContext" -}}
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- $configured := deepCopy (get $cleanupHook "containerSecurityContext" | default dict) -}}
+{{- $required := dict
+  "allowPrivilegeEscalation" false
+  "readOnlyRootFilesystem" true
+  "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite $configured $required) -}}
+{{- end -}}
+
+{{/*
+Return the enforced pod security context for monitoring integration tests.
+*/}}
+{{- define "integrationTests.securityContext" -}}
+{{- $configured := deepCopy (.Values.integrationTests.securityContext | default dict) -}}
+{{- $required := dict
+  "runAsNonRoot" true
+  "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for monitoring integration tests.
+*/}}
+{{- define "integrationTests.containerSecurityContext" -}}
+{{- $configured := deepCopy (.Values.integrationTests.containerSecurityContext | default dict) -}}
+{{- $required := dict
+  "allowPrivilegeEscalation" false
+  "readOnlyRootFilesystem" true
+  "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite $configured $required) -}}
+{{- end -}}
+
 {{/*
 Return the container security context for the etcd-certs-to-secret job.
 */}}

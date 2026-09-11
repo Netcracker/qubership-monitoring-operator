@@ -12,6 +12,7 @@ component_args=(
     --set grafana.install=true
     --set grafana.imageRenderer.install=true
     --set graphite_remote_adapter.install=true
+    --set integrationTests.install=true
     --set prometheusAdapter.install=true
     --set promxy.install=true
     --set victoriametrics.vmOperator.install=true
@@ -65,7 +66,10 @@ render_components \
     --set grafana.imageRenderer.securityContext.seccompProfile.type=Unconfined \
     --set victoriametrics.cleanup.hook.containerSecurityContext.allowPrivilegeEscalation=true \
     --set victoriametrics.cleanup.hook.containerSecurityContext.readOnlyRootFilesystem=false \
-    --set 'victoriametrics.cleanup.hook.containerSecurityContext.capabilities.drop={NET_RAW}'
+    --set 'victoriametrics.cleanup.hook.containerSecurityContext.capabilities.drop={NET_RAW}' \
+    --set integrationTests.containerSecurityContext.allowPrivilegeEscalation=true \
+    --set integrationTests.containerSecurityContext.readOnlyRootFilesystem=false \
+    --set 'integrationTests.containerSecurityContext.capabilities.drop={NET_RAW}'
 
 relative_manifests=(
     grafana/templates/image-renderer/deployment.yaml
@@ -121,6 +125,8 @@ for cleanup_manifest in "${cleanup_kubernetes_manifest}" "${cleanup_openshift_ma
     assert_contains "${cleanup_manifest}" "readOnlyRootFilesystem: true"
     assert_contains "${cleanup_manifest}" "- ALL"
     assert_contains "${cleanup_manifest}" "sizeLimit: 100Mi"
+    assert_contains "${cleanup_manifest}" "name: HOME"
+    assert_contains "${cleanup_manifest}" "value: /tmp"
 done
 
 assert_contains "${cleanup_kubernetes_manifest}" "runAsNonRoot: true"
@@ -137,6 +143,56 @@ assert_contains "${cleanup_enforced_manifest}" "allowPrivilegeEscalation: false"
 assert_contains "${cleanup_enforced_manifest}" "readOnlyRootFilesystem: true"
 assert_contains "${cleanup_enforced_manifest}" "- ALL"
 assert_not_contains "${cleanup_enforced_manifest}" "- NET_RAW"
+
+root_cleanup_manifests=(
+    "${kubernetes_dir}/qubership-monitoring-operator/templates/operator/grafana-cleanup-job.yaml"
+    "${kubernetes_dir}/qubership-monitoring-operator/templates/operator/rbac-cleanup-job.yaml"
+    "${openshift_dir}/qubership-monitoring-operator/templates/operator/grafana-cleanup-job.yaml"
+    "${openshift_dir}/qubership-monitoring-operator/templates/operator/rbac-cleanup-job.yaml"
+)
+
+for cleanup_manifest in "${root_cleanup_manifests[@]}"; do
+    assert_contains "${cleanup_manifest}" "runAsNonRoot: true"
+    assert_contains "${cleanup_manifest}" "type: RuntimeDefault"
+    assert_contains "${cleanup_manifest}" "allowPrivilegeEscalation: false"
+    assert_contains "${cleanup_manifest}" "readOnlyRootFilesystem: true"
+    assert_contains "${cleanup_manifest}" "- ALL"
+    assert_contains "${cleanup_manifest}" "mountPath: /tmp"
+    assert_contains "${cleanup_manifest}" "sizeLimit: 100Mi"
+    assert_contains "${cleanup_manifest}" "name: HOME"
+    assert_contains "${cleanup_manifest}" "value: /tmp"
+done
+
+for cleanup_manifest in \
+    "${openshift_dir}/qubership-monitoring-operator/templates/operator/grafana-cleanup-job.yaml" \
+    "${openshift_dir}/qubership-monitoring-operator/templates/operator/rbac-cleanup-job.yaml"; do
+    assert_contains "${cleanup_manifest}" "openshift.io/required-scc: restricted-v2"
+    assert_not_contains "${cleanup_manifest}" "runAsUser:"
+    assert_not_contains "${cleanup_manifest}" "runAsGroup:"
+    assert_not_contains "${cleanup_manifest}" "fsGroup:"
+done
+
+integration_test_manifests=(
+    "${kubernetes_dir}/qubership-monitoring-operator/templates/integration-tests/deployment.yml"
+    "${openshift_dir}/qubership-monitoring-operator/templates/integration-tests/deployment.yml"
+)
+
+for integration_test_manifest in "${integration_test_manifests[@]}"; do
+    assert_contains "${integration_test_manifest}" "runAsNonRoot: true"
+    assert_contains "${integration_test_manifest}" "type: RuntimeDefault"
+    assert_contains "${integration_test_manifest}" "allowPrivilegeEscalation: false"
+    assert_contains "${integration_test_manifest}" "readOnlyRootFilesystem: true"
+    assert_contains "${integration_test_manifest}" "- ALL"
+    assert_contains "${integration_test_manifest}" "mountPath: /tmp"
+    assert_contains "${integration_test_manifest}" "mountPath: /opt/robot/output"
+    assert_contains "${integration_test_manifest}" "sizeLimit: 100Mi"
+done
+
+integration_test_enforced_manifest="${enforcement_dir}/qubership-monitoring-operator/templates/integration-tests/deployment.yml"
+assert_contains "${integration_test_enforced_manifest}" "allowPrivilegeEscalation: false"
+assert_contains "${integration_test_enforced_manifest}" "readOnlyRootFilesystem: true"
+assert_contains "${integration_test_enforced_manifest}" "- ALL"
+assert_not_contains "${integration_test_enforced_manifest}" "- NET_RAW"
 
 promxy_manifest="${kubernetes_dir}/qubership-monitoring-operator/charts/promxy/templates/deployment.yaml"
 if [[ "$(grep -Fc -- "allowPrivilegeEscalation: false" "${promxy_manifest}")" -ne 2 ]]; then

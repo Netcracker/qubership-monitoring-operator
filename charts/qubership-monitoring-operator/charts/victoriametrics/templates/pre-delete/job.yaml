@@ -53,6 +53,9 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+          env:
+            - name: HOME
+              value: /tmp
           command:
             - /bin/sh
             - -c

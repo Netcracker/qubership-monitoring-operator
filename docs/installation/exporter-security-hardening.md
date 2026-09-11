@@ -20,21 +20,21 @@ security context fields are preserved, but they cannot weaken the enforced basel
 
 The baseline is applied to these chart workloads:
 
-| Exporter | Workload | Baseline status |
-| --- | --- | --- |
-| Blackbox Exporter | Deployment or DaemonSet | Applied |
-| Cert Exporter | Deployment | Applied |
-| Cert Exporter | DaemonSet | Applied with host filesystem limitations |
-| Cloud Events Exporter | Deployment | Applied |
-| CloudWatch Exporter | Deployment | Applied with credential-file considerations |
-| Goldpinger Exporter | DaemonSet | Applied unless host networking is explicitly enabled |
-| JSON Exporter | Deployment | Applied; additional volumes remain user-controlled |
-| Network Latency Exporter | DaemonSet | Applied unless privileged mode is explicitly enabled |
-| Promitor Resource Discovery | Deployment | Applied; additional volumes remain user-controlled |
-| Promitor Scraper | Deployment | Applied |
-| SSL Exporter | DaemonSet | Applied with host filesystem limitations |
-| Stackdriver Exporter | Deployment | Applied |
-| Version Exporter | Deployment | Applied |
+| Exporter                    | Workload                | Baseline status                                      |
+| --------------------------- | ----------------------- | ---------------------------------------------------- |
+| Blackbox Exporter           | Deployment or DaemonSet | Applied                                              |
+| Cert Exporter               | Deployment              | Applied                                              |
+| Cert Exporter               | DaemonSet               | Applied with host filesystem limitations             |
+| Cloud Events Exporter       | Deployment              | Applied                                              |
+| CloudWatch Exporter         | Deployment              | Applied with credential-file considerations          |
+| Goldpinger Exporter         | DaemonSet               | Applied unless host networking is explicitly enabled |
+| JSON Exporter               | Deployment              | Applied; additional volumes remain user-controlled   |
+| Network Latency Exporter    | DaemonSet               | Applied unless privileged mode is explicitly enabled |
+| Promitor Resource Discovery | Deployment              | Applied; additional volumes remain user-controlled   |
+| Promitor Scraper            | Deployment              | Applied                                              |
+| SSL Exporter                | DaemonSet               | Applied with host filesystem limitations             |
+| Stackdriver Exporter        | Deployment              | Applied                                              |
+| Version Exporter            | Deployment              | Applied                                              |
 
 Node Exporter, Kube State Metrics, and Pushgateway are covered by their component-specific hardening implementation and
 documentation.

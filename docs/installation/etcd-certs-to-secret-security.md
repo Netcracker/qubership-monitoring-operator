@@ -3,10 +3,10 @@
 The `etcd-certs-to-secret` workload copies the certificates required for etcd monitoring into the monitoring namespace.
 Its certificate source and security model depend on the platform.
 
-| Platform | Certificate source | Runs as root | Uses `hostPath` |
-| --- | --- | --- | --- |
-| Kubernetes | Files on a control-plane node | Yes | Yes, read-only `/etc` |
-| OpenShift | A ConfigMap and Secret in `openshift-etcd-operator` | No | No |
+| Platform   | Certificate source                                  | Runs as root | Uses `hostPath`       |
+| ---------- | --------------------------------------------------- | ------------ | --------------------- |
+| Kubernetes | Files on a control-plane node                       | Yes          | Yes, read-only `/etc` |
+| OpenShift  | A ConfigMap and Secret in `openshift-etcd-operator` | No           | No                    |
 
 ## Kubernetes constraints
 
