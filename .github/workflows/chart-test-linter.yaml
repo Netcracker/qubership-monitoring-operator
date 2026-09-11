@@ -7,24 +7,12 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  # Chart Gate is a required check, so this workflow must report on every pull
+  # request. The path filter moved into the changes job below, which skips the
+  # validation itself when nothing relevant changed.
   pull_request:
     branches:
       - 'main'
-    paths:
-      - 'api/v1/**'
-      - '.gitattributes'
-      - '.github/workflows/chart-test-linter.yaml'
-      - 'tools/boilerplate.go.txt'
-      - 'go.mod'
-      - 'go.sum'
-      - 'controllers/**'
-      - 'charts/**'
-      - 'docs/examples/deploy-parameters/**'
-      - 'tools/crd-update/**'
-      - 'tools/verify-grafana-offline-settings.sh'
-      - 'tools/verify-helm-crds.sh'
-      - 'tools/verify-subchart-paths.sh'
-      - 'Makefile'
   push:
     branches:
       - main
@@ -46,7 +34,71 @@ on:
   workflow_dispatch: null
 
 jobs:
+  changes:
+    name: Detect chart changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      charts: ${{ steps.filter.outputs.charts }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Match changed files against the chart validation paths
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          # Outside a pull request the trigger-level path filter already decided.
+          if [[ "${GITHUB_EVENT_NAME}" != 'pull_request' ]]; then
+            echo 'charts=true' >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          # Keep in sync with the push trigger paths above.
+          patterns=(
+            '^[.]gitattributes$'
+            '^[.]github/workflows/chart-test-linter[.]yaml$'
+            '^Makefile$'
+            '^api/v1/'
+            '^charts/'
+            '^controllers/'
+            '^docs/examples/deploy-parameters/'
+            '^go[.](mod|sum)$'
+            '^tools/boilerplate[.]go[.]txt$'
+            '^tools/crd-update/'
+            '^tools/verify-grafana-offline-settings[.]sh$'
+            '^tools/verify-helm-crds[.]sh$'
+            '^tools/verify-subchart-paths[.]sh$'
+          )
+          pattern="$(IFS='|'; printf '%s' "${patterns[*]}")"
+
+          # --no-renames lists both endpoints of a move, so a file renamed out of
+          # a watched directory still counts as a change to that directory.
+          changed="$(git diff --no-renames --name-only "${BASE_SHA}...${HEAD_SHA}")"
+          echo "Changed files:"
+          printf '%s\n' "${changed}"
+
+          # A here-string rather than a pipe: grep -q exits on its first match, and
+          # under pipefail a still-writing printf would take SIGPIPE and turn a
+          # match into a false negative once the file list outgrows the pipe buffer.
+          if grep -qE "${pattern}" <<< "${changed}"; then
+            echo 'charts=true' >> "${GITHUB_OUTPUT}"
+          else
+            echo 'charts=false' >> "${GITHUB_OUTPUT}"
+            echo '::notice::No chart or API sources changed, skipping chart validation'
+          fi
+
   lint-test:
+    needs: [changes]
+    if: needs.changes.outputs.charts == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -96,3 +148,16 @@ jobs:
 
       - name: Run chart-testing (lint)
         run: ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts
+
+  chart-gate:
+    name: Chart Gate
+    needs: [changes, lint-test]
+    # Runs even when a dependency fails, so the check resolves instead of being
+    # skipped. A skipped lint-test means the validation did not apply.
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Fail if any dependency failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
