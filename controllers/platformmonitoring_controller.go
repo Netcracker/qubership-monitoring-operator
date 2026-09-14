@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	goerrors "errors"
 	"strconv"
 	"time"
 
@@ -75,6 +76,7 @@ const (
 	prometheusDeprecationReason  = "PrometheusDeprecated"
 	prometheusDeprecationMessage = "Managed Prometheus is deprecated and will be removed in the next release. " +
 		"Migrate to VictoriaMetrics."
+	grafanaDatasourceMigrationRequeueAfter = 10 * time.Second
 )
 
 // +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings,verbs=get;list;watch;create;update;patch;delete
@@ -278,7 +280,11 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 
 	gReconciler := grafana.NewGrafanaReconciler(r.Client, r.Scheme, r.DiscoveryClient, r.Config)
 	err = gReconciler.Run(customResourceInstance)
-	if err != nil {
+	grafanaDatasourceMigrationErr := err
+	grafanaDatasourceMigrationPending := isGrafanaDatasourceMigrationPending(err)
+	if grafanaDatasourceMigrationPending {
+		r.removeStatus(customResourceInstance, "ReconcileGrafanaStatus")
+	} else if err != nil {
 		r.Log.Error(err, "Reconciliation of grafana custom resources failed")
 		r.prepareStatusForUpdate(customResourceInstance, "Failed", "False", "ReconcileGrafanaStatus", "Grafana reconcile cycle failed")
 	} else {
@@ -321,6 +327,19 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 
 		r.Log.Info("Reconciliation failed. Run reconciliation again.")
 		return reconcile.Result{Requeue: true}, nil
+	}
+
+	if grafanaDatasourceMigrationPending {
+		r.prepareStatusForUpdate(customResourceInstance, "In progress", "False",
+			"ReconcileCycleStatus", "Monitoring service reconcile cycle in progress")
+		customResourceInstance.Status.ObservedGeneration = customResourceInstance.Generation
+		r.Log.Info("Grafana datasource UID migration is pending; requeue", "error", grafanaDatasourceMigrationErr)
+		if !apiequality.Semantic.DeepEqual(statusBeforeReconcile, &customResourceInstance.Status) {
+			if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
+				r.Log.Error(err, "Update status failed")
+			}
+		}
+		return reconcile.Result{RequeueAfter: grafanaDatasourceMigrationRequeueAfter}, nil
 	}
 
 	r.prepareStatusForUpdate(customResourceInstance, "Successful", "True", "ReconcileCycleStatus", "Monitoring service reconcile cycle succeeded")
@@ -399,6 +418,10 @@ func hasFailedComponentCondition(conditions []qubershiporgv1.PlatformMonitoringC
 		}
 	}
 	return false
+}
+
+func isGrafanaDatasourceMigrationPending(err error) bool {
+	return goerrors.Is(err, grafana.ErrDatasourceMigrationPending)
 }
 
 // getCondition retrieves condition of custom resource instance by given reason.
