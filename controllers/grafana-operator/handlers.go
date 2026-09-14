@@ -2,7 +2,6 @@ package grafana_operator
 
 import (
 	"context"
-	"reflect"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -35,7 +34,10 @@ func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonit
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -62,9 +64,11 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitori
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -90,7 +94,10 @@ func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformM
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -117,9 +124,11 @@ func (r *GrafanaOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) err
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -145,7 +154,10 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitori
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -184,20 +196,24 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
 	if preservedSelector != nil {
-		e.Spec.Selector = preservedSelector
+		changed = utils.SetIfChanged(&e.Spec.Selector, preservedSelector) || changed
 	} else {
-		e.Spec.Selector = m.Spec.Selector
+		changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
 	}
-	e.Spec.Template.Labels = deploymentTemplateLabelsForUpdate(
+	templateLabels := deploymentTemplateLabelsForUpdate(
 		e.Spec.Template.Labels, m.Spec.Template.Labels, e.Spec.Selector)
-	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
-	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-	e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
+	changed = utils.SetLabelsIfChanged(&e.Spec.Template, templateLabels) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -229,16 +245,9 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 
 		// Only update when Spec or labels actually changed to avoid rewriting large
 		// dashboard CRs on every PlatformMonitoring reconcile (#447).
-		needsUpdate := false
-		if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
-			checkObj.Spec = m.Spec
-			needsUpdate = true
-		}
-		if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
-			checkObj.SetLabels(m.GetLabels())
-			needsUpdate = true
-		}
-		if !needsUpdate {
+		changed := utils.SetIfChanged(&checkObj.Spec, m.Spec)
+		changed = utils.SetLabelsIfChanged(checkObj, m.GetLabels()) || changed
+		if !changed {
 			return nil
 		}
 		return r.UpdateResource(checkObj)
@@ -264,11 +273,14 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitorin
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err

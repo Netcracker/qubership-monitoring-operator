@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -125,16 +124,9 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 }
 
 func applyGrafanaDesiredState(existing, desired *grafv1.Grafana) bool {
-	needsUpdate := false
-	if !reflect.DeepEqual(existing.Spec, desired.Spec) {
-		existing.Spec = desired.Spec
-		needsUpdate = true
-	}
-	if !reflect.DeepEqual(existing.GetLabels(), desired.GetLabels()) {
-		existing.SetLabels(desired.GetLabels())
-		needsUpdate = true
-	}
-	return needsUpdate
+	changed := utils.SetIfChanged(&existing.Spec, desired.Spec)
+	changed = utils.SetLabelsIfChanged(existing, desired.GetLabels()) || changed
+	return changed
 }
 
 func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
@@ -181,20 +173,13 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 	}
 
 	// Only update if something actually changed to avoid unnecessary updates
-	needsUpdate := false
-	if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
-		checkObj.Spec = m.Spec
-		needsUpdate = true
+	changed := utils.SetIfChanged(&checkObj.Spec, m.Spec)
+	changed = utils.SetLabelsIfChanged(checkObj, m.GetLabels()) || changed
+	if !changed {
+		return nil
 	}
-	if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
-		checkObj.SetLabels(m.GetLabels())
-		needsUpdate = true
-	}
-
-	if needsUpdate {
-		if err = r.UpdateResource(checkObj); err != nil {
-			return err
-		}
+	if err = r.UpdateResource(checkObj); err != nil {
+		return err
 	}
 	return nil
 }
@@ -236,20 +221,13 @@ func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 
 	// Set parameters
 	// Only update if something actually changed to avoid unnecessary updates
-	needsUpdate := false
-	if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
-		checkObj.Spec = m.Spec
-		needsUpdate = true
+	changed := utils.SetIfChanged(&checkObj.Spec, m.Spec)
+	changed = utils.SetLabelsIfChanged(checkObj, m.GetLabels()) || changed
+	if !changed {
+		return nil
 	}
-	if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
-		checkObj.SetLabels(m.GetLabels())
-		needsUpdate = true
-	}
-
-	if needsUpdate {
-		if err = r.UpdateResource(checkObj); err != nil {
-			return err
-		}
+	if err = r.UpdateResource(checkObj); err != nil {
+		return err
 	}
 	return nil
 }
@@ -272,10 +250,13 @@ func (r *GrafanaReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error 
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
+	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -302,11 +283,14 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
