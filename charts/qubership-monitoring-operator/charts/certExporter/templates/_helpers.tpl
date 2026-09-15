@@ -26,7 +26,16 @@ Return securityContext for deployment certExporter.
 Return securityContext for daemonset certExporter.
 */}}
 {{- define "certExporter.daemonset.securityContext" -}}
-{{- include "certExporter.securityContext" (dict "root" . "configured" .Values.daemonset.securityContext) -}}
+{{- $configured := deepCopy (.Values.daemonset.securityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{/*
+The DaemonSet needs hostPath volumes, so it is admitted by the chart's RunAsAny SCC, which does not
+assign a UID. The image declares the nonnumeric user "app", which the kubelet cannot verify against
+runAsNonRoot, so the DaemonSet keeps numeric IDs on OpenShift as well.
+*/}}
+{{- $configured = mergeOverwrite (dict "runAsUser" 2000 "runAsGroup" 2000) $configured -}}
+{{- end -}}
+{{- include "certExporter.securityContext" (dict "root" . "configured" $configured) -}}
 {{- end -}}
 
 {{/* Return the enforced pod security context. */}}

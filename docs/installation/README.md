@@ -63,6 +63,13 @@ The operator detects OpenShift through the `security.openshift.io/v1` SecurityCo
 result. If that discovery fails before a result is cached, the affected component is not updated during that
 reconciliation, the failure is recorded in the status conditions, and reconciliation is retried.
 
+On OpenShift the operator omits numeric IDs unless a component's `securityContext` sets them, so the `restricted-v2`
+SCC assigns IDs from the namespace range. Explicitly configured non-root IDs stay admissible for VictoriaMetrics
+components: the operator-managed `victoriametrics-operator` SCC uses the `MustRunAsNonRoot` UID strategy and
+`RunAsAny` for `fsGroup` and supplemental groups. Set `runAsUser` together with `runAsGroup` or `fsGroup` on
+OpenShift: a pod that carries only a group ID falls back to that SCC without a UID, and the VictoriaMetrics images do
+not declare a numeric user, so the kubelet rejects the pod.
+
 ## Permissions
 
 The monitoring operator requires cluster-level permissions to create and manage the following components:

@@ -130,9 +130,16 @@ for relative_manifest in "${relative_manifests[@]}"; do
 
     assert_contains "${openshift_manifest}" "runAsNonRoot: true"
     assert_contains "${openshift_manifest}" "type: RuntimeDefault"
-    assert_not_contains "${openshift_manifest}" "runAsUser:"
-    assert_not_contains "${openshift_manifest}" "runAsGroup:"
     assert_not_contains "${openshift_manifest}" "fsGroup:"
+    if [ "${relative_manifest}" = "certExporter/templates/daemonset.yaml" ]; then
+        # The hostPath DaemonSet is admitted by a RunAsAny SCC that assigns no UID, and the image user
+        # is nonnumeric, so the pod must carry numeric IDs for the kubelet to verify runAsNonRoot.
+        assert_contains "${openshift_manifest}" "runAsUser: 2000"
+        assert_contains "${openshift_manifest}" "runAsGroup: 2000"
+    else
+        assert_not_contains "${openshift_manifest}" "runAsUser:"
+        assert_not_contains "${openshift_manifest}" "runAsGroup:"
+    fi
 done
 
 blackbox_daemonset_manifest="${blackbox_daemonset_dir}/qubership-monitoring-operator/charts/blackboxExporter/templates/daemonset.yaml"

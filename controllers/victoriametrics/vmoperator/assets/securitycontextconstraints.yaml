@@ -16,12 +16,15 @@ requiredDropCapabilities:
 - ALL
 defaultAddCapabilities: []
 allowedCapabilities: []
+# Explicitly configured non-root IDs must stay admissible, so the UID and group strategies do not
+# bind to the namespace range. Pods without configured IDs are admitted by the more restrictive
+# restricted-v2 SCC first, which assigns IDs from the namespace range.
 runAsUser:
-  type: MustRunAsRange
+  type: MustRunAsNonRoot
 seLinuxContext:
   type: MustRunAs
 fsGroup:
-  type: MustRunAs
+  type: RunAsAny
 supplementalGroups:
   type: RunAsAny
 seccompProfiles:

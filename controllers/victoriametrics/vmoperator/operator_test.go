@@ -203,9 +203,14 @@ func TestVmOperatorManifests(t *testing.T) {
 		assert.False(t, *m.DefaultAllowPrivilegeEscalation)
 		assert.Equal(t, []corev1.Capability{"ALL"}, m.RequiredDropCapabilities)
 		assert.Empty(t, m.AllowedCapabilities)
-		assert.Equal(t, secv1.RunAsUserStrategyMustRunAsRange, m.RunAsUser.Type)
+		// Explicitly configured non-root IDs (for example runAsUser 3000 with fsGroup 3002) must stay
+		// admissible on OpenShift, so the UID and group strategies must not bind to the namespace range.
+		assert.Equal(t, secv1.RunAsUserStrategyMustRunAsNonRoot, m.RunAsUser.Type)
+		assert.Nil(t, m.RunAsUser.UID)
+		assert.Nil(t, m.RunAsUser.UIDRangeMin)
 		assert.Equal(t, secv1.SELinuxStrategyMustRunAs, m.SELinuxContext.Type)
-		assert.Equal(t, secv1.FSGroupStrategyMustRunAs, m.FSGroup.Type)
+		assert.Equal(t, secv1.FSGroupStrategyRunAsAny, m.FSGroup.Type)
+		assert.Empty(t, m.FSGroup.Ranges)
 		assert.Equal(t, secv1.SupplementalGroupsStrategyRunAsAny, m.SupplementalGroups.Type)
 		assert.Equal(t, []string{"runtime/default"}, m.SeccompProfiles)
 		assert.Equal(t, []secv1.FSType{

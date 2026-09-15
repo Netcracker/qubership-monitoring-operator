@@ -64,9 +64,10 @@ required.
 
 The chart retains the legacy `RunAsAny` strategy in the Cert Exporter SCC. It does not encode the UID range that
 OpenShift allocates to a namespace at runtime. `RunAsAny` is broader than the common hardening baseline and is a
-documented exception. The pod template still requests a non-root user. The upstream image declares a nonnumeric user
-named `app`; some runtime combinations may reject the pod because the kubelet cannot verify that this user is non-root.
-Validate admission with the exact image and OpenShift version used by the deployment.
+documented exception. Because that SCC assigns no UID and the upstream image declares the nonnumeric user `app`, which
+the kubelet cannot verify against `runAsNonRoot`, the DaemonSet keeps numeric IDs (`runAsUser: 2000`,
+`runAsGroup: 2000`) on OpenShift as well. Override them through `certExporter.daemonset.securityContext` when the
+files to inspect require another non-root UID.
 
 Even when the pod is admitted, the assigned non-root process must have read permission for every selected host file.
 Kubernetes distributions commonly protect private keys and root kubeconfig files with root ownership and mode `0600`.
