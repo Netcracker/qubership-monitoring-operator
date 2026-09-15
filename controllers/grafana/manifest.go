@@ -89,6 +89,22 @@ func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *cor
 	return &podSpec.Containers[0]
 }
 
+// grafanaName returns the configured Grafana custom resource name or the default from the asset file.
+func grafanaName(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		return cr.Spec.Grafana.Name
+	}
+	return utils.GrafanaComponentName
+}
+
+// grafanaNamespace returns the configured Grafana namespace or the PlatformMonitoring namespace.
+func grafanaNamespace(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		return cr.Spec.Grafana.Namespace
+	}
+	return cr.GetNamespace()
+}
+
 func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
@@ -98,17 +114,8 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 	graf.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
 
 	// Add way to move Grafana to a different namespace and set a custom name for the Grafana instance.
-	// Set custom namespace if specified, otherwise use PlatformMonitoring namespace
-	grafanaNamespace := cr.GetNamespace()
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
-		grafanaNamespace = cr.Spec.Grafana.Namespace
-	}
-	graf.SetNamespace(grafanaNamespace)
-
-	// Set custom name if specified, otherwise use default from asset file
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
-		graf.SetName(cr.Spec.Grafana.Name)
-	}
+	graf.SetNamespace(grafanaNamespace(cr))
+	graf.SetName(grafanaName(cr))
 
 	if cr.Spec.Grafana != nil {
 		// Always instruct grafana-operator NOT to auto-generate its own admin secret (disableDefaultAdminSecret=true).

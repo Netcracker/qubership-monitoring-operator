@@ -2,6 +2,7 @@ package nodeexporter
 
 import (
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -324,23 +325,16 @@ func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) deleteDaemonSet(cr *monv1.PlatformMonitoring) error {
-	isOpenShift, err := r.IsOpenShift()
-	if err != nil {
-		return err
-	}
-	m, err := nodeExporterDaemonSet(cr, isOpenShift)
-	if err != nil {
-		r.Log.Error(err, "Failed creating DaemonSet manifest")
-		return err
-	}
-	e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.DaemonSet{ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

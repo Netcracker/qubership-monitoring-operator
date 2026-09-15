@@ -24,6 +24,10 @@ names the offending field. These settings are `privileged: true`, `capabilities.
 `runAsNonRoot: false` in any `securityContext` or `containerSecurityContext` value. Remove the field or use a non-root
 UID.
 
+Charts that accept user-defined volumes (JSON Exporter, Promitor Resource Discovery, Cert Exporter DaemonSet, and SSL
+Exporter) name their temporary volume `monitoring-tmp`. That name is reserved: a user-defined volume with the same name
+fails rendering. A user-defined mount at `/tmp` is kept and replaces the chart-managed mount for that container.
+
 The baseline is applied to these chart workloads:
 
 | Exporter                    | Workload                | Baseline status                                      |

@@ -463,32 +463,22 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
-	isOpenShift, err := r.IsOpenShift()
-	if err != nil {
-		return err
-	}
-	m, err := grafana(cr, isOpenShift)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Grafana manifest")
-		return err
-	}
-	// Check if resource exists first
-	checkObj := &grafv1.Grafana{}
-	checkObj.SetName(m.GetName())
-	checkObj.SetNamespace(m.GetNamespace())
-	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
-	if err = r.GetResource(checkObj); err != nil {
+	// The deletion target is addressed by its stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &grafv1.Grafana{}
+	e.SetName(grafanaName(cr))
+	e.SetNamespace(grafanaNamespace(cr))
+	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	// Use the manifest object (which has correct type) for deletion
-	// The manifest object already has GVK set correctly
-	if err = r.Client.Delete(context.TODO(), m); err != nil {
+	if err := r.Client.Delete(context.TODO(), e); err != nil {
 		return err
 	}
-	r.Log.Info("Successful deleting", "resource", "Grafana", "name", m.GetName())
+	r.Log.Info("Successful deleting", "resource", "Grafana", "name", e.GetName())
 	return nil
 }
 

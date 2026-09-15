@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
@@ -168,23 +169,16 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitorin
 }
 
 func (r *PushgatewayReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
-	isOpenShift, err := r.IsOpenShift()
-	if err != nil {
-		return err
-	}
-	m, err := pushgatewayDeployment(cr, isOpenShift)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.PushgatewayComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

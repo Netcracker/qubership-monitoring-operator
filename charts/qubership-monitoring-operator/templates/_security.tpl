@@ -32,6 +32,40 @@ Pass the configured map (or nil) as the context.
 {{- include "monitoring.security.rejectPodConflicts" $configured -}}
 {{- end -}}
 
+{{/*
+Render the size-limited temporary-directory volume for charts that accept user-defined volumes.
+Context: dict "volumes" (user volume list, may be nil) "sizeLimit" (optional, default 100Mi).
+The volume name is reserved; a user volume with the same name fails rendering because the
+temporary-directory mount would otherwise expose that volume at /tmp.
+*/}}
+{{- define "monitoring.security.tmpVolume" -}}
+{{- range (.volumes | default list) -}}
+{{- if eq (get . "name") "monitoring-tmp" -}}
+{{- fail "volume name \"monitoring-tmp\" is reserved for the chart-managed temporary directory. Rename the volume." -}}
+{{- end -}}
+{{- end -}}
+- name: monitoring-tmp
+  emptyDir:
+    sizeLimit: {{ .sizeLimit | default "100Mi" }}
+{{- end -}}
+
+{{/*
+Render the temporary-directory mount unless a user-defined mount already covers /tmp.
+Context: dict "volumeMounts" (user mount list, may be nil).
+*/}}
+{{- define "monitoring.security.tmpVolumeMount" -}}
+{{- $covered := false -}}
+{{- range (.volumeMounts | default list) -}}
+{{- if eq (trimSuffix "/" (get . "mountPath" | default "")) "/tmp" -}}
+{{- $covered = true -}}
+{{- end -}}
+{{- end -}}
+{{- if not $covered -}}
+- name: monitoring-tmp
+  mountPath: /tmp
+{{- end -}}
+{{- end -}}
+
 {{/* Enforce the pod baseline while preserving configured IDs. */}}
 {{- define "monitoring.security.podContext" -}}
 {{- include "monitoring.security.rejectPodConflicts" .configured -}}
@@ -126,13 +160,16 @@ Return the container security context for the etcd-certs-to-secret job.
   "allowPrivilegeEscalation" false
   "readOnlyRootFilesystem" true
   "capabilities" (dict "drop" (list "ALL")) -}}
+{{- $configured := deepCopy (.Values.etcdCertsJob.securityContext | default dict) -}}
 {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- include "monitoring.security.rejectContainerConflicts" $configured -}}
 {{- $_ := set $required "runAsNonRoot" true -}}
 {{- else -}}
+{{/* The Kubernetes job runs as root by design, so only the container-level conflicts are rejected here. */}}
+{{- include "monitoring.security.rejectContainerConflicts" (omit $configured "runAsUser" "runAsNonRoot") -}}
 {{- $_ := set $required "runAsUser" 0 -}}
 {{- $_ := set $required "runAsGroup" 0 -}}
 {{- end -}}
-{{- $configured := deepCopy (.Values.etcdCertsJob.securityContext | default dict) -}}
 {{- toYaml (mergeOverwrite $configured $required) -}}
 {{- end -}}
 

@@ -78,6 +78,10 @@ apply these controls:
 
 The chart detects OpenShift through the `security.openshift.io/v1/SecurityContextConstraints` API.
 
+`etcdCertsJob.securityContext` cannot enable `privileged: true` or add capabilities on either platform; rendering
+fails with a message that names the field. On OpenShift, `runAsUser: 0` and `runAsNonRoot: false` are rejected as
+well because the job runs under the non-root baseline there.
+
 ## Residual Kubernetes risk
 
 A process compromise in the Kubernetes workload provides read access to files under the control-plane node's `/etc`

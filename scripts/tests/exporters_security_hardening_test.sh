@@ -163,6 +163,58 @@ assert_render_fails "containerSecurityContext.privileged=true conflicts" \
 assert_render_fails "containerSecurityContext.capabilities.add conflicts" \
     --set blackboxExporter.install=true \
     --set 'blackboxExporter.containerSecurityContext.capabilities.add={NET_RAW}'
+assert_render_fails "securityContext.runAsUser=0 conflicts" \
+    --set sslExporter.install=true \
+    --set sslExporter.podSecurityContext.runAsUser=0
+assert_render_fails "securityContext.runAsNonRoot=false conflicts" \
+    --set sslExporter.install=true \
+    --set sslExporter.podSecurityContext.runAsNonRoot=false
+
+# User-defined volume extensions must not collide with the chart-managed temporary volume.
+assert_render_fails 'volume name "monitoring-tmp" is reserved' \
+    --set jsonExporter.install=true \
+    --set 'jsonExporter.additionalVolumes[0].name=monitoring-tmp' \
+    --set 'jsonExporter.additionalVolumes[0].emptyDir.medium=Memory'
+assert_render_fails 'volume name "monitoring-tmp" is reserved' \
+    --set promitorAgentResourceDiscovery.install=true \
+    --set 'promitorAgentResourceDiscovery.extraVolumes[0].name=monitoring-tmp' \
+    --set 'promitorAgentResourceDiscovery.extraVolumes[0].emptyDir.medium=Memory'
+assert_render_fails 'volume name "monitoring-tmp" is reserved' \
+    --set sslExporter.install=true \
+    --set 'sslExporter.additionalHostPathVolumes[0].volumeName=monitoring-tmp' \
+    --set 'sslExporter.additionalHostPathVolumes[0].volumePath=/etc/ssl-extra'
+assert_render_fails 'volume name "monitoring-tmp" is reserved' \
+    --set certExporter.install=true \
+    --set certExporter.certsInFiles.enabled=true \
+    --set 'certExporter.additionalHostPathVolumes[0].volumeName=monitoring-tmp' \
+    --set 'certExporter.additionalHostPathVolumes[0].volumePath=/etc/cert-extra'
+
+user_tmp_dir="${render_dir}/user-tmp"
+helm template hardening "${chart_dir}" \
+    --namespace monitoring \
+    --output-dir "${user_tmp_dir}" \
+    --set jsonExporter.install=true \
+    --set 'jsonExporter.additionalVolumes[0].name=scratch' \
+    --set 'jsonExporter.additionalVolumes[0].emptyDir.medium=Memory' \
+    --set 'jsonExporter.additionalVolumeMounts[0].name=scratch' \
+    --set 'jsonExporter.additionalVolumeMounts[0].mountPath=/tmp' \
+    --set promitorAgentResourceDiscovery.install=true \
+    --set 'promitorAgentResourceDiscovery.extraVolumes[0].name=scratch' \
+    --set 'promitorAgentResourceDiscovery.extraVolumes[0].emptyDir.medium=Memory' \
+    --set 'promitorAgentResourceDiscovery.extraVolumeMounts[0].name=scratch' \
+    --set 'promitorAgentResourceDiscovery.extraVolumeMounts[0].mountPath=/tmp/' \
+    --set grafana.operator.install=false \
+    >/dev/null
+json_user_tmp_manifest="${user_tmp_dir}/qubership-monitoring-operator/charts/jsonExporter/templates/deployment.yaml"
+promitor_user_tmp_manifest="${user_tmp_dir}/qubership-monitoring-operator/charts/promitorAgentResourceDiscovery/templates/deployment.yaml"
+for manifest in "${json_user_tmp_manifest}" "${promitor_user_tmp_manifest}"; do
+    # The user mount covers /tmp, so the chart must declare its volume without a second mount at /tmp.
+    assert_contains "${manifest}" "name: monitoring-tmp"
+    if [ "$(grep -c -- "- name: monitoring-tmp" "${manifest}")" -ne 1 ]; then
+        echo "Expected ${manifest} to reference monitoring-tmp only as a volume" >&2
+        exit 1
+    fi
+done
 
 network_latency_manifest="${kubernetes_dir}/qubership-monitoring-operator/charts/networkLatencyExporter/templates/daemonset.yaml"
 assert_contains "${network_latency_manifest}" "runAsUser: 2001"

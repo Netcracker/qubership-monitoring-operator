@@ -2,6 +2,7 @@
 
 {{/* Return the enforced pod security context. */}}
 {{- define "ssl-exporter.podSecurityContext" -}}
+{{- include "monitoring.security.rejectPodConflicts" .Values.podSecurityContext -}}
 {{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
 {{- $defaults := dict -}}
 {{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}

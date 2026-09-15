@@ -139,6 +139,19 @@ assert_render_fails "containerSecurityContext.privileged=true conflicts" \
 assert_render_fails "containerSecurityContext.capabilities.add conflicts" \
     "${component_args[@]}" \
     --set 'integrationTests.containerSecurityContext.capabilities.add={NET_RAW}'
+assert_render_fails "securityContext.runAsUser=0 conflicts" \
+    "${component_args[@]}" \
+    --set victoriametrics.cleanup.securityContext.runAsUser=0
+assert_render_fails "containerSecurityContext.privileged=true conflicts" \
+    --set etcdCertsJob.install=true \
+    --set etcdCertsJob.securityContext.privileged=true
+assert_render_fails "containerSecurityContext.capabilities.add conflicts" \
+    --set etcdCertsJob.install=true \
+    --set 'etcdCertsJob.securityContext.capabilities.add={SYS_ADMIN}'
+assert_render_fails "securityContext.runAsUser=0 conflicts" \
+    --api-versions security.openshift.io/v1/SecurityContextConstraints \
+    --set etcdCertsJob.install=true \
+    --set etcdCertsJob.securityContext.runAsUser=0
 
 renderer_config="${kubernetes_dir}/qubership-monitoring-operator/charts/grafana/templates/configmap-extra-vars.yaml"
 assert_contains "${renderer_config}" "GF_RENDERING_SERVER_URL"

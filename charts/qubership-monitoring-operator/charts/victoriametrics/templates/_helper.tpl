@@ -39,6 +39,7 @@ Return securityContext for vm cleanup.
 {{- $required := dict "seccompProfile" (dict "type" "RuntimeDefault") -}}
 {{- $defaults := dict -}}
 {{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- include "monitoring.security.rejectPodConflicts" $configured -}}
 {{- $_ := set $required "runAsNonRoot" true -}}
 {{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
 {{- else -}}

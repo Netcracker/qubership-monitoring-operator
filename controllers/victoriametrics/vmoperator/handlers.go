@@ -703,23 +703,16 @@ func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	isOpenShift, err := r.IsOpenShift()
-	if err != nil {
-		return err
-	}
-	m, err := vmOperatorDeployment(r, cr, isOpenShift)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.VmOperatorComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

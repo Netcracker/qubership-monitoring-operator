@@ -81,8 +81,7 @@ spec:
             mountPath: /etc/promitor/secrets
             readOnly: true
           {{- end }}
-          - name: tmp
-            mountPath: /tmp/
+          {{- with include "monitoring.security.tmpVolumeMount" (dict "volumeMounts" .Values.extraVolumeMounts) }}{{ . | nindent 10 }}{{- end }}
           {{- if .Values.extraVolumeMounts }}
             {{ toYaml .Values.extraVolumeMounts | nindent 10 }}
           {{- end }}
@@ -122,9 +121,7 @@ spec:
               - key: {{ .Values.secrets.appKeySecret }}
                 path: appkey
         {{- end }}
-        - name: tmp
-          emptyDir:
-            sizeLimit: 100Mi
+        {{- include "monitoring.security.tmpVolume" (dict "volumes" .Values.extraVolumes) | nindent 8 }}
         {{- if .Values.extraVolumes }}
           {{ toYaml .Values.extraVolumes | nindent 8 }}
         {{- end }}

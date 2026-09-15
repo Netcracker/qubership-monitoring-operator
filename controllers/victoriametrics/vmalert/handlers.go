@@ -225,19 +225,16 @@ func (r *VmAlertReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitorin
 }
 
 func (r *VmAlertReconciler) deleteVmAlert(cr *monv1.PlatformMonitoring) error {
-	m, err := vmAlert(r, cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating vmalert manifest")
-		return err
-	}
-	e := &vmetricsv1b1.VMAlert{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &vmetricsv1b1.VMAlert{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil
