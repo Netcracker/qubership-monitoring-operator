@@ -47,7 +47,8 @@ func hardenedSecurityContext(isOpenShift bool, configured *corev1.PodSecurityCon
 }
 
 // EnsureTmpVolume returns a copy of the volumes containing the required size-limited temporary volume.
-func EnsureTmpVolume(volumes []corev1.Volume) []corev1.Volume {
+// It returns an error when a user-defined volume uses the reserved volume name.
+func EnsureTmpVolume(volumes []corev1.Volume) ([]corev1.Volume, error) {
 	return utils.EnsureTmpVolume(volumes, tmpVolumeSize)
 }
 

@@ -317,7 +317,11 @@ func applyVmOperatorHardening(deployment *appsv1.Deployment, isOpenShift bool) e
 		return err
 	}
 	podSpec.SecurityContext = securityContext
-	podSpec.Volumes = utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+	volumes, err := utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	podSpec.Volumes = volumes
 	podSpec.Containers = containers
 	return nil
 }

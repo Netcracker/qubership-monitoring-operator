@@ -218,7 +218,11 @@ func applyAlertmanagerHardening(
 		return err
 	}
 	alertmanager.Spec.SecurityContext = securityContext
-	alertmanager.Spec.Volumes = utils.EnsureTmpVolume(alertmanager.Spec.Volumes, "100Mi")
+	volumes, err := utils.EnsureTmpVolume(alertmanager.Spec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	alertmanager.Spec.Volumes = volumes
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(containers, "alertmanager")
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "config-reloader")
 	return nil

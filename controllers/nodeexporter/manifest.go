@@ -221,7 +221,11 @@ func applyNodeExporterHardening(
 		return err
 	}
 	daemonSet.Spec.Template.Spec.SecurityContext = securityContext
-	daemonSet.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(daemonSet.Spec.Template.Spec.Volumes, "100Mi")
+	volumes, err := utils.EnsureTmpVolume(daemonSet.Spec.Template.Spec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	daemonSet.Spec.Template.Spec.Volumes = volumes
 
 	for i := range daemonSet.Spec.Template.Spec.Containers {
 		container := &daemonSet.Spec.Template.Spec.Containers[i]

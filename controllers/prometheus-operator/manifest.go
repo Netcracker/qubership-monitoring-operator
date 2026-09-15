@@ -134,7 +134,11 @@ func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool
 	d.SetName(utils.PrometheusOperatorComponentName)
 	d.SetNamespace(cr.GetNamespace())
 	d.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
-	d.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(d.Spec.Template.Spec.Volumes, "100Mi")
+	volumes, err := utils.EnsureTmpVolume(d.Spec.Template.Spec.Volumes, "100Mi")
+	if err != nil {
+		return nil, err
+	}
+	d.Spec.Template.Spec.Volumes = volumes
 	for i := range d.Spec.Template.Spec.Containers {
 		container := &d.Spec.Template.Spec.Containers[i]
 		container.SecurityContext = utils.HardenedContainerSecurityContext()

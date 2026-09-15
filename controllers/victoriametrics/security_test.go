@@ -75,14 +75,27 @@ func TestEnsureTmpVolumeKeepsAnExistingUserVolume(t *testing.T) {
 		},
 	}}
 
-	result := EnsureTmpVolume(volumes)
+	result, err := EnsureTmpVolume(volumes)
 
+	require.NoError(t, err)
 	require.Len(t, result, 2)
 	assert.Equal(t, volumes[0], result[0], "the user volume must be kept as is")
 	require.NotNil(t, result[1].EmptyDir)
 	require.NotNil(t, result[1].EmptyDir.SizeLimit)
 	assert.Equal(t, resource.MustParse("100Mi"), *result[1].EmptyDir.SizeLimit)
 	assert.Nil(t, volumes[0].EmptyDir.SizeLimit, "the source CR must not be mutated")
+}
+
+func TestEnsureTmpVolumeRejectsReservedName(t *testing.T) {
+	volumes := []corev1.Volume{{
+		Name:         utils.TmpVolumeMount().Name,
+		VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "creds"}},
+	}}
+
+	result, err := EnsureTmpVolume(volumes)
+
+	require.Error(t, err)
+	assert.Nil(t, result)
 }
 
 func TestHardenContainers(t *testing.T) {

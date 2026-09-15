@@ -204,7 +204,11 @@ func applyPushgatewayHardening(
 		return err
 	}
 	deployment.Spec.Template.Spec.SecurityContext = securityContext
-	deployment.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(deployment.Spec.Template.Spec.Volumes, "100Mi")
+	volumes, err := utils.EnsureTmpVolume(deployment.Spec.Template.Spec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	deployment.Spec.Template.Spec.Volumes = volumes
 
 	for i := range deployment.Spec.Template.Spec.Containers {
 		container := &deployment.Spec.Template.Spec.Containers[i]

@@ -205,8 +205,9 @@ func MergeContainerSecurityContext(name string, existing *corev1.SecurityContext
 }
 
 // EnsureTmpVolume returns a copy of volumes with the size-limited temporary volume present.
-// A user-defined volume with the same name is kept as is.
-func EnsureTmpVolume(volumes []corev1.Volume, sizeLimit string) []corev1.Volume {
+// The volume name is reserved: a user-defined volume with the same name is rejected, because
+// the temporary-directory mount would otherwise expose that volume at /tmp.
+func EnsureTmpVolume(volumes []corev1.Volume, sizeLimit string) ([]corev1.Volume, error) {
 	result := make([]corev1.Volume, len(volumes))
 	for i := range volumes {
 		volumes[i].DeepCopyInto(&result[i])
@@ -215,10 +216,10 @@ func EnsureTmpVolume(volumes []corev1.Volume, sizeLimit string) []corev1.Volume 
 	required := TmpVolume(sizeLimit)
 	for i := range result {
 		if result[i].Name == required.Name {
-			return result
+			return nil, fmt.Errorf("volume name %q is reserved for the operator-managed temporary directory: rename the volume", required.Name)
 		}
 	}
-	return append(result, required)
+	return append(result, required), nil
 }
 
 // EnsureTmpVolumeMount returns a copy of volumeMounts with a writable temporary directory.

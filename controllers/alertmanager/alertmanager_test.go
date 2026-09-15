@@ -124,8 +124,9 @@ func TestAlertmanagerManifests(t *testing.T) {
 			},
 		}}
 
-		result := utils.EnsureTmpVolume(volumes, "100Mi")
+		result, err := utils.EnsureTmpVolume(volumes, "100Mi")
 
+		require.NoError(t, err)
 		require.Len(t, result, 2)
 		assert.Equal(t, volumes[0], result[0])
 		require.NotNil(t, result[1].EmptyDir)

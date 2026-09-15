@@ -465,7 +465,10 @@ func vmAlert(r *VmAlertReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		if err != nil {
 			return nil, err
 		}
-		vmalert.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmalert.Spec.Volumes)
+		vmalert.Spec.Volumes, err = victoriametrics.EnsureTmpVolume(vmalert.Spec.Volumes)
+		if err != nil {
+			return nil, err
+		}
 		vmalert.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmalert.Spec.VolumeMounts)
 		vmalert.Spec.Containers, err = victoriametrics.HardenContainers(vmalert.Spec.Containers)
 		if err != nil {

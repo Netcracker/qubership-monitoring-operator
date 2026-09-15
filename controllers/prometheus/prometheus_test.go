@@ -84,6 +84,15 @@ func TestPrometheusManifests(t *testing.T) {
 		m, err = prometheus(privilegedCR, false)
 		require.Error(t, err)
 		assert.Nil(t, m)
+
+		reservedVolumeCR := cr.DeepCopy()
+		reservedVolumeCR.Spec.Prometheus.Volumes = []corev1.Volume{{
+			Name:         utils.TmpVolumeMount().Name,
+			VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "creds"}},
+		}}
+		m, err = prometheus(reservedVolumeCR, false)
+		require.Error(t, err, "a user volume with the reserved name must not be mounted at /tmp")
+		assert.Nil(t, m)
 	})
 	t.Run("Test configured IDs and sidecar settings", func(t *testing.T) {
 		configuredCR := cr.DeepCopy()

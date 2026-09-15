@@ -379,7 +379,10 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 		if err != nil {
 			return nil, err
 		}
-		vmauth.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmauth.Spec.Volumes)
+		vmauth.Spec.Volumes, err = victoriametrics.EnsureTmpVolume(vmauth.Spec.Volumes)
+		if err != nil {
+			return nil, err
+		}
 		vmauth.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmauth.Spec.VolumeMounts)
 		vmauth.Spec.Containers, err = victoriametrics.HardenContainers(vmauth.Spec.Containers)
 		if err != nil {

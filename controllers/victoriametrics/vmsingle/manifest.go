@@ -236,7 +236,10 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 		if err != nil {
 			return nil, err
 		}
-		vmsingle.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmsingle.Spec.Volumes)
+		vmsingle.Spec.Volumes, err = victoriametrics.EnsureTmpVolume(vmsingle.Spec.Volumes)
+		if err != nil {
+			return nil, err
+		}
 		vmsingle.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmsingle.Spec.VolumeMounts)
 		vmsingle.Spec.Containers, err = victoriametrics.HardenContainers(vmsingle.Spec.Containers)
 		if err != nil {

@@ -231,8 +231,9 @@ func TestMergeContainerSecurityContextKeepsUnrelatedFields(t *testing.T) {
 func TestEnsureTmpVolumeAppendsWhenMissing(t *testing.T) {
 	volumes := []corev1.Volume{{Name: "data"}}
 
-	result := EnsureTmpVolume(volumes, "16Mi")
+	result, err := EnsureTmpVolume(volumes, "16Mi")
 
+	require.NoError(t, err)
 	require.Len(t, result, 2)
 	assert.Equal(t, "data", result[0].Name)
 	assert.Equal(t, "monitoring-tmp", result[1].Name)
@@ -241,18 +242,19 @@ func TestEnsureTmpVolumeAppendsWhenMissing(t *testing.T) {
 	assert.Len(t, volumes, 1, "input slice must not be mutated in place")
 }
 
-func TestEnsureTmpVolumeKeepsExistingVolumeOfTheSameName(t *testing.T) {
+func TestEnsureTmpVolumeRejectsReservedName(t *testing.T) {
 	volumes := []corev1.Volume{{
 		Name: "monitoring-tmp",
 		VolumeSource: corev1.VolumeSource{
-			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "scratch"},
+			Secret: &corev1.SecretVolumeSource{SecretName: "creds"},
 		},
 	}}
 
-	result := EnsureTmpVolume(volumes, "100Mi")
+	result, err := EnsureTmpVolume(volumes, "100Mi")
 
-	require.Len(t, result, 1)
-	assert.Equal(t, volumes[0], result[0], "a user-defined volume must not be replaced")
+	require.Error(t, err, "a user volume must never be exposed at /tmp under the reserved name")
+	assert.Contains(t, err.Error(), `"monitoring-tmp"`)
+	assert.Nil(t, result)
 }
 
 func TestEnsureTmpVolumeKeepsUserVolumeNamedTmp(t *testing.T) {
@@ -261,8 +263,9 @@ func TestEnsureTmpVolumeKeepsUserVolumeNamedTmp(t *testing.T) {
 		VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "creds"}},
 	}}
 
-	result := EnsureTmpVolume(volumes, "100Mi")
+	result, err := EnsureTmpVolume(volumes, "100Mi")
 
+	require.NoError(t, err)
 	require.Len(t, result, 2)
 	assert.Equal(t, volumes[0], result[0])
 	assert.Equal(t, TmpVolume("100Mi"), result[1])

@@ -447,7 +447,11 @@ func applyPrometheusHardening(
 		return err
 	}
 	prom.Spec.SecurityContext = securityContext
-	prom.Spec.Volumes = utils.EnsureTmpVolume(prom.Spec.Volumes, "100Mi")
+	volumes, err := utils.EnsureTmpVolume(prom.Spec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	prom.Spec.Volumes = volumes
 	prom.Spec.Containers = ensurePrometheusManagedContainer(containers, "prometheus", configuredPrometheusVolumeMounts)
 	prom.Spec.Containers = ensurePrometheusManagedContainer(prom.Spec.Containers, "config-reloader", nil)
 	return nil

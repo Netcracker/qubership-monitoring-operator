@@ -200,7 +200,11 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 			podSpec.SecurityContext.FSGroup = k8sptr.To(grafanaLegacySecurityContextID)
 		}
 
-		podSpec.Volumes = utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+		volumes, err := utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+		if err != nil {
+			return nil, err
+		}
+		podSpec.Volumes = volumes
 		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 
 		// Attach envFrom so that grafana picks up extraVars / extraVarsSecret
