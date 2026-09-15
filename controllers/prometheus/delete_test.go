@@ -50,3 +50,24 @@ func TestDeletePrometheusDoesNotDependOnDiscoveryOrDesiredState(t *testing.T) {
 	err := controllerClient.Get(context.Background(), types.NamespacedName{Name: "k8s", Namespace: "monitoring"}, &promv1.Prometheus{})
 	assert.True(t, apierrors.IsNotFound(err), "the Prometheus resource must be deleted")
 }
+
+// A workload must not be created or updated while the platform is unknown.
+func TestHandlePrometheusReturnsDiscoveryError(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, promv1.AddToScheme(scheme))
+	controllerClient := fake.NewClientBuilder().WithScheme(scheme).Build()
+	discoveryClient := &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}}
+	discoveryClient.PrependReactor("get", "resource", func(ktesting.Action) (bool, runtime.Object, error) {
+		return true, nil, errors.New("aggregated API unavailable")
+	})
+	reconciler := NewPrometheusReconciler(controllerClient, scheme, discoveryClient)
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "platformmonitoring", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Prometheus: &monv1.Prometheus{}},
+	}
+
+	require.Error(t, reconciler.handlePrometheus(cr))
+
+	err := controllerClient.Get(context.Background(), types.NamespacedName{Name: "k8s", Namespace: "monitoring"}, &promv1.Prometheus{})
+	assert.True(t, apierrors.IsNotFound(err), "no Prometheus must be created while the platform is unknown")
+}

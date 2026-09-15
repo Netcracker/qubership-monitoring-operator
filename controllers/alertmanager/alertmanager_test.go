@@ -70,13 +70,19 @@ func TestAlertmanagerManifests(t *testing.T) {
 		assertAlertmanagerHardening(t, m, true)
 	})
 	t.Run("Test conflicting security settings are rejected", func(t *testing.T) {
+		rootCR := cr.DeepCopy()
+		rootCR.Spec.AlertManager.SecurityContext = &monv1.SecurityContext{RunAsUser: ptr.To(int64(0))}
+		m, err := alertmanager(rootCR, false)
+		require.Error(t, err)
+		assert.Nil(t, m)
+
 		privilegedCR := cr.DeepCopy()
 		privilegedCR.Spec.AlertManager.Containers = []corev1.Container{{
 			Name:            "sidecar",
 			SecurityContext: &corev1.SecurityContext{Capabilities: &corev1.Capabilities{Add: []corev1.Capability{"NET_RAW"}}},
 		}}
 
-		m, err := alertmanager(privilegedCR, false)
+		m, err = alertmanager(privilegedCR, false)
 
 		require.Error(t, err)
 		assert.Nil(t, m)

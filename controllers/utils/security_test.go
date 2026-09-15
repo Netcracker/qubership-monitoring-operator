@@ -140,6 +140,8 @@ func TestHardenedPodSecurityContextRejectsConflictingIdentity(t *testing.T) {
 	assert.Nil(t, securityContext)
 	assert.Error(t, ValidateSecurityContextSpec(&monv1.SecurityContext{RunAsUser: ptr.To(int64(0))}))
 	assert.NoError(t, ValidateSecurityContextSpec(nil))
+	assert.NoError(t, ValidatePodSecurityContext(nil))
+	assert.NoError(t, ValidateContainerSecurityContext("app", nil))
 }
 
 func TestHardenContainersWithTmpKeepsInputUnchanged(t *testing.T) {
