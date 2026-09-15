@@ -99,9 +99,9 @@ func TestAlertmanagerManifests(t *testing.T) {
 
 		openShiftManifest, err := alertmanager(configuredCR, true)
 		require.NoError(t, err)
-		assert.Nil(t, openShiftManifest.Spec.SecurityContext.RunAsUser)
-		assert.Nil(t, openShiftManifest.Spec.SecurityContext.RunAsGroup)
-		assert.Nil(t, openShiftManifest.Spec.SecurityContext.FSGroup)
+		assert.Equal(t, ptr.To(int64(3000)), openShiftManifest.Spec.SecurityContext.RunAsUser)
+		assert.Equal(t, ptr.To(int64(3001)), openShiftManifest.Spec.SecurityContext.RunAsGroup)
+		assert.Equal(t, ptr.To(int64(3002)), openShiftManifest.Spec.SecurityContext.FSGroup)
 	})
 	t.Run("Test existing temporary volume is replaced", func(t *testing.T) {
 		volumes := []corev1.Volume{{

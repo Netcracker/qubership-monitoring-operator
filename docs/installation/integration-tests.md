@@ -28,3 +28,7 @@ from `atpReport.atpStorage.username` and `atpReport.atpStorage.password`, and th
 
 Keep `atpReport.enabled` at `false` unless you enable report upload and supply credentials.
 For S3 upload, set bucket, endpoint, region, and credentials as needed.
+
+The `robot-output` `emptyDir` has a `100Mi` size limit for Robot result artifacts. This is an unmeasured starting cap
+for the output volume, not a limit on all ephemeral storage used by the test pod. The separate `/tmp` volume also has
+a `100Mi` limit. Check output size after representative runs before changing either limit in the chart.

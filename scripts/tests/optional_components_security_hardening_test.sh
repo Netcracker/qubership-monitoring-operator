@@ -108,7 +108,7 @@ assert_contains "${enforced_renderer_manifest}" "docker.io/grafana/grafana-image
 assert_contains "${enforced_renderer_manifest}" "BROWSER_FLAGS"
 assert_contains "${enforced_renderer_manifest}" "runAsNonRoot: true"
 assert_contains "${enforced_renderer_manifest}" "type: RuntimeDefault"
-assert_not_contains "${enforced_renderer_manifest}" "runAsUser:"
+assert_contains "${enforced_renderer_manifest}" "runAsUser: 0"
 assert_not_contains "${enforced_renderer_manifest}" "Unconfined"
 
 renderer_config="${kubernetes_dir}/qubership-monitoring-operator/charts/grafana/templates/configmap-extra-vars.yaml"
@@ -186,6 +186,10 @@ for integration_test_manifest in "${integration_test_manifests[@]}"; do
     assert_contains "${integration_test_manifest}" "mountPath: /tmp"
     assert_contains "${integration_test_manifest}" "mountPath: /opt/robot/output"
     assert_contains "${integration_test_manifest}" "sizeLimit: 100Mi"
+    if ! grep -F -A2 -- "- name: robot-output" "${integration_test_manifest}" | grep -Fq -- "sizeLimit: 100Mi"; then
+        echo "Expected robot-output in ${integration_test_manifest} to have sizeLimit: 100Mi" >&2
+        exit 1
+    fi
 done
 
 integration_test_enforced_manifest="${enforcement_dir}/qubership-monitoring-operator/templates/integration-tests/deployment.yml"

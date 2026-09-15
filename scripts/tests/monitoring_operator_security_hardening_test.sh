@@ -42,6 +42,35 @@ assert_contains "${kubernetes_manifest}" "sizeLimit: 16Mi"
 assert_contains "${kubernetes_manifest}" "ephemeral-storage: 16Mi"
 assert_contains "${kubernetes_manifest}" "ephemeral-storage: 128Mi"
 
+storage_manifest="$(
+    helm template monitoring-operator "${chart_dir}" \
+        --show-only templates/operator/deployment.yaml \
+        --set monitoringOperator.ephemeralStorage.request=32Mi \
+        --set monitoringOperator.ephemeralStorage.limit=256Mi
+)"
+
+assert_contains "${storage_manifest}" "ephemeral-storage: 32Mi"
+assert_contains "${storage_manifest}" "ephemeral-storage: 256Mi"
+
+legacy_values_manifest="$(
+    helm template monitoring-operator "${chart_dir}" \
+        --show-only templates/operator/deployment.yaml \
+        --set-json 'monitoringOperator.ephemeralStorage={}'
+)"
+
+assert_contains "${legacy_values_manifest}" "ephemeral-storage: 16Mi"
+assert_contains "${legacy_values_manifest}" "ephemeral-storage: 128Mi"
+
+resource_override_manifest="$(
+    helm template monitoring-operator "${chart_dir}" \
+        --show-only templates/operator/deployment.yaml \
+        --set monitoringOperator.resources.requests.ephemeral-storage=48Mi \
+        --set monitoringOperator.resources.limits.ephemeral-storage=384Mi
+)"
+
+assert_contains "${resource_override_manifest}" "ephemeral-storage: 48Mi"
+assert_contains "${resource_override_manifest}" "ephemeral-storage: 384Mi"
+
 openshift_manifest="$(
     helm template monitoring-operator "${chart_dir}" \
         --api-versions security.openshift.io/v1/SecurityContextConstraints \

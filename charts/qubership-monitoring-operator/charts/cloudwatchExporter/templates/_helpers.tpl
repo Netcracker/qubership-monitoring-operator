@@ -19,21 +19,12 @@ Image can be found from:
 Return securityContext for cloudwatch-exporter.
 */}}
 {{- define "cloudwatch-exporter.securityContext" -}}
-{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $defaults = dict "runAsUser" 65534 "runAsGroup" 65534 "fsGroup" 65534 -}}
-{{- end -}}
-{{- $configured := deepCopy (.Values.securityContext | default dict) -}}
-{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
-{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 65534) -}}
 {{- end -}}
 
 {{/* Return the enforced container security context. */}}
 {{- define "cloudwatch-exporter.containerSecurityContext" -}}
-{{- toYaml (dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL"))) -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

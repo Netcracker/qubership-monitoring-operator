@@ -130,6 +130,13 @@ monitoringOperator:
   #     cpu: 50m
   #     memory: 50Mi
 
+  # Reserve 16Mi of local storage for scheduling and limit the operator container to 128Mi.
+  # These are starting values, not measured peak usage; tune them using observed storage use.
+  # Explicit ephemeral-storage entries in resources take precedence.
+  ephemeralStorage:
+    request: 16Mi
+    limit: 128Mi
+
   # SecurityContext holds pod-level security attributes.
   # The parameters are required if a Pod Security Policy is enabled
   #  for Kubernetes cluster and required if a Security Context Constraints is enabled
@@ -1955,7 +1962,8 @@ etcdCertsJob:
     - operator: "Exists"
       effect: "NoSchedule"
 
-  # The resources describes the compute resource requests and limits for a single container.
+  # Resource requests and limits for the etcd certificate-sync container.
+  # The 16Mi/128Mi ephemeral-storage values are starting points, not measured peak usage.
   resources:
     limits:
       cpu: 500m

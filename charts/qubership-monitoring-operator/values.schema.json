@@ -1442,6 +1442,18 @@
                 "resources": {
                     "type": "object"
                 },
+                "ephemeralStorage": {
+                    "type": "object",
+                    "description": "Default local storage request and limit for the operator container. Values in monitoringOperator.resources take precedence.",
+                    "properties": {
+                        "request": {
+                            "type": "string"
+                        },
+                        "limit": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "securityContext": {
                     "type": "object",
                     "properties": {

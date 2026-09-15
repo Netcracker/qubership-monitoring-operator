@@ -42,7 +42,7 @@ Return securityContext for vm cleanup.
 {{- $_ := set $required "runAsNonRoot" true -}}
 {{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
 {{- else -}}
-{{- $_ := unset $configured "runAsNonRoot" -}}{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
+{{- $_ := unset $configured "runAsNonRoot" -}}
 {{- end -}}
 {{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
 {{- end -}}
@@ -51,6 +51,5 @@ Return securityContext for vm cleanup.
 Return the enforced container security context for the VM cleanup hook.
 */}}
 {{- define "vm.cleanup.containerSecurityContext" -}}
-{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
-{{- toYaml (mergeOverwrite (deepCopy (.Values.cleanup.hook.containerSecurityContext | default dict)) $required) -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.cleanup.hook.containerSecurityContext) -}}
 {{- end -}}

@@ -69,7 +69,7 @@ func TestVmAgentManifests(t *testing.T) {
 		assert.Equal(t, true, *m.Spec.SecurityContext.RunAsNonRoot)
 		assert.Equal(t, false, *m.Spec.SecurityContext.AllowPrivilegeEscalation)
 		assert.Equal(t, true, *m.Spec.SecurityContext.ReadOnlyRootFilesystem)
-		assert.Contains(t, m.Spec.Volumes, utils.TmpVolume("100Mi"))
+		assert.NotContains(t, m.Spec.Volumes, utils.TmpVolume("100Mi"))
 		assert.NotContains(t, m.Spec.VolumeMounts, utils.TmpVolumeMount())
 		for _, volumeMount := range m.Spec.VolumeMounts {
 			assert.NotEqual(t, "/tmp", volumeMount.MountPath,

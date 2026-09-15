@@ -41,9 +41,9 @@ func TestHardenedSecurityContextForOpenShift(t *testing.T) {
 	securityContext := HardenedSecurityContextFromPlatformSpec(true, configured)
 
 	require.NotNil(t, securityContext.PodSecurityContext)
-	assert.Nil(t, securityContext.RunAsUser)
-	assert.Nil(t, securityContext.RunAsGroup)
-	assert.Nil(t, securityContext.FSGroup)
+	assert.Equal(t, configured.RunAsUser, securityContext.RunAsUser)
+	assert.Equal(t, configured.RunAsGroup, securityContext.RunAsGroup)
+	assert.Equal(t, configured.FSGroup, securityContext.FSGroup)
 	assert.Equal(t, ptr.To(true), securityContext.RunAsNonRoot)
 	require.NotNil(t, securityContext.SeccompProfile)
 	assert.Equal(t, corev1.SeccompProfileTypeRuntimeDefault, securityContext.SeccompProfile.Type)

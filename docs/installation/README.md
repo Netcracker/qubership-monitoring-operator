@@ -79,6 +79,12 @@ The monitoring stack requires resources depending on the components installed an
 
 For detailed hardware sizing information, refer to the [Prerequisites](prerequisites.md) guide.
 
+The monitoring operator requests `16Mi` of local ephemeral storage and has a `128Mi` limit by default. The request
+reserves space for scheduling; the limit covers the container's local ephemeral storage, including its logs. These
+values are starting points, not measured peaks. Check usage under your workload and adjust
+`monitoringOperator.ephemeralStorage.request` and `monitoringOperator.ephemeralStorage.limit` if needed. Explicit
+`ephemeral-storage` entries in `monitoringOperator.resources` take precedence.
+
 ## Default Deployment
 
 By default, the following components are installed:

@@ -42,22 +42,22 @@ assert_not_contains() {
 
 kubernetes_manifest="$(render_prometheus_spec "")"
 
-assert_contains "${kubernetes_manifest}" "runAsNonRoot: true"
 assert_contains "${kubernetes_manifest}" "runAsUser: 2000"
 assert_contains "${kubernetes_manifest}" "runAsGroup: 2000"
 assert_contains "${kubernetes_manifest}" "fsGroup: 2000"
-assert_contains "${kubernetes_manifest}" "type: RuntimeDefault"
+assert_not_contains "${kubernetes_manifest}" "runAsNonRoot:"
+assert_not_contains "${kubernetes_manifest}" "seccompProfile:"
 
 openshift_manifest="$(
     render_prometheus_spec \
         "security.openshift.io/v1/SecurityContextConstraints"
 )"
 
-assert_contains "${openshift_manifest}" "runAsNonRoot: true"
-assert_contains "${openshift_manifest}" "type: RuntimeDefault"
 assert_not_contains "${openshift_manifest}" "runAsUser:"
 assert_not_contains "${openshift_manifest}" "runAsGroup:"
 assert_not_contains "${openshift_manifest}" "fsGroup:"
+assert_not_contains "${openshift_manifest}" "runAsNonRoot:"
+assert_not_contains "${openshift_manifest}" "seccompProfile:"
 
 configured_manifest="$(
     render_prometheus_spec "" \
@@ -69,7 +69,18 @@ configured_manifest="$(
 
 assert_contains "${configured_manifest}" "runAsUser: 3000"
 assert_contains "${configured_manifest}" "runAsGroup: 3001"
-assert_contains "${configured_manifest}" "runAsNonRoot: true"
-assert_contains "${configured_manifest}" "type: RuntimeDefault"
+assert_not_contains "${configured_manifest}" "runAsNonRoot:"
+assert_not_contains "${configured_manifest}" "seccompProfile:"
+
+configured_openshift_manifest="$(
+    render_prometheus_spec "security.openshift.io/v1/SecurityContextConstraints" \
+        --set prometheus.securityContext.runAsUser=3000 \
+        --set prometheus.securityContext.runAsGroup=3001 \
+        --set prometheus.securityContext.fsGroup=3002
+)"
+
+assert_contains "${configured_openshift_manifest}" "runAsUser: 3000"
+assert_contains "${configured_openshift_manifest}" "runAsGroup: 3001"
+assert_contains "${configured_openshift_manifest}" "fsGroup: 3002"
 
 echo "Prometheus security hardening checks passed"

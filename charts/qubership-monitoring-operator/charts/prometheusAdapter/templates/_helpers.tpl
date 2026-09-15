@@ -70,23 +70,14 @@ Return securityContext for prometheus-adapter.
 Return securityContext for prometheus-adapter-operator.
 */}}
 {{- define "prometheusAdapter.operator.securityContext" -}}
-{{- $configured := deepCopy (.Values.operator.securityContext | default dict) -}}
-{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- else -}}
-{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.operator.securityContext "id" 2000) -}}
 {{- end -}}
 
 {{/*
 Return the enforced container security context for prometheus-adapter-operator.
 */}}
 {{- define "prometheusAdapter.operator.containerSecurityContext" -}}
-{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
-{{- toYaml $required -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

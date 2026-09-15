@@ -1,21 +1,40 @@
 {{/* vim: set filetype=mustache: */}}
 
+{{/* Enforce the pod baseline while preserving configured IDs. */}}
+{{- define "monitoring.security.podContext" -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $id := .id | default 2000 -}}
+{{- $defaults = dict "runAsUser" $id "runAsGroup" $id "fsGroup" $id -}}
+{{- if hasKey . "defaults" -}}
+{{- $defaults = .defaults -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults (deepCopy (.configured | default dict))) $required) -}}
+{{- end -}}
+
+{{/* Enforce the container baseline while preserving unrelated configured fields. */}}
+{{- define "monitoring.security.containerContext" -}}
+{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite (deepCopy (.configured | default dict)) $required) -}}
+{{- end -}}
+
+{{/* CR security contexts only support numeric identity fields. */}}
+{{- define "monitoring.security.numericContext" -}}
+{{- $defaults := dict -}}
+{{- if not (.root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := pick (deepCopy (.configured | default dict)) "runAsUser" "runAsGroup" "fsGroup" -}}
+{{- toYaml (mergeOverwrite $defaults $configured) -}}
+{{- end -}}
+
 {{/*
 Return securityContext for monitoring-operator.
 */}}
 {{- define "monitoring.operator.securityContext" -}}
-{{- $required := dict
-  "runAsNonRoot" true
-  "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $_ := set $defaults "runAsUser" 2000 -}}
-{{- $_ := set $defaults "runAsGroup" 2000 -}}
-{{- $_ := set $defaults "fsGroup" 2000 -}}
-{{- end -}}
-{{- $configured := deepCopy (.Values.monitoringOperator.securityContext | default dict) -}}
-{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
-{{- toYaml (mergeOverwrite $configuredWithDefaults $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.monitoringOperator.securityContext) -}}
 {{- end -}}
 
 {{/*
@@ -24,15 +43,7 @@ Return the enforced pod security context for root-chart cleanup hooks.
 {{- define "monitoring.cleanup.securityContext" -}}
 {{- $values := .Values | toJson | fromJson -}}
 {{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
-{{- $configured := deepCopy (get $cleanupHook "securityContext" | default dict) -}}
-{{- $required := dict
-  "runAsNonRoot" true
-  "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" (get $cleanupHook "securityContext")) -}}
 {{- end -}}
 
 {{/*
@@ -41,39 +52,21 @@ Return the enforced container security context for root-chart cleanup hooks.
 {{- define "monitoring.cleanup.containerSecurityContext" -}}
 {{- $values := .Values | toJson | fromJson -}}
 {{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
-{{- $configured := deepCopy (get $cleanupHook "containerSecurityContext" | default dict) -}}
-{{- $required := dict
-  "allowPrivilegeEscalation" false
-  "readOnlyRootFilesystem" true
-  "capabilities" (dict "drop" (list "ALL")) -}}
-{{- toYaml (mergeOverwrite $configured $required) -}}
+{{- include "monitoring.security.containerContext" (dict "configured" (get $cleanupHook "containerSecurityContext")) -}}
 {{- end -}}
 
 {{/*
 Return the enforced pod security context for monitoring integration tests.
 */}}
 {{- define "integrationTests.securityContext" -}}
-{{- $configured := deepCopy (.Values.integrationTests.securityContext | default dict) -}}
-{{- $required := dict
-  "runAsNonRoot" true
-  "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.integrationTests.securityContext) -}}
 {{- end -}}
 
 {{/*
 Return the enforced container security context for monitoring integration tests.
 */}}
 {{- define "integrationTests.containerSecurityContext" -}}
-{{- $configured := deepCopy (.Values.integrationTests.containerSecurityContext | default dict) -}}
-{{- $required := dict
-  "allowPrivilegeEscalation" false
-  "readOnlyRootFilesystem" true
-  "capabilities" (dict "drop" (list "ALL")) -}}
-{{- toYaml (mergeOverwrite $configured $required) -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.integrationTests.containerSecurityContext) -}}
 {{- end -}}
 
 {{/*
@@ -109,36 +102,14 @@ runAsNonRoot: true
 Return securityContext for prometheus.
 */}}
 {{- define "prometheus.securityContext" -}}
-{{- $required := dict
-  "runAsNonRoot" true
-  "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $_ := set $defaults "runAsUser" 2000 -}}
-{{- $_ := set $defaults "runAsGroup" 2000 -}}
-{{- $_ := set $defaults "fsGroup" 2000 -}}
-{{- end -}}
-{{- $configured := deepCopy (.Values.prometheus.securityContext | default dict) -}}
-{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
-{{- toYaml (mergeOverwrite $configuredWithDefaults $required) | nindent 6 -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.prometheus.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for prometheus-operator.
 */}}
 {{- define "prometheus.operator.securityContext" -}}
-{{- $required := dict
-  "runAsNonRoot" true
-  "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $_ := set $defaults "runAsUser" 2000 -}}
-{{- $_ := set $defaults "runAsGroup" 2000 -}}
-{{- $_ := set $defaults "fsGroup" 2000 -}}
-{{- end -}}
-{{- $configured := deepCopy (.Values.prometheus.operator.securityContext | default dict) -}}
-{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
-{{- toYaml (mergeOverwrite $configuredWithDefaults $required) | nindent 8 -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.prometheus.operator.securityContext) | nindent 8 -}}
 {{- end -}}
 
 {{/*
@@ -244,18 +215,7 @@ Return securityContext for vmAuth.
 Return securityContext for alertManager.
 */}}
 {{- define "alertmanager.securityContext" -}}
-{{- $required := dict
-  "runAsNonRoot" true
-  "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $_ := set $defaults "runAsUser" 2000 -}}
-{{- $_ := set $defaults "runAsGroup" 2000 -}}
-{{- $_ := set $defaults "fsGroup" 2000 -}}
-{{- end -}}
-{{- $configured := deepCopy (.Values.alertManager.securityContext | default dict) -}}
-{{- $configuredWithDefaults := mergeOverwrite $defaults $configured -}}
-{{- toYaml (mergeOverwrite $configuredWithDefaults $required) | nindent 6 -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.alertManager.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
@@ -290,43 +250,19 @@ Return securityContext for grafana-operator.
 Return securityContext for kubeStateMetrics.
 */}}
 {{- define "kubeStateMetrics.securityContext" -}}
-{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
-      {}
-{{- else -}}
-{{- $defaults := dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- $configured := deepCopy (.Values.kubeStateMetrics.securityContext | default dict) -}}
-{{- $supported := dict -}}
-{{- range $key := list "runAsUser" "runAsGroup" "fsGroup" -}}
-{{- if hasKey $configured $key -}}
-{{- $_ := set $supported $key (get $configured $key) -}}
-{{- end -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite $defaults $supported) | nindent 6 -}}
-{{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.kubeStateMetrics.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for nodeExporter.
 */}}
 {{- define "nodeExporter.securityContext" -}}
-{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
-      {}
-{{- else -}}
-{{- $defaults := dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- $configured := deepCopy (.Values.nodeExporter.securityContext | default dict) -}}
-{{- toYaml (mergeOverwrite $defaults $configured) | nindent 6 -}}
-{{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.nodeExporter.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for pushgateway.
 */}}
 {{- define "pushgateway.securityContext" -}}
-{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
-      {}
-{{- else -}}
-{{- $defaults := dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- $configured := deepCopy (.Values.pushgateway.securityContext | default dict) -}}
-{{- toYaml (mergeOverwrite $defaults $configured) | nindent 6 -}}
-{{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.pushgateway.securityContext) | nindent 6 -}}
 {{- end -}}

@@ -62,9 +62,9 @@ func TestPushgatewayManifests(t *testing.T) {
 
 		openShiftDeployment, err := pushgatewayDeployment(configuredCR, true)
 		require.NoError(t, err)
-		assert.Nil(t, openShiftDeployment.Spec.Template.Spec.SecurityContext.RunAsUser)
-		assert.Nil(t, openShiftDeployment.Spec.Template.Spec.SecurityContext.RunAsGroup)
-		assert.Nil(t, openShiftDeployment.Spec.Template.Spec.SecurityContext.FSGroup)
+		assert.Equal(t, ptr.To(int64(3000)), openShiftDeployment.Spec.Template.Spec.SecurityContext.RunAsUser)
+		assert.Equal(t, ptr.To(int64(3001)), openShiftDeployment.Spec.Template.Spec.SecurityContext.RunAsGroup)
+		assert.Equal(t, ptr.To(int64(3002)), openShiftDeployment.Spec.Template.Spec.SecurityContext.FSGroup)
 	})
 	t.Run("Test persistence and custom volumes are preserved", func(t *testing.T) {
 		persistentCR := &monv1.PlatformMonitoring{

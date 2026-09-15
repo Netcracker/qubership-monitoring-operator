@@ -209,18 +209,9 @@ func applyAlertmanagerHardening(
 ) {
 	alertmanager.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
 	alertmanager.Spec.Volumes = utils.EnsureTmpVolume(alertmanager.Spec.Volumes, "100Mi")
-	alertmanager.Spec.Containers = hardenAlertmanagerContainers(alertmanager.Spec.Containers)
+	alertmanager.Spec.Containers = utils.HardenContainersWithTmp(alertmanager.Spec.Containers)
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "alertmanager")
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "config-reloader")
-}
-
-func hardenAlertmanagerContainers(containers []corev1.Container) []corev1.Container {
-	result := make([]corev1.Container, len(containers))
-	for i := range containers {
-		containers[i].DeepCopyInto(&result[i])
-		applyAlertmanagerContainerHardening(&result[i])
-	}
-	return result
 }
 
 func ensureAlertmanagerManagedContainer(containers []corev1.Container, name string) []corev1.Container {
@@ -231,13 +222,8 @@ func ensureAlertmanagerManagedContainer(containers []corev1.Container, name stri
 	}
 
 	container := corev1.Container{Name: name}
-	applyAlertmanagerContainerHardening(&container)
+	utils.HardenContainerWithTmp(&container)
 	return append(containers, container)
-}
-
-func applyAlertmanagerContainerHardening(container *corev1.Container) {
-	container.SecurityContext = utils.MergeContainerSecurityContext(container.SecurityContext)
-	container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 }
 
 func alertmanagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

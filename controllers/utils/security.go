@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultSecurityContextID int64 = 1000
+	defaultSecurityContextID int64 = 2000
 	tmpVolumeName                  = "tmp"
 	tmpMountPath                   = "/tmp"
 )
@@ -63,10 +63,21 @@ func TmpVolumeMount() corev1.VolumeMount {
 }
 
 // HardenedPodSecurityContextWithOverrides returns the baseline pod security settings for the
-// target platform, keeping any explicitly configured RunAsUser/RunAsGroup/FSGroup outside OpenShift.
+// target platform, keeping any explicitly configured RunAsUser/RunAsGroup/FSGroup.
 func HardenedPodSecurityContextWithOverrides(isOpenShift bool, configured *monv1.SecurityContext) *corev1.PodSecurityContext {
+	if configured == nil {
+		return HardenedPodSecurityContext(isOpenShift)
+	}
+	return HardenedPodSecurityContextWithPodOverrides(isOpenShift, &corev1.PodSecurityContext{
+		RunAsUser: configured.RunAsUser, RunAsGroup: configured.RunAsGroup, FSGroup: configured.FSGroup,
+	})
+}
+
+// HardenedPodSecurityContextWithPodOverrides keeps explicitly configured numeric IDs while
+// enforcing the pod security baseline.
+func HardenedPodSecurityContextWithPodOverrides(isOpenShift bool, configured *corev1.PodSecurityContext) *corev1.PodSecurityContext {
 	securityContext := HardenedPodSecurityContext(isOpenShift)
-	if isOpenShift || configured == nil {
+	if configured == nil {
 		return securityContext
 	}
 	if configured.RunAsUser != nil {
@@ -79,6 +90,22 @@ func HardenedPodSecurityContextWithOverrides(isOpenShift bool, configured *monv1
 		securityContext.FSGroup = configured.FSGroup
 	}
 	return securityContext
+}
+
+// HardenContainerWithTmp enforces the container baseline and mounts the temporary volume.
+func HardenContainerWithTmp(container *corev1.Container) {
+	container.SecurityContext = MergeContainerSecurityContext(container.SecurityContext)
+	container.VolumeMounts = EnsureTmpVolumeMount(container.VolumeMounts)
+}
+
+// HardenContainersWithTmp returns hardened copies of all containers.
+func HardenContainersWithTmp(containers []corev1.Container) []corev1.Container {
+	result := make([]corev1.Container, len(containers))
+	for i := range containers {
+		containers[i].DeepCopyInto(&result[i])
+		HardenContainerWithTmp(&result[i])
+	}
+	return result
 }
 
 // MergeContainerSecurityContext returns a security context that keeps any explicitly configured

@@ -19,16 +19,7 @@ Image can be found from:
 Return securityContext for network-latency-exporter.
 */}}
 {{- define "networkLatencyExporter.securityContext" -}}
-{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $defaults = dict "runAsUser" 2001 "runAsGroup" 2001 "fsGroup" 2001 -}}
-{{- end -}}
-{{- $configured := deepCopy (.Values.securityContext | default dict) -}}
-{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
-{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 2001) -}}
 {{- end -}}
 
 {{/*

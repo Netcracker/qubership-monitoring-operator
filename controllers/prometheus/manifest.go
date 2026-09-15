@@ -437,22 +437,13 @@ func applyPrometheusHardening(
 ) {
 	prom.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
 	prom.Spec.Volumes = utils.EnsureTmpVolume(prom.Spec.Volumes, "100Mi")
-	prom.Spec.Containers = hardenPrometheusContainers(prom.Spec.Containers)
+	prom.Spec.Containers = utils.HardenContainersWithTmp(prom.Spec.Containers)
 	prom.Spec.Containers = ensurePrometheusManagedContainer(
 		prom.Spec.Containers,
 		"prometheus",
 		configuredPrometheusVolumeMounts,
 	)
 	prom.Spec.Containers = ensurePrometheusManagedContainer(prom.Spec.Containers, "config-reloader", nil)
-}
-
-func hardenPrometheusContainers(containers []corev1.Container) []corev1.Container {
-	result := make([]corev1.Container, len(containers))
-	for i := range containers {
-		containers[i].DeepCopyInto(&result[i])
-		applyPrometheusContainerHardening(&result[i])
-	}
-	return result
 }
 
 func ensurePrometheusManagedContainer(
@@ -470,7 +461,7 @@ func ensurePrometheusManagedContainer(
 	}
 
 	container := corev1.Container{Name: name, VolumeMounts: volumeMounts}
-	applyPrometheusContainerHardening(&container)
+	utils.HardenContainerWithTmp(&container)
 	return append(containers, container)
 }
 
@@ -496,11 +487,6 @@ func mergePrometheusVolumeMounts(
 		}
 	}
 	return result
-}
-
-func applyPrometheusContainerHardening(container *corev1.Container) {
-	container.SecurityContext = utils.MergeContainerSecurityContext(container.SecurityContext)
-	container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 }
 
 func prometheusIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {

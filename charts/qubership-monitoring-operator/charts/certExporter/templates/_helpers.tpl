@@ -31,21 +31,12 @@ Return securityContext for daemonset certExporter.
 
 {{/* Return the enforced pod security context. */}}
 {{- define "certExporter.securityContext" -}}
-{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
-{{- $defaults := dict -}}
-{{- if not (.root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
-{{- end -}}
-{{- $configured := deepCopy (.configured | default dict) -}}
-{{- if .root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
-{{- $_ := unset $configured "runAsUser" -}}{{- $_ := unset $configured "runAsGroup" -}}{{- $_ := unset $configured "fsGroup" -}}
-{{- end -}}
-{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- include "monitoring.security.podContext" (dict "root" .root "configured" .configured "id" 2000) -}}
 {{- end -}}
 
 {{/* Return the enforced container security context. */}}
 {{- define "certExporter.containerSecurityContext" -}}
-{{- toYaml (dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL"))) -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

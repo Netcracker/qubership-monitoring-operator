@@ -96,9 +96,9 @@ func TestNodeExporterManifests(t *testing.T) {
 
 		openShiftDaemonSet, err := nodeExporterDaemonSet(configuredCR, true)
 		require.NoError(t, err)
-		assert.Nil(t, openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsUser)
-		assert.Nil(t, openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsGroup)
-		assert.Nil(t, openShiftDaemonSet.Spec.Template.Spec.SecurityContext.FSGroup)
+		assert.Equal(t, ptr.To(int64(3000)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsUser)
+		assert.Equal(t, ptr.To(int64(3001)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsGroup)
+		assert.Equal(t, ptr.To(int64(3002)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.FSGroup)
 	})
 	t.Run("Test existing temporary volume and mount are replaced", func(t *testing.T) {
 		daemonSet := &appsv1.DaemonSet{

@@ -17,11 +17,11 @@ func TestHardenedPodSecurityContextForKubernetes(t *testing.T) {
 	require.NotNil(t, securityContext.RunAsNonRoot)
 	assert.True(t, *securityContext.RunAsNonRoot)
 	require.NotNil(t, securityContext.RunAsUser)
-	assert.Equal(t, int64(1000), *securityContext.RunAsUser)
+	assert.Equal(t, int64(2000), *securityContext.RunAsUser)
 	require.NotNil(t, securityContext.RunAsGroup)
-	assert.Equal(t, int64(1000), *securityContext.RunAsGroup)
+	assert.Equal(t, int64(2000), *securityContext.RunAsGroup)
 	require.NotNil(t, securityContext.FSGroup)
-	assert.Equal(t, int64(1000), *securityContext.FSGroup)
+	assert.Equal(t, int64(2000), *securityContext.FSGroup)
 	require.NotNil(t, securityContext.SeccompProfile)
 	assert.Equal(t, corev1.SeccompProfileTypeRuntimeDefault, securityContext.SeccompProfile.Type)
 }
@@ -66,18 +66,24 @@ func TestTmpVolumeMount(t *testing.T) {
 }
 
 func TestHardenedPodSecurityContextWithOverridesOnOpenShift(t *testing.T) {
-	configured := &monv1.SecurityContext{RunAsUser: ptr.To(int64(5000))}
+	configured := &monv1.SecurityContext{
+		RunAsUser:  ptr.To(int64(5000)),
+		RunAsGroup: ptr.To(int64(5001)),
+		FSGroup:    ptr.To(int64(5002)),
+	}
 
 	securityContext := HardenedPodSecurityContextWithOverrides(true, configured)
 
-	assert.Nil(t, securityContext.RunAsUser, "OpenShift assigns UIDs, so overrides must not apply")
+	assert.Equal(t, configured.RunAsUser, securityContext.RunAsUser)
+	assert.Equal(t, configured.RunAsGroup, securityContext.RunAsGroup)
+	assert.Equal(t, configured.FSGroup, securityContext.FSGroup)
 }
 
 func TestHardenedPodSecurityContextWithOverridesNilConfigured(t *testing.T) {
 	securityContext := HardenedPodSecurityContextWithOverrides(false, nil)
 
 	require.NotNil(t, securityContext.RunAsUser)
-	assert.Equal(t, int64(1000), *securityContext.RunAsUser)
+	assert.Equal(t, int64(2000), *securityContext.RunAsUser)
 }
 
 func TestHardenedPodSecurityContextWithOverridesAppliesConfiguredIDs(t *testing.T) {
@@ -95,6 +101,37 @@ func TestHardenedPodSecurityContextWithOverridesAppliesConfiguredIDs(t *testing.
 	assert.Equal(t, int64(3000), *securityContext.RunAsGroup)
 	require.NotNil(t, securityContext.FSGroup)
 	assert.Equal(t, int64(4000), *securityContext.FSGroup)
+}
+
+func TestHardenedPodSecurityContextWithPodOverrides(t *testing.T) {
+	configured := &corev1.PodSecurityContext{
+		RunAsUser:    ptr.To(int64(3000)),
+		RunAsNonRoot: ptr.To(false),
+	}
+
+	securityContext := HardenedPodSecurityContextWithPodOverrides(true, configured)
+
+	assert.Equal(t, int64(3000), *securityContext.RunAsUser)
+	assert.Nil(t, securityContext.RunAsGroup)
+	assert.True(t, *securityContext.RunAsNonRoot)
+	assert.False(t, *configured.RunAsNonRoot, "configured context must not be mutated")
+}
+
+func TestHardenContainersWithTmpKeepsInputUnchanged(t *testing.T) {
+	containers := []corev1.Container{{
+		Name:            "managed",
+		SecurityContext: &corev1.SecurityContext{RunAsUser: ptr.To(int64(3000))},
+		VolumeMounts:    []corev1.VolumeMount{{Name: "data", MountPath: "/data"}},
+	}}
+
+	result := HardenContainersWithTmp(containers)
+
+	require.Len(t, result, 1)
+	assert.Equal(t, int64(3000), *result[0].SecurityContext.RunAsUser)
+	assert.False(t, *result[0].SecurityContext.AllowPrivilegeEscalation)
+	assert.Contains(t, result[0].VolumeMounts, TmpVolumeMount())
+	assert.Nil(t, containers[0].SecurityContext.AllowPrivilegeEscalation)
+	assert.Len(t, containers[0].VolumeMounts, 1)
 }
 
 func TestMergeContainerSecurityContextNilExisting(t *testing.T) {

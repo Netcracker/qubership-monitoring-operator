@@ -66,4 +66,15 @@ assert_contains "${configured_manifest}" "runAsUser: 3000"
 assert_contains "${configured_manifest}" "runAsGroup: 3001"
 assert_contains "${configured_manifest}" "fsGroup: 3002"
 
+configured_openshift_manifest="$(
+    render_node_exporter_spec "security.openshift.io/v1/SecurityContextConstraints" \
+        --set nodeExporter.securityContext.runAsUser=3000 \
+        --set nodeExporter.securityContext.runAsGroup=3001 \
+        --set nodeExporter.securityContext.fsGroup=3002
+)"
+
+assert_contains "${configured_openshift_manifest}" "runAsUser: 3000"
+assert_contains "${configured_openshift_manifest}" "runAsGroup: 3001"
+assert_contains "${configured_openshift_manifest}" "fsGroup: 3002"
+
 echo "node-exporter security hardening checks passed"

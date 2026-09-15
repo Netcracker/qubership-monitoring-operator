@@ -66,4 +66,15 @@ assert_contains "${configured_manifest}" "runAsUser: 3000"
 assert_contains "${configured_manifest}" "runAsGroup: 3001"
 assert_contains "${configured_manifest}" "fsGroup: 3002"
 
+configured_openshift_manifest="$(
+    render_kube_state_metrics_spec "security.openshift.io/v1/SecurityContextConstraints" \
+        --set kubeStateMetrics.securityContext.runAsUser=3000 \
+        --set kubeStateMetrics.securityContext.runAsGroup=3001 \
+        --set kubeStateMetrics.securityContext.fsGroup=3002
+)"
+
+assert_contains "${configured_openshift_manifest}" "runAsUser: 3000"
+assert_contains "${configured_openshift_manifest}" "runAsGroup: 3001"
+assert_contains "${configured_openshift_manifest}" "fsGroup: 3002"
+
 echo "kube-state-metrics security hardening checks passed"

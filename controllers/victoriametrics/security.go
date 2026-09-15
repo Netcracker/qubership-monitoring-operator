@@ -30,16 +30,14 @@ func HardenedSecurityContextFromPlatformSpec(
 
 func hardenedSecurityContext(isOpenShift bool, runAsUser, runAsGroup, fsGroup *int64) *vmetricsv1b1.SecurityContext {
 	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
-	if !isOpenShift {
-		if runAsUser != nil {
-			podSecurityContext.RunAsUser = runAsUser
-		}
-		if runAsGroup != nil {
-			podSecurityContext.RunAsGroup = runAsGroup
-		}
-		if fsGroup != nil {
-			podSecurityContext.FSGroup = fsGroup
-		}
+	if runAsUser != nil {
+		podSecurityContext.RunAsUser = runAsUser
+	}
+	if runAsGroup != nil {
+		podSecurityContext.RunAsGroup = runAsGroup
+	}
+	if fsGroup != nil {
+		podSecurityContext.FSGroup = fsGroup
 	}
 
 	containerSecurityContext := utils.HardenedContainerSecurityContext()

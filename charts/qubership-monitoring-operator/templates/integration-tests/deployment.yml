@@ -44,8 +44,10 @@ spec:
       volumes:
         - name: robot-storage
           emptyDir: {}
+        # Robot result artifacts use this volume; 100Mi is an unmeasured starting cap.
         - name: robot-output
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 100Mi
         - name: tmp
           emptyDir:
             sizeLimit: 100Mi

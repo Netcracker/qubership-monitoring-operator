@@ -305,54 +305,11 @@ func setEnvValue(env []corev1.EnvVar, name, value string) []corev1.EnvVar {
 }
 
 func applyVmOperatorHardening(deployment *appsv1.Deployment, isOpenShift bool) {
-	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
-	if configured := deployment.Spec.Template.Spec.SecurityContext; configured != nil {
-		if configured.RunAsUser != nil {
-			podSecurityContext.RunAsUser = configured.RunAsUser
-		}
-		if configured.RunAsGroup != nil {
-			podSecurityContext.RunAsGroup = configured.RunAsGroup
-		}
-		if configured.FSGroup != nil {
-			podSecurityContext.FSGroup = configured.FSGroup
-		}
-	}
-	deployment.Spec.Template.Spec.SecurityContext = podSecurityContext
-
-	hasTmpVolume := false
-	for _, volume := range deployment.Spec.Template.Spec.Volumes {
-		if volume.Name == "tmp" {
-			hasTmpVolume = true
-			break
-		}
-	}
-	if !hasTmpVolume {
-		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, utils.TmpVolume("100Mi"))
-	}
-
-	for i := range deployment.Spec.Template.Spec.Containers {
-		container := &deployment.Spec.Template.Spec.Containers[i]
-		securityContext := utils.HardenedContainerSecurityContext()
-		if container.SecurityContext != nil {
-			securityContext = container.SecurityContext.DeepCopy()
-			required := utils.HardenedContainerSecurityContext()
-			securityContext.AllowPrivilegeEscalation = required.AllowPrivilegeEscalation
-			securityContext.ReadOnlyRootFilesystem = required.ReadOnlyRootFilesystem
-			securityContext.Capabilities = required.Capabilities
-		}
-		container.SecurityContext = securityContext
-
-		hasTmpMount := false
-		for _, volumeMount := range container.VolumeMounts {
-			if volumeMount.Name == "tmp" || volumeMount.MountPath == "/tmp" {
-				hasTmpMount = true
-				break
-			}
-		}
-		if !hasTmpMount {
-			container.VolumeMounts = append(container.VolumeMounts, utils.TmpVolumeMount())
-		}
-	}
+	deployment.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithPodOverrides(
+		isOpenShift, deployment.Spec.Template.Spec.SecurityContext,
+	)
+	deployment.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(deployment.Spec.Template.Spec.Volumes, "100Mi")
+	deployment.Spec.Template.Spec.Containers = utils.HardenContainersWithTmp(deployment.Spec.Template.Spec.Containers)
 }
 
 func vmOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

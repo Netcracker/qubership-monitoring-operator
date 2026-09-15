@@ -132,7 +132,7 @@ assert_contains "${enforcement_manifest}" "type: RuntimeDefault"
 assert_contains "${enforcement_manifest}" "allowPrivilegeEscalation: false"
 assert_contains "${enforcement_manifest}" "readOnlyRootFilesystem: true"
 assert_contains "${enforcement_manifest}" "- ALL"
-assert_not_contains "${enforcement_manifest}" "runAsUser:"
+assert_contains "${enforcement_manifest}" "runAsUser: 0"
 assert_not_contains "${enforcement_manifest}" "Unconfined"
 assert_not_contains "${enforcement_manifest}" "- NET_RAW"
 
