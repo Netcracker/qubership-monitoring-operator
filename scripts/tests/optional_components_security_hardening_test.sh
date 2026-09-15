@@ -50,6 +50,22 @@ assert_not_contains() {
     fi
 }
 
+assert_render_fails() {
+    local expected_error="$1"
+    shift
+    local output
+
+    if output="$(helm template monitoring-operator "${chart_dir}" "$@" 2>&1)"; then
+        echo "Expected rendering to fail with: ${expected_error}" >&2
+        exit 1
+    fi
+    if ! grep -Fq -- "${expected_error}" <<<"${output}"; then
+        echo "Expected the rendering error to contain: ${expected_error}" >&2
+        echo "${output}" >&2
+        exit 1
+    fi
+}
+
 kubernetes_dir="${render_dir}/kubernetes"
 openshift_dir="${render_dir}/openshift"
 enforcement_dir="${render_dir}/enforcement"
@@ -61,8 +77,7 @@ render_components \
 render_components \
     "${enforcement_dir}" \
     --api-versions security.openshift.io/v1/SecurityContextConstraints \
-    --set grafana.imageRenderer.securityContext.runAsUser=0 \
-    --set grafana.imageRenderer.securityContext.runAsNonRoot=false \
+    --set grafana.imageRenderer.securityContext.runAsUser=3000 \
     --set grafana.imageRenderer.securityContext.seccompProfile.type=Unconfined \
     --set victoriametrics.cleanup.hook.containerSecurityContext.allowPrivilegeEscalation=true \
     --set victoriametrics.cleanup.hook.containerSecurityContext.readOnlyRootFilesystem=false \
@@ -109,8 +124,21 @@ assert_contains "${enforced_renderer_manifest}" "docker.io/grafana/grafana-image
 assert_contains "${enforced_renderer_manifest}" "BROWSER_FLAGS"
 assert_contains "${enforced_renderer_manifest}" "runAsNonRoot: true"
 assert_contains "${enforced_renderer_manifest}" "type: RuntimeDefault"
-assert_contains "${enforced_renderer_manifest}" "runAsUser: 0"
+assert_contains "${enforced_renderer_manifest}" "runAsUser: 3000"
 assert_not_contains "${enforced_renderer_manifest}" "Unconfined"
+
+assert_render_fails "securityContext.runAsUser=0 conflicts" \
+    "${component_args[@]}" \
+    --set grafana.imageRenderer.securityContext.runAsUser=0
+assert_render_fails "securityContext.runAsNonRoot=false conflicts" \
+    "${component_args[@]}" \
+    --set grafana.imageRenderer.securityContext.runAsNonRoot=false
+assert_render_fails "containerSecurityContext.privileged=true conflicts" \
+    "${component_args[@]}" \
+    --set victoriametrics.cleanup.hook.containerSecurityContext.privileged=true
+assert_render_fails "containerSecurityContext.capabilities.add conflicts" \
+    "${component_args[@]}" \
+    --set 'integrationTests.containerSecurityContext.capabilities.add={NET_RAW}'
 
 renderer_config="${kubernetes_dir}/qubership-monitoring-operator/charts/grafana/templates/configmap-extra-vars.yaml"
 assert_contains "${renderer_config}" "GF_RENDERING_SERVER_URL"

@@ -55,6 +55,22 @@ assert_not_contains() {
     fi
 }
 
+assert_render_fails() {
+    local expected_error="$1"
+    shift
+    local output
+
+    if output="$(helm template monitoring-operator "${chart_dir}" "$@" 2>&1)"; then
+        echo "Expected rendering to fail with: ${expected_error}" >&2
+        exit 1
+    fi
+    if ! grep -Fq -- "${expected_error}" <<<"${output}"; then
+        echo "Expected the rendering error to contain: ${expected_error}" >&2
+        echo "${output}" >&2
+        exit 1
+    fi
+}
+
 kubernetes_dir="${render_dir}/kubernetes"
 openshift_dir="${render_dir}/openshift"
 blackbox_daemonset_dir="${render_dir}/blackbox-daemonset"
@@ -78,8 +94,7 @@ helm template hardening "${chart_dir}" \
     --api-versions security.openshift.io/v1/SecurityContextConstraints \
     --output-dir "${enforcement_dir}" \
     --set blackboxExporter.install=true \
-    --set blackboxExporter.securityContext.runAsUser=0 \
-    --set blackboxExporter.securityContext.runAsNonRoot=false \
+    --set blackboxExporter.securityContext.runAsUser=3000 \
     --set blackboxExporter.securityContext.seccompProfile.type=Unconfined \
     --set blackboxExporter.containerSecurityContext.allowPrivilegeEscalation=true \
     --set blackboxExporter.containerSecurityContext.readOnlyRootFilesystem=false \
@@ -132,9 +147,22 @@ assert_contains "${enforcement_manifest}" "type: RuntimeDefault"
 assert_contains "${enforcement_manifest}" "allowPrivilegeEscalation: false"
 assert_contains "${enforcement_manifest}" "readOnlyRootFilesystem: true"
 assert_contains "${enforcement_manifest}" "- ALL"
-assert_contains "${enforcement_manifest}" "runAsUser: 0"
+assert_contains "${enforcement_manifest}" "runAsUser: 3000"
 assert_not_contains "${enforcement_manifest}" "Unconfined"
 assert_not_contains "${enforcement_manifest}" "- NET_RAW"
+
+assert_render_fails "securityContext.runAsUser=0 conflicts" \
+    --set blackboxExporter.install=true \
+    --set blackboxExporter.securityContext.runAsUser=0
+assert_render_fails "securityContext.runAsNonRoot=false conflicts" \
+    --set blackboxExporter.install=true \
+    --set blackboxExporter.securityContext.runAsNonRoot=false
+assert_render_fails "containerSecurityContext.privileged=true conflicts" \
+    --set blackboxExporter.install=true \
+    --set blackboxExporter.containerSecurityContext.privileged=true
+assert_render_fails "containerSecurityContext.capabilities.add conflicts" \
+    --set blackboxExporter.install=true \
+    --set 'blackboxExporter.containerSecurityContext.capabilities.add={NET_RAW}'
 
 network_latency_manifest="${kubernetes_dir}/qubership-monitoring-operator/charts/networkLatencyExporter/templates/daemonset.yaml"
 assert_contains "${network_latency_manifest}" "runAsUser: 2001"

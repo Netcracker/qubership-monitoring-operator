@@ -40,6 +40,22 @@ assert_not_contains() {
     fi
 }
 
+assert_render_fails() {
+    local expected_error="$1"
+    shift
+    local output
+
+    if output="$(helm template monitoring-operator "${chart_dir}" "$@" 2>&1)"; then
+        echo "Expected rendering to fail with: ${expected_error}" >&2
+        exit 1
+    fi
+    if ! grep -Fq -- "${expected_error}" <<<"${output}"; then
+        echo "Expected the rendering error to contain: ${expected_error}" >&2
+        echo "${output}" >&2
+        exit 1
+    fi
+}
+
 kubernetes_manifest="$(render_alertmanager_spec "")"
 
 assert_contains "${kubernetes_manifest}" "runAsUser: 2000"
@@ -63,7 +79,6 @@ configured_manifest="$(
     render_alertmanager_spec "" \
         --set alertManager.securityContext.runAsUser=3000 \
         --set alertManager.securityContext.runAsGroup=3001 \
-        --set alertManager.securityContext.runAsNonRoot=false \
         --set alertManager.securityContext.seccompProfile.type=Unconfined
 )"
 
@@ -71,6 +86,13 @@ assert_contains "${configured_manifest}" "runAsUser: 3000"
 assert_contains "${configured_manifest}" "runAsGroup: 3001"
 assert_not_contains "${configured_manifest}" "runAsNonRoot:"
 assert_not_contains "${configured_manifest}" "seccompProfile:"
+
+assert_render_fails "securityContext.runAsUser=0 conflicts" \
+    --set alertManager.install=true \
+    --set alertManager.securityContext.runAsUser=0
+assert_render_fails "securityContext.runAsNonRoot=false conflicts" \
+    --set alertManager.install=true \
+    --set alertManager.securityContext.runAsNonRoot=false
 
 configured_openshift_manifest="$(
     render_alertmanager_spec "security.openshift.io/v1/SecurityContextConstraints" \
