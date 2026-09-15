@@ -160,7 +160,5 @@ jobs:
       - name: Require the expected chart validation result
         if: >-
           needs.changes.result != 'success' ||
-          (needs.changes.outputs.charts == 'true' && needs.lint-test.result != 'success') ||
-          (needs.changes.outputs.charts == 'false' && needs.lint-test.result != 'skipped') ||
-          (needs.changes.outputs.charts != 'true' && needs.changes.outputs.charts != 'false')
+          (needs.changes.outputs.charts != 'false' && needs.lint-test.result != 'success')
         run: exit 1

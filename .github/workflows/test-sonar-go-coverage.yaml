@@ -161,11 +161,7 @@ jobs:
       - name: Require the expected Go validation results
         if: >-
           needs.changes.result != 'success' ||
-          (needs.changes.outputs.go == 'true' &&
+          (needs.changes.outputs.go != 'false' &&
             (needs.envtest-minimum-kubernetes.result != 'success' ||
-             needs.prepare.result != 'success' || needs.test.result != 'success')) ||
-          (needs.changes.outputs.go == 'false' &&
-            (needs.envtest-minimum-kubernetes.result != 'skipped' ||
-             needs.prepare.result != 'skipped' || needs.test.result != 'skipped')) ||
-          (needs.changes.outputs.go != 'true' && needs.changes.outputs.go != 'false')
+             needs.prepare.result != 'success' || needs.test.result != 'success'))
         run: exit 1

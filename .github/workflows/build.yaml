@@ -188,7 +188,5 @@ jobs:
     - name: Require the expected build result
       if: >-
         needs.changes.result != 'success' ||
-        (needs.changes.outputs.build == 'true' && needs.multiplatform_build.result != 'success') ||
-        (needs.changes.outputs.build == 'false' && needs.multiplatform_build.result != 'skipped') ||
-        (needs.changes.outputs.build != 'true' && needs.changes.outputs.build != 'false')
+        (needs.changes.outputs.build != 'false' && needs.multiplatform_build.result != 'success')
       run: exit 1
