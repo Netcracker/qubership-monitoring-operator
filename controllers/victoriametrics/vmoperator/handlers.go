@@ -160,7 +160,11 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := vmOperatorDeployment(r, cr, r.hasSecurityContextConstraintsAPI())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := vmOperatorDeployment(r, cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -699,7 +703,11 @@ func (r *VmOperatorReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *VmOperatorReconciler) deleteVmOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := vmOperatorDeployment(r, cr, r.hasSecurityContextConstraintsAPI())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := vmOperatorDeployment(r, cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err

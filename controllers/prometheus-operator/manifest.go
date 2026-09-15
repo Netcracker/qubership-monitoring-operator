@@ -165,6 +165,9 @@ func prometheusOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool
 			}
 		}
 		// Set security context
+		if err := utils.ValidateSecurityContextSpec(cr.Spec.Prometheus.Operator.SecurityContext); err != nil {
+			return nil, err
+		}
 		if cr.Spec.Prometheus.Operator.SecurityContext != nil {
 			if d.Spec.Template.Spec.SecurityContext == nil {
 				d.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}

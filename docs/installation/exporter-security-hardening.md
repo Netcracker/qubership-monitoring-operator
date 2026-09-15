@@ -16,7 +16,13 @@ The following settings are enforced in the Helm templates for exporter container
 
 On Kubernetes, charts supply a numeric non-root user and group. On OpenShift, numeric user and group settings are
 omitted so that the active Security Context Constraints policy can assign IDs from the namespace range. User-supplied
-security context fields are preserved, but they cannot weaken the enforced baseline fields.
+security context fields are preserved, but they cannot weaken the enforced baseline fields: `allowPrivilegeEscalation`,
+`readOnlyRootFilesystem`, `capabilities.drop`, `runAsNonRoot`, and `seccompProfile` always take the baseline value.
+
+Settings that the baseline cannot override are rejected: `helm install` and `helm upgrade` fail with a message that
+names the offending field. These settings are `privileged: true`, `capabilities.add`, `runAsUser: 0`, and
+`runAsNonRoot: false` in any `securityContext` or `containerSecurityContext` value. Remove the field or use a non-root
+UID.
 
 The baseline is applied to these chart workloads:
 

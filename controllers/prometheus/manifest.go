@@ -424,7 +424,10 @@ func prometheus(cr *monv1.PlatformMonitoring, isOpenShift bool) (*promv1.Prometh
 			prom.Spec.EnableFeatures = cr.Spec.Prometheus.EnableFeatures
 		}
 
-		applyPrometheusHardening(&prom, isOpenShift, cr.Spec.Prometheus.SecurityContext, cr.Spec.Prometheus.VolumeMounts)
+		err := applyPrometheusHardening(&prom, isOpenShift, cr.Spec.Prometheus.SecurityContext, cr.Spec.Prometheus.VolumeMounts)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &prom, nil
 }
@@ -434,16 +437,20 @@ func applyPrometheusHardening(
 	isOpenShift bool,
 	configuredPodSecurityContext *monv1.SecurityContext,
 	configuredPrometheusVolumeMounts []corev1.VolumeMount,
-) {
-	prom.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+) error {
+	securityContext, err := utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	if err != nil {
+		return err
+	}
+	containers, err := utils.HardenContainersWithTmp(prom.Spec.Containers)
+	if err != nil {
+		return err
+	}
+	prom.Spec.SecurityContext = securityContext
 	prom.Spec.Volumes = utils.EnsureTmpVolume(prom.Spec.Volumes, "100Mi")
-	prom.Spec.Containers = utils.HardenContainersWithTmp(prom.Spec.Containers)
-	prom.Spec.Containers = ensurePrometheusManagedContainer(
-		prom.Spec.Containers,
-		"prometheus",
-		configuredPrometheusVolumeMounts,
-	)
+	prom.Spec.Containers = ensurePrometheusManagedContainer(containers, "prometheus", configuredPrometheusVolumeMounts)
 	prom.Spec.Containers = ensurePrometheusManagedContainer(prom.Spec.Containers, "config-reloader", nil)
+	return nil
 }
 
 func ensurePrometheusManagedContainer(
@@ -460,8 +467,11 @@ func ensurePrometheusManagedContainer(
 		return containers
 	}
 
-	container := corev1.Container{Name: name, VolumeMounts: volumeMounts}
-	utils.HardenContainerWithTmp(&container)
+	container := corev1.Container{
+		Name:            name,
+		SecurityContext: utils.HardenedContainerSecurityContext(),
+		VolumeMounts:    utils.EnsureTmpVolumeMount(volumeMounts),
+	}
 	return append(containers, container)
 }
 

@@ -15,8 +15,10 @@ The chart applies the following controls to the workloads that it creates direct
 - all Linux capabilities dropped
 - a writable `/tmp` backed by an `emptyDir` with a `100Mi` size limit
 
-The mandatory controls override weaker values supplied by a user. The numeric IDs are intentionally omitted on
-OpenShift so that the namespace Security Context Constraints allocation remains authoritative.
+The mandatory controls override weaker values supplied by a user. Values that cannot be overridden, such as
+`privileged: true`, `capabilities.add`, `runAsUser: 0`, and `runAsNonRoot: false`, fail chart rendering with a message
+that names the offending field. The numeric IDs are intentionally omitted on OpenShift so that the namespace Security
+Context Constraints allocation remains authoritative.
 
 ## Grafana Image Renderer
 

@@ -303,12 +303,12 @@ func assertGrafanaOperatorHardening(t *testing.T, deployment *appsv1.Deployment,
 	require.NotNil(t, container.SecurityContext.Capabilities)
 	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
 	require.Len(t, container.VolumeMounts, 1)
-	assert.Equal(t, "tmp", container.VolumeMounts[0].Name)
+	assert.Equal(t, utils.TmpVolumeMount().Name, container.VolumeMounts[0].Name)
 	assert.Equal(t, "/tmp", container.VolumeMounts[0].MountPath)
 
 	require.Len(t, deployment.Spec.Template.Spec.Volumes, 1)
 	volume := deployment.Spec.Template.Spec.Volumes[0]
-	assert.Equal(t, "tmp", volume.Name)
+	assert.Equal(t, utils.TmpVolumeMount().Name, volume.Name)
 	require.NotNil(t, volume.EmptyDir)
 	require.NotNil(t, volume.EmptyDir.SizeLimit)
 	assert.Equal(t, "16Mi", volume.EmptyDir.SizeLimit.String())

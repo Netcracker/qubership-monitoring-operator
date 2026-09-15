@@ -211,7 +211,7 @@ func assertPrometheusOperatorHardening(t *testing.T, deployment *appsv1.Deployme
 
 	tmpVolumes := 0
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
-		if volume.Name == "tmp" {
+		if volume.Name == utils.TmpVolumeMount().Name {
 			tmpVolumes++
 			require.NotNil(t, volume.EmptyDir)
 			require.NotNil(t, volume.EmptyDir.SizeLimit)

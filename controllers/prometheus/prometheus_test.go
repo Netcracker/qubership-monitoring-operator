@@ -69,6 +69,22 @@ func TestPrometheusManifests(t *testing.T) {
 		require.NoError(t, err)
 		assertPrometheusHardening(t, m, true)
 	})
+	t.Run("Test conflicting security settings are rejected", func(t *testing.T) {
+		rootCR := cr.DeepCopy()
+		rootCR.Spec.Prometheus.SecurityContext = &monv1.SecurityContext{RunAsUser: ptr.To(int64(0))}
+		m, err := prometheus(rootCR, false)
+		require.Error(t, err)
+		assert.Nil(t, m)
+
+		privilegedCR := cr.DeepCopy()
+		privilegedCR.Spec.Prometheus.Containers = []corev1.Container{{
+			Name:            "sidecar",
+			SecurityContext: &corev1.SecurityContext{Privileged: ptr.To(true)},
+		}}
+		m, err = prometheus(privilegedCR, false)
+		require.Error(t, err)
+		assert.Nil(t, m)
+	})
 	t.Run("Test configured IDs and sidecar settings", func(t *testing.T) {
 		configuredCR := cr.DeepCopy()
 		configuredCR.Spec.Prometheus.SecurityContext = &monv1.SecurityContext{
@@ -101,7 +117,12 @@ func TestPrometheusManifests(t *testing.T) {
 		assert.Equal(t, int64(3001), *m.Spec.SecurityContext.RunAsGroup)
 		assert.Equal(t, int64(3002), *m.Spec.SecurityContext.FSGroup)
 		assertPrometheusHardening(t, m, false)
-		assertPrometheusContainerHardening(t, findPrometheusContainer(t, m, "sidecar"))
+		sidecar := findPrometheusContainer(t, m, "sidecar")
+		assertPrometheusContainerSecurityContext(t, sidecar)
+		assert.Equal(t, []corev1.VolumeMount{{Name: "other-tmp", MountPath: "/tmp"}}, sidecar.VolumeMounts,
+			"a user mount at /tmp must be kept")
+		assert.Contains(t, m.Spec.Volumes, configuredCR.Spec.Prometheus.Volumes[0],
+			"a user volume named tmp must be kept")
 		assert.Contains(t, findPrometheusContainer(t, m, "prometheus").VolumeMounts,
 			corev1.VolumeMount{Name: "custom", MountPath: "/custom-new"})
 		assert.NotContains(t, findPrometheusContainer(t, m, "prometheus").VolumeMounts,
@@ -196,7 +217,7 @@ func assertPrometheusHardening(t *testing.T, prometheus *promv1.Prometheus, isOp
 
 	tmpVolumes := 0
 	for _, volume := range prometheus.Spec.Volumes {
-		if volume.Name == "tmp" {
+		if volume.Name == utils.TmpVolumeMount().Name {
 			tmpVolumes++
 			require.NotNil(t, volume.EmptyDir)
 			require.NotNil(t, volume.EmptyDir.SizeLimit)
@@ -211,12 +232,17 @@ func assertPrometheusHardening(t *testing.T, prometheus *promv1.Prometheus, isOp
 
 func assertPrometheusContainerHardening(t *testing.T, container corev1.Container) {
 	t.Helper()
+	assertPrometheusContainerSecurityContext(t, container)
+	assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
+}
+
+func assertPrometheusContainerSecurityContext(t *testing.T, container corev1.Container) {
+	t.Helper()
 	require.NotNil(t, container.SecurityContext)
 	assert.Equal(t, ptr.To(false), container.SecurityContext.AllowPrivilegeEscalation)
 	assert.Equal(t, ptr.To(true), container.SecurityContext.ReadOnlyRootFilesystem)
 	require.NotNil(t, container.SecurityContext.Capabilities)
 	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
-	assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
 }
 
 func findPrometheusContainer(t *testing.T, prometheus *promv1.Prometheus, name string) corev1.Container {

@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	sprig "github.com/go-task/slim-sprig"
 
 	routev1 "github.com/openshift/api/route/v1"
+	secv1 "github.com/openshift/api/security/v1"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -61,6 +63,28 @@ func (r *ComponentReconciler) HasIngressV1Api() bool {
 // It helps to identify whether the cluster is an Openshift cluster.
 func (r *ComponentReconciler) HasRouteApi() bool {
 	return r.HasApi(routev1.GroupVersion, "Route")
+}
+
+// platformDecisions remembers the last successful platform detection per discovery client.
+// Component reconcilers are created on every reconcile, so the cache lives at package level.
+var platformDecisions sync.Map
+
+// IsOpenShift reports whether the cluster serves the OpenShift SecurityContextConstraints API,
+// the same signal the Helm chart uses. A successful answer is cached per discovery client and
+// reused when a later discovery call fails, so a transient API outage cannot flip workloads
+// between OpenShift and Kubernetes security settings. Without a cached answer the discovery error
+// is returned; callers must not update workloads in that case.
+func (r *ComponentReconciler) IsOpenShift() (bool, error) {
+	isOpenShift, err := ResourceExists(r.Dc, secv1.GroupVersion.String(), "SecurityContextConstraints")
+	if err == nil {
+		platformDecisions.Store(r.Dc, isOpenShift)
+		return isOpenShift, nil
+	}
+	if cached, ok := platformDecisions.Load(r.Dc); ok {
+		r.Log.Error(err, "Platform discovery failed, reusing the last successful result", "isOpenShift", cached)
+		return cached.(bool), nil
+	}
+	return false, errors.Wrap(err, "cannot detect the cluster platform")
 }
 
 // HasApi checks that cluster API has specified API.

@@ -10,34 +10,29 @@ import (
 const tmpVolumeSize = "100Mi"
 
 // HardenedSecurityContext returns the required VictoriaMetrics pod and container security settings.
-func HardenedSecurityContext(isOpenShift bool, configured *corev1.PodSecurityContext) *vmetricsv1b1.SecurityContext {
-	if configured == nil {
-		return hardenedSecurityContext(isOpenShift, nil, nil, nil)
-	}
-	return hardenedSecurityContext(isOpenShift, configured.RunAsUser, configured.RunAsGroup, configured.FSGroup)
+// It returns an error when the configured identity conflicts with the non-root baseline.
+func HardenedSecurityContext(isOpenShift bool, configured *corev1.PodSecurityContext) (*vmetricsv1b1.SecurityContext, error) {
+	return hardenedSecurityContext(isOpenShift, configured)
 }
 
 // HardenedSecurityContextFromPlatformSpec adapts the legacy platform security settings to VictoriaMetrics.
+// It returns an error when the configured identity conflicts with the non-root baseline.
 func HardenedSecurityContextFromPlatformSpec(
 	isOpenShift bool,
 	configured *monv1.SecurityContext,
-) *vmetricsv1b1.SecurityContext {
+) (*vmetricsv1b1.SecurityContext, error) {
 	if configured == nil {
-		return hardenedSecurityContext(isOpenShift, nil, nil, nil)
+		return hardenedSecurityContext(isOpenShift, nil)
 	}
-	return hardenedSecurityContext(isOpenShift, configured.RunAsUser, configured.RunAsGroup, configured.FSGroup)
+	return hardenedSecurityContext(isOpenShift, &corev1.PodSecurityContext{
+		RunAsUser: configured.RunAsUser, RunAsGroup: configured.RunAsGroup, FSGroup: configured.FSGroup,
+	})
 }
 
-func hardenedSecurityContext(isOpenShift bool, runAsUser, runAsGroup, fsGroup *int64) *vmetricsv1b1.SecurityContext {
-	podSecurityContext := utils.HardenedPodSecurityContext(isOpenShift)
-	if runAsUser != nil {
-		podSecurityContext.RunAsUser = runAsUser
-	}
-	if runAsGroup != nil {
-		podSecurityContext.RunAsGroup = runAsGroup
-	}
-	if fsGroup != nil {
-		podSecurityContext.FSGroup = fsGroup
+func hardenedSecurityContext(isOpenShift bool, configured *corev1.PodSecurityContext) (*vmetricsv1b1.SecurityContext, error) {
+	podSecurityContext, err := utils.HardenedPodSecurityContextWithPodOverrides(isOpenShift, configured)
+	if err != nil {
+		return nil, err
 	}
 
 	containerSecurityContext := utils.HardenedContainerSecurityContext()
@@ -48,7 +43,7 @@ func hardenedSecurityContext(isOpenShift bool, runAsUser, runAsGroup, fsGroup *i
 			ReadOnlyRootFilesystem:   containerSecurityContext.ReadOnlyRootFilesystem,
 			Capabilities:             containerSecurityContext.Capabilities,
 		},
-	}
+	}, nil
 }
 
 // EnsureTmpVolume returns a copy of the volumes containing the required size-limited temporary volume.
@@ -61,13 +56,15 @@ func EnsureTmpVolumeMount(volumeMounts []corev1.VolumeMount) []corev1.VolumeMoun
 	return utils.EnsureTmpVolumeMount(volumeMounts)
 }
 
-// HardenContainers returns hardened copies of explicitly configured application containers.
-func HardenContainers(containers []corev1.Container) []corev1.Container {
-	result := make([]corev1.Container, len(containers))
-	for i := range containers {
-		containers[i].DeepCopyInto(&result[i])
-		result[i].SecurityContext = utils.MergeContainerSecurityContext(result[i].SecurityContext)
-		result[i].VolumeMounts = EnsureTmpVolumeMount(result[i].VolumeMounts)
-	}
-	return result
+// HardenContainers returns hardened copies of explicitly configured application containers,
+// each with the temporary-directory mount.
+func HardenContainers(containers []corev1.Container) ([]corev1.Container, error) {
+	return utils.HardenContainersWithTmp(containers)
+}
+
+// HardenContainerSecurity returns copies of explicitly configured application containers with
+// the security baseline enforced and volume mounts left unchanged. VMAgent uses it because the
+// VictoriaMetrics Operator keeps the persistent queue below /tmp of the main container.
+func HardenContainerSecurity(containers []corev1.Container) ([]corev1.Container, error) {
+	return utils.HardenContainers(containers)
 }

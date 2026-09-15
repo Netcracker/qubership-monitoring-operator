@@ -95,31 +95,42 @@ func TestKubeStateMetricsManifests(t *testing.T) {
 		assert.Equal(t, ptr.To(int64(3001)), openShiftDeployment.Spec.Template.Spec.SecurityContext.RunAsGroup)
 		assert.Equal(t, ptr.To(int64(3002)), openShiftDeployment.Spec.Template.Spec.SecurityContext.FSGroup)
 	})
-	t.Run("Test existing temporary volume and mount are replaced", func(t *testing.T) {
+	t.Run("Test existing temporary volume and mount are preserved", func(t *testing.T) {
+		userVolume := corev1.Volume{
+			Name: "other-tmp",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "scratch"},
+			},
+		}
+		userMount := corev1.VolumeMount{Name: "other-tmp", MountPath: "/tmp"}
 		deployment := &appsv1.Deployment{
 			Spec: appsv1.DeploymentSpec{
 				Template: corev1.PodTemplateSpec{
 					Spec: corev1.PodSpec{
-						Volumes: []corev1.Volume{{
-							Name: "tmp",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{},
-							},
-						}},
+						Volumes: []corev1.Volume{userVolume},
 						Containers: []corev1.Container{{
 							Name:         "kube-state-metrics",
-							VolumeMounts: []corev1.VolumeMount{{Name: "other-tmp", MountPath: "/tmp"}},
+							VolumeMounts: []corev1.VolumeMount{userMount},
 						}},
 					},
 				},
 			},
 		}
 
-		applyKubeStateMetricsHardening(deployment, false, nil)
+		require.NoError(t, applyKubeStateMetricsHardening(deployment, false, nil))
 
-		assertKubeStateMetricsHardening(t, deployment, false)
-		assert.NotContains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts,
-			corev1.VolumeMount{Name: "other-tmp", MountPath: "/tmp"})
+		assert.Contains(t, deployment.Spec.Template.Spec.Volumes, userVolume)
+		container := deployment.Spec.Template.Spec.Containers[0]
+		assert.Equal(t, []corev1.VolumeMount{userMount}, container.VolumeMounts,
+			"a user mount at /tmp must be kept instead of being replaced by the emptyDir")
+		assert.Equal(t, utils.HardenedContainerSecurityContext(), container.SecurityContext)
+	})
+	t.Run("Test root user is rejected", func(t *testing.T) {
+		deployment := &appsv1.Deployment{}
+
+		err := applyKubeStateMetricsHardening(deployment, false, &monv1.SecurityContext{RunAsUser: ptr.To(int64(0))})
+
+		require.Error(t, err)
 	})
 	t.Run("Test ServiceAccount manifest", func(t *testing.T) {
 		crWithSALabels := &monv1.PlatformMonitoring{
@@ -209,7 +220,7 @@ func assertKubeStateMetricsHardening(t *testing.T, deployment *appsv1.Deployment
 
 	tmpVolumes := 0
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
-		if volume.Name == "tmp" {
+		if volume.Name == utils.TmpVolumeMount().Name {
 			tmpVolumes++
 			require.NotNil(t, volume.EmptyDir)
 			require.NotNil(t, volume.EmptyDir.SizeLimit)

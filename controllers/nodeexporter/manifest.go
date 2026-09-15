@@ -204,7 +204,9 @@ func nodeExporterDaemonSet(cr *monv1.PlatformMonitoring, isOpenShift bool) (*app
 	if cr.Spec.NodeExporter != nil {
 		configuredSecurityContext = cr.Spec.NodeExporter.SecurityContext
 	}
-	applyNodeExporterHardening(&daemonSet, isOpenShift, configuredSecurityContext)
+	if err := applyNodeExporterHardening(&daemonSet, isOpenShift, configuredSecurityContext); err != nil {
+		return nil, err
+	}
 
 	return &daemonSet, nil
 }
@@ -213,8 +215,12 @@ func applyNodeExporterHardening(
 	daemonSet *appsv1.DaemonSet,
 	isOpenShift bool,
 	configuredPodSecurityContext *monv1.SecurityContext,
-) {
-	daemonSet.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+) error {
+	securityContext, err := utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	if err != nil {
+		return err
+	}
+	daemonSet.Spec.Template.Spec.SecurityContext = securityContext
 	daemonSet.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(daemonSet.Spec.Template.Spec.Volumes, "100Mi")
 
 	for i := range daemonSet.Spec.Template.Spec.Containers {
@@ -222,6 +228,7 @@ func applyNodeExporterHardening(
 		container.SecurityContext = utils.HardenedContainerSecurityContext()
 		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 	}
+	return nil
 }
 
 func nodeExporterService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

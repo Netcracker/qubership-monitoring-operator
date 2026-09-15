@@ -197,7 +197,9 @@ func alertmanager(cr *monv1.PlatformMonitoring, isOpenShift bool) (*promv1.Alert
 			am.Spec.PriorityClassName = cr.Spec.AlertManager.PriorityClassName
 		}
 
-		applyAlertmanagerHardening(&am, isOpenShift, cr.Spec.AlertManager.SecurityContext)
+		if err := applyAlertmanagerHardening(&am, isOpenShift, cr.Spec.AlertManager.SecurityContext); err != nil {
+			return nil, err
+		}
 	}
 	return &am, nil
 }
@@ -206,12 +208,20 @@ func applyAlertmanagerHardening(
 	alertmanager *promv1.Alertmanager,
 	isOpenShift bool,
 	configuredPodSecurityContext *monv1.SecurityContext,
-) {
-	alertmanager.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+) error {
+	securityContext, err := utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	if err != nil {
+		return err
+	}
+	containers, err := utils.HardenContainersWithTmp(alertmanager.Spec.Containers)
+	if err != nil {
+		return err
+	}
+	alertmanager.Spec.SecurityContext = securityContext
 	alertmanager.Spec.Volumes = utils.EnsureTmpVolume(alertmanager.Spec.Volumes, "100Mi")
-	alertmanager.Spec.Containers = utils.HardenContainersWithTmp(alertmanager.Spec.Containers)
-	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "alertmanager")
+	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(containers, "alertmanager")
 	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "config-reloader")
+	return nil
 }
 
 func ensureAlertmanagerManagedContainer(containers []corev1.Container, name string) []corev1.Container {
@@ -221,8 +231,8 @@ func ensureAlertmanagerManagedContainer(containers []corev1.Container, name stri
 		}
 	}
 
-	container := corev1.Container{Name: name}
-	utils.HardenContainerWithTmp(&container)
+	container := corev1.Container{Name: name, SecurityContext: utils.HardenedContainerSecurityContext()}
+	container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 	return append(containers, container)
 }
 

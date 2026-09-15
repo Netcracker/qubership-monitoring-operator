@@ -317,12 +317,21 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 			vmalertmgr.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmAlertManager.PriorityClassName
 		}
 
-		isOpenShift := r != nil && r.hasSecurityContextConstraintsAPI()
-		vmalertmgr.Spec.SecurityContext = victoriametrics.HardenedSecurityContextFromPlatformSpec(
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmalertmgr.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContextFromPlatformSpec(
 			isOpenShift, cr.Spec.Victoriametrics.VmAlertManager.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
 		vmalertmgr.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmalertmgr.Spec.Volumes)
 		vmalertmgr.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmalertmgr.Spec.VolumeMounts)
-		vmalertmgr.Spec.Containers = victoriametrics.HardenContainers(vmalertmgr.Spec.Containers)
+		vmalertmgr.Spec.Containers, err = victoriametrics.HardenContainers(vmalertmgr.Spec.Containers)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &vmalertmgr, nil

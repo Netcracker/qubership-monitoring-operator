@@ -370,12 +370,21 @@ func vmAuth(r *VmAuthReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.VM
 			vmauth.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmAuth.PriorityClassName
 		}
 
-		isOpenShift := r != nil && r.hasSecurityContextConstraintsAPI()
-		vmauth.Spec.SecurityContext = victoriametrics.HardenedSecurityContext(
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmauth.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContext(
 			isOpenShift, cr.Spec.Victoriametrics.VmAuth.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
 		vmauth.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmauth.Spec.Volumes)
 		vmauth.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmauth.Spec.VolumeMounts)
-		vmauth.Spec.Containers = victoriametrics.HardenContainers(vmauth.Spec.Containers)
+		vmauth.Spec.Containers, err = victoriametrics.HardenContainers(vmauth.Spec.Containers)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &vmauth, nil
 }

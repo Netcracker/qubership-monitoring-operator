@@ -54,3 +54,50 @@ func TestResourceExistsReturnsTargetDiscoveryError(t *testing.T) {
 	assert.False(t, exists)
 	require.ErrorIs(t, err, expectedErr)
 }
+
+func TestIsOpenShiftReturnsErrorWhenDiscoveryFailsWithoutCachedResult(t *testing.T) {
+	expectedErr := errors.New("aggregated API unavailable")
+	discoveryClient := &fakediscovery.FakeDiscovery{Fake: &clienttesting.Fake{}}
+	discoveryClient.PrependReactor("get", "resource", func(clienttesting.Action) (bool, runtime.Object, error) {
+		return true, nil, expectedErr
+	})
+	reconciler := &ComponentReconciler{Dc: discoveryClient, Log: Logger("test")}
+
+	isOpenShift, err := reconciler.IsOpenShift()
+
+	assert.False(t, isOpenShift)
+	require.ErrorIs(t, err, expectedErr)
+}
+
+func TestIsOpenShiftReusesCachedResultWhenDiscoveryFails(t *testing.T) {
+	discoveryClient := &fakediscovery.FakeDiscovery{Fake: &clienttesting.Fake{
+		Resources: []*metav1.APIResourceList{{
+			GroupVersion: "security.openshift.io/v1",
+			APIResources: []metav1.APIResource{{Kind: "SecurityContextConstraints"}},
+		}},
+	}}
+	reconciler := &ComponentReconciler{Dc: discoveryClient, Log: Logger("test")}
+
+	isOpenShift, err := reconciler.IsOpenShift()
+	require.NoError(t, err)
+	require.True(t, isOpenShift)
+
+	discoveryClient.PrependReactor("get", "resource", func(clienttesting.Action) (bool, runtime.Object, error) {
+		return true, nil, errors.New("aggregated API unavailable")
+	})
+	// A fresh reconciler with the same discovery client sees the cached decision.
+	isOpenShift, err = (&ComponentReconciler{Dc: discoveryClient, Log: Logger("test")}).IsOpenShift()
+
+	require.NoError(t, err)
+	assert.True(t, isOpenShift, "a transient discovery failure must not flip the platform to Kubernetes")
+}
+
+func TestIsOpenShiftReportsKubernetesWhenSCCApiIsMissing(t *testing.T) {
+	discoveryClient := &fakediscovery.FakeDiscovery{Fake: &clienttesting.Fake{}}
+	reconciler := &ComponentReconciler{Dc: discoveryClient, Log: Logger("test")}
+
+	isOpenShift, err := reconciler.IsOpenShift()
+
+	require.NoError(t, err)
+	assert.False(t, isOpenShift)
+}

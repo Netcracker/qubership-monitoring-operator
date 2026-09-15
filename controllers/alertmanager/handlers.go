@@ -61,7 +61,11 @@ func (r *AlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) erro
 }
 
 func (r *AlertManagerReconciler) handleAlertmanager(cr *monv1.PlatformMonitoring) error {
-	m, err := alertmanager(cr, r.HasRouteApi())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := alertmanager(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Alertmanager manifest")
 		return err
@@ -214,7 +218,11 @@ func (r *AlertManagerReconciler) deleteSecret(cr *monv1.PlatformMonitoring) erro
 }
 
 func (r *AlertManagerReconciler) deleteAlertmanager(cr *monv1.PlatformMonitoring) error {
-	m, err := alertmanager(cr, r.HasRouteApi())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := alertmanager(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Alertmanager manifest")
 		return err

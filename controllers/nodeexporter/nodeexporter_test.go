@@ -100,31 +100,42 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.Equal(t, ptr.To(int64(3001)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsGroup)
 		assert.Equal(t, ptr.To(int64(3002)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.FSGroup)
 	})
-	t.Run("Test existing temporary volume and mount are replaced", func(t *testing.T) {
+	t.Run("Test existing temporary volume and mount are preserved", func(t *testing.T) {
+		userVolume := corev1.Volume{
+			Name: "other-tmp",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "scratch"},
+			},
+		}
+		userMount := corev1.VolumeMount{Name: "other-tmp", MountPath: "/tmp"}
 		daemonSet := &appsv1.DaemonSet{
 			Spec: appsv1.DaemonSetSpec{
 				Template: corev1.PodTemplateSpec{
 					Spec: corev1.PodSpec{
-						Volumes: []corev1.Volume{{
-							Name: "tmp",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{},
-							},
-						}},
+						Volumes: []corev1.Volume{userVolume},
 						Containers: []corev1.Container{{
 							Name:         "node-exporter",
-							VolumeMounts: []corev1.VolumeMount{{Name: "other-tmp", MountPath: "/tmp"}},
+							VolumeMounts: []corev1.VolumeMount{userMount},
 						}},
 					},
 				},
 			},
 		}
 
-		applyNodeExporterHardening(daemonSet, false, nil)
+		require.NoError(t, applyNodeExporterHardening(daemonSet, false, nil))
 
-		assertNodeExporterHardening(t, daemonSet, false)
-		assert.NotContains(t, daemonSet.Spec.Template.Spec.Containers[0].VolumeMounts,
-			corev1.VolumeMount{Name: "other-tmp", MountPath: "/tmp"})
+		assert.Contains(t, daemonSet.Spec.Template.Spec.Volumes, userVolume)
+		container := daemonSet.Spec.Template.Spec.Containers[0]
+		assert.Equal(t, []corev1.VolumeMount{userMount}, container.VolumeMounts,
+			"a user mount at /tmp must be kept instead of being replaced by the emptyDir")
+		assert.Equal(t, utils.HardenedContainerSecurityContext(), container.SecurityContext)
+	})
+	t.Run("Test root user is rejected", func(t *testing.T) {
+		daemonSet := &appsv1.DaemonSet{}
+
+		err := applyNodeExporterHardening(daemonSet, false, &monv1.SecurityContext{RunAsUser: ptr.To(int64(0))})
+
+		require.Error(t, err)
 	})
 	t.Run("Test ClusterRole manifest", func(t *testing.T) {
 		m, err := nodeExporterClusterRole(cr, false, true)
@@ -239,7 +250,7 @@ func assertNodeExporterHardening(t *testing.T, daemonSet *appsv1.DaemonSet, isOp
 
 	tmpVolumes := 0
 	for _, volume := range daemonSet.Spec.Template.Spec.Volumes {
-		if volume.Name == "tmp" {
+		if volume.Name == utils.TmpVolumeMount().Name {
 			tmpVolumes++
 			require.NotNil(t, volume.EmptyDir)
 			require.NotNil(t, volume.EmptyDir.SizeLimit)

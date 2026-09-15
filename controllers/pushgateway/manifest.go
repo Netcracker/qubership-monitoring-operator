@@ -187,7 +187,9 @@ func pushgatewayDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (*app
 	if cr.Spec.Pushgateway != nil {
 		configuredSecurityContext = cr.Spec.Pushgateway.SecurityContext
 	}
-	applyPushgatewayHardening(&d, isOpenShift, configuredSecurityContext)
+	if err := applyPushgatewayHardening(&d, isOpenShift, configuredSecurityContext); err != nil {
+		return nil, err
+	}
 
 	return &d, nil
 }
@@ -196,8 +198,12 @@ func applyPushgatewayHardening(
 	deployment *appsv1.Deployment,
 	isOpenShift bool,
 	configuredPodSecurityContext *monv1.SecurityContext,
-) {
-	deployment.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+) error {
+	securityContext, err := utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	if err != nil {
+		return err
+	}
+	deployment.Spec.Template.Spec.SecurityContext = securityContext
 	deployment.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(deployment.Spec.Template.Spec.Volumes, "100Mi")
 
 	for i := range deployment.Spec.Template.Spec.Containers {
@@ -205,6 +211,7 @@ func applyPushgatewayHardening(
 		container.SecurityContext = utils.HardenedContainerSecurityContext()
 		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
 	}
+	return nil
 }
 
 func pushgatewayPVC(cr *monv1.PlatformMonitoring) (*corev1.PersistentVolumeClaim, error) {

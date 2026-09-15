@@ -359,6 +359,9 @@ func grafana(cr *monv1.PlatformMonitoring, isOpenShift bool) (*grafv1.Grafana, e
 		// Secrets removed or renamed in v5 - handle secrets differently if needed
 
 		// Preserve configured IDs while enforcing the hardening settings above.
+		if err := utils.ValidateSecurityContextSpec(cr.Spec.Grafana.SecurityContext); err != nil {
+			return nil, err
+		}
 		if cr.Spec.Grafana.SecurityContext != nil {
 			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
 				podSpec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser

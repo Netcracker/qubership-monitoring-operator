@@ -288,7 +288,9 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring,
 		}
 	}
 	d.Spec.Template.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
-	applyVmOperatorHardening(&d, isOpenShift)
+	if err := applyVmOperatorHardening(&d, isOpenShift); err != nil {
+		return nil, err
+	}
 
 	return &d, nil
 }
@@ -304,12 +306,20 @@ func setEnvValue(env []corev1.EnvVar, name, value string) []corev1.EnvVar {
 	return append(env, corev1.EnvVar{Name: name, Value: value})
 }
 
-func applyVmOperatorHardening(deployment *appsv1.Deployment, isOpenShift bool) {
-	deployment.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContextWithPodOverrides(
-		isOpenShift, deployment.Spec.Template.Spec.SecurityContext,
-	)
-	deployment.Spec.Template.Spec.Volumes = utils.EnsureTmpVolume(deployment.Spec.Template.Spec.Volumes, "100Mi")
-	deployment.Spec.Template.Spec.Containers = utils.HardenContainersWithTmp(deployment.Spec.Template.Spec.Containers)
+func applyVmOperatorHardening(deployment *appsv1.Deployment, isOpenShift bool) error {
+	podSpec := &deployment.Spec.Template.Spec
+	securityContext, err := utils.HardenedPodSecurityContextWithPodOverrides(isOpenShift, podSpec.SecurityContext)
+	if err != nil {
+		return err
+	}
+	containers, err := utils.HardenContainersWithTmp(podSpec.Containers)
+	if err != nil {
+		return err
+	}
+	podSpec.SecurityContext = securityContext
+	podSpec.Volumes = utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+	podSpec.Containers = containers
+	return nil
 }
 
 func vmOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

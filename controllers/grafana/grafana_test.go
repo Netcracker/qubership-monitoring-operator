@@ -793,7 +793,7 @@ func assertGrafanaHardening(t *testing.T, manifest *grafv1.Grafana, isOpenShift 
 
 	tmpMounts := 0
 	for _, volumeMount := range container.VolumeMounts {
-		if volumeMount.Name == "tmp" && volumeMount.MountPath == "/tmp" {
+		if volumeMount.Name == utils.TmpVolumeMount().Name && volumeMount.MountPath == "/tmp" {
 			tmpMounts++
 		}
 	}
@@ -801,7 +801,7 @@ func assertGrafanaHardening(t *testing.T, manifest *grafv1.Grafana, isOpenShift 
 
 	tmpVolumes := 0
 	for _, volume := range podSpec.Volumes {
-		if volume.Name == "tmp" {
+		if volume.Name == utils.TmpVolumeMount().Name {
 			tmpVolumes++
 			require.NotNil(t, volume.EmptyDir)
 			require.NotNil(t, volume.EmptyDir.SizeLimit)

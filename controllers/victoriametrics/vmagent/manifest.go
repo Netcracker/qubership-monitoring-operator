@@ -363,12 +363,22 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 			maps.Copy(vmagent.Spec.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key"})
 		}
 
-		isOpenShift := r != nil && r.hasSecurityContextConstraintsAPI()
-		vmagent.Spec.SecurityContext = victoriametrics.HardenedSecurityContextFromPlatformSpec(
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmagent.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContextFromPlatformSpec(
 			isOpenShift, cr.Spec.Victoriametrics.VmAgent.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
 		// VictoriaMetrics Operator mounts the VMAgent persistent queue below /tmp. Mounting a separate
-		// volume over the parent directory prevents VictoriaMetrics Operator from reconciling VMAgent.
-		vmagent.Spec.Containers = victoriametrics.HardenContainers(vmagent.Spec.Containers)
+		// volume over the parent directory prevents VictoriaMetrics Operator from reconciling VMAgent,
+		// so explicit containers get the security baseline only and no temporary volume.
+		vmagent.Spec.Containers, err = victoriametrics.HardenContainerSecurity(vmagent.Spec.Containers)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &vmagent, nil
 }

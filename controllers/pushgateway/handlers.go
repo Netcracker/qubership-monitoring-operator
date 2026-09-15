@@ -11,7 +11,11 @@ import (
 )
 
 func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := pushgatewayDeployment(cr, r.HasRouteApi())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := pushgatewayDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -164,7 +168,11 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitorin
 }
 
 func (r *PushgatewayReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := pushgatewayDeployment(cr, r.HasRouteApi())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := pushgatewayDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err

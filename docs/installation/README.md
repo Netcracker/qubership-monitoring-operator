@@ -50,6 +50,19 @@ For the security constraints of etcd certificate discovery, see
 For the hardening controls and limitations of optional monitoring workloads, see
 [Optional component security hardening](optional-components-security-hardening.md).
 
+The operator applies the same baseline to the workloads it reconciles from `PlatformMonitoring`: `runAsNonRoot: true`,
+the `RuntimeDefault` seccomp profile, `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, all Linux
+capabilities dropped, and a size-limited `emptyDir` named `monitoring-tmp` mounted at `/tmp`. A user-defined volume
+mounted at `/tmp` through a component's `volumes`, `volumeMounts`, or `containers` fields is kept as is and replaces the
+`emptyDir` mount for that container. Settings that the baseline cannot override (`privileged: true`,
+`capabilities.add`, `runAsUser: 0`, and `runAsNonRoot: false`) are rejected at chart rendering and, for values passed
+through the custom resource, by the operator: the component is not updated, and the reason is recorded in the
+`PlatformMonitoring` status conditions.
+
+The operator detects OpenShift through the `security.openshift.io/v1` SecurityContextConstraints API and caches the
+result. If that discovery fails before a result is cached, the affected component is not updated during that
+reconciliation, the failure is recorded in the status conditions, and reconciliation is retried.
+
 ## Permissions
 
 The monitoring operator requires cluster-level permissions to create and manage the following components:

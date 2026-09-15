@@ -251,6 +251,9 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (
 			}
 		}
 		// Preserve configured IDs while enforcing the hardening settings above.
+		if err := utils.ValidateSecurityContextSpec(cr.Spec.Grafana.Operator.SecurityContext); err != nil {
+			return nil, err
+		}
 		if cr.Spec.Grafana.Operator.SecurityContext != nil {
 			if cr.Spec.Grafana.Operator.SecurityContext.RunAsUser != nil {
 				d.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Grafana.Operator.SecurityContext.RunAsUser

@@ -227,12 +227,21 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 			vmsingle.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmSingle.PriorityClassName
 		}
 
-		isOpenShift := r != nil && r.hasSecurityContextConstraintsAPI()
-		vmsingle.Spec.SecurityContext = victoriametrics.HardenedSecurityContextFromPlatformSpec(
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmsingle.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContextFromPlatformSpec(
 			isOpenShift, cr.Spec.Victoriametrics.VmSingle.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
 		vmsingle.Spec.Volumes = victoriametrics.EnsureTmpVolume(vmsingle.Spec.Volumes)
 		vmsingle.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmsingle.Spec.VolumeMounts)
-		vmsingle.Spec.Containers = victoriametrics.HardenContainers(vmsingle.Spec.Containers)
+		vmsingle.Spec.Containers, err = victoriametrics.HardenContainers(vmsingle.Spec.Containers)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &vmsingle, nil

@@ -69,6 +69,18 @@ func TestAlertmanagerManifests(t *testing.T) {
 		require.NoError(t, err)
 		assertAlertmanagerHardening(t, m, true)
 	})
+	t.Run("Test conflicting security settings are rejected", func(t *testing.T) {
+		privilegedCR := cr.DeepCopy()
+		privilegedCR.Spec.AlertManager.Containers = []corev1.Container{{
+			Name:            "sidecar",
+			SecurityContext: &corev1.SecurityContext{Capabilities: &corev1.Capabilities{Add: []corev1.Capability{"NET_RAW"}}},
+		}}
+
+		m, err := alertmanager(privilegedCR, false)
+
+		require.Error(t, err)
+		assert.Nil(t, m)
+	})
 	t.Run("Test configured IDs and sidecar settings", func(t *testing.T) {
 		configuredCR := cr.DeepCopy()
 		configuredCR.Spec.AlertManager.SecurityContext = &monv1.SecurityContext{
@@ -92,8 +104,9 @@ func TestAlertmanagerManifests(t *testing.T) {
 		assert.Equal(t, int64(3002), *m.Spec.SecurityContext.FSGroup)
 		assertAlertmanagerHardening(t, m, false)
 		sidecar := findAlertmanagerContainer(t, m, "sidecar")
-		assertAlertmanagerContainerHardening(t, sidecar)
-		assert.NotContains(t, sidecar.VolumeMounts, corev1.VolumeMount{Name: "other-tmp", MountPath: "/tmp"})
+		assertAlertmanagerContainerSecurityContext(t, sidecar)
+		assert.Equal(t, []corev1.VolumeMount{{Name: "other-tmp", MountPath: "/tmp"}}, sidecar.VolumeMounts,
+			"a user mount at /tmp must be kept")
 		assert.Equal(t, ptr.To(true), configuredCR.Spec.AlertManager.Containers[0].SecurityContext.AllowPrivilegeEscalation,
 			"the source CR must not be mutated")
 
@@ -103,7 +116,7 @@ func TestAlertmanagerManifests(t *testing.T) {
 		assert.Equal(t, ptr.To(int64(3001)), openShiftManifest.Spec.SecurityContext.RunAsGroup)
 		assert.Equal(t, ptr.To(int64(3002)), openShiftManifest.Spec.SecurityContext.FSGroup)
 	})
-	t.Run("Test existing temporary volume is replaced", func(t *testing.T) {
+	t.Run("Test existing user volume is preserved", func(t *testing.T) {
 		volumes := []corev1.Volume{{
 			Name: "tmp",
 			VolumeSource: corev1.VolumeSource{
@@ -113,10 +126,11 @@ func TestAlertmanagerManifests(t *testing.T) {
 
 		result := utils.EnsureTmpVolume(volumes, "100Mi")
 
-		require.Len(t, result, 1)
-		require.NotNil(t, result[0].EmptyDir)
-		require.NotNil(t, result[0].EmptyDir.SizeLimit)
-		assert.Equal(t, resource.MustParse("100Mi"), *result[0].EmptyDir.SizeLimit)
+		require.Len(t, result, 2)
+		assert.Equal(t, volumes[0], result[0])
+		require.NotNil(t, result[1].EmptyDir)
+		require.NotNil(t, result[1].EmptyDir.SizeLimit)
+		assert.Equal(t, resource.MustParse("100Mi"), *result[1].EmptyDir.SizeLimit)
 		assert.Nil(t, volumes[0].EmptyDir.SizeLimit, "the source volume must not be mutated")
 	})
 	t.Run("Test ServiceAccount manifest", func(t *testing.T) {
@@ -194,7 +208,7 @@ func assertAlertmanagerHardening(t *testing.T, alertmanager *promv1.Alertmanager
 
 	tmpVolumes := 0
 	for _, volume := range alertmanager.Spec.Volumes {
-		if volume.Name == "tmp" {
+		if volume.Name == utils.TmpVolumeMount().Name {
 			tmpVolumes++
 			require.NotNil(t, volume.EmptyDir)
 			require.NotNil(t, volume.EmptyDir.SizeLimit)
@@ -209,12 +223,17 @@ func assertAlertmanagerHardening(t *testing.T, alertmanager *promv1.Alertmanager
 
 func assertAlertmanagerContainerHardening(t *testing.T, container corev1.Container) {
 	t.Helper()
+	assertAlertmanagerContainerSecurityContext(t, container)
+	assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
+}
+
+func assertAlertmanagerContainerSecurityContext(t *testing.T, container corev1.Container) {
+	t.Helper()
 	require.NotNil(t, container.SecurityContext)
 	assert.Equal(t, ptr.To(false), container.SecurityContext.AllowPrivilegeEscalation)
 	assert.Equal(t, ptr.To(true), container.SecurityContext.ReadOnlyRootFilesystem)
 	require.NotNil(t, container.SecurityContext.Capabilities)
 	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
-	assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
 }
 
 func findAlertmanagerContainer(t *testing.T, alertmanager *promv1.Alertmanager, name string) corev1.Container {

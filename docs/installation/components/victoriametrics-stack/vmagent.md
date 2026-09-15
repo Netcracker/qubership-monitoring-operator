@@ -68,8 +68,9 @@ persistent queue. Configure `remoteWriteSettings.maxDiskUsagePerURL` according t
 The `PlatformMonitoring` VMAgent API does not expose the upstream stateful mode. Supporting a queue that survives pod
 replacement requires a separate API extension.
 
-Do not add a VMAgent-level volume mount at `/tmp`. Additional sidecar containers still receive the separate,
-size-limited `tmp` volume when the monitoring operator hardens their explicit container definitions.
+Do not add a VMAgent-level volume mount at `/tmp`. Containers listed in `containers` receive the container security
+baseline but no temporary volume, because the VMAgent custom resource declares none. A sidecar that needs a writable
+`/tmp` must declare its own volume in `volumes` and mount it in the sidecar's `volumeMounts`.
 
 Example:
 

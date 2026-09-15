@@ -91,7 +91,11 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheus(cr, r.HasRouteApi())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := prometheus(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
 		return err
@@ -235,7 +239,11 @@ func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *PrometheusReconciler) deletePrometheus(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheus(cr, r.HasRouteApi())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := prometheus(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
 		return err
