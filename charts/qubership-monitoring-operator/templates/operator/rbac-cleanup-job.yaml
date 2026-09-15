@@ -47,11 +47,8 @@ spec:
         - name: kubectl
           image: {{ get $cleanupHook "image" | default "docker.io/rancher/kuberlr-kubectl:v8.0.0" }}
           imagePullPolicy: IfNotPresent
-          {{- with (get $cleanupHook "resources") }}
-          # The cleanup hook defaults include a memory limit, which the render verifier checks.
           resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- include "monitoring.cleanup.resources" . | nindent 12 }}
           securityContext:
             {{- include "monitoring.cleanup.containerSecurityContext" . | nindent 12 }}
           volumeMounts:

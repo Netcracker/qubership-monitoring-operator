@@ -67,6 +67,7 @@ render_components \
     --set victoriametrics.cleanup.hook.containerSecurityContext.allowPrivilegeEscalation=true \
     --set victoriametrics.cleanup.hook.containerSecurityContext.readOnlyRootFilesystem=false \
     --set 'victoriametrics.cleanup.hook.containerSecurityContext.capabilities.drop={NET_RAW}' \
+    --set victoriametrics.cleanup.hook.resources.limits.ephemeral-storage=200Mi \
     --set integrationTests.containerSecurityContext.allowPrivilegeEscalation=true \
     --set integrationTests.containerSecurityContext.readOnlyRootFilesystem=false \
     --set 'integrationTests.containerSecurityContext.capabilities.drop={NET_RAW}'
@@ -125,6 +126,7 @@ for cleanup_manifest in "${cleanup_kubernetes_manifest}" "${cleanup_openshift_ma
     assert_contains "${cleanup_manifest}" "readOnlyRootFilesystem: true"
     assert_contains "${cleanup_manifest}" "- ALL"
     assert_contains "${cleanup_manifest}" "sizeLimit: 100Mi"
+    assert_contains "${cleanup_manifest}" "ephemeral-storage: 100Mi"
     assert_contains "${cleanup_manifest}" "name: HOME"
     assert_contains "${cleanup_manifest}" "value: /tmp"
 done
@@ -159,8 +161,15 @@ for cleanup_manifest in "${root_cleanup_manifests[@]}"; do
     assert_contains "${cleanup_manifest}" "- ALL"
     assert_contains "${cleanup_manifest}" "mountPath: /tmp"
     assert_contains "${cleanup_manifest}" "sizeLimit: 100Mi"
+    assert_contains "${cleanup_manifest}" "ephemeral-storage: 100Mi"
     assert_contains "${cleanup_manifest}" "name: HOME"
     assert_contains "${cleanup_manifest}" "value: /tmp"
+done
+
+for cleanup_manifest in \
+    "${enforcement_dir}/qubership-monitoring-operator/templates/operator/grafana-cleanup-job.yaml" \
+    "${enforcement_dir}/qubership-monitoring-operator/templates/operator/rbac-cleanup-job.yaml"; do
+    assert_contains "${cleanup_manifest}" "ephemeral-storage: 200Mi"
 done
 
 for cleanup_manifest in \

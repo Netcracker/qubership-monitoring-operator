@@ -56,6 +56,20 @@ Return the enforced container security context for root-chart cleanup hooks.
 {{- end -}}
 
 {{/*
+Return cleanup hook resources with a bounded writable layer and /tmp volume.
+The hook can download a kubectl binary to /tmp when the image does not contain a compatible version.
+*/}}
+{{- define "monitoring.cleanup.resources" -}}
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- $resources := deepCopy (get $cleanupHook "resources" | default (dict)) -}}
+{{- $limits := get $resources "limits" | default (dict) -}}
+{{- $_ := set $limits "ephemeral-storage" (get $limits "ephemeral-storage" | default "100Mi") -}}
+{{- $_ := set $resources "limits" $limits -}}
+{{- toYaml $resources -}}
+{{- end -}}
+
+{{/*
 Return the enforced pod security context for monitoring integration tests.
 */}}
 {{- define "integrationTests.securityContext" -}}
