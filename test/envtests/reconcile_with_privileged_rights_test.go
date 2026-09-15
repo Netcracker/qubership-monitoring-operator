@@ -38,7 +38,7 @@ var _ = Describe("Reconcile with privilegedRights", func() {
 	})
 	It("Prometheus-operator", func() {
 		// Run Prometheus-operator
-		poReconciler := prometheus_operator.NewPrometheusOperatorReconciler(k8sClient, scheme.Scheme)
+		poReconciler := prometheus_operator.NewPrometheusOperatorReconciler(k8sClient, scheme.Scheme, discoveryClient)
 		err = poReconciler.Run(&cr)
 		Expect(err).NotTo(HaveOccurred())
 

@@ -25,6 +25,7 @@ on:
       - 'go.sum'
       - 'controllers/**'
       - 'charts/**'
+      - 'scripts/tests/**'
       - 'docs/examples/deploy-parameters/**'
       - 'tools/crd-update/**'
       - 'tools/verify-grafana-offline-settings.sh'
@@ -72,6 +73,7 @@ jobs:
             '^controllers/'
             '^docs/examples/deploy-parameters/'
             '^go[.](mod|sum)$'
+            '^scripts/tests/'
             '^tools/boilerplate[.]go[.]txt$'
             '^tools/crd-update/'
             '^tools/verify-grafana-offline-settings[.]sh$'
@@ -138,6 +140,9 @@ jobs:
 
       - name: Verify Grafana offline settings
         run: tools/verify-grafana-offline-settings.sh
+
+      - name: Test security hardening
+        run: make test-hardening
 
       - name: Copy examples for ct in /charts/qubership-monitoring-operator/ci/
         run: |

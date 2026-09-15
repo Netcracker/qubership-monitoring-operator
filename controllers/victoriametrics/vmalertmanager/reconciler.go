@@ -196,3 +196,12 @@ func (r *VmAlertManagerReconciler) hasPodSecurityPolicyAPI() bool {
 func (r *VmAlertManagerReconciler) hasSecurityContextConstraintsAPI() bool {
 	return r.HasApi(secv1.GroupVersion, "SecurityContextConstraints")
 }
+
+// platformIsOpenShift returns the cached platform decision. A nil reconciler, used by manifest
+// unit tests, is treated as Kubernetes.
+func platformIsOpenShift(r *VmAlertManagerReconciler) (bool, error) {
+	if r == nil {
+		return false, nil
+	}
+	return r.IsOpenShift()
+}

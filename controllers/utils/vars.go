@@ -42,6 +42,10 @@ const (
 
 	ScrapeResources = "configmaps,cronjobs,daemonsets,deployments,endpointslices,jobs,limitranges,persistentvolumeclaims,poddisruptionbudgets,namespaces,nodes,pods,persistentvolumes,replicasets,replicationcontrollers,resourcequotas,services,statefulsets"
 
+	// ManagedCustomResourceName is the name of the Prometheus, Alertmanager, and VictoriaMetrics
+	// custom resources created from the embedded assets.
+	ManagedCustomResourceName = "k8s"
+
 	VmComponentName       = "k8s"
 	VmSingleComponentName = "vmsingle"
 	VmSingleServiceName   = "vmsingle-k8s"

@@ -4,6 +4,7 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -11,11 +12,16 @@ type PrometheusOperatorReconciler struct {
 	*utils.ComponentReconciler
 }
 
-func NewPrometheusOperatorReconciler(c client.Client, s *runtime.Scheme) *PrometheusOperatorReconciler {
+func NewPrometheusOperatorReconciler(
+	c client.Client,
+	s *runtime.Scheme,
+	dc discovery.DiscoveryInterface,
+) *PrometheusOperatorReconciler {
 	return &PrometheusOperatorReconciler{
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: c,
 			Scheme: s,
+			Dc:     dc,
 			Log:    utils.Logger("prometheusoperator_reconciler"),
 		},
 	}
