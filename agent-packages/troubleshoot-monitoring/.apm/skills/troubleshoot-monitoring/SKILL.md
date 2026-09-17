@@ -1,6 +1,6 @@
 ---
 name: troubleshoot-monitoring
-description: Use when assessing or diagnosing a support ticket involving Qubership Monitoring Operator (Monitoring Operator, Monitoring) or its components (prometheus-operator, VictoriaMetrics, Prometheus, Alertmanager, Grafana, exporters, prometheus-adapter, graphite-remote-adapter), including installation, configuration, and runtime failures. Read-only and advisory; no live system access.
+description: Use when assessing or diagnosing a support ticket involving Qubership Monitoring Operator (Monitoring Operator, Monitoring) or its components (prometheus-operator, VictoriaMetrics, Prometheus, Alertmanager, Grafana, exporters, prometheus-adapter, graphite-remote-adapter), including installation, configuration, and runtime failures. Also use for infrastructure component monitoring such as pgskipper, MongoDB, Cassandra, Redis, ClickHouse, Kafka, ZooKeeper, Consul, RabbitMQ, DRNavigator, or OpenSearch. Read-only and advisory; no live system access.
 ---
 
 # troubleshoot-monitoring
@@ -16,8 +16,8 @@ match it to a case in the reference, and return a diagnosis the operator can act
   anything. Remediation is written as steps for the operator to run.
 - **Evidence is quoted, never invented.** Every fact you cite is a verbatim quote from the supplied description, logs,
   or config, with a one-line note of where it came from.
-- **Reference-bound.** Diagnose only from cases in `references/troubleshooting.md`. If nothing matches, say so — do not
-  invent a cause.
+- **Reference-bound.** Diagnose only from cases in `references/troubleshooting.md` or
+  `references/infrastructure/`. If nothing matches, say so — do not invent a cause.
 - **Never invent an action.** Every step you pass on is one the reference already contains. Do not compose a command
   from your own knowledge, do not adapt a step to fit the evidence better, and do not add a step the reference omits.
   An operator will run what you print.
@@ -40,8 +40,8 @@ configuration files. There is no live system to query.
 1. **Read the inputs.** Note the reported symptom and read any attached logs or config.
 2. **Localize.** From the text and the log signatures, name the **component** (prometheus-operator, VictoriaMetrics,
    Prometheus, Alertmanager, Grafana, exporters, prometheus-adapter, graphite-remote-adapter, or the operator itself).
-3. **Find the ticket's symptoms in the reference.** Look for the case whose `**Symptoms:**` block describes the reported
-   failure.
+3. **Find the ticket's symptoms in the reference first.** Look for the case whose `**Symptoms:**` block describes the
+   reported failure.
 
    Resolve `SKILL_DIR` to the directory that contains this `SKILL.md`, then use
    `$SKILL_DIR/references/troubleshooting.md`. Do not assume the current working directory is the skill directory.
@@ -57,9 +57,11 @@ configuration files. There is no live system to query.
    python3 "$SKILL_DIR/scripts/show_cases.py" \
      "$SKILL_DIR/references/troubleshooting.md"
    ```
+
 4. **Match on meaning.** Pick the case whose symptoms describe the report. Reporters paraphrase, translate, and
    summarize, so shared words are weak evidence and their absence is no evidence at all. When the report carries a
    verbatim log line, also search that string directly — an exact hit confirms a match fast.
+
 5. **Read the one case.** Pass the matched heading text without `###` to the same helper to load that complete section:
 
    ```bash
@@ -68,7 +70,22 @@ configuration files. There is no live system to query.
    ```
 
    Do not read unrelated sections or the file top to bottom.
-6. **Report** in the format below.
+6. **If no case matches, list the infrastructure symptoms** from
+   `$SKILL_DIR/references/infrastructure/troubleshooting.md`:
+
+   ```bash
+   python3 "$SKILL_DIR/scripts/show_cases.py" \
+     "$SKILL_DIR/references/infrastructure/troubleshooting.md"
+   ```
+
+7. **Read the one infrastructure case** using the same helper when a symptom matches:
+
+   ```bash
+   python3 "$SKILL_DIR/scripts/show_cases.py" \
+     "$SKILL_DIR/references/infrastructure/troubleshooting.md" "<section title>"
+   ```
+
+8. **Report** in the format below.
 
 Cases are grouped under a `##` heading per component and always sit at `###`. A `###` section that opens with a
 `**Symptoms:**` label is a case; one without it is background reading, and sections without the label never reach the
@@ -92,7 +109,7 @@ paste), then work with whatever comes back.
 
 **Data to collect:** <what to paste next, only if the match is uncertain>
 
-**Reference:** <the heading of the reference section used>
+**Reference:** <the heading or infrastructure case path used>
 ```
 
 `Risk` restates what the markers say, so the operator sees the cost before reading the steps. It is not a place to
