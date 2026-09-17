@@ -38,54 +38,76 @@ configuration files. There is no live system to query.
 ## Procedure
 
 1. **Read the inputs.** Note the reported symptom and read any attached logs or config.
-2. **Localize.** From the text and the log signatures, name the **component** (prometheus-operator, VictoriaMetrics,
-   Prometheus, Alertmanager, Grafana, exporters, prometheus-adapter, graphite-remote-adapter, or the operator itself).
-3. **Find the ticket's symptoms in the reference first.** Look for the case whose `**Symptoms:**` block describes the
+2. **Localize.** From the text and the log signatures, name the **component**. A Monitoring Operator component is
+   prometheus-operator, VictoriaMetrics, Prometheus, Alertmanager, Grafana, an exporter, prometheus-adapter,
+   graphite-remote-adapter, or the operator itself. An infrastructure component is pgskipper-operator,
+   mongodb-operator, cassandra-operator, Redis, clickhouse-operator-helm, Kafka, ZooKeeper, Consul, RabbitMQ,
+   DRNavigator, or OpenSearch.
+3. **Select the component catalog.** Use the Monitoring Operator catalog for a Monitoring Operator component. Use the
+   matching infrastructure catalog for an infrastructure component:
+
+   | Component | Catalog |
+   | --- | --- |
+   | pgskipper-operator | `references/infrastructure/pgskipper-operator.md` |
+   | mongodb-operator | `references/infrastructure/mongodb-operator.md` |
+   | cassandra-operator | `references/infrastructure/cassandra-operator.md` |
+   | Redis | `references/infrastructure/redis.md` |
+   | clickhouse-operator-helm | `references/infrastructure/clickhouse-operator-helm.md` |
+   | Kafka | `references/infrastructure/kafka.md` |
+   | ZooKeeper | `references/infrastructure/zookeeper.md` |
+   | Consul | `references/infrastructure/consul.md` |
+   | RabbitMQ | `references/infrastructure/rabbitmq.md` |
+   | DRNavigator | `references/infrastructure/drnavigator.md` |
+   | OpenSearch | `references/infrastructure/opensearch.md` |
+
+   If the component is unknown, make one structured request for the data needed to identify it. Do not search both
+   catalogs or use a generic Monitoring Operator case for an infrastructure component.
+4. **Find the ticket's symptoms in the selected catalog.** Look for the case whose `**Symptoms:**` block describes the
    reported failure.
 
    Resolve `SKILL_DIR` to the directory that contains this `SKILL.md`, then use
-   `$SKILL_DIR/references/troubleshooting.md`. Do not assume the current working directory is the skill directory.
+   the selected path under `$SKILL_DIR/references/`. Do not assume the current working directory is the skill directory.
 
-   In `$SKILL_DIR/references/troubleshooting.md`, each case is a `###` heading under a `##` component heading, followed
-   by a `**Symptoms:**` block and then `**Root cause:**`, `**How to check:**`, and `**How to fix:**` blocks. A `###`
-   section with no `**Symptoms:**` block is background, not a case.
+   In the selected catalog, each case is a `###` heading under a `##` component heading, followed by a `**Symptoms:**`
+   block and then `**Root cause:**`, `**How to check:**`, and `**How to fix:**` blocks. A `###` section with no
+   `**Symptoms:**` block is background, not a case.
 
    Load every case's symptoms into context at once, so you match across all of them instead of guessing which case to
    open. Invoke the bundled standard-library helper:
 
    ```bash
    python3 "$SKILL_DIR/scripts/show_cases.py" \
-     "$SKILL_DIR/references/troubleshooting.md"
+     "$SKILL_DIR/references/<selected-catalog>.md"
    ```
 
-4. **Match on meaning.** Pick the case whose symptoms describe the report. Reporters paraphrase, translate, and
+5. **Match on meaning.** Pick the case whose symptoms describe the report. Reporters paraphrase, translate, and
    summarize, so shared words are weak evidence and their absence is no evidence at all. When the report carries a
    verbatim log line, also search that string directly — an exact hit confirms a match fast.
 
-5. **Read the one case.** Pass the matched heading text without `###` to the same helper to load that complete section:
+6. **Read the one case.** Pass the matched heading text without `###` to the same helper to load that complete section:
 
    ```bash
    python3 "$SKILL_DIR/scripts/show_cases.py" \
-     "$SKILL_DIR/references/troubleshooting.md" "<section title>"
+     "$SKILL_DIR/references/<selected-catalog>.md" "<section title>"
    ```
 
    Do not read unrelated sections or the file top to bottom.
-6. **If no case matches, list the infrastructure symptoms** from
-   `$SKILL_DIR/references/infrastructure/troubleshooting.md`:
+7. **If no case matches in an infrastructure component catalog, list the shared discovery symptoms** from
+   `$SKILL_DIR/references/infrastructure/shared-discovery.md`:
 
    ```bash
    python3 "$SKILL_DIR/scripts/show_cases.py" \
-     "$SKILL_DIR/references/infrastructure/troubleshooting.md"
+     "$SKILL_DIR/references/infrastructure/shared-discovery.md"
    ```
 
-7. **Read the one infrastructure case** using the same helper when a symptom matches:
+8. **Read the one shared discovery case** using the same helper when a symptom matches:
 
    ```bash
    python3 "$SKILL_DIR/scripts/show_cases.py" \
-     "$SKILL_DIR/references/infrastructure/troubleshooting.md" "<section title>"
+     "$SKILL_DIR/references/infrastructure/shared-discovery.md" "<section title>"
    ```
 
-8. **Report** in the format below.
+9. **Report** in the format below.
 
 Cases are grouped under a `##` heading per component and always sit at `###`. A `###` section that opens with a
 `**Symptoms:**` label is a case; one without it is background reading, and sections without the label never reach the

@@ -7,10 +7,22 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "show_cases.py"
 CATALOG = Path(__file__).resolve().parent.parent / "references" / "troubleshooting.md"
-INFRASTRUCTURE_CATALOG = (
-    Path(__file__).resolve().parent.parent / "references" / "infrastructure" / "troubleshooting.md"
-)
+INFRASTRUCTURE_CATALOGS = Path(__file__).resolve().parent.parent / "references" / "infrastructure"
 FIXTURE = Path(__file__).resolve().parent / "testdata" / "catalog" / "troubleshooting.md"
+COMPONENT_CATALOGS = (
+    ("pgskipper-operator.md", "Collector is not installed", "metricCollector.install"),
+    ("mongodb-operator.md", "Prometheus exporter is not installed", "mongodb-prometheus-exporter"),
+    ("cassandra-operator.md", "Cassandra monitoring is not enabled", "monitoringAgent.install"),
+    ("redis.md", "Redis monitoring agent is not installed", "redis-monitoring-agent"),
+    ("clickhouse-operator-helm.md", "ClickHouse ServiceMonitor is not enabled", "clickhouseCluster.serviceMonitor"),
+    ("kafka.md", "Kafka Monitoring is not installed", "kafka-monitoring"),
+    ("zookeeper.md", "ZooKeeper Monitoring is not installed", "zookeeper-monitoring"),
+    ("consul.md", "Consul monitoring CRs are not installed", "monitoring"),
+    ("rabbitmq.md", "RabbitMQ Prometheus monitoring is not installed", "rabbitmq_prometheus"),
+    ("drnavigator.md", "paas-geo-monitor is not installed", "paasGeoMonitor.install"),
+    ("opensearch.md", "OpenSearch monitoring is not installed", "opensearch-monitoring"),
+)
+SHARED_DISCOVERY_CATALOG = INFRASTRUCTURE_CATALOGS / "shared-discovery.md"
 
 
 def run_helper(*args: str) -> subprocess.CompletedProcess[str]:
@@ -45,59 +57,32 @@ class ShowCasesTests(unittest.TestCase):
         self.assertIn("Metrics absent or errors during metrics collection", result.stdout)
         self.assertNotIn("Helm refuses to adopt or overwrite", result.stdout)
 
-    def test_infrastructure_catalog_lists_pgskipper_symptoms(self):
-        result = run_helper(str(INFRASTRUCTURE_CATALOG))
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("### Collection scrape timeout", result.stdout)
-        self.assertNotIn("This case is the chart", result.stdout)
-
-    def test_infrastructure_catalog_loads_one_case_by_heading(self):
-        result = run_helper(str(INFRASTRUCTURE_CATALOG), "Collection scrape timeout")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("### Collection scrape timeout", result.stdout)
-        self.assertIn("This case is the chart", result.stdout)
-        self.assertNotIn("### Target unavailable", result.stdout)
-
-    def test_infrastructure_catalog_lists_each_component_group(self):
-        result = run_helper(str(INFRASTRUCTURE_CATALOG))
-        self.assertEqual(result.returncode, 0, result.stderr)
-        for heading in (
-            "### Collector is not installed",
-            "### Prometheus exporter is not installed",
-            "### Cassandra monitoring is not enabled",
-            "### Redis monitoring agent is not installed",
-            "### ClickHouse ServiceMonitor is not enabled",
-            "### Kafka Monitoring is not installed",
-            "### ZooKeeper Monitoring is not installed",
-            "### Consul monitoring CRs are not installed",
-            "### RabbitMQ Prometheus monitoring is not installed",
-            "### Site-manager monitor is not rendered",
-            "### OpenSearch monitoring is not installed",
-            "### Monitor excluded",
-        ):
-            with self.subTest(heading=heading):
+    def test_component_catalogs_list_component_symptoms(self):
+        for filename, heading, _ in COMPONENT_CATALOGS:
+            with self.subTest(filename=filename):
+                result = run_helper(str(INFRASTRUCTURE_CATALOGS / filename))
+                self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn(heading, result.stdout)
+                self.assertNotIn("**Root cause:**", result.stdout)
 
-    def test_infrastructure_catalog_loads_one_case_from_each_component_group(self):
-        samples = (
-            ("Prometheus exporter is not installed", "mongodb-prometheus-exporter"),
-            ("Cassandra monitoring is not enabled", "monitoringAgent.install"),
-            ("Redis monitoring agent is not installed", "redis-monitoring-agent"),
-            ("ClickHouse ServiceMonitor is not enabled", "clickhouseCluster.serviceMonitor"),
-            ("Kafka Monitoring is not installed", "kafka-monitoring"),
-            ("ZooKeeper Grafana dashboard is absent", "zookeeper-grafana-dashboard"),
-            ("Consul ACL token scrape failure", "bearerTokenSecret"),
-            ("RabbitMQ per-queue metrics are disabled", "perQueueMetrics"),
-            ("paas-geo-monitor is not installed", "paasGeoMonitor.install"),
-            ("OpenSearch indices dashboard is not enabled", "includeIndices"),
-        )
-        for heading, marker in samples:
-            with self.subTest(heading=heading):
-                result = run_helper(str(INFRASTRUCTURE_CATALOG), heading)
+    def test_component_catalogs_load_one_component_case(self):
+        for filename, heading, marker in COMPONENT_CATALOGS:
+            with self.subTest(filename=filename, heading=heading):
+                result = run_helper(str(INFRASTRUCTURE_CATALOGS / filename), heading)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("### " + heading, result.stdout)
                 self.assertIn(marker, result.stdout)
-                self.assertNotIn("### Target unavailable", result.stdout)
+
+    def test_shared_discovery_catalog_lists_and_loads_cases(self):
+        result = run_helper(str(SHARED_DISCOVERY_CATALOG))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("### Monitor excluded", result.stdout)
+        self.assertNotIn("**Root cause:**", result.stdout)
+
+        result = run_helper(str(SHARED_DISCOVERY_CATALOG), "Monitor excluded")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("### Monitor excluded", result.stdout)
+        self.assertIn("serviceMonitorNamespaceSelector", result.stdout)
 
 
 if __name__ == "__main__":
