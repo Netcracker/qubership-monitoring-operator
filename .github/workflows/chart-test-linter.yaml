@@ -152,12 +152,13 @@ jobs:
   chart-gate:
     name: Chart Gate
     needs: [changes, lint-test]
-    # Runs even when a dependency fails, so the check resolves instead of being
-    # skipped. A skipped lint-test means the validation did not apply.
+    # Runs even when a dependency does not succeed, so the check resolves instead of being skipped.
     if: always()
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - name: Fail if any dependency failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      - name: Require the expected chart validation result
+        if: >-
+          needs.changes.result != 'success' ||
+          (needs.changes.outputs.charts != 'false' && needs.lint-test.result != 'success')
         run: exit 1
