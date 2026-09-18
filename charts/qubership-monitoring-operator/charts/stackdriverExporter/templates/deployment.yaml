@@ -34,7 +34,7 @@ spec:
       {{- end }}
     spec:
       securityContext:
-        {{ include "stackdriver-exporter.securityContext" . }}
+        {{- include "stackdriver-exporter.securityContext" . | nindent 8 }}
       {{- if .Values.affinity }}
       affinity:
         {{- toYaml .Values.affinity | nindent 8 }}
@@ -55,6 +55,9 @@ spec:
           secret:
             secretName: {{ .Values.name }}
       {{- end}}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
@@ -62,12 +65,17 @@ spec:
         - name: {{ .Values.name }}
           image: {{ template "stackdriver-exporter.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            {{- include "stackdriver-exporter.containerSecurityContext" . | nindent 12 }}
           command: ["stackdriver_exporter"]
           volumeMounts:
           {{- if or .Values.stackdriver.serviceAccountSecret .Values.stackdriver.serviceAccountKey }}
             - name: stackdriver-service-account
               mountPath: /etc/secrets/service-account/
+              readOnly: true
           {{- end}}
+            - name: tmp
+              mountPath: /tmp
           args:
             - --google.project-id={{ .Values.stackdriver.projectId }}
             - --monitoring.metrics-interval={{ .Values.stackdriver.metrics.interval }}

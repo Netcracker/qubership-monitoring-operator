@@ -34,12 +34,23 @@ Image can be found from:
 Return securityContext for vm cleanup.
 */}}
 {{- define "vm.cleanup.securityContext" -}}
-  {{- if .Values.cleanup.securityContext -}}
-    {{- toYaml .Values.cleanup.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $legacySecurityContext := .Values.cleanup.securityContext | default dict -}}
+{{- $configured := deepCopy (.Values.cleanup.hook.securityContext | default $legacySecurityContext) -}}
+{{- $required := dict "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- include "monitoring.security.rejectPodConflicts" $configured -}}
+{{- $_ := set $required "runAsNonRoot" true -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- else -}}
+{{- $_ := unset $configured "runAsNonRoot" -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults $configured) $required) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for the VM cleanup hook.
+*/}}
+{{- define "vm.cleanup.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.cleanup.hook.containerSecurityContext) -}}
 {{- end -}}

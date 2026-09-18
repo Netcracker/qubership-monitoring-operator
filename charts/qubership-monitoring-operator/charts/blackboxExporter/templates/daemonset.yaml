@@ -34,7 +34,7 @@ spec:
     spec:
       serviceAccountName: {{ $name }}
       securityContext:
-        {{ include "blackboxExporter.securityContext" . }}
+        {{- include "blackboxExporter.securityContext" . | nindent 8 }}
       tolerations:
       {{- if .Values.tolerations }}
         {{- toYaml .Values.tolerations | nindent 8 }}
@@ -55,10 +55,8 @@ spec:
       containers:
         - name: blackbox-exporter
           image: {{ template "blackboxExporter.image" . }}
-          {{- if .Values.containerSecurityContext }}
           securityContext:
-            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
-          {{- end }}
+            {{- include "blackboxExporter.containerSecurityContext" . | nindent 12 }}
           args:
             - "--config.file=/config/blackbox.yaml"
           {{- if .Values.extraArgs }}
@@ -72,6 +70,9 @@ spec:
           volumeMounts:
             - mountPath: /config
               name: config
+              readOnly: true
+            - mountPath: /tmp
+              name: tmp
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_NAME
@@ -89,5 +90,8 @@ spec:
         {{- else }}
         configMap:
           name: {{ $name }}
-        {{- end }}
+      {{- end }}
+      - name: tmp
+        emptyDir:
+          sizeLimit: 100Mi
 {{- end }}

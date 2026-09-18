@@ -34,14 +34,14 @@ Image can be found from:
 Return securityContext for promxy.
 */}}
 {{- define "promxy.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 2000) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for promxy containers.
+*/}}
+{{- define "promxy.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

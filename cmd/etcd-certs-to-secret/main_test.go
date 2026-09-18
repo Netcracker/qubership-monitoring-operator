@@ -507,6 +507,41 @@ func TestCertPathsFromPodReadsEtcdContainer(t *testing.T) {
 	}
 }
 
+func TestCertPathsFromPodReadsEtcdContainerArgs(t *testing.T) {
+	pod := corev1.Pod{Spec: corev1.PodSpec{Containers: []corev1.Container{{
+		Name:    "etcd",
+		Command: []string{"etcd"},
+		Args: []string{
+			"--peer-key-file=/args/peer.key",
+			"--peer-trusted-ca-file=/args/ca.crt",
+			"--peer-cert-file=/args/peer.crt",
+		},
+	}}}}
+
+	peerKey, caCrt, peerCrt := certPathsFromPod(pod, "default-key", "default-ca", "default-crt")
+	if peerKey != "/args/peer.key" || caCrt != "/args/ca.crt" || peerCrt != "/args/peer.crt" {
+		t.Fatalf("got paths %q %q %q", peerKey, caCrt, peerCrt)
+	}
+}
+
+func TestCertPathsFromPodArgsOverrideCommand(t *testing.T) {
+	pod := corev1.Pod{Spec: corev1.PodSpec{Containers: []corev1.Container{{
+		Name: "etcd",
+		Command: []string{
+			"etcd",
+			"--peer-key-file=/command/peer.key",
+		},
+		Args: []string{
+			"--peer-key-file=/args/peer.key",
+		},
+	}}}}
+
+	peerKey, _, _ := certPathsFromPod(pod, "default-key", "default-ca", "default-crt")
+	if peerKey != "/args/peer.key" {
+		t.Fatalf("got peer key %q, want args value", peerKey)
+	}
+}
+
 func TestPodListError(t *testing.T) {
 	wantErr := errors.New("boom")
 	if got := podListError(wantErr); got != wantErr {

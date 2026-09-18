@@ -154,7 +154,11 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitori
 }
 
 func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaOperatorDeployment(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := grafanaOperatorDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -194,6 +198,7 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 		e.Spec.Template.Labels, m.Spec.Template.Labels, e.Spec.Selector)
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
@@ -277,19 +282,16 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitorin
 }
 
 func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaOperatorDeployment(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.GrafanaOperatorComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

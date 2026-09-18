@@ -40,7 +40,7 @@ spec:
         {{- end }}
     spec:
       securityContext:
-        {{ include "promitor.agentScraper.securityContext" . }}
+        {{- include "promitor.agentScraper.securityContext" . | nindent 8 }}
       {{- if .Values.serviceAccount.install }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
@@ -68,6 +68,9 @@ spec:
               - key: {{ .Values.secrets.appKeySecret }}
                 path: appkey
       {{- end }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
@@ -75,6 +78,8 @@ spec:
         - name: {{ .Values.name }}
           image: {{ template "promitor.agentScraper.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            {{- include "promitor.agentScraper.containerSecurityContext" . | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -84,11 +89,14 @@ spec:
           volumeMounts:
           - name: config-volume-{{ .Values.name }}
             mountPath: /config/
+            readOnly: true
           {{- if or (.Values.azureAuthentication.identity.key) (eq .Values.secrets.createSecret false) }}
           - name: azure-auth-secret
             mountPath: /etc/promitor/secrets
             readOnly: true
           {{- end }}
+          - name: tmp
+            mountPath: /tmp
           livenessProbe:
             failureThreshold: 3
             httpGet:

@@ -8,7 +8,7 @@ metadata:
     {{- include "monitoring.labels" (dict "ctx" . "name" .Values.imageRenderer.name) | nindent 4 }}
     app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
     app.kubernetes.io/version: {{ splitList ":" $image | last }}
-    app.kubernetes.io/technology: node-js
+    app.kubernetes.io/technology: go
     app: {{ .Values.imageRenderer.name }}
     {{- if .Values.imageRenderer.labels }}
     {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.imageRenderer.labels) | nindent 4 }}
@@ -29,7 +29,7 @@ spec:
         {{- include "monitoring.labels" (dict "ctx" . "name" .Values.imageRenderer.name) | nindent 8 }}
         app.kubernetes.io/instance: {{ cat .Values.imageRenderer.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
         app.kubernetes.io/version: {{ splitList ":" $image | last }}
-        app.kubernetes.io/technology: node-js
+        app.kubernetes.io/technology: go
         {{- if .Values.imageRenderer.labels }}
         {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.imageRenderer.labels) | nindent 8 }}
         {{- end }}
@@ -59,6 +59,8 @@ spec:
           {{- end }}
           resources:
             {{ include "grafana.imageRenderer.resources" $ }}
+          securityContext:
+            {{- include "grafana.imageRenderer.containerSecurityContext" . | nindent 12 }}
           volumeMounts:
             - mountPath: /tmp
               name: image-renderer-tmpfs
@@ -74,7 +76,7 @@ spec:
           terminationMessagePolicy: File
           imagePullPolicy: Always
       securityContext:
-        {{ include "grafana.imageRenderer.securityContext" . }}
+        {{- include "grafana.imageRenderer.securityContext" . | nindent 8 }}
       {{- if .Values.imageRenderer.tolerations }}
       tolerations:
         {{- toYaml .Values.imageRenderer.tolerations | nindent 8 }}
@@ -89,5 +91,6 @@ spec:
       {{- end }}
       volumes:
         - name: image-renderer-tmpfs
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 100Mi
 {{- end }}

@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *KubeStateMetricsReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -92,7 +93,11 @@ func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *monv1.Platform
 }
 
 func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api())
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api(), isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -119,6 +124,7 @@ func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitori
 	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
@@ -250,19 +256,16 @@ func (r *KubeStateMetricsReconciler) deleteClusterRoleBinding(cr *monv1.Platform
 }
 
 func (r *KubeStateMetricsReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := kubeStateMetricsDeployment(cr, r.HasIngressV1Api() || r.HasIngressV1beta1Api())
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.KubestatemetricsComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil
