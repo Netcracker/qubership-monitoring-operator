@@ -231,6 +231,14 @@ image:
 .PHONY: test
 test: unit-test
 
+.PHONY: test-hardening
+test-hardening:
+	@set -e; \
+	for test_script in scripts/tests/*.sh; do \
+	  echo "=> Run $$test_script ..."; \
+	  "$$test_script"; \
+	done
+
 # Run unit tests in all packages
 .PHONY: unit-test
 unit-test:

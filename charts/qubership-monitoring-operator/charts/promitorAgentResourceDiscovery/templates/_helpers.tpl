@@ -19,13 +19,10 @@ Image can be found from:
 Return securityContext for promitor-agent-resource-discovery.
 */}}
 {{- define "promitor.agentResourceDiscovery.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 10000
-        runAsGroup: 10000
-        runAsNonRoot: true
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 10000) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "promitor.agentResourceDiscovery.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" (omit (.Values.containerSecurityContext | default dict) "enabled")) -}}
 {{- end -}}

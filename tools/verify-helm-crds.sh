@@ -601,7 +601,8 @@ verify_rendered_resource_count "${rendered_manifest}" \
     .metadata.annotations."helm.sh/hook-delete-policy" == "before-hook-creation,hook-failed" and
     .spec.template.spec.serviceAccountName == "monitoring-rbac-cleanup-hook" and
     (.spec.template.spec.containers |
-    any_c(.name == "kubectl" and .resources.limits.memory == "256Mi")) and
+    any_c(.name == "kubectl" and .resources.limits.memory == "256Mi" and
+    .resources.limits."ephemeral-storage" == "100Mi")) and
     .spec.ttlSecondsAfterFinished == 180' \
     1 "post-delete cluster RBAC cleanup Jobs"
 "${yq_binary}" eval-all \

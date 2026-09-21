@@ -120,7 +120,7 @@ func vmOperatorClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Cluster
 	return &clusterRoleBinding, nil
 }
 
-func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring, isOpenShift bool) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.VmOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -191,6 +191,9 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 			}
 			if cr.Spec.Victoriametrics.VmOperator.SecurityContext.RunAsUser != nil {
 				d.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmOperator.SecurityContext.RunAsUser
+			}
+			if cr.Spec.Victoriametrics.VmOperator.SecurityContext.RunAsGroup != nil {
+				d.Spec.Template.Spec.SecurityContext.RunAsGroup = cr.Spec.Victoriametrics.VmOperator.SecurityContext.RunAsGroup
 			}
 			if cr.Spec.Victoriametrics.VmOperator.SecurityContext.FSGroup != nil {
 				d.Spec.Template.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmOperator.SecurityContext.FSGroup
@@ -285,6 +288,9 @@ func vmOperatorDeployment(r *VmOperatorReconciler, cr *monv1.PlatformMonitoring)
 		}
 	}
 	d.Spec.Template.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmOperatorComponentName
+	if err := applyVmOperatorHardening(&d, isOpenShift); err != nil {
+		return nil, err
+	}
 
 	return &d, nil
 }
@@ -298,6 +304,26 @@ func setEnvValue(env []corev1.EnvVar, name, value string) []corev1.EnvVar {
 		}
 	}
 	return append(env, corev1.EnvVar{Name: name, Value: value})
+}
+
+func applyVmOperatorHardening(deployment *appsv1.Deployment, isOpenShift bool) error {
+	podSpec := &deployment.Spec.Template.Spec
+	securityContext, err := utils.HardenedPodSecurityContextWithPodOverrides(isOpenShift, podSpec.SecurityContext)
+	if err != nil {
+		return err
+	}
+	containers, err := utils.HardenContainersWithTmp(podSpec.Containers)
+	if err != nil {
+		return err
+	}
+	podSpec.SecurityContext = securityContext
+	volumes, err := utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	podSpec.Volumes = volumes
+	podSpec.Containers = containers
+	return nil
 }
 
 func vmOperatorService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {
