@@ -1,4 +1,4 @@
-{{- if eq .Values.publicCloudName "" }}
+{{- if and (eq .Values.publicCloudName "") .Values.global.privilegedRights }}
 {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
