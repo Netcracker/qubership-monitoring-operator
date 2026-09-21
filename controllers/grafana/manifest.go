@@ -28,6 +28,10 @@ var assets embed.FS
 const (
 	grafanaCleanupLabelKey   = "app.kubernetes.io/managed-by-operator"
 	grafanaCleanupLabelValue = "monitoring-operator"
+
+	// grafanaOAuthClientSecretName is created by the Helm template
+	// oauth2-configs/secret-grafana-oauth-client-secret.yaml, and only when auth.clientSecret is set.
+	grafanaOAuthClientSecretName = "grafana-oauth-client-secret"
 )
 
 type grafanaDataStorage struct {
@@ -135,7 +139,23 @@ func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string
 	return graf.Spec.Config[section]
 }
 
-func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
+// grafanaCredentialSources reports which credential Secrets the reconciler observed. Grafana
+// aborts startup when it cannot expand a $__file{} reference, so a file-backed setting is only
+// safe to emit once its Secret is known to exist.
+// grafanaAdminSecretUserManaged reports whether the user, rather than Helm, owns the admin
+// credentials Secret. Only then may the Secret legitimately be absent.
+func grafanaAdminSecretUserManaged(cr *monv1.PlatformMonitoring) bool {
+	return cr.Spec.Grafana != nil &&
+		cr.Spec.Grafana.DisableDefaultAdminSecret != nil &&
+		*cr.Spec.Grafana.DisableDefaultAdminSecret
+}
+
+type grafanaCredentialSources struct {
+	AdminSecretPresent bool
+	OAuthSecretPresent bool
+}
+
+func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -459,7 +479,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 
 			adminSecretName := fmt.Sprintf("%s-admin-credentials", graf.GetName())
 			// optional=true when the user manages the secret; optional=false when Helm manages it.
-			userManaged := cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret
+			userManaged := grafanaAdminSecretUserManaged(cr)
 			adminSecretOptional := userManaged
 
 			// Ensure admin secret volume exists.
@@ -499,9 +519,15 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			}
 
 			// Configure Grafana admin credentials via file provider.
-			securitySection := ensureGrafanaConfigSection(&graf, "security")
-			securitySection["admin_user"] = "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_USER}"
-			securitySection["admin_password"] = "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_PASSWORD}"
+			// Helm always creates the Secret unless the user opted out, so the files are guaranteed
+			// in that case. When the user owns the Secret and has not created it, emitting $__file{}
+			// would stop Grafana from starting; leaving the keys unset preserves the documented
+			// fallback to Grafana's built-in admin/admin.
+			if !userManaged || sources.AdminSecretPresent {
+				securitySection := ensureGrafanaConfigSection(&graf, "security")
+				securitySection["admin_user"] = "$__file{" + adminSecretMountPath + "/GF_SECURITY_ADMIN_USER}"
+				securitySection["admin_password"] = "$__file{" + adminSecretMountPath + "/GF_SECURITY_ADMIN_PASSWORD}"
+			}
 
 			// grafana-operator authenticates to Grafana via ServiceAccount JWT, not admin env vars.
 			configureGrafanaOperatorKubeAuth(&graf, cr.GetNamespace())
@@ -522,7 +548,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 						Name: oauthSecretVolumeName,
 						VolumeSource: corev1.VolumeSource{
 							Secret: &corev1.SecretVolumeSource{
-								SecretName: "grafana-oauth-client-secret",
+								SecretName: grafanaOAuthClientSecretName,
 								Optional:   &optional,
 							},
 						},
@@ -544,8 +570,13 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					})
 				}
 
-				authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
-				authSection["client_secret"] = "$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+				// Helm only creates grafana-oauth-client-secret when auth.clientSecret is set, and
+				// spec.auth deliberately does not carry clientSecret, so gate on the observed Secret
+				// rather than on spec.auth alone.
+				if sources.OAuthSecretPresent {
+					authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
+					authSection["client_secret"] = "$__file{" + oauthSecretMountPath + "/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
+				}
 			}
 		}
 

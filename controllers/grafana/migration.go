@@ -55,7 +55,8 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 		return fmt.Errorf("checking legacy Grafana datasource: %w", err)
 	}
 
-	grafanaManifest, err := grafana(platformMonitoring)
+	// Only the object key is used here, so the credential sources do not matter.
+	grafanaManifest, err := grafana(platformMonitoring, grafanaCredentialSources{})
 	if err != nil {
 		return err
 	}

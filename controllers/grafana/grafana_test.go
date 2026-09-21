@@ -29,7 +29,7 @@ import (
 )
 
 func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
 			Annotations: map[string]string{"example.com/user-annotation": "retained"},
@@ -56,7 +56,7 @@ func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
 }
 
 func TestAddGrafanaExtraVarsResourceVersionsWhenResourcesAreMissing(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
 			Annotations: map[string]string{"example.com/user-annotation": "retained"},
@@ -76,7 +76,7 @@ func TestAddGrafanaExtraVarsResourceVersionsWhenResourcesAreMissing(t *testing.T
 }
 
 func TestAddGrafanaExtraVarsResourceVersionsKeepsAnnotationsNilWhenResourcesAreMissing(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -91,7 +91,7 @@ func TestAddGrafanaExtraVarsResourceVersionsKeepsAnnotationsNilWhenResourcesAreM
 }
 
 func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -117,7 +117,7 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesVersionForMissingResource(t
 }
 
 func TestAddGrafanaExtraVarsResourceVersionsPreservesMissingConfigMapVersion(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -142,7 +142,7 @@ func TestAddGrafanaExtraVarsResourceVersionsPreservesMissingConfigMapVersion(t *
 }
 
 func TestAddGrafanaExtraVarsResourceVersionsInitializesAnnotations(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -166,7 +166,7 @@ func TestAddGrafanaExtraVarsResourceVersionsInitializesAnnotations(t *testing.T)
 }
 
 func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -174,7 +174,7 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 	manifest.Spec.Deployment.Spec.Template = nil
 
 	assert.Nil(t, grafanaPodTemplateAnnotations(manifest))
-	manifest, err = grafana(&monv1.PlatformMonitoring{
+	manifest, err = grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -221,7 +221,7 @@ func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) 
 		ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	}
-	existing, err := grafana(platformMonitoring)
+	existing, err := grafanaWithDefaultSources(platformMonitoring)
 	assert.NoError(t, err)
 	existing.Spec.Deployment.Spec.Template = nil
 	controllerClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
@@ -262,7 +262,7 @@ func TestHandleGrafanaReturnsClientError(t *testing.T) {
 }
 
 func TestAddGrafanaExtraVarsResourceVersionsReturnsSecretAPIError(t *testing.T) {
-	manifest, err := grafana(&monv1.PlatformMonitoring{
+	manifest, err := grafanaWithDefaultSources(&monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	})
@@ -301,7 +301,7 @@ func TestGrafanaManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test Grafana manifest", func(t *testing.T) {
-		m, err := grafana(cr)
+		m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -322,7 +322,7 @@ func TestGrafanaManifests(t *testing.T) {
 		cr.Spec.Grafana.Labels["app.kubernetes.io/managed-by"] = "custom-manager"
 		cr.Spec.Grafana.Labels["app.kubernetes.io/managed-by-operator"] = "custom-manager"
 
-		m, err := grafana(cr)
+		m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -340,7 +340,7 @@ func TestGrafanaManifests(t *testing.T) {
 	}
 	// Disabled for v5: in v5 labels/annotations live in Deployment.Spec.Template, not Deployment
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {
-	//	m, err := grafana(cr)
+	//	m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
 	//	...
 	//})
 	t.Run("Test GrafanaDatasource manifest", func(t *testing.T) {
@@ -390,7 +390,7 @@ func TestGrafanaManifests(t *testing.T) {
 
 func TestGrafanaPodTemplateAnnotations(t *testing.T) {
 	t.Run("keeps annotations nil when none are configured", func(t *testing.T) {
-		manifest, err := grafana(grafanaComparisonPlatformMonitoring(nil))
+		manifest, err := grafanaWithDefaultSources(grafanaComparisonPlatformMonitoring(nil))
 		require.NoError(t, err)
 
 		assert.Nil(t, manifest.Spec.Deployment.Spec.Template.Annotations)
@@ -398,7 +398,7 @@ func TestGrafanaPodTemplateAnnotations(t *testing.T) {
 
 	t.Run("preserves configured annotations", func(t *testing.T) {
 		annotations := map[string]string{"example.com/key": "value"}
-		manifest, err := grafana(grafanaComparisonPlatformMonitoring(annotations))
+		manifest, err := grafanaWithDefaultSources(grafanaComparisonPlatformMonitoring(annotations))
 		require.NoError(t, err)
 
 		assert.Equal(t, annotations, manifest.Spec.Deployment.Spec.Template.Annotations)
@@ -417,7 +417,7 @@ func TestGrafanaManifestPreservesDataStorage(t *testing.T) {
 		},
 	}
 
-	manifest, err := grafana(monitoring)
+	manifest, err := grafanaWithDefaultSources(monitoring)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -734,6 +734,87 @@ func TestGrafanaOperatorSubject(t *testing.T) {
 	assert.Equal(t,
 		"system:serviceaccount:platform:platform-grafana-operator",
 		grafanaOperatorSubject("platform"))
+}
+
+func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
+	newCR := func(disableDefaultAdminSecret *bool, auth *monv1.Auth) *monv1.PlatformMonitoring {
+		return &monv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "monitoring"},
+			Spec: monv1.PlatformMonitoringSpec{
+				Auth:    auth,
+				Grafana: &monv1.Grafana{DisableDefaultAdminSecret: disableDefaultAdminSecret},
+			},
+		}
+	}
+
+	// Grafana aborts startup if it cannot expand a $__file{} reference, so a reference must never
+	// be emitted for a Secret that is absent.
+	t.Run("Helm-managed admin secret is always referenced", func(t *testing.T) {
+		m, err := grafana(newCR(nil, nil), grafanaCredentialSources{})
+		require.NoError(t, err)
+
+		security := m.Spec.Config["security"]
+		require.NotNil(t, security)
+		assert.Equal(t, "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_USER}", security["admin_user"])
+		assert.Equal(t, "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_PASSWORD}", security["admin_password"])
+	})
+
+	t.Run("user-managed admin secret is referenced when present", func(t *testing.T) {
+		m, err := grafana(newCR(ptr(true), nil), grafanaCredentialSources{AdminSecretPresent: true})
+		require.NoError(t, err)
+
+		security := m.Spec.Config["security"]
+		require.NotNil(t, security)
+		assert.Equal(t, "$__file{/etc/grafana-admin/GF_SECURITY_ADMIN_USER}", security["admin_user"])
+	})
+
+	t.Run("missing user-managed admin secret keeps the admin/admin fallback", func(t *testing.T) {
+		m, err := grafana(newCR(ptr(true), nil), grafanaCredentialSources{})
+		require.NoError(t, err)
+
+		// No $__file{} reference, so Grafana starts and falls back to its built-in admin/admin
+		// exactly as disableDefaultAdminSecret=true documents.
+		assert.NotContains(t, m.Spec.Config["security"], "admin_user")
+		assert.NotContains(t, m.Spec.Config["security"], "admin_password")
+
+		// The volume stays optional so a missing Secret does not block the pod either.
+		var adminVolume *corev1.Volume
+		for i, v := range m.Spec.Deployment.Spec.Template.Spec.Volumes {
+			if v.Name == "grafana-admin-secret" {
+				adminVolume = &m.Spec.Deployment.Spec.Template.Spec.Volumes[i]
+				break
+			}
+		}
+		require.NotNil(t, adminVolume)
+		require.NotNil(t, adminVolume.Secret.Optional)
+		assert.True(t, *adminVolume.Secret.Optional)
+	})
+
+	t.Run("oauth client secret is referenced when present", func(t *testing.T) {
+		m, err := grafana(newCR(nil, &monv1.Auth{}), grafanaCredentialSources{OAuthSecretPresent: true})
+		require.NoError(t, err)
+
+		oauth := m.Spec.Config["auth.generic_oauth"]
+		require.NotNil(t, oauth)
+		assert.Equal(t,
+			"$__file{/etc/grafana-oauth/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}",
+			oauth["client_secret"])
+	})
+
+	t.Run("spec.auth without the oauth secret emits no client_secret", func(t *testing.T) {
+		// spec.auth carries no clientSecret, so its presence says nothing about whether Helm
+		// created grafana-oauth-client-secret.
+		m, err := grafana(newCR(nil, &monv1.Auth{}), grafanaCredentialSources{})
+		require.NoError(t, err)
+
+		assert.NotContains(t, m.Spec.Config["auth.generic_oauth"], "client_secret")
+	})
+}
+
+// grafanaWithDefaultSources builds the manifest as if both credential Secrets exist, which is
+// the normal Helm-managed deployment.
+func grafanaWithDefaultSources(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
+	return grafana(cr, grafanaCredentialSources{AdminSecretPresent: true, OAuthSecretPresent: true})
 }
 
 func ptr[T any](value T) *T {
