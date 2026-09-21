@@ -130,7 +130,10 @@ if __name__ == '__main__':
                 time.sleep(30)
                 print('Starting robot tests...')
                 exit(0)
-            print(f'VmAgent does not have required amount of targets yet, retrying in {vmagent_check_interval} seconds...')
+            print(
+                f'VmAgent does not have required amount of targets yet, '
+                f'retrying in {vmagent_check_interval} seconds...'
+            )
             time.sleep(vmagent_check_interval)
         print(f'VmAgent does not have required amount of targets after {timeout} seconds')
         exit(1)
