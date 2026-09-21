@@ -9,7 +9,7 @@ There is no description on this dashboard
 
 ## Panels
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Up Nodes | Shows the number of alive nodes in the cluster by running kubelet instances | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
@@ -31,4 +31,4 @@ There is no description on this dashboard
 | Goroutines | Shows number of gorutines in kubelet on selected nodes |  |  |
 | Cgroup manager operation rate | Shows duration in seconds for cgroup manager operations.<br/><br/>**NOTE**:  This metric is available only in Kubernetes > 1.12 (Openshift > 4.1) |  |  |
 | Cgroup manager 99th quantile | Duration in seconds for cgroup manager operations.<br/><br/>**NOTE**:  This metric is available only in Kubernetes > 1.12 (Openshift > 4.1) |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

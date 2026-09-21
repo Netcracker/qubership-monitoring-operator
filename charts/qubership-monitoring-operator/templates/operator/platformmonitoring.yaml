@@ -130,6 +130,7 @@ spec:
       {{- toYaml .Values.prometheus.externalLabels | nindent 6 }}
     externalUrl:
       {{- toYaml .Values.prometheus.externalUrl | nindent 6 }}
+    {{- if .Values.prometheus.remoteWrite }}
     remoteWrite:
       {{- range .Values.prometheus.remoteWrite }}
       {{- if .url }}
@@ -203,6 +204,9 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+    {{- else }}
+    remoteWrite: []
+    {{- end }}
     remoteRead:
       {{- toYaml .Values.prometheus.remoteRead | nindent 6 }}
     secrets:
@@ -342,6 +346,7 @@ spec:
         {{- end }}
       {{- end }}
       replicas: {{ .Values.victoriametrics.vmOperator.replicas }}
+      leaderElect: {{ .Values.victoriametrics.vmOperator.leaderElect | default false }}
       {{- if .Values.victoriametrics.vmOperator.serviceMonitor }}
       serviceMonitor:
         install: {{ .Values.victoriametrics.vmOperator.serviceMonitor.install }}
@@ -1189,7 +1194,7 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .Values.grafana }}
-  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
+  {{- if .Values.grafana.install }}
   grafana:
     install: {{ .Values.grafana.install }}
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
@@ -1280,6 +1285,7 @@ spec:
       namespaces: {{ .Values.grafana.operator.namespaces }}
       {{- end }}
       paused: {{ .Values.grafana.operator.paused | default false }}
+      leaderElect: {{ .Values.grafana.operator.leaderElect | default false }}
       {{- if .Values.grafana.operator.priorityClassName }}
       priorityClassName: {{ .Values.grafana.operator.priorityClassName }}
       {{- end }}

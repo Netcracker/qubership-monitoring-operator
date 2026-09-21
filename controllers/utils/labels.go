@@ -16,6 +16,8 @@ const (
 	OperatorDeploymentName = "monitoring-operator"
 	// ProcessedByOperatorKey is the label key for the operator that processes the resource (e.g. ServiceMonitor, PodMonitor).
 	ProcessedByOperatorKey = "app.kubernetes.io/processed-by-operator"
+	// InstallationNamespaceLabelKey scopes cluster resources to one monitoring-operator installation.
+	InstallationNamespaceLabelKey = "monitoring.netcracker.com/installation-namespace"
 )
 
 // CommonLabels returns the labels applied to all resources (part-of, managed-by, managed-by-operator).
@@ -139,6 +141,14 @@ func SetLabelsForResource(obj metav1.Object, in LabelInput, existing map[string]
 		initial = obj.GetLabels()
 	}
 	obj.SetLabels(in.resourceLabels(initial))
+}
+
+// SetClusterScopedLabelsForResource applies standard labels and an immutable installation namespace to cluster resources.
+func SetClusterScopedLabelsForResource(obj metav1.Object, in LabelInput, namespace string) {
+	SetLabelsForResource(obj, in, nil)
+	labels := obj.GetLabels()
+	labels[InstallationNamespaceLabelKey] = namespace
+	obj.SetLabels(labels)
 }
 
 // SetLabelsForWorkload sets labels on the resource and pod template using the same procedure (resource metadata = pod template labels).

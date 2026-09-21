@@ -1,4 +1,6 @@
 site_name: Qubership Monitoring Operator
+# Zensical accepts the compact indentation used by the existing navigation tree.
+# yamllint disable rule:indentation
 site_description: Comprehensive monitoring solution for Kubernetes
 site_url: https://netcracker.github.io/qubership-monitoring-operator
 
@@ -51,6 +53,9 @@ theme:
     - navigation.sections
     - navigation.path
     - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
     - navigation.top
     - toc.follow
     - search.suggest
@@ -139,6 +144,7 @@ nav:
       - Components Overview: installation/basic-components.md
       - Storage Configuration: installation/storage.md
       - Deployment: installation/deploy.md
+      - Grafana v5 Upgrade: user-guides/grafana-v5-upgrade.md
       - Post-Deploy Checks: installation/post-deploy-checks.md
       - Component Configuration:
           - Overview: installation/components/README.md
@@ -177,149 +183,148 @@ nav:
 
   # Architecture & Components - "I want to understand how the system works"
   - Architecture & Components:
-    - Architecture Overview: architecture.md
-    - Basic Configuration: configuration.md
-    - API Reference:
-      - Platform Monitoring: api/platform-monitoring.md
-      - Prometheus Adapter: api/prometheus-adapter.md
-      - Custom Scale Metric Rule: api/custom-scale-metric-rule.md
+      - Architecture Overview: architecture.md
+      - API Reference:
+          - Platform Monitoring: api/platform-monitoring.md
+          - Prometheus Adapter: api/prometheus-adapter.md
+          - Custom Scale Metric Rule: api/custom-scale-metric-rule.md
 
   # Configuration - "I want to configure the system"
   - Configuration:
-    - Basic Configuration: configuration.md
-    - Best Practices: user-guides/best-practices.md
-    - Alert Configuration:
-      - Alert Setup: monitoring-configuration/alerts.md
-      - Alert Best Practices: user-guides/alert-best-practice.md
-    - Metrics Collection:
-      - Overview: metrics-collection/exporters-and-metrics-index.md
-      - Limits & Collection: monitoring-configuration/limits-metric-collection.md
-    - Horizontal Autoscaling: user-guides/horizontal-autoscaling.md
-    - Default Configurations:
-      - Default Metrics: defaults/metrics.md
-      - Default Alerts: defaults/alerts.md
-      - Default Dashboards:
-          - Overview: defaults/dashboards/home-dashboard.md
-          - Overall Platform Health: defaults/dashboards/overall-platform-health.md
+      - Basic Configuration: configuration.md
+      - Best Practices: user-guides/best-practices.md
+      - Alert Configuration:
+          - Alert Setup: monitoring-configuration/alerts.md
+          - Alert Best Practices: user-guides/alert-best-practice.md
+      - Metrics Collection:
+          - Overview: metrics-collection/exporters-and-metrics-index.md
+          - Limits & Collection: monitoring-configuration/limits-metric-collection.md
+      - Horizontal Autoscaling: user-guides/horizontal-autoscaling.md
+      - Default Configurations:
+          - Default Metrics: defaults/metrics.md
+          - Default Alerts: defaults/alerts.md
+          - Default Dashboards:
+              - Overview: defaults/dashboards/home-dashboard.md
+              - Overall Platform Health: defaults/dashboards/overall-platform-health.md
 
-          # Alerting & Monitoring
-          - Alerting:
-              - Alertmanager Overview: defaults/dashboards/alertmanager-overview.md
-              - Alerts Overview: defaults/dashboards/alerts-overview.md
+              # Alerting & Monitoring
+              - Alerting:
+                  - Alertmanager Overview: defaults/dashboards/alertmanager-overview.md
+                  - Alerts Overview: defaults/dashboards/alerts-overview.md
 
-          # Kubernetes Cluster Monitoring
-          - Kubernetes Core:
-              - API Server: defaults/dashboards/kubernetes-apiserver.md
-              - Cluster Overview: defaults/dashboards/kubernetes-cluster-overview.md
-              - ETCD: defaults/dashboards/kubernetes-etcd.md
-              - Kubelet: defaults/dashboards/kubernetes-kubelet.md
+              # Kubernetes Cluster Monitoring
+              - Kubernetes Core:
+                  - API Server: defaults/dashboards/kubernetes-apiserver.md
+                  - Cluster Overview: defaults/dashboards/kubernetes-cluster-overview.md
+                  - ETCD: defaults/dashboards/kubernetes-etcd.md
+                  - Kubelet: defaults/dashboards/kubernetes-kubelet.md
 
-          # Kubernetes Resources
-          - Kubernetes Resources:
-              - Namespace Resources: defaults/dashboards/kubernetes-namespace-resources.md
-              - Node Resources: defaults/dashboards/kubernetes-nodes-resources.md
-              - Pod Resources: defaults/dashboards/kubernetes-pod-resources.md
-              - Top Resources: defaults/dashboards/kubernetes-top-resources.md
-              - Distribution by Labels: defaults/dashboards/kubernetes-distribution-by-labels.md
-              - Pods Distribution by Node: defaults/dashboards/kubernetes-pods-distribution-by-node.md
-              - Pods Distribution by Zone: defaults/dashboards/kubernetes-pods-distribution-by-zone.md
-              - HA Services: defaults/dashboards/ha-services.md
+              # Kubernetes Resources
+              - Kubernetes Resources:
+                  - Namespace Resources: defaults/dashboards/kubernetes-namespace-resources.md
+                  - Node Resources: defaults/dashboards/kubernetes-nodes-resources.md
+                  - Pod Resources: defaults/dashboards/kubernetes-pod-resources.md
+                  - Top Resources: defaults/dashboards/kubernetes-top-resources.md
+                  - Distribution by Labels: defaults/dashboards/kubernetes-distribution-by-labels.md
+                  - Pods Distribution by Node: defaults/dashboards/kubernetes-pods-distribution-by-node.md
+                  - Pods Distribution by Zone: defaults/dashboards/kubernetes-pods-distribution-by-zone.md
+                  - HA Services: defaults/dashboards/ha-services.md
 
-          # Ingress & Networking
-          - Networking:
-              - NGINX Ingress Controller: defaults/dashboards/ingress-nginx-controller.md
-              - NGINX Ingress: defaults/dashboards/nginx-ingress.md
-              - Ingress List: defaults/dashboards/ingress-list-of-ingresses.md
-              - Request Handling Performance: defaults/dashboards/ingress-request-handling-performance.md
-              - NGINX Request Performance: defaults/dashboards/nginx-request-handling-performance.md
-              - Network Latency Overview: defaults/dashboards/network-latency-exporter-overview.md
-              - Network Latency Details: defaults/dashboards/network-latency-exporter-details.md
-              - CoreDNS: defaults/dashboards/core-dns-dashboard.md
+              # Ingress & Networking
+              - Networking:
+                  - NGINX Ingress Controller: defaults/dashboards/ingress-nginx-controller.md
+                  - NGINX Ingress: defaults/dashboards/nginx-ingress.md
+                  - Ingress List: defaults/dashboards/ingress-list-of-ingresses.md
+                  - Request Handling Performance: defaults/dashboards/ingress-request-handling-performance.md
+                  - NGINX Request Performance: defaults/dashboards/nginx-request-handling-performance.md
+                  - Network Latency Overview: defaults/dashboards/network-latency-exporter-overview.md
+                  - Network Latency Details: defaults/dashboards/network-latency-exporter-details.md
+                  - CoreDNS: defaults/dashboards/core-dns-dashboard.md
 
-          # Application Monitoring
-          - Applications:
-              - JVM Processes: defaults/dashboards/jvm-processes.md
-              - Go Processes: defaults/dashboards/govm-processes.md
-              - Kafka Java Clients: defaults/dashboards/dashboard-kafka-java-clients.md
+              # Application Monitoring
+              - Applications:
+                  - JVM Processes: defaults/dashboards/jvm-processes.md
+                  - Go Processes: defaults/dashboards/govm-processes.md
+                  - Kafka Java Clients: defaults/dashboards/dashboard-kafka-java-clients.md
 
-          # System & Infrastructure
-          - Infrastructure:
-              - Node Details: defaults/dashboards/node-details.md
-              - TLS Status: defaults/dashboards/tls-status.md
-              - Certificates: defaults/dashboards/cert-exporter.md
-              - Version Exporter: defaults/dashboards/version-exporter.md
-              - Backup Daemon: defaults/dashboards/dashboard-backup-daemon.md
+              # System & Infrastructure
+              - Infrastructure:
+                  - Node Details: defaults/dashboards/node-details.md
+                  - TLS Status: defaults/dashboards/tls-status.md
+                  - Certificates: defaults/dashboards/cert-exporter.md
+                  - Version Exporter: defaults/dashboards/version-exporter.md
+                  - Backup Daemon: defaults/dashboards/dashboard-backup-daemon.md
 
-          # Monitoring Tools
-          - Monitoring Stack:
-              - Prometheus Self-Monitoring: defaults/dashboards/prometheus-self-monitoring.md
-              - Prometheus Cardinality Explorer: defaults/dashboards/prometheus-cardinality-explorer.md
-              - Cardinality Explorer: defaults/dashboards/cardinality-explorer.md
-              - Grafana Overview: defaults/dashboards/grafana-overview.md
-              - Blackbox Exporter: defaults/dashboards/blackbox-exporter.md
-              - Graphite Adapter: defaults/dashboards/graphite-adapter-dashboard-for-grafana.md
+              # Monitoring Tools
+              - Monitoring Stack:
+                  - Prometheus Self-Monitoring: defaults/dashboards/prometheus-self-monitoring.md
+                  - Prometheus Cardinality Explorer: defaults/dashboards/prometheus-cardinality-explorer.md
+                  - Cardinality Explorer: defaults/dashboards/cardinality-explorer.md
+                  - Grafana Overview: defaults/dashboards/grafana-overview.md
+                  - Blackbox Exporter: defaults/dashboards/blackbox-exporter.md
+                  - Graphite Adapter: defaults/dashboards/graphite-adapter-dashboard-for-grafana.md
 
-          # VictoriaMetrics
-          - VictoriaMetrics:
-              - VMSingle: defaults/dashboards/victoriametrics-vmsingle.md
-              - VMAgent: defaults/dashboards/victoriametrics-vmagent.md
-              - VMAlert: defaults/dashboards/victoriametrics-vmalert.md
-              - VM Operator: defaults/dashboards/victoriametrics-vmoperator.md
+              # VictoriaMetrics
+              - VictoriaMetrics:
+                  - VMSingle: defaults/dashboards/victoriametrics-vmsingle.md
+                  - VMAgent: defaults/dashboards/victoriametrics-vmagent.md
+                  - VMAlert: defaults/dashboards/victoriametrics-vmalert.md
+                  - VM Operator: defaults/dashboards/victoriametrics-vmoperator.md
 
-          # OpenShift (Platform-specific)
-          - OpenShift:
-              - API Server: defaults/dashboards/openshift-apiserver.md
-              - Cluster Version Operator: defaults/dashboards/openshift-cluster-version-operator.md
-              - HAProxy: defaults/dashboards/openshift-haproxy.md
-              - State Metrics: defaults/dashboards/openshift-state-metrics.md
-    - Manual CRD Creation: user-guides/manual-create-crds.md
-    - Examples:
-      - Overview: examples/README.md
-      - Component Configurations:
-        - CloudWatch Exporter: examples/components/cloudwatch-exporter-config/README.md
-      - Custom Resources:
-        - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
-        - Grafana Dashboards: examples/custom-resources/grafana-dashboard/README.md
-        - Grafana DataSources: examples/custom-resources/grafana-datasource/README.md
-        - Pod Monitors: examples/custom-resources/pod-monitor/README.md
-        - Prometheus Rules: examples/custom-resources/prometheus-rule/README.md
-        - Service Monitors: examples/custom-resources/service-monitor/README.md
+              # OpenShift (Platform-specific)
+              - OpenShift:
+                  - API Server: defaults/dashboards/openshift-apiserver.md
+                  - Cluster Version Operator: defaults/dashboards/openshift-cluster-version-operator.md
+                  - HAProxy: defaults/dashboards/openshift-haproxy.md
+                  - State Metrics: defaults/dashboards/openshift-state-metrics.md
+      - Manual CRD Creation: user-guides/manual-create-crds.md
+      - Examples:
+          - Overview: examples/README.md
+          - Component Configurations:
+              - CloudWatch Exporter: examples/components/cloudwatch-exporter-config/README.md
+          - Custom Resources:
+              - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
+              - Grafana Dashboards: examples/custom-resources/grafana-dashboard/README.md
+              - Grafana DataSources: examples/custom-resources/grafana-datasource/README.md
+              - Pod Monitors: examples/custom-resources/pod-monitor/README.md
+              - Prometheus Rules: examples/custom-resources/prometheus-rule/README.md
+              - Service Monitors: examples/custom-resources/service-monitor/README.md
 
   # Integrations - "I want to integrate with external systems"
   - Integrations:
-    - Overview: integration/integrations.md
-    - Cloud Providers:
-      - Amazon AWS: integration/amazon-aws.md
-      - Azure Monitor: integration/azure-monitor.md
-      - Google Cloud: integration/google-cloud.md
-    - Other Systems:
-      - IBM Netcool: integration/ibm-netcool.md
-    - Integration Examples:
-      - Custom Endpoints: examples/custom-resources/custom-endpoint/README.md
+      - Overview: integration/integrations.md
+      - Cloud Providers:
+          - Amazon AWS: integration/amazon-aws.md
+          - Azure Monitor: integration/azure-monitor.md
+          - Google Cloud: integration/google-cloud.md
+      - Other Systems:
+          - IBM Netcool: integration/ibm-netcool.md
+      - Integration Examples:
+          - Custom Endpoints: examples/custom-resources/custom-endpoint/README.md
 
   # Security - "I want to secure the system"
   - Security:
-    - Authentication:
-      - Monitoring Auth: monitoring-configuration/authentication.md
-      - Metrics Collection Auth: metrics-collection/authentication.md
-    - TLS Configuration:
-      - Monitoring TLS: monitoring-configuration/tls.md
-      - Metrics Collection TLS: metrics-collection/tls.md
-      - Route/Ingress TLS: monitoring-configuration/route-ingress-tls.md
-    - Security Examples:
-      - Service with TLS: examples/custom-resources/service-with-tls/README.md
+      - Authentication:
+          - Monitoring Auth: monitoring-configuration/authentication.md
+          - Metrics Collection Auth: metrics-collection/authentication.md
+      - TLS Configuration:
+          - Monitoring TLS: monitoring-configuration/tls.md
+          - Metrics Collection TLS: metrics-collection/tls.md
+          - Route/Ingress TLS: monitoring-configuration/route-ingress-tls.md
+      - Security Examples:
+          - Service with TLS: examples/custom-resources/service-with-tls/README.md
 
   # Operations - "The system is running, I want to maintain it"
   - Operations:
-    - Troubleshooting: troubleshooting.md
-    - Maintenance: maintenance.md
-    - Resource Usage: resource-usage.md
-    - Disaster Recovery: monitoring-configuration/disaster-and-recovery.md
-    - Password Management: user-guides/password-change.md
-    - Migration:
-      - Grafana Plugins: user-guides/migrate-from-angularjs-grafana-plugins.md
-      - Prometheus to VictoriaMetrics: user-guides/migrate-from-prometheus-to-victoriametrics.md
-      - VictoriaMetrics Data: user-guides/victoriametrics-data-migration.md
-    - Operations Examples:
-      - Service with Alarms: examples/custom-resources/service-with-alarms/README.md
-      - Service with Dashboard: examples/custom-resources/service-with-dashboard/README.md
+      - Troubleshooting: troubleshooting.md
+      - Maintenance: maintenance.md
+      - Resource Usage: resource-usage.md
+      - Disaster Recovery: monitoring-configuration/disaster-and-recovery.md
+      - Password Management: user-guides/password-change.md
+      - Migration:
+          - Grafana Plugins: user-guides/migrate-from-angularjs-grafana-plugins.md
+          - Prometheus to VictoriaMetrics: user-guides/migrate-from-prometheus-to-victoriametrics.md
+          - VictoriaMetrics Data: user-guides/victoriametrics-data-migration.md
+      - Operations Examples:
+          - Service with Alarms: examples/custom-resources/service-with-alarms/README.md
+          - Service with Dashboard: examples/custom-resources/service-with-dashboard/README.md

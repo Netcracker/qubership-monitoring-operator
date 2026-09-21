@@ -1,2 +1,2 @@
-requests>=2.14.0
-argparse>=1.2.1
+ruamel.yaml==0.19.1 \
+    --hash=sha256:27592957fedf6e0b62f281e96effd28043345e0e66001f97683aa9a40c667c93

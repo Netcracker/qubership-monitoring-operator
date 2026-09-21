@@ -20,6 +20,15 @@ app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
 {{- end -}}
 
 {{/*
+Warn users who explicitly enable the deprecated managed Prometheus component.
+*/}}
+{{- define "monitoring.prometheusDeprecationWarning" -}}
+{{- if and .Values.prometheus .Values.prometheus.install -}}
+Managed Prometheus is deprecated and will be removed in the next release. Migrate to VictoriaMetrics.
+{{- end -}}
+{{- end -}}
+
+{{/*
 Extra labels helper: renders arbitrary labels map when provided.
 Usage:
   {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.labels) | nindent 4 }}

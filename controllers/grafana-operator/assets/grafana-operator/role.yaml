@@ -25,6 +25,7 @@ rules:
       - delete
       - deletecollection
       - watch
+      - patch
   - apiGroups:
       - apps
     resources:
@@ -40,10 +41,12 @@ rules:
       - delete
       - deletecollection
       - watch
+      - patch
   - apiGroups:
       - route.openshift.io
     resources:
       - routes
+      - routes/custom-host
     verbs:
       - get
       - list
@@ -52,7 +55,7 @@ rules:
       - delete
       - deletecollection
       - watch
-      - create
+      - patch
   - apiGroups:
       - extensions
     resources:
@@ -114,3 +117,49 @@ rules:
       - deletecollection
       - watch
       - patch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - "*/finalizers"
+    verbs:
+      - update
+      - patch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanamanifests
+      - grafanamanifests/status
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete

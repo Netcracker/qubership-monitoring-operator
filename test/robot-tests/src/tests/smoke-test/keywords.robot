@@ -75,7 +75,7 @@ Preparation Session For External Service
     IF  not ${has_scheme}
         ${use_url}=  Determine Protocol  ${external_url}  ${auth}
     END
-    Create Session  ${session}  ${use_url}  auth=${auth}
+    Create Session  ${session}  ${use_url}  auth=${auth}  verify=${False}
 
 Check Pod's List Is Not Empty
     [Arguments]  ${list_of_pods}
@@ -219,7 +219,10 @@ Check Route/Ingress Status
     [Arguments]  ${name-in-cr}  ${name}  ${parentservice}=${None}  ${session}=external
     ${custom_resource}=  Get Custom Resource  monitoring.netcracker.com/v1  PlatformMonitoring
     ...  ${namespace}  platformmonitoring
-    ${external_url}=  Check Route Or Ingress  ${custom_resource}  ${name-in-cr}
+    # Retry while wildcard Ingress LB hostname is still pending; API errors also
+    # surface here instead of being treated as a soft skip.
+    ${external_url}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Route Or Ingress  ${custom_resource}  ${name-in-cr}
     ...  ${namespace}-${name}  ${namespace}  ${parentservice}
     Run Keyword If  '${external_url}' == 'None'  Return From Keyword  False
     Run Keyword If  '${external_url}' == ''  Return From Keyword  False

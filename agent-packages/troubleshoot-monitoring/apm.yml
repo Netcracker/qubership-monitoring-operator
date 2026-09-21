@@ -1,0 +1,4 @@
+name: troubleshoot-monitoring
+version: 1.0.0
+description: Diagnose failures of Qubership Monitoring Operator (prometheus-operator, VictoriaMetrics, Prometheus, Alertmanager, Grafana, exporters, prometheus-adapter, graphite-remote-adapter) from a pasted problem description and logs, with no live system access.
+author: Qubership

@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Values.etcdCertsJob.name }}
+  name: {{ printf "%s-%d" .Values.etcdCertsJob.name .Release.Revision | trunc 63 | trimSuffix "-" }}
   labels:
     app.kubernetes.io/name: {{ .Values.etcdCertsJob.name }}
     app.kubernetes.io/component: etcd-certs-to-secret
@@ -12,7 +12,7 @@ metadata:
     app.kubernetes.io/version: {{ template "monitoring.operator.version" . }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-failed
 spec:
   {{- if .Values.etcdCertsJob.activeDeadlineSeconds }}
   activeDeadlineSeconds: {{ .Values.etcdCertsJob.activeDeadlineSeconds | default 60 }}

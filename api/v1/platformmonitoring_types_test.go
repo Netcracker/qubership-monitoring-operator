@@ -2,12 +2,16 @@ package v1
 
 import (
 	"bufio"
-	"github.com/stretchr/testify/assert"
-	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
+	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/stretchr/testify/assert"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
 var (
@@ -29,4 +33,77 @@ func TestPlatformMonitoringCRDManifest(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.NotNil(t, cr, "Custom resource manifest should not be empty")
+}
+
+func TestPlatformMonitoringStatusObservedGenerationJSON(t *testing.T) {
+	status := PlatformMonitoringStatus{ObservedGeneration: 7}
+
+	data, err := json.Marshal(status)
+
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{"conditions":null,"observedGeneration":7}`, string(data))
+}
+
+func TestPlatformMonitoringAlertmanagerConfigCompatibility(t *testing.T) {
+	manifest := []byte(`apiVersion: monitoring.netcracker.com/v1
+kind: PlatformMonitoring
+metadata:
+  name: monitoring
+spec:
+  victoriametrics:
+    vmAlertManager:
+      webConfig:
+        basicAuthUsers:
+          operator: secret
+      gossipConfig:
+        tlsServerConfig:
+          cert: alertmanager.crt
+`)
+
+	var cr PlatformMonitoring
+	err := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(manifest), 100).Decode(&cr)
+	assert.NoError(t, err)
+	assert.NotNil(t, cr.Spec.Victoriametrics)
+	assert.NotNil(t, cr.Spec.Victoriametrics.VmAlertManager.WebConfig)
+	assert.NotNil(t, cr.Spec.Victoriametrics.VmAlertManager.GossipConfig)
+}
+
+func TestOverridePrometheusRuleAnnotations(t *testing.T) {
+	t.Run("merge annotations", func(t *testing.T) {
+		rule := promv1.Rule{
+			Annotations: map[string]string{
+				"summary":     "Original summary",
+				"description": "Original description",
+			},
+		}
+		override := PrometheusRule{
+			Annotations: map[string]string{
+				"summary":     "Custom summary",
+				"runbook_url": "https://example.org/runbook",
+			},
+		}
+
+		override.OverridePrometheusRule(&rule)
+
+		assert.Equal(t, "Custom summary", rule.Annotations["summary"])
+		assert.Equal(t, "Original description", rule.Annotations["description"])
+		assert.Equal(t, "https://example.org/runbook", rule.Annotations["runbook_url"])
+	})
+
+	t.Run("initialize annotations", func(t *testing.T) {
+		rule := promv1.Rule{}
+		override := PrometheusRule{Annotations: map[string]string{"summary": "Custom summary"}}
+
+		override.OverridePrometheusRule(&rule)
+
+		assert.Equal(t, map[string]string{"summary": "Custom summary"}, rule.Annotations)
+	})
+
+	t.Run("preserve annotations when override is omitted", func(t *testing.T) {
+		rule := promv1.Rule{Annotations: map[string]string{"summary": "Original summary"}}
+
+		(&PrometheusRule{}).OverridePrometheusRule(&rule)
+
+		assert.Equal(t, map[string]string{"summary": "Original summary"}, rule.Annotations)
+	})
 }

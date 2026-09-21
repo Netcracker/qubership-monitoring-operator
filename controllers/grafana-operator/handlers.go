@@ -2,6 +2,7 @@ package grafana_operator
 
 import (
 	"context"
+	"reflect"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -226,9 +227,20 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 			return err
 		}
 
-		checkObj.SetLabels(m.GetLabels())
-		checkObj.Spec = m.Spec
-
+		// Only update when Spec or labels actually changed to avoid rewriting large
+		// dashboard CRs on every PlatformMonitoring reconcile (#447).
+		needsUpdate := false
+		if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
+			checkObj.Spec = m.Spec
+			needsUpdate = true
+		}
+		if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
+			checkObj.SetLabels(m.GetLabels())
+			needsUpdate = true
+		}
+		if !needsUpdate {
+			return nil
+		}
 		return r.UpdateResource(checkObj)
 	})
 }

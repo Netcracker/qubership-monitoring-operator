@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-skill-eval-broken-chain
+  namespace: monitoring
+  labels:
+    skill-eval: recording-rule-broken-chain
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-12
+spec:
+  groups:
+    - name: monitoring-skill-broken-chain-eval
+      interval: 30s
+      rules:
+        - record: skill_eval:broken:top
+          expr: skill_eval:missing:producer * 2
+          labels:
+            skill_eval: "true"
+            scenario: missing-producer
+        - record: skill_eval:cycle:a
+          expr: skill_eval:cycle:b + 1
+          labels:
+            skill_eval: "true"
+            scenario: cycle
+        - record: skill_eval:cycle:b
+          expr: skill_eval:cycle:a + 1
+          labels:
+            skill_eval: "true"
+            scenario: cycle

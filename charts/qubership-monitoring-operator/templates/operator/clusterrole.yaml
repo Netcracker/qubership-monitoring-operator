@@ -68,6 +68,13 @@ rules:
       - update
       - watch
   - apiGroups:
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
       - ""
       - ""
     resources:
@@ -113,6 +120,14 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments/scale
+    verbs:
+      - get
+      - patch
+      - update
   - apiGroups:
       - apps
     resources:
@@ -240,7 +255,11 @@ rules:
     resources:
       - verticalpodautoscalers
     verbs:
+      - create
+      - delete
+      - get
       - list
+      - update
       - watch
   - apiGroups:
       - autoscaling
@@ -373,6 +392,7 @@ rules:
       - deletecollection
       - get
       - list
+      - patch
       - update
       - watch
 
@@ -387,6 +407,7 @@ rules:
       - delete
       - get
       - list
+      - patch
       - update
       - watch
 
@@ -427,7 +448,7 @@ rules:
     resources:
       - securitycontextconstraints
     resourceNames:
-      - node-exporter
+      - {{ printf "%s-node-exporter" $.Release.Namespace }}
     verbs:
       - delete
       - update
@@ -463,7 +484,22 @@ rules:
       - update
       - watch
 
-  # integreatly.org
+  # Legacy grafana-operator v4 Grafana CRs are removed after their native resources are adopted by v5.
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanas
+    verbs:
+      - delete
+      - get
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - get
+
+  # grafana.integreatly.org
   # This is needed for managing Grafana custom resources
   - apiGroups:
       - grafana.integreatly.org
@@ -503,8 +539,14 @@ rules:
       - list
       - patch
       - update
-      - patch
       - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - "*/finalizers"
+    verbs:
+      - patch
+      - update
 
   # monitoring.coreos.com
   # This is needed for Prometheus Operator custom resources
@@ -556,6 +598,7 @@ rules:
       - operator.victoriametrics.com
     resources:
       - vmalertmanagerconfigs
+      - vmanomalyconfigs
       - vmnodescrapes
       - vmpodscrapes
       - vmprobes
@@ -622,6 +665,8 @@ rules:
       - vmalerts/status
       - vmanomalies/finalizers
       - vmanomalies/status
+      - vmanomalyconfigs/finalizers
+      - vmanomalyconfigs/status
       - vmauths/finalizers
       - vmauths/status
       - vmclusters/finalizers

@@ -46,6 +46,13 @@ rules:
       - "patch"
       - "delete"
   - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - "*/finalizers"
+    verbs:
+      - update
+      - patch
+  - apiGroups:
       - ""
     resources:
       - configmaps
@@ -90,9 +97,41 @@ rules:
       - watch
       - patch
   - apiGroups:
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
       - "networking.k8s.io"
     resources:
       - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+      - routes/custom-host
     verbs:
       - get
       - list

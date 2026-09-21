@@ -29,7 +29,7 @@ therefore you should pay attention if you want to use alerts disabled by default
 | NodeExporters      | ✓ Yes              |
 | DockerContainers   | ✓ Yes              |
 | HAmode             | ✗ No               |
-| HAproxy            | ✗ No               |
+| HAProxy            | ✗ No               |
 | Etcd               | ✓ Yes              |
 | NginxIngressAlerts | ✓ Yes              |
 | CoreDnsAlerts      | ✓ Yes              |
@@ -38,7 +38,7 @@ therefore you should pay attention if you want to use alerts disabled by default
 
 Full list of all alerts can be found in the [alerts-oob document](../defaults/alerts.md).
 
-If you want to enable alerts for HAmode or HAproxy,
+If you want to enable alerts for HAmode or HAProxy,
 you should add `HAmode` or `HAproxy` respectively to `prometheusRules.ruleGroups` parameter.
 
 If you want to enable Dead Man's Switch (Heartbeat) alert, you should add `Heartbeat` to `prometheusRules.ruleGroups`
@@ -54,7 +54,7 @@ the critical monitoring and/or alerting components have failed.
 
 Platform Monitoring's Dead Man's Switch alert is placed in the `Heartbeat` alert group and called `DeadMansSwitch`.
 It uses the simplest expression possible under the hood: `vector(1)`, and the lowest severity: `information`.
-Even the simplest expressions are calculated on the monitoring back-end (Prometheus/VMSingle),
+Even the simplest expressions are calculated on the monitoring backend (Prometheus/VMSingle),
 so the alert checks that side of the monitoring. The alert has `for: 0s`, so it should start fire immediately since
 all base monitoring and alerting components are installed.
 
@@ -62,7 +62,8 @@ Fields `for`, `expr` and `severity` can be [overridden](#alerts-overriding) as w
 
 This type of alert is **disabled by default**. You can enable the Dead Man's Switch alert by adding `Heartbeat`
 alert group to the `prometheusRules.ruleGroups` parameter. Example of configuration with enabled Dead Man's Switch can
-be found [here](#configuration-with-enabled-additional-groups).
+be found in
+[Configuration with enabled additional groups](#configuration-with-enabled-additional-groups).
 
 **Attention:** If you want to enable Dead Man's Switch alert and have a connected notification system for alerts,
 proactively make sure that your system is ready for a constantly firing alert and will not encounter
@@ -196,18 +197,20 @@ prometheusRules:
 
 ## Alert test workflow
 
-Monitoring operator contains workflow to test alerts, so if alerts are added/modified you need to add/modify alerts tests for workflow to finish succesfully.
-For testing vmalert-tool is used, so test file should be written according to: https://docs.victoriametrics.com/victoriametrics/vmalert-tool/
-Many examples can be found in existing ./test/alerts-tests/test.yaml file.
+The repository contains a workflow that tests alerts, so when you add or modify an alert, add or modify its tests as
+well for the workflow to finish successfully. Tests run through `vmalert-tool`, so write the test file according to the
+[vmalert-tool documentation](https://docs.victoriametrics.com/victoriametrics/vmalert-tool/). The existing
+`./test/alerts-tests/test.yaml` file holds many examples.
 
-Test file is located in ./test/alerts-tests/test.yaml.
-This file should contain minimum 2 tests for each alert (one for alert to fire and one for alets not to fire). It`s checked by ./test/alerts-tests/tests-checker.sh script.
-If less than 2 tests for each alert exists - script will list such alerts in the workflow output and workflow will fail. However it will check configured alerts in the same run.
+The test file is located at `./test/alerts-tests/test.yaml`. It must contain at least two tests for each alert: one for
+the alert to fire and one for it not to fire. The `./test/alerts-tests/tests-checker.sh` script checks this. If an alert
+has fewer than two tests, the script lists it in the workflow output and the workflow fails. The script still checks the
+configured alerts in the same run.
 
-Workflow support 2 points, where alerts can be located: 
+The workflow supports two locations for alerts:
 
-1. helm subchart: ./charts/qubership-monitoring-operator/charts/prometheus-rules
-2. assets: ./controllers/prometheus-rules/assets/prometheus-rules.yaml
+1. Helm subchart: `./charts/qubership-monitoring-operator/charts/prometheus-rules`
+2. Assets: `./controllers/prometheus-rules/assets/prometheus-rules.yaml`
 
-If helm subchart folder is detected - workflow will render alerts from it and ignore assets, otherwise it will use alerts from assets.
-```
+If the Helm subchart directory is detected, the workflow renders alerts from it and ignores the assets. Otherwise it
+uses the alerts from the assets.

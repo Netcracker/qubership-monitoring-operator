@@ -1,0 +1,131 @@
+name: Validate Renovate Config
+
+on:
+  push:
+    paths:
+      - .github/scripts/test-renovate-operator-groups.mjs
+      - renovate.json
+      - .github/workflows/renovate-config-lint.yaml
+      - Makefile
+      - charts/qubership-monitoring-operator/templates/_images.tpl
+      - controllers/victoriametrics/vmoperator/assets/deployment.yaml
+      - go.mod
+  pull_request:
+    paths:
+      - .github/scripts/test-renovate-operator-groups.mjs
+      - renovate.json
+      - .github/workflows/renovate-config-lint.yaml
+      - Makefile
+      - charts/qubership-monitoring-operator/templates/_images.tpl
+      - controllers/victoriametrics/vmoperator/assets/deployment.yaml
+      - go.mod
+  schedule:
+    - cron: "30 7 * * 1"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  validate-renovate-config:
+    name: Validate renovate.json
+    runs-on: ubuntu-latest
+    outputs:
+      reason: ${{ steps.validate.outputs.reason }}
+    container:
+      image: renovate/renovate:43.288.0@sha256:3b72fc4274c56f65f53dcd4dcbed3143289358e0a2d96f7af215e6cf1923e5f6
+      options: --user 0
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate configuration and resolve shared presets
+        id: validate
+        uses: netcracker/qubership-workflow-hub/actions/renovate-validate@288a6a0d9a78e80dfdefccab1be6497a39deb746 # v2.8.0
+        env:
+          GITHUB_COM_TOKEN: ${{ github.token }}
+
+      - name: Test managed operator groups
+        shell: bash
+        env:
+          GITHUB_COM_TOKEN: ${{ github.token }}
+          LOG_FORMAT: json
+          LOG_LEVEL: debug
+          RENOVATE_CONFIG: >-
+            {"includePaths":["Makefile","charts/qubership-monitoring-operator/templates/_images.tpl","controllers/victoriametrics/vmoperator/assets/deployment.yaml","go.mod"]}
+          RENOVATE_ENABLED_MANAGERS: custom.regex,gomod
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+
+          if ! renovate --platform=local --dry-run=extract > "$log_file" 2>&1; then
+            cat "$log_file"
+            exit 1
+          fi
+
+          node .github/scripts/test-renovate-operator-groups.mjs "$log_file"
+
+  lookup-renovate-dependencies:
+    # Set the Actions variable RENOVATE_HEALTH_CHECK to false when this
+    # repository intentionally does not run Renovate. Validation remains active
+    # so local and inherited configuration errors are still reported.
+    name: Look up Renovate dependencies
+    if: >-
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      && vars.RENOVATE_HEALTH_CHECK != 'false'
+    runs-on: ubuntu-latest
+    outputs:
+      reason: ${{ steps.lookup.outputs.reason }}
+    container:
+      image: renovate/renovate:43.288.0@sha256:3b72fc4274c56f65f53dcd4dcbed3143289358e0a2d96f7af215e6cf1923e5f6
+      options: --user 0
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Look up dependencies
+        id: lookup
+        uses: netcracker/qubership-workflow-hub/actions/renovate-lookup@288a6a0d9a78e80dfdefccab1be6497a39deb746 # v2.8.0
+        env:
+          GITHUB_COM_TOKEN: ${{ github.token }}
+
+  monitor-renovate:
+    name: Monitor Renovate health
+    if: >-
+      ${{ !cancelled()
+      && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      && vars.RENOVATE_HEALTH_CHECK != 'false' }}
+    needs:
+      - validate-renovate-config
+      - lookup-renovate-dependencies
+    runs-on: ubuntu-latest
+    concurrency:
+      group: renovate-health-${{ github.repository }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Inspect Dependency Dashboard and report health
+        uses: netcracker/qubership-workflow-hub/actions/renovate-monitor@288a6a0d9a78e80dfdefccab1be6497a39deb746 # v2.8.0
+        with:
+          validation-result: ${{ needs.validate-renovate-config.result }}
+          lookup-result: ${{ needs.lookup-renovate-dependencies.result }}
+          validation-reason: ${{ needs.validate-renovate-config.outputs.reason }}
+          lookup-reason: ${{ needs.lookup-renovate-dependencies.outputs.reason }}

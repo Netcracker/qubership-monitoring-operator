@@ -8,21 +8,22 @@ Verify the following requirements before installation:
 
 ### System Requirements
 
-* **Kubernetes**: Version 1.19+ or OpenShift 3.11+
-* **CLI Tools**: `kubectl` 1.19+ or `oc` 3.11+
-* **Package Manager**: Helm 3.0+
-* **Namespace**: Target namespace must be created before installation
-* **Permissions**: Sufficient rights to deploy in the target project (see [Permissions](#permissions))
+- **Kubernetes**: Version 1.19+ or OpenShift 3.11+
+- **Command-line tools**: `kubectl` 1.19+ or `oc` 3.11+
+- **Package Manager**: Helm 3.0+
+- **Namespace**: Target namespace must be created before installation
+- **Permissions**: Sufficient rights to deploy in the target project (see [Permissions](#permissions))
 
 ### Important Notes
 
-* If you disable CRD upgrade automation, you need to apply ALL CRDs before installation
-* If updating an existing deployment, read the [Maintenance Guide](../maintenance.md) first
-* Pod Security Policy restrictions may affect `node-exporter` pods - add privileged PSP ClusterRole if needed
-* If other Prometheus/VictoriaMetrics instances exist, check namespace scope restrictions
-* For OpenShift deployments, verify the namespace has an empty `node-selector`
+- If you disable CRD upgrade automation, you need to apply ALL CRDs before installation
+- If updating an existing deployment, read the [Maintenance Guide](../maintenance.md) first
+- Pod Security Policy restrictions may affect `node-exporter` pods - add privileged PSP ClusterRole if needed
+- If other Prometheus/VictoriaMetrics instances exist, check namespace scope restrictions
+- For OpenShift deployments, verify the namespace has an empty `node-selector`
 
 Example OpenShift namespace check:
+
 ```bash
 $ oc describe namespace <namespace>
 Name:         <namespace>
@@ -75,20 +76,21 @@ The `monitoring-operator` service account requires ClusterRole permissions for v
 
 Components that require ClusterRole creation:
 
-* `prometheus` / `prometheus-operator`
-* `grafana-operator`
-* `kube-state-metrics`
-* `node-exporter`
-* `cert-exporter`
-* `cloudwatch-exporter`
-* `network-latency-exporter`
-* `prometheus-adapter-operator`
-* `version-exporter`
-* `vmoperator`
+- `prometheus` / `prometheus-operator`
+- `grafana-operator`
+- `kube-state-metrics`
+- `node-exporter`
+- `cert-exporter`
+- `cloudwatch-exporter`
+- `network-latency-exporter`
+- `prometheus-adapter-operator`
+- `version-exporter`
+- `vmoperator`
 
 ### Restricted Deployment
 
 The monitoring-operator supports deployment with restricted privileges:
+
 - Access limited to resources within the namespace
 - Restricted access to cluster-scoped resources
 - Manual privilege grants required for cluster-scoped resources and other namespaces
@@ -112,6 +114,7 @@ See [AWS EBS Volume Types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/e
     **Prometheus does NOT support** non-POSIX compliant storages like AWS EFS. Avoid EFS for Prometheus deployments.
 
 VictoriaMetrics supports EFS but requires proper throughput planning:
+
 - Avoid "Bursting" throughput mode
 - Use "Provisioned Throughput" (minimum 10 MB/s) or "Elastic Throughput"
 
@@ -121,11 +124,11 @@ VictoriaMetrics supports EFS but requires proper throughput planning:
 
 Current recommended Kubernetes version: **1.26.x**
 
-| Kubernetes Version     | Status           |
-| ---------------------- | ---------------- |
-| `1.24.x`               | Tested           |
-| `1.25.x`               | Tested           |
-| `1.26.x` (recommended) | Tested           |
+| Kubernetes Version     | Status             |
+| ---------------------- | ------------------ |
+| `1.24.x`               | Tested             |
+| `1.25.x`               | Tested             |
+| `1.26.x` (recommended) | Tested             |
 | `1.27.x`               | Forward compatible |
 | `1.28.x`               | Forward compatible |
 
@@ -134,10 +137,10 @@ Current recommended Kubernetes version: **1.26.x**
 | Platform                                 | Support |
 | ---------------------------------------- | ------- |
 | AWS Elastic Kubernetes Service (AWS EKS) | ✓       |
-| Azure Kubernetes Service (AKS)          | ✓       |
-| Google Kubernetes Engine (GKE)          | ✓       |
-| On-premise Kubernetes >= 1.25           | ✓       |
-| On-premise OpenShift >= 4.10            | ✓       |
+| Azure Kubernetes Service (AKS)           | ✓       |
+| Google Kubernetes Engine (GKE)           | ✓       |
+| On-premise Kubernetes >= 1.25            | ✓       |
+| On-premise OpenShift >= 4.10             | ✓       |
 
 ### Legacy Version Support
 
@@ -145,12 +148,12 @@ For older Kubernetes/OpenShift versions:
 
 | Kubernetes  | Last Supported Monitoring Version |
 | ----------- | --------------------------------- |
-| `< v1.25.0` | `0.46.0`                         |
-| `< v1.18.0` | `0.26.0`                         |
+| `< v1.25.0` | `0.46.0`                          |
+| `< v1.18.0` | `0.26.0`                          |
 
 | OpenShift | Last Supported Monitoring Version |
 | --------- | --------------------------------- |
-| `v3.11.0` | `0.46.0`                         |
+| `v3.11.0` | `0.46.0`                          |
 
 ## Next Steps
 
@@ -158,4 +161,4 @@ After verifying prerequisites:
 
 1. Review [Basic Components](basic-components.md) to understand what will be installed
 2. Configure [Storage](storage.md) for persistent data
-3. Proceed with [Deployment](deploy.md) 
+3. Proceed with [Deployment](deploy.md)

@@ -1,0 +1,62 @@
+{{- if .Values.cleanup.deleteCRs -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "vm.cleanup.rbac.fullname" . }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" (include "vm.cleanup.rbac.fullname" .)) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-failed
+    "helm.sh/resource-policy": keep
+spec:
+  {{- if .Values.cleanup.hook.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.cleanup.hook.ttlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      name: {{ include "vm.cleanup.rbac.fullname" . }}
+      labels:
+        {{- include "monitoring.labels" (dict "ctx" . "name" (include "vm.cleanup.rbac.fullname" .)) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "vm.cleanup.rbac.fullname" . }}
+      restartPolicy: OnFailure
+      {{- with .Values.cleanup.hook.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cleanup.hook.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cleanup.hook.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{ include "vm.cleanup.securityContext" . }}
+      containers:
+        - name: kubectl
+          image: {{ include "vm.cleanup.image" . }}
+          imagePullPolicy: IfNotPresent
+          {{- with .Values.cleanup.hook.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.cleanup.hook.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - >
+              set -eu;
+              kubectl scale deployment --replicas=0 --selector app.kubernetes.io/component=qubership-monitoring-operator;
+              sleep {{ .Values.cleanup.hook.timeout | default "10" }};
+              kubectl delete vmsingles --all --ignore-not-found=true --wait=true
+              --cascade=orphan --timeout={{ .Values.cleanup.hook.deleteTimeout }};
+              kubectl delete vmusers,vmauths,vmalerts,vmagents,vmalertmanagers,vmclusters
+              --all --ignore-not-found=true --wait=true --timeout={{ .Values.cleanup.hook.deleteTimeout }};
+{{- end -}}

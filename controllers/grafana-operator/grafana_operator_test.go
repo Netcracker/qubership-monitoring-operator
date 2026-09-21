@@ -1,13 +1,18 @@
 package grafana_operator
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 var (
@@ -68,6 +73,21 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		assert.Nil(t, m.GetAnnotations())
 		assert.Nil(t, m.Spec.Template.Annotations)
 	})
+	t.Run("Test Deployment manifest is namespace scoped without privileged rights", func(t *testing.T) {
+		privilegedRights := utils.PrivilegedRights
+		utils.PrivilegedRights = false
+		t.Cleanup(func() {
+			utils.PrivilegedRights = privilegedRights
+		})
+
+		m, err := grafanaOperatorDeployment(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, cr.GetNamespace(), containerEnvValue(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName, "WATCH_NAMESPACE"))
+		assert.Empty(t, containerEnvValue(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName, "WATCH_NAMESPACE_SELECTOR"))
+	})
 	t.Run("Test ServiceAccount manifest", func(t *testing.T) {
 		crWithSALabels := &monv1.PlatformMonitoring{
 			ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
@@ -109,6 +129,11 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "Role manifest should not be empty")
+		assert.True(t, roleContainsRule(m, "", "events", []string{"create", "patch"}))
+		assert.True(t, roleContainsRule(m, "events.k8s.io", "events", []string{"create", "patch"}))
+		assert.True(t, roleContainsRule(m, "gateway.networking.k8s.io", "httproutes", []string{"get", "list", "watch", "create", "update", "patch", "delete"}))
+		assert.True(t, roleContainsRule(m, "grafana.integreatly.org", "grafanamanifests", []string{"get", "list", "watch", "create", "update", "patch", "delete"}))
+		assert.True(t, roleContainsRule(m, "grafana.integreatly.org", "grafanamanifests/status", []string{"get", "list", "watch", "create", "update", "patch", "delete"}))
 	})
 	t.Run("Test RoleBinding manifest", func(t *testing.T) {
 		m, err := grafanaOperatorRoleBinding(cr)
@@ -124,6 +149,7 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 				t.Fatal(err)
 			}
 			assert.NotNil(t, m, "GrafanaDashboard manifest should not be empty")
+			assert.Equal(t, 10*time.Minute, m.Spec.ResyncPeriod.Duration)
 		}
 	})
 	crWithLabels := &monv1.PlatformMonitoring{
@@ -140,4 +166,86 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 		assert.NotNil(t, m, "PodMonitor manifest should not be empty")
 		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.GrafanaOperatorComponentName, "victoriametrics-operator", map[string]string{labelKey: labelValue})
 	})
+}
+
+func TestGrafanaOperatorLeaderElect(t *testing.T) {
+	base := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{Operator: monv1.GrafanaOperator{}},
+		},
+	}
+
+	t.Run("omits flag when unset", func(t *testing.T) {
+		m, err := grafanaOperatorDeployment(base)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Empty(t, leaderElectFlags(containerArgs(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName)))
+	})
+	t.Run("passes --leader-elect=true", func(t *testing.T) {
+		cr := base.DeepCopy()
+		cr.Spec.Grafana.Operator.LeaderElect = ptr.To(true)
+		m, err := grafanaOperatorDeployment(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, []string{"--leader-elect=true"}, leaderElectFlags(containerArgs(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName)))
+	})
+	t.Run("passes --leader-elect=false", func(t *testing.T) {
+		cr := base.DeepCopy()
+		cr.Spec.Grafana.Operator.LeaderElect = ptr.To(false)
+		m, err := grafanaOperatorDeployment(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, []string{"--leader-elect=false"}, leaderElectFlags(containerArgs(m.Spec.Template.Spec.Containers, utils.GrafanaOperatorComponentName)))
+	})
+}
+
+func containerArgs(containers []corev1.Container, containerName string) []string {
+	for _, container := range containers {
+		if container.Name == containerName {
+			return container.Args
+		}
+	}
+	return nil
+}
+
+func leaderElectFlags(args []string) []string {
+	var out []string
+	for _, arg := range args {
+		if arg == "--leader-elect" || strings.HasPrefix(arg, "--leader-elect=") {
+			out = append(out, arg)
+		}
+	}
+	return out
+}
+
+func containerEnvValue(containers []corev1.Container, containerName, envName string) string {
+	for _, container := range containers {
+		if container.Name != containerName {
+			continue
+		}
+		for _, env := range container.Env {
+			if env.Name == envName {
+				return env.Value
+			}
+		}
+	}
+	return ""
+}
+
+func roleContainsRule(role *rbacv1.Role, apiGroup, resource string, verbs []string) bool {
+	for _, rule := range role.Rules {
+		if !assert.ObjectsAreEqual([]string{apiGroup}, rule.APIGroups) {
+			continue
+		}
+		for _, candidate := range rule.Resources {
+			if candidate == resource {
+				return assert.ObjectsAreEqualValues(verbs, rule.Verbs)
+			}
+		}
+	}
+	return false
 }

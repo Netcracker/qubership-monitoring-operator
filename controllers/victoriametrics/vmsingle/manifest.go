@@ -60,7 +60,7 @@ func vmSingleClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rb
 		})
 	}
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmSingleComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmSingleComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -82,7 +82,7 @@ func vmSingleClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRo
 		sub.Name = cr.GetNamespace() + "-" + utils.VmSingleComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmSingleComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmSingleComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }
@@ -188,7 +188,7 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 			} else {
 				vmAlert.Spec.Port = "8080"
 			}
-			maps.Copy(vmsingle.Spec.ExtraArgs, map[string]string{"vmalert.proxyURL": vmAlert.AsURL()})
+			maps.Copy(vmsingle.Spec.ExtraArgs, map[string]string{"vmalert.proxyURL": vmAlert.AsURL(false)})
 		}
 
 		if cr.Spec.Victoriametrics.VmAgent.Replicas != nil && *cr.Spec.Victoriametrics.VmAgent.Replicas > 1 {

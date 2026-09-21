@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/part-of: monitoring
     app.kubernetes.io/managed-by: monitoring-operator
 spec:
+  resyncPeriod: 10m
   instanceSelector:
     matchLabels:
       app.kubernetes.io/component: grafana

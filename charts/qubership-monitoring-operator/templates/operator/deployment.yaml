@@ -49,6 +49,7 @@ spec:
           command: ["/manager"]
           args:
             - '--privilegedRights={{ .Values.global.privilegedRights }}'
+            - '--leader-elect={{ .Values.monitoringOperator.leaderElect | default false }}'
             {{- if .Values.monitoringOperator.pprof }}
             - '--pprof-enable={{ .Values.monitoringOperator.pprof.install }}'
             - '--pprof-address=:{{ .Values.monitoringOperator.pprof.service.port }}'

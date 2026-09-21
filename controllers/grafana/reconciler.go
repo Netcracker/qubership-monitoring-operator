@@ -24,6 +24,7 @@ func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
 
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
+	config     *rest.Config
 	*utils.ComponentReconciler
 }
 
@@ -37,6 +38,7 @@ func NewGrafanaReconciler(c client.Client, s *runtime.Scheme, dc discovery.Disco
 			Log:    utils.Logger("grafana_reconciler"),
 		},
 		KubeClient: cl,
+		config:     r,
 	}
 }
 
@@ -115,6 +117,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
+			// Grafana reads the admin credentials from the mounted Secret at startup, so a manually
+			// changed secret value takes effect only after the Grafana pod restarts.
+			// resetGrafanaCredentials updates them in place but is not triggered automatically.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")

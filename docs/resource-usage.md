@@ -59,7 +59,6 @@ of CR/CRD. The main part of components in this group it is operators. Operators 
 * [prometheus-operator](#prometheus-operator)
 * [prometheus-adapter-operator](#prometheus-adapter-operator)
 * [vmOperator](#vmoperator)
-* [configuration-streamer](#configuration-streamer)
 
 ### 4. Count of users/requests
 
@@ -979,8 +978,8 @@ grafana:
 ### grafana-operator
 
 The `grafana-operator` is a Kubernetes operator built to help you manage your Grafana instances in and outside of
-Kubernetes. Resource usage for grafana-operator depends on count of grafana custom resources - Grafana, GrafanaDashboard,
-GrafanaDataSource, GrafanaFolder, GrafanaNotificationChannel.
+Kubernetes. Resource usage for grafana-operator depends on the number of Grafana custom resources, including Grafana,
+GrafanaDashboard, GrafanaDatasource, GrafanaFolder, and GrafanaContactPoint.
 
 <table>
   <tr>

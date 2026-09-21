@@ -34,6 +34,12 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/eviction
+    verbs:
+      - create
 
   # apps
   # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
@@ -55,6 +61,27 @@ rules:
       - update
       - patch
       - watch
+  - apiGroups:
+      - apps
+    resources:
+      - replicasets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets/status
+      - deployments/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
 
   # rbac.authorization.k8s.io
   # This is needed for role and rolebinding creation
@@ -68,6 +95,7 @@ rules:
       - delete
       - get
       - list
+      - patch
       - update
       - watch
 
@@ -83,8 +111,79 @@ rules:
       - delete
       - get
       - list
+      - patch
       - update
       - watch
+
+  # policy
+  # This is needed for pod disruption budget creation
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+      - poddisruptionbudgets/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+
+  # autoscaling
+  # This is needed for horizontal pod autoscaler creation
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # autoscaling.k8s.io
+  # This is needed for vertical pod autoscaler creation
+  - apiGroups:
+      - autoscaling.k8s.io
+    resources:
+      - verticalpodautoscalers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
+  # discovery.k8s.io
+  # This is needed for EndpointSlice discovery
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+
+  # gateway.networking.k8s.io
+  # This is needed for HTTPRoute creation when VM_GATEWAY_API_ENABLED is set.
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+
   # Permissions to handle Ingresses finalizers
   - apiGroups:
       - extensions
@@ -109,6 +208,39 @@ rules:
       - create
       - get
       - update
+
+  # monitoring.coreos.com
+  # This is needed for reading Prometheus Operator custom resources.
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - alertmanagerconfigs
+      - podmonitors
+      - probes
+      - prometheusrules
+      - scrapeconfigs
+      - servicemonitors
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - alertmanagerconfigs/finalizers
+      - podmonitors/finalizers
+      - probes/finalizers
+      - prometheusrules/finalizers
+      - servicemonitors/finalizers
+      - thanosrulers/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
 
   # operator.victoriametrics.com
   # This is needed for managing VictoriaMetrics custom resources
@@ -145,6 +277,7 @@ rules:
       - vmauths
       - vmclusters
       - vmdistributed
+      - vmanomalyconfigs
       - vmsingles
       - vmusers
       - vtclusters
@@ -184,6 +317,8 @@ rules:
       - vmclusters/status
       - vmdistributed/finalizers
       - vmdistributed/status
+      - vmanomalyconfigs/finalizers
+      - vmanomalyconfigs/status
       - vmnodescrapes/finalizers
       - vmnodescrapes/status
       - vmpodscrapes/finalizers

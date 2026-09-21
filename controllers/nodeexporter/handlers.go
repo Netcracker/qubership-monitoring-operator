@@ -1,8 +1,11 @@
 package nodeexporter
 
 import (
+	"fmt"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	secv1 "github.com/openshift/api/security/v1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -92,6 +95,97 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 	e.SetLabels(m.GetLabels())
 
 	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
+	m, err := nodeExporterSecurityContextConstraints(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
+		return err
+	}
+
+	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.CreateResource(cr, m, false); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+	if !isNodeExporterSCCOwnedBy(e, cr) {
+		return fmt.Errorf(
+			"cannot reconcile SecurityContextConstraints %q: it is not owned by PlatformMonitoring %s/%s",
+			e.GetName(),
+			cr.GetNamespace(),
+			cr.GetName(),
+		)
+	}
+	//Set parameters
+	e.SetLabels(m.GetLabels())
+	applyNodeExporterSCCPolicy(e, m)
+
+	if err = r.UpdateResource(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+func isNodeExporterSCCOwnedBy(scc *secv1.SecurityContextConstraints, cr *monv1.PlatformMonitoring) bool {
+	annotations := scc.GetAnnotations()
+	return annotations[nodeExporterSCCOwnerNameAnnotation] == cr.GetName() &&
+		annotations[nodeExporterSCCOwnerNamespaceAnnotation] == cr.GetNamespace()
+}
+
+func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) {
+	existing.AllowPrivilegedContainer = desired.AllowPrivilegedContainer
+	existing.DefaultAddCapabilities = desired.DefaultAddCapabilities
+	existing.RequiredDropCapabilities = desired.RequiredDropCapabilities
+	existing.AllowedCapabilities = desired.AllowedCapabilities
+	existing.AllowHostDirVolumePlugin = desired.AllowHostDirVolumePlugin
+	existing.Volumes = desired.Volumes
+	existing.AllowedFlexVolumes = desired.AllowedFlexVolumes
+	existing.AllowHostNetwork = desired.AllowHostNetwork
+	existing.AllowHostPorts = desired.AllowHostPorts
+	existing.AllowHostPID = desired.AllowHostPID
+	existing.AllowHostIPC = desired.AllowHostIPC
+	existing.DefaultAllowPrivilegeEscalation = desired.DefaultAllowPrivilegeEscalation
+	existing.AllowPrivilegeEscalation = desired.AllowPrivilegeEscalation
+	existing.SELinuxContext = desired.SELinuxContext
+	existing.RunAsUser = desired.RunAsUser
+	existing.SupplementalGroups = desired.SupplementalGroups
+	existing.FSGroup = desired.FSGroup
+	existing.ReadOnlyRootFilesystem = desired.ReadOnlyRootFilesystem
+	existing.SeccompProfiles = desired.SeccompProfiles
+	existing.AllowedUnsafeSysctls = desired.AllowedUnsafeSysctls
+	existing.ForbiddenSysctls = desired.ForbiddenSysctls
+}
+
+func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
+	m, err := nodeExporterSecurityContextConstraints(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed creating SecurityContextConstraints manifest")
+		return err
+	}
+	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
+	if err = r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	if !isNodeExporterSCCOwnedBy(e, cr) {
+		r.Log.Info(
+			"Skip deleting SecurityContextConstraints because it is owned by another installation",
+			"name", e.GetName(),
+		)
+		return nil
+	}
+	if err = r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

@@ -1,5 +1,6 @@
 ---
 name: Build Artifacts
+
 on:
   release:
     types: [created]
@@ -22,17 +23,6 @@ on:
   pull_request:
     branches:
     - '**'
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '.github/workflows/build.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
   workflow_dispatch:
     inputs:
       tags:
@@ -54,8 +44,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect build changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      build: ${{ steps.filter.outputs.build }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Match changed files against the build paths
+      id: filter
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        set -euo pipefail
+
+        if [[ "${GITHUB_EVENT_NAME}" != 'pull_request' ]]; then
+          echo 'build=true' >> "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        changed="$(git diff --no-renames --name-only "${BASE_SHA}...${HEAD_SHA}")"
+        echo "Changed files:"
+        printf '%s\n' "${changed}"
+
+        build=false
+        while IFS= read -r file; do
+          case "${file}" in
+            .github/workflows/build.yaml|.github/workflows/integration-tests.yaml)
+              build=true
+              break
+              ;;
+            .github/*|docs/*|CODE-OF-CONDUCT.md|CONTRIBUTING.md|LICENSE|README.md|SECURITY.md)
+              ;;
+            *)
+              build=true
+              break
+              ;;
+          esac
+        done <<< "${changed}"
+        echo "build=${build}" >> "${GITHUB_OUTPUT}"
+
   multiplatform_build:
-    if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
+    needs: [changes]
+    permissions:
+      contents: read
+      packages: write
+    if: needs.changes.outputs.build == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -79,7 +120,9 @@ jobs:
     name: ${{ matrix.component.name }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v6.0.2
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Set image name
       run: |
         OWNER="${{ github.repository_owner }}"
@@ -89,7 +132,7 @@ jobs:
         IMAGE_NAME: '${{ github.repository }}'
     - name: Docker meta
       id: meta
-      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
       with:
         images: "${{ env.FULL_IMAGE_NAME }}"
         tags: |
@@ -106,17 +149,17 @@ jobs:
         annotations: |
           org.opencontainers.image.description=${{ matrix.component.description }}
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v4
+      uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v4
+      uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
     - name: Login to Docker Hub
-      uses: docker/login-action@v4
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build and push
-      uses: docker/build-push-action@v7
+      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
       with:
         no-cache: true
         context: ${{ matrix.component.context }}
@@ -134,3 +177,16 @@ jobs:
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
+  build-gate:
+    name: Build Gate
+    needs: [changes, multiplatform_build]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+    - name: Require the expected build result
+      if: >-
+        needs.changes.result != 'success' ||
+        (needs.changes.outputs.build != 'false' && needs.multiplatform_build.result != 'success')
+      run: exit 1
