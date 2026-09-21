@@ -9,7 +9,7 @@ on:
 
 jobs:
   Nightly-Monitoring-Pipeline:
-    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@edbd2ff8ec59df921e28f1311d42e0a974f19391 # v1.14.2
+    uses: netcracker/qubership-test-pipelines/.github/workflows/monitoring.yaml@e1905f040398e9ae733b0cefa7e7793b6204ecfe # v1.16.0
     with:
       service_branch: main
       pipeline_branch: 'edbd2ff8ec59df921e28f1311d42e0a974f19391' # v1.14.2 renovate: depName=Netcracker/qubership-test-pipelines
