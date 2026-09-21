@@ -44,15 +44,25 @@ type grafanaDataStorage struct {
 // opt-out gate for operator-managed config sections, and derive server.root_url from
 // spec.grafana.ingress.host as an overridable default.
 
+// grafanaOperatorSubject returns the service account subject that grafana-operator presents in
+// its projected JWT. It must track the ServiceAccount name set by grafanaOperatorServiceAccount.
+func grafanaOperatorSubject(operatorNamespace string) string {
+	operatorSA := operatorNamespace + "-" + utils.GrafanaOperatorComponentName
+	return fmt.Sprintf("system:serviceaccount:%s:%s", operatorNamespace, operatorSA)
+}
+
 // configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
 // without GF_SECURITY_ADMIN_* environment variables (admin credentials are file-based in Grafana).
 func configureGrafanaOperatorKubeAuth(graf *grafv1.Grafana, operatorNamespace string) {
 	graf.Spec.Client = &grafv1.GrafanaClient{UseKubeAuth: true}
 
-	operatorSA := operatorNamespace + "-" + utils.GrafanaOperatorComponentName
+	// Match the subject exactly. A substring match (contains) would also accept any service
+	// account whose name merely extends the operator's, such as "<ns>-grafana-operator-evil",
+	// handing Grafana admin to any workload that can request the operator.grafana.com audience.
+	// Namespace and ServiceAccount names are DNS labels, so the literal needs no escaping.
 	rolePath := fmt.Sprintf(
-		"contains(sub, 'system:serviceaccount:%s:%s') && 'GrafanaAdmin' || 'None'",
-		operatorNamespace, operatorSA,
+		"sub == '%s' && 'GrafanaAdmin' || 'None'",
+		grafanaOperatorSubject(operatorNamespace),
 	)
 
 	jwt := ensureGrafanaConfigSection(graf, "auth.jwt")

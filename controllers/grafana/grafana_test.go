@@ -682,6 +682,60 @@ func TestMigrateLegacyGrafanaResourcesSkipsFreshInstall(t *testing.T) {
 	))
 }
 
+func TestConfigureGrafanaOperatorKubeAuth(t *testing.T) {
+	const namespace = "monitoring"
+
+	graf := &grafv1.Grafana{}
+	configureGrafanaOperatorKubeAuth(graf, namespace)
+
+	require.NotNil(t, graf.Spec.Client)
+	assert.True(t, graf.Spec.Client.UseKubeAuth)
+
+	jwt := graf.Spec.Config["auth.jwt"]
+	require.NotNil(t, jwt, "auth.jwt section should be configured")
+	assert.Equal(t, "true", jwt["enabled"])
+	assert.Equal(t, "sub", jwt["username_claim"])
+	assert.Equal(t, "true", jwt["role_attribute_strict"])
+	assert.Equal(t, `{"aud": ["operator.grafana.com"]}`, jwt["expect_claims"])
+
+	rolePath := jwt["role_attribute_path"]
+
+	t.Run("grants GrafanaAdmin only on an exact subject match", func(t *testing.T) {
+		expected := "sub == 'system:serviceaccount:monitoring:monitoring-grafana-operator'" +
+			" && 'GrafanaAdmin' || 'None'"
+		assert.Equal(t, expected, rolePath)
+	})
+
+	t.Run("does not use substring matching", func(t *testing.T) {
+		// contains() would accept any subject that merely extends the operator's, which is a
+		// privilege escalation path into Grafana admin.
+		assert.NotContains(t, rolePath, "contains(",
+			"role_attribute_path must compare the subject exactly, not by substring")
+	})
+
+	t.Run("rejects a subject that extends the operator service account", func(t *testing.T) {
+		subject := grafanaOperatorSubject(namespace)
+		nearMatch := subject + "-evil"
+
+		// The rule admits exactly one subject: anything else, including a near match that would
+		// satisfy contains(), falls through to 'None'.
+		assert.Contains(t, rolePath, "sub == '"+subject+"'")
+		assert.NotContains(t, rolePath, nearMatch)
+		assert.NotEqual(t, subject, nearMatch)
+	})
+}
+
+func TestGrafanaOperatorSubject(t *testing.T) {
+	// The subject must track the ServiceAccount name that grafanaOperatorServiceAccount sets,
+	// which is "<namespace>-grafana-operator".
+	assert.Equal(t,
+		"system:serviceaccount:monitoring:monitoring-grafana-operator",
+		grafanaOperatorSubject("monitoring"))
+	assert.Equal(t,
+		"system:serviceaccount:platform:platform-grafana-operator",
+		grafanaOperatorSubject("platform"))
+}
+
 func ptr[T any](value T) *T {
 	return &value
 }
