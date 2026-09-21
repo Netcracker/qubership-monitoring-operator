@@ -117,9 +117,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// To apply a manually changed secret value, restart the Grafana pod (new env var values
-			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
-			// available but not triggered automatically; it can be invoked for in-place credential updates.
+			// Grafana reads the admin credentials from the mounted Secret at startup, so a manually
+			// changed secret value takes effect only after the Grafana pod restarts.
+			// resetGrafanaCredentials updates them in place but is not triggered automatically.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
