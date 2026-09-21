@@ -1,0 +1,27 @@
+{{- if include "vm.mcp.enabled" . }}
+{{- $name := include "vm.mcp.fullname" . }}
+{{- $servicePort := default 8080 .Values.mcp.service.port }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-victoriametrics") | nindent 4 }}
+    app: {{ $name }}
+    {{- if .Values.mcp.service.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.service.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.service.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.mcp.service.type }}
+  ports:
+    - name: http
+      port: {{ $servicePort }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: {{ $name }}
+{{- end }}

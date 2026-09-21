@@ -1,0 +1,34 @@
+{{- if and (include "vm.mcp.enabled" .) .Values.mcp.serviceMonitor.install }}
+{{- $name := include "vm.mcp.fullname" . }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-victoriametrics") | nindent 4 }}
+    app: {{ $name }}
+    {{- if .Values.mcp.serviceMonitor.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.serviceMonitor.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.serviceMonitor.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.mcp.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.mcp.serviceMonitor.scrapeTimeout }}
+      {{- if .Values.mcp.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml .Values.mcp.serviceMonitor.metricRelabelings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml .Values.mcp.serviceMonitor.relabelings | nindent 8 }}
+      {{- end }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+{{- end }}
