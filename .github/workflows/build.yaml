@@ -70,6 +70,7 @@ jobs:
           exit 0
         fi
 
+        # Capture git diff before iterating so a failed listing cannot yield build=false.
         changed="$(git diff --no-renames --name-only "${BASE_SHA}...${HEAD_SHA}")"
         echo "Changed files:"
         printf '%s\n' "${changed}"
@@ -77,11 +78,11 @@ jobs:
         build=false
         while IFS= read -r file; do
           case "${file}" in
-            .github/workflows/build.yaml|.github/workflows/integration-tests.yaml)
+            .github/workflows/build.yaml|.github/workflows/integration-tests.yaml|docs|docs/*|.dockerignore)
               build=true
               break
               ;;
-            .github/*|docs/*|CODE-OF-CONDUCT.md|CONTRIBUTING.md|LICENSE|README.md|SECURITY.md)
+            .github/*|CODE-OF-CONDUCT.md|CONTRIBUTING.md|LICENSE|README.md|SECURITY.md)
               ;;
             *)
               build=true
@@ -95,7 +96,7 @@ jobs:
     needs: [changes]
     permissions:
       contents: read
-      packages: write
+      packages: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
     if: needs.changes.outputs.build == 'true'
     strategy:
       fail-fast: false
@@ -152,7 +153,8 @@ jobs:
       uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-    - name: Login to Docker Hub
+    - name: Login to GHCR
+      if: github.event_name != 'pull_request'
       uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
       with:
         registry: ghcr.io
@@ -165,15 +167,7 @@ jobs:
         context: ${{ matrix.component.context }}
         file: ${{ matrix.component.file }}
         platforms: linux/amd64,linux/arm64
-        # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
-        push: >-
-          ${{
-            (github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]') &&
-            (
-            (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
-            github.ref == 'refs/heads/main' || github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' || github.event_name == 'release'
-            )
-          }}
+        push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]' }}
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
