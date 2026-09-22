@@ -536,6 +536,9 @@ verify_rendered_resource_count "${rendered_manifest}" \
     .metadata.labels."app.kubernetes.io/component" == "etcd-certs-to-secret" and
     .metadata.annotations."helm.sh/hook-delete-policy" == "before-hook-creation,hook-failed"' \
     1 "revision-scoped etcd certificate hook Jobs with safe replacement policy"
+verify_rendered_resource_count "${rendered_manifest}" \
+    '(.metadata.name // "") | test("^etcd-certs-to-secret")' \
+    7 "etcd certificate job resources in privileged mode"
 "${yq_binary}" eval-all \
     'select(.kind == "Role" and .metadata.name == "default-cleanup-hook")' \
     "${rendered_manifest}" >"${cleanup_role_manifest}"
@@ -785,6 +788,9 @@ verify_rendered_resource_count "${rendered_manifest}" \
 verify_rendered_resource_count "${rendered_manifest}" \
     '.metadata.name == "monitoring-rbac-cleanup-hook"' \
     0 "post-delete cluster RBAC cleanup resources in non-privileged mode"
+verify_rendered_resource_count "${rendered_manifest}" \
+    '(.metadata.name // "") | test("^etcd-certs-to-secret")' \
+    0 "etcd certificate job resources in non-privileged mode"
 
 helm template monitoring "${chart_dir}" \
     --set victoriametrics.cleanup.deleteCRs=false \
