@@ -57,7 +57,8 @@ The monitoring operator requires cluster-level permissions to create and manage 
 - Various exporters and monitors
 
 A ClusterRole must be granted to the monitoring-operator service account with all required permissions.
-Alternatively, the operator can be deployed with restricted privileges, but additional manual setup is required.
+For restricted operator reconciliation and administrator-owned RBAC exceptions, see
+[Restricted Mode Installation](restricted-mode.md).
 
 ## Hardware Requirements
 
