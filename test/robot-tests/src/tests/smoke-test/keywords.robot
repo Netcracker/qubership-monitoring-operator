@@ -123,25 +123,17 @@ Check Daemon Set State With Prerequisite
 
 Check Daemon Set State
     [Arguments]  ${name}
-    ${pods_in_namespace}=  Get Pods  ${namespace}
-    ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
-    ${daemon_set}=  Get Daemon Set  ${name}  ${namespace}
-    Check Pod's List Is Equals  ${pod_in_namespace}  ${daemon_set.status.desired_number_scheduled}
+    Get Daemon Set  ${name}  ${namespace}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Status Of Pods  ${pod_in_namespace}
+    ...  Daemon Set Is Rolled Out And Pods Are Running  ${name}
     RETURN  ${flag}
 
 Check Daemon Set And Deployment State For Cert Exporter
     [Arguments]  ${name}
-    ${daemon_set}=  Get Daemon Set  ${name}  ${namespace}
-    ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
-    ${pods_in_namespace}=  Get Pods  ${namespace}
-    ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
-    ${expected_sum_pods}=  Evaluate
-    ...  ${daemon_set.status.desired_number_scheduled}+${deployment.spec.replicas}
-    Check Pod's List Is Equals  ${pod_in_namespace}  ${expected_sum_pods}
+    Get Daemon Set  ${name}  ${namespace}
+    Get Deployment Entity  ${name}  ${namespace}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Status Of Pods  ${pod_in_namespace}
+    ...  Cert Exporter Is Rolled Out And Pods Are Running  ${name}
     RETURN  ${flag}
 
 Check Deployment State With Prerequisite
@@ -150,14 +142,13 @@ Check Deployment State With Prerequisite
     ${flag}=  Run Keyword If  ${status_check_object}==True  Check Deployment State  ${name}
     RETURN  ${flag}
 
+# The workload is fetched once up front so that a missing one fails immediately; only its rollout
+# and pods are waited for, within a single RETRY_TIME budget.
 Check Deployment State
     [Arguments]  ${name}
-    ${pods_in_namespace}=  Get Pods  ${namespace}
-    ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
-    ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
-    Check Pod's List Is Equals  ${pod_in_namespace}  ${deployment.spec.replicas}
+    Get Deployment Entity  ${name}  ${namespace}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Status Of Pods  ${pod_in_namespace}
+    ...  Deployment Is Rolled Out And Pods Are Running  ${name}
     RETURN  ${flag}
 
 Check Stateful Set State With Prerequisite
@@ -168,12 +159,59 @@ Check Stateful Set State With Prerequisite
 
 Check Stateful Set State
     [Arguments]  ${name}
-    ${pods_in_namespace}=  Get Pods  ${namespace}
-    ${pod_in_namespace}  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
-    ${stateful_set}=  Get Stateful Set  ${name}  ${namespace}
-    Check Pod's List Is Equals  ${pod_in_namespace}  ${stateful_set.spec.replicas}
+    Get Stateful Set  ${name}  ${namespace}
     ${flag}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Status Of Pods  ${pod_in_namespace}
+    ...  Stateful Set Is Rolled Out And Pods Are Running  ${name}
+    RETURN  ${flag}
+
+# A rollout is complete when the controller has observed the current generation and every replica is
+# updated and available, the same conditions `kubectl rollout status` waits for. Checking pods before
+# that point races with the rolling update: the old pod is still Running while it terminates.
+# These keywords re-read the workload and the pod list on every call so that they can be retried.
+Deployment Is Rolled Out And Pods Are Running
+    [Arguments]  ${name}
+    ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
+    Rollout Is Complete  ${deployment}
+    ${flag}=  Check Workload Pods Are Running  ${name}  ${deployment.spec.replicas}
+    RETURN  ${flag}
+
+Stateful Set Is Rolled Out And Pods Are Running
+    [Arguments]  ${name}
+    ${stateful_set}=  Get Stateful Set  ${name}  ${namespace}
+    Rollout Is Complete  ${stateful_set}
+    ${flag}=  Check Workload Pods Are Running  ${name}  ${stateful_set.spec.replicas}
+    RETURN  ${flag}
+
+Daemon Set Is Rolled Out And Pods Are Running
+    [Arguments]  ${name}
+    ${daemon_set}=  Get Daemon Set  ${name}  ${namespace}
+    Rollout Is Complete  ${daemon_set}
+    ${flag}=  Check Workload Pods Are Running  ${name}  ${daemon_set.status.desired_number_scheduled}
+    RETURN  ${flag}
+
+Cert Exporter Is Rolled Out And Pods Are Running
+    [Arguments]  ${name}
+    ${daemon_set}=  Get Daemon Set  ${name}  ${namespace}
+    ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
+    Rollout Is Complete  ${daemon_set}
+    Rollout Is Complete  ${deployment}
+    ${expected_sum_pods}=  Evaluate
+    ...  ${daemon_set.status.desired_number_scheduled}+${deployment.spec.replicas}
+    ${flag}=  Check Workload Pods Are Running  ${name}  ${expected_sum_pods}
+    RETURN  ${flag}
+
+Rollout Is Complete
+    [Arguments]  ${workload}
+    ${reason}=  Describe Incomplete Rollout  ${workload}
+    Should Be Empty  ${reason}  ${reason}
+
+Check Workload Pods Are Running
+    [Arguments]  ${name}  ${expected_count}
+    ${pods_in_namespace}=  Get Pods  ${namespace}
+    ${pods}=  Get Object In Namespace By Mask  ${pods_in_namespace}  ${name}
+    ${pods}=  Exclude Terminating Pods  ${pods}
+    Check Pod's List Is Equals  ${pods}  ${expected_count}
+    ${flag}=  Check Status Of Pods  ${pods}
     RETURN  ${flag}
 
 Check Prometheus Config Status
