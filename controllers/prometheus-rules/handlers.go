@@ -2,6 +2,7 @@ package prometheus_rules
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
@@ -25,8 +26,11 @@ func (r *PrometheusRulesReconciler) handlePrometheusRules(cr *monv1.PlatformMoni
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec, m.Spec) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
