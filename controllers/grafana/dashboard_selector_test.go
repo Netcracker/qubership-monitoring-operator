@@ -90,6 +90,31 @@ func TestSelectDashboard(t *testing.T) {
 	assert.Equal(t, DashboardSelectionLeave, action, "SelectDashboard(namespace mismatch, not adopted)")
 }
 
+func TestGrafanaNamespace(t *testing.T) {
+	t.Parallel()
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{Namespace: "grafana"}},
+	}
+	assert.Equal(t, "grafana", GrafanaNamespace(cr))
+	cr.Spec.Grafana.Namespace = ""
+	assert.Equal(t, "monitoring", GrafanaNamespace(cr))
+}
+
+func TestSelectDashboardRejectsInvalidSelector(t *testing.T) {
+	t.Parallel()
+	bad := []*metav1.LabelSelector{{
+		MatchExpressions: []metav1.LabelSelectorRequirement{{
+			Key:      "app",
+			Operator: "NoSuch",
+		}},
+	}}
+	_, err := SelectDashboard(bad, nil, map[string]string{"app": "payments"}, nil, false, false)
+	require.Error(t, err)
+	_, err = DashboardLabelsMatch(bad, map[string]string{"app": "payments"})
+	require.Error(t, err)
+}
+
 func TestGrafanaDashboardInstanceLabels(t *testing.T) {
 	t.Parallel()
 	cr := &monv1.PlatformMonitoring{

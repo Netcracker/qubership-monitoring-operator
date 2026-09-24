@@ -1065,6 +1065,10 @@ func TestGrafanaLDAPSecretMount(t *testing.T) {
 	assert.Equal(t, "/etc/grafana-secrets/grafana-ldap-config", mount.MountPath)
 	assert.Equal(t, true, mount.ReadOnly)
 	assert.Nil(t, manifest.Spec.Config["auth.ldap"], "grafana() must not enable LDAP")
+
+	before := len(podSpec.Volumes)
+	ensureGrafanaLDAPSecretMount(podSpec, &podSpec.Containers[0])
+	assert.Equal(t, before, len(podSpec.Volumes), "ensureGrafanaLDAPSecretMount(existing mount)")
 }
 
 // grafanaWithDefaultSources builds the manifest as if both credential Secrets exist, which is
