@@ -386,9 +386,15 @@ spec:
       {{- end }}
       {{- if .Values.victoriametrics.vmOperator.extraEnvs }}
       {{- range .Values.victoriametrics.vmOperator.extraEnvs }}
+      {{- if or (ne .name "WATCH_NAMESPACE") (not $.Values.global.namespaceScope) }}
         - name: {{ .name }}
           value: {{ .value | quote }}
       {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.global.namespaceScope }}
+        - name: WATCH_NAMESPACE
+          value: {{ .Release.Namespace | quote }}
       {{- end }}
       image: {{ template "vm.operator.image" . }}
       resources:
@@ -1275,8 +1281,8 @@ spec:
     operator:
       image: {{ template "grafana.operator.image" . }}
       initContainerImage: {{ template "grafana.initContainer.image" . }}
-      {{- if .Values.grafana.operator.namespaceScope }}
-      namespaceScope: {{ .Values.grafana.operator.namespaceScope }}
+      {{- if or .Values.global.namespaceScope .Values.grafana.operator.namespaceScope }}
+      namespaceScope: true
       {{- else if .Values.grafana.operator.watchNamespaceSelector }}
       watchNamespaceSelector: {{ .Values.grafana.operator.watchNamespaceSelector }}
       {{- else if .Values.grafana.operator.watchNamespaces }}
