@@ -994,6 +994,79 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 	})
 }
 
+func TestGrafanaServiceAccountMetadata(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "platform", Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{
+				ServiceAccount: &monv1.EmbeddedObjectMetadata{
+					Labels:      map[string]string{"team": "observability"},
+					Annotations: map[string]string{"example.com/owner": "platform"},
+				},
+			},
+		},
+	}
+
+	manifest, err := grafanaWithDefaultSources(cr)
+	require.NoError(t, err)
+	require.NotNil(t, manifest.Spec.ServiceAccount)
+	assert.Equal(t, map[string]string{"team": "observability"}, manifest.Spec.ServiceAccount.ObjectMeta.Labels)
+	assert.Equal(t, map[string]string{"example.com/owner": "platform"}, manifest.Spec.ServiceAccount.ObjectMeta.Annotations)
+}
+
+func TestGrafanaServiceAccountMetadataOmittedWhenEmpty(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "platform", Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{
+			Grafana: &monv1.Grafana{
+				ServiceAccount: &monv1.EmbeddedObjectMetadata{},
+			},
+		},
+	}
+
+	manifest, err := grafanaWithDefaultSources(cr)
+	require.NoError(t, err)
+	assert.Nil(t, manifest.Spec.ServiceAccount, "grafana(empty serviceAccount)")
+}
+
+func TestGrafanaLDAPSecretMount(t *testing.T) {
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Name: "platform", Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+
+	manifest, err := grafanaWithDefaultSources(cr)
+	require.NoError(t, err)
+	require.NotNil(t, manifest.Spec.Deployment)
+	require.NotNil(t, manifest.Spec.Deployment.Spec.Template.Spec)
+
+	podSpec := manifest.Spec.Deployment.Spec.Template.Spec
+	var volume *corev1.Volume
+	for i := range podSpec.Volumes {
+		if podSpec.Volumes[i].Name == "grafana-ldap-config" {
+			volume = &podSpec.Volumes[i]
+			break
+		}
+	}
+	require.NotNil(t, volume, "grafana() ldap volume")
+	require.NotNil(t, volume.Secret)
+	assert.Equal(t, "grafana-ldap-config", volume.Secret.SecretName)
+
+	require.NotEmpty(t, podSpec.Containers)
+	var mount *corev1.VolumeMount
+	for i := range podSpec.Containers[0].VolumeMounts {
+		item := &podSpec.Containers[0].VolumeMounts[i]
+		if item.Name == "grafana-ldap-config" {
+			mount = item
+			break
+		}
+	}
+	require.NotNil(t, mount, "grafana() ldap mount")
+	assert.Equal(t, "/etc/grafana-secrets/grafana-ldap-config", mount.MountPath)
+	assert.Equal(t, true, mount.ReadOnly)
+	assert.Nil(t, manifest.Spec.Config["auth.ldap"], "grafana() must not enable LDAP")
+}
+
 // grafanaWithDefaultSources builds the manifest as if both credential Secrets exist, which is
 // the normal Helm-managed deployment.
 func grafanaWithDefaultSources(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
