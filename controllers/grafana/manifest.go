@@ -407,8 +407,8 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources) (*g
 			}
 		}
 
-		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
-		// Secrets removed or renamed in v5 - handle secrets differently if needed
+		// Dashboard selectors are applied to GrafanaDashboard resources, not to this Grafana CR.
+		// See reconcileDashboardSelection in the grafana-operator reconciler.
 
 		// TODO(#376): cr.Spec.Auth OAuth fields (LoginURL, TokenURL, UserInfoURL, TLSConfig) are not
 		// applied to the Grafana CR spec.config["auth.generic_oauth"]. The TLS secrets (CASecret,
@@ -517,6 +517,8 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources) (*g
 					ReadOnly:  true,
 				})
 			}
+
+			ensureGrafanaLDAPSecretMount(podSpec, container)
 
 			// Configure Grafana admin credentials via file provider.
 			// Helm always creates the Secret unless the user opted out, so the files are guaranteed
@@ -648,8 +650,59 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources) (*g
 				deployment.Spec.Template.Annotations[k] = v
 			}
 		}
+
+		if sa := cr.Spec.Grafana.ServiceAccount; sa != nil && (len(sa.Labels) > 0 || len(sa.Annotations) > 0) {
+			graf.Spec.ServiceAccount = &grafv1.ServiceAccountV1{
+				ObjectMeta: grafv1.ObjectMeta{
+					Labels:      maps.Clone(sa.Labels),
+					Annotations: maps.Clone(sa.Annotations),
+				},
+			}
+		}
 	}
 	return &graf, nil
+}
+
+// ensureGrafanaLDAPSecretMount mounts the Helm-managed grafana-ldap-config Secret at the path
+// Grafana Operator v4 used for spec.secrets. LDAP stays disabled until Grafana config enables it.
+func ensureGrafanaLDAPSecretMount(podSpec *grafv1.DeploymentV1PodSpec, container *corev1.Container) {
+	const (
+		volumeName = "grafana-ldap-config"
+		mountPath  = "/etc/grafana-secrets/grafana-ldap-config"
+		secretName = "grafana-ldap-config"
+	)
+
+	hasVolume := false
+	for _, volume := range podSpec.Volumes {
+		if volume.Name == volumeName {
+			hasVolume = true
+			break
+		}
+	}
+	if !hasVolume {
+		optional := true
+		// Grafana may run outside the release namespace, where Helm does not create this Secret.
+		podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+			Name: volumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: secretName,
+					Optional:   &optional,
+				},
+			},
+		})
+	}
+
+	for _, mount := range container.VolumeMounts {
+		if mount.Name == volumeName && mount.MountPath == mountPath {
+			return
+		}
+	}
+	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+		Name:      volumeName,
+		MountPath: mountPath,
+		ReadOnly:  true,
+	})
 }
 
 // grafanaDataSource creates GrafanaDatasource manifest

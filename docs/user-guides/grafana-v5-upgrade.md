@@ -19,21 +19,43 @@ The following settings and behaviors are not supported by the current Grafana Op
   [issue #376](https://github.com/Netcracker/qubership-monitoring-operator/issues/376).
 - `spec.grafana.config` is not propagated to Grafana. Follow
   [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377).
-- Grafana LDAP configuration, Grafana ServiceAccount labels and annotations, `dashboardLabelSelector`, and
-  `dashboardNamespaceSelector` are not propagated. Follow
-  [issue #434](https://github.com/Netcracker/qubership-monitoring-operator/issues/434).
 - Jaeger and ClickHouse integrations do not automatically create Grafana datasources. Follow
   [issue #435](https://github.com/Netcracker/qubership-monitoring-operator/issues/435).
 
 These fields can remain stored in a `PlatformMonitoring` resource without affecting the generated Grafana v5
 resources. The absence of a validation error does not mean that the setting is supported.
 
+## Grafana settings applied on v5
+
+`spec.grafana.serviceAccount` labels and annotations are copied onto the Grafana ServiceAccount. When both maps are
+empty, that ServiceAccount metadata is left unset.
+
+The `grafana-ldap-config` Secret is mounted read-only at `/etc/grafana-secrets/grafana-ldap-config`. The mount does
+not enable LDAP. The chart's default `ldap.toml` is empty, and Grafana still ignores `spec.grafana.config`, so LDAP
+login stays off. Follow [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377) for
+Grafana config.
+
+`dashboardLabelSelector` and `dashboardNamespaceSelector` choose which `GrafanaDashboard` resources this Grafana
+imports.
+
+- A dashboard matches `dashboardLabelSelector` when any entry matches. An empty selector matches every dashboard. A
+  nil selector matches none.
+- `dashboardNamespaceSelector` uses that same empty-versus-nil rule on the labels of the dashboard's namespace. The
+  operator honors it when `global.privilegedRights` is true. When `global.privilegedRights` is false, the operator
+  cannot read Namespace objects, so it applies `dashboardLabelSelector` only to dashboards in the release namespace.
+
+A matching dashboard receives an `instanceSelector` for this Grafana and the annotation
+`monitoring.netcracker.com/dashboard-selector`. A dashboard that carries that annotation and no longer matches loses
+the selector, so Grafana stops importing it. A dashboard that does not match and does not carry the annotation is
+left unchanged. If Grafana Operator rejects removal of an existing `instanceSelector`, the operator suspends the
+dashboard instead.
+
 ## Supported Upgrade Profile
 
 The current upgrade path is intended for installations that:
 
 - do not depend on the settings and automatic datasource generation listed above;
-- use the default Grafana dashboard selection;
+- can use `dashboardLabelSelector`, and `dashboardNamespaceSelector` when `global.privilegedRights` is true;
 - do not rotate the managed Grafana admin credentials after its database has been initialized;
 - keep `grafanaConverter.install=true` until legacy dashboard conversion is verified;
 - migrate every legacy `integreatly.org/v1alpha1` `GrafanaDataSource` to a

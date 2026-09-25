@@ -8,6 +8,7 @@ import (
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -35,6 +36,7 @@ func newGrafanaDashboardTestReconciler(t *testing.T, objs ...client.Object) *Gra
 	scheme := runtime.NewScheme()
 	require.NoError(t, monv1.AddToScheme(scheme))
 	require.NoError(t, grafv1.AddToScheme(scheme))
+	require.NoError(t, corev1.AddToScheme(scheme))
 	return &GrafanaOperatorReconciler{
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),

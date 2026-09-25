@@ -207,6 +207,22 @@ func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					}
 				}
 
+				if cr.Spec.Grafana != nil {
+					selected, selErr := r.bundledDashboardSelected(cr, mResource)
+					if selErr != nil {
+						r.Log.Error(selErr, "Can not evaluate Grafana dashboard selectors", "name", mResource)
+						dashboardErrs = append(dashboardErrs, selErr)
+						continue
+					}
+					if !selected {
+						r.Log.Info("Delete dashboard because it does not match PlatformMonitoring dashboard selectors", "name", mResource)
+						if err = r.deleteGrafanaDashboard(mResource, cr); err != nil {
+							r.Log.Error(err, "Can not delete GrafanaDashboard")
+						}
+						continue
+					}
+				}
+
 				if err = r.handleGrafanaDashboard(mResource, cr); err != nil {
 					r.Log.Error(err, "Can not reconcile GrafanaDashboard", "name", mResource)
 					dashboardErrs = append(dashboardErrs, err)
@@ -215,6 +231,12 @@ func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				if err = r.deleteGrafanaDashboard(mResource, cr); err != nil {
 					r.Log.Error(err, "Can not delete GrafanaDashboard")
 				}
+			}
+		}
+		if cr.Spec.Grafana != nil {
+			if err = r.reconcileDashboardSelection(cr); err != nil {
+				r.Log.Error(err, "Can not reconcile Grafana dashboard selection")
+				dashboardErrs = append(dashboardErrs, err)
 			}
 		}
 	} else {
