@@ -1,7 +1,6 @@
 package grafana_operator
 
 import (
-	"context"
 	"testing"
 
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
@@ -12,11 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
 func TestReconcileDashboardSelectionAdoptsMatchingDashboard(t *testing.T) {
@@ -235,7 +230,7 @@ func TestReconcileDashboardSelectionDetachesAdoptedDashboardInMissingNamespace(t
 	assert.Nil(t, got.Spec.InstanceSelector)
 }
 
-func TestReconcileDashboardSelectionSuspendsWhenSelectorIsImmutable(t *testing.T) {
+func TestReconcileDashboardSelectionDeletesAdoptedDashboardWhenSelectorIsImmutable(t *testing.T) {
 	previous := utils.PrivilegedRights
 	utils.PrivilegedRights = false
 	t.Cleanup(func() { utils.PrivilegedRights = previous })
@@ -261,62 +256,34 @@ func TestReconcileDashboardSelectionSuspendsWhenSelectorIsImmutable(t *testing.T
 		},
 	}
 
-	scheme := runtime.NewScheme()
-	require.NoError(t, grafv1.AddToScheme(scheme))
-	require.NoError(t, corev1.AddToScheme(scheme))
-	updates := 0
-	base := fake.NewClientBuilder().WithScheme(scheme).WithObjects(dash).Build()
-	r := &GrafanaOperatorReconciler{
-		ComponentReconciler: &utils.ComponentReconciler{
-			Client: interceptor.NewClient(base, interceptor.Funcs{
-				Update: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.UpdateOption) error {
-					updates++
-					if updates == 1 {
-						return apierrors.NewInvalid(schema.GroupKind{Group: "grafana.integreatly.org", Kind: "GrafanaDashboard"}, obj.GetName(), nil)
-					}
-					return c.Update(ctx, obj, opts...)
-				},
-			}),
-			Scheme: scheme,
-			Log:    utils.Logger("grafanaoperator_dashboard_test"),
-		},
-	}
-	require.NoError(t, r.reconcileDashboardSelection(cr))
+	r := newGrafanaDashboardTestReconciler(t, dash)
+	require.NoError(t, r.updateDashboardSelectionFallback(dash, grafana.DashboardSelectionDetach))
 
 	got := &grafv1.GrafanaDashboard{}
-	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(dash), got))
-	assert.Equal(t, true, got.Spec.Suspend)
-	assert.Equal(t, cr.Name, got.Annotations[grafana.DashboardSelectorAnnotation])
-	require.NotNil(t, got.Spec.InstanceSelector)
+	err := r.Client.Get(t.Context(), client.ObjectKeyFromObject(dash), got)
+	assert.Equal(t, true, apierrors.IsNotFound(err), "dashboard must be removed after immutable deselection")
 }
 
-func TestUpdateDashboardSelectionFallback(t *testing.T) {
-	cr := testPlatformMonitoring()
+func TestUpdateDashboardSelectionFallbackPreservesDashboardForImmutableAdoption(t *testing.T) {
 	dash := &grafv1.GrafanaDashboard{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "app-overview",
 			Namespace: "apps",
-			Annotations: map[string]string{
-				grafana.DashboardSelectorAnnotation: cr.Name,
-			},
 		},
 		Spec: grafv1.GrafanaDashboardSpec{
 			GrafanaCommonSpec: grafv1.GrafanaCommonSpec{
-				Suspend: true,
 				InstanceSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{"app.kubernetes.io/component": "grafana"},
+					MatchLabels: map[string]string{"app.kubernetes.io/component": "other-grafana"},
 				},
 			},
 		},
 	}
 	r := newGrafanaDashboardTestReconciler(t, dash)
 
-	require.NoError(t, r.updateDashboardSelectionFallback(dash, cr, grafana.DashboardSelectionLeave))
-	require.NoError(t, r.updateDashboardSelectionFallback(dash, cr, grafana.DashboardSelectionDetach))
-
-	require.NoError(t, r.updateDashboardSelectionFallback(dash, cr, grafana.DashboardSelectionAdopt))
+	require.NoError(t, r.updateDashboardSelectionFallback(dash, grafana.DashboardSelectionLeave))
+	require.NoError(t, r.updateDashboardSelectionFallback(dash, grafana.DashboardSelectionAdopt))
 	got := &grafv1.GrafanaDashboard{}
 	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(dash), got))
-	assert.Equal(t, false, got.Spec.Suspend)
-	assert.Equal(t, true, got.Spec.AllowCrossNamespaceImport)
+	assert.Equal(t, dash.Spec, got.Spec)
+	assert.Equal(t, dash.Annotations, got.Annotations)
 }

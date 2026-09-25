@@ -152,7 +152,7 @@ func (r *GrafanaOperatorReconciler) writeDashboardSelection(cr *monv1.PlatformMo
 		}
 		if err := r.UpdateResource(updated); err != nil {
 			if apierrors.IsInvalid(err) {
-				return r.updateDashboardSelectionFallback(current, cr, action)
+				return r.updateDashboardSelectionFallback(current, action)
 			}
 			return err
 		}
@@ -160,29 +160,17 @@ func (r *GrafanaOperatorReconciler) writeDashboardSelection(cr *monv1.PlatformMo
 	})
 }
 
-// updateDashboardSelectionFallback keeps an immutable instanceSelector in place.
-// Grafana Operator v5 rejects changes to spec.instanceSelector and rejects turning
-// spec.allowCrossNamespaceImport off. Suspending the dashboard stops import when the
-// pointer cannot be removed. Adoption still records the annotation and unsuspends.
-func (r *GrafanaOperatorReconciler) updateDashboardSelectionFallback(current *grafv1.GrafanaDashboard, cr *monv1.PlatformMonitoring, action grafana.DashboardSelectionAction) error {
-	updated := current.DeepCopy()
+// updateDashboardSelectionFallback preserves a dashboard whose immutable selector cannot adopt this Grafana.
+// For deselection, deleting an annotated dashboard lets Grafana Operator remove its imported dashboard.
+func (r *GrafanaOperatorReconciler) updateDashboardSelectionFallback(current *grafv1.GrafanaDashboard, action grafana.DashboardSelectionAction) error {
 	switch action {
 	case grafana.DashboardSelectionAdopt:
-		ensureDashboardSelectorAnnotation(updated, cr)
-		if updated.Namespace != grafana.GrafanaNamespace(cr) {
-			updated.Spec.AllowCrossNamespaceImport = true
-		}
-		updated.Spec.Suspend = false
+		return nil
 	case grafana.DashboardSelectionDetach:
-		ensureDashboardSelectorAnnotation(updated, cr)
-		updated.Spec.Suspend = true
+		return r.DeleteResource(current)
 	default:
 		return nil
 	}
-	if reflect.DeepEqual(current.Spec, updated.Spec) && reflect.DeepEqual(current.GetAnnotations(), updated.GetAnnotations()) {
-		return nil
-	}
-	return r.UpdateResource(updated)
 }
 
 func dashboardWithSelection(current *grafv1.GrafanaDashboard, cr *monv1.PlatformMonitoring, action grafana.DashboardSelectionAction) *grafv1.GrafanaDashboard {

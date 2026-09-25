@@ -1051,6 +1051,8 @@ func TestGrafanaLDAPSecretMount(t *testing.T) {
 	require.NotNil(t, volume, "grafana() ldap volume")
 	require.NotNil(t, volume.Secret)
 	assert.Equal(t, "grafana-ldap-config", volume.Secret.SecretName)
+	require.NotNil(t, volume.Secret.Optional)
+	assert.Equal(t, true, *volume.Secret.Optional)
 
 	require.NotEmpty(t, podSpec.Containers)
 	var mount *corev1.VolumeMount

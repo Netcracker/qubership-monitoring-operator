@@ -680,10 +680,15 @@ func ensureGrafanaLDAPSecretMount(podSpec *grafv1.DeploymentV1PodSpec, container
 		}
 	}
 	if !hasVolume {
+		optional := true
+		// Grafana may run outside the release namespace, where Helm does not create this Secret.
 		podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
 			Name: volumeName,
 			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{SecretName: secretName},
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: secretName,
+					Optional:   &optional,
+				},
 			},
 		})
 	}
