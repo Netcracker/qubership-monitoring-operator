@@ -1,8 +1,10 @@
 package grafana_operator
 
 import (
+	"context"
 	"testing"
 
+	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/grafana"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
@@ -11,7 +13,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
 func TestReconcileDashboardSelectionAdoptsMatchingDashboard(t *testing.T) {
@@ -256,8 +262,8 @@ func TestReconcileDashboardSelectionDeletesAdoptedDashboardWhenSelectorIsImmutab
 		},
 	}
 
-	r := newGrafanaDashboardTestReconciler(t, dash)
-	require.NoError(t, r.updateDashboardSelectionFallback(dash, grafana.DashboardSelectionDetach))
+	r := reconcilerRejectingDashboardUpdates(t, dash)
+	require.NoError(t, r.reconcileDashboardSelection(cr))
 
 	got := &grafv1.GrafanaDashboard{}
 	err := r.Client.Get(t.Context(), client.ObjectKeyFromObject(dash), got)
@@ -265,10 +271,16 @@ func TestReconcileDashboardSelectionDeletesAdoptedDashboardWhenSelectorIsImmutab
 }
 
 func TestUpdateDashboardSelectionFallbackPreservesDashboardForImmutableAdoption(t *testing.T) {
+	previous := utils.PrivilegedRights
+	utils.PrivilegedRights = false
+	t.Cleanup(func() { utils.PrivilegedRights = previous })
+
+	cr := testPlatformMonitoring()
+	cr.Spec.Grafana.DashboardLabelSelector = []*metav1.LabelSelector{{}}
 	dash := &grafv1.GrafanaDashboard{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "app-overview",
-			Namespace: "apps",
+			Namespace: cr.Namespace,
 		},
 		Spec: grafv1.GrafanaDashboardSpec{
 			GrafanaCommonSpec: grafv1.GrafanaCommonSpec{
@@ -278,12 +290,35 @@ func TestUpdateDashboardSelectionFallbackPreservesDashboardForImmutableAdoption(
 			},
 		},
 	}
-	r := newGrafanaDashboardTestReconciler(t, dash)
-
+	r := reconcilerRejectingDashboardUpdates(t, dash)
 	require.NoError(t, r.updateDashboardSelectionFallback(dash, grafana.DashboardSelectionLeave))
-	require.NoError(t, r.updateDashboardSelectionFallback(dash, grafana.DashboardSelectionAdopt))
+	require.NoError(t, r.reconcileDashboardSelection(cr))
+
 	got := &grafv1.GrafanaDashboard{}
 	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(dash), got))
 	assert.Equal(t, dash.Spec, got.Spec)
-	assert.Equal(t, dash.Annotations, got.Annotations)
+	assert.Empty(t, got.Annotations[grafana.DashboardSelectorAnnotation])
+}
+
+func reconcilerRejectingDashboardUpdates(t *testing.T, objs ...client.Object) *GrafanaOperatorReconciler {
+	t.Helper()
+	scheme := runtime.NewScheme()
+	require.NoError(t, monv1.AddToScheme(scheme))
+	require.NoError(t, grafv1.AddToScheme(scheme))
+	require.NoError(t, corev1.AddToScheme(scheme))
+	base := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+	return &GrafanaOperatorReconciler{
+		ComponentReconciler: &utils.ComponentReconciler{
+			Client: interceptor.NewClient(base, interceptor.Funcs{
+				Update: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.UpdateOption) error {
+					if _, ok := obj.(*grafv1.GrafanaDashboard); ok {
+						return apierrors.NewInvalid(schema.GroupKind{Group: "grafana.integreatly.org", Kind: "GrafanaDashboard"}, obj.GetName(), nil)
+					}
+					return c.Update(ctx, obj, opts...)
+				},
+			}),
+			Scheme: scheme,
+			Log:    utils.Logger("grafanaoperator_dashboard_test"),
+		},
+	}
 }
