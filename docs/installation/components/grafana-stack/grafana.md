@@ -4,6 +4,16 @@
 
 ### grafana
 
+Grafana reads its sensitive settings from Secrets mounted into the pod rather than from environment variables. The
+generated `grafana.ini` holds only `$__file{...}` references, so the rendered ConfigMap never contains the values
+themselves.
+
+- `security.admin_user` and `security.admin_password` read `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD`
+  from `/etc/grafana-admin`, mounted read-only from the `<grafana-name>-admin-credentials` Secret.
+- `auth.generic_oauth.client_secret` reads `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` from `/etc/grafana-oauth`, mounted
+  read-only from the `grafana-oauth-client-secret` Secret.
+- `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` is not sensitive and stays an environment variable.
+
 <!-- markdownlint-disable line-length -->
 | Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                                          |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |

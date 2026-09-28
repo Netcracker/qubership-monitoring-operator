@@ -148,6 +148,14 @@ assert_contains "${blackbox_daemonset_manifest}" "allowPrivilegeEscalation: fals
 assert_contains "${blackbox_daemonset_manifest}" "readOnlyRootFilesystem: true"
 assert_contains "${blackbox_daemonset_manifest}" "sizeLimit: 100Mi"
 
+blackbox_deployment_manifest="${kubernetes_dir}/qubership-monitoring-operator/charts/blackboxExporter/templates/deployment.yaml"
+blackbox_openshift_manifest="${openshift_dir}/qubership-monitoring-operator/charts/blackboxExporter/templates/deployment.yaml"
+for blackbox_manifest in "${blackbox_deployment_manifest}" "${blackbox_openshift_manifest}" "${blackbox_daemonset_manifest}"; do
+    assert_contains "${blackbox_manifest}" "name: net.ipv4.ping_group_range"
+    assert_contains "${blackbox_manifest}" 'value: 0 2147483647'
+    assert_not_contains "${blackbox_manifest}" "- NET_RAW"
+done
+
 enforcement_manifest="${enforcement_dir}/qubership-monitoring-operator/charts/blackboxExporter/templates/deployment.yaml"
 assert_contains "${enforcement_manifest}" "runAsNonRoot: true"
 assert_contains "${enforcement_manifest}" "type: RuntimeDefault"

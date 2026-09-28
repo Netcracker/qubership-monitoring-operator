@@ -76,12 +76,62 @@ func (r *GrafanaReconciler) addGrafanaExtraVarsResourceVersions(
 	return nil
 }
 
+// grafanaSecretNamespace returns the namespace holding Grafana's credential Secrets.
+func grafanaSecretNamespace(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		return cr.Spec.Grafana.Namespace
+	}
+	return cr.GetNamespace()
+}
+
+// secretHasKeys reports whether the named Secret exists and carries every key. A lookup error
+// other than NotFound is treated as absent: emitting a $__file{} reference for a Secret we
+// cannot confirm risks wedging Grafana at startup, while omitting it only loses the credential
+// until the next reconcile.
+func (r *GrafanaReconciler) secretHasKeys(name, namespace string, keys ...string) bool {
+	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace}}
+	if err := r.GetResource(secret); err != nil {
+		if !errors.IsNotFound(err) {
+			r.Log.Error(err, "Cannot read Secret; treating it as absent", "secret", name, "namespace", namespace)
+		}
+		return false
+	}
+	for _, key := range keys {
+		if _, ok := secret.Data[key]; !ok {
+			r.Log.Info("Secret is missing a required key", "secret", name, "namespace", namespace, "key", key)
+			return false
+		}
+	}
+	return true
+}
+
+// observeCredentialSources records which optional credential Secrets exist right now, so the
+// manifest only references files that Grafana can actually expand.
+func (r *GrafanaReconciler) observeCredentialSources(cr *monv1.PlatformMonitoring) grafanaCredentialSources {
+	namespace := grafanaSecretNamespace(cr)
+	sources := grafanaCredentialSources{}
+	// Helm guarantees the admin Secret unless the user opted out, so only that case needs a lookup.
+	if grafanaAdminSecretUserManaged(cr) {
+		sources.AdminSecretPresent = r.secretHasKeys(
+			getGrafanaAdminSecretName(cr), namespace,
+			"GF_SECURITY_ADMIN_USER", "GF_SECURITY_ADMIN_PASSWORD",
+		)
+	}
+	if cr.Spec.Auth != nil {
+		sources.OAuthSecretPresent = r.secretHasKeys(
+			grafanaOAuthClientSecretName, namespace,
+			"GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET",
+		)
+	}
+	return sources
+}
+
 func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 	isOpenShift, err := r.IsOpenShift()
 	if err != nil {
 		return err
 	}
-	m, err := grafana(cr, isOpenShift)
+	m, err := grafana(cr, r.observeCredentialSources(cr), isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
@@ -463,22 +513,22 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
-	// The deletion target is addressed by its stable name and namespace so that uninstall does not
-	// depend on platform discovery or on validation of the desired state.
-	e := &grafv1.Grafana{}
-	e.SetName(grafanaName(cr))
-	e.SetNamespace(grafanaNamespace(cr))
-	e.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
-	if err := r.GetResource(e); err != nil {
+	// Address the deletion target by its stable identity so uninstall does not depend on
+	// platform discovery, credential Secret lookup, or desired-state validation.
+	existing := &grafv1.Grafana{}
+	existing.SetName(grafanaName(cr))
+	existing.SetNamespace(grafanaNamespace(cr))
+	existing.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
+	if err := r.GetResource(existing); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err := r.Client.Delete(context.TODO(), e); err != nil {
+	if err := r.Client.Delete(context.TODO(), existing); err != nil {
 		return err
 	}
-	r.Log.Info("Successful deleting", "resource", "Grafana", "name", e.GetName())
+	r.Log.Info("Successful deleting", "resource", "Grafana", "name", existing.GetName())
 	return nil
 }
 

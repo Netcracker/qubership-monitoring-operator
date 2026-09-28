@@ -11,6 +11,7 @@ import (
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -85,10 +86,57 @@ func TestGrafanaManifestRejectsConflictingHardeningSettings(t *testing.T) {
 				Spec:       monv1.PlatformMonitoringSpec{Grafana: spec},
 			}
 
-			m, err := grafana(cr, false)
+			m, err := grafana(cr, grafanaCredentialSources{}, false)
 
 			require.Error(t, err)
 			assert.Nil(t, m)
 		})
 	}
+}
+
+func TestGrafanaManifestAppliesHardening(t *testing.T) {
+	for name, isOpenShift := range map[string]bool{
+		"Kubernetes": false,
+		"OpenShift":  true,
+	} {
+		t.Run(name, func(t *testing.T) {
+			cr := &monv1.PlatformMonitoring{
+				ObjectMeta: metav1.ObjectMeta{Name: "monitoring", Namespace: "monitoring"},
+				Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
+					Operator: monv1.GrafanaOperator{InitContainerImage: "grafana-plugins-init:test"},
+				}},
+			}
+
+			manifest, err := grafana(cr, grafanaCredentialSources{}, isOpenShift)
+			require.NoError(t, err)
+			podSpec := manifest.Spec.Deployment.Spec.Template.Spec
+			require.NotNil(t, podSpec.SecurityContext)
+			assert.True(t, *podSpec.SecurityContext.RunAsNonRoot)
+			assert.Equal(t, corev1.SeccompProfileTypeRuntimeDefault, podSpec.SecurityContext.SeccompProfile.Type)
+			if isOpenShift {
+				assert.Nil(t, podSpec.SecurityContext.RunAsUser)
+				assert.Nil(t, podSpec.SecurityContext.RunAsGroup)
+				assert.Nil(t, podSpec.SecurityContext.FSGroup)
+			} else {
+				assert.Equal(t, grafanaLegacySecurityContextID, *podSpec.SecurityContext.RunAsUser)
+				assert.Equal(t, grafanaLegacySecurityContextID, *podSpec.SecurityContext.RunAsGroup)
+				assert.Equal(t, grafanaLegacySecurityContextID, *podSpec.SecurityContext.FSGroup)
+			}
+
+			require.NotEmpty(t, podSpec.Containers)
+			assertHardenedGrafanaContainer(t, podSpec.Containers[0])
+			require.Len(t, podSpec.InitContainers, 1)
+			assertHardenedGrafanaContainer(t, podSpec.InitContainers[0])
+			assert.Contains(t, podSpec.Volumes, utils.TmpVolume("100Mi"))
+		})
+	}
+}
+
+func assertHardenedGrafanaContainer(t *testing.T, container corev1.Container) {
+	t.Helper()
+	require.NotNil(t, container.SecurityContext)
+	assert.False(t, *container.SecurityContext.AllowPrivilegeEscalation)
+	assert.True(t, *container.SecurityContext.ReadOnlyRootFilesystem)
+	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
+	assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
 }

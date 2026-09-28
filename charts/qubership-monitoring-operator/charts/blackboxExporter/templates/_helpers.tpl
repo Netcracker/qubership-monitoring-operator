@@ -19,7 +19,19 @@ Image can be found from:
 Return securityContext for blackboxExporter.
 */}}
 {{- define "blackboxExporter.securityContext" -}}
-{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 2000) -}}
+{{- $configured := deepCopy (.Values.securityContext | default dict) -}}
+{{- $sysctls := get $configured "sysctls" | default list -}}
+{{- $pingGroupRangeConfigured := false -}}
+{{- range $sysctl := $sysctls -}}
+  {{- if eq (get $sysctl "name") "net.ipv4.ping_group_range" -}}
+    {{- $pingGroupRangeConfigured = true -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $pingGroupRangeConfigured -}}
+  {{- $sysctls = append $sysctls (dict "name" "net.ipv4.ping_group_range" "value" "0 2147483647") -}}
+{{- end -}}
+{{- $_ := set $configured "sysctls" $sysctls -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" $configured "id" 2000) -}}
 {{- end -}}
 
 {{/* Return the enforced container security context. */}}

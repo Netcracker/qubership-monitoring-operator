@@ -101,11 +101,11 @@ jobs:
   lint-gate:
     name: Lint Gate
     needs: [prepare-configs, run-lint]
-    # Runs even when a dependency fails, so the check resolves instead of being skipped.
+    # Runs even when a dependency does not succeed, so the check resolves instead of being skipped.
     if: always()
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - name: Fail if any dependency failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      - name: Require all lint jobs to succeed
+        if: needs.prepare-configs.result != 'success' || needs.run-lint.result != 'success'
         run: exit 1
