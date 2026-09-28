@@ -131,7 +131,7 @@ for relative_manifest in "${relative_manifests[@]}"; do
     assert_contains "${openshift_manifest}" "runAsNonRoot: true"
     assert_contains "${openshift_manifest}" "type: RuntimeDefault"
     assert_not_contains "${openshift_manifest}" "fsGroup:"
-    if [ "${relative_manifest}" = "certExporter/templates/daemonset.yaml" ]; then
+    if [[ "${relative_manifest}" == "certExporter/templates/daemonset.yaml" ]]; then
         # The hostPath DaemonSet is admitted by a RunAsAny SCC that assigns no UID, and the image user
         # is nonnumeric, so the pod must carry numeric IDs for the kubelet to verify runAsNonRoot.
         assert_contains "${openshift_manifest}" "runAsUser: 2000"
@@ -225,7 +225,7 @@ promitor_user_tmp_manifest="${user_tmp_dir}/qubership-monitoring-operator/charts
 for manifest in "${json_user_tmp_manifest}" "${promitor_user_tmp_manifest}"; do
     # The user mount covers /tmp, so the chart must declare its volume without a second mount at /tmp.
     assert_contains "${manifest}" "name: monitoring-tmp"
-    if [ "$(grep -c -- "- name: monitoring-tmp" "${manifest}")" -ne 1 ]; then
+    if [[ "$(grep -c -- "- name: monitoring-tmp" "${manifest}")" -ne 1 ]]; then
         echo "Expected ${manifest} to reference monitoring-tmp only as a volume" >&2
         exit 1
     fi
