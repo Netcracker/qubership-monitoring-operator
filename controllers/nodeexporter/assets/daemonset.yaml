@@ -35,6 +35,9 @@ spec:
             - containerPort: 9900
               hostPort: 9900
               name: metrics
+              protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /host
               mountPropagation: HostToContainer
@@ -60,9 +63,11 @@ spec:
       volumes:
         - hostPath:
             path: /proc
+            type: ""
           name: proc
         - hostPath:
             path: /sys
+            type: ""
           name: sys
         - hostPath:
             path: /
@@ -70,6 +75,7 @@ spec:
           name: root
         - hostPath:
             path: /run
+            type: ""
           name: run
         - hostPath:
             path: /var/spool/monitoring

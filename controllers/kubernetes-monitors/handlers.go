@@ -2,6 +2,7 @@ package kubernetes_monitors
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
@@ -23,11 +24,14 @@ func (r *KubernetesMonitorsReconciler) handleApiServerServiceMonitor(cr *monv1.P
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -53,11 +57,14 @@ func (r *KubernetesMonitorsReconciler) handleKubeletServiceMonitor(cr *monv1.Pla
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -83,11 +90,14 @@ func (r *KubernetesMonitorsReconciler) handleNginxIngressPodMonitor(cr *monv1.Pl
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -113,11 +123,14 @@ func (r *KubernetesMonitorsReconciler) handleCoreDnsServiceMonitor(cr *monv1.Pla
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -145,11 +158,14 @@ func (r *KubernetesMonitorsReconciler) handleOpenshiftServiceMonitor(cr *monv1.P
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
