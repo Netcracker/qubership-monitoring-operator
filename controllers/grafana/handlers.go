@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -192,15 +193,7 @@ func applyGrafanaDesiredState(existing, desired *grafv1.Grafana) bool {
 }
 
 func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
-	jaegerServices, err := r.getJaegerServices(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed getting Jaeger services")
-	}
-	clickHouseServices, err := r.getClickhouseServices(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed getting ClickHouse services")
-	}
-	m, err := grafanaDataSource(cr, r.KubeClient, jaegerServices, clickHouseServices)
+	m, err := grafanaDataSource(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDatasource manifest")
 		return err
@@ -251,6 +244,108 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 		}
 	}
 	return nil
+}
+
+// handleJaegerDataSources creates one GrafanaDatasource for each discovered Jaeger Service.
+// A discovery error is returned before any owned datasource is created or deleted.
+func (r *GrafanaReconciler) handleJaegerDataSources(cr *monv1.PlatformMonitoring) error {
+	services, err := r.getJaegerServices(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed getting Jaeger services")
+		return err
+	}
+	return r.syncDiscoveredDataSources(cr, grafanaJaegerDataSources(cr, services), jaegerDatasourceComponent)
+}
+
+// handleClickHouseDataSources creates one GrafanaDatasource for each discovered ClickHouse Service.
+// A discovery or credentials error is returned before any owned datasource is created or deleted.
+func (r *GrafanaReconciler) handleClickHouseDataSources(cr *monv1.PlatformMonitoring) error {
+	services, err := r.getClickhouseServices(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed getting ClickHouse services")
+		return err
+	}
+	desired, err := grafanaClickHouseDataSources(cr, r.KubeClient, services)
+	if err != nil {
+		r.Log.Error(err, "Failed creating ClickHouse GrafanaDatasource manifests")
+		return err
+	}
+	return r.syncDiscoveredDataSources(cr, desired, clickHouseDatasourceComponent)
+}
+
+func (r *GrafanaReconciler) syncDiscoveredDataSources(cr *monv1.PlatformMonitoring, desired []*grafv1.GrafanaDatasource, component string) error {
+	desiredNames := make(map[string]struct{}, len(desired))
+	for _, datasource := range desired {
+		desiredNames[datasource.GetName()] = struct{}{}
+		if err := r.applyDiscoveredDataSource(cr, datasource); err != nil {
+			return err
+		}
+	}
+	return r.deleteStaleDiscoveredDataSources(cr, component, desiredNames)
+}
+
+func (r *GrafanaReconciler) applyDiscoveredDataSource(cr *monv1.PlatformMonitoring, desired *grafv1.GrafanaDatasource) error {
+	if desired.Labels == nil {
+		desired.Labels = make(map[string]string)
+	}
+	desired.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(desired.GetName(), desired.GetNamespace())
+	desired.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Grafana.Image)
+
+	current := &grafv1.GrafanaDatasource{}
+	current.SetName(desired.GetName())
+	current.SetNamespace(desired.GetNamespace())
+	current.SetGroupVersionKind(desired.GroupVersionKind())
+	if err := r.GetResource(current); err != nil {
+		if errors.IsNotFound(err) {
+			if err = r.adoptDiscoveredDatasourceUID(context.TODO(), cr, desired); err != nil {
+				return err
+			}
+			return r.CreateResource(cr, desired)
+		}
+		return err
+	}
+
+	desired.Spec.CustomUID = current.Spec.CustomUID
+	desired.Spec.InstanceSelector = current.Spec.InstanceSelector
+	needsUpdate := false
+	if !reflect.DeepEqual(current.Spec, desired.Spec) {
+		current.Spec = desired.Spec
+		needsUpdate = true
+	}
+	if !reflect.DeepEqual(current.GetLabels(), desired.GetLabels()) {
+		current.SetLabels(desired.GetLabels())
+		needsUpdate = true
+	}
+	if needsUpdate {
+		return r.UpdateResource(current)
+	}
+	return nil
+}
+
+func (r *GrafanaReconciler) deleteStaleDiscoveredDataSources(cr *monv1.PlatformMonitoring, component string, desiredNames map[string]struct{}) error {
+	listed := &grafv1.GrafanaDatasourceList{}
+	if err := r.Client.List(context.TODO(), listed,
+		client.InNamespace(cr.GetNamespace()),
+		client.MatchingLabels{"app.kubernetes.io/component": component},
+	); err != nil {
+		return err
+	}
+	for i := range listed.Items {
+		datasource := listed.Items[i]
+		if _, keep := desiredNames[datasource.GetName()]; keep {
+			continue
+		}
+		datasource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+		if err := r.Client.Delete(context.TODO(), &datasource); err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+		r.Log.Info("Successful deleting", "resource", "GrafanaDatasource", "name", datasource.GetName())
+	}
+	return nil
+}
+
+func (r *GrafanaReconciler) deleteDiscoveredDataSources(cr *monv1.PlatformMonitoring, component string) error {
+	return r.deleteStaleDiscoveredDataSources(cr, component, nil)
 }
 
 func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMonitoring) error {
@@ -533,15 +628,7 @@ func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
 }
 
 func (r *GrafanaReconciler) deleteGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
-	jaegerServices, err := r.getJaegerServices(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed getting Jaeger services")
-	}
-	clickHouseServices, err := r.getClickhouseServices(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed getting ClickHouse services")
-	}
-	m, err := grafanaDataSource(cr, r.KubeClient, jaegerServices, clickHouseServices)
+	m, err := grafanaDataSource(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating GrafanaDatasource manifest")
 		return err
@@ -689,8 +776,7 @@ func (r *GrafanaReconciler) getClickhouseServices(cr *monv1.PlatformMonitoring) 
 		}
 		serviceList, err := r.KubeClient.CoreV1().Services(namespace.GetName()).List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			r.Log.Info(fmt.Sprintf("Error getting services in namespace:%s Error: %v", namespace.GetName(), err))
-			continue
+			return nil, fmt.Errorf("listing services in namespace %q: %w", namespace.GetName(), err)
 		}
 		for _, service := range serviceList.Items {
 			if service.GetName() == utils.ClickHouseServiceName {

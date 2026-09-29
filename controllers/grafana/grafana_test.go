@@ -349,7 +349,7 @@ func TestGrafanaManifests(t *testing.T) {
 	//	...
 	//})
 	t.Run("Test GrafanaDatasource manifest", func(t *testing.T) {
-		m, err := grafanaDataSource(cr, nil, nil, nil)
+		m, err := grafanaDataSource(cr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -522,7 +522,7 @@ func TestAdoptExistingDatasourceUID(t *testing.T) {
 			Grafana: &monv1.Grafana{},
 		},
 	}
-	datasource, err := grafanaDataSource(platformMonitoring, nil, nil, nil)
+	datasource, err := grafanaDataSource(platformMonitoring)
 	assert.NoError(t, err)
 
 	assert.NoError(t, reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource))
@@ -546,7 +546,7 @@ func TestAdoptExistingDatasourceUIDSkipsFreshInstall(t *testing.T) {
 			Grafana: &monv1.Grafana{},
 		},
 	}
-	datasource, err := grafanaDataSource(platformMonitoring, nil, nil, nil)
+	datasource, err := grafanaDataSource(platformMonitoring)
 	assert.NoError(t, err)
 
 	assert.NoError(t, reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource))
@@ -595,7 +595,7 @@ func TestAdoptExistingDatasourceUIDFailsWhenAdminSecretMissing(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "platformmonitoring", Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	}
-	datasource, err := grafanaDataSource(platformMonitoring, nil, nil, nil)
+	datasource, err := grafanaDataSource(platformMonitoring)
 	assert.NoError(t, err)
 
 	err = reconciler.adoptExistingDatasourceUID(context.Background(), platformMonitoring, datasource)
@@ -730,7 +730,7 @@ func newAdoptDatasourceUIDFixture(
 		ObjectMeta: metav1.ObjectMeta{Name: "platformmonitoring", Namespace: "monitoring"},
 		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
 	}
-	datasource, err := grafanaDataSource(platformMonitoring, nil, nil, nil)
+	datasource, err := grafanaDataSource(platformMonitoring)
 	assert.NoError(t, err)
 	return reconciler, platformMonitoring, datasource
 }
