@@ -73,12 +73,11 @@ kubectl get scrapeconfigs.monitoring.coreos.com --all-namespaces -o yaml > scrap
 
 Update the owning manifests and any affected live resources before applying the new CRDs:
 
-| `ScrapeConfig` field | Values to replace |
-| --- | --- |
-| `spec.hetznerSDConfigs[].role` | `hcloud` → `Hcloud`; `robot` → `Robot` |
-| `spec.openstackSDConfigs[].availability` | `public` → `Public`; `admin` → `Admin`; `internal` → `Internal` |
-| `spec.consulSDConfigs[].services[]` and `tags[]` | Remove or replace empty strings |
-| `spec.kubernetesSDConfigs[].namespaces.names[]` | Remove or replace empty strings |
+- Change `spec.hetznerSDConfigs[].role` from `hcloud` to `Hcloud` or from `robot` to `Robot`.
+- Change `spec.openstackSDConfigs[].availability` from `public`, `admin`, or `internal` to `Public`, `Admin`, or
+  `Internal`.
+- Remove or replace empty strings in `spec.consulSDConfigs[].services[]` and `tags[]`.
+- Remove or replace empty strings in `spec.kubernetesSDConfigs[].namespaces.names[]`.
 
 For each affected resource, use `kubectl edit scrapeconfig NAME --namespace NAMESPACE` while the 0.93 CRD is installed.
 Then confirm the live resources contain none of the rejected values. Applying the 0.94 CRD first can leave existing
