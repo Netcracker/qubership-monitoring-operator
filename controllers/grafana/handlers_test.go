@@ -11,7 +11,7 @@ import (
 
 func TestApplyGrafanaDesiredStateSkipsAPICanonicalEmptyAnnotations(t *testing.T) {
 	cr := grafanaComparisonPlatformMonitoring(nil)
-	desired, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
+	desired, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true}, false)
 	require.NoError(t, err)
 
 	live := desired.DeepCopy()

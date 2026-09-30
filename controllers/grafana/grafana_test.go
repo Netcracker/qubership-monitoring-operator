@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -195,6 +196,7 @@ func TestHandleGrafanaCreatesResourceWithoutExtraVarsResources(t *testing.T) {
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: controllerClient,
 			Scheme: testScheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -236,6 +238,7 @@ func TestHandleGrafanaReturnsExtraVarsAPIErrorForExistingResource(t *testing.T) 
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: controllerClient,
 			Scheme: testScheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -250,6 +253,7 @@ func TestHandleGrafanaReturnsClientError(t *testing.T) {
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build(),
 			Scheme: runtime.NewScheme(),
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    logr.Discard(),
 		},
 	}
@@ -302,7 +306,7 @@ func TestGrafanaManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test Grafana manifest", func(t *testing.T) {
-		m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
+		m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true}, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -323,7 +327,7 @@ func TestGrafanaManifests(t *testing.T) {
 		cr.Spec.Grafana.Labels["app.kubernetes.io/managed-by"] = "custom-manager"
 		cr.Spec.Grafana.Labels["app.kubernetes.io/managed-by-operator"] = "custom-manager"
 
-		m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
+		m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true}, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -341,7 +345,7 @@ func TestGrafanaManifests(t *testing.T) {
 	}
 	// Disabled for v5: in v5 labels/annotations live in Deployment.Spec.Template, not Deployment
 	//t.Run("Test Grafana manifest with nil annotation", func(t *testing.T) {
-	//	m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true})
+	//	m, err := grafana(cr, grafanaCredentialSources{AdminSecretPresent: true}, false)
 	//	...
 	//})
 	t.Run("Test GrafanaDatasource manifest", func(t *testing.T) {
@@ -933,7 +937,7 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 	// Grafana aborts startup if it cannot expand a $__file{} reference, so a reference must never
 	// be emitted for a Secret that is absent.
 	t.Run("Helm-managed admin secret is always referenced", func(t *testing.T) {
-		m, err := grafana(newCR(nil, nil), grafanaCredentialSources{})
+		m, err := grafana(newCR(nil, nil), grafanaCredentialSources{}, false)
 		require.NoError(t, err)
 
 		security := m.Spec.Config["security"]
@@ -943,7 +947,7 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 	})
 
 	t.Run("user-managed admin secret is referenced when present", func(t *testing.T) {
-		m, err := grafana(newCR(ptr(true), nil), grafanaCredentialSources{AdminSecretPresent: true})
+		m, err := grafana(newCR(ptr(true), nil), grafanaCredentialSources{AdminSecretPresent: true}, false)
 		require.NoError(t, err)
 
 		security := m.Spec.Config["security"]
@@ -952,7 +956,7 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 	})
 
 	t.Run("missing user-managed admin secret keeps the admin/admin fallback", func(t *testing.T) {
-		m, err := grafana(newCR(ptr(true), nil), grafanaCredentialSources{})
+		m, err := grafana(newCR(ptr(true), nil), grafanaCredentialSources{}, false)
 		require.NoError(t, err)
 
 		// No $__file{} reference, so Grafana starts and falls back to its built-in admin/admin
@@ -974,7 +978,7 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 	})
 
 	t.Run("oauth client secret is referenced when present", func(t *testing.T) {
-		m, err := grafana(newCR(nil, &monv1.Auth{}), grafanaCredentialSources{OAuthSecretPresent: true})
+		m, err := grafana(newCR(nil, &monv1.Auth{}), grafanaCredentialSources{OAuthSecretPresent: true}, false)
 		require.NoError(t, err)
 
 		oauth := m.Spec.Config["auth.generic_oauth"]
@@ -987,7 +991,7 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 	t.Run("spec.auth without the oauth secret emits no client_secret", func(t *testing.T) {
 		// spec.auth carries no clientSecret, so its presence says nothing about whether Helm
 		// created grafana-oauth-client-secret.
-		m, err := grafana(newCR(nil, &monv1.Auth{}), grafanaCredentialSources{})
+		m, err := grafana(newCR(nil, &monv1.Auth{}), grafanaCredentialSources{}, false)
 		require.NoError(t, err)
 
 		assert.NotContains(t, m.Spec.Config["auth.generic_oauth"], "client_secret")
@@ -997,7 +1001,7 @@ func TestGrafanaFileProviderRequiresPresentSecrets(t *testing.T) {
 // grafanaWithDefaultSources builds the manifest as if both credential Secrets exist, which is
 // the normal Helm-managed deployment.
 func grafanaWithDefaultSources(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
-	return grafana(cr, grafanaCredentialSources{AdminSecretPresent: true, OAuthSecretPresent: true})
+	return grafana(cr, grafanaCredentialSources{AdminSecretPresent: true, OAuthSecretPresent: true}, false)
 }
 
 func ptr[T any](value T) *T {

@@ -39,16 +39,14 @@ spec:
       {{- end }}
       serviceAccountName: {{ .Values.name }}
       securityContext:
-        {{ include "jsonExporter.securityContext" . }}
+        {{- include "jsonExporter.securityContext" . | nindent 8 }}
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
       containers:
         - name: json-exporter
-          {{- if .Values.containerSecurityContext }}
           securityContext:
-            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
-          {{ end }}
+            {{- include "jsonExporter.containerSecurityContext" . | nindent 12 }}
           image: {{ template "jsonExporter.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           ports:
@@ -69,6 +67,8 @@ spec:
             - name: config-configmap-volume
               mountPath: /config.yml
               subPath: config.yml
+              readOnly: true
+            {{- with include "monitoring.security.tmpVolumeMount" (dict "volumeMounts" .Values.additionalVolumeMounts) }}{{ . | nindent 12 }}{{- end }}
           {{- with .Values.additionalVolumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end  }}
@@ -79,6 +79,7 @@ spec:
             items:
               - key: config.yml
                 path: config.yml
+        {{- include "monitoring.security.tmpVolume" (dict "volumes" .Values.additionalVolumes) | nindent 8 }}
         {{- with .Values.additionalVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

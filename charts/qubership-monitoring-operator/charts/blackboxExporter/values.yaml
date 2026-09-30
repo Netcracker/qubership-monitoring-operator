@@ -163,6 +163,8 @@ grafanaDashboard: true
 # Mandatory: no
 #
 # securityContext:
+# The chart adds net.ipv4.ping_group_range=0 2147483647 unless this sysctl is configured explicitly.
+# This allows non-root ICMP probes without granting CAP_NET_RAW.
 # The UID to run the entrypoint of the container process.
 # Defaults to user specified in image metadata if unspecified.
 # Type: integer

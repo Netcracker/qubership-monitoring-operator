@@ -13,15 +13,16 @@ spec:
   hostNetwork: false
   volumes:
     - 'configMap'
+    - 'emptyDir'
     - 'secret'
   fsGroup:
     rule: 'MustRunAs'
     ranges:
       - min: 1
         max: 65535
-  readOnlyRootFilesystem: false
+  readOnlyRootFilesystem: true
   runAsUser:
-    rule: 'RunAsAny'
+    rule: 'MustRunAsNonRoot'
   supplementalGroups:
     rule: 'MustRunAs'
     ranges:

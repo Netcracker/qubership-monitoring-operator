@@ -19,28 +19,33 @@ Image can be found from:
 Return securityContext for deployment certExporter.
 */}}
 {{- define "certExporter.deployment.securityContext" -}}
-  {{- if .Values.deployment.securityContext -}}
-    {{- toYaml .Values.deployment.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "certExporter.securityContext" (dict "root" . "configured" .Values.deployment.securityContext) -}}
 {{- end -}}
 
 {{/*
 Return securityContext for daemonset certExporter.
 */}}
 {{- define "certExporter.daemonset.securityContext" -}}
-  {{- if .Values.daemonset.securityContext -}}
-    {{- toYaml .Values.daemonset.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- $configured := deepCopy (.Values.daemonset.securityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{/*
+The DaemonSet needs hostPath volumes, so it is admitted by the chart's RunAsAny SCC, which does not
+assign a UID. The image declares the nonnumeric user "app", which the kubelet cannot verify against
+runAsNonRoot, so the DaemonSet keeps numeric IDs on OpenShift as well.
+*/}}
+{{- $configured = mergeOverwrite (dict "runAsUser" 2000 "runAsGroup" 2000) $configured -}}
+{{- end -}}
+{{- include "certExporter.securityContext" (dict "root" . "configured" $configured) -}}
+{{- end -}}
+
+{{/* Return the enforced pod security context. */}}
+{{- define "certExporter.securityContext" -}}
+{{- include "monitoring.security.podContext" (dict "root" .root "configured" .configured "id" 2000) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "certExporter.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

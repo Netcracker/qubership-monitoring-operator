@@ -44,6 +44,32 @@ Ensure you have the following prerequisites in place before installation:
 
 For detailed prerequisites, see [Prerequisites](prerequisites.md).
 
+For the security constraints of etcd certificate discovery, see
+[Etcd certificate synchronization security constraints](etcd-certs-to-secret-security.md).
+
+For the hardening controls and limitations of optional monitoring workloads, see
+[Optional component security hardening](optional-components-security-hardening.md).
+
+The operator applies the same baseline to the workloads it reconciles from `PlatformMonitoring`: `runAsNonRoot: true`,
+the `RuntimeDefault` seccomp profile, `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, all Linux
+capabilities dropped, and a size-limited `emptyDir` named `monitoring-tmp` mounted at `/tmp`. A user-defined volume
+mounted at `/tmp` through a component's `volumes`, `volumeMounts`, or `containers` fields is kept as is and replaces the
+`emptyDir` mount for that container. The volume name `monitoring-tmp` is reserved; a user-defined volume with that name
+is rejected. Settings that the baseline cannot override (`privileged: true`, `capabilities.add`, `runAsUser: 0`, and
+`runAsNonRoot: false`) are rejected at chart rendering and, for values passed through the custom resource, by the
+operator: the component is not updated, and the reason is recorded in the `PlatformMonitoring` status conditions.
+
+The operator detects OpenShift through the `security.openshift.io/v1` SecurityContextConstraints API and caches the
+result. If that discovery fails before a result is cached, the affected component is not updated during that
+reconciliation, the failure is recorded in the status conditions, and reconciliation is retried.
+
+On OpenShift the operator omits numeric IDs unless a component's `securityContext` sets them, so the `restricted-v2`
+SCC assigns IDs from the namespace range. Explicitly configured non-root IDs stay admissible for VictoriaMetrics
+components: the operator-managed `victoriametrics-operator` SCC uses the `MustRunAsNonRoot` UID strategy and
+`RunAsAny` for `fsGroup` and supplemental groups. Set `runAsUser` together with `runAsGroup` or `fsGroup` on
+OpenShift: a pod that carries only a group ID falls back to that SCC without a UID, and the VictoriaMetrics images do
+not declare a numeric user, so the kubelet rejects the pod.
+
 ## Permissions
 
 The monitoring operator requires cluster-level permissions to create and manage the following components:
@@ -72,6 +98,12 @@ The monitoring stack requires resources depending on the components installed an
 | Storage  | 10GB        |
 
 For detailed hardware sizing information, refer to the [Prerequisites](prerequisites.md) guide.
+
+The monitoring operator requests `16Mi` of local ephemeral storage and has a `128Mi` limit by default. The request
+reserves space for scheduling; the limit covers the container's local ephemeral storage, including its logs. These
+values are starting points, not measured peaks. Check usage under your workload and adjust
+`monitoringOperator.ephemeralStorage.request` and `monitoringOperator.ephemeralStorage.limit` if needed. Explicit
+`ephemeral-storage` entries in `monitoringOperator.resources` take precedence.
 
 ## Default Deployment
 

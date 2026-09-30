@@ -127,7 +127,11 @@ func (r *GrafanaReconciler) observeCredentialSources(cr *monv1.PlatformMonitorin
 }
 
 func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
-	m, err := grafana(cr, r.observeCredentialSources(cr))
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := grafana(cr, r.observeCredentialSources(cr), isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Grafana manifest")
 		return err
@@ -509,29 +513,22 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 }
 
 func (r *GrafanaReconciler) deleteGrafana(cr *monv1.PlatformMonitoring) error {
-	// Only the object key is used here, so the credential sources do not matter.
-	m, err := grafana(cr, grafanaCredentialSources{})
-	if err != nil {
-		r.Log.Error(err, "Failed creating Grafana manifest")
-		return err
-	}
-	// Check if resource exists first
-	checkObj := &grafv1.Grafana{}
-	checkObj.SetName(m.GetName())
-	checkObj.SetNamespace(m.GetNamespace())
-	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
-	if err = r.GetResource(checkObj); err != nil {
+	// Address the deletion target by its stable identity so uninstall does not depend on
+	// platform discovery, credential Secret lookup, or desired-state validation.
+	existing := &grafv1.Grafana{}
+	existing.SetName(grafanaName(cr))
+	existing.SetNamespace(grafanaNamespace(cr))
+	existing.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
+	if err := r.GetResource(existing); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	// Use the manifest object (which has correct type) for deletion
-	// The manifest object already has GVK set correctly
-	if err = r.Client.Delete(context.TODO(), m); err != nil {
+	if err := r.Client.Delete(context.TODO(), existing); err != nil {
 		return err
 	}
-	r.Log.Info("Successful deleting", "resource", "Grafana", "name", m.GetName())
+	r.Log.Info("Successful deleting", "resource", "Grafana", "name", existing.GetName())
 	return nil
 }
 

@@ -70,14 +70,14 @@ Return securityContext for prometheus-adapter.
 Return securityContext for prometheus-adapter-operator.
 */}}
 {{- define "prometheusAdapter.operator.securityContext" -}}
-  {{- if .Values.operator.securityContext -}}
-    {{- toYaml .Values.operator.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.operator.securityContext "id" 2000) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for prometheus-adapter-operator.
+*/}}
+{{- define "prometheusAdapter.operator.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

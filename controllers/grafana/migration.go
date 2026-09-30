@@ -63,7 +63,7 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 	}
 
 	// Only the object key is used here, so the credential sources do not matter.
-	grafanaManifest, err := grafana(platformMonitoring, grafanaCredentialSources{})
+	grafanaManifest, err := grafana(platformMonitoring, grafanaCredentialSources{}, false)
 	if err != nil {
 		return err
 	}

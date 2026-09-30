@@ -379,6 +379,10 @@
                 "annotations": {
                     "type": "object"
                 },
+                "containerSecurityContext": {
+                    "type": "object",
+                    "description": "Container-level security attributes. The chart enforces the restricted baseline fields."
+                },
                 "install": {
                     "type": "boolean"
                 },
@@ -1437,6 +1441,18 @@
                 },
                 "resources": {
                     "type": "object"
+                },
+                "ephemeralStorage": {
+                    "type": "object",
+                    "description": "Default local storage request and limit for the operator container. Values in monitoringOperator.resources take precedence.",
+                    "properties": {
+                        "request": {
+                            "type": "string"
+                        },
+                        "limit": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "securityContext": {
                     "type": "object",

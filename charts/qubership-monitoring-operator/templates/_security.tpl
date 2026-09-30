@@ -1,74 +1,208 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
+Fail rendering when a configured pod security context conflicts with the enforced non-root baseline.
+Pass the configured map (or nil) as the context.
+*/}}
+{{- define "monitoring.security.rejectPodConflicts" -}}
+{{- $configured := . | default dict -}}
+{{- $runAsUser := get $configured "runAsUser" -}}
+{{- if and (not (kindIs "invalid" $runAsUser)) (eq (toString $runAsUser) "0") -}}
+{{- fail "securityContext.runAsUser=0 conflicts with the enforced runAsNonRoot=true baseline. Use a non-root UID." -}}
+{{- end -}}
+{{- $runAsNonRoot := get $configured "runAsNonRoot" -}}
+{{- if and (kindIs "bool" $runAsNonRoot) (not $runAsNonRoot) -}}
+{{- fail "securityContext.runAsNonRoot=false conflicts with the enforced security baseline. Remove the field." -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Fail rendering when a configured container security context contains a field the baseline cannot override.
+Pass the configured map (or nil) as the context.
+*/}}
+{{- define "monitoring.security.rejectContainerConflicts" -}}
+{{- $configured := . | default dict -}}
+{{- if get $configured "privileged" -}}
+{{- fail "containerSecurityContext.privileged=true conflicts with the enforced security baseline. Remove the field." -}}
+{{- end -}}
+{{- $capabilities := get $configured "capabilities" | default dict -}}
+{{- if get $capabilities "add" -}}
+{{- fail "containerSecurityContext.capabilities.add conflicts with the enforced drop-all baseline. Remove the added capabilities." -}}
+{{- end -}}
+{{- include "monitoring.security.rejectPodConflicts" $configured -}}
+{{- end -}}
+
+{{/*
+Render the size-limited temporary-directory volume for charts that accept user-defined volumes.
+Context: dict "volumes" (user volume list, may be nil) "sizeLimit" (optional, default 100Mi).
+The volume name is reserved; a user volume with the same name fails rendering because the
+temporary-directory mount would otherwise expose that volume at /tmp.
+*/}}
+{{- define "monitoring.security.tmpVolume" -}}
+{{- range (.volumes | default list) -}}
+{{- if eq (get . "name") "monitoring-tmp" -}}
+{{- fail "volume name \"monitoring-tmp\" is reserved for the chart-managed temporary directory. Rename the volume." -}}
+{{- end -}}
+{{- end -}}
+- name: monitoring-tmp
+  emptyDir:
+    sizeLimit: {{ .sizeLimit | default "100Mi" }}
+{{- end -}}
+
+{{/*
+Render the temporary-directory mount unless a user-defined mount already covers /tmp.
+Context: dict "volumeMounts" (user mount list, may be nil).
+*/}}
+{{- define "monitoring.security.tmpVolumeMount" -}}
+{{- $covered := false -}}
+{{- range (.volumeMounts | default list) -}}
+{{- if eq (trimSuffix "/" (get . "mountPath" | default "")) "/tmp" -}}
+{{- $covered = true -}}
+{{- end -}}
+{{- end -}}
+{{- if not $covered -}}
+- name: monitoring-tmp
+  mountPath: /tmp
+{{- end -}}
+{{- end -}}
+
+{{/* Enforce the pod baseline while preserving configured IDs. */}}
+{{- define "monitoring.security.podContext" -}}
+{{- include "monitoring.security.rejectPodConflicts" .configured -}}
+{{- $required := dict "runAsNonRoot" true "seccompProfile" (dict "type" "RuntimeDefault") -}}
+{{- $defaults := dict -}}
+{{- if not (.root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $id := .id | default 2000 -}}
+{{- $defaults = dict "runAsUser" $id "runAsGroup" $id "fsGroup" $id -}}
+{{- if hasKey . "defaults" -}}
+{{- $defaults = .defaults -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml (mergeOverwrite (mergeOverwrite $defaults (deepCopy (.configured | default dict))) $required) -}}
+{{- end -}}
+
+{{/* Enforce the container baseline while preserving unrelated configured fields. */}}
+{{- define "monitoring.security.containerContext" -}}
+{{- include "monitoring.security.rejectContainerConflicts" .configured -}}
+{{- $required := dict "allowPrivilegeEscalation" false "readOnlyRootFilesystem" true "capabilities" (dict "drop" (list "ALL")) -}}
+{{- toYaml (mergeOverwrite (deepCopy (.configured | default dict)) $required) -}}
+{{- end -}}
+
+{{/* CR security contexts only support numeric identity fields. */}}
+{{- define "monitoring.security.numericContext" -}}
+{{- include "monitoring.security.rejectPodConflicts" .configured -}}
+{{- $defaults := dict -}}
+{{- if not (.root.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
+{{- $defaults = dict "runAsUser" 2000 "runAsGroup" 2000 "fsGroup" 2000 -}}
+{{- end -}}
+{{- $configured := pick (deepCopy (.configured | default dict)) "runAsUser" "runAsGroup" "fsGroup" -}}
+{{- toYaml (mergeOverwrite $defaults $configured) -}}
+{{- end -}}
+
+{{/*
 Return securityContext for monitoring-operator.
 */}}
 {{- define "monitoring.operator.securityContext" -}}
-  {{- if .Values.monitoringOperator.securityContext -}}
-    {{- toYaml .Values.monitoringOperator.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.monitoringOperator.securityContext) -}}
 {{- end -}}
+
 {{/*
-Return securityContext for etcd-certs-to-secret job.
+Return the enforced pod security context for root-chart cleanup hooks.
+*/}}
+{{- define "monitoring.cleanup.securityContext" -}}
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" (get $cleanupHook "securityContext")) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for root-chart cleanup hooks.
+*/}}
+{{- define "monitoring.cleanup.containerSecurityContext" -}}
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- include "monitoring.security.containerContext" (dict "configured" (get $cleanupHook "containerSecurityContext")) -}}
+{{- end -}}
+
+{{/*
+Return cleanup hook resources with a bounded writable layer and /tmp volume.
+The hook can download a kubectl binary to /tmp when the image does not contain a compatible version.
+*/}}
+{{- define "monitoring.cleanup.resources" -}}
+{{- $values := .Values | toJson | fromJson -}}
+{{- $cleanupHook := dig "victoriametrics" "cleanup" "hook" (dict) $values -}}
+{{- $resources := deepCopy (get $cleanupHook "resources" | default (dict)) -}}
+{{- $limits := get $resources "limits" | default (dict) -}}
+{{- $_ := set $limits "ephemeral-storage" (get $limits "ephemeral-storage" | default "100Mi") -}}
+{{- $_ := set $resources "limits" $limits -}}
+{{- toYaml $resources -}}
+{{- end -}}
+
+{{/*
+Return the enforced pod security context for monitoring integration tests.
+*/}}
+{{- define "integrationTests.securityContext" -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.integrationTests.securityContext) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for monitoring integration tests.
+*/}}
+{{- define "integrationTests.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.integrationTests.containerSecurityContext) -}}
+{{- end -}}
+
+{{/*
+Return the container security context for the etcd-certs-to-secret job.
 */}}
 {{- define "etcdCertsJob.securityContext" -}}
-{{- if .Values.etcdCertsJob.securityContext -}}
-  {{- toYaml .Values.etcdCertsJob.securityContext | nindent 12 }}
-{{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- toYaml (dict "runAsUser" 0 "runAsGroup" 0) | nindent 12 }}
+{{- $required := dict
+  "allowPrivilegeEscalation" false
+  "readOnlyRootFilesystem" true
+  "capabilities" (dict "drop" (list "ALL")) -}}
+{{- $configured := deepCopy (.Values.etcdCertsJob.securityContext | default dict) -}}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" -}}
+{{- include "monitoring.security.rejectContainerConflicts" $configured -}}
+{{- $_ := set $required "runAsNonRoot" true -}}
 {{- else -}}
-{{- printf "{}" | nindent 12 }}
+{{/* The Kubernetes job runs as root by design, so only the container-level conflicts are rejected here. */}}
+{{- include "monitoring.security.rejectContainerConflicts" (omit $configured "runAsUser" "runAsNonRoot") -}}
+{{- $_ := set $required "runAsUser" 0 -}}
+{{- $_ := set $required "runAsGroup" 0 -}}
 {{- end -}}
+{{- toYaml (mergeOverwrite $configured $required) -}}
 {{- end -}}
+
 {{/*
-Return securityContext for etcd-certs-to-secret job.
+Return the pod security context for etcd-certs-to-secret workloads.
+The Kubernetes workload runs as root because etcd private keys are commonly readable only by root.
 */}}
-{{- define "etcdCertsCronJob.securityContext" -}}
-{{- if .Values.etcdCertsJob.securityContext -}}
-  {{- toYaml .Values.etcdCertsJob.securityContext | nindent 16 }}
-{{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-{{- toYaml (dict "runAsUser" 0 "runAsGroup" 0) | nindent 16 }}
-{{- else -}}
-{{- printf "{}" | nindent 16 }}
-{{- end -}}
+{{- define "etcdCertsJob.podSecurityContext" -}}
+seccompProfile:
+  type: RuntimeDefault
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+runAsNonRoot: true
+{{- end }}
 {{- end -}}
 {{/*
 Return securityContext for prometheus.
 */}}
 {{- define "prometheus.securityContext" -}}
-  {{- if .Values.prometheus.securityContext -}}
-    {{- toYaml .Values.prometheus.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.prometheus.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for prometheus-operator.
 */}}
 {{- define "prometheus.operator.securityContext" -}}
-  {{- if .Values.prometheus.operator.securityContext -}}
-    {{- toYaml .Values.prometheus.operator.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.prometheus.operator.securityContext) | nindent 8 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for vmOperator.
 */}}
 {{- define "vm.operator.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.victoriametrics.vmOperator.securityContext -}}
   {{- if .Values.victoriametrics.vmOperator.securityContext -}}
     {{- toYaml .Values.victoriametrics.vmOperator.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -83,6 +217,7 @@ Return securityContext for vmOperator.
 Return containerSecurityContext for vmOperator.
 */}}
 {{- define "vm.operator.containerSecurityContext" -}}
+  {{- include "monitoring.security.rejectContainerConflicts" .Values.victoriametrics.vmOperator.containerSecurityContext -}}
   {{- if .Values.victoriametrics.vmOperator.containerSecurityContext -}}
     {{- toYaml .Values.victoriametrics.vmOperator.containerSecurityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -97,6 +232,7 @@ Return containerSecurityContext for vmOperator.
 Return securityContext for vmSingle.
 */}}
 {{- define "vm.single.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.victoriametrics.vmSingle.securityContext -}}
   {{- if .Values.victoriametrics.vmSingle.securityContext -}}
     {{- toYaml .Values.victoriametrics.vmSingle.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -112,6 +248,7 @@ Return securityContext for vmSingle.
 Return securityContext for vmAgent.
 */}}
 {{- define "vm.agent.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.victoriametrics.vmAgent.securityContext -}}
   {{- if .Values.victoriametrics.vmAgent.securityContext -}}
     {{- toYaml .Values.victoriametrics.vmAgent.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -126,6 +263,7 @@ Return securityContext for vmAgent.
 Return securityContext for vmAlertManager.
 */}}
 {{- define "vm.alertmanager.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.victoriametrics.vmAlertManager.securityContext -}}
   {{- if .Values.victoriametrics.vmAlertManager.securityContext -}}
     {{- toYaml .Values.victoriametrics.vmAlertManager.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -140,6 +278,7 @@ Return securityContext for vmAlertManager.
 Return securityContext for vmAlert.
 */}}
 {{- define "vm.alert.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.victoriametrics.vmAlert.securityContext -}}
   {{- if .Values.victoriametrics.vmAlert.securityContext -}}
     {{- toYaml .Values.victoriametrics.vmAlert.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -154,6 +293,7 @@ Return securityContext for vmAlert.
 Return securityContext for vmAuth.
 */}}
 {{- define "vm.auth.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.victoriametrics.vmAuth.securityContext -}}
   {{- if .Values.victoriametrics.vmAuth.securityContext -}}
     {{- toYaml .Values.victoriametrics.vmAuth.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -168,20 +308,14 @@ Return securityContext for vmAuth.
 Return securityContext for alertManager.
 */}}
 {{- define "alertmanager.securityContext" -}}
-  {{- if .Values.alertManager.securityContext -}}
-    {{- toYaml .Values.alertManager.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.alertManager.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for grafana.
 */}}
 {{- define "grafana.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.grafana.securityContext -}}
   {{- if .Values.grafana.securityContext -}}
     {{- toYaml .Values.grafana.securityContext | nindent 6 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -196,6 +330,7 @@ Return securityContext for grafana.
 Return securityContext for grafana-operator.
 */}}
 {{- define "grafana.operator.securityContext" -}}
+  {{- include "monitoring.security.rejectPodConflicts" .Values.grafana.operator.securityContext -}}
   {{- if .Values.grafana.operator.securityContext -}}
     {{- toYaml .Values.grafana.operator.securityContext | nindent 8 }}
   {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
@@ -210,40 +345,19 @@ Return securityContext for grafana-operator.
 Return securityContext for kubeStateMetrics.
 */}}
 {{- define "kubeStateMetrics.securityContext" -}}
-  {{- if .Values.kubeStateMetrics.securityContext -}}
-    {{- toYaml .Values.kubeStateMetrics.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.kubeStateMetrics.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for nodeExporter.
 */}}
 {{- define "nodeExporter.securityContext" -}}
-  {{- if .Values.nodeExporter.securityContext -}}
-    {{- toYaml .Values.nodeExporter.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.nodeExporter.securityContext) | nindent 6 -}}
 {{- end -}}
 
 {{/*
 Return securityContext for pushgateway.
 */}}
 {{- define "pushgateway.securityContext" -}}
-  {{- if .Values.pushgateway.securityContext -}}
-    {{- toYaml .Values.pushgateway.securityContext | nindent 6 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-      runAsUser: 2000
-      fsGroup: 2000
-  {{- else -}}
-      {}
-  {{- end -}}
+{{- include "monitoring.security.numericContext" (dict "root" . "configured" .Values.pushgateway.securityContext) | nindent 6 -}}
 {{- end -}}
