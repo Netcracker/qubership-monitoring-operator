@@ -89,11 +89,9 @@ Components that require ClusterRole creation:
 
 ### Restricted Deployment
 
-The monitoring-operator supports deployment with restricted privileges:
-
-- Access limited to resources within the namespace
-- Restricted access to cluster-scoped resources
-- Manual privilege grants required for cluster-scoped resources and other namespaces
+Set `global.privilegedRights: false` when a cluster administrator maintains cluster-scoped RBAC and the
+Monitoring Operator must not create its managed ClusterRoles or ClusterRoleBindings. See
+[Restricted Mode Installation](restricted-mode.md) for the installation procedure.
 
 ## Cloud Platform Specifics
 
