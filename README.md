@@ -113,6 +113,11 @@ graph TB
 
 ### 1. Install or upgrade required CRDs
 
+Before upgrading from Prometheus Operator 0.93 to 0.94, check existing `ScrapeConfig` resources and update values that
+the new CRD rejects. Follow the
+[ScrapeConfig migration steps](docs/user-guides/manual-create-crds.md#prometheus-operator-094-scrapeconfig-upgrade)
+before applying the CRDs.
+
 **Install from source:**
 
 ```bash
