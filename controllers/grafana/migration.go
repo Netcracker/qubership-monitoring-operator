@@ -46,6 +46,9 @@ var (
 	}
 )
 
+// legacyCombinedDatasourceName is the v4 GrafanaDataSource that held Prometheus, Jaeger, and ClickHouse together.
+const legacyCombinedDatasourceName = "platform-monitoring-prometheus"
+
 func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 	ctx context.Context,
 	platformMonitoring *monv1.PlatformMonitoring,
@@ -61,7 +64,35 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 		}
 		return fmt.Errorf("checking legacy Grafana datasource: %w", err)
 	}
+	return r.adoptDatasourceUIDFromGrafana(ctx, platformMonitoring, datasource)
+}
 
+// adoptDiscoveredDatasourceUID copies the UID of a Grafana datasource with the same display name
+// when the v4 datasource custom resource still exists.
+// spec.uid is immutable and cannot be added after create, so this runs only before the v5 resource is created.
+func (r *GrafanaReconciler) adoptDiscoveredDatasourceUID(
+	ctx context.Context,
+	platformMonitoring *monv1.PlatformMonitoring,
+	datasource *grafv1.GrafanaDatasource,
+) error {
+	legacyDatasource := &unstructured.Unstructured{}
+	legacyDatasource.SetGroupVersionKind(legacyGrafanaDatasourceGVK)
+	legacyDatasource.SetName(legacyCombinedDatasourceName)
+	legacyDatasource.SetNamespace(datasource.Namespace)
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(legacyDatasource), legacyDatasource); err != nil {
+		if meta.IsNoMatchError(err) || apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("checking legacy Grafana datasource: %w", err)
+	}
+	return r.adoptDatasourceUIDFromGrafana(ctx, platformMonitoring, datasource)
+}
+
+func (r *GrafanaReconciler) adoptDatasourceUIDFromGrafana(
+	ctx context.Context,
+	platformMonitoring *monv1.PlatformMonitoring,
+	datasource *grafv1.GrafanaDatasource,
+) error {
 	// Only the object key is used here, so the credential sources do not matter.
 	grafanaManifest, err := grafana(platformMonitoring, grafanaCredentialSources{}, false)
 	if err != nil {
