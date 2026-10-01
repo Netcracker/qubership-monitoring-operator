@@ -333,6 +333,8 @@ func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(ignoreDeletionPredicate())).
 		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
 			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap))).
+		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.requestsForGrafanaResourcesConverter),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaResourcesConverterConfigMap))).
 		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
 			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret))).
 		Complete(r)
@@ -340,6 +342,10 @@ func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error 
 
 func isGrafanaExtraVarsConfigMap(object client.Object) bool {
 	return object.GetName() == "grafana-extra-vars"
+}
+
+func isGrafanaResourcesConverterConfigMap(object client.Object) bool {
+	return object.GetName() == "grafana-resources-converter"
 }
 
 func isGrafanaExtraVarsSecret(object client.Object) bool {
@@ -364,6 +370,29 @@ func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
 			grafanaNamespace = platformMonitoring.Spec.Grafana.Namespace
 		}
 		if grafanaNamespace == object.GetNamespace() {
+			requests = append(requests, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(platformMonitoring)})
+		}
+	}
+	return requests
+}
+
+// requestsForGrafanaResourcesConverter enqueues each PlatformMonitoring in the
+// same namespace as the ConfigMap. grafana-resources-converter is created in
+// the PlatformMonitoring namespace.
+func (r *PlatformMonitoringReconciler) requestsForGrafanaResourcesConverter(
+	ctx context.Context,
+	object client.Object,
+) []reconcile.Request {
+	platformMonitorings := &qubershiporgv1.PlatformMonitoringList{}
+	if err := r.List(ctx, platformMonitorings); err != nil {
+		r.Log.Error(err, "Cannot list PlatformMonitoring resources for Grafana converter ConfigMap update")
+		return nil
+	}
+
+	requests := make([]reconcile.Request, 0, len(platformMonitorings.Items))
+	for i := range platformMonitorings.Items {
+		platformMonitoring := &platformMonitorings.Items[i]
+		if platformMonitoring.GetNamespace() == object.GetNamespace() {
 			requests = append(requests, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(platformMonitoring)})
 		}
 	}

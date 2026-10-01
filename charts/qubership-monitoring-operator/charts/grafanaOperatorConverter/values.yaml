@@ -122,6 +122,12 @@ grafana:
   converter:
     enable: true
     dashboard: true
+    # -- Legacy dashboards to convert, as a list of Kubernetes label selectors. Unset converts every legacy dashboard.
+    # A dashboard matches when any one selector matches.
+    dashboardLabelSelector:
+    # -- Namespace label selector for legacy dashboards. Unset does not filter by namespace labels. An empty selector
+    # matches every namespace.
+    dashboardNamespaceSelector:
     # The monitoring CRD bundle retains only the legacy GrafanaDashboard CRD. Enable the other converters only when
     # their corresponding integreatly.org CRDs are installed separately.
     datasource: false

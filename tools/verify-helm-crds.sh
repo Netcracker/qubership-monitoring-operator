@@ -338,6 +338,22 @@ verify_rbac_resource() {
     fi
 }
 
+verify_rbac_resource_absent() {
+    local manifest="$1"
+    local api_group="$2"
+    local resource="$3"
+    local matches
+    local match_count
+
+    matches="[select(.rules != null) | .rules[] | select(.apiGroups | any_c(. == \"${api_group}\")) |
+        select(.resources | any_c(. == \"${resource}\"))]"
+    match_count="$("${yq_binary}" eval-all "${matches} | length" "${manifest}")"
+    if [[ "${match_count}" != "0" ]]; then
+        echo "${manifest} unexpectedly grants permissions on ${api_group}/${resource}." >&2
+        exit 1
+    fi
+}
+
 verify_exact_rbac_verbs() {
     local manifest="$1"
     local api_group="$2"
@@ -778,9 +794,10 @@ verify_rendered_resource_count "${converter_manifest}" \
 "${yq_binary}" eval-all \
     "select(.kind == \"ClusterRole\" and ${converter_selector})" \
     "${converter_manifest}" >"${converter_rbac_manifest}"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "get,list,watch"
 verify_exact_rbac_verbs "${converter_rbac_manifest}" grafana.integreatly.org grafanadashboards \
-    "create,get,update"
+    "create,delete,get,list,update,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" namespaces "get,list,watch"
 if ! "${yq_binary}" eval -e \
     '[.rules[].resources[] | select(. == "grafanadatasources" or . == "grafanafolders" or
     . == "grafananotificationchannels" or . == "grafanacontactpoints")] | length == 0' \
@@ -814,11 +831,20 @@ if ! "${yq_binary}" eval-all -e \
     'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
     .data."parameters.yaml" | from_yaml |
     select(.dashboard == true) | select(.datasource == false) |
-    select(.folder == false) | select(.notification == false)' \
+    select(.folder == false) | select(.notification == false) |
+    select(.dashboardLabelSelector == null) | select(.dashboardNamespaceSelector == null)' \
     "${converter_manifest}" >/dev/null; then
     echo "The Grafana converter does not default to dashboard-only migration." >&2
     exit 1
 fi
+
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.grafana.converter.dashboard=false \
+    >"${converter_manifest}"
+"${yq_binary}" eval-all \
+    "select(.kind == \"ClusterRole\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
 
 helm template monitoring "${chart_dir}" \
     --set global.privilegedRights=false \
@@ -828,6 +854,10 @@ verify_rendered_resource_count "${converter_manifest}" \
 verify_rendered_resource_count "${converter_manifest}" \
     ".kind == \"Role\" and ${converter_selector} and .metadata.namespace == \"default\"" \
     1 "non-privileged Grafana converter Roles"
+"${yq_binary}" eval-all \
+    "select(.kind == \"Role\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
 if ! "${yq_binary}" eval-all -e \
     "select(.kind == \"Deployment\" and ${converter_selector}) |
     .spec.template.spec.containers[] | .env[] |
@@ -845,6 +875,10 @@ verify_rendered_resource_count "${converter_manifest}" \
     ".kind == \"Role\" and ${converter_selector}" 2 "multi-namespace Grafana converter Roles"
 verify_rendered_resource_count "${converter_manifest}" \
     ".kind == \"RoleBinding\" and ${converter_selector}" 2 "multi-namespace Grafana converter RoleBindings"
+"${yq_binary}" eval-all \
+    "select(.kind == \"Role\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
 if ! "${yq_binary}" eval-all -e \
     "select(.kind == \"Deployment\" and ${converter_selector}) |
     .spec.template.spec.containers[] | .env[] |
