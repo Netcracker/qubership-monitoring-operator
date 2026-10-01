@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -92,6 +93,24 @@ func TestGrafanaJaegerDataSourceTruncatesKubernetesLabelValues(t *testing.T) {
 	require.Len(t, datasources, 1)
 	assert.LessOrEqual(t, len(datasources[0].GetLabels()["name"]), 63)
 	assert.LessOrEqual(t, len(datasources[0].GetLabels()["app.kubernetes.io/name"]), 63)
+}
+
+func TestGrafanaJaegerDataSourceTruncatesSeparatorFromKubernetesLabelValues(t *testing.T) {
+	cr := discoveredPlatformMonitoring("30s")
+	service := jaegerService(strings.Repeat("a", 35), "query", 16686)
+
+	datasources := grafanaJaegerDataSources(cr, []corev1.Service{service})
+	reconciler := newDiscoveredReconciler(t, "", kubernetesfake.NewSimpleClientset())
+
+	require.Len(t, datasources, 1)
+	require.NoError(t, reconciler.applyDiscoveredDataSource(cr, datasources[0]))
+	stored := discoveredDatasourceObject(datasources[0].GetName(), jaegerDatasourceComponent)
+	require.NoError(t, reconciler.GetResource(stored))
+	for _, labelKey := range []string{"name", "app.kubernetes.io/name", "app.kubernetes.io/instance"} {
+		labelValue := stored.GetLabels()[labelKey]
+		assert.LessOrEqual(t, len(labelValue), 63)
+		assert.NotEqual(t, ".", labelValue[len(labelValue)-1:])
+	}
 }
 
 func TestGrafanaClickHouseDataSourceWithoutCredentials(t *testing.T) {
