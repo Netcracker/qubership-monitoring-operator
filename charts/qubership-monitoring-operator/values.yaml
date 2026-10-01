@@ -1855,6 +1855,9 @@ grafanaConverter:
   namespaceScope: false
   # Comma-separated namespaces to watch. An empty value watches all namespaces when privileged rights are enabled.
   watchNamespaces: ""
+  # Leave empty, or set the release namespace. Another namespace is rejected. Monitoring Operator updates
+  # the converter in the release namespace.
+  namespaceOverride: ""
 
 # Exporter to check SSL certificates
 sslExporter:

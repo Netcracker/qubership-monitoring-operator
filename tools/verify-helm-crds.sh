@@ -894,6 +894,40 @@ helm template monitoring "${chart_dir}" \
 verify_rendered_resource_count "${converter_manifest}" \
     "${converter_selector}" 0 "Grafana converter resources when disabled"
 
+converter_namespace_error="${temporary_dir}/grafana-converter-namespace-error.txt"
+if helm template monitoring "${chart_dir}" \
+    --namespace monitoring \
+    --set grafanaConverter.namespaceOverride=converter-system \
+    >"${converter_manifest}" 2>"${converter_namespace_error}"; then
+    echo "The chart accepts grafanaConverter.namespaceOverride set to another namespace." >&2
+    exit 1
+fi
+if ! grep -Fq \
+    "grafanaConverter.namespaceOverride must be empty or the release namespace" \
+    "${converter_namespace_error}"; then
+    echo "A rejected grafanaConverter.namespaceOverride does not report the release-namespace contract." >&2
+    cat "${converter_namespace_error}" >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --namespace monitoring \
+    --set grafanaConverter.namespaceOverride=monitoring \
+    >"${converter_manifest}"
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
+    .metadata.namespace == "monitoring"' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter leaves the release namespace when namespaceOverride matches it." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --namespace monitoring \
+    --set grafanaConverter.install=false \
+    --set grafanaConverter.namespaceOverride=converter-system \
+    >"${converter_manifest}"
+
 helm template monitoring-operator-production-long "${chart_dir}/charts/grafanaOperatorConverter" \
     --namespace monitoring \
     --set global.privilegedRights=false \
