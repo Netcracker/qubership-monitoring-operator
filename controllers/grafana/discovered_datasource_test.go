@@ -208,6 +208,17 @@ func TestHandleJaegerDataSourcesFlagOffDeletesOwnedDatasource(t *testing.T) {
 	assert.NoError(t, reconciler.GetResource(prometheus))
 }
 
+func TestHandleJaegerDataSourcesFlagOffKeepsUnownedDatasource(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(false, false)
+	unowned := unownedDiscoveredDatasourceObject("user-jaeger", jaegerDatasourceComponent)
+	reconciler := newDiscoveredReconciler(t, "", kubernetesfake.NewSimpleClientset(), unowned)
+
+	require.NoError(t, reconciler.handleJaegerDataSources(cr))
+
+	assert.NoError(t, reconciler.GetResource(unowned))
+}
+
 func TestHandleJaegerDataSourcesDiscoveryErrorDoesNotDelete(t *testing.T) {
 	withPrivilegedRights(t)
 	cr := discoveredIntegrationPlatformMonitoring(true, false)
@@ -360,6 +371,17 @@ func legacyCombinedDatasource() client.Object {
 }
 
 func discoveredDatasourceObject(name, component string) *grafv1.GrafanaDatasource {
+	datasource := &grafv1.GrafanaDatasource{}
+	datasource.SetName(name)
+	datasource.SetNamespace("monitoring")
+	datasource.SetLabels(map[string]string{
+		"app.kubernetes.io/component": component,
+		grafanaCleanupLabelKey:        grafanaCleanupLabelValue,
+	})
+	return datasource
+}
+
+func unownedDiscoveredDatasourceObject(name, component string) *grafv1.GrafanaDatasource {
 	datasource := &grafv1.GrafanaDatasource{}
 	datasource.SetName(name)
 	datasource.SetNamespace("monitoring")

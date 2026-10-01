@@ -326,7 +326,10 @@ func (r *GrafanaReconciler) deleteStaleDiscoveredDataSources(cr *monv1.PlatformM
 	listed := &grafv1.GrafanaDatasourceList{}
 	if err := r.Client.List(context.TODO(), listed,
 		client.InNamespace(cr.GetNamespace()),
-		client.MatchingLabels{"app.kubernetes.io/component": component},
+		client.MatchingLabels{
+			"app.kubernetes.io/component": component,
+			grafanaCleanupLabelKey:        grafanaCleanupLabelValue,
+		},
 	); err != nil {
 		return err
 	}
