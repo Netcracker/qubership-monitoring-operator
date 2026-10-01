@@ -34,7 +34,7 @@ func TestGrafanaJaegerDataSourceSingleService(t *testing.T) {
 	datasources := grafanaJaegerDataSources(cr, []corev1.Service{service})
 
 	require.Len(t, datasources, 1)
-	assertDiscoveredDatasource(t, datasources[0], "platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	assertDiscoveredDatasource(t, datasources[0], "platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	assert.Equal(t, "Jaeger", datasources[0].Spec.Datasource.Name)
 	assert.Equal(t, "jaeger", datasources[0].Spec.Datasource.Type)
 	assert.Equal(t, "proxy", datasources[0].Spec.Datasource.Access)
@@ -66,8 +66,21 @@ func TestGrafanaJaegerDataSourcesUseServiceIdentityWhenSeveralExist(t *testing.T
 	require.Len(t, datasources, 2)
 	assert.Equal(t, "Jaeger alpha/query", datasources[0].Spec.Datasource.Name)
 	assert.Equal(t, "Jaeger beta/query", datasources[1].Spec.Datasource.Name)
-	assert.Equal(t, "platform-monitoring-jaeger-alpha-query", datasources[0].GetName())
-	assert.Equal(t, "platform-monitoring-jaeger-beta-query", datasources[1].GetName())
+	assert.Equal(t, "platform-monitoring-jaeger-alpha.query", datasources[0].GetName())
+	assert.Equal(t, "platform-monitoring-jaeger-beta.query", datasources[1].GetName())
+}
+
+func TestGrafanaJaegerDataSourcesUseDistinctNamesForHyphenatedServiceIdentities(t *testing.T) {
+	cr := discoveredPlatformMonitoring("30s")
+	datasources := grafanaJaegerDataSources(cr, []corev1.Service{
+		jaegerService("alpha-beta", "query", 16686),
+		jaegerService("alpha", "beta-query", 16687),
+	})
+
+	require.Len(t, datasources, 2)
+	assert.Equal(t, "platform-monitoring-jaeger-alpha-beta.query", datasources[0].GetName())
+	assert.Equal(t, "platform-monitoring-jaeger-alpha.beta-query", datasources[1].GetName())
+	assert.NotEqual(t, datasources[0].GetName(), datasources[1].GetName())
 }
 
 func TestGrafanaJaegerDataSourceTruncatesKubernetesLabelValues(t *testing.T) {
@@ -169,7 +182,7 @@ func TestHandleJaegerDataSourcesAdoptsLegacyUID(t *testing.T) {
 	require.NoError(t, reconciler.handleJaegerDataSources(cr))
 
 	created := &grafv1.GrafanaDatasource{}
-	created.SetName("platform-monitoring-jaeger-tracing-jaeger-query")
+	created.SetName("platform-monitoring-jaeger-tracing.jaeger-query")
 	created.SetNamespace("monitoring")
 	require.NoError(t, reconciler.GetResource(created))
 	assert.Equal(t, "legacy-jaeger", created.Spec.CustomUID)
@@ -218,7 +231,7 @@ func TestHandleJaegerDataSourcesDeletesStaleAndKeepsOtherDatasources(t *testing.
 	require.NoError(t, reconciler.handleJaegerDataSources(cr))
 
 	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-old-query", jaegerDatasourceComponent)))
-	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)))
+	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)))
 	assert.NoError(t, reconciler.GetResource(prometheus))
 	assert.NoError(t, reconciler.GetResource(promxy))
 }
@@ -226,13 +239,13 @@ func TestHandleJaegerDataSourcesDeletesStaleAndKeepsOtherDatasources(t *testing.
 func TestHandleJaegerDataSourcesFlagOffDeletesOwnedDatasource(t *testing.T) {
 	withPrivilegedRights(t)
 	cr := discoveredIntegrationPlatformMonitoring(false, false)
-	owned := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	owned := discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	prometheus := discoveredDatasourceObject("platform-monitoring-prometheus", "grafana")
 	reconciler := newDiscoveredReconciler(t, "", kubernetesfake.NewSimpleClientset(), owned, prometheus)
 
 	require.NoError(t, reconciler.handleJaegerDataSources(cr))
 
-	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)))
+	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)))
 	assert.NoError(t, reconciler.GetResource(prometheus))
 }
 
@@ -243,7 +256,7 @@ func TestHandleJaegerDataSourcesPreservesUIDWhenUpdatingURL(t *testing.T) {
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
 		jaegerServicePtr("tracing", "jaeger-query", 16686),
 	)
-	existing := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	existing := discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	existing.Spec.CustomUID = "stable-uid"
 	existing.Spec.InstanceSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
 		"app.kubernetes.io/component": "existing-grafana",
@@ -259,7 +272,7 @@ func TestHandleJaegerDataSourcesPreservesUIDWhenUpdatingURL(t *testing.T) {
 	assert.Equal(t, "http://jaeger-query.tracing.svc.cluster.local:16686", updated.Spec.Datasource.URL)
 	assert.Equal(t, "stable-uid", updated.Spec.CustomUID)
 	assert.Equal(t, map[string]string{"app.kubernetes.io/component": "existing-grafana"}, updated.Spec.InstanceSelector.MatchLabels)
-	assert.Equal(t, "platform-monitoring-jaeger-tracing-jaeger-query-monitoring", updated.GetLabels()["app.kubernetes.io/instance"])
+	assert.Equal(t, "platform-monitoring-jaeger-tracing.jaeger-query-monitoring", updated.GetLabels()["app.kubernetes.io/instance"])
 	assert.Equal(t, "12.4.3", updated.GetLabels()["app.kubernetes.io/version"])
 }
 
@@ -270,7 +283,7 @@ func TestHandleJaegerDataSourcesGetErrorLeavesExistingDatasource(t *testing.T) {
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
 		jaegerServicePtr("tracing", "jaeger-query", 16686),
 	)
-	existing := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	existing := discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	existing.Spec.Datasource = &grafv1.GrafanaDatasourceInternal{URL: "http://old"}
 	reads := 0
 	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubeClient, interceptor.Funcs{
@@ -312,7 +325,7 @@ func TestHandleJaegerDataSourcesLegacyLookupErrorDoesNotCreate(t *testing.T) {
 
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "legacy lookup failed")
-	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)))
+	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)))
 }
 
 func TestHandleJaegerDataSourcesCleanupListErrorLeavesStaleDatasource(t *testing.T) {
@@ -373,7 +386,7 @@ func TestApplyDiscoveredDataSourceSetsLabelsWhenMissing(t *testing.T) {
 
 	stored := discoveredDatasourceObject(desired.GetName(), jaegerDatasourceComponent)
 	require.NoError(t, reconciler.GetResource(stored))
-	assert.Equal(t, "platform-monitoring-jaeger-tracing-jaeger-query-monitoring", stored.GetLabels()["app.kubernetes.io/instance"])
+	assert.Equal(t, "platform-monitoring-jaeger-tracing.jaeger-query-monitoring", stored.GetLabels()["app.kubernetes.io/instance"])
 	assert.Equal(t, "12.4.3", stored.GetLabels()["app.kubernetes.io/version"])
 }
 
@@ -388,6 +401,27 @@ func TestHandleJaegerDataSourcesFlagOffKeepsUnownedDatasource(t *testing.T) {
 	assert.NoError(t, reconciler.GetResource(unowned))
 }
 
+func TestHandleJaegerDataSourcesPreservesUnownedDatasourceWithGeneratedName(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(true, false)
+	service := jaegerService("tracing", "jaeger-query", 16686)
+	kubeClient := kubernetesfake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: service.Namespace}},
+		&service,
+	)
+	unowned := unownedDiscoveredDatasourceObject(jaegerDatasourceName(service), jaegerDatasourceComponent)
+	unowned.Spec.Datasource = &grafv1.GrafanaDatasourceInternal{Name: "user-managed", URL: "http://user-managed"}
+	reconciler := newDiscoveredReconciler(t, "", kubeClient, unowned)
+
+	require.NoError(t, reconciler.handleJaegerDataSources(cr))
+
+	stored := unownedDiscoveredDatasourceObject(unowned.GetName(), jaegerDatasourceComponent)
+	require.NoError(t, reconciler.GetResource(stored))
+	assert.Equal(t, "user-managed", stored.Spec.Datasource.Name)
+	assert.Equal(t, "http://user-managed", stored.Spec.Datasource.URL)
+	assert.Empty(t, stored.GetLabels()[grafanaCleanupLabelKey])
+}
+
 func TestHandleJaegerDataSourcesDiscoveryErrorDoesNotDelete(t *testing.T) {
 	withPrivilegedRights(t)
 	cr := discoveredIntegrationPlatformMonitoring(true, false)
@@ -395,14 +429,14 @@ func TestHandleJaegerDataSourcesDiscoveryErrorDoesNotDelete(t *testing.T) {
 	kubeClient.PrependReactor("list", "namespaces", func(k8stesting.Action) (bool, runtime.Object, error) {
 		return true, nil, errors.New("namespace list failed")
 	})
-	owned := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	owned := discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	reconciler := newDiscoveredReconciler(t, "", kubeClient, owned)
 
 	err := reconciler.handleJaegerDataSources(cr)
 
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "namespace list failed")
-	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)))
+	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)))
 }
 
 func TestHandleClickHouseDataSourcesCredentialsErrorDoesNotDelete(t *testing.T) {
@@ -447,7 +481,7 @@ func TestHandleClickHouseDataSourcesDiscoveryErrorDoesNotDelete(t *testing.T) {
 func TestUninstallDeletesDiscoveredDataSources(t *testing.T) {
 	cr := discoveredPlatformMonitoring("30s")
 	cr.Spec.Grafana.Install = boolPtr(false)
-	jaegerDatasource := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	jaegerDatasource := discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	clickHouseDatasource := discoveredDatasourceObject("platform-monitoring-clickhouse-analytics", clickHouseDatasourceComponent)
 	reconciler := newDiscoveredReconciler(t, "", kubernetesfake.NewSimpleClientset(), jaegerDatasource, clickHouseDatasource)
 
@@ -460,7 +494,7 @@ func TestUninstallDeletesDiscoveredDataSources(t *testing.T) {
 func TestUninstallKeepsDiscoveredDataSourcesWhenListFails(t *testing.T) {
 	cr := discoveredPlatformMonitoring("30s")
 	cr.Spec.Grafana.Install = boolPtr(false)
-	jaegerDatasource := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	jaegerDatasource := discoveredDatasourceObject("platform-monitoring-jaeger-tracing.jaeger-query", jaegerDatasourceComponent)
 	clickHouseDatasource := discoveredDatasourceObject("platform-monitoring-clickhouse-analytics", clickHouseDatasourceComponent)
 	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubernetesfake.NewSimpleClientset(), interceptor.Funcs{
 		List: func(ctx context.Context, kubeClient client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {

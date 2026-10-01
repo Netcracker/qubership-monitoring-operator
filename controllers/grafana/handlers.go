@@ -305,6 +305,10 @@ func (r *GrafanaReconciler) applyDiscoveredDataSource(cr *monv1.PlatformMonitori
 		return err
 	}
 
+	if current.GetLabels()[grafanaCleanupLabelKey] != grafanaCleanupLabelValue {
+		r.Log.Info("Skipping unowned GrafanaDatasource", "name", current.GetName())
+		return nil
+	}
 	desired.Spec.CustomUID = current.Spec.CustomUID
 	desired.Spec.InstanceSelector = current.Spec.InstanceSelector
 	needsUpdate := false

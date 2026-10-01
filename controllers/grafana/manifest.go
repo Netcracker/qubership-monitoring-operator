@@ -923,7 +923,7 @@ func newDiscoveredGrafanaDataSource(cr *monv1.PlatformMonitoring, name, componen
 }
 
 func jaegerDatasourceName(service corev1.Service) string {
-	return "platform-monitoring-jaeger-" + service.Namespace + "-" + service.Name
+	return "platform-monitoring-jaeger-" + service.Namespace + "." + service.Name
 }
 
 func clickHouseDatasourceName(service corev1.Service) string {
