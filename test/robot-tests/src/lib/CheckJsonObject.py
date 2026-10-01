@@ -382,6 +382,46 @@ def update_dashboard_parameter(body: dict, key: str, updated_value: str) -> dict
     return body
 
 
+def exclude_terminating_pods(pods):
+    """Drop pods that are being deleted.
+
+    A terminating pod keeps phase Running until its containers exit, so during a rolling update
+    it would otherwise be counted alongside its replacement.
+    """
+    return [pod for pod in pods if pod.metadata.deletion_timestamp is None]
+
+
+def describe_incomplete_rollout(workload):
+    """Return why a Deployment, StatefulSet, or DaemonSet rollout is still in progress, or '' when it is complete.
+
+    Mirrors the conditions ``kubectl rollout status`` waits for. Status counters are ``None`` until the
+    controller reports them, so they are read as 0.
+    """
+    kind = type(workload).__name__
+    name = workload.metadata.name
+    generation = workload.metadata.generation or 0
+    status = workload.status
+    observed = status.observed_generation or 0
+    if observed < generation:
+        return f'{kind} {name}: generation {generation} is not observed yet (observed {observed})'
+    if kind == 'V1DaemonSet':
+        desired = status.desired_number_scheduled or 0
+        counters = dict(updated=status.updated_number_scheduled, available=status.number_available)
+    elif kind == 'V1StatefulSet':
+        desired = workload.spec.replicas or 0
+        counters = dict(updated=status.updated_replicas, ready=status.ready_replicas)
+        if status.current_revision != status.update_revision:
+            return (f'{kind} {name}: revision {status.update_revision} is rolling out over '
+                    f'{status.current_revision}')
+    else:
+        desired = workload.spec.replicas or 0
+        counters = dict(updated=status.updated_replicas, total=status.replicas, available=status.available_replicas)
+    for counter, value in counters.items():
+        if (value or 0) != desired:
+            return f'{kind} {name}: {counter} {value or 0} of {desired} replicas'
+    return ''
+
+
 def get_object_in_namespace_by_mask(list, mask):
     masked_objects = []
     pattern = mask + '-operator-*'
