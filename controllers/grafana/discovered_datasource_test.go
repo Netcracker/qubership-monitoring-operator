@@ -24,6 +24,7 @@ import (
 	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
 func TestGrafanaJaegerDataSourceSingleService(t *testing.T) {
@@ -42,6 +43,17 @@ func TestGrafanaJaegerDataSourceSingleService(t *testing.T) {
 	assert.Equal(t, true, *datasources[0].Spec.Datasource.Editable)
 	assert.JSONEq(t, `{"nodeGraph":{"enabled":true},"timeInterval":"15s","tlsSkipVerify":true}`, string(datasources[0].Spec.Datasource.JSONData))
 	assert.Empty(t, datasources[0].Spec.Plugins)
+}
+
+func TestGrafanaJaegerDataSourceUsesDefaultIntervalWhenVmAgentIsNotInstalled(t *testing.T) {
+	cr := discoveredPlatformMonitoring("15s")
+	installed := false
+	cr.Spec.Victoriametrics.VmAgent.Install = &installed
+
+	datasources := grafanaJaegerDataSources(cr, []corev1.Service{jaegerService("tracing", "jaeger-query", 16686)})
+
+	require.Len(t, datasources, 1)
+	assert.JSONEq(t, `{"nodeGraph":{"enabled":true},"timeInterval":"30s","tlsSkipVerify":true}`, string(datasources[0].Spec.Datasource.JSONData))
 }
 
 func TestGrafanaJaegerDataSourcesUseServiceIdentityWhenSeveralExist(t *testing.T) {
@@ -106,6 +118,22 @@ func TestGrafanaClickHouseDataSourceUsesCredentials(t *testing.T) {
 	secure := map[string]string{}
 	require.NoError(t, json.Unmarshal(datasources[0].Spec.Datasource.SecureJSONData, &secure))
 	assert.Equal(t, "secret", secure["basicAuthPassword"])
+}
+
+func TestGrafanaClickHouseDataSourceIgnoresIncompleteCredentials(t *testing.T) {
+	cr := discoveredPlatformMonitoring("30s")
+	kubeClient := kubernetesfake.NewSimpleClientset(&corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: utils.ClickHouseSecret, Namespace: "analytics"},
+		Data:       map[string][]byte{"username": []byte("metrics")},
+	})
+
+	datasources, err := grafanaClickHouseDataSources(cr, kubeClient, []corev1.Service{clickHouseService("analytics")})
+
+	require.NoError(t, err)
+	require.Len(t, datasources, 1)
+	assert.Nil(t, datasources[0].Spec.Datasource.BasicAuth)
+	assert.Empty(t, datasources[0].Spec.Datasource.BasicAuthUser)
+	assert.Empty(t, datasources[0].Spec.Datasource.SecureJSONData)
 }
 
 func TestGrafanaClickHouseDataSourcesNameByNamespace(t *testing.T) {
@@ -208,6 +236,147 @@ func TestHandleJaegerDataSourcesFlagOffDeletesOwnedDatasource(t *testing.T) {
 	assert.NoError(t, reconciler.GetResource(prometheus))
 }
 
+func TestHandleJaegerDataSourcesPreservesUIDWhenUpdatingURL(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(true, false)
+	kubeClient := kubernetesfake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
+		jaegerServicePtr("tracing", "jaeger-query", 16686),
+	)
+	existing := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	existing.Spec.CustomUID = "stable-uid"
+	existing.Spec.InstanceSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
+		"app.kubernetes.io/component": "existing-grafana",
+	}}
+	existing.Spec.Datasource = &grafv1.GrafanaDatasourceInternal{Name: "old", URL: "http://old"}
+	reconciler := newDiscoveredReconciler(t, "", kubeClient, existing)
+
+	require.NoError(t, reconciler.handleJaegerDataSources(cr))
+	require.NoError(t, reconciler.handleJaegerDataSources(cr))
+
+	updated := discoveredDatasourceObject(existing.GetName(), jaegerDatasourceComponent)
+	require.NoError(t, reconciler.GetResource(updated))
+	assert.Equal(t, "http://jaeger-query.tracing.svc.cluster.local:16686", updated.Spec.Datasource.URL)
+	assert.Equal(t, "stable-uid", updated.Spec.CustomUID)
+	assert.Equal(t, map[string]string{"app.kubernetes.io/component": "existing-grafana"}, updated.Spec.InstanceSelector.MatchLabels)
+	assert.Equal(t, "platform-monitoring-jaeger-tracing-jaeger-query-monitoring", updated.GetLabels()["app.kubernetes.io/instance"])
+	assert.Equal(t, "12.4.3", updated.GetLabels()["app.kubernetes.io/version"])
+}
+
+func TestHandleJaegerDataSourcesGetErrorLeavesExistingDatasource(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(true, false)
+	kubeClient := kubernetesfake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
+		jaegerServicePtr("tracing", "jaeger-query", 16686),
+	)
+	existing := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	existing.Spec.Datasource = &grafv1.GrafanaDatasourceInternal{URL: "http://old"}
+	reads := 0
+	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubeClient, interceptor.Funcs{
+		Get: func(ctx context.Context, kubeClient client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+			if _, ok := obj.(*grafv1.GrafanaDatasource); ok && reads == 0 {
+				reads++
+				return errors.New("datasource get failed")
+			}
+			return kubeClient.Get(ctx, key, obj, opts...)
+		},
+	}, existing)
+
+	err := reconciler.handleJaegerDataSources(cr)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "datasource get failed")
+	stored := discoveredDatasourceObject(existing.GetName(), jaegerDatasourceComponent)
+	require.NoError(t, reconciler.GetResource(stored))
+	assert.Equal(t, "http://old", stored.Spec.Datasource.URL)
+}
+
+func TestHandleJaegerDataSourcesLegacyLookupErrorDoesNotCreate(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(true, false)
+	kubeClient := kubernetesfake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
+		jaegerServicePtr("tracing", "jaeger-query", 16686),
+	)
+	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubeClient, interceptor.Funcs{
+		Get: func(ctx context.Context, kubeClient client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+			if _, ok := obj.(*unstructured.Unstructured); ok && key.Name == legacyCombinedDatasourceName {
+				return errors.New("legacy lookup failed")
+			}
+			return kubeClient.Get(ctx, key, obj, opts...)
+		},
+	})
+
+	err := reconciler.handleJaegerDataSources(cr)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "legacy lookup failed")
+	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)))
+}
+
+func TestHandleJaegerDataSourcesCleanupListErrorLeavesStaleDatasource(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(true, false)
+	kubeClient := kubernetesfake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
+		jaegerServicePtr("tracing", "jaeger-query", 16686),
+	)
+	stale := discoveredDatasourceObject("platform-monitoring-jaeger-old-query", jaegerDatasourceComponent)
+	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubeClient, interceptor.Funcs{
+		List: func(ctx context.Context, kubeClient client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+			if _, ok := list.(*grafv1.GrafanaDatasourceList); ok {
+				return errors.New("datasource list failed")
+			}
+			return kubeClient.List(ctx, list, opts...)
+		},
+	}, stale)
+
+	err := reconciler.handleJaegerDataSources(cr)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "datasource list failed")
+	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject(stale.GetName(), jaegerDatasourceComponent)))
+}
+
+func TestHandleJaegerDataSourcesDeleteErrorLeavesStaleDatasource(t *testing.T) {
+	withPrivilegedRights(t)
+	cr := discoveredIntegrationPlatformMonitoring(true, false)
+	kubeClient := kubernetesfake.NewSimpleClientset(
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "tracing"}},
+		jaegerServicePtr("tracing", "jaeger-query", 16686),
+	)
+	stale := discoveredDatasourceObject("platform-monitoring-jaeger-old-query", jaegerDatasourceComponent)
+	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubeClient, interceptor.Funcs{
+		Delete: func(ctx context.Context, kubeClient client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
+			if obj.GetName() == stale.GetName() {
+				return errors.New("datasource delete failed")
+			}
+			return kubeClient.Delete(ctx, obj, opts...)
+		},
+	}, stale)
+
+	err := reconciler.handleJaegerDataSources(cr)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "datasource delete failed")
+	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject(stale.GetName(), jaegerDatasourceComponent)))
+}
+
+func TestApplyDiscoveredDataSourceSetsLabelsWhenMissing(t *testing.T) {
+	cr := discoveredPlatformMonitoring("30s")
+	reconciler := newDiscoveredReconciler(t, "", kubernetesfake.NewSimpleClientset())
+	desired := grafanaJaegerDataSources(cr, []corev1.Service{jaegerService("tracing", "jaeger-query", 16686)})[0]
+	desired.Labels = nil
+
+	require.NoError(t, reconciler.applyDiscoveredDataSource(cr, desired))
+
+	stored := discoveredDatasourceObject(desired.GetName(), jaegerDatasourceComponent)
+	require.NoError(t, reconciler.GetResource(stored))
+	assert.Equal(t, "platform-monitoring-jaeger-tracing-jaeger-query-monitoring", stored.GetLabels()["app.kubernetes.io/instance"])
+	assert.Equal(t, "12.4.3", stored.GetLabels()["app.kubernetes.io/version"])
+}
+
 func TestHandleJaegerDataSourcesFlagOffKeepsUnownedDatasource(t *testing.T) {
 	withPrivilegedRights(t)
 	cr := discoveredIntegrationPlatformMonitoring(false, false)
@@ -286,6 +455,26 @@ func TestUninstallDeletesDiscoveredDataSources(t *testing.T) {
 
 	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject(jaegerDatasource.GetName(), jaegerDatasourceComponent)))
 	assert.Error(t, reconciler.GetResource(discoveredDatasourceObject(clickHouseDatasource.GetName(), clickHouseDatasourceComponent)))
+}
+
+func TestUninstallKeepsDiscoveredDataSourcesWhenListFails(t *testing.T) {
+	cr := discoveredPlatformMonitoring("30s")
+	cr.Spec.Grafana.Install = boolPtr(false)
+	jaegerDatasource := discoveredDatasourceObject("platform-monitoring-jaeger-tracing-jaeger-query", jaegerDatasourceComponent)
+	clickHouseDatasource := discoveredDatasourceObject("platform-monitoring-clickhouse-analytics", clickHouseDatasourceComponent)
+	reconciler := newDiscoveredReconcilerIntercepting(t, "", kubernetesfake.NewSimpleClientset(), interceptor.Funcs{
+		List: func(ctx context.Context, kubeClient client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+			if _, ok := list.(*grafv1.GrafanaDatasourceList); ok {
+				return errors.New("datasource list failed")
+			}
+			return kubeClient.List(ctx, list, opts...)
+		},
+	}, jaegerDatasource, clickHouseDatasource)
+
+	reconciler.uninstall(cr)
+
+	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject(jaegerDatasource.GetName(), jaegerDatasourceComponent)))
+	assert.NoError(t, reconciler.GetResource(discoveredDatasourceObject(clickHouseDatasource.GetName(), clickHouseDatasourceComponent)))
 }
 
 func discoveredPlatformMonitoring(scrapeInterval string) *monv1.PlatformMonitoring {
@@ -391,6 +580,11 @@ func unownedDiscoveredDatasourceObject(name, component string) *grafv1.GrafanaDa
 
 func newDiscoveredReconciler(t *testing.T, adminURL string, kubeClient kubernetes.Interface, objects ...client.Object) *GrafanaReconciler {
 	t.Helper()
+	return newDiscoveredReconcilerIntercepting(t, adminURL, kubeClient, interceptor.Funcs{}, objects...)
+}
+
+func newDiscoveredReconcilerIntercepting(t *testing.T, adminURL string, kubeClient kubernetes.Interface, intercept interceptor.Funcs, objects ...client.Object) *GrafanaReconciler {
+	t.Helper()
 	scheme := runtime.NewScheme()
 	require.NoError(t, monv1.AddToScheme(scheme))
 	require.NoError(t, grafv1.AddToScheme(scheme))
@@ -412,7 +606,7 @@ func newDiscoveredReconciler(t *testing.T, adminURL string, kubeClient kubernete
 	return &GrafanaReconciler{
 		KubeClient: kubeClient,
 		ComponentReconciler: &utils.ComponentReconciler{
-			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(stored...).Build(),
+			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(stored...).WithInterceptorFuncs(intercept).Build(),
 			Scheme: scheme,
 			Log:    utils.Logger("grafana_test"),
 			Dc:     &discoveryfake.FakeDiscovery{Fake: &k8stesting.Fake{}},
