@@ -272,6 +272,10 @@
                     "type": "boolean",
                     "description": "Indicates if monitoring-operator has permissions to deploy ClusterRole and ClusterRoleBinding resources."
                 },
+                "namespaceScope": {
+                    "type": "boolean",
+                    "description": "When true, guest VictoriaMetrics Operator and Grafana Operator watch the release namespace. Managed-workload selectors stay at chart defaults."
+                },
                 "profile": {
                     "type": "string",
                     "description": "HWE profile name determining the scale of the deployment",

@@ -22,6 +22,25 @@ global:
   #
   privilegedRights: true
 
+  # When true, this release's VictoriaMetrics Operator and Grafana Operator
+  # watch only the release namespace.
+  # Does not flip privilegedRights and does not confine managed-workload
+  # discovery (VMAgent, VMAlert, VMAlertmanager, VMAuth, kube-state-metrics,
+  # Prometheus). Default: false.
+  #
+  # A namespaced guest beside a privileged host also needs:
+  #   * helm --skip-crds (CRDs stay with the host)
+  #   * a different nodeExporter.port if the host already binds hostPort 9900
+  #   * the same comma-separated namespace list on the host values
+  #     victoriametrics.vmOperator.extraEnvs name WATCH_NAMESPACE and
+  #     grafana.operator.watchNamespaces, omitting this guest namespace and
+  #     every namespace labeled openshift.io/cluster-monitoring=true
+  #
+  # Type: boolean.
+  # Mandatory: no.
+  #
+  namespaceScope: false
+
   # Provide a name of HWE profile.
   # Allow values:
   #  * small - 1 million points per minute
