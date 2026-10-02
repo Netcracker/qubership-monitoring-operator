@@ -340,21 +340,20 @@ no spaces, on both host values:
 - `victoriametrics.vmOperator.extraEnvs`, name `WATCH_NAMESPACE`
 - `grafana.operator.watchNamespaces`
 
-Name each namespace the host operators watch, and omit the guest namespace.
-The list is not every namespace except the guest. When a namespace is added
-or removed, update the list and upgrade the host release. The host keeps its
-ClusterRoles. This does not create a Role or RoleBinding in each listed
-namespace. The example list and the maintenance rules are in
+Name each namespace the host operators watch. Omit the guest namespace and
+every namespace labeled `openshift.io/cluster-monitoring=true`. The list is
+not every namespace except the guest. When a namespace is added or removed,
+update the list and upgrade the host release. The host keeps its ClusterRoles.
+This does not create a Role or RoleBinding in each listed namespace.
+VictoriaMetrics Operator v0.73.1 selects VM scrape, rule, and alert-routing
+inputs from every namespace on `WATCH_NAMESPACE`. Workload namespace selectors
+do not narrow that list. The example list and the maintenance rules are in
 [the host allow-list](../examples/deploy-parameters/namespaced-guest/README.md#host-namespace-allow-list).
 
-[host-values.yaml](../examples/deploy-parameters/namespaced-guest/host-values.yaml)
-also sets `NotIn` selectors so host VMAgent, VMAlert, and VMAlertmanager skip
-scrape, rule, and alert-routing inputs from the guest namespace. Those
-selectors do not choose which operator reconciles a VM custom resource.
-`WATCH_NAMESPACE` does. Leave it empty and the host VictoriaMetrics Operator
-watches every namespace, including the guest, and reconciliation denials for
-guest Deployments and StatefulSets stay in its logs until the guest release
-is removed.
+Leave `WATCH_NAMESPACE` empty and the host VictoriaMetrics Operator watches
+every namespace, including the guest. It reconciles guest VM custom resources,
+and reconciliation denials for guest Deployments and StatefulSets stay in its
+logs until the guest release is removed.
 
 Always `--skip-crds` on the guest (CRDs stay with the host; see
 [namespaced-guest/README.md](../examples/deploy-parameters/namespaced-guest/README.md)).

@@ -3,42 +3,18 @@
 #
 # The host stays privileged. Set the same comma-separated namespace list on
 # WATCH_NAMESPACE and grafana.operator.watchNamespaces. The deployment owns
-# that list: name each namespace the host operators watch, and omit the guest
-# namespace. This file uses `monitoring`, the host namespace in the example
-# install. Replace it for any other cluster.
-#
-# The NotIn selectors below keep guest scrape, rule, and alert-routing inputs
-# out of the host workloads. Change monitoring-test if the guest namespace
-# differs.
+# that list: name each namespace the host operators watch. Omit the guest
+# namespace and every namespace labeled openshift.io/cluster-monitoring=true.
+# VictoriaMetrics Operator v0.73.1 selects VM inputs from every namespace on
+# WATCH_NAMESPACE. Workload namespace selectors do not narrow that list.
+# This file uses `monitoring`, the host namespace in the example install.
+# Replace it for any other cluster.
 
 victoriametrics:
   vmOperator:
     extraEnvs:
       - name: WATCH_NAMESPACE
         value: monitoring
-  vmAgent:
-    podMonitorNamespaceSelector:
-      matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values: ["monitoring-test"]
-    serviceMonitorNamespaceSelector:
-      matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values: ["monitoring-test"]
-  vmAlert:
-    ruleNamespaceSelector:
-      matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values: ["monitoring-test"]
-  vmAlertManager:
-    configNamespaceSelector:
-      matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values: ["monitoring-test"]
 
 grafana:
   operator:

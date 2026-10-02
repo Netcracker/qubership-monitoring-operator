@@ -33,7 +33,8 @@ global:
   #   * a different nodeExporter.port if the host already binds hostPort 9900
   #   * the same comma-separated namespace list on the host values
   #     victoriametrics.vmOperator.extraEnvs name WATCH_NAMESPACE and
-  #     grafana.operator.watchNamespaces, with this guest namespace omitted
+  #     grafana.operator.watchNamespaces, omitting this guest namespace and
+  #     every namespace labeled openshift.io/cluster-monitoring=true
   #
   # Type: boolean.
   # Mandatory: no.
