@@ -319,30 +319,43 @@ helm install monitoring-operator charts/monitoring-operator \
 
 ### Namespaced guest beside cluster-wide monitoring
 
-A second Helm release in another namespace is a CI / overlay case, not a second
-cloud-wide stack. Host and guest are the same monitoring-operator product.
+A second Helm release can run in another namespace beside a privileged host.
+Host and guest are the same monitoring-operator product. The deployment team
+supplies the namespaces the host operators watch.
 
-Set `global.namespaceScope: true` so this release's VictoriaMetrics Operator
+Set `global.namespaceScope: true` on the guest so its VictoriaMetrics Operator
 and Grafana Operator watch only the release namespace. The etcd certificate
-job's cluster-scoped RBAC/SCC names must be unique values. The core
+job's cluster-scoped RBAC and SCC names must be unique. The core
 `monitoring-operator` already watches its Pod namespace. Managed-workload
 discovery stays at chart defaults.
 
 `namespaceScope` does **not** flip `privilegedRights`. Leave
 `privilegedRights: true` so the guest still gets ClusterRoles under unique
 names. `privilegedRights: false` is Role-only RBAC and does not, by itself,
-unique the etcd ClusterRole.
+give the etcd job a unique ClusterRole name.
 
-Host VM and Grafana operators stay cluster-wide. Optional host overlay
+The host stays privileged. Set the same comma-separated namespace list, with
+no spaces, on both host values:
+
+- `victoriametrics.vmOperator.extraEnvs`, name `WATCH_NAMESPACE`
+- `grafana.operator.watchNamespaces`
+
+Name each namespace the host operators watch, and omit the guest namespace.
+The list is not every namespace except the guest. When a namespace is added
+or removed, update the list and upgrade the host release. The host keeps its
+ClusterRoles. This does not create a Role or RoleBinding in each listed
+namespace. The example list and the maintenance rules are in
+[the host allow-list](../examples/deploy-parameters/namespaced-guest/README.md#host-namespace-allow-list).
+
 [host-values.yaml](../examples/deploy-parameters/namespaced-guest/host-values.yaml)
-makes host VMAgent / VMAlert / VMAlertmanager skip the guest namespace.
-This filters the host workloads' scrape, rule, and alert-routing inputs; it
-does not prevent the cluster-wide host VictoriaMetrics Operator from
-reconciling guest VM workload CRs. It has broad cluster-scoped access but
-cannot create or update guest Deployments and StatefulSets, so expected
-reconciliation errors remain in host operator logs for the guest release's
-lifetime. Use this only for temporary guest installs; see
-[the example's limitation](../examples/deploy-parameters/namespaced-guest/README.md#temporary-coexistence-limitation).
+also sets `NotIn` selectors so host VMAgent, VMAlert, and VMAlertmanager skip
+scrape, rule, and alert-routing inputs from the guest namespace. Those
+selectors do not choose which operator reconciles a VM custom resource.
+`WATCH_NAMESPACE` does. Leave it empty and the host VictoriaMetrics Operator
+watches every namespace, including the guest, and reconciliation denials for
+guest Deployments and StatefulSets stay in its logs until the guest release
+is removed.
+
 Always `--skip-crds` on the guest (CRDs stay with the host; see
 [namespaced-guest/README.md](../examples/deploy-parameters/namespaced-guest/README.md)).
 Small host/guest content differences are acceptable; a material CRD conflict

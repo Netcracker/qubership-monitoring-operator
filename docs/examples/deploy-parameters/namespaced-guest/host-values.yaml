@@ -1,12 +1,21 @@
 # Host overlay beside a namespaced guest (see values.yaml in this directory).
 # Pair with: helm upgrade ... -n <host-ns> -f this file
 #
-# Additive only. VM Operator and Grafana Operator stay cluster-wide
-# (empty WATCH_NAMESPACE). VM Operator has no namespaceSelector.
-# These selectors exclude the guest namespace from host scrape/rules.
-# Change monitoring-test if the guest namespace is different.
+# The host stays privileged. Set the same comma-separated namespace list on
+# WATCH_NAMESPACE and grafana.operator.watchNamespaces. The deployment owns
+# that list: name each namespace the host operators watch, and omit the guest
+# namespace. This file uses `monitoring`, the host namespace in the example
+# install. Replace it for any other cluster.
+#
+# The NotIn selectors below keep guest scrape, rule, and alert-routing inputs
+# out of the host workloads. Change monitoring-test if the guest namespace
+# differs.
 
 victoriametrics:
+  vmOperator:
+    extraEnvs:
+      - name: WATCH_NAMESPACE
+        value: monitoring
   vmAgent:
     podMonitorNamespaceSelector:
       matchExpressions:
@@ -30,3 +39,7 @@ victoriametrics:
         - key: kubernetes.io/metadata.name
           operator: NotIn
           values: ["monitoring-test"]
+
+grafana:
+  operator:
+    watchNamespaces: monitoring

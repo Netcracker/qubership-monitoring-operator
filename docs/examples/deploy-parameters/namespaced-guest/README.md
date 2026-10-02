@@ -5,13 +5,13 @@ monitoring-operator product.
 
 |File|Release|What it changes|
 |----|-------|---------------|
-|[host-values.yaml](host-values.yaml)|Host (cluster-wide)|Host VMAgent / VMAlert / VMAlertmanager skip the guest namespace. VM and Grafana operators stay cluster-wide.|
+|[host-values.yaml](host-values.yaml)|Host (privileged)|Host VM Operator and Grafana Operator watch an explicit namespace list. Host VMAgent, VMAlert, and VMAlertmanager skip the guest namespace.|
 |[values.yaml](values.yaml)|Guest|`namespaceScope: true`, unique etcd RBAC/SCC names, and `nodeExporter.port: 9901`|
 
-Guest controllers that manage CRs stay in the release namespace. Guest
-workloads may still discover host resources. Host VM Operator may still
-reconcile guest VM CRs (it has no namespaceSelector). Host scrape/rules do
-not take guest ServiceMonitors.
+Guest controllers that manage custom resources stay in the release namespace.
+The host operators watch only the namespaces named in the host allow-list.
+Guest workloads may still discover host resources when those workloads keep
+the chart-default selectors.
 
 ## Contract
 
@@ -20,43 +20,53 @@ not take guest ServiceMonitors.
 |Guest Helm|`global.namespaceScope: true`|Guest VM Operator and Grafana Operator `WATCH_NAMESPACE` is `.Release.Namespace`|
 |Guest Helm|`etcdCertsJob.rbac.*Name`|Unique ClusterRole, ClusterRoleBinding, and OpenShift SCC names|
 |Core operator|Pod-derived `WATCH_NAMESPACE`|Already namespaced|
-|Host VM / Grafana operators|Chart default (empty)|Cluster-wide|
-|Host VMAgent / VMAlert / VMAlertmanager|`NotIn` guest namespace name|Discover all namespaces except the guest|
+|Host Helm|`victoriametrics.vmOperator.extraEnvs` `WATCH_NAMESPACE`|Comma-separated namespaces the privileged host VM Operator watches|
+|Host Helm|`grafana.operator.watchNamespaces`|The same list for the privileged host Grafana Operator|
+|Host VMAgent / VMAlert / VMAlertmanager|`NotIn` guest namespace name|Host scrape, rules, and alert routing skip the guest namespace|
 |Guest Helm|`--skip-crds`|Host owns shared CRDs|
 
-Leader election stays at the default `false`. Change `monitoring-test` in
-`host-values.yaml` if the guest namespace is different.
+Leader election stays at the default `false`. The example allow-list is
+`monitoring`. Replace it with the namespaces that host release must manage,
+and keep the guest namespace out of the list. Change `monitoring-test` in
+`host-values.yaml` when the guest namespace is different.
 
-## Temporary coexistence limitation
+## Host namespace allow-list
 
-This example is for a short-lived guest installation beside a persistent
-cluster-wide host, for example a CI or overlay scenario. It is not a
-long-lived multi-tenant topology.
+The host release stays privileged. Set one comma-separated list, with no
+spaces, in both of these values:
 
-The host VictoriaMetrics Operator has an empty `WATCH_NAMESPACE`, so it
-observes the guest `VMAgent`, `VMAlert`, `VMAlertmanager`, and other VM custom
-resources. Namespace selectors on those resources do not control which
-VictoriaMetrics Operator instance reconciles them; they only select
-configuration inputs:
+- `victoriametrics.vmOperator.extraEnvs`, name `WATCH_NAMESPACE`
+- `grafana.operator.watchNamespaces`
+
+You own the list. Name each namespace the host operators watch. The chart
+does not turn the list into every namespace except the guest. Omit the guest
+namespace. When a namespace is added or removed, edit the list and upgrade
+the host release. The host keeps its ClusterRoles. This mode does not create
+a Role or RoleBinding in each listed namespace.
+
+The example list is `monitoring`, the host namespace in the install commands
+below.
+
+Leave `WATCH_NAMESPACE` empty and the host VictoriaMetrics Operator watches
+every namespace, including the guest. It then reconciles guest `VMAgent`,
+`VMAlert`, `VMAlertmanager`, and other VM custom resources. Selectors on
+those resources choose configuration inputs:
 
 - `VMAgent` selectors choose `VMServiceScrape` and `VMPodScrape` objects;
 - `VMAlert` selectors choose `VMRule` objects;
 - `VMAlertmanager` selectors choose `VMAlertmanagerConfig` objects.
 
-The host overlay applies selectors to the *host* workload CRs, so its
-VMAgent, VMAlert, and VMAlertmanager omit configuration inputs from the guest
-namespace. That prevents normal host consumption of the guest's scrape jobs,
-rules, and alert-routing configuration.
+The host `NotIn` selectors apply to the host workload custom resources, so
+host VMAgent, VMAlert, and VMAlertmanager omit guest scrape jobs, rules, and
+alert-routing configuration. Those selectors do not choose which
+VictoriaMetrics Operator reconciles a custom resource.
 
-It does not prevent the host VictoriaMetrics Operator from attempting to
-reconcile the guest VM workload CRs. The host service account has broad
-cluster-scoped access, including to guest VM CRs, Secrets, and ConfigMaps, but
-does not have create or update permission for the guest Deployments and
-StatefulSets. Those workload writes are denied and appear as reconciliation
-errors in the host operator logs. The guest VictoriaMetrics Operator, whose
-`WATCH_NAMESPACE` is the guest namespace, reconciles the guest workloads
-successfully. The errors are expected and time-bounded: they stop when the
-guest release is uninstalled.
+An empty `WATCH_NAMESPACE` leaves that choice with the cluster-wide host
+operator. Its service account can read guest VM custom resources, Secrets,
+and ConfigMaps, and it cannot create or update Deployments and StatefulSets
+in the guest namespace. Those writes fail, and the denials stay in the host
+operator logs until the guest release is uninstalled. Put the guest namespace
+outside the allow-list so the host operator does not watch it.
 
 ## Shared CRDs
 
@@ -82,7 +92,8 @@ helm install monitoring-operator-guest charts/qubership-monitoring-operator \
 
 |Setting|File|Why|
 |-------|----|---|
-|`vmAgent` / `vmAlert` / `vmAlertManager` `NotIn monitoring-test`|host|Host scrape and rules skip the guest namespace|
+|`WATCH_NAMESPACE` and `grafana.operator.watchNamespaces`|host|Host operators watch the deployment-owned namespace list and omit the guest|
+|`vmAgent` / `vmAlert` / `vmAlertManager` `NotIn monitoring-test`|host|Host scrape, rules, and alert routing skip the guest namespace|
 |`global.namespaceScope: true`|guest|Guest VM and Grafana operators watch only the release namespace|
 |`etcdCertsJob.rbac.*Name`|guest|Avoid collisions with the host etcd certificate ClusterRole, ClusterRoleBinding, and OpenShift SCC|
 |`nodeExporter.port: 9901`|guest|Avoid hostPort 9900 collision with the host node-exporter|
