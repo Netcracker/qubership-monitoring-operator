@@ -6,7 +6,10 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	corev1 "k8s.io/api/core/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -34,9 +37,9 @@ func platformMonitoringPredicate() predicate.Predicate {
 	}
 }
 
-// ownedChildPredicate enqueues owned children on spec/generation or label
-// changes, including deletes. Status-only updates (resourceVersion/status
-// subresource) must not re-enter the full PlatformMonitoring loop.
+// ownedChildPredicate enqueues an owned child on create, confirmed delete, a
+// generation or label change, or a body change while generation stays 0.
+// Status, resourceVersion, and managedFields do not enqueue.
 func ownedChildPredicate() predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool { return true },
@@ -48,9 +51,42 @@ func ownedChildPredicate() predicate.Predicate {
 			if e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration() {
 				return true
 			}
-			return !labels.Equals(e.ObjectOld.GetLabels(), e.ObjectNew.GetLabels())
+			if !labels.Equals(e.ObjectOld.GetLabels(), e.ObjectNew.GetLabels()) {
+				return true
+			}
+			if e.ObjectOld.GetGeneration() != 0 {
+				return false
+			}
+			return generationlessChildChanged(e.ObjectOld, e.ObjectNew)
 		},
 	}
+}
+
+// generationlessChildChanged reports whether two generation-0 objects differ
+// outside status, resourceVersion, and managedFields. A conversion failure
+// enqueues, so a body edit is not dropped when the objects cannot be compared.
+func generationlessChildChanged(oldObj, newObj client.Object) bool {
+	oldContent, err := runtime.DefaultUnstructuredConverter.ToUnstructured(oldObj)
+	if err != nil {
+		return true
+	}
+	newContent, err := runtime.DefaultUnstructuredConverter.ToUnstructured(newObj)
+	if err != nil {
+		return true
+	}
+	stripGenerationlessChildNoise(oldContent)
+	stripGenerationlessChildNoise(newContent)
+	return !apiequality.Semantic.DeepEqual(oldContent, newContent)
+}
+
+func stripGenerationlessChildNoise(obj map[string]any) {
+	delete(obj, "status")
+	meta, _ := obj["metadata"].(map[string]any)
+	if meta == nil {
+		return
+	}
+	delete(meta, "resourceVersion")
+	delete(meta, "managedFields")
 }
 
 // jaegerServicePredicate matches Services used as Grafana Jaeger datasources.

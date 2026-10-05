@@ -13,6 +13,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	fakediscovery "k8s.io/client-go/discovery/fake"
@@ -111,6 +112,94 @@ func TestPlatformMonitoringPredicate(t *testing.T) {
 			t.Fatal("annotation change must enqueue")
 		}
 	})
+}
+
+func TestOwnedChildPredicateEnqueuesGenerationlessBodyChange(t *testing.T) {
+	p := ownedChildPredicate()
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "creds", Namespace: "monitoring", ResourceVersion: "1"},
+		Data:       map[string][]byte{"password": []byte("a")},
+	}
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: "monitoring", ResourceVersion: "1"},
+		Spec:       corev1.ServiceSpec{Ports: []corev1.ServicePort{{Port: 80}}},
+	}
+	role := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: "monitoring", ResourceVersion: "1"},
+		Rules:      []rbacv1.PolicyRule{{Verbs: []string{"get"}, Resources: []string{"secrets"}}},
+	}
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: "monitoring", ResourceVersion: "1"},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("1Gi")},
+			},
+		},
+	}
+	endpoints := &corev1.Endpoints{ //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served.
+		ObjectMeta: metav1.ObjectMeta{Name: "vm-kubelet", Namespace: "monitoring", ResourceVersion: "1"},
+		Subsets: []corev1.EndpointSubset{{
+			Addresses: []corev1.EndpointAddress{{IP: "10.0.0.1"}},
+			Ports:     []corev1.EndpointPort{{Port: 10250}},
+		}},
+	}
+
+	secretData := secret.DeepCopy()
+	secretData.ResourceVersion = "2"
+	secretData.Data["password"] = []byte("b")
+
+	secretFields := secret.DeepCopy()
+	secretFields.ResourceVersion = "2"
+	secretFields.ManagedFields = []metav1.ManagedFieldsEntry{{Manager: "kubectl"}}
+
+	servicePorts := service.DeepCopy()
+	servicePorts.ResourceVersion = "2"
+	servicePorts.Spec.Ports[0].Port = 3000
+
+	serviceStatus := service.DeepCopy()
+	serviceStatus.ResourceVersion = "2"
+	serviceStatus.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: "203.0.113.8"}}
+
+	roleRules := role.DeepCopy()
+	roleRules.ResourceVersion = "2"
+	roleRules.Rules[0].Verbs = []string{"get", "list"}
+
+	pvcSpec := pvc.DeepCopy()
+	pvcSpec.ResourceVersion = "2"
+	pvcSpec.Spec.Resources.Requests[corev1.ResourceStorage] = resource.MustParse("2Gi")
+
+	pvcStatus := pvc.DeepCopy()
+	pvcStatus.ResourceVersion = "2"
+	pvcStatus.Status.Phase = corev1.ClaimBound
+
+	endpointSubsets := endpoints.DeepCopy()
+	endpointSubsets.ResourceVersion = "2"
+	endpointSubsets.Subsets[0].Addresses[0].IP = "10.0.0.2"
+
+	tests := []struct {
+		name    string
+		old     client.Object
+		updated client.Object
+		want    bool
+	}{
+		{name: "secret data change", old: secret, updated: secretData, want: true},
+		{name: "secret managed fields only", old: secret, updated: secretFields, want: false},
+		{name: "service port change", old: service, updated: servicePorts, want: true},
+		{name: "service load balancer status", old: service, updated: serviceStatus, want: false},
+		{name: "role rules change", old: role, updated: roleRules, want: true},
+		{name: "pvc storage request change", old: pvc, updated: pvcSpec, want: true},
+		{name: "pvc phase change", old: pvc, updated: pvcStatus, want: false},
+		{name: "endpoints address change", old: endpoints, updated: endpointSubsets, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := p.Update(event.UpdateEvent{ObjectOld: tt.old, ObjectNew: tt.updated})
+			if got != tt.want {
+				t.Fatalf("ownedChildPredicate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestOwnedChildPredicateIgnoresStatus(t *testing.T) {
