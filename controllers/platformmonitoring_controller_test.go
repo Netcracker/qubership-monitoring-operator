@@ -16,6 +16,25 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+func TestRequestsForGrafanaExtraVarsSameNamespace(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, qubershiporgv1.AddToScheme(scheme))
+	reconciler := &PlatformMonitoringReconciler{Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&qubershiporgv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Name: "pm", Namespace: "monitoring"},
+		},
+		&qubershiporgv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "other", Namespace: "other"}},
+	).Build()}
+
+	requests := reconciler.requestsForPlatformMonitorings(context.Background(), &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars-secret", Namespace: "monitoring"},
+	})
+
+	assert.Equal(t, []reconcile.Request{{NamespacedName: types.NamespacedName{
+		Name: "pm", Namespace: "monitoring",
+	}}}, requests)
+}
+
 func TestRequestsForGrafanaExtraVars(t *testing.T) {
 	scheme := runtime.NewScheme()
 	require.NoError(t, qubershiporgv1.AddToScheme(scheme))

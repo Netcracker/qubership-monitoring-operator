@@ -85,7 +85,8 @@ reconciliation begins.
 
 Each component has a sub-reconciler under `controllers/`. Reconciliation continues after component failures. Every
 component except `kubernetes-monitors` records failures in `Status.Conditions`; `kubernetes-monitors` failures are
-logged only. A remaining failed condition causes an immediate requeue; otherwise, the default interval is 60 seconds.
+logged only. A remaining failed condition causes an immediate requeue; otherwise the default repair interval is 3600
+seconds. Owned-child and PlatformMonitoring watches enqueue sooner. Status-only child updates are ignored.
 
 The chart sets `WATCH_NAMESPACE` to the release namespace. If the binary receives an unset or empty
 `WATCH_NAMESPACE`, it leaves `cache.Options.DefaultNamespaces` unset and watches all namespaces. Leader election ID is
@@ -102,10 +103,18 @@ Modifying the CR surface: after editing `platformmonitoring_types.go`, run `make
 
 ### Event filtering
 
-`SetupWithManager` installs a predicate (`ignoreDeletionPredicate`) that ignores status-only updates (skips if
-`metadata.Generation` did not change) and unknown-final-state delete tombstones, while accepting confirmed delete
-events. This matters because the reconciler itself patches status on every run; without the filter it would
-self-trigger indefinitely.
+`SetupWithManager` watches `PlatformMonitoring` with `platformMonitoringPredicate` (generation, labels, or
+annotations; status-only updates are ignored). Owned-child watches are on by default
+(`WATCH_BASED_RECONCILE=false|0` disables them).
+
+`addWatchBasedSources` owns the namespaced children it registers, including workloads, Services, Secrets, RBAC, and
+the Grafana, Prometheus, and VictoriaMetrics CRs, Ingress, and HTTPRoute when those GVKs are served at start.
+`ownedChildPredicate` enqueues on a generation change, a label change, or a body change while generation stays 0.
+Status, resourceVersion, and managedFields do not enqueue. A CRD installed after start needs a manager restart.
+
+Privileged installs map `ClusterRole`, `ClusterRoleBinding`, and `SecurityContextConstraints`, and Jaeger Services in
+the cache namespace. OpenShift Route, Nodes, and Jaeger Services outside that namespace stay on the repair requeue
+(`RECONCILIATION_INTERVAL`, default 3600 seconds; `0` disables it).
 
 ### External schemes
 
