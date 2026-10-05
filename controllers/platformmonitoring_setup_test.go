@@ -13,6 +13,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -99,6 +100,40 @@ func setupWithManager(t *testing.T, cfg *rest.Config, dc *fakediscovery.FakeDisc
 	}
 	if err := r.SetupWithManager(mgr); err != nil {
 		t.Fatalf("SetupWithManager: %v", err)
+	}
+}
+
+func TestAddWatchBasedSourcesDiscoversOnce(t *testing.T) {
+	dc := newFakeDiscovery(
+		apiResourceList(grafv1.SchemeGroupVersion.String(), "Grafana", "GrafanaDashboard", "GrafanaDatasource"),
+		apiResourceList(promv1.SchemeGroupVersion.String(), "Prometheus", "Alertmanager", "PrometheusRule", "ServiceMonitor", "PodMonitor"),
+		apiResourceList(vmetricsv1b1.SchemeGroupVersion.String(), "VMSingle", "VMAgent", "VMAuth", "VMAlert", "VMAlertmanager", "VMCluster", "VMUser"),
+		apiResourceList(networkingv1.SchemeGroupVersion.String(), "Ingress"),
+		apiResourceList(gatewayAPIGroup+"/"+httpRouteVersion, httpRouteKind),
+		apiResourceList(secv1.GroupVersion.String(), "SecurityContextConstraints"),
+	)
+	r := &PlatformMonitoringReconciler{Scheme: runtime.NewScheme(), Log: log.Log, DiscoveryClient: dc}
+	r.addWatchBasedSources(ctrl.NewControllerManagedBy(nil).For(&monv1.PlatformMonitoring{}))
+
+	var calls int
+	for _, action := range dc.Actions() {
+		if action.GetResource().Resource == "resource" {
+			calls++
+		}
+	}
+	if calls != 1 {
+		t.Fatalf("ServerGroupsAndResources calls = %d, want 1", calls)
+	}
+}
+
+func TestOwnHTTPRouteLeavesSchemeUnchanged(t *testing.T) {
+	sch := runtime.NewScheme()
+	gvk := schema.GroupVersion{Group: gatewayAPIGroup, Version: httpRouteVersion}.WithKind(httpRouteKind)
+	dc := newFakeDiscovery(apiResourceList(gvk.GroupVersion().String(), httpRouteKind))
+	r := &PlatformMonitoringReconciler{Scheme: sch, Log: log.Log, DiscoveryClient: dc}
+	r.ownHTTPRouteIfServed(ctrl.NewControllerManagedBy(nil).For(&monv1.PlatformMonitoring{}))
+	if sch.Recognizes(gvk) {
+		t.Fatalf("scheme recognizes %s after HTTPRoute watch setup", gvk)
 	}
 }
 

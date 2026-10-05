@@ -63,6 +63,9 @@ type PlatformMonitoringReconciler struct {
 	Config *rest.Config
 	// Client to discovery cluster API
 	DiscoveryClient discovery.DiscoveryInterface
+	// startupKinds is the discovery snapshot for one addWatchBasedSources call.
+	// It is nil outside that call, so hasKind queries discovery directly.
+	startupKinds map[string]map[string]struct{}
 }
 
 const (

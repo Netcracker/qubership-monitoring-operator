@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -76,6 +77,10 @@ func successfulReconcileResult() (ctrl.Result, error) {
 }
 
 func (r *PlatformMonitoringReconciler) hasKind(groupVersion, kind string) bool {
+	if r.startupKinds != nil {
+		_, ok := r.startupKinds[groupVersion][kind]
+		return ok
+	}
 	if r.DiscoveryClient == nil {
 		return false
 	}
@@ -83,8 +88,31 @@ func (r *PlatformMonitoringReconciler) hasKind(groupVersion, kind string) bool {
 	return err == nil && ok
 }
 
-func (r *PlatformMonitoringReconciler) routeAPIServed() bool {
-	return r.hasKind("route.openshift.io/v1", "Route")
+// indexServedKinds reads the API group list once. A nil client or a discovery
+// error yields an empty set, so optional Owns are skipped.
+func indexServedKinds(dc discovery.DiscoveryInterface) map[string]map[string]struct{} {
+	kinds := map[string]map[string]struct{}{}
+	if dc == nil {
+		return kinds
+	}
+	_, lists, err := dc.ServerGroupsAndResources()
+	if err != nil {
+		return kinds
+	}
+	for _, list := range lists {
+		if list == nil {
+			continue
+		}
+		set := kinds[list.GroupVersion]
+		if set == nil {
+			set = map[string]struct{}{}
+			kinds[list.GroupVersion] = set
+		}
+		for _, api := range list.APIResources {
+			set[api.Kind] = struct{}{}
+		}
+	}
+	return kinds
 }
 
 func (r *PlatformMonitoringReconciler) own(b *builder.Builder, obj client.Object) *builder.Builder {
@@ -116,17 +144,15 @@ func (r *PlatformMonitoringReconciler) ownHTTPRouteIfServed(b *builder.Builder) 
 			"groupVersion", gv.String(), "kind", httpRouteKind)
 		return b
 	}
-	if r.Scheme != nil && !r.Scheme.Recognizes(gv.WithKind(httpRouteKind)) {
-		r.Scheme.AddKnownTypeWithName(gv.WithKind(httpRouteKind), &unstructured.Unstructured{})
-		r.Scheme.AddKnownTypeWithName(gv.WithKind(httpRouteKind+"List"), &unstructured.UnstructuredList{})
-		metav1.AddToGroupVersion(r.Scheme, gv)
-	}
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(gv.WithKind(httpRouteKind))
 	return r.own(b, u)
 }
 
 func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) *builder.Builder {
+	r.startupKinds = indexServedKinds(r.DiscoveryClient)
+	defer func() { r.startupKinds = nil }()
+
 	b = r.own(b, &appsv1.Deployment{})
 	b = r.own(b, &appsv1.DaemonSet{})
 	b = r.own(b, &corev1.ServiceAccount{})

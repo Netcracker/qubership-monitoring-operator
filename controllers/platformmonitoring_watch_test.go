@@ -8,7 +8,6 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
-	routev1 "github.com/openshift/api/route/v1"
 	secv1 "github.com/openshift/api/security/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -284,7 +283,7 @@ func TestMapJaegerServicesToPlatformMonitorings(t *testing.T) {
 	}
 }
 
-func TestHasKindAndRouteDiscovery(t *testing.T) {
+func TestHasKind(t *testing.T) {
 	dc := &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}}
 	dc.Resources = []*metav1.APIResourceList{
 		{
@@ -296,16 +295,8 @@ func TestHasKindAndRouteDiscovery(t *testing.T) {
 	if !r.hasKind(grafv1.SchemeGroupVersion.String(), "Grafana") {
 		t.Fatal("expected Grafana GVK to be served")
 	}
-	if r.routeAPIServed() {
-		t.Fatal("Route must not be treated as served on vanilla discovery")
-	}
-
-	dc.Resources = append(dc.Resources, &metav1.APIResourceList{
-		GroupVersion: routev1.GroupVersion.String(),
-		APIResources: []metav1.APIResource{{Kind: "Route"}},
-	})
-	if !r.routeAPIServed() {
-		t.Fatal("expected Route to be served after it appears in discovery")
+	if r.hasKind("route.openshift.io/v1", "Route") {
+		t.Fatal("Route must be absent when discovery does not list it")
 	}
 }
 
