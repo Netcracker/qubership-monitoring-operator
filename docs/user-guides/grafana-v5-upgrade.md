@@ -22,8 +22,6 @@ The following settings and behaviors are not supported by the current Grafana Op
 - Grafana LDAP configuration, Grafana ServiceAccount labels and annotations, `dashboardLabelSelector`, and
   `dashboardNamespaceSelector` are not propagated. Follow
   [issue #434](https://github.com/Netcracker/qubership-monitoring-operator/issues/434).
-- Jaeger and ClickHouse integrations do not automatically create Grafana datasources. Follow
-  [issue #435](https://github.com/Netcracker/qubership-monitoring-operator/issues/435).
 
 These fields can remain stored in a `PlatformMonitoring` resource without affecting the generated Grafana v5
 resources. The absence of a validation error does not mean that the setting is supported.
@@ -32,7 +30,7 @@ resources. The absence of a validation error does not mean that the setting is s
 
 The current upgrade path is intended for installations that:
 
-- do not depend on the settings and automatic datasource generation listed above;
+- do not depend on the settings listed above;
 - use the default Grafana dashboard selection;
 - do not rotate the managed Grafana admin credentials after its database has been initialized;
 - keep `grafanaConverter.install=true` until legacy dashboard conversion is verified;

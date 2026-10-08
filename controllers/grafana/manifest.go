@@ -1,11 +1,13 @@
 package grafana
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
+	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus"
@@ -16,7 +18,9 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
@@ -33,6 +37,12 @@ const (
 	// grafanaLegacySecurityContextID is the UID/GID the v4 Grafana deployment ran as.
 	// Kept as the default so upgrades can still read data on an existing PVC.
 	grafanaLegacySecurityContextID int64 = 2000
+
+	jaegerDatasourceComponent     = "jaeger-datasource"
+	clickHouseDatasourceComponent = "clickhouse-datasource"
+	clickHousePluginName          = "vertamedia-clickhouse-datasource"
+	clickHousePluginVersion       = "3.5.0"
+	grafanaDatasourceResync       = 10 * time.Minute
 
 	// grafanaOAuthClientSecretName is created by the Helm template
 	// oauth2-configs/secret-grafana-oauth-client-secret.yaml, and only when auth.clientSecret is set.
@@ -683,7 +693,7 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources, isO
 
 // grafanaDataSource creates GrafanaDatasource manifest
 // Note: In grafana-operator v5, the type name changed from GrafanaDataSource to GrafanaDatasource
-func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDatasource, error) {
+func grafanaDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatasource, error) {
 	dataSource := grafv1.GrafanaDatasource{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaDataSourceAsset), 100).Decode(&dataSource); err != nil {
 		return nil, err
@@ -729,14 +739,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	dataSource.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 	// In v5, one GrafanaDatasource CR = one datasource. Promxy is a separate CR (grafanaPromxyDataSource).
-
-	// Set Jaeger datasource if Jaeger services is found
-	// Note: In v5, each datasource needs to be a separate GrafanaDatasource CR
-	// This functionality may need to be reimplemented to create multiple CRs
-
-	// Set ClickHouse datasource if ClickHouse services is found
-	// Note: In v5, each datasource needs to be a separate GrafanaDatasource CR
-	// This functionality may need to be reimplemented to create multiple CRs
+	// Jaeger and ClickHouse are separate CRs as well (grafanaJaegerDataSources, grafanaClickHouseDataSources).
 
 	if prometheus.IsPrometheusTLSEnabled(cr) && dataSource.Spec.Datasource != nil {
 		dataSource.Spec.Datasource.URL = "https://prometheus-operated:9090"
@@ -811,6 +814,146 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	}
 
 	return &dataSource, nil
+}
+
+// grafanaJaegerDataSources returns one GrafanaDatasource for each discovered Jaeger Service.
+// The display name stays "Jaeger" for a single Service and includes the Service identity when several are found.
+func grafanaJaegerDataSources(cr *monv1.PlatformMonitoring, services []corev1.Service) []*grafv1.GrafanaDatasource {
+	datasources := make([]*grafv1.GrafanaDatasource, 0, len(services))
+	interval := discoveredDatasourceInterval(cr)
+	for _, service := range services {
+		var port int32
+		for _, servicePort := range service.Spec.Ports {
+			if servicePort.Name == "http-query" {
+				port = servicePort.Port
+			}
+		}
+		name := "Jaeger"
+		if len(services) > 1 {
+			name = "Jaeger " + service.Namespace + "/" + service.Name
+		}
+		datasource := newDiscoveredGrafanaDataSource(cr, jaegerDatasourceName(service), jaegerDatasourceComponent)
+		editable := true
+		isDefault := false
+		jsonData, err := json.Marshal(map[string]any{
+			"timeInterval":  interval,
+			"tlsSkipVerify": true,
+			"nodeGraph":     map[string]any{"enabled": true},
+		})
+		if err != nil {
+			jsonData = nil
+		}
+		datasource.Spec.Datasource = &grafv1.GrafanaDatasourceInternal{
+			Name:      name,
+			Type:      "jaeger",
+			URL:       fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", service.Name, service.Namespace, port),
+			Access:    "proxy",
+			Editable:  &editable,
+			IsDefault: &isDefault,
+			JSONData:  jsonData,
+		}
+		datasources = append(datasources, datasource)
+	}
+	return datasources
+}
+
+// grafanaClickHouseDataSources returns one GrafanaDatasource for each discovered ClickHouse Service.
+// A missing credentials Secret leaves the datasource without basic auth. Any other Secret read error is returned.
+func grafanaClickHouseDataSources(cr *monv1.PlatformMonitoring, kubeClient kubernetes.Interface, services []corev1.Service) ([]*grafv1.GrafanaDatasource, error) {
+	datasources := make([]*grafv1.GrafanaDatasource, 0, len(services))
+	for _, service := range services {
+		name := "ClickHouse"
+		if len(services) > 1 {
+			name = "ClickHouse_" + service.Namespace
+		}
+		datasource := newDiscoveredGrafanaDataSource(cr, clickHouseDatasourceName(service), clickHouseDatasourceComponent)
+		editable := true
+		isDefault := false
+		internal := &grafv1.GrafanaDatasourceInternal{
+			Name:      name,
+			Type:      clickHousePluginName,
+			URL:       fmt.Sprintf("http://%s.%s.svc.cluster.local:8123", service.Name, service.Namespace),
+			Access:    "proxy",
+			Editable:  &editable,
+			IsDefault: &isDefault,
+		}
+		username, password, err := clickHouseCredentials(kubeClient, service.Namespace)
+		if err != nil {
+			return nil, err
+		}
+		if username != "" && password != "" {
+			basicAuth := true
+			internal.BasicAuth = &basicAuth
+			internal.BasicAuthUser = username
+			secureJSON, err := json.Marshal(map[string]string{"basicAuthPassword": password})
+			if err != nil {
+				return nil, err
+			}
+			internal.SecureJSONData = secureJSON
+		}
+		datasource.Spec.Datasource = internal
+		datasource.Spec.Plugins = grafv1.PluginList{{
+			Name:    clickHousePluginName,
+			Version: clickHousePluginVersion,
+		}}
+		datasources = append(datasources, datasource)
+	}
+	return datasources, nil
+}
+
+func newDiscoveredGrafanaDataSource(cr *monv1.PlatformMonitoring, name, component string) *grafv1.GrafanaDatasource {
+	datasource := &grafv1.GrafanaDatasource{}
+	datasource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	datasource.SetName(name)
+	datasource.SetNamespace(cr.GetNamespace())
+	datasource.SetLabels(map[string]string{
+		"name":                         utils.TruncLabel(name),
+		"app.kubernetes.io/name":       utils.TruncLabel(name),
+		"app.kubernetes.io/component":  component,
+		"app.kubernetes.io/part-of":    "monitoring",
+		"app.kubernetes.io/managed-by": "monitoring-operator",
+		grafanaCleanupLabelKey:         grafanaCleanupLabelValue,
+	})
+	datasource.Spec.ResyncPeriod = metav1.Duration{Duration: grafanaDatasourceResync}
+	datasource.Spec.InstanceSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
+		"app.kubernetes.io/component": "grafana",
+		"app.kubernetes.io/part-of":   "monitoring",
+	}}
+	return datasource
+}
+
+func jaegerDatasourceName(service corev1.Service) string {
+	return "platform-monitoring-jaeger-" + service.Namespace + "." + service.Name
+}
+
+func clickHouseDatasourceName(service corev1.Service) string {
+	return "platform-monitoring-clickhouse-" + service.Namespace
+}
+
+func discoveredDatasourceInterval(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
+		return cr.Spec.Victoriametrics.VmAgent.ScrapeInterval
+	}
+	return "30s"
+}
+
+func clickHouseCredentials(kubeClient kubernetes.Interface, namespace string) (string, string, error) {
+	if kubeClient == nil {
+		return "", "", nil
+	}
+	secret, err := kubeClient.CoreV1().Secrets(namespace).Get(context.TODO(), utils.ClickHouseSecret, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		return "", "", nil
+	}
+	if err != nil {
+		return "", "", err
+	}
+	username := string(secret.Data["username"])
+	password := string(secret.Data["password"])
+	if username == "" || password == "" {
+		return "", "", nil
+	}
+	return username, password, nil
 }
 
 func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {
