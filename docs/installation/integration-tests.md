@@ -1,15 +1,19 @@
 # Integration tests Helm values
 
-Robot-based integration tests are optional. Enable them with `integrationTests.install: true` in `charts/qubership-monitoring-operator/values.yaml`.
+Robot-based integration tests are optional. Enable them with `integrationTests.install: true` in
+`charts/qubership-monitoring-operator/values.yaml`.
 
 The chart can pass settings to the test image for S3-compatible result upload and reporting
-(same conventions as [qubership-docker-integration-tests](https://github.com/Netcracker/qubership-docker-integration-tests)).
+(same conventions as
+[qubership-docker-integration-tests](https://github.com/Netcracker/qubership-docker-integration-tests)).
 **`ATP_*` S3-related environment variables are injected only when `integrationTests.atpReport.enabled` is `true`**
 (values are under `integrationTests.atpReport.atpStorage`).
 `ENVIRONMENT_NAME` is always set when integration tests are installed.
 
-When `integrationTests.atpReport.enabled` is `true`, the chart creates Secret `{{ integrationTests.name }}-atp-storage-secret`
-from `atpReport.atpStorage.username` and `atpReport.atpStorage.password`, and the pod reads `ATP_STORAGE_USERNAME` / `ATP_STORAGE_PASSWORD` via `secretKeyRef`.
+When `integrationTests.atpReport.enabled` is `true`, the chart creates Secret
+`{{ integrationTests.name }}-atp-storage-secret` from `atpReport.atpStorage.username` and
+`atpReport.atpStorage.password`. The pod reads `ATP_STORAGE_USERNAME` and `ATP_STORAGE_PASSWORD` through
+`secretKeyRef`.
 
 <!-- markdownlint-disable line-length -->
 | Helm value                                          | Environment variable        | Description                                                                     |
@@ -28,3 +32,7 @@ from `atpReport.atpStorage.username` and `atpReport.atpStorage.password`, and th
 
 Keep `atpReport.enabled` at `false` unless you enable report upload and supply credentials.
 For S3 upload, set bucket, endpoint, region, and credentials as needed.
+
+The `robot-output` `emptyDir` has a `100Mi` size limit for Robot result artifacts. This is an unmeasured starting cap
+for the output volume, not a limit on all ephemeral storage used by the test pod. The separate `/tmp` volume also has
+a `100Mi` limit. Check output size after representative runs before changing either limit in the chart.

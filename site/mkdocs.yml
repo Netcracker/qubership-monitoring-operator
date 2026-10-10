@@ -141,6 +141,7 @@ nav:
   - Installation:
       - Installation Guide: installation/README.md
       - Prerequisites: installation/prerequisites.md
+      - Restricted Mode Installation: installation/restricted-mode.md
       - Components Overview: installation/basic-components.md
       - Storage Configuration: installation/storage.md
       - Deployment: installation/deploy.md

@@ -1,0 +1,121 @@
+# Example namespace-scoped access for a Helm deployment identity.
+# Render this file with envsubst after setting MONITORING_NAMESPACE. The
+# deployment process must authenticate as the restricted-helm ServiceAccount.
+# The permissions cover the default restricted chart render; extend them when
+# enabling additional chart-managed namespaced resources.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: restricted-helm
+  namespace: ${MONITORING_NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: restricted-helm
+  namespace: ${MONITORING_NAMESPACE}
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - configmaps
+      - secrets
+      - serviceaccounts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - bind
+      - create
+      - delete
+      - escalate
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - monitoring.netcracker.com
+    resources:
+      - platformmonitorings
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - podmonitors
+      - servicemonitors
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: restricted-helm
+  namespace: ${MONITORING_NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: restricted-helm
+    namespace: ${MONITORING_NAMESPACE}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: restricted-helm

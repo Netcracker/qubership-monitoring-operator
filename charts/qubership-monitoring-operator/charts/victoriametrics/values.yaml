@@ -114,6 +114,8 @@ cleanup:
       limits:
         cpu: 500m
         memory: 256Mi
+        # Bounds the writable layer and /tmp, including a kubectl download when required.
+        ephemeral-storage: 100Mi
 
 # Deploy a Victoriametrics stack
 vmOperator:

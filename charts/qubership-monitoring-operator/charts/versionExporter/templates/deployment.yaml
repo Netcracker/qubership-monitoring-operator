@@ -34,7 +34,7 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       securityContext:
-        {{ include "version-exporter.securityContext" . }}
+        {{- include "version-exporter.securityContext" . | nindent 8 }}
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
@@ -45,10 +45,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-          {{- if .Values.containerSecurityContext }}
           securityContext:
-            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
-          {{- end }}
+            {{- include "version-exporter.containerSecurityContext" . | nindent 12 }}
           image: {{ template "version-exporter.image" . }}
           args:
             - "--config.file=/config/exporterConfig.yaml"
@@ -84,6 +82,9 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
           projected:
@@ -94,6 +95,9 @@ spec:
               {{- end }}
               - configMap:
                   name: {{ .Values.name }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       {{- if .Values.nodeSelector }}
       nodeSelector:
         {{ toYaml .Values.nodeSelector | nindent 8 }}

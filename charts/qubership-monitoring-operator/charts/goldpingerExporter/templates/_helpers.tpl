@@ -26,3 +26,13 @@ Image can be found from:
 {{- print "bloomberg/goldpinger:3.11.2" -}}
 {{- end -}}
 {{- end -}}
+
+{{/* Return the enforced pod security context. */}}
+{{- define "goldpinger.podSecurityContext" -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.podSecurityContext "defaults" (dict "runAsUser" 1000 "fsGroup" 2000)) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "goldpinger.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.containerSecurityContext) -}}
+{{- end -}}

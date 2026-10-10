@@ -2,11 +2,13 @@ package vmauth
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *VmAuthReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -262,19 +264,16 @@ func (r *VmAuthReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitoring
 }
 
 func (r *VmAuthReconciler) deleteVmAuth(cr *monv1.PlatformMonitoring) error {
-	m, err := vmAuth(r, cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating VmAuth manifest")
-		return err
-	}
-	e := &vmetricsv1b1.VMAuth{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &vmetricsv1b1.VMAuth{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

@@ -22,6 +22,25 @@ global:
   #
   privilegedRights: true
 
+  # When true, this release's VictoriaMetrics Operator and Grafana Operator
+  # watch only the release namespace.
+  # Does not flip privilegedRights and does not confine managed-workload
+  # discovery (VMAgent, VMAlert, VMAlertmanager, VMAuth, kube-state-metrics,
+  # Prometheus). Default: false.
+  #
+  # A namespaced guest beside a privileged host also needs:
+  #   * helm --skip-crds (CRDs stay with the host)
+  #   * a different nodeExporter.port if the host already binds hostPort 9900
+  #   * the same comma-separated namespace list on the host values
+  #     victoriametrics.vmOperator.extraEnvs name WATCH_NAMESPACE and
+  #     grafana.operator.watchNamespaces, omitting this guest namespace and
+  #     every namespace labeled openshift.io/cluster-monitoring=true
+  #
+  # Type: boolean.
+  # Mandatory: no.
+  #
+  namespaceScope: false
+
   # Provide a name of HWE profile.
   # Allow values:
   #  * small - 1 million points per minute
@@ -129,6 +148,13 @@ monitoringOperator:
   #   requests:
   #     cpu: 50m
   #     memory: 50Mi
+
+  # Reserve 16Mi of local storage for scheduling and limit the operator container to 128Mi.
+  # These are starting values, not measured peak usage; tune them using observed storage use.
+  # Explicit ephemeral-storage entries in resources take precedence.
+  ephemeralStorage:
+    request: 16Mi
+    limit: 128Mi
 
   # SecurityContext holds pod-level security attributes.
   # The parameters are required if a Pod Security Policy is enabled
@@ -1666,6 +1692,12 @@ integrationTests:
   #
   securityContext: {}
 
+  # SecurityContext holds container-level security attributes. The chart enforces the restricted baseline fields.
+  # Type: object
+  # Mandatory: no
+  #
+  containerSecurityContext: {}
+
   # Labels set which will create in service
   # Type: map[string]string
   # Mandatory: no
@@ -1956,7 +1988,8 @@ etcdCertsJob:
     - operator: "Exists"
       effect: "NoSchedule"
 
-  # The resources describes the compute resource requests and limits for a single container.
+  # Resource requests and limits for the etcd certificate-sync container.
+  # The 16Mi/128Mi ephemeral-storage values are starting points, not measured peak usage.
   resources:
     limits:
       cpu: 500m

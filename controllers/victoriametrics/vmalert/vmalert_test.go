@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +22,7 @@ func TestVmAlertManifests(t *testing.T) {
 		},
 		Spec: monv1.PlatformMonitoringSpec{
 			Victoriametrics: &monv1.Victoriametrics{
-				VmAlert: monv1.VmAlert{},
+				VmAlert: monv1.VmAlert{Image: "example:v1"},
 			},
 		},
 	}
@@ -33,6 +34,15 @@ func TestVmAlertManifests(t *testing.T) {
 		assert.NotNil(t, m, "vmAlert manifest should not be empty")
 		assert.NotNil(t, m.GetLabels())
 		assert.NotNil(t, m.GetAnnotations())
+		require.NotNil(t, m.Spec.SecurityContext)
+		require.NotNil(t, m.Spec.SecurityContext.RunAsNonRoot)
+		require.NotNil(t, m.Spec.SecurityContext.AllowPrivilegeEscalation)
+		require.NotNil(t, m.Spec.SecurityContext.ReadOnlyRootFilesystem)
+		assert.Equal(t, true, *m.Spec.SecurityContext.RunAsNonRoot)
+		assert.Equal(t, false, *m.Spec.SecurityContext.AllowPrivilegeEscalation)
+		assert.Equal(t, true, *m.Spec.SecurityContext.ReadOnlyRootFilesystem)
+		assert.Contains(t, m.Spec.Volumes, utils.TmpVolume("100Mi"))
+		assert.Contains(t, m.Spec.VolumeMounts, utils.TmpVolumeMount())
 	})
 	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
