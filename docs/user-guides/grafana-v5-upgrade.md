@@ -19,12 +19,21 @@ The following settings and behaviors are not supported by the current Grafana Op
   [issue #376](https://github.com/Netcracker/qubership-monitoring-operator/issues/376).
 - `spec.grafana.config` is not propagated to Grafana. Follow
   [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377).
-- Grafana LDAP configuration, Grafana ServiceAccount labels and annotations, `dashboardLabelSelector`, and
-  `dashboardNamespaceSelector` are not propagated. Follow
+- `dashboardLabelSelector` and `dashboardNamespaceSelector` are not propagated. Follow
   [issue #434](https://github.com/Netcracker/qubership-monitoring-operator/issues/434).
 
 These fields can remain stored in a `PlatformMonitoring` resource without affecting the generated Grafana v5
 resources. The absence of a validation error does not mean that the setting is supported.
+
+## Grafana settings applied on v5
+
+`spec.grafana.serviceAccount` labels and annotations are copied onto the Grafana ServiceAccount. When both maps are
+empty, that ServiceAccount metadata is left unset.
+
+The `grafana-ldap-config` Secret is mounted read-only at `/etc/grafana-secrets/grafana-ldap-config`. The mount does
+not enable LDAP. The chart's default `ldap.toml` is empty, and Grafana still ignores `spec.grafana.config`, so LDAP
+login stays off. Follow [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377) for
+Grafana config.
 
 ## Supported Upgrade Profile
 
