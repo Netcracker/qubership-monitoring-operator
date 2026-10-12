@@ -28,6 +28,13 @@
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                   | string                                                                                                                                                |
 <!-- markdownlint-enable line-length -->
 
+Grafana Operator v5 does not consume `dashboardLabelSelector` or `dashboardNamespaceSelector` directly. When Grafana
+is installed and not paused, and the Grafana resources converter is installed, Monitoring Operator copies the live
+PlatformMonitoring selectors into the `grafana-resources-converter` ConfigMap in the PlatformMonitoring namespace
+and restarts the converter after that ConfigMap changes. A Helm upgrade can rewrite the ConfigMap. While Grafana
+is installed and not paused, the next reconcile restores the live selectors. `grafanaConverter.namespaceOverride`
+must be empty or the release namespace. Chart rendering fails when it names another namespace.
+
 Example:
 
 ```yaml

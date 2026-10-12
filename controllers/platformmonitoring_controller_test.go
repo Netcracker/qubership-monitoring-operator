@@ -57,3 +57,72 @@ func TestGrafanaExtraVarsResourcePredicates(t *testing.T) {
 	assert.True(t, isGrafanaExtraVarsSecret(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars-secret"}}))
 	assert.False(t, isGrafanaExtraVarsSecret(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars"}}))
 }
+
+func TestRequestsForGrafanaResourcesConverter(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, qubershiporgv1.AddToScheme(scheme))
+	reconciler := &PlatformMonitoringReconciler{
+		Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+			&qubershiporgv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "custom", Namespace: "monitoring"}},
+			&qubershiporgv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "other", Namespace: "other"}},
+		).Build(),
+		Log: logr.Discard(),
+	}
+
+	requests := reconciler.requestsForGrafanaResourcesConverter(context.Background(), &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-resources-converter", Namespace: "monitoring"},
+	})
+
+	assert.Equal(t, []reconcile.Request{{NamespacedName: types.NamespacedName{
+		Name: "custom", Namespace: "monitoring",
+	}}}, requests)
+}
+
+func TestRequestsForGrafanaResourcesConverterEnqueuesDespiteGrafanaNamespace(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, qubershiporgv1.AddToScheme(scheme))
+	reconciler := &PlatformMonitoringReconciler{
+		Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+			&qubershiporgv1.PlatformMonitoring{
+				ObjectMeta: metav1.ObjectMeta{Name: "custom", Namespace: "monitoring"},
+				Spec: qubershiporgv1.PlatformMonitoringSpec{Grafana: &qubershiporgv1.Grafana{
+					Namespace: "grafana",
+				}},
+			},
+		).Build(),
+		Log: logr.Discard(),
+	}
+
+	requests := reconciler.requestsForGrafanaResourcesConverter(context.Background(), &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-resources-converter", Namespace: "monitoring"},
+	})
+
+	assert.Equal(t, []reconcile.Request{{NamespacedName: types.NamespacedName{
+		Name: "custom", Namespace: "monitoring",
+	}}}, requests)
+}
+
+func TestRequestsForGrafanaResourcesConverterReturnsNoRequestsWhenListFails(t *testing.T) {
+	reconciler := &PlatformMonitoringReconciler{
+		Client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build(),
+		Log:    logr.Discard(),
+	}
+
+	requests := reconciler.requestsForGrafanaResourcesConverter(context.Background(), &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-resources-converter", Namespace: "monitoring"},
+	})
+
+	assert.Empty(t, requests)
+}
+
+func TestGrafanaResourcesConverterConfigMapPredicate(t *testing.T) {
+	converter := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "grafana-resources-converter"}}
+	extraVars := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars"}}
+
+	assert.Equal(t, false, isGrafanaExtraVarsConfigMap(converter), "isGrafanaExtraVarsConfigMap(%s)", converter.Name)
+	assert.Equal(t, true, isGrafanaResourcesConverterConfigMap(converter),
+		"isGrafanaResourcesConverterConfigMap(%s)", converter.Name)
+	assert.Equal(t, false, isGrafanaResourcesConverterConfigMap(extraVars),
+		"isGrafanaResourcesConverterConfigMap(%s)", extraVars.Name)
+	assert.Equal(t, true, isGrafanaExtraVarsConfigMap(extraVars), "isGrafanaExtraVarsConfigMap(%s)", extraVars.Name)
+}

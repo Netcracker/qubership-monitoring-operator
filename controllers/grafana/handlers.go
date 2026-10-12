@@ -24,12 +24,69 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
+	"sigs.k8s.io/yaml"
 )
 
 const (
 	grafanaExtraVarsConfigMapResourceVersionAnnotation = "monitoring.netcracker.com/grafana-extra-vars-configmap-resource-version"
 	grafanaExtraVarsSecretResourceVersionAnnotation    = "monitoring.netcracker.com/grafana-extra-vars-secret-resource-version"
+	grafanaConverterConfigMapName                      = "grafana-resources-converter"
+	grafanaConverterParametersKey                      = "parameters.yaml"
+	grafanaConverterDeploymentNameAnnotation           = "monitoring.netcracker.com/grafana-converter-deployment"
+	grafanaConverterConfigMapResourceVersionAnnotation = "monitoring.netcracker.com/grafana-converter-configmap-resource-version"
 )
+
+func (r *GrafanaReconciler) syncGrafanaConverterSelectors(ctx context.Context, cr *monv1.PlatformMonitoring) error {
+	configMap, err := r.KubeClient.CoreV1().ConfigMaps(cr.GetNamespace()).Get(
+		ctx, grafanaConverterConfigMapName, metav1.GetOptions{})
+	if errors.IsNotFound(err) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("cannot get Grafana converter ConfigMap: %w", err)
+	}
+
+	parameters := map[string]any{}
+	if err := yaml.Unmarshal([]byte(configMap.Data[grafanaConverterParametersKey]), &parameters); err != nil {
+		return fmt.Errorf("cannot decode Grafana converter parameters: %w", err)
+	}
+	if configMap.Data == nil {
+		configMap.Data = make(map[string]string)
+	}
+	parameters["dashboardLabelSelector"] = cr.Spec.Grafana.DashboardLabelSelector
+	parameters["dashboardNamespaceSelector"] = cr.Spec.Grafana.DashboardNamespaceSelector
+	updatedParameters, err := yaml.Marshal(parameters)
+	if err != nil {
+		return fmt.Errorf("cannot encode Grafana converter parameters: %w", err)
+	}
+	if configMap.Data[grafanaConverterParametersKey] != string(updatedParameters) {
+		configMap.Data[grafanaConverterParametersKey] = string(updatedParameters)
+		configMap, err = r.KubeClient.CoreV1().ConfigMaps(cr.GetNamespace()).Update(ctx, configMap, metav1.UpdateOptions{})
+		if err != nil {
+			return fmt.Errorf("cannot update Grafana converter ConfigMap: %w", err)
+		}
+	}
+
+	deploymentName := configMap.Annotations[grafanaConverterDeploymentNameAnnotation]
+	if deploymentName == "" {
+		return fmt.Errorf("Grafana converter ConfigMap %q does not declare its Deployment name", configMap.Name)
+	}
+	deployment, err := r.KubeClient.AppsV1().Deployments(cr.GetNamespace()).Get(ctx, deploymentName, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("cannot get Grafana converter Deployment %q: %w", deploymentName, err)
+	}
+	if deployment.Spec.Template.Annotations == nil {
+		deployment.Spec.Template.Annotations = make(map[string]string)
+	}
+	if deployment.Spec.Template.Annotations[grafanaConverterConfigMapResourceVersionAnnotation] == configMap.ResourceVersion {
+		return nil
+	}
+	deployment.Spec.Template.Annotations[grafanaConverterConfigMapResourceVersionAnnotation] = configMap.ResourceVersion
+	if _, err := r.KubeClient.AppsV1().Deployments(cr.GetNamespace()).Update(ctx, deployment, metav1.UpdateOptions{}); err != nil {
+		return fmt.Errorf("cannot update Grafana converter Deployment %q: %w", deploymentName, err)
+	}
+	return nil
+}
 
 func grafanaPodTemplateAnnotations(manifest *grafv1.Grafana) map[string]string {
 	if manifest == nil || manifest.Spec.Deployment == nil || manifest.Spec.Deployment.Spec.Template == nil {

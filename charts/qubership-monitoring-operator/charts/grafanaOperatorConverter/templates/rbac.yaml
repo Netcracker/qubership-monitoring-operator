@@ -26,6 +26,7 @@ rules:
     resources:
       - grafanadashboards
     verbs:
+      - get
       - list
       - watch
   - apiGroups:
@@ -34,8 +35,21 @@ rules:
       - grafanadashboards
     verbs:
       - create
+      - delete
       - get
+      - list
       - update
+      - watch
+  {{- if not $namespaceScoped }}
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  {{- end }}
   {{- end }}
   {{- if $.Values.grafana.converter.datasource }}
   - apiGroups:

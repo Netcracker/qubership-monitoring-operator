@@ -1,0 +1,4 @@
+{{- $namespace := .Values.grafanaConverter.namespaceOverride | default .Release.Namespace -}}
+{{- if and .Values.grafanaConverter.install (ne $namespace .Release.Namespace) -}}
+{{- fail "grafanaConverter.namespaceOverride must be empty or the release namespace. Monitoring Operator updates the converter in the release namespace." -}}
+{{- end -}}

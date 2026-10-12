@@ -1,6 +1,8 @@
 package grafana
 
 import (
+	"context"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -42,10 +44,10 @@ func NewGrafanaReconciler(c client.Client, s *runtime.Scheme, dc discovery.Disco
 	}
 }
 
-// Run reconciles grafana custom resource.
-// Creates new custom resources: Grafana and GrafanaDataSource if its don't exists.
-// Updates custom resources in case of any changes.
-// Returns true if need to requeue, false otherwise.
+// Run reconciles Grafana custom resources.
+// It creates Grafana and GrafanaDatasource resources when they do not exist.
+// It updates the resources when their desired state changes.
+// Returns an error when reconciliation must be retried.
 func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
 
@@ -55,6 +57,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
 					return err
 				}
+			}
+			if err := r.syncGrafanaConverterSelectors(context.Background(), cr); err != nil {
+				return err
 			}
 			// Reconcile resources with creation and update
 			if err := r.handleGrafana(cr); err != nil {

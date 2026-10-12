@@ -26,7 +26,199 @@ import (
 	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/yaml"
 )
+
+func TestSyncGrafanaConverterSelectorsUpdatesConfigAndDeployment(t *testing.T) {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            grafanaConverterConfigMapName,
+			Namespace:       "monitoring",
+			ResourceVersion: "config-version",
+			OwnerReferences: []metav1.OwnerReference{{Name: "helm-release", UID: "helm-release"}},
+			Annotations: map[string]string{
+				grafanaConverterDeploymentNameAnnotation: "custom-converter",
+			},
+		},
+		Data: map[string]string{
+			grafanaConverterParametersKey: "dashboard: true\ninstanceSelector:\n  matchLabels:\n    app: grafana\n",
+		},
+	}
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Name: "custom-converter", Namespace: "monitoring"},
+		Spec: appsv1.DeploymentSpec{Template: corev1.PodTemplateSpec{
+			ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"example.com/retained": "value"}},
+		}},
+	}
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(configMap, deployment)}
+	monitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
+			DashboardLabelSelector: []*metav1.LabelSelector{{MatchLabels: map[string]string{"dashboard": "enabled"}}},
+			DashboardNamespaceSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"team": "observability"},
+			},
+		}},
+	}
+
+	require.NoError(t, reconciler.syncGrafanaConverterSelectors(context.Background(), monitoring))
+
+	updatedConfigMap, err := reconciler.KubeClient.CoreV1().ConfigMaps("monitoring").Get(
+		context.Background(), grafanaConverterConfigMapName, metav1.GetOptions{})
+	require.NoError(t, err)
+	var parameters map[string]any
+	require.NoError(t, yaml.Unmarshal([]byte(updatedConfigMap.Data[grafanaConverterParametersKey]), &parameters))
+	assert.Equal(t, []metav1.OwnerReference{{Name: "helm-release", UID: "helm-release"}}, updatedConfigMap.OwnerReferences)
+	assert.Equal(t, true, parameters["dashboard"])
+	assert.Equal(t, map[string]any{"matchLabels": map[string]any{"app": "grafana"}}, parameters["instanceSelector"])
+	assert.Equal(t, []any{map[string]any{"matchLabels": map[string]any{"dashboard": "enabled"}}},
+		parameters["dashboardLabelSelector"])
+	assert.Equal(t, map[string]any{"matchLabels": map[string]any{"team": "observability"}},
+		parameters["dashboardNamespaceSelector"])
+
+	updatedDeployment, err := reconciler.KubeClient.AppsV1().Deployments("monitoring").Get(
+		context.Background(), "custom-converter", metav1.GetOptions{})
+	require.NoError(t, err)
+	assert.Equal(t, "value", updatedDeployment.Spec.Template.Annotations["example.com/retained"])
+	assert.Equal(t, updatedConfigMap.ResourceVersion,
+		updatedDeployment.Spec.Template.Annotations[grafanaConverterConfigMapResourceVersionAnnotation])
+}
+
+func TestSyncGrafanaConverterSelectorsWritesNullSelectors(t *testing.T) {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            grafanaConverterConfigMapName,
+			Namespace:       "monitoring",
+			ResourceVersion: "config-version",
+			Annotations: map[string]string{
+				grafanaConverterDeploymentNameAnnotation: "converter",
+			},
+		},
+		Data: map[string]string{grafanaConverterParametersKey: "dashboard: true\n"},
+	}
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "converter", Namespace: "monitoring"}}
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(configMap, deployment)}
+	monitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+
+	require.NoError(t, reconciler.syncGrafanaConverterSelectors(context.Background(), monitoring))
+
+	updatedConfigMap, err := reconciler.KubeClient.CoreV1().ConfigMaps("monitoring").Get(
+		context.Background(), grafanaConverterConfigMapName, metav1.GetOptions{})
+	require.NoError(t, err)
+	assert.Contains(t, updatedConfigMap.Data[grafanaConverterParametersKey], "dashboardLabelSelector: null")
+	assert.Contains(t, updatedConfigMap.Data[grafanaConverterParametersKey], "dashboardNamespaceSelector: null")
+}
+
+func TestSyncGrafanaConverterSelectorsSkipsMissingConfigMap(t *testing.T) {
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset()}
+	monitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+
+	assert.NoError(t, reconciler.syncGrafanaConverterSelectors(context.Background(), monitoring))
+}
+
+func TestGrafanaRunSyncsConverterSelectorsOnlyWhenInstalledAndUnpaused(t *testing.T) {
+	for _, testCase := range []struct {
+		name    string
+		paused  bool
+		wantErr bool
+	}{
+		{name: "installed and unpaused", wantErr: true},
+		{name: "paused", paused: true},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			kubeClient := kubernetesfake.NewSimpleClientset()
+			kubeClient.PrependReactor("get", "configmaps", func(k8stesting.Action) (bool, runtime.Object, error) {
+				return true, nil, apierrors.NewForbidden(
+					schema.GroupResource{Resource: "configmaps"}, grafanaConverterConfigMapName, assert.AnError)
+			})
+			reconciler := &GrafanaReconciler{
+				KubeClient: kubeClient,
+				ComponentReconciler: &utils.ComponentReconciler{
+					Log: logr.Discard(),
+				},
+			}
+			monitoring := &monv1.PlatformMonitoring{
+				ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+				Spec: monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{
+					Install:                   ptr(true),
+					Paused:                    testCase.paused,
+					DisableDefaultAdminSecret: ptr(true),
+				}},
+			}
+
+			err := reconciler.Run(monitoring)
+			if testCase.wantErr {
+				assert.ErrorContains(t, err, "cannot get Grafana converter ConfigMap")
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestSyncGrafanaConverterSelectorsReturnsErrorWhenDeploymentIsMissing(t *testing.T) {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      grafanaConverterConfigMapName,
+			Namespace: "monitoring",
+			Annotations: map[string]string{
+				grafanaConverterDeploymentNameAnnotation: "converter",
+			},
+		},
+		Data: map[string]string{grafanaConverterParametersKey: "dashboard: true\n"},
+	}
+	reconciler := &GrafanaReconciler{KubeClient: kubernetesfake.NewSimpleClientset(configMap)}
+	monitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+
+	assert.ErrorContains(t, reconciler.syncGrafanaConverterSelectors(context.Background(), monitoring),
+		`cannot get Grafana converter Deployment "converter"`)
+}
+
+func TestSyncGrafanaConverterSelectorsDoesNotUpdateMatchingResources(t *testing.T) {
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            grafanaConverterConfigMapName,
+			Namespace:       "monitoring",
+			ResourceVersion: "config-version",
+			Annotations: map[string]string{
+				grafanaConverterDeploymentNameAnnotation: "converter",
+			},
+		},
+		Data: map[string]string{grafanaConverterParametersKey: "dashboard: true\n"},
+	}
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "converter", Namespace: "monitoring"}}
+	kubeClient := kubernetesfake.NewSimpleClientset(configMap, deployment)
+	reconciler := &GrafanaReconciler{KubeClient: kubeClient}
+	monitoring := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "monitoring"},
+		Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{}},
+	}
+	require.NoError(t, reconciler.syncGrafanaConverterSelectors(context.Background(), monitoring))
+
+	configMapUpdates := 0
+	deploymentUpdates := 0
+	kubeClient.PrependReactor("update", "configmaps", func(k8stesting.Action) (bool, runtime.Object, error) {
+		configMapUpdates++
+		return false, nil, nil
+	})
+	kubeClient.PrependReactor("update", "deployments", func(k8stesting.Action) (bool, runtime.Object, error) {
+		deploymentUpdates++
+		return false, nil, nil
+	})
+
+	require.NoError(t, reconciler.syncGrafanaConverterSelectors(context.Background(), monitoring))
+	assert.Zero(t, configMapUpdates)
+	assert.Zero(t, deploymentUpdates)
+}
 
 func TestAddGrafanaExtraVarsResourceVersions(t *testing.T) {
 	manifest, err := grafana(&monv1.PlatformMonitoring{
