@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	k8stesting "k8s.io/client-go/testing"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -33,6 +34,24 @@ func TestHandlePrometheusSkipsCRDDefaultedSpec(t *testing.T) {
 	assert.Equal(t, "1", got.ResourceVersion, "CRD-defaulted Prometheus spec must not trigger Update")
 	assert.Equal(t, promv1.Duration("30s"), got.Spec.ScrapeInterval)
 	assert.Equal(t, "web", got.Spec.PortName)
+	assert.Equal(t, ptr.To(int32(1)), got.Spec.Shards)
+}
+
+func TestHandlePrometheusUpdatesChangedShards(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	desired, err := prometheus(cr, false)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.Spec.Shards = ptr.To(int32(2))
+
+	r := newPrometheusSkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handlePrometheus(cr))
+
+	got := &promv1.Prometheus{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "shards change must trigger Update")
+	assert.Equal(t, ptr.To(int32(1)), got.Spec.Shards)
 }
 
 func TestHandlePrometheusUpdatesChangedSpec(t *testing.T) {
@@ -102,4 +121,7 @@ func applyCRDDefaultedPrometheusSpec(spec *promv1.PrometheusSpec) {
 	if spec.PortName == "" {
 		spec.PortName = "web"
 	}
+	// Set unconditionally so the test fails if the manifest stops declaring
+	// the CRD default.
+	spec.Shards = ptr.To(int32(1))
 }

@@ -48,14 +48,16 @@ func SetAnnotationsIfChanged(obj metav1.Object, annotations map[string]string) b
 // apiserver decoded as float64 still match in-memory int/int32 builders.
 // Returns true when the field was updated.
 func SetUnstructuredFieldIfChanged(obj map[string]interface{}, key string, src interface{}) bool {
-	if unstructuredValuesEqual(obj[key], src) {
+	if UnstructuredValuesEqual(obj[key], src) {
 		return false
 	}
 	obj[key] = src
 	return true
 }
 
-func unstructuredValuesEqual(a, b interface{}) bool {
+// UnstructuredValuesEqual reports whether a and b are equal, either
+// semantically or after a JSON round-trip of both values.
+func UnstructuredValuesEqual(a, b interface{}) bool {
 	if apiequality.Semantic.DeepEqual(a, b) {
 		return true
 	}

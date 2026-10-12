@@ -9,12 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	k8stesting "k8s.io/client-go/testing"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -180,4 +182,50 @@ func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
 	assert.NotEqual(t, "1", got.ResourceVersion, "image change must trigger Update")
 	require.NotEmpty(t, got.Spec.Template.Spec.Containers)
 	assert.Equal(t, desired.Spec.Template.Spec.Containers[0].Image, got.Spec.Template.Spec.Containers[0].Image)
+}
+
+func TestHandleDeploymentSkipsAPIDefaultedTokenVolume(t *testing.T) {
+	cr := testPlatformMonitoring()
+	desired, err := grafanaOperatorDeployment(cr, false)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	// The API server stores defaultMode 420 on every projected volume.
+	tokenVolume := projectedVolume(t, live)
+	tokenVolume.DefaultMode = ptr.To(int32(420))
+
+	r := newGrafanaOperatorWorkloadTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.Equal(t, "1", got.ResourceVersion, "API-defaulted volume fields must not trigger Update")
+}
+
+func TestHandleDeploymentUpdatesChangedTokenVolume(t *testing.T) {
+	cr := testPlatformMonitoring()
+	desired, err := grafanaOperatorDeployment(cr, false)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	projectedVolume(t, live).Sources[0].ServiceAccountToken.Audience = "stale"
+
+	r := newGrafanaOperatorWorkloadTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "volume change must trigger Update")
+	assert.Equal(t, projectedVolume(t, desired).Sources, projectedVolume(t, got).Sources)
+}
+
+func projectedVolume(t *testing.T, deployment *appsv1.Deployment) *corev1.ProjectedVolumeSource {
+	t.Helper()
+	for i := range deployment.Spec.Template.Spec.Volumes {
+		if projected := deployment.Spec.Template.Spec.Volumes[i].Projected; projected != nil {
+			return projected
+		}
+	}
+	require.FailNow(t, "the Deployment has no projected volume")
+	return nil
 }
