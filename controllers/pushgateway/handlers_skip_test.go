@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	k8stesting "k8s.io/client-go/testing"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -36,6 +37,53 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	assert.Equal(t, map[string]string{"deployment.kubernetes.io/revision": "1"}, got.GetAnnotations())
 	require.NotEmpty(t, got.Spec.Template.Spec.Containers)
 	assert.Equal(t, int32(0), got.Spec.Template.Spec.Containers[0].Ports[0].HostPort)
+}
+
+func TestHandleDeploymentSkipsAPIDefaultedCustomVolumes(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	cr.Spec.Pushgateway.Volumes = skipTestCustomVolumes()
+	desired, err := pushgatewayDeployment(cr, false)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.Spec.Template.Spec.Volumes = utils.VolumesWithDefaults(live.Spec.Template.Spec.Volumes)
+
+	r := newPushgatewaySkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.Equal(t, "1", got.ResourceVersion, "API-defaulted custom volumes must not trigger Update")
+	assert.Equal(t, live.Spec.Template.Spec.Volumes, got.Spec.Template.Spec.Volumes)
+}
+
+func TestHandleDeploymentUpdatesChangedCustomVolumeMode(t *testing.T) {
+	cr := skipTestPlatformMonitoring()
+	cr.Spec.Pushgateway.Volumes = skipTestCustomVolumes()
+	cr.Spec.Pushgateway.Volumes[0].ConfigMap.DefaultMode = ptr.To(int32(0400))
+	desired, err := pushgatewayDeployment(cr, false)
+	require.NoError(t, err)
+	live := desired.DeepCopy()
+	live.ResourceVersion = "1"
+	live.Spec.Template.Spec.Volumes = utils.VolumesWithDefaults(live.Spec.Template.Spec.Volumes)
+	live.Spec.Template.Spec.Volumes[0].ConfigMap.DefaultMode = ptr.To(int32(420))
+
+	r := newPushgatewaySkipTestReconciler(t, cr, live)
+	require.NoError(t, r.handleDeployment(cr))
+
+	got := &appsv1.Deployment{}
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	assert.NotEqual(t, "1", got.ResourceVersion, "volume mode change must trigger Update")
+	assert.Equal(t, ptr.To(int32(0400)), got.Spec.Template.Spec.Volumes[0].ConfigMap.DefaultMode)
+}
+
+func skipTestCustomVolumes() []corev1.Volume {
+	return []corev1.Volume{
+		{Name: "config", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "config"},
+		}}},
+		{Name: "tls", VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "tls"}}},
+	}
 }
 
 func TestHandleDeploymentUpdatesChangedReplicas(t *testing.T) {

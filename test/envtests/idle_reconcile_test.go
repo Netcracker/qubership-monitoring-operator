@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -63,6 +64,13 @@ var _ = Describe("Idle reconciliation", func() {
 		resource.Spec.AlertManager.HTTPRoute = httpRoute("alertmanager.idle.test")
 		resource.Spec.Grafana.HTTPRoute = httpRoute("grafana.idle.test")
 		resource.Spec.Pushgateway.HTTPRoute = httpRoute("pushgateway.idle.test")
+		// Volumes from the CR omit defaultMode, which the API server sets.
+		resource.Spec.Pushgateway.Volumes = []corev1.Volume{
+			{Name: "config", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: "config"},
+			}}},
+			{Name: "tls", VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "tls"}}},
+		}
 		Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 
 		var updates []string
@@ -82,6 +90,11 @@ var _ = Describe("Idle reconciliation", func() {
 		} {
 			Expect(k8sClient.Get(ctx, key, &appsv1.Deployment{})).To(Succeed())
 		}
+		pushgateway := &appsv1.Deployment{}
+		Expect(k8sClient.Get(ctx, client.ObjectKey{Namespace: namespaceName, Name: utils.PushgatewayComponentName}, pushgateway)).To(Succeed())
+		Expect(pushgateway.Spec.Template.Spec.Volumes[0].ConfigMap).NotTo(BeNil())
+		Expect(pushgateway.Spec.Template.Spec.Volumes[0].ConfigMap.DefaultMode).To(HaveValue(BeEquivalentTo(420)),
+			"the API server must default the custom volume mode")
 		Expect(k8sClient.Get(ctx, client.ObjectKey{Namespace: namespaceName, Name: "k8s"}, &promv1.Prometheus{})).To(Succeed())
 		routeName := namespaceName + "-" + utils.PrometheusComponentName + "-http-route"
 		expectHTTPRoute(namespaceName, routeName, "prometheus.idle.test")
