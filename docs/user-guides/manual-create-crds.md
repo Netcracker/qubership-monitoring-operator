@@ -63,6 +63,26 @@ kubectl apply --server-side --recursive -f /tmp/crds/
 
 ### Upgrade
 
+#### Prometheus Operator 0.94 ScrapeConfig upgrade
+
+Before applying the 0.94 CRDs, inspect all existing `ScrapeConfig` resources while the 0.93 CRD is still installed:
+
+```bash
+kubectl get scrapeconfigs.monitoring.coreos.com --all-namespaces -o yaml > scrapeconfigs-before-0.94.yaml
+```
+
+Update the owning manifests and any affected live resources before applying the new CRDs:
+
+* Change `spec.hetznerSDConfigs[].role` from `hcloud` to `Hcloud` or from `robot` to `Robot`.
+* Change `spec.openstackSDConfigs[].availability` from `public`, `admin`, or `internal` to `Public`, `Admin`, or
+  `Internal`.
+* Remove or replace empty strings in `spec.consulSDConfigs[].services[]` and `tags[]`.
+* Remove or replace empty strings in `spec.kubernetesSDConfigs[].namespaces.names[]`.
+
+For each affected resource, use `kubectl edit scrapeconfig NAME --namespace NAMESPACE` while the 0.93 CRD is installed.
+Then confirm the live resources contain none of the rejected values. Applying the 0.94 CRD first can leave existing
+resources that fail validation on a later edit. Keep the saved YAML until the upgrade is complete.
+
 To upgrade CRDs for Monitoring you need to execute the command:
 
 ```bash
