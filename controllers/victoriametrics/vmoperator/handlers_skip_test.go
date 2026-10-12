@@ -11,8 +11,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/kubernetes"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -160,6 +162,7 @@ func newVmOperatorSkipTestReconciler(t *testing.T, kubeClient kubernetes.Interfa
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 			Scheme: scheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    utils.Logger("vmoperator_skip_test"),
 		},
 	}

@@ -11,13 +11,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestHandlePrometheusSkipsCRDDefaultedSpec(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := prometheus(cr)
+	desired, err := prometheus(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
@@ -35,7 +37,7 @@ func TestHandlePrometheusSkipsCRDDefaultedSpec(t *testing.T) {
 
 func TestHandlePrometheusUpdatesChangedSpec(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := prometheus(cr)
+	desired, err := prometheus(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
@@ -84,6 +86,7 @@ func newPrometheusSkipTestReconciler(t *testing.T, objs ...client.Object) *Prome
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 			Scheme: scheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    utils.Logger("prometheus_skip_test"),
 		},
 	}

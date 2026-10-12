@@ -31,7 +31,7 @@ func TestHandleDaemonSetSkipsAPIDefaultedPodSpec(t *testing.T) {
 		FSGroup:   &fsGroup,
 	}
 
-	desired, err := nodeExporterDaemonSet(cr)
+	desired, err := nodeExporterDaemonSet(cr, false)
 	require.NoError(t, err)
 
 	live := desired.DeepCopy()
@@ -54,7 +54,7 @@ func TestHandleDaemonSetSkipsAPIDefaultedPodSpec(t *testing.T) {
 
 func TestHandleDaemonSetUpdatesChangedImage(t *testing.T) {
 	cr := newNodeExporterPlatformMonitoring(true)
-	desired, err := nodeExporterDaemonSet(cr)
+	desired, err := nodeExporterDaemonSet(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	require.NotEmpty(t, live.Spec.Template.Spec.Containers)

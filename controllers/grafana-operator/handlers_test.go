@@ -13,6 +13,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -126,6 +128,7 @@ func newGrafanaOperatorWorkloadTestReconciler(t *testing.T, objs ...client.Objec
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 			Scheme: scheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    utils.Logger("grafanaoperator_skip_test"),
 		},
 	}
@@ -147,7 +150,7 @@ func TestHandleClusterRoleSkipsNoOpUpdate(t *testing.T) {
 
 func TestHandleDeploymentSkipsNoOpUpdateWithPreservedSelector(t *testing.T) {
 	cr := testPlatformMonitoring()
-	desired, err := grafanaOperatorDeployment(cr)
+	desired, err := grafanaOperatorDeployment(cr, false)
 	require.NoError(t, err)
 	desired.ResourceVersion = "1"
 
@@ -162,7 +165,7 @@ func TestHandleDeploymentSkipsNoOpUpdateWithPreservedSelector(t *testing.T) {
 
 func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
 	cr := testPlatformMonitoring()
-	desired, err := grafanaOperatorDeployment(cr)
+	desired, err := grafanaOperatorDeployment(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"

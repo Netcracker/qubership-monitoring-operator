@@ -19,14 +19,12 @@ Image can be found from:
 Return securityContext for cloud-events-exporter.
 */}}
 {{- define "cloudEventsExporter.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 65534
-        fsGroup: 65534
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 65534) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "cloudEventsExporter.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

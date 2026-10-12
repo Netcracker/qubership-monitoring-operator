@@ -8,6 +8,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *PrometheusReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -100,7 +101,11 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheus(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := prometheus(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Prometheus manifest")
 		return err
@@ -253,19 +258,16 @@ func (r *PrometheusReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonito
 }
 
 func (r *PrometheusReconciler) deletePrometheus(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheus(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Prometheus manifest")
-		return err
-	}
-	e := &promv1.Prometheus{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &promv1.Prometheus{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

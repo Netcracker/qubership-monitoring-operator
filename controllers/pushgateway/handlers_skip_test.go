@@ -12,18 +12,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := pushgatewayDeployment(cr)
+	desired, err := pushgatewayDeployment(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
 	live.SetAnnotations(map[string]string{"deployment.kubernetes.io/revision": "1"})
-	live.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	applyAPIDefaultedContainerFields(live.Spec.Template.Spec.Containers)
 
 	r := newPushgatewaySkipTestReconciler(t, cr, live)
@@ -39,7 +40,7 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 
 func TestHandleDeploymentUpdatesChangedReplicas(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := pushgatewayDeployment(cr)
+	desired, err := pushgatewayDeployment(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
@@ -58,7 +59,7 @@ func TestHandleDeploymentUpdatesChangedReplicas(t *testing.T) {
 
 func TestHandleDeploymentRemovesDroppedAnnotationsAndKeepsRevision(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := pushgatewayDeployment(cr)
+	desired, err := pushgatewayDeployment(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
@@ -103,6 +104,7 @@ func newPushgatewaySkipTestReconciler(t *testing.T, objs ...client.Object) *Push
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 			Scheme: scheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    utils.Logger("pushgateway_skip_test"),
 		},
 	}

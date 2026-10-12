@@ -1,11 +1,13 @@
 package grafana
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
+	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/prometheus"
@@ -16,10 +18,13 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
+	k8sptr "k8s.io/utils/ptr"
 )
 
 //go:embed  assets/*.yaml
@@ -28,6 +33,20 @@ var assets embed.FS
 const (
 	grafanaCleanupLabelKey   = "app.kubernetes.io/managed-by-operator"
 	grafanaCleanupLabelValue = "monitoring-operator"
+
+	// grafanaLegacySecurityContextID is the UID/GID the v4 Grafana deployment ran as.
+	// Kept as the default so upgrades can still read data on an existing PVC.
+	grafanaLegacySecurityContextID int64 = 2000
+
+	jaegerDatasourceComponent     = "jaeger-datasource"
+	clickHouseDatasourceComponent = "clickhouse-datasource"
+	clickHousePluginName          = "vertamedia-clickhouse-datasource"
+	clickHousePluginVersion       = "3.5.0"
+	grafanaDatasourceResync       = 10 * time.Minute
+
+	// grafanaOAuthClientSecretName is created by the Helm template
+	// oauth2-configs/secret-grafana-oauth-client-secret.yaml, and only when auth.clientSecret is set.
+	grafanaOAuthClientSecretName = "grafana-oauth-client-secret"
 )
 
 type grafanaDataStorage struct {
@@ -37,6 +56,46 @@ type grafanaDataStorage struct {
 	Labels      map[string]string                   `json:"labels,omitempty"`
 	Size        resource.Quantity                   `json:"size,omitempty"`
 	VolumeName  string                              `json:"volumeName,omitempty"`
+}
+
+// TODO(#377): spec.grafana.config is not propagated to the Grafana CR spec.config. Once it is,
+// merge user-provided keys after the operator defaults so they can override them, restore the
+// opt-out gate for operator-managed config sections, and derive server.root_url from
+// spec.grafana.ingress.host as an overridable default.
+
+// grafanaOperatorSubject returns the service account subject that grafana-operator presents in
+// its projected JWT. It must track the ServiceAccount name set by grafanaOperatorServiceAccount.
+func grafanaOperatorSubject(operatorNamespace string) string {
+	operatorSA := operatorNamespace + "-" + utils.GrafanaOperatorComponentName
+	return fmt.Sprintf("system:serviceaccount:%s:%s", operatorNamespace, operatorSA)
+}
+
+// configureGrafanaOperatorKubeAuth enables JWT auth so grafana-operator can call the Grafana API
+// without GF_SECURITY_ADMIN_* environment variables (admin credentials are file-based in Grafana).
+func configureGrafanaOperatorKubeAuth(graf *grafv1.Grafana, operatorNamespace string) {
+	graf.Spec.Client = &grafv1.GrafanaClient{UseKubeAuth: true}
+
+	// Match the subject exactly. A substring match (contains) would also accept any service
+	// account whose name merely extends the operator's, such as "<ns>-grafana-operator-evil",
+	// handing Grafana admin to any workload that can request the operator.grafana.com audience.
+	// Namespace and ServiceAccount names are DNS labels, so the literal needs no escaping.
+	rolePath := fmt.Sprintf(
+		"sub == '%s' && 'GrafanaAdmin' || 'None'",
+		grafanaOperatorSubject(operatorNamespace),
+	)
+
+	jwt := ensureGrafanaConfigSection(graf, "auth.jwt")
+	jwt["enabled"] = "true"
+	jwt["header_name"] = "Authorization"
+	jwt["expect_claims"] = `{"aud": ["operator.grafana.com"]}`
+	jwt["username_claim"] = "sub"
+	jwt["email_claim"] = "sub"
+	jwt["auto_sign_up"] = "true"
+	jwt["role_attribute_strict"] = "true"
+	jwt["role_attribute_path"] = rolePath
+	jwt["jwk_set_url"] = "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}/openid/v1/jwks"
+	jwt["jwk_set_bearer_token_file"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	jwt["tls_client_ca"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 }
 
 // ensureDeploymentInitialized ensures that Deployment is properly initialized
@@ -84,7 +143,50 @@ func ensureGrafanaContainerInitialized(podSpec *grafv1.DeploymentV1PodSpec) *cor
 	return &podSpec.Containers[0]
 }
 
-func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
+// grafanaName returns the configured Grafana custom resource name or the default from the asset file.
+func grafanaName(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
+		return cr.Spec.Grafana.Name
+	}
+	return utils.GrafanaComponentName
+}
+
+// grafanaNamespace returns the configured Grafana namespace or the PlatformMonitoring namespace.
+func grafanaNamespace(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
+		return cr.Spec.Grafana.Namespace
+	}
+	return cr.GetNamespace()
+}
+
+// ensureGrafanaConfigSection ensures graf.Spec.Config and target section are initialized.
+func ensureGrafanaConfigSection(graf *grafv1.Grafana, section string) map[string]string {
+	if graf.Spec.Config == nil {
+		graf.Spec.Config = map[string]map[string]string{}
+	}
+	if graf.Spec.Config[section] == nil {
+		graf.Spec.Config[section] = map[string]string{}
+	}
+	return graf.Spec.Config[section]
+}
+
+// grafanaCredentialSources reports which credential Secrets the reconciler observed. Grafana
+// aborts startup when it cannot expand a $__file{} reference, so a file-backed setting is only
+// safe to emit once its Secret is known to exist.
+// grafanaAdminSecretUserManaged reports whether the user, rather than Helm, owns the admin
+// credentials Secret. Only then may the Secret legitimately be absent.
+func grafanaAdminSecretUserManaged(cr *monv1.PlatformMonitoring) bool {
+	return cr.Spec.Grafana != nil &&
+		cr.Spec.Grafana.DisableDefaultAdminSecret != nil &&
+		*cr.Spec.Grafana.DisableDefaultAdminSecret
+}
+
+type grafanaCredentialSources struct {
+	AdminSecretPresent bool
+	OAuthSecretPresent bool
+}
+
+func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources, isOpenShift bool) (*grafv1.Grafana, error) {
 	graf := grafv1.Grafana{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaAsset), 100).Decode(&graf); err != nil {
 		return nil, err
@@ -93,17 +195,8 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 	graf.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "Grafana"})
 
 	// Add way to move Grafana to a different namespace and set a custom name for the Grafana instance.
-	// Set custom namespace if specified, otherwise use PlatformMonitoring namespace
-	grafanaNamespace := cr.GetNamespace()
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Namespace != "" {
-		grafanaNamespace = cr.Spec.Grafana.Namespace
-	}
-	graf.SetNamespace(grafanaNamespace)
-
-	// Set custom name if specified, otherwise use default from asset file
-	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {
-		graf.SetName(cr.Spec.Grafana.Name)
-	}
+	graf.SetNamespace(grafanaNamespace(cr))
+	graf.SetName(grafanaName(cr))
 
 	if cr.Spec.Grafana != nil {
 		// Always instruct grafana-operator NOT to auto-generate its own admin secret (disableDefaultAdminSecret=true).
@@ -185,8 +278,24 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 		// Configure container-level settings (EnvFrom, volumes, home dashboard, etc.).
 		podSpec := ensurePodSpecInitialized(&graf)
 		container := ensureGrafanaContainerInitialized(podSpec)
+		podSpec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		if !isOpenShift {
+			// Grafana keeps running as UID/GID 2000 so that upgrades from the v4 deployment
+			// can read data on an existing PVC created under the legacy identity.
+			podSpec.SecurityContext.RunAsUser = k8sptr.To(grafanaLegacySecurityContextID)
+			podSpec.SecurityContext.RunAsGroup = k8sptr.To(grafanaLegacySecurityContextID)
+			podSpec.SecurityContext.FSGroup = k8sptr.To(grafanaLegacySecurityContextID)
+		}
 
-		// Attach envFrom so that grafana picks up extraVars / extraVarsSecret
+		volumes, err := utils.EnsureTmpVolume(podSpec.Volumes, "100Mi")
+		if err != nil {
+			return nil, err
+		}
+		podSpec.Volumes = volumes
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
+
+		// Attach envFrom so that Grafana picks up extraVars / extraVarsSecret.
 		// (GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH and other settings).
 		extraVarsCmRef := corev1.EnvFromSource{
 			ConfigMapRef: &corev1.ConfigMapEnvSource{
@@ -320,6 +429,7 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 					Name:            "grafana-plugins-init",
 					Image:           cr.Spec.Grafana.Operator.InitContainerImage,
 					ImagePullPolicy: corev1.PullIfNotPresent,
+					SecurityContext: utils.HardenedContainerSecurityContext(),
 					Env: []corev1.EnvVar{
 						{
 							Name:  "GRAFANA_PLUGINS",
@@ -331,20 +441,24 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 							Name:      pluginsVolumeName,
 							MountPath: pluginsInitMountPath,
 						},
+						utils.TmpVolumeMount(),
 					},
 				})
 			}
 		}
 
-		// DashboardLabelSelector and DashboardNamespaceSelector removed or renamed in v5
-		// Secrets removed or renamed in v5 - handle secrets differently if needed
+		// TODO(#434): Grafana Operator v5 moved dashboard selection to immutable
+		// GrafanaDashboard instance selectors.
 
-		// Set security context (pod-level; v5 uses Deployment.Spec.Template.Spec.SecurityContext)
+		// TODO(#376): cr.Spec.Auth OAuth fields (LoginURL, TokenURL, UserInfoURL, TLSConfig) are not
+		// applied to the Grafana CR spec.config["auth.generic_oauth"]. The TLS secrets (CASecret,
+		// CertSecret, KeySecret) additionally need volume mounts.
+
+		// Preserve configured IDs while enforcing the hardening settings above.
+		if err := utils.ValidateSecurityContextSpec(cr.Spec.Grafana.SecurityContext); err != nil {
+			return nil, err
+		}
 		if cr.Spec.Grafana.SecurityContext != nil {
-			podSpec := ensurePodSpecInitialized(&graf)
-			if podSpec.SecurityContext == nil {
-				podSpec.SecurityContext = &corev1.PodSecurityContext{}
-			}
 			if cr.Spec.Grafana.SecurityContext.RunAsUser != nil {
 				podSpec.SecurityContext.RunAsUser = cr.Spec.Grafana.SecurityContext.RunAsUser
 			}
@@ -389,55 +503,120 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 			podSpec.PriorityClassName = cr.Spec.Grafana.PriorityClassName
 		}
 
-		// Inject admin credential env vars into the Grafana container so that:
-		//   a) Grafana picks up the correct user/password on startup.
-		//   b) grafana-operator v5 can authenticate against the Grafana API.
-		//
-		// Two modes driven by cr.Spec.Grafana.DisableDefaultAdminSecret:
-		//   false (nil, default) — Helm manages the secret (grafana-admin-credentials-secret.yaml).
-		//     The secret always exists; use REQUIRED refs (optional=false).
-		//   true — user is responsible for the secret; it may or may not exist.
-		//     Use OPTIONAL refs so that a missing secret does not prevent pod startup.
-		//     When the secret is absent, Grafana falls back to its built-in default (admin/admin).
+		// Mount secrets and configure Grafana to read sensitive values from files.
+		// This avoids passing credentials via environment variables.
 		{
 			podSpec := ensurePodSpecInitialized(&graf)
 			container := ensureGrafanaContainerInitialized(podSpec)
+
+			const (
+				adminSecretVolumeName = "grafana-admin-secret"
+				adminSecretMountPath  = "/etc/grafana-admin"
+				oauthSecretVolumeName = "grafana-oauth-secret"
+				oauthSecretMountPath  = "/etc/grafana-oauth"
+			)
+
 			adminSecretName := fmt.Sprintf("%s-admin-credentials", graf.GetName())
-
 			// optional=true when the user manages the secret; optional=false when Helm manages it.
-			userManaged := cr.Spec.Grafana.DisableDefaultAdminSecret != nil && *cr.Spec.Grafana.DisableDefaultAdminSecret
-			optional := &userManaged
+			userManaged := grafanaAdminSecretUserManaged(cr)
+			adminSecretOptional := userManaged
 
-			envVars := []corev1.EnvVar{
-				{
-					Name: "GF_SECURITY_ADMIN_USER",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: adminSecretName},
-							Key:                  "GF_SECURITY_ADMIN_USER",
-							Optional:             optional,
+			// Ensure admin secret volume exists.
+			hasAdminVolume := false
+			for _, v := range podSpec.Volumes {
+				if v.Name == adminSecretVolumeName {
+					hasAdminVolume = true
+					break
+				}
+			}
+			if !hasAdminVolume {
+				podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+					Name: adminSecretVolumeName,
+					VolumeSource: corev1.VolumeSource{
+						Secret: &corev1.SecretVolumeSource{
+							SecretName: adminSecretName,
+							Optional:   &adminSecretOptional,
 						},
 					},
-				},
-				{
-					Name: "GF_SECURITY_ADMIN_PASSWORD",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: adminSecretName},
-							Key:                  "GF_SECURITY_ADMIN_PASSWORD",
-							Optional:             optional,
+				})
+			}
+
+			// Ensure admin secret mount exists on main container.
+			hasAdminMount := false
+			for _, vm := range container.VolumeMounts {
+				if vm.Name == adminSecretVolumeName && vm.MountPath == adminSecretMountPath {
+					hasAdminMount = true
+					break
+				}
+			}
+			if !hasAdminMount {
+				container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+					Name:      adminSecretVolumeName,
+					MountPath: adminSecretMountPath,
+					ReadOnly:  true,
+				})
+			}
+
+			ensureGrafanaLDAPSecretMount(podSpec, container)
+
+			// Configure Grafana admin credentials via file provider.
+			// Helm always creates the Secret unless the user opted out, so the files are guaranteed
+			// in that case. When the user owns the Secret and has not created it, emitting $__file{}
+			// would stop Grafana from starting; leaving the keys unset preserves the documented
+			// fallback to Grafana's built-in admin/admin.
+			if !userManaged || sources.AdminSecretPresent {
+				securitySection := ensureGrafanaConfigSection(&graf, "security")
+				securitySection["admin_user"] = "$__file{" + adminSecretMountPath + "/GF_SECURITY_ADMIN_USER}"
+				securitySection["admin_password"] = "$__file{" + adminSecretMountPath + "/GF_SECURITY_ADMIN_PASSWORD}"
+			}
+
+			// grafana-operator authenticates to Grafana via ServiceAccount JWT, not admin env vars.
+			configureGrafanaOperatorKubeAuth(&graf, cr.GetNamespace())
+
+			// Configure OAuth client secret via file provider when auth is enabled.
+			// The secret is managed by Helm template oauth2-configs/secret-grafana-oauth-client-secret.yaml.
+			if cr.Spec.Auth != nil {
+				hasOAuthVolume := false
+				for _, v := range podSpec.Volumes {
+					if v.Name == oauthSecretVolumeName {
+						hasOAuthVolume = true
+						break
+					}
+				}
+				if !hasOAuthVolume {
+					optional := true
+					podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+						Name: oauthSecretVolumeName,
+						VolumeSource: corev1.VolumeSource{
+							Secret: &corev1.SecretVolumeSource{
+								SecretName: grafanaOAuthClientSecretName,
+								Optional:   &optional,
+							},
 						},
-					},
-				},
-			}
-			// Append only if not already present (avoid duplicates on re-reconcile).
-			envMap := make(map[string]bool)
-			for _, env := range container.Env {
-				envMap[env.Name] = true
-			}
-			for _, env := range envVars {
-				if !envMap[env.Name] {
-					container.Env = append(container.Env, env)
+					})
+				}
+
+				hasOAuthMount := false
+				for _, vm := range container.VolumeMounts {
+					if vm.Name == oauthSecretVolumeName && vm.MountPath == oauthSecretMountPath {
+						hasOAuthMount = true
+						break
+					}
+				}
+				if !hasOAuthMount {
+					container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+						Name:      oauthSecretVolumeName,
+						MountPath: oauthSecretMountPath,
+						ReadOnly:  true,
+					})
+				}
+
+				// Helm only creates grafana-oauth-client-secret when auth.clientSecret is set, and
+				// spec.auth deliberately does not carry clientSecret, so gate on the observed Secret
+				// rather than on spec.auth alone.
+				if sources.OAuthSecretPresent {
+					authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
+					authSection["client_secret"] = "$__file{" + oauthSecretMountPath + "/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
 				}
 			}
 		}
@@ -510,13 +689,64 @@ func grafana(cr *monv1.PlatformMonitoring) (*grafv1.Grafana, error) {
 				deployment.Spec.Template.Annotations[k] = v
 			}
 		}
+
+		if sa := cr.Spec.Grafana.ServiceAccount; sa != nil && (len(sa.Labels) > 0 || len(sa.Annotations) > 0) {
+			graf.Spec.ServiceAccount = &grafv1.ServiceAccountV1{
+				ObjectMeta: grafv1.ObjectMeta{
+					Labels:      maps.Clone(sa.Labels),
+					Annotations: maps.Clone(sa.Annotations),
+				},
+			}
+		}
 	}
 	return &graf, nil
 }
 
+// ensureGrafanaLDAPSecretMount mounts the Helm-managed grafana-ldap-config Secret at the path
+// Grafana Operator v4 used for spec.secrets. LDAP stays disabled until Grafana config enables it.
+func ensureGrafanaLDAPSecretMount(podSpec *grafv1.DeploymentV1PodSpec, container *corev1.Container) {
+	const (
+		volumeName = "grafana-ldap-config"
+		mountPath  = "/etc/grafana-secrets/grafana-ldap-config"
+		secretName = "grafana-ldap-config"
+	)
+
+	hasVolume := false
+	for _, volume := range podSpec.Volumes {
+		if volume.Name == volumeName {
+			hasVolume = true
+			break
+		}
+	}
+	if !hasVolume {
+		optional := true
+		// Grafana may run outside the release namespace, where Helm does not create this Secret.
+		podSpec.Volumes = append(podSpec.Volumes, corev1.Volume{
+			Name: volumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: secretName,
+					Optional:   &optional,
+				},
+			},
+		})
+	}
+
+	for _, mount := range container.VolumeMounts {
+		if mount.Name == volumeName && mount.MountPath == mountPath {
+			return
+		}
+	}
+	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+		Name:      volumeName,
+		MountPath: mountPath,
+		ReadOnly:  true,
+	})
+}
+
 // grafanaDataSource creates GrafanaDatasource manifest
 // Note: In grafana-operator v5, the type name changed from GrafanaDataSource to GrafanaDatasource
-func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Interface, jaegerServices []corev1.Service, clickHouseServices []corev1.Service) (*grafv1.GrafanaDatasource, error) {
+func grafanaDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatasource, error) {
 	dataSource := grafv1.GrafanaDatasource{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaDataSourceAsset), 100).Decode(&dataSource); err != nil {
 		return nil, err
@@ -562,14 +792,7 @@ func grafanaDataSource(cr *monv1.PlatformMonitoring, KubeClient kubernetes.Inter
 	dataSource.Labels[grafanaCleanupLabelKey] = grafanaCleanupLabelValue
 
 	// In v5, one GrafanaDatasource CR = one datasource. Promxy is a separate CR (grafanaPromxyDataSource).
-
-	// Set Jaeger datasource if Jaeger services is found
-	// Note: In v5, each datasource needs to be a separate GrafanaDatasource CR
-	// This functionality may need to be reimplemented to create multiple CRs
-
-	// Set ClickHouse datasource if ClickHouse services is found
-	// Note: In v5, each datasource needs to be a separate GrafanaDatasource CR
-	// This functionality may need to be reimplemented to create multiple CRs
+	// Jaeger and ClickHouse are separate CRs as well (grafanaJaegerDataSources, grafanaClickHouseDataSources).
 
 	if prometheus.IsPrometheusTLSEnabled(cr) && dataSource.Spec.Datasource != nil {
 		dataSource.Spec.Datasource.URL = "https://prometheus-operated:9090"
@@ -644,6 +867,146 @@ func grafanaPromxyDataSource(cr *monv1.PlatformMonitoring) (*grafv1.GrafanaDatas
 	}
 
 	return &dataSource, nil
+}
+
+// grafanaJaegerDataSources returns one GrafanaDatasource for each discovered Jaeger Service.
+// The display name stays "Jaeger" for a single Service and includes the Service identity when several are found.
+func grafanaJaegerDataSources(cr *monv1.PlatformMonitoring, services []corev1.Service) []*grafv1.GrafanaDatasource {
+	datasources := make([]*grafv1.GrafanaDatasource, 0, len(services))
+	interval := discoveredDatasourceInterval(cr)
+	for _, service := range services {
+		var port int32
+		for _, servicePort := range service.Spec.Ports {
+			if servicePort.Name == "http-query" {
+				port = servicePort.Port
+			}
+		}
+		name := "Jaeger"
+		if len(services) > 1 {
+			name = "Jaeger " + service.Namespace + "/" + service.Name
+		}
+		datasource := newDiscoveredGrafanaDataSource(cr, jaegerDatasourceName(service), jaegerDatasourceComponent)
+		editable := true
+		isDefault := false
+		jsonData, err := json.Marshal(map[string]any{
+			"timeInterval":  interval,
+			"tlsSkipVerify": true,
+			"nodeGraph":     map[string]any{"enabled": true},
+		})
+		if err != nil {
+			jsonData = nil
+		}
+		datasource.Spec.Datasource = &grafv1.GrafanaDatasourceInternal{
+			Name:      name,
+			Type:      "jaeger",
+			URL:       fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", service.Name, service.Namespace, port),
+			Access:    "proxy",
+			Editable:  &editable,
+			IsDefault: &isDefault,
+			JSONData:  jsonData,
+		}
+		datasources = append(datasources, datasource)
+	}
+	return datasources
+}
+
+// grafanaClickHouseDataSources returns one GrafanaDatasource for each discovered ClickHouse Service.
+// A missing credentials Secret leaves the datasource without basic auth. Any other Secret read error is returned.
+func grafanaClickHouseDataSources(cr *monv1.PlatformMonitoring, kubeClient kubernetes.Interface, services []corev1.Service) ([]*grafv1.GrafanaDatasource, error) {
+	datasources := make([]*grafv1.GrafanaDatasource, 0, len(services))
+	for _, service := range services {
+		name := "ClickHouse"
+		if len(services) > 1 {
+			name = "ClickHouse_" + service.Namespace
+		}
+		datasource := newDiscoveredGrafanaDataSource(cr, clickHouseDatasourceName(service), clickHouseDatasourceComponent)
+		editable := true
+		isDefault := false
+		internal := &grafv1.GrafanaDatasourceInternal{
+			Name:      name,
+			Type:      clickHousePluginName,
+			URL:       fmt.Sprintf("http://%s.%s.svc.cluster.local:8123", service.Name, service.Namespace),
+			Access:    "proxy",
+			Editable:  &editable,
+			IsDefault: &isDefault,
+		}
+		username, password, err := clickHouseCredentials(kubeClient, service.Namespace)
+		if err != nil {
+			return nil, err
+		}
+		if username != "" && password != "" {
+			basicAuth := true
+			internal.BasicAuth = &basicAuth
+			internal.BasicAuthUser = username
+			secureJSON, err := json.Marshal(map[string]string{"basicAuthPassword": password})
+			if err != nil {
+				return nil, err
+			}
+			internal.SecureJSONData = secureJSON
+		}
+		datasource.Spec.Datasource = internal
+		datasource.Spec.Plugins = grafv1.PluginList{{
+			Name:    clickHousePluginName,
+			Version: clickHousePluginVersion,
+		}}
+		datasources = append(datasources, datasource)
+	}
+	return datasources, nil
+}
+
+func newDiscoveredGrafanaDataSource(cr *monv1.PlatformMonitoring, name, component string) *grafv1.GrafanaDatasource {
+	datasource := &grafv1.GrafanaDatasource{}
+	datasource.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDatasource"})
+	datasource.SetName(name)
+	datasource.SetNamespace(cr.GetNamespace())
+	datasource.SetLabels(map[string]string{
+		"name":                         utils.TruncLabel(name),
+		"app.kubernetes.io/name":       utils.TruncLabel(name),
+		"app.kubernetes.io/component":  component,
+		"app.kubernetes.io/part-of":    "monitoring",
+		"app.kubernetes.io/managed-by": "monitoring-operator",
+		grafanaCleanupLabelKey:         grafanaCleanupLabelValue,
+	})
+	datasource.Spec.ResyncPeriod = metav1.Duration{Duration: grafanaDatasourceResync}
+	datasource.Spec.InstanceSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
+		"app.kubernetes.io/component": "grafana",
+		"app.kubernetes.io/part-of":   "monitoring",
+	}}
+	return datasource
+}
+
+func jaegerDatasourceName(service corev1.Service) string {
+	return "platform-monitoring-jaeger-" + service.Namespace + "." + service.Name
+}
+
+func clickHouseDatasourceName(service corev1.Service) string {
+	return "platform-monitoring-clickhouse-" + service.Namespace
+}
+
+func discoveredDatasourceInterval(cr *monv1.PlatformMonitoring) string {
+	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAgent.IsInstall() && len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAgent.ScrapeInterval)) > 0 {
+		return cr.Spec.Victoriametrics.VmAgent.ScrapeInterval
+	}
+	return "30s"
+}
+
+func clickHouseCredentials(kubeClient kubernetes.Interface, namespace string) (string, string, error) {
+	if kubeClient == nil {
+		return "", "", nil
+	}
+	secret, err := kubeClient.CoreV1().Secrets(namespace).Get(context.TODO(), utils.ClickHouseSecret, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		return "", "", nil
+	}
+	if err != nil {
+		return "", "", err
+	}
+	username := string(secret.Data["username"])
+	password := string(secret.Data["password"])
+	if username == "" || password == "" {
+		return "", "", nil
+	}
+	return username, password, nil
 }
 
 func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, error) {

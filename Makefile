@@ -79,11 +79,11 @@ CONTAINER_NAME="qubership-monitoring-operator"
 DOCKERFILE=cmd/operator/Dockerfile
 
 # CRD update tool and operator versions (override on the command line, e.g.
-# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.93.0`)
+# `make update-prometheus-crds PROMETHEUS_OPERATOR_VERSION=0.94.0`)
 CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
 PYTHON?=python3
 # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced
-PROMETHEUS_OPERATOR_VERSION?=0.93.0
+PROMETHEUS_OPERATOR_VERSION?=0.94.0
 # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced
 VICTORIAMETRICS_OPERATOR_VERSION?=0.73.1
 GRAFANA_OPERATOR_VERSION?=5.24.0
@@ -154,7 +154,6 @@ generate: controller-gen yq
 
 .PHONY: generate-all
 generate-all:
-	$(MAKE) generate
 	$(MAKE) update-operators-crds
 	$(MAKE) update-crds
 
@@ -231,6 +230,14 @@ image:
 
 .PHONY: test
 test: unit-test
+
+.PHONY: test-hardening
+test-hardening:
+	@set -e; \
+	for test_script in scripts/tests/*.sh; do \
+	  echo "=> Run $$test_script ..."; \
+	  "$$test_script"; \
+	done
 
 # Run unit tests in all packages
 .PHONY: unit-test
@@ -347,9 +354,8 @@ test-crd-compaction: yq
 
 # Run document generation
 .PHONY: docs
-docs:
+docs: update-crds
 	@echo "=> 'make docs' is deprecated; use 'make update-crds' instead."
-	$(MAKE) update-crds
 
 ##########################
 # Update CRDs Helm chart #
@@ -357,7 +363,7 @@ docs:
 
 # Copy CRDs from canonical chart directories to the qubership-monitoring-crds Helm chart
 .PHONY: update-crds
-update-crds:
+update-crds: generate
 	echo "=> Update CRDs in dedicated Helm chart ..."
 	rm -f $(CRDS_HELM_CRDS_FOLDER)/crds/*.yaml $(CRDS_HELM_CRDS_FOLDER)/crds/*.yml
 	cp $(MON_CRD_FOLDER)/* $(CRDS_HELM_CRDS_FOLDER)/crds/
@@ -454,7 +460,7 @@ build-site: prepare-site-directory install-site-dependencies
 
 # Run archives with helm chart and crds creation
 .PHONY: archives
-archives: cleanup prepare-charts archive-helm-chart archive-crds
+archives: archive-helm-chart archive-crds
 
 # Remove build dir
 .PHONY: cleanup
@@ -463,7 +469,7 @@ cleanup:
 
 # Copy Helm charts to the /helm directory because the builder expect it in this dir
 .PHONY: prepare-charts
-prepare-charts:
+prepare-charts: cleanup
 	echo "=> Copy Helm charts to contract directory for build ..."
 	mkdir -p $(OUTPUT_DIR)
 
@@ -472,7 +478,7 @@ prepare-charts:
 
 # Archive Helm chart separately from application manifest
 .PHONY: archive-helm-chart
-archive-helm-chart:
+archive-helm-chart: prepare-charts update-crds
 	echo "=> Archive Helm charts ..."
 
 	# Navigate to dir to avoid unnecessary directories in result archive
@@ -481,7 +487,7 @@ archive-helm-chart:
 
 # Archive CRDs separately from helm chart
 .PHONY: archive-crds
-archive-crds:
+archive-crds: prepare-charts update-crds
 	echo "=> Archive CRDs ..."
 	# Copy documentation how to apply CRDS
 	cp docs/user-guides/manual-create-crds.md "${BUILD_DIR}"/_crds/README.md
