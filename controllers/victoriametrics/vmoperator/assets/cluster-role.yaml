@@ -59,6 +59,12 @@ rules:
       - get
       - list
       - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - patch
 
   # apps
   # This is needed for handling Deployments, DaemonSets, StatefulSets, and ReplicaSets
@@ -308,6 +314,7 @@ rules:
       - vmanomalyconfigs
       - vmsingles
       - vmusers
+      - vtagents
       - vtclusters
       - vtsingles
     verbs:
@@ -367,6 +374,8 @@ rules:
       - vmstaticscrapes/status
       - vmusers/finalizers
       - vmusers/status
+      - vtagents/finalizers
+      - vtagents/status
       - vtclusters/finalizers
       - vtclusters/status
       - vtsingles/finalizers

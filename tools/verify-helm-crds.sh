@@ -272,7 +272,7 @@ expected_images=(
     "docker.io/grafana/grafana:12.4.3"
     "docker.io/prom/alertmanager:v0.33.1"
     "docker.io/prom/prometheus:v3.13.1"
-    "docker.io/victoriametrics/operator:v0.73.1"
+    "docker.io/victoriametrics/operator:v0.75.0"
     "docker.io/victoriametrics/victoria-metrics:v1.148.0"
     "docker.io/victoriametrics/vmagent:v1.148.0"
     "docker.io/victoriametrics/vmalert:v1.148.0"
@@ -438,6 +438,7 @@ verify_exact_rbac_verbs "${victoriametrics_cluster_role}" autoscaling.k8s.io ver
     "create,delete,get,list,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_cluster_role}" gateway.networking.k8s.io httproutes \
     "create,delete,get,list,update,watch"
+verify_rbac_resource "${victoriametrics_cluster_role}" "" pods patch
 verify_exact_rbac_verbs "${victoriametrics_role}" autoscaling.k8s.io verticalpodautoscalers \
     "create,delete,get,list,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_role}" gateway.networking.k8s.io httproutes \
@@ -460,6 +461,13 @@ verify_exact_rbac_verbs "${victoriametrics_role}" operator.victoriametrics.com v
     "create,delete,get,list,patch,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_role}" operator.victoriametrics.com vmanomalyconfigs/status \
     "create,delete,get,list,patch,update,watch"
+for vm_rbac in "${victoriametrics_cluster_role}" "${victoriametrics_role}" \
+    "${operator_rbac_manifest}" "${operator_role_manifest}"; do
+    for vm_resource in vtagents vtagents/finalizers vtagents/status; do
+        verify_exact_rbac_verbs "${vm_rbac}" operator.victoriametrics.com "${vm_resource}" \
+            "create,delete,get,list,patch,update,watch"
+    done
+done
 for prometheus_resource in alertmanagerconfigs podmonitors probes prometheusrules scrapeconfigs servicemonitors; do
     verify_exact_rbac_verbs "${victoriametrics_role}" monitoring.coreos.com "${prometheus_resource}" \
         "get,list,watch"
@@ -804,9 +812,9 @@ verify_rendered_resource_count "${rendered_manifest}" \
     4 "post-delete cluster RBAC cleanup resources when VM CR deletion is disabled"
 
 if ! "${yq_binary}" eval -e \
-    '.spec.template.spec.containers[] | select(.name == "victoriametrics-operator") | .image == "victoriametrics/operator:v0.73.1"' \
+    '.spec.template.spec.containers[] | select(.name == "victoriametrics-operator") | .image == "victoriametrics/operator:v0.75.0"' \
     "${victoriametrics_deployment}" >/dev/null; then
-    echo "The VictoriaMetrics operator asset does not use v0.73.1." >&2
+    echo "The VictoriaMetrics operator asset does not use v0.75.0." >&2
     exit 1
 fi
 

@@ -280,6 +280,7 @@ rules:
       - vmanomalyconfigs
       - vmsingles
       - vmusers
+      - vtagents
       - vtclusters
       - vtsingles
     verbs:
@@ -337,6 +338,8 @@ rules:
       - vmstaticscrapes/status
       - vmusers/finalizers
       - vmusers/status
+      - vtagents/finalizers
+      - vtagents/status
       - vtclusters/finalizers
       - vtclusters/status
       - vtsingles/finalizers
