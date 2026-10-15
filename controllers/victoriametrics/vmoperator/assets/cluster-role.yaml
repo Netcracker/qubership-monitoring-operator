@@ -185,6 +185,18 @@ rules:
   - apiGroups:
       - networking.k8s.io
     resources:
+      - networkpolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
       - ingresses
       - ingresses/finalizers
     verbs:
@@ -302,6 +314,7 @@ rules:
       - vlagents
       - vlclusters
       - vlclusters
+      - vldistributed
       - vlogs
       - vlsingles
       - vmagents
@@ -334,6 +347,8 @@ rules:
       - vlclusters/finalizers
       - vlclusters/status
       - vlclusters/status
+      - vldistributed/finalizers
+      - vldistributed/status
       - vlogs/finalizers
       - vlogs/status
       - vlsingles/finalizers

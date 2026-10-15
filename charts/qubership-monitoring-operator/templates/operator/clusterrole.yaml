@@ -619,6 +619,7 @@ rules:
     resources:
       - vlagents
       - vlclusters
+      - vldistributed
       - vlogs
       - vlsingles
       - vmagents
@@ -652,6 +653,8 @@ rules:
       - vlclusters/finalizers
       - vlclusters/status
       - vlclusters/status
+      - vldistributed/finalizers
+      - vldistributed/status
       - vlogs/finalizers
       - vlogs/status
       - vlsingles/finalizers

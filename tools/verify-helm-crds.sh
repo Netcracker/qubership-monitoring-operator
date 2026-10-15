@@ -463,10 +463,13 @@ verify_exact_rbac_verbs "${victoriametrics_role}" operator.victoriametrics.com v
     "create,delete,get,list,patch,update,watch"
 for vm_rbac in "${victoriametrics_cluster_role}" "${victoriametrics_role}" \
     "${operator_rbac_manifest}" "${operator_role_manifest}"; do
-    for vm_resource in vtagents vtagents/finalizers vtagents/status; do
+    for vm_resource in vtagents vtagents/finalizers vtagents/status \
+        vldistributed vldistributed/finalizers vldistributed/status; do
         verify_exact_rbac_verbs "${vm_rbac}" operator.victoriametrics.com "${vm_resource}" \
             "create,delete,get,list,patch,update,watch"
     done
+    verify_exact_rbac_verbs "${vm_rbac}" networking.k8s.io networkpolicies \
+        "create,delete,get,list,patch,update,watch"
 done
 for prometheus_resource in alertmanagerconfigs podmonitors probes prometheusrules scrapeconfigs servicemonitors; do
     verify_exact_rbac_verbs "${victoriametrics_role}" monitoring.coreos.com "${prometheus_resource}" \
