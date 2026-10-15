@@ -49,6 +49,9 @@ metadata:
   {{- $_ := set $extraVars "GF_PLUGINS_PREINSTALL_DISABLED" false }}
 {{- end }}
 {{- if .Values.imageRenderer.install }}
+  {{- if not (or (hasKey $userExtraVars "GF_FEATURE_TOGGLES_renderAuthJWT") (hasKey $secretExtraVars "GF_FEATURE_TOGGLES_renderAuthJWT")) }}
+    {{- $_ := set $extraVars "GF_FEATURE_TOGGLES_renderAuthJWT" false }}
+  {{- end }}
   {{- if not (get $extraVars "GF_RENDERING_SERVER_URL") }}
     {{- $_ := set $extraVars "GF_RENDERING_SERVER_URL" "http://grafana-image-renderer:8081/render" }}
   {{- end }}
