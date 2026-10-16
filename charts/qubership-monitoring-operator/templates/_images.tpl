@@ -384,7 +384,7 @@ Image can be found from:
     {{- printf "%s" .Values.pushgateway.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/pushgateway */ -}}
-    {{- print "docker.io/prom/pushgateway:v1.11.3" -}}
+    {{- print "docker.io/prom/pushgateway:v1.11.4" -}}
   {{- end -}}
 {{- end -}}
 
