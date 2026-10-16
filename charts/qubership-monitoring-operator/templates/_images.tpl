@@ -142,7 +142,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmOperator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
-    {{- print "docker.io/victoriametrics/operator:v0.73.1" -}}
+    {{- print "docker.io/victoriametrics/operator:v0.75.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -157,7 +157,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmOperator.configReloaderImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.75.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -187,7 +187,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAgent.configReloadImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.75.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -217,7 +217,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAlert.configReloadImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.75.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -247,7 +247,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAlertManager.configReloadImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.75.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -322,7 +322,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAuth.configReloadImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced */ -}}
-    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.73.1" -}}
+    {{- print "docker.io/victoriametrics/operator:config-reloader-v0.75.0" -}}
   {{- end -}}
 {{- end -}}
 
