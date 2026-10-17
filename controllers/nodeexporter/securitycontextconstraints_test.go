@@ -171,6 +171,7 @@ func TestHandleSecurityContextConstraints(t *testing.T) {
 		platformMonitoring := newNodeExporterPlatformMonitoring(true)
 		existing, err := nodeExporterSecurityContextConstraints(platformMonitoring)
 		require.NoError(t, err)
+		existing.AllowHostNetwork = false
 		reconciler, kubeClient := newNodeExporterTestReconciler(t, true, existing)
 		expectedErr := errors.New("update SCC")
 		reconciler.Client = interceptNodeExporterClient(t, kubeClient, interceptor.Funcs{

@@ -2,6 +2,7 @@ package vmuser
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
@@ -24,8 +25,11 @@ func (r *VmUserReconciler) handleVmUser(cr *monv1.PlatformMonitoring) error {
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec, m.Spec) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err

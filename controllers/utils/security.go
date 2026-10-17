@@ -247,26 +247,29 @@ func HasTmpVolumeMount(volumeMounts []corev1.VolumeMount) bool {
 
 // ApplySecurityContextConstraintsPolicy copies the policy fields of desired onto existing,
 // leaving object metadata (name, labels, resourceVersion, ...) untouched.
-func ApplySecurityContextConstraintsPolicy(existing, desired *secv1.SecurityContextConstraints) {
-	existing.AllowPrivilegedContainer = desired.AllowPrivilegedContainer
-	existing.DefaultAddCapabilities = desired.DefaultAddCapabilities
-	existing.RequiredDropCapabilities = desired.RequiredDropCapabilities
-	existing.AllowedCapabilities = desired.AllowedCapabilities
-	existing.AllowHostDirVolumePlugin = desired.AllowHostDirVolumePlugin
-	existing.Volumes = desired.Volumes
-	existing.AllowedFlexVolumes = desired.AllowedFlexVolumes
-	existing.AllowHostNetwork = desired.AllowHostNetwork
-	existing.AllowHostPorts = desired.AllowHostPorts
-	existing.AllowHostPID = desired.AllowHostPID
-	existing.AllowHostIPC = desired.AllowHostIPC
-	existing.DefaultAllowPrivilegeEscalation = desired.DefaultAllowPrivilegeEscalation
-	existing.AllowPrivilegeEscalation = desired.AllowPrivilegeEscalation
-	existing.SELinuxContext = desired.SELinuxContext
-	existing.RunAsUser = desired.RunAsUser
-	existing.SupplementalGroups = desired.SupplementalGroups
-	existing.FSGroup = desired.FSGroup
-	existing.ReadOnlyRootFilesystem = desired.ReadOnlyRootFilesystem
-	existing.SeccompProfiles = desired.SeccompProfiles
-	existing.AllowedUnsafeSysctls = desired.AllowedUnsafeSysctls
-	existing.ForbiddenSysctls = desired.ForbiddenSysctls
+// Returns true when existing was updated.
+func ApplySecurityContextConstraintsPolicy(existing, desired *secv1.SecurityContextConstraints) bool {
+	changed := false
+	changed = SetIfChanged(&existing.AllowPrivilegedContainer, desired.AllowPrivilegedContainer) || changed
+	changed = SetIfChanged(&existing.DefaultAddCapabilities, desired.DefaultAddCapabilities) || changed
+	changed = SetIfChanged(&existing.RequiredDropCapabilities, desired.RequiredDropCapabilities) || changed
+	changed = SetIfChanged(&existing.AllowedCapabilities, desired.AllowedCapabilities) || changed
+	changed = SetIfChanged(&existing.AllowHostDirVolumePlugin, desired.AllowHostDirVolumePlugin) || changed
+	changed = SetIfChanged(&existing.Volumes, desired.Volumes) || changed
+	changed = SetIfChanged(&existing.AllowedFlexVolumes, desired.AllowedFlexVolumes) || changed
+	changed = SetIfChanged(&existing.AllowHostNetwork, desired.AllowHostNetwork) || changed
+	changed = SetIfChanged(&existing.AllowHostPorts, desired.AllowHostPorts) || changed
+	changed = SetIfChanged(&existing.AllowHostPID, desired.AllowHostPID) || changed
+	changed = SetIfChanged(&existing.AllowHostIPC, desired.AllowHostIPC) || changed
+	changed = SetIfChanged(&existing.DefaultAllowPrivilegeEscalation, desired.DefaultAllowPrivilegeEscalation) || changed
+	changed = SetIfChanged(&existing.AllowPrivilegeEscalation, desired.AllowPrivilegeEscalation) || changed
+	changed = SetIfChanged(&existing.SELinuxContext, desired.SELinuxContext) || changed
+	changed = SetIfChanged(&existing.RunAsUser, desired.RunAsUser) || changed
+	changed = SetIfChanged(&existing.SupplementalGroups, desired.SupplementalGroups) || changed
+	changed = SetIfChanged(&existing.FSGroup, desired.FSGroup) || changed
+	changed = SetIfChanged(&existing.ReadOnlyRootFilesystem, desired.ReadOnlyRootFilesystem) || changed
+	changed = SetIfChanged(&existing.SeccompProfiles, desired.SeccompProfiles) || changed
+	changed = SetIfChanged(&existing.AllowedUnsafeSysctls, desired.AllowedUnsafeSysctls) || changed
+	changed = SetIfChanged(&existing.ForbiddenSysctls, desired.ForbiddenSysctls) || changed
+	return changed
 }

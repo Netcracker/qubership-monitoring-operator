@@ -30,9 +30,11 @@ func (r *PrometheusOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) 
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -59,7 +61,10 @@ func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMo
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -86,7 +91,10 @@ func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonit
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -113,9 +121,11 @@ func (r *PrometheusOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonit
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -142,7 +152,10 @@ func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.Platfo
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -178,17 +191,20 @@ func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonito
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Selector = m.Spec.Selector
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
-	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
-	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-	e.Spec.Template.Spec.Tolerations = m.Spec.Template.Spec.Tolerations
-	e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetVolumesIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Tolerations, m.Spec.Template.Spec.Tolerations) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -217,9 +233,12 @@ func (r *PrometheusOperatorReconciler) handleService(cr *monv1.PlatformMonitorin
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -246,11 +265,14 @@ func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonito
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err

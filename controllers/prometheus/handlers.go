@@ -29,7 +29,10 @@ func (r *PrometheusReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -56,9 +59,11 @@ func (r *PrometheusReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) e
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -84,7 +89,10 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -114,8 +122,11 @@ func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) er
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec, m.Spec) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -141,10 +152,13 @@ func (r *PrometheusReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) err
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
+	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -171,11 +185,14 @@ func (r *PrometheusReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) er
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
