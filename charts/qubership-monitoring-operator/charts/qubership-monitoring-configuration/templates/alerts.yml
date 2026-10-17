@@ -1,0 +1,40 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: qubership-alert-rules
+spec:
+  groups:
+
+{{- $defaultConfig := fromYaml (include "defaultAlerts" . ) -}}
+{{- $overrideConfig := .Values -}}
+{{- $finalConfig := merge $overrideConfig $defaultConfig -}}
+
+{{- range $defaultGroupName, $defaultGroup := $finalConfig }}
+    - name: {{ $defaultGroupName }}
+      labels:
+{{- range $defaultLabelName, $defaultLabelValue := $defaultGroup.labels }}
+        {{ $defaultLabelName }}: {{ $defaultLabelValue }}
+{{- end }}
+      {{- if $defaultGroup.interval }} 
+      interval: {{ $defaultGroup.interval }} 
+      {{- end }}
+      {{- if $defaultGroup.concurrency }} 
+      concurrency: {{ $defaultGroup.concurrency }} 
+      {{- end }}
+      rules:
+{{- range $defaultRuleName, $defaultRule := $defaultGroup.rules }}
+        - alert: {{ $defaultRuleName }}
+          expr: {{ printf "%s" $defaultRule.expr | trimAll "\n" | nindent 12 }}
+          {{- if $defaultRule.for }} 
+          for: {{ $defaultRule.for }}
+          {{- end }}
+          labels:
+{{- range $defaultLabelName, $defaultLabelValue := $defaultRule.labels }}
+            {{ $defaultLabelName }}: {{ $defaultLabelValue }}
+{{- end }}
+          annotations:
+{{- range $defaultAnnotationName, $defaultAnnotationValue := $defaultRule.annotations }}
+            {{ $defaultAnnotationName }}: {{ printf "%s" $defaultAnnotationValue | toJson | nindent 14 }}
+{{- end }}
+{{- end }}
+{{- end }}
