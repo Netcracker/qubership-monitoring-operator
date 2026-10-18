@@ -11,7 +11,7 @@ name: goldpinger-exporter
 image:
   repository: bloomberg/goldpinger
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 3.11.2
+  tag: 3.11.5@sha256:f7c60d31915048283bd91c41531388dde1956bc4ed7d99bbd28995871fab9a6e
   pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.

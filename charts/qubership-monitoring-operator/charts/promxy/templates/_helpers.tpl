@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=jacksontj/promxy */ -}}
-    {{- print "quay.io/jacksontj/promxy:v0.0.93" -}}
+    {{- print "quay.io/jacksontj/promxy:v0.0.97" -}}
   {{- end -}}
 {{- end -}}
 

@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-community/stackdriver_exporter */ -}}
-    {{- print "docker.io/prometheuscommunity/stackdriver-exporter:v0.18.0" -}}
+    {{- print "docker.io/prometheuscommunity/stackdriver-exporter:v0.19.0" -}}
   {{- end -}}
 {{- end -}}
 
