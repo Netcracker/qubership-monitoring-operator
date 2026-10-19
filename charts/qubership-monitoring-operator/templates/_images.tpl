@@ -172,7 +172,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAgent.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/vmagent */ -}}
-    {{- print "docker.io/victoriametrics/vmagent:v1.153.0" -}}
+    {{- print "docker.io/victoriametrics/vmagent:v1.154.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -202,7 +202,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAlert.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/vmalert */ -}}
-    {{- print "docker.io/victoriametrics/vmalert:v1.153.0" -}}
+    {{- print "docker.io/victoriametrics/vmalert:v1.154.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -262,7 +262,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAuth.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/vmauth */ -}}
-    {{- print "docker.io/victoriametrics/vmauth:v1.153.0" -}}
+    {{- print "docker.io/victoriametrics/vmauth:v1.154.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -277,7 +277,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmSelectImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/vmselect */ -}}
-    {{- print "docker.io/victoriametrics/vmselect:v1.153.0-cluster" -}}
+    {{- print "docker.io/victoriametrics/vmselect:v1.154.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -292,7 +292,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmStorageImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/vmstorage */ -}}
-    {{- print "docker.io/victoriametrics/vmstorage:v1.153.0-cluster" -}}
+    {{- print "docker.io/victoriametrics/vmstorage:v1.154.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -307,7 +307,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmCluster.vmInsertImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/vminsert */ -}}
-    {{- print "docker.io/victoriametrics/vminsert:v1.153.0-cluster" -}}
+    {{- print "docker.io/victoriametrics/vminsert:v1.154.0-cluster" -}}
   {{- end -}}
 {{- end -}}
 
@@ -337,7 +337,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmSingle.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=victoriametrics/victoria-metrics */ -}}
-    {{- print "docker.io/victoriametrics/victoria-metrics:v1.153.0" -}}
+    {{- print "docker.io/victoriametrics/victoria-metrics:v1.154.0" -}}
   {{- end -}}
 {{- end -}}
 
