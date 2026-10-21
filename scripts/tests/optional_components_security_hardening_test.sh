@@ -120,7 +120,7 @@ for relative_manifest in "${relative_manifests[@]}"; do
 done
 
 enforced_renderer_manifest="${enforcement_dir}/qubership-monitoring-operator/charts/grafana/templates/image-renderer/deployment.yaml"
-assert_contains "${enforced_renderer_manifest}" "docker.io/grafana/grafana-image-renderer:v5.12.6"
+assert_contains "${enforced_renderer_manifest}" "docker.io/grafana/grafana-image-renderer:v5.12.7"
 assert_contains "${enforced_renderer_manifest}" "BROWSER_FLAGS"
 assert_contains "${enforced_renderer_manifest}" "runAsNonRoot: true"
 assert_contains "${enforced_renderer_manifest}" "type: RuntimeDefault"
