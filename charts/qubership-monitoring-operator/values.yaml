@@ -76,6 +76,23 @@ roleBinding:
 #
 publicCloudName: ""
 
+# Settings shared by the PersistentVolumeClaims of all components that have persistent storage configured:
+# Prometheus, VMSingle, VMAlertManager, and Grafana. Pushgateway and VMCluster are not covered.
+# Type: object
+# Mandatory: no
+#
+pvc:
+  metadata:
+    # Annotations to add to PersistentVolumeClaims. Component-specific PVC annotations override these values.
+    # Values must be strings, so quote them in YAML and use `--set-string` on the command line.
+    # Type: map[string]string
+    # Mandatory: no
+    # Example:
+    # annotations:
+    #   argocd.argoproj.io/sync-options: Prune=false
+    #
+    annotations: {}
+
 # Gateway API settings shared by all components.
 # Type: object
 # Mandatory: no

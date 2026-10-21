@@ -1896,6 +1896,24 @@
                 }
             }
         },
+        "pvc": {
+            "type": "object",
+            "description": "Settings shared by the PersistentVolumeClaims of components with persistent storage.",
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations to add to PersistentVolumeClaims. Component-specific PVC annotations override these values.",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "role": {
             "type": "object",
             "properties": {
