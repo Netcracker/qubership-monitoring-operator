@@ -269,7 +269,7 @@ helm template monitoring "${chart_dir}" \
     >"${rendered_manifest}"
 
 expected_images=(
-    "docker.io/grafana/grafana:13.2.3"
+    "docker.io/grafana/grafana:13.2.4"
     "docker.io/prom/alertmanager:v0.34.1"
     "docker.io/prom/prometheus:v3.15.0"
     "docker.io/victoriametrics/operator:v0.73.1"
