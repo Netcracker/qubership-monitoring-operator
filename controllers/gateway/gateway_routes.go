@@ -114,9 +114,15 @@ func applyGatewayResource(r *utils.ComponentReconciler, resolver *gatewayAPIReso
 	}
 
 	logHTTPRouteParentStatus(r, current)
-	current.SetLabels(desired.GetLabels())
-	current.SetAnnotations(desired.GetAnnotations())
-	current.Object["spec"] = desired.Object["spec"]
+	changed := utils.SetLabelsIfChanged(current, desired.GetLabels())
+	changed = utils.SetAnnotationsIfChanged(current, desired.GetAnnotations()) || changed
+	if !httpRouteSpecMatches(current.Object["spec"], desired.Object["spec"]) {
+		current.Object["spec"] = desired.Object["spec"]
+		changed = true
+	}
+	if !changed {
+		return nil
+	}
 	if err := r.Client.Update(context.TODO(), current); err != nil {
 		return err
 	}
@@ -239,18 +245,125 @@ func buildHTTPRoute(cfg GatewayRouteConfig, routeCfg *monv1.GatewayHTTPRoute, ho
 		}
 	}
 
-	return &unstructured.Unstructured{
+	route := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": group + "/v1",
 			"kind":       httpRouteKind,
 			"metadata": map[string]interface{}{
 				"name":      cfg.NamePrefix + httpRouteNameSuffix,
 				"namespace": cfg.Namespace,
-				"labels":    cfg.Labels,
 			},
 			"spec": spec,
 		},
-	}, nil
+	}
+	// SetLabels stores the labels in the form GetLabels can read back. A raw
+	// map[string]string in the object reads as no labels, which removed the
+	// labels of an existing route on every update.
+	if len(cfg.Labels) > 0 {
+		route.SetLabels(cfg.Labels)
+	}
+	return route, nil
+}
+
+// httpRouteSpecMatches reports whether the live HTTPRoute spec already holds
+// the desired spec. The API server fills schema defaults into the stored
+// object, so the live spec is also compared against the desired spec with
+// those defaults applied.
+func httpRouteSpecMatches(live, desired interface{}) bool {
+	if utils.UnstructuredValuesEqual(live, desired) {
+		return true
+	}
+	defaulted, err := httpRouteSpecWithDefaults(desired)
+	if err != nil {
+		return false
+	}
+	return utils.UnstructuredValuesEqual(live, defaulted)
+}
+
+// httpRouteSpecWithDefaults returns a copy of spec with the defaults of the
+// standard Gateway API v1 HTTPRoute schema applied.
+func httpRouteSpecWithDefaults(spec interface{}) (interface{}, error) {
+	raw, err := json.Marshal(spec)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]interface{}
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil
+	}
+	for _, parentRef := range objectItems(result["parentRefs"]) {
+		setDefault(parentRef, "group", gatewayAPIGroup)
+		setDefault(parentRef, "kind", "Gateway")
+	}
+	setDefault(result, "rules", []interface{}{map[string]interface{}{}})
+	for _, rule := range objectItems(result["rules"]) {
+		setDefault(rule, "matches", []interface{}{map[string]interface{}{}})
+		for _, match := range objectItems(rule["matches"]) {
+			setDefault(match, "path", map[string]interface{}{})
+			if path, ok := match["path"].(map[string]interface{}); ok {
+				setDefault(path, "type", pathPrefixPathMatchType)
+				setDefault(path, "value", "/")
+			}
+			for _, header := range objectItems(match["headers"]) {
+				setDefault(header, "type", "Exact")
+			}
+			for _, queryParam := range objectItems(match["queryParams"]) {
+				setDefault(queryParam, "type", "Exact")
+			}
+		}
+		setHTTPRouteFilterDefaults(rule["filters"])
+		for _, backendRef := range objectItems(rule["backendRefs"]) {
+			setBackendObjectReferenceDefaults(backendRef)
+			setDefault(backendRef, "weight", float64(1))
+			setHTTPRouteFilterDefaults(backendRef["filters"])
+		}
+	}
+	return result, nil
+}
+
+func setHTTPRouteFilterDefaults(filters interface{}) {
+	for _, filter := range objectItems(filters) {
+		if redirect, ok := filter["requestRedirect"].(map[string]interface{}); ok {
+			setDefault(redirect, "statusCode", float64(302))
+		}
+		if mirror, ok := filter["requestMirror"].(map[string]interface{}); ok {
+			if backendRef, ok := mirror["backendRef"].(map[string]interface{}); ok {
+				setBackendObjectReferenceDefaults(backendRef)
+			}
+			if fraction, ok := mirror["fraction"].(map[string]interface{}); ok {
+				setDefault(fraction, "denominator", float64(100))
+			}
+		}
+		if cors, ok := filter["cors"].(map[string]interface{}); ok {
+			setDefault(cors, "maxAge", float64(5))
+		}
+	}
+}
+
+func setBackendObjectReferenceDefaults(ref map[string]interface{}) {
+	setDefault(ref, "group", "")
+	setDefault(ref, "kind", "Service")
+}
+
+func setDefault(object map[string]interface{}, key string, value interface{}) {
+	if _, ok := object[key]; !ok {
+		object[key] = value
+	}
+}
+
+// objectItems returns the JSON objects in list and skips any other element.
+func objectItems(list interface{}) []map[string]interface{} {
+	items, _ := list.([]interface{})
+	result := make([]map[string]interface{}, 0, len(items))
+	for _, item := range items {
+		if object, ok := item.(map[string]interface{}); ok {
+			result = append(result, object)
+		}
+	}
+	return result
 }
 
 func buildParentRefs(routeParentRefs, defaultParentRefs []monv1.GatewayParentRef) []interface{} {

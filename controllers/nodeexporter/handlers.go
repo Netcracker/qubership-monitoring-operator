@@ -32,7 +32,10 @@ func (r *NodeExporterReconciler) handleServiceAccount(cr *monv1.PlatformMonitori
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -62,9 +65,11 @@ func (r *NodeExporterReconciler) handleClusterRole(cr *monv1.PlatformMonitoring)
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -93,7 +98,10 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 		return err
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -127,8 +135,11 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 		)
 	}
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	utils.ApplySecurityContextConstraintsPolicy(e, m)
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.ApplySecurityContextConstraintsPolicy(e, m) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -194,10 +205,24 @@ func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) e
 		}
 		return r.CreateResource(cr, m)
 	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.Spec.Template.Spec = m.Spec.Template.Spec
+	// Set only fields this controller writes. Copying the whole PodSpec would
+	// overwrite API-defaulted values (dnsPolicy, restartPolicy, schedulerName,
+	// terminationGracePeriodSeconds, deprecated serviceAccount) every cycle.
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetVolumesIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Tolerations, m.Spec.Template.Spec.Tolerations) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.HostNetwork, m.Spec.Template.Spec.HostNetwork) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.HostPID, m.Spec.Template.Spec.HostPID) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -226,9 +251,12 @@ func (r *NodeExporterReconciler) handleService(cr *monv1.PlatformMonitoring) err
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -255,11 +283,14 @@ func (r *NodeExporterReconciler) handleServiceMonitor(cr *monv1.PlatformMonitori
 	}
 
 	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
+	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
+	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
+	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
+	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
+	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
+	if !changed {
+		return nil
+	}
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
