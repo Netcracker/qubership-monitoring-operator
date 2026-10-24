@@ -119,6 +119,28 @@ func TestVmSingleUsesOperatorVmAlertURL(t *testing.T) {
 	)
 }
 
+func TestVmSinglePropagatesStorageMetadata(t *testing.T) {
+	annotations := map[string]string{"argocd.argoproj.io/sync-options": "Prune=false"}
+	cr := &monv1.PlatformMonitoring{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "monitoring",
+		},
+		Spec: monv1.PlatformMonitoringSpec{
+			Victoriametrics: &monv1.Victoriametrics{
+				VmSingle: monv1.VmSingle{
+					Image:           "vmsingle:current",
+					StorageMetadata: &vmetricsv1b1.EmbeddedObjectMetadata{Annotations: annotations},
+				},
+			},
+		},
+	}
+
+	manifest, err := vmSingle(nil, cr)
+	require.NoError(t, err)
+
+	assert.Equal(t, annotations, manifest.Spec.StorageMetadata.Annotations)
+}
+
 func TestVmSinglePreservesPVCByDefault(t *testing.T) {
 	cr := &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
