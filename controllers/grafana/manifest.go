@@ -58,11 +58,6 @@ type grafanaDataStorage struct {
 	VolumeName  string                              `json:"volumeName,omitempty"`
 }
 
-// TODO(#377): spec.grafana.config is not propagated to the Grafana CR spec.config. Once it is,
-// merge user-provided keys after the operator defaults so they can override them, restore the
-// opt-out gate for operator-managed config sections, and derive server.root_url from
-// spec.grafana.ingress.host as an overridable default.
-
 // grafanaOperatorSubject returns the service account subject that grafana-operator presents in
 // its projected JWT. It must track the ServiceAccount name set by grafanaOperatorServiceAccount.
 func grafanaOperatorSubject(operatorNamespace string) string {
@@ -450,10 +445,6 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources, isO
 		// TODO(#434): Grafana Operator v5 moved dashboard selection to immutable
 		// GrafanaDashboard instance selectors.
 
-		// TODO(#376): cr.Spec.Auth OAuth fields (LoginURL, TokenURL, UserInfoURL, TLSConfig) are not
-		// applied to the Grafana CR spec.config["auth.generic_oauth"]. The TLS secrets (CASecret,
-		// CertSecret, KeySecret) additionally need volume mounts.
-
 		// Preserve configured IDs while enforcing the hardening settings above.
 		if err := utils.ValidateSecurityContextSpec(cr.Spec.Grafana.SecurityContext); err != nil {
 			return nil, err
@@ -618,7 +609,17 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources, isO
 					authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
 					authSection["client_secret"] = "$__file{" + oauthSecretMountPath + "/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
 				}
+
+				if hasGrafanaOAuthConfig(cr.Spec.Auth) {
+					configureGrafanaGenericOAuth(&graf, podSpec, container, cr.Spec.Auth)
+				}
 			}
+		}
+
+		// Operator defaults first, then spec.grafana.config, so user values win.
+		applyGrafanaRootURL(&graf, cr.Spec.Grafana.Ingress)
+		if err := applyGrafanaUserConfig(&graf, cr.Spec.Grafana.Config); err != nil {
+			return nil, err
 		}
 
 		// Set labels on Grafana resource
