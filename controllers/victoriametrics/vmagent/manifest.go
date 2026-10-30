@@ -59,7 +59,7 @@ func vmAgentClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool) (*rba
 		})
 	}
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAgentComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAgentComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -81,7 +81,7 @@ func vmAgentClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.ClusterRol
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAgentComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAgentComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAgentComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }
@@ -139,21 +139,6 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		// Set Vmagent image
 		vmagent.Spec.Image.Repository, vmagent.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAgent.Image)
 
-		if r != nil {
-			// Set security context
-			if cr.Spec.Victoriametrics.VmAgent.SecurityContext != nil {
-				if vmagent.Spec.SecurityContext == nil {
-					vmagent.Spec.SecurityContext = &vmetricsv1b1.SecurityContext{}
-				}
-				if cr.Spec.Victoriametrics.VmAgent.SecurityContext.RunAsUser != nil {
-					vmagent.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmAgent.SecurityContext.RunAsUser
-				}
-				if cr.Spec.Victoriametrics.VmAgent.SecurityContext.FSGroup != nil {
-					vmagent.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmAgent.SecurityContext.FSGroup
-				}
-			}
-		}
-
 		if cr.Spec.Victoriametrics.VmAgent.Replicas != nil {
 			vmagent.Spec.ReplicaCount = cr.Spec.Victoriametrics.VmAgent.Replicas
 		}
@@ -179,14 +164,7 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 		// Set additional volumeMounts for each VmAgent container. The current container names are:
 		// `vmagent`, `config-reloader`
 		if cr.Spec.Victoriametrics.VmAgent.VolumeMounts != nil {
-			for it := range vmagent.Spec.Containers {
-				c := &vmagent.Spec.Containers[it]
-
-				// Set additional volumeMounts only for VmAgent container
-				if c.Name == utils.VmAgentComponentName {
-					c.VolumeMounts = cr.Spec.Victoriametrics.VmAgent.VolumeMounts
-				}
-			}
+			vmagent.Spec.VolumeMounts = cr.Spec.Victoriametrics.VmAgent.VolumeMounts
 		}
 		// Set nodeSelector for Vmagent cr
 		if cr.Spec.Victoriametrics.VmAgent.NodeSelector != nil {
@@ -245,7 +223,7 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key",
 				}
 			}
-			vmagentRemoteWrite.URL = vmSingle.AsURL() + "/api/v1/write"
+			vmagentRemoteWrite.URL = vmSingle.AsURL(false) + "/api/v1/write"
 
 			addVmSingle := true
 			for _, rw := range vmagent.Spec.RemoteWrite {
@@ -276,7 +254,7 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 					KeyFile:  "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key",
 				}
 			}
-			vmagentRemoteWrite.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert) + "/insert/0/prometheus/api/v1/write"
+			vmagentRemoteWrite.URL = vmCluster.AsURL(vmetricsv1b1.ClusterComponentInsert, false) + "/insert/0/prometheus/api/v1/write"
 			addVmInsert := true
 			for _, rw := range vmagent.Spec.RemoteWrite {
 				if rw.URL == vmagentRemoteWrite.URL {
@@ -383,6 +361,23 @@ func vmAgent(r *VmAgentReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b1.
 			maps.Copy(vmagent.Spec.ExtraArgs, map[string]string{"tls": "true"})
 			maps.Copy(vmagent.Spec.ExtraArgs, map[string]string{"tlsCertFile": "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.crt"})
 			maps.Copy(vmagent.Spec.ExtraArgs, map[string]string{"tlsKeyFile": "/etc/vm/secrets/" + victoriametrics.GetVmagentTLSSecretName(cr.Spec.Victoriametrics.VmAgent) + "/tls.key"})
+		}
+
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmagent.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContextFromPlatformSpec(
+			isOpenShift, cr.Spec.Victoriametrics.VmAgent.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
+		// VictoriaMetrics Operator mounts the VMAgent persistent queue below /tmp. Mounting a separate
+		// volume over the parent directory prevents VictoriaMetrics Operator from reconciling VMAgent,
+		// so explicit containers get the security baseline only and no temporary volume.
+		vmagent.Spec.Containers, err = victoriametrics.HardenContainerSecurity(vmagent.Spec.Containers)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return &vmagent, nil

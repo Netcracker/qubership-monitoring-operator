@@ -1,5 +1,5 @@
-Grafana removes support of plugins based on AngularJS since v11, which means that some plugins will stop working from
-then on. This document describes how to migrate from the old AngularJS plugins to the new, mostly core plugins.
+Grafana removes support of plugins based on Angular since v11, which means that some plugins will stop working from
+then on. This document describes how to migrate from the old Angular plugins to the new, mostly core plugins.
 
 # Compatibility of Grafana versions with new core plugins
 
@@ -33,7 +33,7 @@ already presented.
 so **the information above** was taken from various sources (mostly Release Notes) and **is not 100% accurate**.
 The table above is provided to demonstrate the absence of some plugins in older versions of Grafana.
 
-# AngularJS plugins and their possible alternatives
+# Angular plugins and their possible alternatives
 
 You can find a list of deprecated plugins in
 [the official Grafana docs](https://grafana.com/docs/grafana/v12.1/developers/angular_deprecation/angular-plugins/).

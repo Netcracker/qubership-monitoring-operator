@@ -6,8 +6,13 @@ import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/labelsassert"
+	secv1 "github.com/openshift/api/security/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 )
 
 var (
@@ -21,6 +26,7 @@ var (
 func TestNodeExporterManifests(t *testing.T) {
 	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
+			Name:      "platform-monitoring",
 			Namespace: "monitoring",
 		},
 		Spec: monv1.PlatformMonitoringSpec{
@@ -31,7 +37,7 @@ func TestNodeExporterManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test DaemonSet manifest", func(t *testing.T) {
-		m, err := nodeExporterDaemonSet(cr)
+		m, err := nodeExporterDaemonSet(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -44,9 +50,12 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.Equal(t, annotationValue, m.GetAnnotations()[annotationKey])
 		assert.NotNil(t, m.Spec.Template.Annotations)
 		assert.Equal(t, annotationValue, m.Spec.Template.Annotations[annotationKey])
+		assertNodeExporterHardening(t, m, false)
+		assertNodeExporterHostAccess(t, m)
 	})
 	cr = &monv1.PlatformMonitoring{
 		ObjectMeta: metav1.ObjectMeta{
+			Name:      "platform-monitoring",
 			Namespace: "monitoring",
 		},
 		Spec: monv1.PlatformMonitoringSpec{
@@ -54,7 +63,7 @@ func TestNodeExporterManifests(t *testing.T) {
 		},
 	}
 	t.Run("Test DaemonSet manifest with nil labels and annotation", func(t *testing.T) {
-		m, err := nodeExporterDaemonSet(cr)
+		m, err := nodeExporterDaemonSet(cr, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -64,12 +73,77 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.Nil(t, m.GetAnnotations())
 		assert.Nil(t, m.Spec.Template.Annotations)
 	})
+	t.Run("Test OpenShift DaemonSet security context", func(t *testing.T) {
+		m, err := nodeExporterDaemonSet(cr, true)
+		require.NoError(t, err)
+		assertNodeExporterHardening(t, m, true)
+		assertNodeExporterHostAccess(t, m)
+	})
+	t.Run("Test configured IDs are preserved", func(t *testing.T) {
+		configuredCR := cr.DeepCopy()
+		configuredCR.Spec.NodeExporter.SecurityContext = &monv1.SecurityContext{
+			RunAsUser:  ptr.To(int64(3000)),
+			RunAsGroup: ptr.To(int64(3001)),
+			FSGroup:    ptr.To(int64(3002)),
+		}
+
+		m, err := nodeExporterDaemonSet(configuredCR, false)
+		require.NoError(t, err)
+		assert.Equal(t, int64(3000), *m.Spec.Template.Spec.SecurityContext.RunAsUser)
+		assert.Equal(t, int64(3001), *m.Spec.Template.Spec.SecurityContext.RunAsGroup)
+		assert.Equal(t, int64(3002), *m.Spec.Template.Spec.SecurityContext.FSGroup)
+		assertNodeExporterHardening(t, m, false)
+
+		openShiftDaemonSet, err := nodeExporterDaemonSet(configuredCR, true)
+		require.NoError(t, err)
+		assert.Equal(t, ptr.To(int64(3000)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsUser)
+		assert.Equal(t, ptr.To(int64(3001)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.RunAsGroup)
+		assert.Equal(t, ptr.To(int64(3002)), openShiftDaemonSet.Spec.Template.Spec.SecurityContext.FSGroup)
+	})
+	t.Run("Test existing temporary volume and mount are preserved", func(t *testing.T) {
+		userVolume := corev1.Volume{
+			Name: "other-tmp",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "scratch"},
+			},
+		}
+		userMount := corev1.VolumeMount{Name: "other-tmp", MountPath: "/tmp"}
+		daemonSet := &appsv1.DaemonSet{
+			Spec: appsv1.DaemonSetSpec{
+				Template: corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{
+						Volumes: []corev1.Volume{userVolume},
+						Containers: []corev1.Container{{
+							Name:         "node-exporter",
+							VolumeMounts: []corev1.VolumeMount{userMount},
+						}},
+					},
+				},
+			},
+		}
+
+		require.NoError(t, applyNodeExporterHardening(daemonSet, false, nil))
+
+		assert.Contains(t, daemonSet.Spec.Template.Spec.Volumes, userVolume)
+		container := daemonSet.Spec.Template.Spec.Containers[0]
+		assert.Equal(t, []corev1.VolumeMount{userMount}, container.VolumeMounts,
+			"a user mount at /tmp must be kept instead of being replaced by the emptyDir")
+		assert.Equal(t, utils.HardenedContainerSecurityContext(), container.SecurityContext)
+	})
+	t.Run("Test root user is rejected", func(t *testing.T) {
+		daemonSet := &appsv1.DaemonSet{}
+
+		err := applyNodeExporterHardening(daemonSet, false, &monv1.SecurityContext{RunAsUser: ptr.To(int64(0))})
+
+		require.Error(t, err)
+	})
 	t.Run("Test ClusterRole manifest", func(t *testing.T) {
-		m, err := nodeExporterClusterRole(cr, true, false)
+		m, err := nodeExporterClusterRole(cr, false, true)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, m, "ClusterRole manifest should not be empty")
+		assert.Equal(t, []string{"monitoring-node-exporter"}, m.Rules[0].ResourceNames)
 	})
 	t.Run("Test ClusterRoleBinding manifest", func(t *testing.T) {
 		m, err := nodeExporterClusterRoleBinding(cr)
@@ -121,4 +195,90 @@ func TestNodeExporterManifests(t *testing.T) {
 		assert.NotNil(t, m.GetLabels())
 		assert.Equal(t, labelValue, m.GetLabels()[labelKey], "ServiceAccount.Labels should be merged")
 	})
+	t.Run("Test SecurityContextConstraints manifest", func(t *testing.T) {
+		m, err := nodeExporterSecurityContextConstraints(cr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, m, "SecurityContextConstraints manifest should not be empty")
+		assert.Equal(t, "monitoring-node-exporter", m.GetName())
+		assert.Equal(t, "monitoring", m.GetAnnotations()[nodeExporterSCCOwnerNamespaceAnnotation])
+		assert.Equal(t, "platform-monitoring", m.GetAnnotations()[nodeExporterSCCOwnerNameAnnotation])
+		assert.Equal(t, "monitoring", m.GetLabels()[utils.InstallationNamespaceLabelKey])
+		assert.True(t, m.AllowHostNetwork, "node-exporter needs hostNetwork to scrape host-level metrics")
+		assert.True(t, m.AllowHostPID, "node-exporter needs hostPID to scrape host-level metrics")
+		assert.True(t, m.AllowHostPorts)
+		assert.True(t, m.AllowHostDirVolumePlugin, "node-exporter mounts /proc, /sys, and / as hostPath volumes")
+		assert.False(t, m.AllowPrivilegedContainer)
+		// Without an explicit seccompProfiles entry, the SCC admission plugin silently drops this
+		// SCC from the candidate list for pods that set securityContext.seccompProfile - no error,
+		// it's just never tried, and the DaemonSet falls back to the built-in SCCs and fails.
+		assert.Contains(t, m.SeccompProfiles, "runtime/default")
+		// MustRunAsRange (not RunAsAny) makes the SCC assign a UID from the namespace's allocated
+		// range. The node-exporter image sets a non-numeric USER (nobody), so without an assigned
+		// UID the kubelet can't verify runAsNonRoot and refuses to start the container.
+		assert.Equal(t, secv1.RunAsUserStrategyMustRunAsRange, m.RunAsUser.Type)
+	})
+}
+
+func assertNodeExporterHardening(t *testing.T, daemonSet *appsv1.DaemonSet, isOpenShift bool) {
+	t.Helper()
+
+	podSecurityContext := daemonSet.Spec.Template.Spec.SecurityContext
+	require.NotNil(t, podSecurityContext)
+	assert.Equal(t, ptr.To(true), podSecurityContext.RunAsNonRoot)
+	require.NotNil(t, podSecurityContext.SeccompProfile)
+	assert.Equal(t, corev1.SeccompProfileTypeRuntimeDefault, podSecurityContext.SeccompProfile.Type)
+	if isOpenShift {
+		assert.Nil(t, podSecurityContext.RunAsUser)
+		assert.Nil(t, podSecurityContext.RunAsGroup)
+		assert.Nil(t, podSecurityContext.FSGroup)
+	} else {
+		require.NotNil(t, podSecurityContext.RunAsUser)
+		require.NotNil(t, podSecurityContext.RunAsGroup)
+		require.NotNil(t, podSecurityContext.FSGroup)
+	}
+
+	require.Len(t, daemonSet.Spec.Template.Spec.Containers, 1)
+	container := daemonSet.Spec.Template.Spec.Containers[0]
+	require.NotNil(t, container.SecurityContext)
+	assert.Equal(t, ptr.To(false), container.SecurityContext.AllowPrivilegeEscalation)
+	assert.Equal(t, ptr.To(true), container.SecurityContext.ReadOnlyRootFilesystem)
+	require.NotNil(t, container.SecurityContext.Capabilities)
+	assert.Equal(t, []corev1.Capability{"ALL"}, container.SecurityContext.Capabilities.Drop)
+	assert.Contains(t, container.VolumeMounts, utils.TmpVolumeMount())
+
+	tmpVolumes := 0
+	for _, volume := range daemonSet.Spec.Template.Spec.Volumes {
+		if volume.Name == utils.TmpVolumeMount().Name {
+			tmpVolumes++
+			require.NotNil(t, volume.EmptyDir)
+			require.NotNil(t, volume.EmptyDir.SizeLimit)
+			assert.Equal(t, "100Mi", volume.EmptyDir.SizeLimit.String())
+		}
+	}
+	assert.Equal(t, 1, tmpVolumes)
+}
+
+func assertNodeExporterHostAccess(t *testing.T, daemonSet *appsv1.DaemonSet) {
+	t.Helper()
+
+	podSpec := daemonSet.Spec.Template.Spec
+	assert.True(t, podSpec.HostNetwork)
+	assert.True(t, podSpec.HostPID)
+	assert.False(t, podSpec.HostIPC)
+
+	hostPathVolumes := 0
+	for _, volume := range podSpec.Volumes {
+		if volume.HostPath != nil {
+			hostPathVolumes++
+		}
+	}
+	assert.Equal(t, 5, hostPathVolumes)
+
+	require.Len(t, podSpec.Containers, 1)
+	require.NotEmpty(t, podSpec.Containers[0].VolumeMounts)
+	require.NotNil(t, podSpec.Containers[0].VolumeMounts[0].MountPropagation)
+	assert.Equal(t, corev1.MountPropagationHostToContainer,
+		*podSpec.Containers[0].VolumeMounts[0].MountPropagation)
 }

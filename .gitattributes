@@ -120,7 +120,17 @@ gradlew         text eol=lf
 # Jupyter notebook
 *.ipynb  text eol=lf
 
+# Generated artifacts
+/api/v1/zz_generated.deepcopy.go linguist-generated=true
+/charts/qubership-monitoring-operator/crds/** linguist-generated=true
+/charts/qubership-monitoring-operator/charts/*/crds/** linguist-generated=true
+/charts/qubership-monitoring-crds/crds/** linguist-generated=true
+/docs/api/platform-monitoring.md linguist-generated=true
+
 # Note: .db, .p, and .pkl files are associated
 # with the python modules ``pickle``, ``dbm.*``,
 # ``shelve``, ``marshal``, ``anydbm``, & ``bsddb``
 # (among others).
+agent-packages/troubleshoot-monitoring/.apm/skills/troubleshoot-monitoring/references/troubleshooting.md linguist-generated=true
+docs/troubleshooting.md linguist-generated=true
+docs/troubleshooting.superseded.md linguist-generated=true

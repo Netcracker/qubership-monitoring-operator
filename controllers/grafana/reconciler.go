@@ -11,8 +11,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// adminSecretChecksumAnnotation propagates the admin password checksum to the pod template.
-const adminSecretChecksumAnnotation = "checksum/admin-secret"
+// isManageAdminSecret returns true when Helm (and therefore this operator) manages
+// the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
+// When the flag is true the user is responsible for the secret; we skip validation.
+func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
+	if cr.Spec.Grafana == nil {
+		return false
+	}
+	// We manage the secret when disableDefaultAdminSecret is explicitly false or not set.
+	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil || !*cr.Spec.Grafana.DisableDefaultAdminSecret
+}
 
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
@@ -43,15 +51,22 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			credentialsSyncState, err := r.handleGrafanaCredentialsSecret(cr)
-			if err != nil {
-				return err
+			if isManageAdminSecret(cr) {
+				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
+					return err
+				}
 			}
 			// Reconcile resources with creation and update
-			if err := r.handleGrafana(cr, credentialsSyncState.adminPasswordChecksum); err != nil {
+			if err := r.handleGrafana(cr); err != nil {
 				return err
 			}
 			if err := r.handleGrafanaDataSource(cr); err != nil {
+				return err
+			}
+			if err := r.handleJaegerDataSources(cr); err != nil {
+				return err
+			}
+			if err := r.handleClickHouseDataSources(cr); err != nil {
 				return err
 			}
 			// Reconcile Promxy datasource only when Promxy is installed (otherwise Grafana hangs on missing service)
@@ -108,16 +123,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// Reset Grafana admin credentials in the running database when the
-			// secret has changed. This handles both PV and non-PV deployments:
-			// the rolling restart triggered by the checksum annotation handles
-			// the emptyDir case; the grafana cli exec handles the PV case.
-			if credentialsSyncState.resetPassword {
-				if err := r.resetGrafanaCredentials(cr); err != nil {
-					r.Log.Error(err, "Cannot reset Grafana credentials")
-					return err
-				}
-			}
+			// Grafana reads the admin credentials from the mounted Secret at startup, so a manually
+			// changed secret value takes effect only after the Grafana pod restarts.
+			// resetGrafanaCredentials updates them in place but is not triggered automatically.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
@@ -138,6 +146,12 @@ func (r *GrafanaReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	}
 	if err := r.deleteGrafanaDataSource(cr); err != nil {
 		r.Log.Error(err, "Can not delete GrafanaDataSource")
+	}
+	if err := r.deleteDiscoveredDataSources(cr, jaegerDatasourceComponent); err != nil {
+		r.Log.Error(err, "Can not delete Jaeger GrafanaDatasource")
+	}
+	if err := r.deleteDiscoveredDataSources(cr, clickHouseDatasourceComponent); err != nil {
+		r.Log.Error(err, "Can not delete ClickHouse GrafanaDatasource")
 	}
 	if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
 		r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")
