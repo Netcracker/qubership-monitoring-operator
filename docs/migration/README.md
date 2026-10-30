@@ -10,5 +10,5 @@ Guides for moving an existing installation to a different backend, or to support
   backend of a running installation.
 * [VictoriaMetrics Data Migration](../user-guides/victoriametrics-data-migration.md): move stored metrics between
   VictoriaMetrics installations.
-* [Grafana AngularJS Plugins](../user-guides/migrate-from-angularjs-grafana-plugins.md): replace panels that depend on
-  the removed AngularJS plugin API.
+* [Grafana Angular Plugins](../user-guides/migrate-from-angularjs-grafana-plugins.md): replace panels that depend on
+  the removed Angular plugin API.

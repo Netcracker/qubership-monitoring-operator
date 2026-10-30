@@ -9,7 +9,7 @@ This section contains ready-to-use CloudWatch Exporter configurations for variou
 ## Available Configurations
 
 | Service | Configuration File | Description |
-|---------|-------------------|-------------|
+| ------- | ------------------ | ----------- |
 | **EBS** | [EBS.yaml](EBS.yaml) | Elastic Block Store volume metrics |
 | **S3** | [S3.yaml](S3.yaml) | Simple Storage Service bucket and request metrics |
 | **ELB** | [ELB.yaml](ELB.yaml) | Classic Load Balancer metrics |
@@ -29,7 +29,8 @@ Monitor Amazon Elastic Block Store volumes for performance and utilization metri
 --8<-- "examples/components/cloudwatch-exporter-config/EBS.yaml"
 ```
 
-### Key Metrics:
+### Key Metrics
+
 - **Volume I/O**: Read/Write bytes and operations
 - **Performance**: Latency, throughput, queue length
 - **Burst Credits**: For burstable volumes (gp2, st1, sc1)
@@ -42,7 +43,8 @@ Monitor Amazon S3 buckets for storage usage and request metrics.
 --8<-- "examples/components/cloudwatch-exporter-config/S3.yaml"
 ```
 
-### Key Metrics:
+### Key Metrics
+
 - **Storage**: Bucket size and object count
 - **Requests**: GET, PUT, DELETE, HEAD operations
 - **Performance**: Request latency and error rates
@@ -77,7 +79,7 @@ Monitor Amazon S3 buckets for storage usage and request metrics.
 All configurations use these common parameters:
 
 | Parameter | Default | Description |
-|-----------|---------|-------------|
+| --------- | ------- | ----------- |
 | `region` | `us-east-1` | AWS region to monitor |
 | `period_seconds` | `120` | Metric collection interval |
 | `delay_seconds` | `60` | Delay before collecting metrics |
@@ -106,7 +108,7 @@ You can customize these configurations:
 Pre-built Grafana dashboards are available for AWS services:
 
 | Service | Dashboard File |
-|---------|---------------|
+| ------- | -------------- |
 | EBS | [ebs.json](grafana-dashboards-for-amazon-aws/ebs.json) |
 | S3 | [s3.json](grafana-dashboards-for-amazon-aws/s3.json) |
 | Application ELB | [application-elb.json](grafana-dashboards-for-amazon-aws/application-elb.json) |
@@ -121,4 +123,4 @@ Pre-built Grafana dashboards are available for AWS services:
 1. Download the JSON file for your service
 2. In Grafana, go to **+ → Import**
 3. Upload the JSON file or paste its content
-4. Configure data source if needed 
+4. Configure data source if needed

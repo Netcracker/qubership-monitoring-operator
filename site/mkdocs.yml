@@ -340,4 +340,4 @@ nav:
           - migration/README.md
           - Prometheus to VictoriaMetrics: user-guides/migrate-from-prometheus-to-victoriametrics.md
           - VictoriaMetrics Data Migration: user-guides/victoriametrics-data-migration.md
-          - Grafana AngularJS Plugins: user-guides/migrate-from-angularjs-grafana-plugins.md
+          - Grafana Angular Plugins: user-guides/migrate-from-angularjs-grafana-plugins.md

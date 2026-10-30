@@ -53,6 +53,7 @@ This chart deploys Monitoring Operator, VictoriaMetrics Operator, and Grafana Op
 datasources, or VictoriaMetrics clusters.
 
 **Mandatory exporters** installed in the baseline:
+
 - **nodeExporter** – collects node-level metrics (CPU, memory, disk, network)
 - **kubeStateMetrics** – collects Kubernetes object state metrics (pods, nodes, services, etc.)
 - **cloudEventsExporter** – exports cloud infrastructure events
@@ -118,6 +119,7 @@ VMUser resources using the label selector `app.kubernetes.io/name: vmuser` toget
 **For pack-one** (`pack-one/values.yaml`):
 
 1. **Update credentials**:
+
    ```yaml
    vmUser:
      install: true
@@ -131,6 +133,7 @@ VMUser resources using the label selector `app.kubernetes.io/name: vmuser` toget
    ```
 
 2. **VMAuth configuration** (if needed):
+
    ```yaml
    vmAuth:
      install: true
@@ -220,8 +223,11 @@ ingress:
 ```
 
 **Access services**:
-- **pack-one**: `http://vmauth.example.com`, `http://vmagent.example.com`, `http://vmsingle.example.com`, `http://vmalert.example.com`
-- **pack-two**: `http://vmauth-dev.example.com`, `http://vmagent-dev.example.com`, `http://vmsingle-dev.example.com`, `http://vmalert-dev.example.com`, `http://grafana-dev.example.com`
+
+- **pack-one**: `http://vmauth.example.com`, `http://vmagent.example.com`, `http://vmsingle.example.com`,
+  `http://vmalert.example.com`
+- **pack-two**: `http://vmauth-dev.example.com`, `http://vmagent-dev.example.com`, `http://vmsingle-dev.example.com`,
+  `http://vmalert-dev.example.com`, `http://grafana-dev.example.com`
 - If TLS is configured, use `https://` instead of `http://`
 
 > **Note**: If VMAuth is enabled, access vmagent, vmsingle, and vmalert through VMAuth using the configured credentials.
@@ -278,6 +284,7 @@ alerting rules) through Custom Resources (CR). The operator monitors changes in 
 with actual Grafana instances.
 
 **Main components:**
+
 - **Grafana Operator Deployment** – deployed in the `monitoring` namespace, manages all Grafana resources
 - **Grafana CR** – defines a Grafana instance (Deployment, Service, ConfigMap, etc.)
 - **GrafanaDashboard CR** – defines a dashboard that will be imported into Grafana
@@ -313,6 +320,7 @@ Filtering which dashboards and other resources will be connected to a Grafana in
 **Recommended approach used in this quickstart:**
 
 1. **At the operator level**: Specify `watchNamespaces` in Grafana Operator configuration to limit tracked namespaces:
+
    ```yaml
    # In operators-only-baseline-values.yaml
    grafana:
@@ -321,6 +329,7 @@ Filtering which dashboards and other resources will be connected to a Grafana in
    ```
 
 2. **At the resource level**: Use a simple label in `instanceSelector.matchLabels` for binding:
+
    ```yaml
    # In dashboard/datasource
    spec:
@@ -331,6 +340,7 @@ Filtering which dashboards and other resources will be connected to a Grafana in
    ```
 
    And ensure the Grafana CR has the corresponding label:
+
    ```yaml
    # In Grafana CR
    metadata:
@@ -366,7 +376,8 @@ If the recommended approach is insufficient, additional filtering mechanisms are
   
   For more details, see the [Grafana Operator Helm chart documentation](https://grafana.github.io/grafana-operator/docs/installation/helm/).
 
-- **At the Grafana instance level**: The `instanceSelector` parameter in resources (GrafanaDashboard, GrafanaDatasource, etc.):
+- **At the Grafana instance level**: The `instanceSelector` parameter in resources (GrafanaDashboard,
+  GrafanaDatasource, etc.):
   - `matchLabels` – exact label matching
   - `matchExpressions` – flexible expressions for label matching (In, NotIn, Exists, DoesNotExist)
   
@@ -379,13 +390,17 @@ Grafana instance has its own Deployment and operates independently, while all in
 Operator.
 
 **Example:**
-- **Baseline Grafana** (namespace `monitoring`): used by the OPS team, test resources bind to it via `app.kubernetes.io/instance: grafana-monitoring`
-- **Pack-two Grafana** (namespace `pack-two`): used by the DEV team, dashboards/datasource bind to it via `monitoring-pack: "two"`
+
+- **Baseline Grafana** (namespace `monitoring`): used by the OPS team, test resources bind to it via
+  `app.kubernetes.io/instance: grafana-monitoring`
+- **Pack-two Grafana** (namespace `pack-two`): used by the DEV team, dashboards/datasource bind to it via
+  `monitoring-pack: "two"`
 
 Each instance can have its own dashboards, datasources, and settings, while they are isolated from each other at the
 Deployment level.
 
 ## 6. Access services
+
 If Ingress is enabled, access services through the configured hosts:
 
 - **Baseline Grafana**: `https://grafana.example.com`
@@ -418,6 +433,6 @@ query, and confirm that vmagent's scraped metrics arrive in vmsingle (results sh
    - Access VMUI: `http://vmauth.example.com/vmui/`
    - Access vmagent targets: `http://vmauth.example.com/targets`
    - Access vmsingle query: `http://vmauth.example.com/vmui/query`
-   
+
 The VMAuth service automatically routes requests to the appropriate backend (vmagent or vmsingle) based on the path
 patterns defined in VMUser's targetRefs. The root path `/` is included to support VMUI access.
