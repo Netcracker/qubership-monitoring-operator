@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/apidefaultstest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
@@ -26,7 +27,7 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
 	live.SetAnnotations(map[string]string{"deployment.kubernetes.io/revision": "1"})
-	applyAPIDefaultedContainerFields(live.Spec.Template.Spec.Containers)
+	apidefaultstest.Containers(live.Spec.Template.Spec.Containers)
 
 	r := newPushgatewaySkipTestReconciler(t, cr, live)
 	require.NoError(t, r.handleDeployment(cr))
@@ -155,39 +156,5 @@ func newPushgatewaySkipTestReconciler(t *testing.T, objs ...client.Object) *Push
 			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    utils.Logger("pushgateway_skip_test"),
 		},
-	}
-}
-
-func applyAPIDefaultedContainerFields(containers []corev1.Container) {
-	for i := range containers {
-		c := &containers[i]
-		for j := range c.Ports {
-			if c.Ports[j].Protocol == "" {
-				c.Ports[j].Protocol = corev1.ProtocolTCP
-			}
-		}
-		if c.TerminationMessagePath == "" {
-			c.TerminationMessagePath = "/dev/termination-log"
-		}
-		if c.TerminationMessagePolicy == "" {
-			c.TerminationMessagePolicy = corev1.TerminationMessageReadFile
-		}
-		for _, probe := range []*corev1.Probe{c.LivenessProbe, c.ReadinessProbe} {
-			if probe == nil {
-				continue
-			}
-			if probe.PeriodSeconds == 0 {
-				probe.PeriodSeconds = 10
-			}
-			if probe.SuccessThreshold == 0 {
-				probe.SuccessThreshold = 1
-			}
-			if probe.FailureThreshold == 0 {
-				probe.FailureThreshold = 3
-			}
-			if probe.HTTPGet != nil && probe.HTTPGet.Scheme == "" {
-				probe.HTTPGet.Scheme = corev1.URISchemeHTTP
-			}
-		}
 	}
 }

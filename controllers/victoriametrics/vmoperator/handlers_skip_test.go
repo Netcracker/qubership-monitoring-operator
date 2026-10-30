@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/apidefaultstest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -26,7 +27,7 @@ func TestHandleServiceSkipsAPIDefaultedPortProtocol(t *testing.T) {
 
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
-	applyAPIDefaultedServicePorts(live.Spec.Ports)
+	apidefaultstest.ServicePorts(live.Spec.Ports)
 
 	r := newVmOperatorSkipTestReconciler(t, nil, cr, live)
 	require.NoError(t, r.handleService(cr))
@@ -59,13 +60,13 @@ func TestHandleKubeletServiceEndpointsSkipsAPIDefaultedPortProtocol(t *testing.T
 	desired.Labels["app.kubernetes.io/name"] = utils.TruncLabel(desired.GetName())
 	desired.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(desired.GetName(), desired.GetNamespace())
 	desired.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-	applyAPIDefaultedEndpointPorts(desired.Subsets)
+	apidefaultstest.EndpointPorts(desired.Subsets)
 	desired.ResourceVersion = "1"
 
 	r := newVmOperatorSkipTestReconciler(t, kubeClient, cr, desired.DeepCopy())
 	require.NoError(t, r.handleKubeletServiceEndpoints(cr))
 
-	got := &corev1.Endpoints{}
+	got := &corev1.Endpoints{} //nolint:staticcheck // SA1019: the operator still manages v1 Endpoints.
 	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
 	assert.Equal(t, "1", got.ResourceVersion, "API-defaulted Endpoints port protocol must not trigger Update")
 	require.NotEmpty(t, got.Subsets)
@@ -114,7 +115,7 @@ func TestHandleKubeletServiceEndpointsUpdatesChangedPort(t *testing.T) {
 	desired.Labels["app.kubernetes.io/name"] = utils.TruncLabel(desired.GetName())
 	desired.Labels["app.kubernetes.io/instance"] = utils.GetInstanceLabel(desired.GetName(), desired.GetNamespace())
 	desired.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
-	applyAPIDefaultedEndpointPorts(desired.Subsets)
+	apidefaultstest.EndpointPorts(desired.Subsets)
 
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
@@ -125,7 +126,7 @@ func TestHandleKubeletServiceEndpointsUpdatesChangedPort(t *testing.T) {
 	r := newVmOperatorSkipTestReconciler(t, kubeClient, cr, live)
 	require.NoError(t, r.handleKubeletServiceEndpoints(cr))
 
-	got := &corev1.Endpoints{}
+	got := &corev1.Endpoints{} //nolint:staticcheck // SA1019: the operator still manages v1 Endpoints.
 	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
 	assert.NotEqual(t, "1", got.ResourceVersion, "port change must trigger Update")
 	require.NotEmpty(t, got.Subsets)
@@ -165,24 +166,6 @@ func newVmOperatorSkipTestReconciler(t *testing.T, kubeClient kubernetes.Interfa
 			Dc:     &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 			Log:    utils.Logger("vmoperator_skip_test"),
 		},
-	}
-}
-
-func applyAPIDefaultedServicePorts(ports []corev1.ServicePort) {
-	for i := range ports {
-		if ports[i].Protocol == "" {
-			ports[i].Protocol = corev1.ProtocolTCP
-		}
-	}
-}
-
-func applyAPIDefaultedEndpointPorts(subsets []corev1.EndpointSubset) {
-	for i := range subsets {
-		for j := range subsets[i].Ports {
-			if subsets[i].Ports[j].Protocol == "" {
-				subsets[i].Ports[j].Protocol = corev1.ProtocolTCP
-			}
-		}
 	}
 }
 
