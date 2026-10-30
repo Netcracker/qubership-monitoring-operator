@@ -7,8 +7,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A comprehensive Kubernetes operator that simplifies the deployment and management of production-ready monitoring stacks.
-Built to handle complex monitoring environments with minimal operational overhead while providing
-maximum flexibility and scalability.
+Built to handle complex monitoring environments with minimal operational overhead while providing maximum
+flexibility and scalability.
 
 ## What is Qubership Monitoring Operator?
 
@@ -115,6 +115,11 @@ graph TB
 
 ### 1. Install or upgrade required CRDs
 
+Before upgrading from Prometheus Operator 0.93 to 0.94, check existing `ScrapeConfig` resources and update values that
+the new CRD rejects. Follow the
+[ScrapeConfig migration steps](docs/user-guides/manual-create-crds.md#prometheus-operator-094-scrapeconfig-upgrade)
+before applying the CRDs.
+
 **Install from source:**
 
 ```bash
@@ -218,6 +223,9 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 With `global.privilegedRights=false`, the managed Grafana and VictoriaMetrics operators use namespace-scoped watches
 and `Role` resources. The chart does not create operator-managed `ClusterRole` or `ClusterRoleBinding` resources for
 those operators.
+The chart also skips the `etcd-certs-to-secret` job, which needs cluster-wide access to read the etcd certificates.
+To collect etcd metrics in this mode, create the `kube-etcd-client-certs` secret in the monitoring namespace yourself;
+see [etcd metrics](docs/metrics-collection/metrics/etcd-metrics.md).
 
 **What gets installed automatically:**
 
@@ -286,23 +294,34 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 
 ### API Reference
 
-- **[PlatformMonitoring][platform-monitoring]** - Main custom resource reference
-- **[PrometheusAdapter][prometheus-adapter]** - HPA metrics adapter configuration
+- **[PlatformMonitoring][platformmonitoring-api]** - Main custom resource reference
+- **[PrometheusAdapter][prometheusadapter-api]** - HPA metrics adapter configuration
 
 ### Default Monitoring
 
-- **[Metrics](https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/)** - Out-of-the-box metrics collection
-- **[Alerts](https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/)** - Pre-configured alerting rules
-- **[Dashboards][dashboards]** - Built-in Grafana dashboards
+- **[Metrics][default-metrics]** - Out-of-the-box metrics collection
+- **[Alerts][default-alerts]** - Pre-configured alerting rules
+- **[Dashboards][default-dashboards]** - Built-in Grafana dashboards
 
 ### Examples
 
-- **[Service Monitoring](https://netcracker.github.io/qubership-monitoring-operator/examples/)** - Monitor your applications
-- **[Cloud Watch Integration][cloudwatch-exporter]** - Cloud provider integrations
+- **[Service Monitoring][service-monitoring-examples]** - Monitor your applications
+- **[Cloud Watch Integration][cloudwatch-exporter-example]** - Cloud provider integrations
 
 ### Architecture Overview
 
-- **[Architecture Overview][architecture]** - Detailed system architecture
+- **[Architecture Overview][architecture-overview]** - Detailed system architecture
+
+[architecture-overview]: https://netcracker.github.io/qubership-monitoring-operator/architecture/
+[cloudwatch-exporter-example]: https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/
+[configuration-guide]: https://netcracker.github.io/qubership-monitoring-operator/configuration/
+[default-alerts]: https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/
+[default-dashboards]: https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/
+[default-metrics]: https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/
+[installation-guide]: https://netcracker.github.io/qubership-monitoring-operator/installation/
+[platformmonitoring-api]: https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/
+[prometheusadapter-api]: https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/
+[service-monitoring-examples]: https://netcracker.github.io/qubership-monitoring-operator/examples/
 
 ## Contributing
 
@@ -341,11 +360,3 @@ If this project helped you, please consider giving it a star!
 ---
 
 **Ready to get started?** Follow our [Quick Start guide](#quick-start) and have monitoring running in minutes!
-
-[installation-guide]: https://netcracker.github.io/qubership-monitoring-operator/installation/
-[configuration-guide]: https://netcracker.github.io/qubership-monitoring-operator/configuration/
-[platform-monitoring]: https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/
-[prometheus-adapter]: https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/
-[dashboards]: https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/
-[cloudwatch-exporter]: https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/
-[architecture]: https://netcracker.github.io/qubership-monitoring-operator/architecture/

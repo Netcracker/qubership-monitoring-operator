@@ -317,6 +317,70 @@ helm install monitoring-operator charts/monitoring-operator \
   --values development-values.yaml
 ```
 
+### Namespaced guest beside cluster-wide monitoring
+
+A second Helm release can run in another namespace beside a privileged host.
+Host and guest are the same monitoring-operator product. The deployment team
+supplies the namespaces the host operators watch.
+
+Set `global.namespaceScope: true` on the guest so its VictoriaMetrics Operator
+and Grafana Operator watch only the release namespace. The etcd certificate
+job's cluster-scoped RBAC and SCC names must be unique. The core
+`monitoring-operator` already watches its Pod namespace. Managed-workload
+discovery stays at chart defaults.
+
+`namespaceScope` does **not** flip `privilegedRights`. Leave
+`privilegedRights: true` so the guest still gets ClusterRoles under unique
+names. `privilegedRights: false` is Role-only RBAC and does not, by itself,
+give the etcd job a unique ClusterRole name.
+
+The host stays privileged. Set the same comma-separated namespace list, with
+no spaces, on both host values:
+
+- `victoriametrics.vmOperator.extraEnvs`, name `WATCH_NAMESPACE`
+- `grafana.operator.watchNamespaces`
+
+Name each namespace the host operators watch. Omit the guest namespace and
+every namespace labeled `openshift.io/cluster-monitoring=true`. The list is
+not every namespace except the guest. When a namespace is added or removed,
+update the list and upgrade the host release. The host keeps its ClusterRoles.
+This does not create a Role or RoleBinding in each listed namespace.
+VictoriaMetrics Operator v0.73.1 selects VM scrape, rule, and alert-routing
+inputs from every namespace on `WATCH_NAMESPACE`. Workload namespace selectors
+do not narrow that list. The example list and the maintenance rules are in
+[the host allow-list](../examples/deploy-parameters/namespaced-guest/README.md#host-namespace-allow-list).
+
+Leave `WATCH_NAMESPACE` empty and the host VictoriaMetrics Operator watches
+every namespace, including the guest. It reconciles guest VM custom resources,
+and reconciliation denials for guest Deployments and StatefulSets stay in its
+logs until the guest release is removed.
+
+Always `--skip-crds` on the guest (CRDs stay with the host; see
+[namespaced-guest/README.md](../examples/deploy-parameters/namespaced-guest/README.md)).
+Small host/guest content differences are acceptable; a material CRD conflict
+is handled manually when it arises. If the host node-exporter already binds
+hostPort `9900`, set `nodeExporter.port` to another value (the example uses
+`9901`).
+
+Example values:
+[host-values.yaml](../examples/deploy-parameters/namespaced-guest/host-values.yaml)
+and
+[values.yaml](../examples/deploy-parameters/namespaced-guest/values.yaml).
+
+```bash
+kubectl create namespace monitoring-test
+
+helm upgrade --install monitoring-operator charts/qubership-monitoring-operator \
+  --namespace monitoring \
+  --skip-crds \
+  --values docs/examples/deploy-parameters/namespaced-guest/host-values.yaml
+
+helm install monitoring-operator-guest charts/qubership-monitoring-operator \
+  --namespace monitoring-test \
+  --skip-crds \
+  --values docs/examples/deploy-parameters/namespaced-guest/values.yaml
+```
+
 ### Cloud-Specific Deployments
 
 #### AWS EKS

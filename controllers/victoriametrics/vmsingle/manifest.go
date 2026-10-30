@@ -103,24 +103,6 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 		// Set vmsingle image
 		vmsingle.Spec.Image.Repository, vmsingle.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmSingle.Image)
 
-		if r != nil {
-			// Set security context
-			if cr.Spec.Victoriametrics.VmSingle.SecurityContext != nil {
-				if vmsingle.Spec.SecurityContext == nil {
-					vmsingle.Spec.SecurityContext = &vmetricsv1b1.SecurityContext{}
-				}
-				if cr.Spec.Victoriametrics.VmSingle.SecurityContext.RunAsUser != nil {
-					vmsingle.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmSingle.SecurityContext.RunAsUser
-				}
-				if cr.Spec.Victoriametrics.VmSingle.SecurityContext.RunAsGroup != nil {
-					vmsingle.Spec.SecurityContext.RunAsGroup = cr.Spec.Victoriametrics.VmSingle.SecurityContext.RunAsGroup
-				}
-				if cr.Spec.Victoriametrics.VmSingle.SecurityContext.FSGroup != nil {
-					vmsingle.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmSingle.SecurityContext.FSGroup
-				}
-			}
-		}
-
 		vmsingle.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmSingleComponentName
 
 		// Set resources for vmsingle deployment
@@ -142,14 +124,7 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 		}
 
 		if cr.Spec.Victoriametrics.VmSingle.VolumeMounts != nil {
-			for it := range vmsingle.Spec.Containers {
-				c := &vmsingle.Spec.Containers[it]
-
-				// Set additional volumeMounts only for vmsingle container
-				if c.Name == utils.VmSingleComponentName {
-					c.VolumeMounts = cr.Spec.Victoriametrics.VmSingle.VolumeMounts
-				}
-			}
+			vmsingle.Spec.VolumeMounts = cr.Spec.Victoriametrics.VmSingle.VolumeMounts
 		}
 		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmSingle.StorageDataPath)) > 0 {
 			vmsingle.Spec.StorageDataPath = cr.Spec.Victoriametrics.VmSingle.StorageDataPath
@@ -250,6 +225,25 @@ func vmSingle(r *VmSingleReconciler, cr *monv1.PlatformMonitoring) (*vmetricsv1b
 
 		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmSingle.PriorityClassName)) > 0 {
 			vmsingle.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmSingle.PriorityClassName
+		}
+
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmsingle.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContextFromPlatformSpec(
+			isOpenShift, cr.Spec.Victoriametrics.VmSingle.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
+		vmsingle.Spec.Volumes, err = victoriametrics.EnsureTmpVolume(vmsingle.Spec.Volumes)
+		if err != nil {
+			return nil, err
+		}
+		vmsingle.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmsingle.Spec.VolumeMounts)
+		vmsingle.Spec.Containers, err = victoriametrics.HardenContainers(vmsingle.Spec.Containers)
+		if err != nil {
+			return nil, err
 		}
 	}
 

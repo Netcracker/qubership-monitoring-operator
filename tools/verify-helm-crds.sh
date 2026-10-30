@@ -269,17 +269,17 @@ helm template monitoring "${chart_dir}" \
     >"${rendered_manifest}"
 
 expected_images=(
-    "docker.io/grafana/grafana:12.4.3"
-    "docker.io/prom/alertmanager:v0.33.1"
-    "docker.io/prom/prometheus:v3.13.1"
+    "docker.io/grafana/grafana:13.2.4"
+    "docker.io/prom/alertmanager:v0.34.1"
+    "docker.io/prom/prometheus:v3.15.0"
     "docker.io/victoriametrics/operator:v0.73.1"
-    "docker.io/victoriametrics/victoria-metrics:v1.148.0"
-    "docker.io/victoriametrics/vmagent:v1.148.0"
-    "docker.io/victoriametrics/vmalert:v1.148.0"
-    "docker.io/victoriametrics/vmauth:v1.148.0"
+    "docker.io/victoriametrics/victoria-metrics:v1.154.0"
+    "docker.io/victoriametrics/vmagent:v1.154.0"
+    "docker.io/victoriametrics/vmalert:v1.154.0"
+    "docker.io/victoriametrics/vmauth:v1.154.0"
     "quay.io/grafana-operator/grafana-operator:v5.24.0"
-    "quay.io/prometheus-operator/prometheus-config-reloader:v0.93.0"
-    "quay.io/prometheus-operator/prometheus-operator:v0.93.0"
+    "quay.io/prometheus-operator/prometheus-config-reloader:v0.94.1"
+    "quay.io/prometheus-operator/prometheus-operator:v0.94.1"
 )
 
 for expected_image in "${expected_images[@]}"; do
@@ -536,6 +536,9 @@ verify_rendered_resource_count "${rendered_manifest}" \
     .metadata.labels."app.kubernetes.io/component" == "etcd-certs-to-secret" and
     .metadata.annotations."helm.sh/hook-delete-policy" == "before-hook-creation,hook-failed"' \
     1 "revision-scoped etcd certificate hook Jobs with safe replacement policy"
+verify_rendered_resource_count "${rendered_manifest}" \
+    '(.metadata.name // "") | test("^etcd-certs-to-secret")' \
+    7 "etcd certificate job resources in privileged mode"
 "${yq_binary}" eval-all \
     'select(.kind == "Role" and .metadata.name == "default-cleanup-hook")' \
     "${rendered_manifest}" >"${cleanup_role_manifest}"
@@ -601,7 +604,8 @@ verify_rendered_resource_count "${rendered_manifest}" \
     .metadata.annotations."helm.sh/hook-delete-policy" == "before-hook-creation,hook-failed" and
     .spec.template.spec.serviceAccountName == "monitoring-rbac-cleanup-hook" and
     (.spec.template.spec.containers |
-    any_c(.name == "kubectl" and .resources.limits.memory == "256Mi")) and
+    any_c(.name == "kubectl" and .resources.limits.memory == "256Mi" and
+    .resources.limits."ephemeral-storage" == "100Mi")) and
     .spec.ttlSecondsAfterFinished == 180' \
     1 "post-delete cluster RBAC cleanup Jobs"
 "${yq_binary}" eval-all \
@@ -785,6 +789,9 @@ verify_rendered_resource_count "${rendered_manifest}" \
 verify_rendered_resource_count "${rendered_manifest}" \
     '.metadata.name == "monitoring-rbac-cleanup-hook"' \
     0 "post-delete cluster RBAC cleanup resources in non-privileged mode"
+verify_rendered_resource_count "${rendered_manifest}" \
+    '(.metadata.name // "") | test("^etcd-certs-to-secret")' \
+    0 "etcd certificate job resources in non-privileged mode"
 
 helm template monitoring "${chart_dir}" \
     --set victoriametrics.cleanup.deleteCRs=false \
@@ -802,6 +809,117 @@ if ! "${yq_binary}" eval -e \
     echo "The VictoriaMetrics operator asset does not use v0.73.1." >&2
     exit 1
 fi
+
+verify_openshift_monitoring_exclusion() {
+    local asset="$1"
+    shift
+    local selector_path
+    for selector_path in "$@"; do
+        if ! "${yq_binary}" eval -e \
+            "${selector_path}.matchExpressions[] | select(.key == \"openshift.io/cluster-monitoring\" and .operator == \"NotIn\" and (.values | (length == 1 and .[0] == \"true\")))" \
+            "${asset}" >/dev/null; then
+            echo "OpenShift monitoring exclusion missing from ${asset} ${selector_path}." >&2
+            exit 1
+        fi
+    done
+}
+
+verify_namespaced_guest_watch_scope() {
+    local host_manifest="${temporary_dir}/namespaced-host.yaml"
+    local guest_manifest="${temporary_dir}/namespaced-guest.yaml"
+    local example_dir="docs/examples/deploy-parameters/namespaced-guest"
+    local host_watch="monitoring"
+
+    helm template monitoring-operator "${chart_dir}" \
+        --namespace monitoring \
+        --skip-crds \
+        --values "${example_dir}/host-values.yaml" \
+        >"${host_manifest}"
+
+    if ! "${yq_binary}" eval-all -e \
+        'select(.kind == "PlatformMonitoring") |
+        (
+            [.spec.victoriametrics.vmOperator.extraEnvs[] | select(.name == "WATCH_NAMESPACE") | .value] |
+            (
+                length == 1 and .[0] == "'"${host_watch}"'" and
+                (.[0] | contains("monitoring-test") | not) and
+                (.[0] | contains("openshift-monitoring") | not)
+            )
+        )' \
+        "${host_manifest}" >/dev/null; then
+        echo "Host VM Operator WATCH_NAMESPACE is not ${host_watch}." >&2
+        exit 1
+    fi
+
+    if ! "${yq_binary}" eval-all -e \
+        'select(.kind == "PlatformMonitoring") |
+        (
+            .spec.grafana.operator.watchNamespaces == "'"${host_watch}"'" and
+            (.spec.grafana.operator.watchNamespaces | contains("monitoring-test") | not) and
+            (.spec.grafana.operator.watchNamespaces | contains("openshift-monitoring") | not)
+        )' \
+        "${host_manifest}" >/dev/null; then
+        echo "Host Grafana Operator watchNamespaces is not ${host_watch}." >&2
+        exit 1
+    fi
+
+    if ! "${yq_binary}" eval-all -e \
+        'select(.kind == "PlatformMonitoring") |
+        (
+            .spec.victoriametrics.vmAgent.podMonitorNamespaceSelector == null and
+            .spec.victoriametrics.vmAgent.serviceMonitorNamespaceSelector == null and
+            .spec.victoriametrics.vmAlert.ruleNamespaceSelector == null and
+            .spec.victoriametrics.vmAlertManager.configNamespaceSelector == null
+        )' \
+        "${host_manifest}" >/dev/null; then
+        echo "Host example replaces VM workload namespace selectors." >&2
+        exit 1
+    fi
+
+    verify_openshift_monitoring_exclusion \
+        "controllers/victoriametrics/vmagent/assets/vmagent.yaml" \
+        ".spec.podScrapeNamespaceSelector" \
+        ".spec.serviceScrapeNamespaceSelector" \
+        ".spec.probeNamespaceSelector" \
+        ".spec.nodeScrapeNamespaceSelector" \
+        ".spec.staticScrapeNamespaceSelector"
+    verify_openshift_monitoring_exclusion \
+        "controllers/victoriametrics/vmalert/assets/vmalert.yaml" \
+        ".spec.ruleNamespaceSelector"
+    verify_openshift_monitoring_exclusion \
+        "controllers/victoriametrics/vmalertmanager/assets/vmalertmanager.yaml" \
+        ".spec.configNamespaceSelector"
+
+    helm template monitoring-operator-guest "${chart_dir}" \
+        --namespace monitoring-test \
+        --skip-crds \
+        --values "${example_dir}/values.yaml" \
+        >"${guest_manifest}"
+
+    if ! "${yq_binary}" eval-all -e \
+        'select(.kind == "PlatformMonitoring") |
+        (
+            [.spec.victoriametrics.vmOperator.extraEnvs[] | select(.name == "WATCH_NAMESPACE") | .value] |
+            (length == 1 and .[0] == "monitoring-test")
+        )' \
+        "${guest_manifest}" >/dev/null; then
+        echo "Guest VM Operator WATCH_NAMESPACE is not the guest release namespace." >&2
+        exit 1
+    fi
+
+    if ! "${yq_binary}" eval-all -e \
+        'select(.kind == "PlatformMonitoring") |
+        (
+            .spec.grafana.operator.namespaceScope == true and
+            (.spec.grafana.operator | has("watchNamespaces") | not)
+        )' \
+        "${guest_manifest}" >/dev/null; then
+        echo "Guest Grafana Operator is not limited to its release namespace." >&2
+        exit 1
+    fi
+}
+
+verify_namespaced_guest_watch_scope
 
 helm package "${chart_dir}" --destination "${temporary_dir}" >/dev/null
 chart_packages=("${temporary_dir}"/*.tgz)

@@ -7,7 +7,8 @@
     "github>Netcracker/renovate-config:netcracker-dependencies",
     "github>Netcracker/renovate-config:go-catch-all",
     "github>Netcracker/renovate-config:annotated-versions",
-    "github>Netcracker/renovate-config:test-pipelines"
+    "github>Netcracker/renovate-config:test-pipelines",
+    "github>Netcracker/renovate-config:automerge"
   ],
   "ignorePaths": [
     "**/examples/**",
@@ -51,12 +52,6 @@
     }
   ],
   "packageRules": [
-    {
-      "description": "Automerge Go module and GitHub Actions updates once every check on the branch has passed",
-      "matchManagers": ["gomod", "github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true
-    },
     {
       "description": "Group controller-gen Makefile tool with Kubernetes Go modules",
       "matchManagers": ["custom.regex"],
@@ -148,8 +143,5 @@
       ],
       "automerge": false
     }
-  ],
-  "platformAutomerge": false,
-  "automergeSchedule": ["at any time"],
-  "autoApprove": true
+  ]
 }

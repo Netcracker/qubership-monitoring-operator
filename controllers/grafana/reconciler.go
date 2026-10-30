@@ -63,6 +63,12 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 			if err := r.handleGrafanaDataSource(cr); err != nil {
 				return err
 			}
+			if err := r.handleJaegerDataSources(cr); err != nil {
+				return err
+			}
+			if err := r.handleClickHouseDataSources(cr); err != nil {
+				return err
+			}
 			// Reconcile Promxy datasource only when Promxy is installed (otherwise Grafana hangs on missing service)
 			if cr.Spec.Promxy != nil && cr.Spec.Promxy.IsInstall() {
 				if err := r.handleGrafanaPromxyDataSource(cr); err != nil {
@@ -117,9 +123,9 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// To apply a manually changed secret value, restart the Grafana pod (new env var values
-			// are picked up from the referenced secret on pod start). resetGrafanaCredentials is
-			// available but not triggered automatically; it can be invoked for in-place credential updates.
+			// Grafana reads the admin credentials from the mounted Secret at startup, so a manually
+			// changed secret value takes effect only after the Grafana pod restarts.
+			// resetGrafanaCredentials updates them in place but is not triggered automatically.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
@@ -140,6 +146,12 @@ func (r *GrafanaReconciler) uninstall(cr *monv1.PlatformMonitoring) {
 	}
 	if err := r.deleteGrafanaDataSource(cr); err != nil {
 		r.Log.Error(err, "Can not delete GrafanaDataSource")
+	}
+	if err := r.deleteDiscoveredDataSources(cr, jaegerDatasourceComponent); err != nil {
+		r.Log.Error(err, "Can not delete Jaeger GrafanaDatasource")
+	}
+	if err := r.deleteDiscoveredDataSources(cr, clickHouseDatasourceComponent); err != nil {
+		r.Log.Error(err, "Can not delete ClickHouse GrafanaDatasource")
 	}
 	if err := r.deleteGrafanaPromxyDataSource(cr); err != nil {
 		r.Log.Error(err, "Can not delete GrafanaPromxyDataSource")

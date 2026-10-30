@@ -228,19 +228,16 @@ func (r *VmSingleReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitori
 }
 
 func (r *VmSingleReconciler) deleteVmSingle(cr *monv1.PlatformMonitoring) error {
-	m, err := vmSingle(r, cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating vmSingle manifest")
-		return err
-	}
-	e := &vmetricsv1b1.VMSingle{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &vmetricsv1b1.VMSingle{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.Client.Delete(
+	if err := r.Client.Delete(
 		context.TODO(),
 		e,
 		client.PropagationPolicy(metav1.DeletePropagationOrphan),
