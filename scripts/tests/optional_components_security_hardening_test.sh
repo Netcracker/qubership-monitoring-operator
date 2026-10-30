@@ -120,7 +120,7 @@ for relative_manifest in "${relative_manifests[@]}"; do
 done
 
 enforced_renderer_manifest="${enforcement_dir}/qubership-monitoring-operator/charts/grafana/templates/image-renderer/deployment.yaml"
-assert_contains "${enforced_renderer_manifest}" "docker.io/grafana/grafana-image-renderer:v5.8.3"
+assert_contains "${enforced_renderer_manifest}" "docker.io/grafana/grafana-image-renderer:v5.12.7"
 assert_contains "${enforced_renderer_manifest}" "BROWSER_FLAGS"
 assert_contains "${enforced_renderer_manifest}" "runAsNonRoot: true"
 assert_contains "${enforced_renderer_manifest}" "type: RuntimeDefault"
@@ -156,6 +156,17 @@ assert_render_fails "securityContext.runAsUser=0 conflicts" \
 renderer_config="${kubernetes_dir}/qubership-monitoring-operator/charts/grafana/templates/configmap-extra-vars.yaml"
 assert_contains "${renderer_config}" "GF_RENDERING_SERVER_URL"
 assert_contains "${renderer_config}" "http://grafana-image-renderer:8081/render"
+assert_contains "${renderer_config}" '"GF_FEATURE_TOGGLES_renderAuthJWT": "false"'
+
+renderer_override="${render_dir}/renderer-override"
+render_components "${renderer_override}" --set grafana.extraVars.GF_FEATURE_TOGGLES_renderAuthJWT=true
+assert_contains "${renderer_override}/qubership-monitoring-operator/charts/grafana/templates/configmap-extra-vars.yaml" \
+    '"GF_FEATURE_TOGGLES_renderAuthJWT": "true"'
+
+renderer_secret_override="${render_dir}/renderer-secret-override"
+render_components "${renderer_secret_override}" --set grafana.extraVarsSecret.GF_FEATURE_TOGGLES_renderAuthJWT=true
+assert_not_contains "${renderer_secret_override}/qubership-monitoring-operator/charts/grafana/templates/configmap-extra-vars.yaml" \
+    'GF_FEATURE_TOGGLES_renderAuthJWT'
 
 cleanup_kubernetes_manifest="${kubernetes_dir}/qubership-monitoring-operator/charts/victoriametrics/templates/pre-delete/job.yaml"
 cleanup_openshift_manifest="${openshift_dir}/qubership-monitoring-operator/charts/victoriametrics/templates/pre-delete/job.yaml"
