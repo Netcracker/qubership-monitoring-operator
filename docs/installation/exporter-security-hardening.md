@@ -45,6 +45,7 @@ The baseline is applied to these chart workloads:
 | SSL Exporter                | DaemonSet               | Applied with host filesystem limitations             |
 | Stackdriver Exporter        | Deployment              | Applied                                              |
 | Version Exporter            | Deployment              | Applied                                              |
+| YACE Exporter               | Deployment              | Applied                                              |
 
 Node Exporter, Kube State Metrics, and Pushgateway are covered by their component-specific hardening implementation and
 documentation.

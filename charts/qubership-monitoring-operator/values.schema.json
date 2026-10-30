@@ -1930,6 +1930,15 @@
                     "type": "boolean"
                 }
             }
+        },
+        "yaceExporter": {
+            "type": "object",
+            "description": "Yet Another CloudWatch Exporter (YACE) to request metrics from AWS CloudWatch with tag-based discovery",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
         }
     }
 }

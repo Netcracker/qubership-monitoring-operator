@@ -43,6 +43,8 @@ spec:
         - name: {{ .Values.name }}
           image: {{ template "yace-exporter.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            {{- include "yace-exporter.containerSecurityContext" . | nindent 12 }}
           {{- if .Values.command }}
           command: {{ toYaml .Values.command | nindent 12 }}
           {{- else }}
@@ -79,7 +81,7 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /metrics
+              path: /healthz
               port: container-port
             initialDelaySeconds: 30
             periodSeconds: 5
@@ -88,7 +90,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /metrics
+              path: /healthz
               port: container-port
             initialDelaySeconds: 30
             periodSeconds: 5
@@ -100,6 +102,9 @@ spec:
           volumeMounts:
             - name: vol-yace-exporter
               mountPath: /config
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{ toYaml . | nindent 8 }}
@@ -113,7 +118,7 @@ spec:
         {{ toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{ include "yace-exporter.securityContext" . }}
+        {{- include "yace-exporter.securityContext" . | nindent 8 }}
       {{- if .Values.serviceAccount.install }}
       serviceAccount: {{ .Values.serviceAccount.name }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
@@ -123,4 +128,7 @@ spec:
           defaultMode: 420
           name: {{ .Values.name }}
         name: vol-yace-exporter
+      - name: tmp
+        emptyDir:
+          sizeLimit: 100Mi
 {{- end }}
