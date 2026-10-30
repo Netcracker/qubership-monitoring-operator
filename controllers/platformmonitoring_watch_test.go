@@ -21,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func TestSuccessfulReconcileResultZeroDoesNotHotLoop(t *testing.T) {
@@ -29,7 +30,7 @@ func TestSuccessfulReconcileResultZeroDoesNotHotLoop(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Requeue || result.RequeueAfter != 0 {
+	if result != (reconcile.Result{}) {
 		t.Fatalf("interval 0 must return empty Result, got %#v", result)
 	}
 }
@@ -138,7 +139,7 @@ func TestOwnedChildPredicateEnqueuesGenerationlessBodyChange(t *testing.T) {
 	}
 	endpoints := &corev1.Endpoints{ //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served.
 		ObjectMeta: metav1.ObjectMeta{Name: "vm-kubelet", Namespace: "monitoring", ResourceVersion: "1"},
-		Subsets: []corev1.EndpointSubset{{
+		Subsets: []corev1.EndpointSubset{{ //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served.
 			Addresses: []corev1.EndpointAddress{{IP: "10.0.0.1"}},
 			Ports:     []corev1.EndpointPort{{Port: 10250}},
 		}},
@@ -302,7 +303,9 @@ func TestHasKind(t *testing.T) {
 
 func TestWatchBasedReconcileEnv(t *testing.T) {
 	t.Setenv(watchBasedReconcileEnv, "")
-	os.Unsetenv(watchBasedReconcileEnv)
+	if err := os.Unsetenv(watchBasedReconcileEnv); err != nil {
+		t.Fatal(err)
+	}
 	if !watchBasedReconcileEnabled() {
 		t.Fatal("default must enable owned-child watches")
 	}

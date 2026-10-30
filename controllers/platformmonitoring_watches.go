@@ -223,7 +223,7 @@ func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) 
 	b = r.own(b, &appsv1.DaemonSet{})
 	b = r.own(b, &corev1.ServiceAccount{})
 	b = r.own(b, &corev1.Service{})
-	b = r.own(b, &corev1.Endpoints{})
+	b = r.own(b, &corev1.Endpoints{}) //nolint:staticcheck // SA1019: the operator still manages v1 Endpoints.
 	b = r.own(b, &corev1.Secret{})
 	b = r.own(b, &corev1.PersistentVolumeClaim{})
 	b = r.own(b, &rbacv1.Role{})
