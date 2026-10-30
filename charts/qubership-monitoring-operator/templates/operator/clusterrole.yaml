@@ -448,7 +448,7 @@ rules:
     resources:
       - securitycontextconstraints
     resourceNames:
-      - node-exporter
+      - {{ printf "%s-node-exporter" $.Release.Namespace }}
     verbs:
       - delete
       - update

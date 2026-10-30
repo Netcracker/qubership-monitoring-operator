@@ -63,7 +63,7 @@ func alertmanagerSecret(cr *monv1.PlatformMonitoring) (*corev1.Secret, error) {
 	return &secret, nil
 }
 
-func alertmanager(cr *monv1.PlatformMonitoring) (*promv1.Alertmanager, error) {
+func alertmanager(cr *monv1.PlatformMonitoring, isOpenShift bool) (*promv1.Alertmanager, error) {
 	am := promv1.Alertmanager{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.AlertManagerAsset), 100).Decode(&am); err != nil {
 		return nil, err
@@ -94,18 +94,6 @@ func alertmanager(cr *monv1.PlatformMonitoring) (*promv1.Alertmanager, error) {
 		// Set Alertmanager replicas
 		if cr.Spec.AlertManager.Replicas != nil {
 			am.Spec.Replicas = cr.Spec.AlertManager.Replicas
-		}
-		// Set security context
-		if cr.Spec.AlertManager.SecurityContext != nil {
-			if am.Spec.SecurityContext == nil {
-				am.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			}
-			if cr.Spec.AlertManager.SecurityContext.RunAsUser != nil {
-				am.Spec.SecurityContext.RunAsUser = cr.Spec.AlertManager.SecurityContext.RunAsUser
-			}
-			if cr.Spec.AlertManager.SecurityContext.FSGroup != nil {
-				am.Spec.SecurityContext.FSGroup = cr.Spec.AlertManager.SecurityContext.FSGroup
-			}
 		}
 		// Set resources for AlertManager deployment
 		if cr.Spec.AlertManager.Resources.Size() > 0 {
@@ -208,8 +196,48 @@ func alertmanager(cr *monv1.PlatformMonitoring) (*promv1.Alertmanager, error) {
 		if len(strings.TrimSpace(cr.Spec.AlertManager.PriorityClassName)) > 0 {
 			am.Spec.PriorityClassName = cr.Spec.AlertManager.PriorityClassName
 		}
+
+		if err := applyAlertmanagerHardening(&am, isOpenShift, cr.Spec.AlertManager.SecurityContext); err != nil {
+			return nil, err
+		}
 	}
 	return &am, nil
+}
+
+func applyAlertmanagerHardening(
+	alertmanager *promv1.Alertmanager,
+	isOpenShift bool,
+	configuredPodSecurityContext *monv1.SecurityContext,
+) error {
+	securityContext, err := utils.HardenedPodSecurityContextWithOverrides(isOpenShift, configuredPodSecurityContext)
+	if err != nil {
+		return err
+	}
+	containers, err := utils.HardenContainersWithTmp(alertmanager.Spec.Containers)
+	if err != nil {
+		return err
+	}
+	alertmanager.Spec.SecurityContext = securityContext
+	volumes, err := utils.EnsureTmpVolume(alertmanager.Spec.Volumes, "100Mi")
+	if err != nil {
+		return err
+	}
+	alertmanager.Spec.Volumes = volumes
+	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(containers, "alertmanager")
+	alertmanager.Spec.Containers = ensureAlertmanagerManagedContainer(alertmanager.Spec.Containers, "config-reloader")
+	return nil
+}
+
+func ensureAlertmanagerManagedContainer(containers []corev1.Container, name string) []corev1.Container {
+	for i := range containers {
+		if containers[i].Name == name {
+			return containers
+		}
+	}
+
+	container := corev1.Container{Name: name, SecurityContext: utils.HardenedContainerSecurityContext()}
+	container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
+	return append(containers, container)
 }
 
 func alertmanagerService(cr *monv1.PlatformMonitoring) (*corev1.Service, error) {

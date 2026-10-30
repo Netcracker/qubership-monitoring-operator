@@ -321,19 +321,16 @@ func (r *VmAgentReconciler) deleteRoleBinding(cr *monv1.PlatformMonitoring) erro
 }
 
 func (r *VmAgentReconciler) deleteVmAgent(cr *monv1.PlatformMonitoring) error {
-	m, err := vmAgent(r, cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Vmagent manifest")
-		return err
-	}
-	e := &vmetricsv1b1.VMAgent{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &vmetricsv1b1.VMAgent{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

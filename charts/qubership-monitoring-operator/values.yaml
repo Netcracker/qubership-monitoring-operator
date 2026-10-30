@@ -22,6 +22,25 @@ global:
   #
   privilegedRights: true
 
+  # When true, this release's VictoriaMetrics Operator and Grafana Operator
+  # watch only the release namespace.
+  # Does not flip privilegedRights and does not confine managed-workload
+  # discovery (VMAgent, VMAlert, VMAlertmanager, VMAuth, kube-state-metrics,
+  # Prometheus). Default: false.
+  #
+  # A namespaced guest beside a privileged host also needs:
+  #   * helm --skip-crds (CRDs stay with the host)
+  #   * a different nodeExporter.port if the host already binds hostPort 9900
+  #   * the same comma-separated namespace list on the host values
+  #     victoriametrics.vmOperator.extraEnvs name WATCH_NAMESPACE and
+  #     grafana.operator.watchNamespaces, omitting this guest namespace and
+  #     every namespace labeled openshift.io/cluster-monitoring=true
+  #
+  # Type: boolean.
+  # Mandatory: no.
+  #
+  namespaceScope: false
+
   # Provide a name of HWE profile.
   # Allow values:
   #  * small - 1 million points per minute
@@ -102,6 +121,14 @@ monitoringOperator:
 
   name: monitoring-operator
 
+  # Enable Kubernetes leader election for monitoring-operator.
+  # Leave false for a single replica. Set true when running more than one replica.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  leaderElect: false
+
   clusterRole:
     install: true
     name: ""
@@ -121,6 +148,13 @@ monitoringOperator:
   #   requests:
   #     cpu: 50m
   #     memory: 50Mi
+
+  # Reserve 16Mi of local storage for scheduling and limit the operator container to 128Mi.
+  # These are starting values, not measured peak usage; tune them using observed storage use.
+  # Explicit ephemeral-storage entries in resources take precedence.
+  ephemeralStorage:
+    request: 16Mi
+    limit: 128Mi
 
   # SecurityContext holds pod-level security attributes.
   # The parameters are required if a Pod Security Policy is enabled
@@ -240,7 +274,7 @@ monitoringOperator:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -368,7 +402,7 @@ alertManager:
   # This can be used to allow adding an authentication proxy to a AlertManager pod or to change
   # the behavior of an operator generated container.
   # Each item of the list should be described as standard Kubernetes container:
-  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core
+  # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#container-v1-core
   containers: []
 
   # Replicas spec configuration for Alertmanager
@@ -511,7 +545,7 @@ alertManager:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -685,7 +719,7 @@ kubeStateMetrics:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -871,7 +905,7 @@ nodeExporter:
   tolerations: []
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -979,11 +1013,14 @@ integration:
 #   * IDP
 auth: {}
   # The OAuth Client ID.
+  # For Grafana this value is treated as non-sensitive.
   # Type: string
   # Mandatory: yes
   # clientId: XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXX
 
   # The OAuth Client Secret.
+  # For Grafana this value is stored in dedicated Secret (grafana-oauth-client-secret)
+  # and read from file via $__file{} provider.
   # Type: string
   # Mandatory: yes
   # clientSecret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -1411,7 +1448,7 @@ pushgateway:
 
   # Volumes allows configuration of additional volumes on the output StatefulSet definition.
   # Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1421,7 +1458,7 @@ pushgateway:
   # VolumeMounts allows configuration of additional VolumeMounts on the output StatefulSet definition.
   # VolumeMounts specified will be appended to other VolumeMounts in the prometheus container,
   # that are generated as a result of StorageSpec objects.
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volumemount-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1555,7 +1592,7 @@ pushgateway:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1655,6 +1692,12 @@ integrationTests:
   #
   securityContext: {}
 
+  # SecurityContext holds container-level security attributes. The chart enforces the restricted baseline fields.
+  # Type: object
+  # Mandatory: no
+  #
+  containerSecurityContext: {}
+
   # Labels set which will create in service
   # Type: map[string]string
   # Mandatory: no
@@ -1683,7 +1726,7 @@ integrationTests:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -1842,7 +1885,11 @@ sslExporter:
   # Enable for testing
   install: false
 
-# Settings for a job to copy certificates from etcd to a secret
+# Settings for a job to copy certificates from etcd to a secret.
+# The job, its cronjob, and their RBAC are installed only when `publicCloudName` is empty and
+# `global.privilegedRights` is `true`. The job reads the certificates from the etcd pod or from the etcd operator
+# namespace, which requires cluster-wide access. With `global.privilegedRights` set to `false`, create the
+# `kube-etcd-client-certs` secret in the monitoring namespace manually before collecting etcd metrics.
 etcdCertsJob:
   # A name to use for the job and cronjob
   # Type: string
@@ -1941,7 +1988,8 @@ etcdCertsJob:
     - operator: "Exists"
       effect: "NoSchedule"
 
-  # The resources describes the compute resource requests and limits for a single container.
+  # Resource requests and limits for the etcd certificate-sync container.
+  # The 16Mi/128Mi ephemeral-storage values are starting points, not measured peak usage.
   resources:
     limits:
       cpu: 500m

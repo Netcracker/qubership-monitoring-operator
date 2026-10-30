@@ -186,7 +186,7 @@ labels: {}
 nodeSelector: {}
 
 # If specified, the pod's scheduling constraints
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 # Type: object
 # Mandatory: no
 # Default: set
@@ -231,6 +231,14 @@ auth: {}
 # priorityClassName: "priorityClassName"
 
 operator:
+  # Enable Kubernetes leader election for prometheus-adapter-operator.
+  # Leave false for a single replica. Set true when running more than one replica.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  leaderElect: false
+
   # A docker image to use for prometheus-adapter-operator deployment
   # Type: string
   # Mandatory: yes
@@ -304,7 +312,7 @@ operator:
     # Settings for TLS
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: set
