@@ -61,20 +61,19 @@ func UnstructuredValuesEqual(a, b interface{}) bool {
 	if apiequality.Semantic.DeepEqual(a, b) {
 		return true
 	}
-	ab, err := json.Marshal(a)
+	ao, errA := jsonRoundTrip(a)
+	bo, errB := jsonRoundTrip(b)
+	return errA == nil && errB == nil && apiequality.Semantic.DeepEqual(ao, bo)
+}
+
+// jsonRoundTrip encodes v as JSON and decodes it into generic values, the
+// form in which the API server returns unstructured objects.
+func jsonRoundTrip(v interface{}) (interface{}, error) {
+	raw, err := json.Marshal(v)
 	if err != nil {
-		return false
+		return nil, err
 	}
-	bb, err := json.Marshal(b)
-	if err != nil {
-		return false
-	}
-	var ao, bo interface{}
-	if err := json.Unmarshal(ab, &ao); err != nil {
-		return false
-	}
-	if err := json.Unmarshal(bb, &bo); err != nil {
-		return false
-	}
-	return apiequality.Semantic.DeepEqual(ao, bo)
+	var out interface{}
+	err = json.Unmarshal(raw, &out)
+	return out, err
 }

@@ -114,13 +114,7 @@ func applyGatewayResource(r *utils.ComponentReconciler, resolver *gatewayAPIReso
 	}
 
 	logHTTPRouteParentStatus(r, current)
-	changed := utils.SetLabelsIfChanged(current, desired.GetLabels())
-	changed = utils.SetAnnotationsIfChanged(current, desired.GetAnnotations()) || changed
-	if !httpRouteSpecMatches(current.Object["spec"], desired.Object["spec"]) {
-		current.Object["spec"] = desired.Object["spec"]
-		changed = true
-	}
-	if !changed {
+	if !syncGatewayResource(current, desired) {
 		return nil
 	}
 	if err := r.Client.Update(context.TODO(), current); err != nil {
@@ -128,6 +122,21 @@ func applyGatewayResource(r *utils.ComponentReconciler, resolver *gatewayAPIReso
 	}
 	r.Log.Info("Successful updating", utils.ResourceKey, current.GetKind())
 	return nil
+}
+
+// syncGatewayResource copies labels, annotations, and the spec of desired onto
+// current and reports whether current changed. The spec comparison accounts for
+// the defaults that the API server applies to HTTPRoutes.
+func syncGatewayResource(current, desired *unstructured.Unstructured) bool {
+	specChanged := !httpRouteSpecMatches(current.Object["spec"], desired.Object["spec"])
+	if specChanged {
+		current.Object["spec"] = desired.Object["spec"]
+	}
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(current, desired.GetLabels()),
+		utils.SetAnnotationsIfChanged(current, desired.GetAnnotations()),
+		specChanged,
+	)
 }
 
 func deleteGatewayResource(r *utils.ComponentReconciler, resolver *gatewayAPIResolver, desired *unstructured.Unstructured, group string) error {
@@ -300,28 +309,36 @@ func httpRouteSpecWithDefaults(spec interface{}) (interface{}, error) {
 	}
 	setDefault(result, "rules", []interface{}{map[string]interface{}{}})
 	for _, rule := range objectItems(result["rules"]) {
-		setDefault(rule, "matches", []interface{}{map[string]interface{}{}})
-		for _, match := range objectItems(rule["matches"]) {
-			setDefault(match, "path", map[string]interface{}{})
-			if path, ok := match["path"].(map[string]interface{}); ok {
-				setDefault(path, "type", pathPrefixPathMatchType)
-				setDefault(path, "value", "/")
-			}
-			for _, header := range objectItems(match["headers"]) {
-				setDefault(header, "type", "Exact")
-			}
-			for _, queryParam := range objectItems(match["queryParams"]) {
-				setDefault(queryParam, "type", "Exact")
-			}
-		}
-		setHTTPRouteFilterDefaults(rule["filters"])
-		for _, backendRef := range objectItems(rule["backendRefs"]) {
-			setBackendObjectReferenceDefaults(backendRef)
-			setDefault(backendRef, "weight", float64(1))
-			setHTTPRouteFilterDefaults(backendRef["filters"])
-		}
+		setHTTPRouteRuleDefaults(rule)
 	}
 	return result, nil
+}
+
+func setHTTPRouteRuleDefaults(rule map[string]interface{}) {
+	setDefault(rule, "matches", []interface{}{map[string]interface{}{}})
+	for _, match := range objectItems(rule["matches"]) {
+		setHTTPRouteMatchDefaults(match)
+	}
+	setHTTPRouteFilterDefaults(rule["filters"])
+	for _, backendRef := range objectItems(rule["backendRefs"]) {
+		setBackendObjectReferenceDefaults(backendRef)
+		setDefault(backendRef, "weight", float64(1))
+		setHTTPRouteFilterDefaults(backendRef["filters"])
+	}
+}
+
+func setHTTPRouteMatchDefaults(match map[string]interface{}) {
+	setDefault(match, "path", map[string]interface{}{})
+	if path, ok := match["path"].(map[string]interface{}); ok {
+		setDefault(path, "type", pathPrefixPathMatchType)
+		setDefault(path, "value", "/")
+	}
+	for _, header := range objectItems(match["headers"]) {
+		setDefault(header, "type", "Exact")
+	}
+	for _, queryParam := range objectItems(match["queryParams"]) {
+		setDefault(queryParam, "type", "Exact")
+	}
 }
 
 func setHTTPRouteFilterDefaults(filters interface{}) {

@@ -179,9 +179,18 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 }
 
 func applyGrafanaDesiredState(existing, desired *grafv1.Grafana) bool {
-	changed := utils.SetIfChanged(&existing.Spec, desired.Spec)
-	changed = utils.SetLabelsIfChanged(existing, desired.GetLabels()) || changed
-	return changed
+	return utils.AnyChanged(
+		utils.SetIfChanged(&existing.Spec, desired.Spec),
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+	)
+}
+
+// syncDataSource copies the spec and labels of desired onto existing.
+func syncDataSource(existing, desired *grafv1.GrafanaDatasource) bool {
+	return utils.AnyChanged(
+		utils.SetIfChanged(&existing.Spec, desired.Spec),
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+	)
 }
 
 func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
@@ -220,15 +229,7 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 	}
 
 	// Only update if something actually changed to avoid unnecessary updates
-	changed := utils.SetIfChanged(&checkObj.Spec, m.Spec)
-	changed = utils.SetLabelsIfChanged(checkObj, m.GetLabels()) || changed
-	if !changed {
-		return nil
-	}
-	if err = r.UpdateResource(checkObj); err != nil {
-		return err
-	}
-	return nil
+	return r.UpdateIfChanged(checkObj, syncDataSource(checkObj, m))
 }
 
 // handleJaegerDataSources creates one GrafanaDatasource for each discovered Jaeger Service.
@@ -296,12 +297,7 @@ func (r *GrafanaReconciler) applyDiscoveredDataSource(cr *monv1.PlatformMonitori
 	}
 	desired.Spec.CustomUID = current.Spec.CustomUID
 	desired.Spec.InstanceSelector = current.Spec.InstanceSelector
-	changed := utils.SetIfChanged(&current.Spec, desired.Spec)
-	changed = utils.SetLabelsIfChanged(current, desired.GetLabels()) || changed
-	if !changed {
-		return nil
-	}
-	return r.UpdateResource(current)
+	return r.UpdateIfChanged(current, syncDataSource(current, desired))
 }
 
 func (r *GrafanaReconciler) deleteStaleDiscoveredDataSources(cr *monv1.PlatformMonitoring, component string, desiredNames map[string]struct{}) error {
@@ -370,15 +366,7 @@ func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 
 	// Set parameters
 	// Only update if something actually changed to avoid unnecessary updates
-	changed := utils.SetIfChanged(&checkObj.Spec, m.Spec)
-	changed = utils.SetLabelsIfChanged(checkObj, m.GetLabels()) || changed
-	if !changed {
-		return nil
-	}
-	if err = r.UpdateResource(checkObj); err != nil {
-		return err
-	}
-	return nil
+	return r.UpdateIfChanged(checkObj, syncDataSource(checkObj, m))
 }
 
 func (r *GrafanaReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -388,29 +376,7 @@ func (r *GrafanaReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error 
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
-	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncIngress)
 }
 
 func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -421,30 +387,7 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 	}
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
-	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
-	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncPodMonitor)
 }
 
 // getGrafanaAdminSecretName returns the name of the admin credentials secret for Grafana.

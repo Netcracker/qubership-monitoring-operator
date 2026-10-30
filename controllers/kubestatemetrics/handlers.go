@@ -19,25 +19,7 @@ func (r *KubeStateMetricsReconciler) handleServiceAccount(cr *monv1.PlatformMoni
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *KubeStateMetricsReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -48,27 +30,7 @@ func (r *KubeStateMetricsReconciler) handleClusterRole(cr *monv1.PlatformMonitor
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -79,25 +41,7 @@ func (r *KubeStateMetricsReconciler) handleClusterRoleBinding(cr *monv1.Platform
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
@@ -111,40 +55,17 @@ func (r *KubeStateMetricsReconciler) handleDeployment(cr *monv1.PlatformMonitori
 		return err
 	}
 	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	if utils.WorkloadNeedsSelectorReplace(e, m) {
-		if err := r.DeleteResource(e); err != nil {
-			return err
-		}
-		return r.CreateResource(cr, m)
-	}
+	return utils.CreateOrUpdateWorkload(r.ComponentReconciler, cr, m, e, syncDeployment)
+}
 
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
-	changed = utils.SetVolumesIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+// syncDeployment copies the Deployment fields this controller manages.
+func syncDeployment(existing, desired *appsv1.Deployment) bool {
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		utils.SetLabelsIfChanged(&existing.Spec.Template, desired.Spec.Template.GetLabels()),
+		utils.SyncPodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.NodeSelector, desired.Spec.Template.Spec.NodeSelector),
+	)
 }
 
 func (r *KubeStateMetricsReconciler) handleService(cr *monv1.PlatformMonitoring) error {
@@ -157,28 +78,7 @@ func (r *KubeStateMetricsReconciler) handleService(cr *monv1.PlatformMonitoring)
 	m.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.KubestatemetricsComponentName)}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *KubeStateMetricsReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {
@@ -189,30 +89,7 @@ func (r *KubeStateMetricsReconciler) handleServiceMonitor(cr *monv1.PlatformMoni
 	}
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
-	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
-	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncServiceMonitor)
 }
 
 func (r *KubeStateMetricsReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
