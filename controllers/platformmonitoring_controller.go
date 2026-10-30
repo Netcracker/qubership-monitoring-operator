@@ -369,7 +369,10 @@ func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
 			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret)))
 	if watchBasedReconcileEnabled() {
-		b = r.addWatchBasedSources(b)
+		var err error
+		if b, err = r.addWatchBasedSources(b); err != nil {
+			return err
+		}
 	}
 	return b.Complete(r)
 }

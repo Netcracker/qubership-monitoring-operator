@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -14,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -113,7 +115,9 @@ func TestAddWatchBasedSourcesDiscoversOnce(t *testing.T) {
 		apiResourceList(secv1.GroupVersion.String(), "SecurityContextConstraints"),
 	)
 	r := &PlatformMonitoringReconciler{Scheme: runtime.NewScheme(), Log: log.Log, DiscoveryClient: dc}
-	r.addWatchBasedSources(ctrl.NewControllerManagedBy(nil).For(&monv1.PlatformMonitoring{}))
+	if _, err := r.addWatchBasedSources(ctrl.NewControllerManagedBy(nil).For(&monv1.PlatformMonitoring{})); err != nil {
+		t.Fatalf("addWatchBasedSources: %v", err)
+	}
 
 	var calls int
 	for _, action := range dc.Actions() {
@@ -163,4 +167,88 @@ func TestSetupWithManagerWatchBasedSources(t *testing.T) {
 		t.Setenv(watchBasedReconcileEnv, "false")
 		setupWithManager(t, cfg, newFakeDiscovery(), true)
 	})
+}
+
+func withFastDiscoveryRetry(t *testing.T) {
+	t.Helper()
+	prevDelay := servedKindsRetryDelay
+	servedKindsRetryDelay = 0
+	t.Cleanup(func() { servedKindsRetryDelay = prevDelay })
+}
+
+// failDiscovery makes the first failures resource-discovery calls return err.
+// A negative count fails every call.
+func failDiscovery(dc *fakediscovery.FakeDiscovery, failures int, err error) {
+	dc.AddReactor("get", "resource", func(ktesting.Action) (bool, runtime.Object, error) {
+		if failures == 0 {
+			return false, nil, nil
+		}
+		failures--
+		return true, nil, err
+	})
+}
+
+func groupDiscoveryFailed(gv schema.GroupVersion) error {
+	return &discovery.ErrGroupDiscoveryFailed{Groups: map[schema.GroupVersion]error{gv: errors.New("service unavailable")}}
+}
+
+func TestLoadServedKindsKeepsHealthyListsOnUnrelatedGroupFailure(t *testing.T) {
+	withFastDiscoveryRetry(t)
+	grafGV := grafv1.SchemeGroupVersion.String()
+	dc := newFakeDiscovery(apiResourceList(grafGV, "Grafana"))
+	failDiscovery(dc, -1, groupDiscoveryFailed(schema.GroupVersion{Group: "metrics.k8s.io", Version: "v1beta1"}))
+
+	kinds, err := loadServedKinds(dc, watchedGroupVersions())
+	if err != nil {
+		t.Fatalf("loadServedKinds: %v", err)
+	}
+	if _, ok := kinds[grafGV]["Grafana"]; !ok {
+		t.Fatalf("Grafana missing from served kinds after an unrelated group failed: %v", kinds)
+	}
+}
+
+func TestLoadServedKindsFailsWhenWatchedGroupStaysUnavailable(t *testing.T) {
+	withFastDiscoveryRetry(t)
+	dc := newFakeDiscovery()
+	failDiscovery(dc, -1, groupDiscoveryFailed(grafv1.SchemeGroupVersion))
+
+	if _, err := loadServedKinds(dc, watchedGroupVersions()); err == nil {
+		t.Fatal("loadServedKinds succeeded while a watched group version failed discovery")
+	}
+	if got := len(dc.Actions()); got != servedKindsAttempts*2 {
+		t.Fatalf("discovery actions = %d, want %d (groups and resources per attempt)", got, servedKindsAttempts*2)
+	}
+}
+
+func TestLoadServedKindsRetriesTransientFailure(t *testing.T) {
+	withFastDiscoveryRetry(t)
+	promGV := promv1.SchemeGroupVersion.String()
+	dc := newFakeDiscovery(apiResourceList(promGV, "Prometheus"))
+	failDiscovery(dc, 1, errors.New("connection refused"))
+
+	kinds, err := loadServedKinds(dc, watchedGroupVersions())
+	if err != nil {
+		t.Fatalf("loadServedKinds: %v", err)
+	}
+	if _, ok := kinds[promGV]["Prometheus"]; !ok {
+		t.Fatalf("Prometheus missing from served kinds after a retry: %v", kinds)
+	}
+}
+
+func TestAddWatchBasedSourcesReturnsDiscoveryError(t *testing.T) {
+	withFastDiscoveryRetry(t)
+	dc := newFakeDiscovery()
+	failDiscovery(dc, -1, errors.New("connection refused"))
+	r := &PlatformMonitoringReconciler{Scheme: runtime.NewScheme(), Log: log.Log, DiscoveryClient: dc}
+
+	if _, err := r.addWatchBasedSources(ctrl.NewControllerManagedBy(nil).For(&monv1.PlatformMonitoring{})); err == nil {
+		t.Fatal("addWatchBasedSources succeeded although discovery failed")
+	}
+}
+
+func TestIndexServedKindsNilClient(t *testing.T) {
+	kinds, failed, err := indexServedKinds(nil)
+	if err != nil || len(kinds) != 0 || len(failed) != 0 {
+		t.Fatalf("indexServedKinds(nil) = %v, %v, %v; want empty results", kinds, failed, err)
+	}
 }

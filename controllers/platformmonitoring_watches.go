@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -88,16 +90,33 @@ func (r *PlatformMonitoringReconciler) hasKind(groupVersion, kind string) bool {
 	return err == nil && ok
 }
 
-// indexServedKinds reads the API group list once. A nil client or a discovery
-// error yields an empty set, so optional Owns are skipped.
-func indexServedKinds(dc discovery.DiscoveryInterface) map[string]map[string]struct{} {
+// Startup discovery retries before SetupWithManager gives up. Variables, not
+// constants, so tests can shorten the delay.
+var (
+	servedKindsAttempts   = 3
+	servedKindsRetryDelay = 2 * time.Second
+)
+
+// indexServedKinds reads the API group list once. On a partial failure
+// (discovery.ErrGroupDiscoveryFailed) it keeps the healthy lists and reports
+// the group versions that failed, so an absent kind and an unknown kind stay
+// distinguishable. A nil client yields an empty set.
+func indexServedKinds(dc discovery.DiscoveryInterface) (map[string]map[string]struct{}, map[string]error, error) {
 	kinds := map[string]map[string]struct{}{}
 	if dc == nil {
-		return kinds
+		return kinds, nil, nil
 	}
 	_, lists, err := dc.ServerGroupsAndResources()
+	var failed map[string]error
 	if err != nil {
-		return kinds
+		var groupErr *discovery.ErrGroupDiscoveryFailed
+		if !errors.As(err, &groupErr) {
+			return nil, nil, err
+		}
+		failed = make(map[string]error, len(groupErr.Groups))
+		for gv, gvErr := range groupErr.Groups {
+			failed[gv.String()] = gvErr
+		}
 	}
 	for _, list := range lists {
 		if list == nil {
@@ -112,7 +131,37 @@ func indexServedKinds(dc discovery.DiscoveryInterface) map[string]map[string]str
 			set[api.Kind] = struct{}{}
 		}
 	}
-	return kinds
+	return kinds, failed, nil
+}
+
+// loadServedKinds indexes served kinds and retries while discovery fails as a
+// whole or for any group version in required. Discovery failures in other
+// groups (for example, an unavailable aggregated metrics API) are ignored.
+func loadServedKinds(dc discovery.DiscoveryInterface, required []string) (map[string]map[string]struct{}, error) {
+	var lastErr error
+	for attempt := 1; attempt <= servedKindsAttempts; attempt++ {
+		if attempt > 1 {
+			time.Sleep(servedKindsRetryDelay)
+		}
+		kinds, failed, err := indexServedKinds(dc)
+		if err == nil {
+			err = requiredDiscoveryError(failed, required)
+		}
+		if err == nil {
+			return kinds, nil
+		}
+		lastErr = err
+	}
+	return nil, fmt.Errorf("discover API resources for watch setup after %d attempts: %w", servedKindsAttempts, lastErr)
+}
+
+func requiredDiscoveryError(failed map[string]error, required []string) error {
+	for _, gv := range required {
+		if err, ok := failed[gv]; ok {
+			return fmt.Errorf("discovery failed for %s: %w", gv, err)
+		}
+	}
+	return nil
 }
 
 func (r *PlatformMonitoringReconciler) own(b *builder.Builder, obj client.Object) *builder.Builder {
@@ -149,8 +198,25 @@ func (r *PlatformMonitoringReconciler) ownHTTPRouteIfServed(b *builder.Builder) 
 	return r.own(b, u)
 }
 
-func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) *builder.Builder {
-	r.startupKinds = indexServedKinds(r.DiscoveryClient)
+// watchedGroupVersions lists the discovery-gated group versions that
+// addWatchBasedSources checks.
+func watchedGroupVersions() []string {
+	return []string{
+		grafv1.SchemeGroupVersion.String(),
+		promv1.SchemeGroupVersion.String(),
+		vmetricsv1b1.SchemeGroupVersion.String(),
+		networkingv1.SchemeGroupVersion.String(),
+		schema.GroupVersion{Group: gatewayAPIGroup, Version: httpRouteVersion}.String(),
+		secv1.GroupVersion.String(),
+	}
+}
+
+func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) (*builder.Builder, error) {
+	kinds, err := loadServedKinds(r.DiscoveryClient, watchedGroupVersions())
+	if err != nil {
+		return nil, err
+	}
+	r.startupKinds = kinds
 	defer func() { r.startupKinds = nil }()
 
 	b = r.own(b, &appsv1.Deployment{})
@@ -208,7 +274,7 @@ func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) 
 	} else {
 		r.Log.Info("Skipping Jaeger Service watch: PrivilegedRights=false; cross-namespace discovery stays on the periodic repair requeue")
 	}
-	return b
+	return b, nil
 }
 
 func (r *PlatformMonitoringReconciler) mapClusterScopedToPlatformMonitoring(ctx context.Context, obj client.Object) []reconcile.Request {

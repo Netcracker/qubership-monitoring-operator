@@ -111,6 +111,8 @@ annotations; status-only updates are ignored). Owned-child watches are on by def
 the Grafana, Prometheus, and VictoriaMetrics CRs, Ingress, and HTTPRoute when those GVKs are served at start.
 `ownedChildPredicate` enqueues on a generation change, a label change, or a body change while generation stays 0.
 Status, resourceVersion, and managedFields do not enqueue. A CRD installed after start needs a manager restart.
+Setup reads discovery once and keeps healthy groups when an unrelated group fails. If discovery fails as a whole, or
+for a watched group version, after three attempts, `SetupWithManager` returns an error and the manager does not start.
 
 Privileged installs map `ClusterRole`, `ClusterRoleBinding`, and `SecurityContextConstraints`, and Jaeger Services in
 the cache namespace. OpenShift Route, Nodes, and Jaeger Services outside that namespace stay on the repair requeue
