@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"context"
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -12,7 +13,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	ktesting "k8s.io/client-go/testing"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -204,6 +211,86 @@ func TestPrometheusManifests(t *testing.T) {
 		assert.NotNil(t, m, "PodMonitor manifest should not be empty")
 		labelsassert.AssertCRLabels(t, m.GetLabels(), utils.PrometheusComponentName, "prometheus-operator", map[string]string{labelKey: labelValue})
 	})
+}
+
+func TestPrometheusReconciliationPreservesExistingPVC(t *testing.T) {
+	install := true
+	disabled := false
+	storage := &promv1.StorageSpec{}
+	tests := []struct {
+		name       string
+		prometheus *monv1.Prometheus
+		runs       int
+	}{
+		{name: "missing component configuration", runs: 1},
+		{name: "disabled component", prometheus: &monv1.Prometheus{Install: &disabled}, runs: 1},
+		{
+			name:       "removed storage configuration",
+			prometheus: &monv1.Prometheus{Install: &install, Paused: true},
+			runs:       1,
+		},
+		{
+			name: "paused component",
+			prometheus: &monv1.Prometheus{
+				Install: &install,
+				Paused:  true,
+				Storage: storage,
+			},
+			runs: 1,
+		},
+		{
+			name: "ordinary repeated reconciliation",
+			prometheus: &monv1.Prometheus{
+				Install: &install,
+				Storage: storage,
+			},
+			runs: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reconciler, kubeClient := newPrometheusTestReconciler(t, &corev1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "prometheus-k8s-db-prometheus-k8s-0",
+					Namespace: "monitoring",
+				},
+			})
+			platformMonitoring := &monv1.PlatformMonitoring{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "platformmonitoring",
+					Namespace: "monitoring",
+					UID:       types.UID("platformmonitoring"),
+				},
+				Spec: monv1.PlatformMonitoringSpec{Prometheus: tt.prometheus},
+			}
+
+			for range tt.runs {
+				require.NoError(t, reconciler.Run(platformMonitoring))
+			}
+
+			pvc := &corev1.PersistentVolumeClaim{}
+			require.NoError(t, kubeClient.Get(
+				context.Background(),
+				types.NamespacedName{Name: "prometheus-k8s-db-prometheus-k8s-0", Namespace: "monitoring"},
+				pvc,
+			))
+		})
+	}
+}
+
+func newPrometheusTestReconciler(t *testing.T, objects ...client.Object) (*PrometheusReconciler, client.Client) {
+	t.Helper()
+
+	scheme := runtime.NewScheme()
+	require.NoError(t, monv1.AddToScheme(scheme))
+	require.NoError(t, corev1.AddToScheme(scheme))
+	require.NoError(t, promv1.AddToScheme(scheme))
+
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
+	discoveryClient := &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}}
+
+	return NewPrometheusReconciler(kubeClient, scheme, discoveryClient), kubeClient
 }
 
 func assertPrometheusHardening(t *testing.T, prometheus *promv1.Prometheus, isOpenShift bool) {
