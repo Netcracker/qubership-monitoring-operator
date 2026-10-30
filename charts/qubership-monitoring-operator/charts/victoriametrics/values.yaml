@@ -2353,7 +2353,17 @@ mcp:
       #     - path: /
       #       pathType: Prefix
 
-  resources: {}
+  # Compute resource requests and limits for the MCP container.
+  # Type: object
+  # Mandatory: no
+  #
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
   securityContext: {}
   containerSecurityContext:
     allowPrivilegeEscalation: false
