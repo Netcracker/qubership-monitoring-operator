@@ -2,6 +2,7 @@ package nodeexporter
 
 import (
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -127,7 +128,7 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 	}
 	//Set parameters
 	e.SetLabels(m.GetLabels())
-	applyNodeExporterSCCPolicy(e, m)
+	utils.ApplySecurityContextConstraintsPolicy(e, m)
 
 	if err = r.UpdateResource(e); err != nil {
 		return err
@@ -139,30 +140,6 @@ func isNodeExporterSCCOwnedBy(scc *secv1.SecurityContextConstraints, cr *monv1.P
 	annotations := scc.GetAnnotations()
 	return annotations[nodeExporterSCCOwnerNameAnnotation] == cr.GetName() &&
 		annotations[nodeExporterSCCOwnerNamespaceAnnotation] == cr.GetNamespace()
-}
-
-func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) {
-	existing.AllowPrivilegedContainer = desired.AllowPrivilegedContainer
-	existing.DefaultAddCapabilities = desired.DefaultAddCapabilities
-	existing.RequiredDropCapabilities = desired.RequiredDropCapabilities
-	existing.AllowedCapabilities = desired.AllowedCapabilities
-	existing.AllowHostDirVolumePlugin = desired.AllowHostDirVolumePlugin
-	existing.Volumes = desired.Volumes
-	existing.AllowedFlexVolumes = desired.AllowedFlexVolumes
-	existing.AllowHostNetwork = desired.AllowHostNetwork
-	existing.AllowHostPorts = desired.AllowHostPorts
-	existing.AllowHostPID = desired.AllowHostPID
-	existing.AllowHostIPC = desired.AllowHostIPC
-	existing.DefaultAllowPrivilegeEscalation = desired.DefaultAllowPrivilegeEscalation
-	existing.AllowPrivilegeEscalation = desired.AllowPrivilegeEscalation
-	existing.SELinuxContext = desired.SELinuxContext
-	existing.RunAsUser = desired.RunAsUser
-	existing.SupplementalGroups = desired.SupplementalGroups
-	existing.FSGroup = desired.FSGroup
-	existing.ReadOnlyRootFilesystem = desired.ReadOnlyRootFilesystem
-	existing.SeccompProfiles = desired.SeccompProfiles
-	existing.AllowedUnsafeSysctls = desired.AllowedUnsafeSysctls
-	existing.ForbiddenSysctls = desired.ForbiddenSysctls
 }
 
 func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
@@ -192,7 +169,11 @@ func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.Plat
 }
 
 func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := nodeExporterDaemonSet(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
@@ -344,19 +325,16 @@ func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) deleteDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating DaemonSet manifest")
-		return err
-	}
-	e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.DaemonSet{ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

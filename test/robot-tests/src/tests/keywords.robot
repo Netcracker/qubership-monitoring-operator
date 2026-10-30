@@ -21,10 +21,11 @@ ${OPERATOR}                 %{OPERATOR}
 
 *** Keywords ***
 Determine Protocol
-    [Arguments]  ${host}  ${auth}=None
+    [Arguments]  ${host}  ${auth}=${None}  ${path}=/
     ${https_url}=  Set Variable  https://${host}
     ${http_url}=   Set Variable  http://${host}
-    ${https_response}=  Run Keyword And Return Status  Check URL Accessibility  ${https_url}  ${auth}
+    ${https_response}=  Run Keyword And Return Status
+    ...  Check URL Accessibility  ${https_url}  ${auth}  ${path}
     IF  ${https_response}
         Log To Console  Using HTTPS: ${https_url}
         ${final_url}=  Set Variable  ${https_url}
@@ -34,12 +35,12 @@ Determine Protocol
     END
     RETURN  ${final_url}
 
+# Probe a path the target serves itself: a failure then means the wrong scheme, not a down upstream.
+# Sessionless, because RequestsLibrary cannot drop one session; it also needs auth as a tuple, not a list.
 Check URL Accessibility
-    [Arguments]  ${url}  ${auth}=None
+    [Arguments]  ${url}  ${auth}=${None}  ${path}=/
     Evaluate  __import__("logging").getLogger("urllib3").setLevel(40)
-    Create Session  temp_session  ${url}  auth=${auth}
-    ${response}=  GET On Session  temp_session  /
-    Delete Session  temp_session
+    ${response}=  GET  ${url}${path}  auth=${{tuple($auth) if $auth else None}}  verify=${False}
     Should Be Equal As Integers  ${response.status_code}  200
     RETURN  True
 
@@ -84,20 +85,23 @@ Check That VMauth Is Presented In CR
      RETURN  ${flag}
 
 Preparation Prometheus Session
-    ${prometheus_url}=  Determine Protocol  ${prometheus_host}
-    Create Session  prometheussession  ${prometheus_url}  verify=False
+    ${prometheus_url}=  Determine Protocol  ${prometheus_host}  path=/-/healthy
+    Create Session  prometheussession  ${prometheus_url}  verify=${False}
 
+# The VictoriaMetrics HTTP server answers /health itself, before the request reaches routing, so the
+# probe stays independent of the upstreams. vmauth proxies "/" to vmsingle instead, and answers 502
+# from there whenever vmsingle is not yet up.
 Preparation Victoriametrics Sessions With Oauth
     ${auth}=  Get Creadentials From Secret
-    ${vmauth_url}=  Determine Protocol  ${vmauth_host}  ${auth}
-    Create Session  vmsinglessession  ${vmauth_url}  auth=${auth}
-    Create Session  vmagentsession  ${vmauth_url}  auth=${auth}
+    ${vmauth_url}=  Determine Protocol  ${vmauth_host}  ${auth}  /health
+    Create Session  vmsinglessession  ${vmauth_url}  auth=${auth}  verify=${False}
+    Create Session  vmagentsession  ${vmauth_url}  auth=${auth}  verify=${False}
 
 Preparation Victoriametrics Sessions Without Oauth
-    ${vmsingle_url}=  Determine Protocol  ${vmsingle_host}
-    ${vmagent_url}=   Determine Protocol  ${vmagent_host}
-    Create Session  vmsinglessession  ${vmsingle_url}
-    Create Session  vmagentsession  ${vmagent_url}
+    ${vmsingle_url}=  Determine Protocol  ${vmsingle_host}  path=/health
+    ${vmagent_url}=   Determine Protocol  ${vmagent_host}  path=/health
+    Create Session  vmsinglessession  ${vmsingle_url}  verify=${False}
+    Create Session  vmagentsession  ${vmagent_url}  verify=${False}
 
 Preparation Victoriametrics Sessions
     ${vmauth}=  Check That VMauth Is Presented In CR

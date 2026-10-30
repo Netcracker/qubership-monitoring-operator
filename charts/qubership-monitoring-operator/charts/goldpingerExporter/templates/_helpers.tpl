@@ -23,6 +23,16 @@ Image can be found from:
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
 {{- else -}}
 {{- /* # renovate: datasource=github-releases depName=bloomberg/goldpinger */ -}}
-{{- print "bloomberg/goldpinger:3.11.2" -}}
+{{- print "bloomberg/goldpinger:3.11.5" -}}
 {{- end -}}
+{{- end -}}
+
+{{/* Return the enforced pod security context. */}}
+{{- define "goldpinger.podSecurityContext" -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.podSecurityContext "defaults" (dict "runAsUser" 1000 "fsGroup" 2000)) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "goldpinger.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.containerSecurityContext) -}}
 {{- end -}}

@@ -41,12 +41,18 @@ spec:
       {{- end }}
       serviceAccountName: {{ .name }}
       securityContext:
-        {{ include "certExporter.deployment.securityContext" $ }}
+        {{- include "certExporter.deployment.securityContext" $ | nindent 8 }}
       tolerations: {{- toYaml .deployment.tolerations | nindent 8 }}
       nodeSelector: {{- toYaml .deployment.nodeSelector | nindent 8 }}
       affinity: {{- toYaml .deployment.affinity | nindent 8 }}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       containers:
         - command: ["./app"]
+          securityContext:
+            {{- include "certExporter.containerSecurityContext" $ | nindent 12 }}
           args:
             - --secrets-include-glob={{ default "*.crt" .certsInSecrets.includeCerts }}
             {{- if .certsInSecrets.excludeCerts }}
@@ -85,5 +91,8 @@ spec:
               name: metrics
           resources:
             {{ include "certExporter.deployment.resources" $ }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
 {{- end }}
 {{- end }}
