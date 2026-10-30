@@ -23,9 +23,12 @@ Build / test (from repository root):
 
 Running a single Go test: `go test -v -run <TestName> ./controllers/<pkg>/...`.
 
-Envtests (`test/envtests/`) require `kube-apiserver` and `etcd` binaries and are excluded from `make test`. CI runs them
-against the minimum supported Kubernetes 1.25, and the build workflow also covers Kubernetes 1.30. Run `make envtest`;
-the target installs the pinned `setup-envtest` tool and downloads the requested Kubernetes assets.
+Envtests (`test/envtests/`) require `kube-apiserver` and `etcd` binaries and are excluded from `make test`. Run
+`make envtest`; the target installs the pinned `setup-envtest` tool and downloads the requested Kubernetes assets.
+
+Every file in `test/envtests/` carries the `envtest` build tag, so a plain `go test ./...` compiles none of the suite
+and still exits 0. In CI, only the `Envtest with Kubernetes 1.25` job runs it. The coverage job provisions Kubernetes
+1.30 envtest assets, but it runs `go test ./...` without the tag. See `test/AGENTS.md`.
 
 For a source install, follow the CRD ownership contract in the [quick-start guide](README.md#quick-start):
 
@@ -120,6 +123,79 @@ same sources for release.
 
 ### Version ldflags
 
-Build version info is injected at link time via
-`-X github.com/Netcracker/qubership-monitoring-operator/version.{Revision,BuildUser,BuildDate,Branch,Version}` (see
-`Makefile` `GO_BUILD_LDFLAGS`). The `Dockerfile` does **not** pass these flags; only `make build-binary` does.
+`Makefile` `GO_BUILD_LDFLAGS` passes `-X <module>/version.{Revision,BuildUser,BuildDate,Branch,Version}`, and the
+`Dockerfile` does not pass them. The injection is a no-op: the tree has no `version` package, and the linker accepts
+`-X` for an absent symbol without a warning. Check version stamping on a built binary, not by reading these flags.
+
+## Traps this repository sets
+
+These notes come from reviews in which many agents worked on this repository independently. Each item is something
+more than one of them got wrong or spent significant time on. They describe observed behavior, not policy; if one
+stops being true, correct it.
+
+Scoped notes live next to the code they describe: `api/v1/`, `controllers/`, `charts/`, and `test/`.
+
+### A green test run does not prove a behavior is covered
+
+The unit tests call the top-level `Reconcile` for a few status and migration paths only, and the envtest suite is
+behind a build tag. Before you claim that a test covers a reconciler behavior, change the line you care about and
+confirm that a test fails. Otherwise, prove the claim with a probe you write.
+
+### Reading the CR status
+
+The transition timestamp comes from `metav1.Now().String()`, which is Go's `time.Time` string form with the
+monotonic-clock reading. The schema declares the field a plain string, so the API server accepts it, but no date
+parser does. Do not feed it to `jq` date functions or `date`.
+
+### Working on the live cluster
+
+Treat every CR patch as destructive. Setting a component's install flag to `false` does not idle the component: the
+reconciler takes the uninstall branch and deletes the running workload within a cycle. Restore the value
+immediately.
+
+Assume other writers. Several agents may share one cluster, so a deployment's environment, a bound port, or a stray
+manager process may belong to someone else. Re-read the deployment environment before you trust a rate or counter
+measurement, and capture the object before and after your own change instead of inferring causation.
+
+`--help` is safe: the flag parser prints usage and exits before the kubeconfig is loaded. `--version` is not. The
+imported flag does not exit, so the process loads the current kubeconfig and starts a second operator against the
+cluster you point at. Most of the operator's flags come from an imported metrics library and control nothing here.
+
+An incomplete RBAC grant makes the operator hang instead of fail: the cache waits for a watch that never syncs, the
+reconciler logs stay silent, and the CR status reports nothing. Look for the cache's own log lines.
+
+### Reading command output
+
+Do not take an exit status from the end of a pipeline, and do not discard stderr from a chart render.
+`helm template … 2>/dev/null | grep -c` cannot tell "the resource is absent" from "nothing rendered". Several agents
+drew conclusions from truncated output, including one who read `list … | head -20` of a descending list as the
+complete set.
+
+Commands that reach the network, such as the CRD refresh targets, the envtest asset download, and image pulls, are
+slow and flaky in proportion to the link. A single slow run is not evidence of a build defect, and a hang on first
+use is usually the registry. Retry before you report it.
+
+### Tooling lives in the ignored `bin/` directory
+
+The Makefile downloads pinned binaries into `bin/` as `<tool>-<version>`. A tool missing from `PATH` may still be
+available there, so list that directory before you conclude that a check cannot run. In a fresh clone or worktree
+the directory is empty, and the verification scripts under `tools/` stop with a message that names the `make` target
+to run. Run that target instead of copying binaries between trees.
+
+Some scripts under `tools/` use Bash 4 built-ins such as `mapfile` under `set -e`. The default macOS Bash 3.2 either
+stops partway or iterates an empty list and exits 0, so a partial run looks like a clean pass. Run them with Bash 4
+or later and confirm that they printed results.
+
+Workflows call these scripts directly; the Makefile does not. Search the workflows as well before you claim that
+something is unverified.
+
+### What CI does not check
+
+`.github/super-linter.env` disables Go linting and Kubernetes schema validation, and no workflow runs
+`golangci-lint`. The super-linter workflow fetches shared linter rules from the `main` branch of the
+`netcracker/.github` repository, so the rules can change without a commit here. The coverage job runs
+`go test ./...` from a shared reusable workflow, not `make test`, so it runs without the race detector, shuffling, or
+the envtest build tag.
+
+A lint config in the tree does not prove that the linter runs, and a green pipeline does not prove that the
+documented test flags ran.
