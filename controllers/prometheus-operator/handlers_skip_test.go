@@ -5,6 +5,7 @@ import (
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils/apidefaultstest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
@@ -13,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	fakediscovery "k8s.io/client-go/discovery/fake"
-	ktesting "k8s.io/client-go/testing"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -27,7 +28,7 @@ func TestHandleServiceSkipsAPIDefaultedPortProtocol(t *testing.T) {
 	}
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
-	applyAPIDefaultedServicePorts(live.Spec.Ports)
+	apidefaultstest.ServicePorts(live.Spec.Ports)
 
 	r := newPrometheusOperatorSkipTestReconciler(t, cr, live)
 	require.NoError(t, r.handleService(cr))
@@ -45,7 +46,7 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
-	applyAPIDefaultedContainerFields(live.Spec.Template.Spec.Containers)
+	apidefaultstest.Containers(live.Spec.Template.Spec.Containers)
 
 	r := newPrometheusOperatorSkipTestReconciler(t, cr, live)
 	require.NoError(t, r.handleDeployment(cr))
@@ -126,31 +127,6 @@ func newPrometheusOperatorSkipTestReconciler(t *testing.T, objs ...client.Object
 	return NewPrometheusOperatorReconciler(
 		fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 		scheme,
-		&fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}},
+		&fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 	)
-}
-
-func applyAPIDefaultedServicePorts(ports []corev1.ServicePort) {
-	for i := range ports {
-		if ports[i].Protocol == "" {
-			ports[i].Protocol = corev1.ProtocolTCP
-		}
-	}
-}
-
-func applyAPIDefaultedContainerFields(containers []corev1.Container) {
-	for i := range containers {
-		c := &containers[i]
-		for j := range c.Ports {
-			if c.Ports[j].Protocol == "" {
-				c.Ports[j].Protocol = corev1.ProtocolTCP
-			}
-		}
-		if c.TerminationMessagePath == "" {
-			c.TerminationMessagePath = "/dev/termination-log"
-		}
-		if c.TerminationMessagePolicy == "" {
-			c.TerminationMessagePolicy = corev1.TerminationMessageReadFile
-		}
-	}
 }

@@ -29,27 +29,7 @@ func (r *VmOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 	}
 
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncRole)
 }
 
 func (r *VmOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -60,26 +40,7 @@ func (r *VmOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -90,26 +51,7 @@ func (r *VmOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) e
 	}
 
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -120,27 +62,7 @@ func (r *VmOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) e
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -151,26 +73,7 @@ func (r *VmOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
@@ -184,41 +87,18 @@ func (r *VmOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) er
 		return err
 	}
 	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	if utils.WorkloadNeedsSelectorReplace(e, m) {
-		if err := r.DeleteResource(e); err != nil {
-			return err
-		}
-		return r.CreateResource(cr, m)
-	}
+	return utils.CreateOrUpdateWorkload(r.ComponentReconciler, cr, m, e, syncDeployment)
+}
 
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
-	changed = utils.SetIfChanged(&e.Spec.Replicas, m.Spec.Replicas) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+// syncDeployment copies the Deployment fields this controller manages.
+func syncDeployment(existing, desired *appsv1.Deployment) bool {
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		utils.SetIfChanged(&existing.Spec.Selector, desired.Spec.Selector),
+		utils.SetLabelsIfChanged(&existing.Spec.Template, desired.Spec.Template.GetLabels()),
+		utils.SyncPodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec),
+		utils.SetIfChanged(&existing.Spec.Replicas, desired.Spec.Replicas),
+	)
 }
 
 func (r *VmOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error {
@@ -229,28 +109,7 @@ func (r *VmOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error
 	}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *VmOperatorReconciler) handleKubeletService(cr *monv1.PlatformMonitoring) error {
@@ -261,28 +120,7 @@ func (r *VmOperatorReconciler) handleKubeletService(cr *monv1.PlatformMonitoring
 	}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformMonitoring) error {
@@ -314,27 +152,7 @@ func (r *VmOperatorReconciler) handleKubeletServiceEndpoints(cr *monv1.PlatformM
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked separately.
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, eps); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, eps.GetLabels())
-	changed = utils.SetIfChanged(&e.Subsets, eps.Subsets) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, eps, e, syncEndpoints)
 }
 
 func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *monv1.PlatformMonitoring) error {
@@ -351,28 +169,7 @@ func (r *VmOperatorReconciler) handleKubeSchedulerService(cr *monv1.PlatformMoni
 	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.PlatformMonitoring) error {
@@ -405,27 +202,7 @@ func (r *VmOperatorReconciler) handleKubeSchedulerServiceEndpoints(cr *monv1.Pla
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked separately.
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, eps); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, eps.GetLabels())
-	changed = utils.SetIfChanged(&e.Subsets, eps.Subsets) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, eps, e, syncEndpoints)
 }
 func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *monv1.PlatformMonitoring) error {
 	m, err := vmKubeControllerManagerService(cr)
@@ -441,28 +218,7 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerService(cr *monv1.Plat
 	m.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *monv1.PlatformMonitoring) error {
@@ -495,27 +251,7 @@ func (r *VmOperatorReconciler) handleKubeControllerManagerServiceEndpoints(cr *m
 	eps.Labels["app.kubernetes.io/version"] = utils.GetTagFromImage(cr.Spec.Victoriametrics.VmOperator.Image)
 
 	e := &corev1.Endpoints{ObjectMeta: eps.ObjectMeta} //nolint:staticcheck // SA1019: v1 Endpoints is deprecated but still served; migration to discoveryv1.EndpointSlice is tracked separately.
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, eps); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, eps.GetLabels())
-	changed = utils.SetIfChanged(&e.Subsets, eps.Subsets) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, eps, e, syncEndpoints)
 }
 
 func filterNodes(nodes *corev1.NodeList, predicate func(corev1.Node) bool) *corev1.NodeList {
@@ -606,29 +342,14 @@ func (r *VmOperatorReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring
 	utils.SetLabelsForResource(m, utils.BaseOnlyLabelInput(m.GetName(), utils.VmOperatorComponentName), nil)
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
-	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
-	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, func(existing, desired *promv1.ServiceMonitor) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec.JobLabel, desired.Spec.JobLabel),
+			utils.SetIfChanged(&existing.Spec.Endpoints, desired.Spec.Endpoints),
+			utils.SetIfChanged(&existing.Spec.NamespaceSelector, desired.Spec.NamespaceSelector),
+		)
+	})
 }
 
 func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
@@ -641,26 +362,7 @@ func (r *VmOperatorReconciler) handleSecurityContextConstraints(cr *monv1.Platfo
 	utils.SetLabelsForResource(m, utils.BaseOnlyLabelInput(m.GetName(), utils.VmOperatorComponentName), nil)
 
 	e := &secv1.SecurityContextConstraints{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.ApplySecurityContextConstraintsPolicy(e, m) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncSecurityContextConstraints)
 }
 
 func (r *VmOperatorReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -882,4 +584,12 @@ func getListObjectType(list client.ObjectList) reflect.Type {
 	}
 
 	return objType
+}
+
+// syncEndpoints copies labels and subsets.
+func syncEndpoints(existing, desired *corev1.Endpoints) bool { //nolint:staticcheck // SA1019: see handleKubeletServiceEndpoints.
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		utils.SetIfChanged(&existing.Subsets, desired.Subsets),
+	)
 }

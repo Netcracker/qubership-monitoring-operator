@@ -39,6 +39,7 @@ spec:
   scrapeInterval: 30s
   evaluationInterval: 30s
   portName: web
+  shards: 1
   ruleNamespaceSelector:
     matchExpressions:
     - key: openshift.io/cluster-monitoring

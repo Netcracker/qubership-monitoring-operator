@@ -246,30 +246,30 @@ func HasTmpVolumeMount(volumeMounts []corev1.VolumeMount) bool {
 }
 
 // ApplySecurityContextConstraintsPolicy copies the policy fields of desired onto existing,
-// leaving object metadata (name, labels, resourceVersion, ...) untouched. It returns true
-// when at least one policy field differed, so callers can skip a no-op Update.
+// leaving object metadata (name, labels, resourceVersion, ...) untouched.
+// Returns true when existing was updated.
 func ApplySecurityContextConstraintsPolicy(existing, desired *secv1.SecurityContextConstraints) bool {
-	changed := false
-	changed = SetIfChanged(&existing.AllowPrivilegedContainer, desired.AllowPrivilegedContainer) || changed
-	changed = SetIfChanged(&existing.DefaultAddCapabilities, desired.DefaultAddCapabilities) || changed
-	changed = SetIfChanged(&existing.RequiredDropCapabilities, desired.RequiredDropCapabilities) || changed
-	changed = SetIfChanged(&existing.AllowedCapabilities, desired.AllowedCapabilities) || changed
-	changed = SetIfChanged(&existing.AllowHostDirVolumePlugin, desired.AllowHostDirVolumePlugin) || changed
-	changed = SetIfChanged(&existing.Volumes, desired.Volumes) || changed
-	changed = SetIfChanged(&existing.AllowedFlexVolumes, desired.AllowedFlexVolumes) || changed
-	changed = SetIfChanged(&existing.AllowHostNetwork, desired.AllowHostNetwork) || changed
-	changed = SetIfChanged(&existing.AllowHostPorts, desired.AllowHostPorts) || changed
-	changed = SetIfChanged(&existing.AllowHostPID, desired.AllowHostPID) || changed
-	changed = SetIfChanged(&existing.AllowHostIPC, desired.AllowHostIPC) || changed
-	changed = SetIfChanged(&existing.DefaultAllowPrivilegeEscalation, desired.DefaultAllowPrivilegeEscalation) || changed
-	changed = SetIfChanged(&existing.AllowPrivilegeEscalation, desired.AllowPrivilegeEscalation) || changed
-	changed = SetIfChanged(&existing.SELinuxContext, desired.SELinuxContext) || changed
-	changed = SetIfChanged(&existing.RunAsUser, desired.RunAsUser) || changed
-	changed = SetIfChanged(&existing.SupplementalGroups, desired.SupplementalGroups) || changed
-	changed = SetIfChanged(&existing.FSGroup, desired.FSGroup) || changed
-	changed = SetIfChanged(&existing.ReadOnlyRootFilesystem, desired.ReadOnlyRootFilesystem) || changed
-	changed = SetIfChanged(&existing.SeccompProfiles, desired.SeccompProfiles) || changed
-	changed = SetIfChanged(&existing.AllowedUnsafeSysctls, desired.AllowedUnsafeSysctls) || changed
-	changed = SetIfChanged(&existing.ForbiddenSysctls, desired.ForbiddenSysctls) || changed
-	return changed
+	return AnyChanged(
+		SetIfChanged(&existing.AllowPrivilegedContainer, desired.AllowPrivilegedContainer),
+		SetIfChanged(&existing.DefaultAddCapabilities, desired.DefaultAddCapabilities),
+		SetIfChanged(&existing.RequiredDropCapabilities, desired.RequiredDropCapabilities),
+		SetIfChanged(&existing.AllowedCapabilities, desired.AllowedCapabilities),
+		SetIfChanged(&existing.AllowHostDirVolumePlugin, desired.AllowHostDirVolumePlugin),
+		SetIfChanged(&existing.Volumes, desired.Volumes),
+		SetIfChanged(&existing.AllowedFlexVolumes, desired.AllowedFlexVolumes),
+		SetIfChanged(&existing.AllowHostNetwork, desired.AllowHostNetwork),
+		SetIfChanged(&existing.AllowHostPorts, desired.AllowHostPorts),
+		SetIfChanged(&existing.AllowHostPID, desired.AllowHostPID),
+		SetIfChanged(&existing.AllowHostIPC, desired.AllowHostIPC),
+		SetIfChanged(&existing.DefaultAllowPrivilegeEscalation, desired.DefaultAllowPrivilegeEscalation),
+		SetIfChanged(&existing.AllowPrivilegeEscalation, desired.AllowPrivilegeEscalation),
+		SetIfChanged(&existing.SELinuxContext, desired.SELinuxContext),
+		SetIfChanged(&existing.RunAsUser, desired.RunAsUser),
+		SetIfChanged(&existing.SupplementalGroups, desired.SupplementalGroups),
+		SetIfChanged(&existing.FSGroup, desired.FSGroup),
+		SetIfChanged(&existing.ReadOnlyRootFilesystem, desired.ReadOnlyRootFilesystem),
+		SetIfChanged(&existing.SeccompProfiles, desired.SeccompProfiles),
+		SetIfChanged(&existing.AllowedUnsafeSysctls, desired.AllowedUnsafeSysctls),
+		SetIfChanged(&existing.ForbiddenSysctls, desired.ForbiddenSysctls),
+	)
 }

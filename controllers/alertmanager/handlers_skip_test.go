@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	fakediscovery "k8s.io/client-go/discovery/fake"
-	ktesting "k8s.io/client-go/testing"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -78,7 +78,7 @@ func newAlertmanagerSkipTestReconciler(t *testing.T, objs ...client.Object) *Ale
 	return NewAlertManagerReconciler(
 		fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 		scheme,
-		&fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}},
+		&fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}},
 	)
 }
 

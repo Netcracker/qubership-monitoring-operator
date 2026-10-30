@@ -19,26 +19,7 @@ func (r *VmAuthReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) er
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmAuthReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -49,27 +30,7 @@ func (r *VmAuthReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *VmAuthReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -80,26 +41,7 @@ func (r *VmAuthReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmAuthReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
@@ -110,27 +52,7 @@ func (r *VmAuthReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
 	}
 
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncRole)
 }
 
 func (r *VmAuthReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -141,26 +63,7 @@ func (r *VmAuthReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error
 	}
 
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmAuthReconciler) handleVmAuth(cr *monv1.PlatformMonitoring) error {
@@ -170,27 +73,12 @@ func (r *VmAuthReconciler) handleVmAuth(cr *monv1.PlatformMonitoring) error {
 		return err
 	}
 	e := &vmetricsv1b1.VMAuth{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec, m.Spec) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, func(existing, desired *vmetricsv1b1.VMAuth) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec, desired.Spec),
+		)
+	})
 }
 
 func (r *VmAuthReconciler) handleIngress(cr *monv1.PlatformMonitoring) error {
@@ -200,29 +88,7 @@ func (r *VmAuthReconciler) handleIngress(cr *monv1.PlatformMonitoring) error {
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
-	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncIngress)
 }
 
 func (r *VmAuthReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {

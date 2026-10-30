@@ -24,25 +24,7 @@ func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonit
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *GrafanaOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -53,27 +35,7 @@ func (r *GrafanaOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitori
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -84,25 +46,7 @@ func (r *GrafanaOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformM
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *GrafanaOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
@@ -113,27 +57,7 @@ func (r *GrafanaOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) err
 	}
 
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncRole)
 }
 
 func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -144,25 +68,7 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitori
 	}
 
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
@@ -176,54 +82,23 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 		return err
 	}
 	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	if utils.WorkloadNeedsSelectorReplace(e, m) {
-		if err := r.DeleteResource(e); err != nil {
-			return err
-		}
-		return r.CreateResource(cr, m)
-	}
+	return utils.CreateOrUpdateWorkload(r.ComponentReconciler, cr, m, e, syncDeployment)
+}
 
-	// Deployment.spec.selector is immutable; keep the selector already stored in the
-	// API server and merge template labels so matchLabels stay satisfied (upgrades / Helm).
-	var preservedSelector *metav1.LabelSelector
-	if e.Spec.Selector != nil {
-		preservedSelector = e.Spec.Selector.DeepCopy()
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if preservedSelector != nil {
-		changed = utils.SetIfChanged(&e.Spec.Selector, preservedSelector) || changed
-	} else {
-		changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	}
+// syncDeployment copies the Deployment fields this controller manages.
+// Deployment.spec.selector is immutable, so it keeps the selector already stored in the
+// API server and merges template labels so matchLabels stay satisfied (upgrades / Helm).
+func syncDeployment(existing, desired *appsv1.Deployment) bool {
+	selectorChanged := existing.Spec.Selector == nil && utils.SetIfChanged(&existing.Spec.Selector, desired.Spec.Selector)
 	templateLabels := deploymentTemplateLabelsForUpdate(
-		e.Spec.Template.Labels, m.Spec.Template.Labels, e.Spec.Selector)
-	changed = utils.SetLabelsIfChanged(&e.Spec.Template, templateLabels) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+		existing.Spec.Template.Labels, desired.Spec.Template.Labels, existing.Spec.Selector)
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		selectorChanged,
+		utils.SetLabelsIfChanged(&existing.Spec.Template, templateLabels),
+		utils.SyncPodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.NodeSelector, desired.Spec.Template.Spec.NodeSelector),
+	)
 }
 
 func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *monv1.PlatformMonitoring) error {
@@ -250,12 +125,10 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 
 		// Only update when Spec or labels actually changed to avoid rewriting large
 		// dashboard CRs on every PlatformMonitoring reconcile (#447).
-		changed := utils.SetIfChanged(&checkObj.Spec, m.Spec)
-		changed = utils.SetLabelsIfChanged(checkObj, m.GetLabels()) || changed
-		if !changed {
-			return nil
-		}
-		return r.UpdateResource(checkObj)
+		return r.UpdateIfChanged(checkObj, utils.AnyChanged(
+			utils.SetIfChanged(&checkObj.Spec, m.Spec),
+			utils.SetLabelsIfChanged(checkObj, m.GetLabels()),
+		))
 	})
 }
 
@@ -267,30 +140,7 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitorin
 	}
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
-	changed = utils.SetIfChanged(&e.Spec.PodMetricsEndpoints, m.Spec.PodMetricsEndpoints) || changed
-	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncPodMonitor)
 }
 
 func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *monv1.PlatformMonitoring) error {

@@ -22,26 +22,7 @@ func (r *VmSingleReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) 
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 func (r *VmSingleReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
@@ -51,27 +32,7 @@ func (r *VmSingleReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) err
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Rules, m.Rules) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *VmSingleReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -82,26 +43,7 @@ func (r *VmSingleReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitori
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmSingleReconciler) handleVmSingle(cr *monv1.PlatformMonitoring) error {
@@ -111,36 +53,16 @@ func (r *VmSingleReconciler) handleVmSingle(cr *monv1.PlatformMonitoring) error 
 		return err
 	}
 	e := &vmetricsv1b1.VMSingle{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &vmetricsv1b1.VMSingle{ObjectMeta: metav1.ObjectMeta{
-				Name:      utils.VmSingleComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec, m.Spec) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &vmetricsv1b1.VMSingle{ObjectMeta: metav1.ObjectMeta{
+		Name:      utils.VmSingleComponentName,
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, func(existing, desired *vmetricsv1b1.VMSingle) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec, desired.Spec),
+		)
+	})
 }
 
 func (r *VmSingleReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -150,38 +72,11 @@ func (r *VmSingleReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{
-				Name:      cr.GetNamespace() + "-" + utils.VmSingleComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
-	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{
+		Name:      cr.GetNamespace() + "-" + utils.VmSingleComponentName,
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, utils.SyncIngress)
 }
 
 func (r *VmSingleReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {

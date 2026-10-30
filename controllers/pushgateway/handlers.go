@@ -24,43 +24,20 @@ func (r *PushgatewayReconciler) handleDeployment(cr *monv1.PlatformMonitoring) e
 		return err
 	}
 	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	if utils.WorkloadNeedsSelectorReplace(e, m) {
-		if err := r.DeleteResource(e); err != nil {
-			return err
-		}
-		return r.CreateResource(cr, m)
-	}
+	return utils.CreateOrUpdateWorkload(r.ComponentReconciler, cr, m, e, syncDeployment)
+}
 
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
-	changed = utils.SetAnnotationsIfChanged(e, annotationsForDeploymentUpdate(e.GetAnnotations(), m.GetAnnotations())) || changed
-	changed = utils.SetAnnotationsIfChanged(&e.Spec.Template, m.Spec.Template.GetAnnotations()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
-	changed = utils.SetIfChanged(&e.Spec.Replicas, m.Spec.Replicas) || changed
-	changed = utils.SetIfChanged(&e.Spec.Template.Spec.PriorityClassName, m.Spec.Template.Spec.PriorityClassName) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+// syncDeployment copies the Deployment fields this controller manages.
+func syncDeployment(existing, desired *appsv1.Deployment) bool {
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		utils.SetLabelsIfChanged(&existing.Spec.Template, desired.Spec.Template.GetLabels()),
+		utils.SetAnnotationsIfChanged(existing, annotationsForDeploymentUpdate(existing.GetAnnotations(), desired.GetAnnotations())),
+		utils.SetAnnotationsIfChanged(&existing.Spec.Template, desired.Spec.Template.GetAnnotations()),
+		utils.SyncPodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.NodeSelector, desired.Spec.Template.Spec.NodeSelector),
+		utils.SetIfChanged(&existing.Spec.Replicas, desired.Spec.Replicas),
+	)
 }
 
 const deploymentRevisionAnnotation = "deployment.kubernetes.io/revision"
@@ -109,28 +86,7 @@ func (r *PushgatewayReconciler) handleService(cr *monv1.PlatformMonitoring) erro
 	}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.Ports, m.Spec.Ports) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *PushgatewayReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -140,29 +96,7 @@ func (r *PushgatewayReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) er
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetAnnotationsIfChanged(e, m.GetAnnotations()) || changed
-	changed = utils.SetIfChanged(&e.Spec.Rules, m.Spec.Rules) || changed
-	changed = utils.SetIfChanged(&e.Spec.TLS, m.Spec.TLS) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncIngress)
 }
 
 func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {
@@ -173,30 +107,7 @@ func (r *PushgatewayReconciler) handleServiceMonitor(cr *monv1.PlatformMonitorin
 	}
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = utils.SetIfChanged(&e.Spec.JobLabel, m.Spec.JobLabel) || changed
-	changed = utils.SetIfChanged(&e.Spec.Endpoints, m.Spec.Endpoints) || changed
-	changed = utils.SetIfChanged(&e.Spec.NamespaceSelector, m.Spec.NamespaceSelector) || changed
-	changed = utils.SetIfChanged(&e.Spec.Selector, m.Spec.Selector) || changed
-	if !changed {
-		return nil
-	}
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncServiceMonitor)
 }
 
 func (r *PushgatewayReconciler) deleteDeployment(cr *monv1.PlatformMonitoring) error {
