@@ -1,3 +1,10 @@
+---
+# Superseded by docs/troubleshooting.md. Kept as the provenance source for the
+# troubleshoot-monitoring agent package, hidden from navigation and search.
+search:
+  exclude: true
+---
+
 > Superseded by [docs/troubleshooting.md](troubleshooting.md), which carries every case from this file plus
 > code-derived, cross-repository, and externally-researched cases. Kept for review of this change; delete once the
 > new document is merged.
@@ -496,7 +503,7 @@ spec:
     receiver: base
 ```
 
-For more information about AlertmanagerConfig, refer to the [Configuration documentation](configuration.md#alertmanagerconfig).
+For more information about AlertmanagerConfig, refer to the [Configuration documentation](configuration/README.md#alertmanagerconfig).
 
 ## Grafana
 

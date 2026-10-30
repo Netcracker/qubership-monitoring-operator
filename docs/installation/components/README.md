@@ -1,3 +1,7 @@
+---
+icon: lucide/sliders-horizontal
+---
+
 # Component Configuration
 
 This section contains detailed configuration documentation for all monitoring components that can be deployed
@@ -55,11 +59,11 @@ with the Qubership Monitoring Operator.
 
 ### Authentication
 <!-- Most components support authentication configuration via the global `auth` section.
-See [Authentication](../monitoring-configuration/authentication.md) for details. -->
+See [Authentication](../../monitoring-configuration/authentication.md) for details. -->
 
 ### TLS Configuration
 <!-- Components can be configured with TLS certificates for secure communication.
-See [TLS Configuration](../monitoring-configuration/tls.md). -->
+See [TLS Configuration](../../monitoring-configuration/tls.md). -->
 
 ### Resource Management
 

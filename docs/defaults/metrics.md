@@ -1,3 +1,7 @@
+---
+icon: lucide/list
+---
+
 # Metrics OOB
 
 ## AlertManager

@@ -1,3 +1,7 @@
+---
+icon: lucide/wrench
+---
+
 # Monitoring Maintenance
 
 ## Ways to Make Changes

@@ -1,3 +1,7 @@
+---
+icon: lucide/key-round
+---
+
 This guide describes how to change passwords for Monitoring and all components in it during
 installation and during the work.
 

@@ -1,3 +1,7 @@
+---
+icon: lucide/file-code
+---
+
 # Manage CRDs Manually
 
 ## When is it needed?

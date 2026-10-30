@@ -1,3 +1,7 @@
+---
+icon: lucide/hard-drive
+---
+
 # Storage Configuration
 
 To maintain data across deployments and version upgrades, the data must be persisted to some volume

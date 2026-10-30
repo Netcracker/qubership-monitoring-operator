@@ -1,3 +1,7 @@
+---
+icon: lucide/bell-electric
+---
+
 This document provides information about integration with IBM Netcool alerting.
 
 # IBM Netcool Operations Insight

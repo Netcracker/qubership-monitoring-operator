@@ -1,3 +1,7 @@
+---
+icon: lucide/network
+---
+
 # Architecture
 
 This document describes the detailed architecture of the Qubership Monitoring Operator, a Kubernetes operator

@@ -1,3 +1,7 @@
+---
+icon: lucide/chart-line
+---
+
 This document describes the abilities and work of integration between Horizontal Pod Autoscaling and Prometheus.
 
 # Overview

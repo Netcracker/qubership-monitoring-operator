@@ -1,3 +1,7 @@
+---
+icon: lucide/bell-ring
+---
+
 This document describes how to configure Prometheus alerts in Monitoring.
 
 # Platform Monitoring alerts

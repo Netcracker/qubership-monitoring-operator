@@ -1726,7 +1726,7 @@ annotation or etcd size limit**, the same annotation-and-size mechanism for the 
 **Sources:**
 
 <!-- markdownlint-disable line-length -->
-* Derived from source: `docs/configuration.md`
+* Derived from source: `docs/configuration/README.md`
 <!-- markdownlint-enable line-length -->
 
 ### Custom Grafana plugins never reach Grafana

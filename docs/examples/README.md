@@ -1,3 +1,7 @@
+---
+icon: lucide/puzzle
+---
+
 # Examples
 
 ## Which example see at the first time

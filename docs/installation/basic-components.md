@@ -1,3 +1,7 @@
+---
+icon: lucide/layers
+---
+
 # Basic Components
 
 This document describes the monitoring components and their deployment scenarios.
