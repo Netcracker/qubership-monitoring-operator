@@ -31,7 +31,7 @@ themselves.
 | dashboardLabelSelector     | Allows to query over a set of resources according to labels.<br/>The result of matchLabels and matchExpressions are ANDed.<br/>An empty label selector matches all objects. A null label selector matches no objects.  | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)                           |
 | dashboardNamespaceSelector | Allows to query over a set of resources in namespaces that fits label selector.                                                                                                                                        | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)                             |
 | podMonitor                 | Pod monitor for self monitoring.                                                                                                                                                                                       | *[Monitor](#monitor)                                                                                                                            |
-| config                     | Allows set configuration for grafana. The properties used to generate grafana.ini.                                                                                                                                     | [grafv1alpha1.GrafanaConfig](https://github.com/grafana/grafana-operator/blob/v4/documentation/deploy_grafana.md#config-reconciliation)         |
+| config                     | grafana.ini sections and keys. Values override operator defaults. See [Grafana configuration](#grafana-configuration).                                                                                                 | map[string]map[string]string or scalar values                                                                                                   |
 | affinity                   | If specified, the pod's scheduling constraints                                                                                                                                                                         | *v1.Affinity                                                                                                                                    |
 | annotations                | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value" | map[string]string                                                                                                                               |
 | labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                       | map[string]string                                                                                                                               |
@@ -113,6 +113,74 @@ grafana:
     annotation.key: annotation-value
   priorityClassName: priority-class
 ```
+
+#### Grafana configuration
+
+The operator converts `grafana.config` (`spec.grafana.config`) into `spec.config` of the Grafana custom resource,
+which grafana-operator renders as `grafana.ini`. Each top-level key is a `grafana.ini` section, and each section holds
+string, number, or boolean values. Numbers and booleans are written as strings. A `null` value leaves the key unset.
+Nested objects, arrays, or a section that is not an object fail Grafana reconciliation with an error that names the key.
+
+The operator writes its own defaults first and applies `grafana.config` last, so your values override them. The
+operator sets these defaults:
+
+- `server.root_url` is `http://<host>/` when `grafana.ingress.install` is `true` and `grafana.ingress.host` is set.
+  The scheme is `https` when `grafana.ingress.tls` or `grafana.ingress.tlsSecretName` is set.
+- `auth.generic_oauth` keys come from `auth`, as described in [Generic OAuth](#generic-oauth).
+
+The operator ignores these keys in `grafana.config`:
+
+- `security.admin_user` and `security.admin_password`. Helm writes them into the admin credentials Secret, and Grafana
+  reads that Secret through `$__file{...}` references.
+- The whole `auth.jwt` section. grafana-operator uses it to authenticate to the Grafana API.
+
+#### Generic OAuth
+
+When `auth` (`spec.auth`) sets at least one of `loginUrl`, `tokenUrl`, or `userInfoUrl`, the operator enables the
+[Grafana Generic OAuth provider][grafana-generic-oauth] in `auth.generic_oauth`:
+
+<!-- markdownlint-disable line-length -->
+| `spec.auth` field              | `auth.generic_oauth` key    | Notes                                                         |
+| ------------------------------ | --------------------------- | ------------------------------------------------------------- |
+| `loginUrl`                     | `auth_url`                  | IdP authorization endpoint                                    |
+| `tokenUrl`                     | `token_url`                 | IdP token endpoint                                            |
+| `userInfoUrl`                  | `api_url`                   | IdP user info endpoint                                        |
+| _(always set)_                 | `enabled` = `true`          | Enables Generic OAuth                                         |
+| _(always set)_                 | `scopes` = `openid profile` | Override with `grafana.config.auth.generic_oauth.scopes`      |
+| `clientSecret` (Helm only)     | `client_secret`             | Set only when the `grafana-oauth-client-secret` Secret exists |
+| `tlsConfig.insecureSkipVerify` | `tls_skip_verify_insecure`  | No Secret is mounted                                          |
+| `tlsConfig.caSecret`           | `tls_client_ca`             | File path `/etc/grafana-tls/<secret-name>/<key>`              |
+| `tlsConfig.certSecret`         | `tls_client_cert`           | File path `/etc/grafana-tls/<secret-name>/<key>`              |
+| `tlsConfig.keySecret`          | `tls_client_key`            | File path `/etc/grafana-tls/<secret-name>/<key>`              |
+<!-- markdownlint-enable line-length -->
+
+The operator mounts each referenced TLS Secret read-only at `/etc/grafana-tls/<secret-name>/`. A Secret referenced
+by several fields, such as `certSecret` and `keySecret`, is mounted once. A selector without both `name` and `key` is
+skipped. The TLS Secrets must exist in the Grafana namespace before Grafana starts, because the pod does not start
+while a mounted Secret is missing.
+
+Example:
+
+```yaml
+auth:
+  loginUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/auth
+  tokenUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/token
+  userInfoUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/userinfo
+  tlsConfig:
+    insecureSkipVerify: false
+    caSecret:
+      name: idp-ca-cert
+      key: ca.crt
+    certSecret:
+      name: idp-client-cert
+      key: tls.crt
+    keySecret:
+      name: idp-client-cert
+      key: tls.key
+```
+
+<!-- markdownlint-disable-next-line line-length -->
+[grafana-generic-oauth]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-access/configure-authentication/generic-oauth/
 
 #### Automatic internet access
 
