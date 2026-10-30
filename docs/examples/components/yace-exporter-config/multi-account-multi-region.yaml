@@ -19,8 +19,8 @@ customNamespace:
       - eu-central-1
     roles:
       - roleArn: "arn:aws:iam::111111111111:role/yace-cloudwatch"
+      # Add externalId: "shared-external-identifier" when the trust policy requires it.
       - roleArn: "arn:aws:iam::222222222222:role/yace-cloudwatch"
-        # externalId: "shared-external-identifier"
     dimensionNameRequirements: [DBInstanceIdentifier]
     period: 120
     length: 180

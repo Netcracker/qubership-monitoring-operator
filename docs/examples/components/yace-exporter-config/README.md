@@ -5,10 +5,10 @@ into the `yaceExporter.config` parameter of your deploy parameters.
 
 ## Available Configurations
 
-| Configuration File | Description |
-|--------------------|-------------|
-| [config.yaml](config.yaml) | Discovery jobs for RDS, EBS, S3, Application ELB, and EFS in a single AWS account |
-| [multi-account-multi-region.yaml](multi-account-multi-region.yaml) | Cross-account and multi-region collection through assumed IAM roles |
+| Configuration File                                                 | Description                                                                       |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| [config.yaml](config.yaml)                                         | Discovery jobs for RDS, EBS, S3, Application ELB, and EFS in a single AWS account |
+| [multi-account-multi-region.yaml](multi-account-multi-region.yaml) | Cross-account and multi-region collection through assumed IAM roles               |
 
 ## Single Account
 

@@ -564,17 +564,17 @@ deployments. For more information, refer to
 The `cloudwatch-exporter` configuration options map to YACE as follows:
 
 <!-- markdownlint-disable line-length -->
-| Capability                | YACE configuration                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| AWS Region                | Job `regions: [ ... ]` in `discovery.jobs[]`, `static[]`, and `customNamespace[]`. `sts-region` is one STS endpoint, not a region list.      |
-| IAM Role / IRSA           | Home identity: `serviceAccount.annotations` with `eks.amazonaws.com/role-arn`, or `yaceExporter.aws`. Extra accounts: `roles[].roleArn`.     |
-| AWS Account               | Extra accounts: `roles[].roleArn` with optional `externalId` on the job. Omit `roles` to scrape only the home account.                       |
-| Metrics configuration     | `metrics[]` with `name`, `statistics`, `period`, and `length`.                                                                               |
-| Namespace filters         | Discovery `type`, or `namespace` in `static[]` and `customNamespace[]`.                                                                       |
-| Dimension filters         | Static `dimensions[]` for values and `dimensionNameRequirements` for names.                                                                   |
-| Collection interval       | Per-metric `period` and `length`, plus the `-scraping-interval` flag set through `yaceExporter.extraArgs`.                                    |
-| Resource tags             | `searchTags[]`, `exportedTagsOnMetrics`, and static `customTags[]` in discovery jobs.                                                         |
-| Custom metric definitions | `customNamespace[]`, or static jobs with a custom `namespace`.                                                                                |
+| Capability                | YACE configuration                                                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| AWS Region                | Job `regions: [ ... ]` in `discovery.jobs[]`, `static[]`, and `customNamespace[]`. `sts-region` is one STS endpoint, not a region list.  |
+| IAM Role / IRSA           | Home identity: `serviceAccount.annotations` with `eks.amazonaws.com/role-arn`, or `yaceExporter.aws`. Extra accounts: `roles[].roleArn`. |
+| AWS Account               | Extra accounts: `roles[].roleArn` with optional `externalId` on the job. Omit `roles` to scrape only the home account.                   |
+| Metrics configuration     | `metrics[]` with `name`, `statistics`, `period`, and `length`.                                                                           |
+| Namespace filters         | Discovery `type`, or `namespace` in `static[]` and `customNamespace[]`.                                                                  |
+| Dimension filters         | Static `dimensions[]` for values and `dimensionNameRequirements` for names.                                                              |
+| Collection interval       | Per-metric `period` and `length`, plus the `-scraping-interval` flag set through `yaceExporter.extraArgs`.                               |
+| Resource tags             | `searchTags[]`, `exportedTagsOnMetrics`, and static `customTags[]` in discovery jobs.                                                    |
+| Custom metric definitions | `customNamespace[]`, or static jobs with a custom `namespace`.                                                                           |
 <!-- markdownlint-enable line-length -->
 
 #### Credentials and Permissions for yace-exporter
@@ -674,12 +674,12 @@ The chart creates **one** `Deployment` and **one** AWS identity for the pod, eit
 regions are **not** extra deployments. Set them in `yaceExporter.config`.
 
 <!-- markdownlint-disable line-length -->
-| What you need              | Where to set it                                                                              | Notes                                                                                                            |
-| -------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Home monitoring identity   | `serviceAccount.annotations` for IRSA, or `aws.aws_access_key_id` and `aws.aws_secret_access_key` | One identity only. It must be allowed to call `sts:AssumeRole` on each target role.                              |
-| Extra AWS accounts         | `roles[].roleArn` with optional `externalId` on the job                                        | Works in `discovery.jobs[]`, `static[]`, and `customNamespace[]`. Omit `roles` to scrape only the home account.  |
-| Extra CloudWatch regions   | `regions: [ ... ]` on the job                                                                  | CloudWatch is regional. There is no "all regions" flag.                                                          |
-| STS endpoint               | Top-level `sts-region`                                                                         | A **single** region, not a list. The pod must reach `sts.<sts-region>.amazonaws.com`.                            |
+| What you need            | Where to set it                                                                                   | Notes                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Home monitoring identity | `serviceAccount.annotations` for IRSA, or `aws.aws_access_key_id` and `aws.aws_secret_access_key` | One identity only. It must be allowed to call `sts:AssumeRole` on each target role.                             |
+| Extra AWS accounts       | `roles[].roleArn` with optional `externalId` on the job                                           | Works in `discovery.jobs[]`, `static[]`, and `customNamespace[]`. Omit `roles` to scrape only the home account. |
+| Extra CloudWatch regions | `regions: [ ... ]` on the job                                                                     | CloudWatch is regional. There is no "all regions" flag.                                                         |
+| STS endpoint             | Top-level `sts-region`                                                                            | A **single** region, not a list. The pod must reach `sts.<sts-region>.amazonaws.com`.                           |
 <!-- markdownlint-enable line-length -->
 
 YACE scrapes **every `roleArn` in every region** listed on a job. Metrics carry the `account_id` and `region` labels.
@@ -815,11 +815,11 @@ account and only the temporary credentials differ. A fully private deployment ne
 endpoints:
 
 <!-- markdownlint-disable line-length -->
-| Endpoint                            | Required for                                                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `com.amazonaws.<region>.monitoring` | CloudWatch `GetMetricData` and `ListMetrics`. Always required.                                                      |
-| `com.amazonaws.<region>.sts`        | `AssumeRole`. Required for cross-account collection and for IRSA.                                                   |
-| `com.amazonaws.<region>.tagging`    | Resource Groups Tagging `GetResources`. Required for discovery jobs, but not for `static` or `customNamespace` jobs.|
+| Endpoint                            | Required for                                                                                                         |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `com.amazonaws.<region>.monitoring` | CloudWatch `GetMetricData` and `ListMetrics`. Always required.                                                       |
+| `com.amazonaws.<region>.sts`        | `AssumeRole`. Required for cross-account collection and for IRSA.                                                    |
+| `com.amazonaws.<region>.tagging`    | Resource Groups Tagging `GetResources`. Required for discovery jobs, but not for `static` or `customNamespace` jobs. |
 <!-- markdownlint-enable line-length -->
 
 On the IAM side, which is not a networking setting, the trust policy of the role in each target account must allow the
@@ -831,7 +831,7 @@ When `yaceExporter.install` is set to `true`, the chart renders the following re
 `yace-exporter`.
 
 * `Deployment/yace-exporter` runs YACE with `-listen-address=0.0.0.0:5000` and `-config.file=/config/config.yml`, and
-  probes `/metrics` for liveness and readiness.
+  probes `/healthz` for liveness and readiness.
 * `ConfigMap/yace-exporter` holds `config.yml` rendered from `yaceExporter.config`.
 * `Service/yace-exporter` is a `ClusterIP` service that exposes port `5000`.
 * `ServiceAccount/yace-exporter` is created when `serviceAccount.install` is `true`, and it carries the IRSA

@@ -29,6 +29,21 @@ discovery:
     AWS/EFS:
       - Name
   jobs:
+    # Cross-account: copy any job below and add roles for each target account.
+    # Do not list the IRSA role of the monitoring account here.
+    # - type: AWS/RDS
+    #   regions:
+    #     - us-east-1
+    #   roles:
+    #     - roleArn: "arn:aws:iam::111111111111:role/yace-exporter"
+    #     - roleArn: "arn:aws:iam::222222222222:role/yace-exporter"
+    #       externalId: "shared-external-identifier"
+    #   period: 300
+    #   length: 600
+    #   metrics:
+    #     - name: CPUUtilization
+    #       statistics: [Average]
+
     - type: AWS/RDS
       regions:
         - us-east-1
@@ -121,21 +136,6 @@ discovery:
           statistics: [Sum]
         - name: BurstCreditBalance
           statistics: [Average]
-
-    # Cross-account: copy any job above and add roles for each target account.
-    # Do not list the IRSA role of the monitoring account here.
-    # - type: AWS/RDS
-    #   regions:
-    #     - us-east-1
-    #   roles:
-    #     - roleArn: "arn:aws:iam::111111111111:role/yace-exporter"
-    #     - roleArn: "arn:aws:iam::222222222222:role/yace-exporter"
-    #       externalId: "shared-external-identifier"
-    #   period: 300
-    #   length: 600
-    #   metrics:
-    #     - name: CPUUtilization
-    #       statistics: [Average]
 
 # Static job: use when you know the exact dimension values (no tag discovery).
 # Delete this block if you do not need it.
