@@ -145,7 +145,7 @@ from the `HPA` specification.
 (The autoscaling/v2beta2 API version previously provided this ability as a beta feature)
 
 Provided that you use the autoscaling/v2 API version, you can configure a HorizontalPodAutoscaler to scale based on
-a custom metric (that is not built in to Kubernetes or any Kubernetes component).
+a custom metric (that is not built-in to Kubernetes or any Kubernetes component).
 The HorizontalPodAutoscaler controller then queries for these custom metrics from the Kubernetes API.
 
 For information about the requirements, see
@@ -507,8 +507,8 @@ each series has its metric name filtered through any specified filters.
 
 Filters may be either:
 
-* `is: <regex>`, which matches any series whose name matches with the specified regex.
-* `isNot: <regex>`, which matches any series whose name does not match with the specified regex.
+* `is: <regex>`, which matches any series whose name matches with the specified regular expression.
+* `isNot: <regex>`, which matches any series whose name does not match with the specified regular expression.
 
 For example:
 

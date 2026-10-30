@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-version-exporter versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-version-exporter:0.6.1" -}}
+    {{- print "ghcr.io/netcracker/qubership-version-exporter:0.6.2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -19,14 +19,12 @@ Image can be found from:
 Return securityContext for version-exporter.
 */}}
 {{- define "version-exporter.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 2000) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "version-exporter.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.containerSecurityContext) -}}
 {{- end -}}
 
 {{/*

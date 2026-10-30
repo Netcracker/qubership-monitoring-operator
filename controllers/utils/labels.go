@@ -30,12 +30,12 @@ func CommonLabels() map[string]string {
 	}
 }
 
-// TruncLabel truncates label values to 63 chars (Kubernetes limit) and trims trailing hyphens.
+// TruncLabel truncates label values to 63 chars (Kubernetes limit) and trims leading and trailing separators.
 func TruncLabel(label string) string {
 	if len(label) >= 63 {
-		return strings.Trim(label[:63], "-")
+		return strings.Trim(label[:63], "-_.")
 	}
-	return strings.Trim(label, "-")
+	return strings.Trim(label, "-_.")
 }
 
 // GetInstanceLabel returns the instance label (name-namespace), truncated to 63 chars.

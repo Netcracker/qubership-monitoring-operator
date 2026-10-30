@@ -3,6 +3,7 @@ package v1
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -32,6 +33,15 @@ func TestPlatformMonitoringCRDManifest(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.NotNil(t, cr, "Custom resource manifest should not be empty")
+}
+
+func TestPlatformMonitoringStatusObservedGenerationJSON(t *testing.T) {
+	status := PlatformMonitoringStatus{ObservedGeneration: 7}
+
+	data, err := json.Marshal(status)
+
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{"conditions":null,"observedGeneration":7}`, string(data))
 }
 
 func TestPlatformMonitoringAlertmanagerConfigCompatibility(t *testing.T) {

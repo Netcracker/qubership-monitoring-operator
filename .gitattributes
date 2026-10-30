@@ -125,6 +125,7 @@ gradlew         text eol=lf
 /charts/qubership-monitoring-operator/crds/** linguist-generated=true
 /charts/qubership-monitoring-operator/charts/*/crds/** linguist-generated=true
 /charts/qubership-monitoring-crds/crds/** linguist-generated=true
+/docs/api/platform-monitoring.md linguist-generated=true
 
 # Note: .db, .p, and .pkl files are associated
 # with the python modules ``pickle``, ``dbm.*``,

@@ -37,7 +37,6 @@ spec:
         {{- toYaml .Values.annotations | nindent 8 }}
       {{- end }}
     spec:
-      shareProcessNamespace: true
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
@@ -46,7 +45,7 @@ spec:
       nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
       affinity: {{- toYaml .Values.affinity | nindent 8 }}
       securityContext:
-        {{ include "networkLatencyExporter.securityContext" . }}
+        {{- include "networkLatencyExporter.securityContext" . | nindent 8 }}
       containers:
         - name: {{ .Values.name }}
           image: {{ template "networkLatencyExporter.image" . }}
@@ -85,10 +84,15 @@ spec:
               value: {{ .Values.latencyTypes | quote }}
           resources:
             {{ include "networkLatencyExporter.resources" $ }}
+          securityContext:
+            {{- include "networkLatencyExporter.containerSecurityContext" . | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           terminationMessagePath: /dev/termination-log
           imagePullPolicy: IfNotPresent
-          {{- if .Values.rbac.privileged }}
-          securityContext:
-            privileged: true
-          {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{- end }}

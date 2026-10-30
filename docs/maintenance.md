@@ -152,6 +152,10 @@ To update CRDs need:
 Server-side apply updates existing CRDs, creates CRDs introduced by the target release, and avoids the large
 client-side last-applied-configuration annotation. Ordinary `helm upgrade` does not upgrade CRDs.
 
+The Grafana Operator v4-to-v5 upgrade does not preserve every existing configuration behavior. Before upgrading,
+review the [Grafana v5 upgrade limitations](user-guides/grafana-v5-upgrade.md) and confirm that the existing
+`PlatformMonitoring` configuration uses the supported profile.
+
 Before upgrading from Grafana Operator v4, migrate legacy
 [`GrafanaDataSource` resources](examples/custom-resources/grafana-datasource/README.md#migrate-v4-resources).
 Legacy dashboards remain available to the Grafana operator converter and must not be removed before conversion.
@@ -191,7 +195,7 @@ After executing the command, all Monitoring components are removed from the sele
 objects are not removed:
 
 * `monitoring-operator`
-* Persistent Prometheus PVCs
+* Persistent Prometheus and VMSingle PVCs
 * Some cluster entities like ClusterRoles, ClusterRoleBindings, Security Context Constraints (SCC), and Pod Security
   Policy (PSP)
 
@@ -210,14 +214,15 @@ helm list -n <namespace>
 ```
 
 The command removes all the Kubernetes/OpenShift components associated with the chart and deletes the release.
-Persistent Prometheus PVCs remain so that uninstalling the release does not implicitly remove stored metrics.
+Persistent Prometheus and VMSingle PVCs remain so that uninstalling the release does not implicitly remove stored
+metrics. Reinstalling the same monitoring instance can reuse them.
 
-To remove stored Prometheus metrics, first verify that the data was migrated or is no longer required. List the claims
-in the monitoring namespace, identify the exact Prometheus PVC, and delete that claim explicitly:
+To remove stored metrics, first verify that the data was migrated or is no longer required. List the claims in the
+monitoring namespace, identify the exact PVC, and delete that claim explicitly:
 
 ```bash
 kubectl get pvc -n <namespace>
-kubectl delete pvc <prometheus-pvc-name> -n <namespace>
+kubectl delete pvc <pvc-name> -n <namespace>
 ```
 
 The underlying PV and storage asset then follow the reclaim policy configured by the storage class or PV administrator.
