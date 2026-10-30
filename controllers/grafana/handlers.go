@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -180,16 +179,18 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 }
 
 func applyGrafanaDesiredState(existing, desired *grafv1.Grafana) bool {
-	needsUpdate := false
-	if !reflect.DeepEqual(existing.Spec, desired.Spec) {
-		existing.Spec = desired.Spec
-		needsUpdate = true
-	}
-	if !reflect.DeepEqual(existing.GetLabels(), desired.GetLabels()) {
-		existing.SetLabels(desired.GetLabels())
-		needsUpdate = true
-	}
-	return needsUpdate
+	return utils.AnyChanged(
+		utils.SetIfChanged(&existing.Spec, desired.Spec),
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+	)
+}
+
+// syncDataSource copies the spec and labels of desired onto existing.
+func syncDataSource(existing, desired *grafv1.GrafanaDatasource) bool {
+	return utils.AnyChanged(
+		utils.SetIfChanged(&existing.Spec, desired.Spec),
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+	)
 }
 
 func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring) error {
@@ -228,22 +229,7 @@ func (r *GrafanaReconciler) handleGrafanaDataSource(cr *monv1.PlatformMonitoring
 	}
 
 	// Only update if something actually changed to avoid unnecessary updates
-	needsUpdate := false
-	if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
-		checkObj.Spec = m.Spec
-		needsUpdate = true
-	}
-	if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
-		checkObj.SetLabels(m.GetLabels())
-		needsUpdate = true
-	}
-
-	if needsUpdate {
-		if err = r.UpdateResource(checkObj); err != nil {
-			return err
-		}
-	}
-	return nil
+	return r.UpdateIfChanged(checkObj, syncDataSource(checkObj, m))
 }
 
 // handleJaegerDataSources creates one GrafanaDatasource for each discovered Jaeger Service.
@@ -311,19 +297,7 @@ func (r *GrafanaReconciler) applyDiscoveredDataSource(cr *monv1.PlatformMonitori
 	}
 	desired.Spec.CustomUID = current.Spec.CustomUID
 	desired.Spec.InstanceSelector = current.Spec.InstanceSelector
-	needsUpdate := false
-	if !reflect.DeepEqual(current.Spec, desired.Spec) {
-		current.Spec = desired.Spec
-		needsUpdate = true
-	}
-	if !reflect.DeepEqual(current.GetLabels(), desired.GetLabels()) {
-		current.SetLabels(desired.GetLabels())
-		needsUpdate = true
-	}
-	if needsUpdate {
-		return r.UpdateResource(current)
-	}
-	return nil
+	return r.UpdateIfChanged(current, syncDataSource(current, desired))
 }
 
 func (r *GrafanaReconciler) deleteStaleDiscoveredDataSources(cr *monv1.PlatformMonitoring, component string, desiredNames map[string]struct{}) error {
@@ -392,22 +366,7 @@ func (r *GrafanaReconciler) handleGrafanaPromxyDataSource(cr *monv1.PlatformMoni
 
 	// Set parameters
 	// Only update if something actually changed to avoid unnecessary updates
-	needsUpdate := false
-	if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
-		checkObj.Spec = m.Spec
-		needsUpdate = true
-	}
-	if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
-		checkObj.SetLabels(m.GetLabels())
-		needsUpdate = true
-	}
-
-	if needsUpdate {
-		if err = r.UpdateResource(checkObj); err != nil {
-			return err
-		}
-	}
-	return nil
+	return r.UpdateIfChanged(checkObj, syncDataSource(checkObj, m))
 }
 
 func (r *GrafanaReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -417,26 +376,7 @@ func (r *GrafanaReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error 
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncIngress)
 }
 
 func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -447,27 +387,7 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 	}
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncPodMonitor)
 }
 
 // getGrafanaAdminSecretName returns the name of the admin credentials secret for Grafana.

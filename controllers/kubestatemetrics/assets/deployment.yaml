@@ -28,11 +28,19 @@ spec:
           ports:
             - name: http-metrics
               containerPort: 8080
+              protocol: TCP
             - name: telemetry
               containerPort: 8081
+              protocol: TCP
           readinessProbe:
             httpGet:
               path: /healthz
               port: 8080
+              scheme: HTTP
             initialDelaySeconds: 5
             timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
