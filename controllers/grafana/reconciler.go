@@ -11,20 +11,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// isManageAdminSecret returns true when Helm (and therefore this operator) manages
-// the grafana-admin-credentials secret, i.e. grafana.disableDefaultAdminSecret=false (default).
-// When the flag is true the user is responsible for the secret; we skip validation.
-func isManageAdminSecret(cr *monv1.PlatformMonitoring) bool {
-	if cr.Spec.Grafana == nil {
-		return false
-	}
-	// We manage the secret when disableDefaultAdminSecret is explicitly false or not set.
-	return cr.Spec.Grafana.DisableDefaultAdminSecret == nil || !*cr.Spec.Grafana.DisableDefaultAdminSecret
-}
-
 type GrafanaReconciler struct {
 	KubeClient kubernetes.Interface
 	config     *rest.Config
+	// runPodCommand overrides execInPod in tests.
+	runPodCommand podCommandRunner
 	*utils.ComponentReconciler
 }
 
@@ -51,13 +42,13 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Paused {
-			if isManageAdminSecret(cr) {
-				if err := r.handleGrafanaCredentialsSecret(cr); err != nil {
-					return err
-				}
-			}
 			// Reconcile resources with creation and update
 			if err := r.handleGrafana(cr); err != nil {
+				return err
+			}
+			// Sync the admin password before datasource reconciliation, which authenticates with it.
+			if err := r.syncGrafanaAdminPassword(cr); err != nil {
+				r.Log.Error(err, "Cannot sync Grafana admin password")
 				return err
 			}
 			if err := r.handleGrafanaDataSource(cr); err != nil {
@@ -123,9 +114,6 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 					r.Log.Error(err, "Can not delete PodMonitor")
 				}
 			}
-			// Grafana reads the admin credentials from the mounted Secret at startup, so a manually
-			// changed secret value takes effect only after the Grafana pod restarts.
-			// resetGrafanaCredentials updates them in place but is not triggered automatically.
 			r.Log.Info("Component reconciled")
 		} else {
 			r.Log.Info("Reconciling paused")
