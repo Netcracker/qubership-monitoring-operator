@@ -41,11 +41,16 @@ spec:
       {{- end }}
       serviceAccountName: {{ .name }}
       securityContext:
-        {{ include "certExporter.daemonset.securityContext" $ }}
+        {{- include "certExporter.daemonset.securityContext" $ | nindent 8 }}
       tolerations: {{- toYaml .daemonset.tolerations | nindent 8 }}
       nodeSelector: {{- toYaml .daemonset.nodeSelector | nindent 8 }}
       affinity: {{- toYaml .daemonset.affinity | nindent 8 }}
+      {{- $hostPathMounts := list }}
+      {{- range .additionalHostPathVolumes }}
+        {{- $hostPathMounts = append $hostPathMounts (dict "name" .volumeName "mountPath" .volumePath) }}
+      {{- end }}
       volumes:
+        {{- include "monitoring.security.tmpVolume" (dict "volumes" $hostPathMounts) | nindent 8 }}
       {{- if or (and .certsInFiles .certsInFiles.enabled .certsInFiles.defaultCerts) (and .certsInKubeconfig .certsInKubeconfig.enabled .certsInKubeconfig.defaultCerts) }}
         {{- if not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
         - name: kube
@@ -88,6 +93,8 @@ spec:
       {{- end }}
       containers:
         - command: ["./app"]
+          securityContext:
+            {{- include "certExporter.containerSecurityContext" $ | nindent 12 }}
           args:
           {{- if and .certsInFiles .certsInFiles.enabled }}
             {{- if and .certsInFiles.defaultCerts (not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints")) }}
@@ -142,6 +149,7 @@ spec:
             - containerPort: 8080
               name: metrics
           volumeMounts:
+            {{- with include "monitoring.security.tmpVolumeMount" (dict "volumeMounts" $hostPathMounts) }}{{ . | nindent 12 }}{{- end }}
           {{- if or (and .certsInFiles .certsInFiles.enabled .certsInFiles.defaultCerts) (and .certsInKubeconfig .certsInKubeconfig.enabled .certsInKubeconfig.defaultCerts) }}
             {{- if not ($.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") }}
             - name: kube

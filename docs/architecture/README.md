@@ -4,11 +4,15 @@ icon: lucide/network
 
 # Architecture
 
-This document describes the detailed architecture of the Qubership Monitoring Operator, a Kubernetes operator that manages the deployment and configuration of a comprehensive monitoring stack. It covers the core components, their relationships, control flows, and integration points.
+This document describes the detailed architecture of the Qubership Monitoring Operator, a Kubernetes operator
+that manages the deployment and configuration of a comprehensive monitoring stack. It covers the core components,
+their relationships, control flows, and integration points.
 
 ## Overview
 
-The Qubership Monitoring Operator serves as a centralized controller for managing multiple monitoring components within a Kubernetes environment. It orchestrates the deployment and configuration of Prometheus, VictoriaMetrics, Grafana, AlertManager, and various exporters to create a complete monitoring solution.
+The Qubership Monitoring Operator serves as a centralized controller for managing multiple monitoring components
+within a Kubernetes environment. It orchestrates the deployment and configuration of Prometheus, VictoriaMetrics,
+Grafana, AlertManager, and various exporters to create a complete monitoring solution.
 
 ```mermaid
 graph TB
@@ -49,11 +53,14 @@ graph TB
 
 ## Operator Architecture
 
-The Monitoring Operator is the central component that manages the entire monitoring stack. It watches for and processes a custom resource called `PlatformMonitoring`, which defines the desired state of the monitoring setup.
+The Monitoring Operator is the central component that manages the entire monitoring stack.
+It watches for and processes a custom resource called `PlatformMonitoring`, which defines the desired state
+of the monitoring setup.
 
 ### Operator Controller Pattern
 
-The operator follows the Kubernetes operator pattern, using the controller-runtime library to watch for changes to the `PlatformMonitoring` resource and reconcile the current state with the desired state.
+The operator follows the Kubernetes operator pattern, using the controller-runtime library to watch for changes
+to the `PlatformMonitoring` resource and reconcile the current state with the desired state.
 
 ```mermaid
 graph LR
@@ -75,7 +82,8 @@ graph LR
 
 #### Prometheus Stack
 
-The Prometheus stack includes Prometheus itself, AlertManager, and related components. The operator deploys and configures these components using the Prometheus Operator.
+The Prometheus stack includes Prometheus itself, AlertManager, and related components.
+The operator deploys and configures these components using the Prometheus Operator.
 
 ```mermaid
 graph TB
@@ -100,7 +108,8 @@ graph TB
     CR -->|Reloads Config| PROM
 ```
 
-The Prometheus Operator handles the deployment and configuration of Prometheus and AlertManager instances. It automatically generates scrape configurations based on ServiceMonitor and PodMonitor custom resources.
+The Prometheus Operator handles the deployment and configuration of Prometheus and AlertManager instances.
+It automatically generates scrape configurations based on ServiceMonitor and PodMonitor custom resources.
 
 #### VictoriaMetrics Integration
 
@@ -127,7 +136,8 @@ graph TB
     VMALERT -->|Queries| VMSINGLE
 ```
 
-VictoriaMetrics provides a similar but more resource-efficient alternative to Prometheus, with its own set of custom resources for configuration.
+VictoriaMetrics provides a similar but more resource-efficient alternative to Prometheus,
+with its own set of custom resources for configuration.
 
 ### Grafana Stack
 
@@ -150,7 +160,8 @@ graph TB
     GDS -->|Configures| GRAF
 ```
 
-The Grafana Operator manages Grafana instances, datasources, and dashboards. It automatically discovers and applies GrafanaDashboard custom resources.
+The Grafana Operator manages Grafana instances, datasources, and dashboards. It automatically discovers
+and applies GrafanaDashboard custom resources.
 
 ## Custom Resource Architecture
 
@@ -274,7 +285,8 @@ graph TB
     SDE -->|/metrics| TSDB
 ```
 
-The monitoring operator can deploy specialized exporters for each cloud platform to collect metrics from cloud services and make them available to Prometheus/VictoriaMetrics.
+The monitoring operator can deploy specialized exporters for each cloud platform to collect metrics
+from cloud services and make them available to Prometheus/VictoriaMetrics.
 
 ## Deployment Architecture
 
@@ -319,7 +331,8 @@ graph TB
     GO -->|Manages| GRAF
 ```
 
-The deployment can be customized through various configuration options in the Helm chart's values.yaml file, which controls aspects like storage, authentication, resource limits, and cloud provider integration.
+The deployment can be customized through various configuration options in the Helm chart's values.yaml file,
+which controls aspects like storage, authentication, resource limits, and cloud provider integration.
 
 ## Extension Architecture
 
@@ -359,7 +372,8 @@ graph TB
     HELM -->|Configures| PLATFORMMON
 ```
 
-This architecture allows for flexible extensions by both users (who can add monitoring for their applications) and administrators (who can configure the overall monitoring system).
+This architecture allows for flexible extensions by both users (who can add monitoring for their applications)
+and administrators (who can configure the overall monitoring system).
 
 ## Security Architecture
 
@@ -392,20 +406,21 @@ graph TB
     OAUTH2PROXY -->|Protects| AM
 ```
 
-The system supports various authentication methods, including OAuth/OIDC, basic auth, and token-based authentication, as well as TLS encryption for secure communications.
+The system supports various authentication methods, including OAuth/OIDC, basic auth, and token-based authentication,
+as well as TLS encryption for secure communications.
 
 ## Component Relationships
 
 The following table shows the relationships between different components:
 
-| Component | Managed By | Configures | Provides Data To |
-| --------- | ---------- | ---------- | ---------------- |
-| Prometheus | Prometheus Operator | ServiceMonitor, PodMonitor | Grafana, AlertManager |
-| VictoriaMetrics | VM Operator | VMServiceScrape, VMPodScrape | Grafana, VMAlert |
-| Grafana | Grafana Operator | GrafanaDashboard, GrafanaDatasource | Users |
-| AlertManager | Prometheus Operator | AlertmanagerConfig | Notification channels |
-| kube-state-metrics | Monitoring Operator | Built-in config | Prometheus, VictoriaMetrics |
-| node-exporter | Monitoring Operator | Built-in config | Prometheus, VictoriaMetrics |
+| Component          | Managed By          | Configures                          | Provides Data To            |
+| ------------------ | ------------------- | ----------------------------------- | --------------------------- |
+| Prometheus         | Prometheus Operator | ServiceMonitor, PodMonitor          | Grafana, AlertManager       |
+| VictoriaMetrics    | VM Operator         | VMServiceScrape, VMPodScrape        | Grafana, VMAlert            |
+| Grafana            | Grafana Operator    | GrafanaDashboard, GrafanaDatasource | Users                       |
+| AlertManager       | Prometheus Operator | AlertmanagerConfig                  | Notification channels       |
+| kube-state-metrics | Monitoring Operator | Built-in config                     | Prometheus, VictoriaMetrics |
+| node-exporter      | Monitoring Operator | Built-in config                     | Prometheus, VictoriaMetrics |
 
 ## Benefits of This Architecture
 
@@ -420,4 +435,5 @@ The Qubership Monitoring Operator architecture provides several key benefits:
 7. **Extensibility**: Allows users and administrators to extend functionality through custom resources
 8. **Security**: Provides multiple authentication and authorization options
 
-This architecture enables organizations to deploy and maintain a production-ready monitoring stack with minimal operational overhead while providing the flexibility to customize and extend the system as needed.
+This architecture enables organizations to deploy and maintain a production-ready monitoring stack with minimal
+operational overhead while providing the flexibility to customize and extend the system as needed.

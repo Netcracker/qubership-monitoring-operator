@@ -9,8 +9,8 @@ installation and during the work.
 
 During deploy you can specify admin users and passwords for the next components:
 
-* Grafana
-* VMAuth
+- Grafana
+- VMAuth
 
 **Note:** Because the VMAuth used as a proxy to external access for all VictoriaMetrics components
 it means that it's enough to change specific users and passwords only for VMAuth. Other components
@@ -19,13 +19,14 @@ have no auth inside the Cloud.
 ## Grafana deploy
 
 In current versions the **single source of truth** for Grafana admin credentials is the
-`grafana-admin-credentials` Secret. The Grafana pod reads admin user and password from
+`grafana-admin-credentials` Secret. The Secret is mounted read-only at `/etc/grafana-admin`, and
+`grafana.ini` reads these keys through Grafana's file provider (`$__file{...}`) rather than through
 environment variables:
 
 - `GF_SECURITY_ADMIN_USER`
 - `GF_SECURITY_ADMIN_PASSWORD`
 
-These variables are populated from the Secret.
+The rendered ConfigMap therefore holds only file references, never the credentials themselves.
 
 During deployment you can configure these credentials via `values.yaml`:
 
@@ -43,8 +44,8 @@ Behaviour:
 
 - By default `admin_user` and `admin_password` are set to `admin/admin`.
 - If you set any of them to an empty string `""`, Monitoring Operator will:
-    - on first installation: generate a random value and store it in the Secret;
-    - on subsequent upgrades: keep the existing value from the Secret.
+  - on first installation: generate a random value and store it in the Secret;
+  - on subsequent upgrades: keep the existing value from the Secret.
 - For backward compatibility, if the old section
   `grafana.config.security.admin_user` / `grafana.config.security.admin_password`
   is specified, its non-empty values override `grafana.security.*` **only when
@@ -56,7 +57,7 @@ the admin credentials Secret:
 ```yaml
 grafana:
   # false (default): Helm renders grafana-admin-credentials from grafana.security.*
-  #                  and passes it to Grafana via environment variables.
+  #                  and Grafana reads it from the mounted Secret.
   # true:            user is fully responsible for creating the Secret
   #                  {grafana-name}-admin-credentials with the required keys:
   #                  GF_SECURITY_ADMIN_USER and GF_SECURITY_ADMIN_PASSWORD.
@@ -67,9 +68,12 @@ grafana:
   the `grafana-admin-credentials` Secret based on values from `grafana.security.*`
   (or legacy `config.security.*`, if present).
 - When `disableDefaultAdminSecret=true`, Helm does **not** create the Secret.
-  Grafana and Grafana Operator read credentials from the Secret only if it exists.
-  If the Secret is absent, Grafana falls back to its built-in default (`admin/admin`),
-  so login is still possible.
+  Grafana reads the credentials from the Secret only if it exists. If the Secret is absent, the
+  operator omits the `security.admin_user` and `security.admin_password` settings, so Grafana
+  starts and falls back to its built-in default (`admin/admin`) and login is still possible.
+  Once you create the Secret, the next reconciliation adds the settings.
+  Grafana Operator does not use these credentials: it authenticates against the Grafana API with
+  a projected ServiceAccount token (JWT).
 
 Other external users and their passwords can't be set during deploy. During deploy you can specify
 only which auth provides will use in Grafana.
@@ -155,7 +159,7 @@ data:
 type: Opaque
 ```
 
-Update Base64 encoded password and save the file. Close the editor to update the secret.
+Update base64 encoded password and save the file. Close the editor to update the secret.
 Following message confirms the secret was edited successfully.
 
 ```bash

@@ -1,4 +1,6 @@
 site_name: Qubership Monitoring Operator
+# Zensical accepts the compact indentation used by the existing navigation tree.
+# yamllint disable rule:indentation
 site_description: Comprehensive monitoring solution for Kubernetes
 site_url: https://netcracker.github.io/qubership-monitoring-operator
 
@@ -51,6 +53,9 @@ theme:
     - navigation.sections
     - navigation.path
     - navigation.indexes
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
     - navigation.top
     - toc.follow
     - search.suggest
@@ -135,9 +140,11 @@ nav:
   - Installation:
       - installation/README.md
       - Prerequisites: installation/prerequisites.md
+      - Restricted Mode Installation: installation/restricted-mode.md
       - Components Overview: installation/basic-components.md
       - Storage Configuration: installation/storage.md
       - Deployment: installation/deploy.md
+      - Grafana v5 Upgrade: user-guides/grafana-v5-upgrade.md
       - Post-Deploy Checks: installation/post-deploy-checks.md
       - Integration Tests: installation/integration-tests.md
       - Component Configuration:
@@ -207,6 +214,7 @@ nav:
           - CloudWatch Exporter Config: examples/components/cloudwatch-exporter-config/README.md
           - Configurations Streamer Resend API: examples/components/configurations-streamer/resend_examples.md
           - Monitoring Pack: examples/deploy-parameters/monitoring-pack/README.md
+          - Namespaced Guest Installation: examples/deploy-parameters/namespaced-guest/README.md
           - Custom Resources:
               - examples/custom-resources/README.md
               - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
@@ -325,6 +333,9 @@ nav:
           - Monitoring TLS: monitoring-configuration/tls.md
           - Metrics Collection TLS: metrics-collection/tls.md
           - Route and Ingress TLS: monitoring-configuration/route-ingress-tls.md
+          - Exporter Hardening: installation/exporter-security-hardening.md
+          - Optional Component Hardening: installation/optional-components-security-hardening.md
+          - etcd Certificate Synchronization: installation/etcd-certs-to-secret-security.md
       - Migration:
           - migration/README.md
           - Prometheus to VictoriaMetrics: user-guides/migrate-from-prometheus-to-victoriametrics.md

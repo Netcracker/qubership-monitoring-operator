@@ -8,7 +8,8 @@ This document describes the monitoring components and their deployment scenarios
 
 ## Component Overview
 
-The Qubership Monitoring Operator includes many components that serve various monitoring functions. Not all projects need all functions, so you can specify which components to install.
+The Qubership Monitoring Operator includes many components that serve various monitoring functions.
+Not all projects need all functions, so you can specify which components to install.
 
 ### Always Installed
 
@@ -32,6 +33,7 @@ By default, the following components are installed:
 ### Core Monitoring Stack
 
 #### VictoriaMetrics Stack
+
 * **`vmoperator`** - VictoriaMetrics operator
 * **`vmagent`** - Metrics collection agent
 * **`vmalert`** - Alerting component
@@ -40,34 +42,39 @@ By default, the following components are installed:
 * **`vmsingle`** - Single-node VictoriaMetrics
 * **`vmuser`** - User management
 
-#### Grafana Stack  
+#### Grafana Stack
+
 * **`grafana-operator`** - Grafana instance management
 * **`grafana`** - Visualization and dashboard platform
 * **`grafana-dashboards`** - Pre-built monitoring dashboards
 
 #### AlertManager
+
 * **`alertmanager`** - Alert routing, grouping, and notification management
 
 #### Prometheus Stack
+
 * **`prometheus-operator`** - Prometheus instance management
 * **`prometheus`** - Time series database and monitoring engine
 * **`prometheus-rules`** - Alerting and recording rules
 * **`kubernetes-monitors`** - Kubernetes-specific monitoring targets
 
-
 ### Metrics Exporters
 
 #### Core Exporters
+
 * **`node-exporter`** - Hardware and OS metrics
 * **`kube-state-metrics`** - Kubernetes object state metrics
 
 #### Specialized Exporters
+
 * **`blackbox-exporter`** - External endpoint probing
 * **`cert-exporter`** - TLS certificate monitoring
 * **`version-exporter`** - Version tracking
 * **`network-latency-exporter`** - Network latency measurements
 
 #### Cloud Exporters
+
 * **`cloudwatch-exporter`** - AWS CloudWatch metrics
 * **`promitor-agent-scraper`** - Azure Monitor metrics
 * **`stackdriver-exporter`** - Google Cloud metrics
@@ -83,7 +90,9 @@ By default, the following components are installed:
 ## Deployment Scenarios
 
 ### Scenario 1: Metrics Collection Only
+
 Minimal setup for basic metrics collection:
+
 ```yaml
 components:
   - monitoring-operator
@@ -93,7 +102,9 @@ components:
 ```
 
 ### Scenario 2: Collection + Visualization
+
 Add dashboards and visualization:
+
 ```yaml
 components:
   - monitoring-operator
@@ -105,7 +116,9 @@ components:
 ```
 
 ### Scenario 3: Full Monitoring Stack
+
 Complete monitoring with alerting:
+
 ```yaml
 components:
   - monitoring-operator
@@ -119,7 +132,9 @@ components:
 ```
 
 ### Scenario 4: External Storage Integration
+
 Send metrics to external systems:
+
 ```yaml
 components:
   - monitoring-operator
@@ -178,12 +193,15 @@ By default, metrics are collected from:
 You can selectively enable or disable:
 
 #### Dashboards
+
 Configure via `grafanaDashboards.list` parameter - specify which dashboards to install.
 
-#### Prometheus Rules  
+#### Prometheus Rules
+
 Configure via `prometheusRules.ruleGroups` parameter - specify alert rule groups to install.
 
 #### Kubernetes Monitors
+
 Configure via `kubernetesMonitors` parameter - specify monitoring targets and override scraping parameters.
 
 ### Automatic Rules
@@ -191,6 +209,7 @@ Configure via `kubernetesMonitors` parameter - specify monitoring targets and ov
 Some dashboards and monitors are automatically enabled/disabled based on component availability:
 
 #### Dashboard Rules
+
 * `kubernetes-nodes-resources` - disabled if `node-exporter` not installed
 * `home-dashboard` - disabled if `grafana.grafanaHomeDashboard` is false
 * `core-dns-dashboard` - disabled if CoreDNS monitor not available or OpenShift ≤ 3.11
@@ -201,11 +220,13 @@ Some dashboards and monitors are automatically enabled/disabled based on compone
 ## Example Configurations
 
 ### Basic Setup
+
 ```yaml
 # Minimal installation - use all defaults
 ```
 
 ### Custom Ingress Setup
+
 ```yaml
 grafana:
   ingress:
@@ -220,13 +241,14 @@ victoriametrics:
       host: victoriametrics.example.com
 
   vmAlertManager:
-    install: true  
+    install: true
     ingress:
       install: true
       host: alertmanager.example.com
 ```
 
 ### Cloud-Specific Setup
+
 ```yaml
 # AWS with CloudWatch
 cloudwatch-exporter:
@@ -245,4 +267,4 @@ stackdriver-exporter:
 
 1. Review [Storage](storage.md) configuration options
 2. Plan your [Deployment](deploy.md) strategy
-3. Configure individual [Components](components/) as needed 
+3. Configure individual [Components](components/) as needed

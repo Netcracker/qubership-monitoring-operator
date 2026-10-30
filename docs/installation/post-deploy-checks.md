@@ -4,7 +4,8 @@ icon: lucide/circle-check-big
 
 # Post-Deploy Checks
 
-There are many ways to check whether Monitoring is working correctly and collecting metrics after deployment. This guide covers both common verification steps and specific validation techniques.
+There are many ways to check whether Monitoring is working correctly and collecting metrics after deployment.
+This guide covers both common verification steps and specific validation techniques.
 
 ## Pod Status Verification
 
@@ -71,7 +72,8 @@ curl "http://localhost:8428/health"
 ```
 
 Expected response:
-```
+
+```bash
 OK
 ```
 
@@ -85,6 +87,7 @@ curl "http://localhost:3000/api/health"
 ```
 
 Expected response:
+
 ```json
 {
   "commit": "...",
@@ -101,7 +104,8 @@ curl "http://localhost:9093/-/healthy"
 ```
 
 Expected response:
-```
+
+```bash
 Alertmanager is Healthy.
 ```
 
@@ -309,6 +313,7 @@ curl "http://localhost:8428/api/v1/query?query=node_memory_MemTotal_bytes" | jq 
 ### Issue: Pods in CrashLoopBackOff
 
 **Solutions:**
+
 1. Check resource limits and requests
 2. Verify persistent volume permissions
 3. Check configuration syntax
@@ -321,6 +326,7 @@ kubectl logs <failing-pod> -n monitoring --previous
 ### Issue: No Metrics Appearing
 
 **Solutions:**
+
 1. Verify ServiceMonitors are correctly configured
 2. Check network policies
 3. Verify RBAC permissions
@@ -333,6 +339,7 @@ kubectl get networkpolicy -n monitoring
 ### Issue: Grafana Dashboards Empty
 
 **Solutions:**
+
 1. Verify data source configuration
 2. Check VictoriaMetrics connectivity
 3. Verify time range settings
@@ -377,6 +384,7 @@ echo "=== Health check complete ==="
 ```
 
 Run with:
+
 ```bash
 chmod +x monitoring-health-check.sh
 ./monitoring-health-check.sh
@@ -387,6 +395,6 @@ chmod +x monitoring-health-check.sh
 After successful verification:
 
 1. **[Configuration](../configuration/README.md)** - Customize monitoring setup
-2. **[Component Configuration](components/)** - Fine-tune individual components  
+2. **[Component Configuration](components/)** - Fine-tune individual components
 3. **[Troubleshooting](../troubleshooting.md)** - Handle common issues
-4. **[Maintenance](../maintenance.md)** - Ongoing operations 
+4. **[Maintenance](../maintenance.md)** - Ongoing operations

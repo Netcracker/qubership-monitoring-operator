@@ -7,4 +7,4 @@ icon: lucide/chart-area
 The Grafana operator reconciles Grafana itself and the dashboards, data sources, and folders that the monitoring stack
 ships with.
 
-* [Grafana](grafana.md) — deployment, data sources, plugins, and access configuration.
+* [Grafana](grafana.md): deployment, data sources, plugins, and access configuration.
