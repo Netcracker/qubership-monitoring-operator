@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-network-latency-exporter versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-network-latency-exporter:2.10.1" -}}
+    {{- print "ghcr.io/netcracker/qubership-network-latency-exporter:2.10.2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -19,14 +19,25 @@ Image can be found from:
 Return securityContext for network-latency-exporter.
 */}}
 {{- define "networkLatencyExporter.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 0
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 2001) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context.
+Privileged mode remains an explicit compatibility override.
+*/}}
+{{- define "networkLatencyExporter.containerSecurityContext" -}}
+{{- if .Values.rbac.privileged -}}
+allowPrivilegeEscalation: true
+privileged: true
+readOnlyRootFilesystem: true
+{{- else -}}
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
+capabilities:
+  drop:
+    - ALL
+{{- end -}}
 {{- end -}}
 
 {{/*

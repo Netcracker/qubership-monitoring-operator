@@ -2,6 +2,7 @@ package nodeexporter
 
 import (
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -135,7 +136,7 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 	}
 	//Set parameters
 	changed := utils.SetLabelsIfChanged(e, m.GetLabels())
-	changed = applyNodeExporterSCCPolicy(e, m) || changed
+	changed = utils.ApplySecurityContextConstraintsPolicy(e, m) || changed
 	if !changed {
 		return nil
 	}
@@ -150,32 +151,6 @@ func isNodeExporterSCCOwnedBy(scc *secv1.SecurityContextConstraints, cr *monv1.P
 	annotations := scc.GetAnnotations()
 	return annotations[nodeExporterSCCOwnerNameAnnotation] == cr.GetName() &&
 		annotations[nodeExporterSCCOwnerNamespaceAnnotation] == cr.GetNamespace()
-}
-
-func applyNodeExporterSCCPolicy(existing, desired *secv1.SecurityContextConstraints) bool {
-	changed := false
-	changed = utils.SetIfChanged(&existing.AllowPrivilegedContainer, desired.AllowPrivilegedContainer) || changed
-	changed = utils.SetIfChanged(&existing.DefaultAddCapabilities, desired.DefaultAddCapabilities) || changed
-	changed = utils.SetIfChanged(&existing.RequiredDropCapabilities, desired.RequiredDropCapabilities) || changed
-	changed = utils.SetIfChanged(&existing.AllowedCapabilities, desired.AllowedCapabilities) || changed
-	changed = utils.SetIfChanged(&existing.AllowHostDirVolumePlugin, desired.AllowHostDirVolumePlugin) || changed
-	changed = utils.SetIfChanged(&existing.Volumes, desired.Volumes) || changed
-	changed = utils.SetIfChanged(&existing.AllowedFlexVolumes, desired.AllowedFlexVolumes) || changed
-	changed = utils.SetIfChanged(&existing.AllowHostNetwork, desired.AllowHostNetwork) || changed
-	changed = utils.SetIfChanged(&existing.AllowHostPorts, desired.AllowHostPorts) || changed
-	changed = utils.SetIfChanged(&existing.AllowHostPID, desired.AllowHostPID) || changed
-	changed = utils.SetIfChanged(&existing.AllowHostIPC, desired.AllowHostIPC) || changed
-	changed = utils.SetIfChanged(&existing.DefaultAllowPrivilegeEscalation, desired.DefaultAllowPrivilegeEscalation) || changed
-	changed = utils.SetIfChanged(&existing.AllowPrivilegeEscalation, desired.AllowPrivilegeEscalation) || changed
-	changed = utils.SetIfChanged(&existing.SELinuxContext, desired.SELinuxContext) || changed
-	changed = utils.SetIfChanged(&existing.RunAsUser, desired.RunAsUser) || changed
-	changed = utils.SetIfChanged(&existing.SupplementalGroups, desired.SupplementalGroups) || changed
-	changed = utils.SetIfChanged(&existing.FSGroup, desired.FSGroup) || changed
-	changed = utils.SetIfChanged(&existing.ReadOnlyRootFilesystem, desired.ReadOnlyRootFilesystem) || changed
-	changed = utils.SetIfChanged(&existing.SeccompProfiles, desired.SeccompProfiles) || changed
-	changed = utils.SetIfChanged(&existing.AllowedUnsafeSysctls, desired.AllowedUnsafeSysctls) || changed
-	changed = utils.SetIfChanged(&existing.ForbiddenSysctls, desired.ForbiddenSysctls) || changed
-	return changed
 }
 
 func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
@@ -205,7 +180,11 @@ func (r *NodeExporterReconciler) deleteSecurityContextConstraints(cr *monv1.Plat
 }
 
 func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := nodeExporterDaemonSet(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
@@ -377,19 +356,16 @@ func (r *NodeExporterReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMoni
 }
 
 func (r *NodeExporterReconciler) deleteDaemonSet(cr *monv1.PlatformMonitoring) error {
-	m, err := nodeExporterDaemonSet(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating DaemonSet manifest")
-		return err
-	}
-	e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.DaemonSet{ObjectMeta: metav1.ObjectMeta{Name: utils.NodeExporterComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

@@ -11,6 +11,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	ktesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -79,6 +81,7 @@ func newVmSingleSkipTestReconciler(t *testing.T, objs ...client.Object) *VmSingl
 		ComponentReconciler: &utils.ComponentReconciler{
 			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 			Scheme: scheme,
+			Dc:     &fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}},
 			Log:    utils.Logger("vmsingle_skip_test"),
 		},
 	}

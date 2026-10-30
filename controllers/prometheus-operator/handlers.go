@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *PrometheusOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
@@ -163,7 +164,11 @@ func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.Platfo
 }
 
 func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusOperatorDeployment(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := prometheusOperatorDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -191,6 +196,7 @@ func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonito
 	changed = utils.SetLabelsIfChanged(&e.Spec.Template, m.Spec.Template.GetLabels()) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
@@ -372,19 +378,16 @@ func (r *PrometheusOperatorReconciler) deleteClusterRoleBinding(cr *monv1.Platfo
 }
 
 func (r *PrometheusOperatorReconciler) deletePrometheusOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusOperatorDeployment(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.PrometheusOperatorComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

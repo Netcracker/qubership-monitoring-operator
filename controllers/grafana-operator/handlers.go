@@ -166,7 +166,11 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitori
 }
 
 func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaOperatorDeployment(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := grafanaOperatorDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -207,6 +211,7 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 	changed = utils.SetLabelsIfChanged(&e.Spec.Template, templateLabels) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.SecurityContext, m.Spec.Template.Spec.SecurityContext) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Containers, m.Spec.Template.Spec.Containers) || changed
+	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Volumes, m.Spec.Template.Spec.Volumes) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.ServiceAccountName, m.Spec.Template.Spec.ServiceAccountName) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.NodeSelector, m.Spec.Template.Spec.NodeSelector) || changed
 	changed = utils.SetIfChanged(&e.Spec.Template.Spec.Affinity, m.Spec.Template.Spec.Affinity) || changed
@@ -289,19 +294,16 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitorin
 }
 
 func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaOperatorDeployment(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.GrafanaOperatorComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

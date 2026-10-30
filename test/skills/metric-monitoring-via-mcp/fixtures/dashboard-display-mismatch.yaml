@@ -1,0 +1,70 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-skill-eval-display-mismatch
+  namespace: monitoring
+  labels:
+    skill-eval: dashboard-display-mismatch
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-10
+spec:
+  groups:
+    - name: monitoring-skill-display-mismatch-eval
+      interval: 30s
+      rules:
+        - record: skill_eval_request_duration_seconds
+          expr: vector(1.5)
+          labels:
+            skill_eval: "true"
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: monitoring-skill-eval-display-mismatch
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: monitoring
+    skill-eval: dashboard-display-mismatch
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-10
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: |
+    {
+      "id": null,
+      "uid": "monitoring-skill-eval-display-mismatch",
+      "title": "Skill Eval / Display Mismatch",
+      "tags": ["self-monitor", "skill-eval"],
+      "editable": false,
+      "timezone": "utc",
+      "schemaVersion": 41,
+      "version": 1,
+      "time": {"from": "now-15m", "to": "now"},
+      "panels": [
+        {
+          "id": 1,
+          "title": "Request duration",
+          "description": "The source metric is measured in seconds.",
+          "type": "stat",
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
+          "fieldConfig": {"defaults": {"unit": "ms", "decimals": 1}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "$datasource"},
+              "editorMode": "code",
+              "expr": "skill_eval_request_duration_seconds",
+              "instant": true,
+              "range": false,
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "templating": {"list": [{"name": "datasource", "type": "datasource", "query": "prometheus", "current": {"text": "Platform Monitoring Prometheus"}, "options": []}]},
+      "annotations": {"list": []},
+      "links": []
+    }

@@ -19,7 +19,7 @@ import (
 
 func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := kubeStateMetricsDeployment(cr, false)
+	desired, err := kubeStateMetricsDeployment(cr, false, false)
 	require.NoError(t, err)
 
 	live := desired.DeepCopy()
@@ -39,7 +39,7 @@ func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 
 func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := kubeStateMetricsDeployment(cr, false)
+	desired, err := kubeStateMetricsDeployment(cr, false, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"

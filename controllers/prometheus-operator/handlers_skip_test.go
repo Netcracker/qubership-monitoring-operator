@@ -12,6 +12,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	ktesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -39,11 +41,10 @@ func TestHandleServiceSkipsAPIDefaultedPortProtocol(t *testing.T) {
 
 func TestHandleDeploymentSkipsAPIDefaultedContainers(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := prometheusOperatorDeployment(cr)
+	desired, err := prometheusOperatorDeployment(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
-	live.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	applyAPIDefaultedContainerFields(live.Spec.Template.Spec.Containers)
 
 	r := newPrometheusOperatorSkipTestReconciler(t, cr, live)
@@ -78,7 +79,7 @@ func TestHandleServiceUpdatesChangedPort(t *testing.T) {
 
 func TestHandleDeploymentUpdatesChangedImage(t *testing.T) {
 	cr := skipTestPlatformMonitoring()
-	desired, err := prometheusOperatorDeployment(cr)
+	desired, err := prometheusOperatorDeployment(cr, false)
 	require.NoError(t, err)
 	live := desired.DeepCopy()
 	live.ResourceVersion = "1"
@@ -125,6 +126,7 @@ func newPrometheusOperatorSkipTestReconciler(t *testing.T, objs ...client.Object
 	return NewPrometheusOperatorReconciler(
 		fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build(),
 		scheme,
+		&fakediscovery.FakeDiscovery{Fake: &ktesting.Fake{}},
 	)
 }
 
