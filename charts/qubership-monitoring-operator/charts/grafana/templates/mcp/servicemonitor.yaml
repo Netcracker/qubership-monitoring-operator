@@ -1,0 +1,38 @@
+{{- if and .Values.mcp.install .Values.mcp.metrics.enabled .Values.mcp.serviceMonitor.install }}
+{{- $name := include "grafana.mcp.fullname" . }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "monitoring.labels" (dict "ctx" . "name" $name "component" "mcp-grafana") | nindent 4 }}
+    app: {{ $name }}
+    {{- if .Values.mcp.serviceMonitor.labels }}
+    {{- include "monitoring.extraLabels" (dict "ctx" . "extraLabels" .Values.mcp.serviceMonitor.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.mcp.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml .Values.mcp.serviceMonitor.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - port: http
+      path: {{ .Values.mcp.serviceMonitor.path }}
+      interval: {{ .Values.mcp.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.mcp.serviceMonitor.scrapeTimeout }}
+      {{- if .Values.mcp.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml .Values.mcp.serviceMonitor.metricRelabelings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mcp.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml .Values.mcp.serviceMonitor.relabelings | nindent 8 }}
+      {{- end }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  {{- if .Values.mcp.serviceMonitor.namespaceSelector }}
+  namespaceSelector:
+    {{- toYaml .Values.mcp.serviceMonitor.namespaceSelector | nindent 4 }}
+  {{- end }}
+{{- end }}
