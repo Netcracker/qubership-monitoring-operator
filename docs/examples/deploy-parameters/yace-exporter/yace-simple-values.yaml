@@ -1,0 +1,133 @@
+# This is a YAML-formatted file.
+# Copy into your Monitoring deploy parameters / PlatformMonitoring values.
+#
+# Same-account collection (IRSA). Replace:
+#   - the IAM role ARN
+#   - us-east-1 with your region
+# Drop any discovery job for a service you do not use.
+
+# Public Clouds Exporters
+yaceExporter:
+  install: true
+
+  # Recommended: IAM Role for Service Accounts (IRSA).
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::1234567890:role/yace-exporter-oidc
+      eks.amazonaws.com/sts-regional-endpoints: "true"
+
+  # Alternatively, use static credentials (not recommended):
+  # aws:
+  #   aws_access_key_id: <access_key_id>
+  #   aws_secret_access_key: <secret_access_key>
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  config: |-
+    apiVersion: v1alpha1
+    sts-region: us-east-1
+    discovery:
+      exportedTagsOnMetrics:
+        AWS/RDS:
+          - Name
+          - environment
+        AWS/EBS:
+          - Name
+        AWS/S3:
+          - Name
+        AWS/ApplicationELB:
+          - Name
+        AWS/EFS:
+          - Name
+      jobs:
+        - type: AWS/RDS
+          regions:
+            - us-east-1
+          period: 300
+          length: 600
+          metrics:
+            - name: CPUUtilization
+              statistics: [Average, Maximum]
+            - name: DatabaseConnections
+              statistics: [Average]
+            - name: FreeStorageSpace
+              statistics: [Average, Minimum]
+            - name: FreeableMemory
+              statistics: [Average]
+            - name: ReadLatency
+              statistics: [Average]
+            - name: WriteLatency
+              statistics: [Average]
+            - name: DiskQueueDepth
+              statistics: [Average]
+        - type: AWS/EBS
+          regions:
+            - us-east-1
+          period: 300
+          length: 600
+          metrics:
+            - name: VolumeReadBytes
+              statistics: [Sum]
+            - name: VolumeWriteBytes
+              statistics: [Sum]
+            - name: VolumeReadOps
+              statistics: [Sum]
+            - name: VolumeWriteOps
+              statistics: [Sum]
+            - name: VolumeQueueLength
+              statistics: [Average]
+            - name: BurstBalance
+              statistics: [Average]
+        - type: AWS/S3
+          regions:
+            - us-east-1
+          period: 86400
+          length: 86400
+          metrics:
+            - name: BucketSizeBytes
+              statistics: [Average]
+            - name: NumberOfObjects
+              statistics: [Average]
+        - type: AWS/ApplicationELB
+          regions:
+            - us-east-1
+          period: 300
+          length: 600
+          metrics:
+            - name: RequestCount
+              statistics: [Sum]
+            - name: TargetResponseTime
+              statistics: [Average]
+            - name: HTTPCode_Target_5XX_Count
+              statistics: [Sum]
+            - name: HTTPCode_ELB_5XX_Count
+              statistics: [Sum]
+            - name: HealthyHostCount
+              statistics: [Minimum]
+            - name: UnHealthyHostCount
+              statistics: [Maximum]
+            - name: ActiveConnectionCount
+              statistics: [Sum]
+        - type: AWS/EFS
+          regions:
+            - us-east-1
+          period: 300
+          length: 600
+          metrics:
+            - name: PercentIOLimit
+              statistics: [Average]
+            - name: ClientConnections
+              statistics: [Sum]
+            - name: DataReadIOBytes
+              statistics: [Sum]
+            - name: DataWriteIOBytes
+              statistics: [Sum]
+            - name: BurstCreditBalance
+              statistics: [Average]
+    static: []

@@ -1,0 +1,317 @@
+# Default values for yace-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Yet Another CloudWatch Exporter (YACE) allows getting metrics from AWS CloudWatch using the
+# GetMetricData API (with tag-based auto-discovery, multi-account roles and static jobs), and
+# next Prometheus can collect these metrics.
+# For more information, refer to https://github.com/prometheus-community/yet-another-cloudwatch-exporter.
+
+# Allow to enable deploy yace-exporter
+# Type: boolean
+# Mandatory: no
+# Default: false
+#
+install: false
+
+# Replicas spec configuration for yace-exporter
+# Type: int
+# Mandatory: no
+# Default: 1
+#
+replicas: 1
+
+# Name of yace-exporter which use in deployment and other objects names
+# Type: string
+# Mandatory: no
+# Default: yace-exporter
+#
+name: yace-exporter
+
+# A docker image to use for yace-exporter deployment
+# image: docker.io/prometheuscommunity/yet-another-cloudwatch-exporter:v0.67.0
+
+# Image pull policy to use for yace-exporter deployment
+imagePullPolicy: IfNotPresent
+
+# Allow override command to run docker container. When set, it fully replaces the default
+# entrypoint, so you must pass `-listen-address` and `-config.file` yourself.
+# Type: array[string]
+# Mandatory: no
+# Default: no
+#
+command: []
+
+# Additional command-line flags appended to the default arguments of yace-exporter.
+# Useful for flags which cannot be changed at runtime, e.g. `-scraping-interval`,
+# `-cloudwatch-concurrency`, `-metrics-per-query`, `-labels-snake-case`.
+# Type: array[string]
+# Mandatory: no
+# Default: []
+#
+# Example:
+# extraArgs:
+#   - -scraping-interval=300
+#   - -cloudwatch-concurrency=5
+#   - -labels-snake-case
+#
+extraArgs: []
+
+# Network address yace-exporter binds the HTTP server to.
+# YACE binds to 127.0.0.1:5000 by default, which is not reachable from kubelet/Prometheus,
+# therefore the exporter must listen on all interfaces inside the container.
+# Type: string
+# Mandatory: no
+# Default: 0.0.0.0:5000
+#
+listenAddress: 0.0.0.0:5000
+
+# Port of yace-exporter which use in deployment. Must match the port in `listenAddress`.
+# Type: int
+# Mandatory: no
+# Default: 5000
+#
+containerPort: 5000
+
+# Path to the configuration file mounted from the ConfigMap and passed to `-config.file`.
+# Type: string
+# Mandatory: no
+# Default: /config/config.yml
+#
+configFile: /config/config.yml
+
+# Service configuration for yace-exporter
+# Type: object
+# Mandatory: no
+#
+service:
+  # Type of yace-exporter service
+  # Type: string
+  # Mandatory: no
+  # Default: ClusterIP
+  #
+  type: ClusterIP
+
+  # Port of yace-exporter which use in service
+  # Type: int
+  # Mandatory: no
+  # Default: 5000
+  #
+  port: 5000
+
+  # Port name of yace-exporter which use in service
+  # Type: string
+  # Mandatory: no
+  # Default: http
+  #
+  portName: http
+
+  # Annotations set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  annotations: {}
+
+  # Labels set which will create in service
+  # Type: map[string]string
+  # Mandatory: no
+  # Default: {}
+  #
+  labels: {}
+
+# The resources describes the compute resource requests and limits for single Pods.
+# Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+# Type: object
+# Mandatory: no
+#
+resources: {}
+#  limits:
+#    cpu: 200m
+#    memory: 256Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+# AWS credentials for the home identity that yace-exporter uses.
+#
+# Authentication options:
+# 1) IRSA / instance profile: keep aws.secret.name, aws_access_key_id and
+#    aws_secret_access_key unset, and attach the role through serviceAccount.annotations.
+# 2) External Secret with the credentials:
+#      aws.secret.name: <secret-name>
+#      Secret data keys must be: access_key, secret_key and, optionally, security_token
+# 3) Chart-managed static keys:
+#      aws_access_key_id / aws_secret_access_key
+#
+# Extra AWS accounts are not extra keys: list them as roles[].roleArn on a job in `config`.
+# The home identity must be allowed to call sts:AssumeRole on those ARNs.
+aws:
+  # Reference to a pre-created Kubernetes Secret that stores the AWS credentials.
+  secret:
+    # Name of the Secret. When set, the chart does NOT create its own Secret.
+    # name: my-aws-credentials-secret
+
+    # Whether the pre-created Secret also holds an STS session token under the
+    # security_token key.
+    includesSessionToken: false
+
+  # Chart-managed static keys (option 3). Do not use together with aws.secret.name.
+  # Both keys must be set together.
+  # aws_access_key_id:
+  # aws_secret_access_key:
+
+# ServiceAccount setting
+# Type: object
+# Mandatory: no
+#
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  install: true
+
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: yace-exporter
+
+  # Will add the provided map to the annotations for the created serviceAccount.
+  # Use it to attach an IAM Role for Service Accounts (IRSA) to grant yace-exporter access to
+  # AWS CloudWatch without static credentials, e.g.
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::1234567890:role/yace-exporter-oidc
+  #   eks.amazonaws.com/sts-regional-endpoints: "true"
+  #
+  # annotations:
+
+  # Specifies whether to automount API credentials for the ServiceAccount.
+  automountServiceAccountToken: true
+
+# Allow creating ClusterRole and ClusterRoleBinding.
+# YACE does not use the Kubernetes API: config comes from the mounted ConfigMap
+# and credentials from environment variables, so these default to false.
+# Type: object
+# Mandatory: no
+#
+rbac:
+  # Allow creating ClusterRole. Unused by the exporter; keep false unless you
+  # have an external process that needs get on the yace-exporter Secret/ConfigMap.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  createClusterRole: false
+
+  # Allow creating ClusterRoleBinding. Unused by the exporter; keep false unless
+  # createClusterRole is also set to true.
+  # Type: boolean
+  # Mandatory: no
+  # Default: false
+  #
+  createClusterRoleBinding: false
+
+# Configuration is rendered with `tpl` function, therefore you can use any Helm variables and/or templates here.
+# The configuration uses the YACE `v1alpha1` schema. It supports:
+#   * AWS Region                -> job `regions: [ ... ]` (discovery / static / customNamespace). `sts-region` is one STS endpoint.
+#   * IAM Role / IRSA           -> serviceAccount.annotations (home identity) and/or job `roles[].roleArn`
+#   * AWS Account               -> extra accounts via job `roles[].roleArn` (optional externalId). Omit roles for the home account only.
+#   * Metrics configuration     -> `metrics[]` with name/statistics/period/length
+#   * Namespace filters         -> discovery `type` / static or customNamespace `namespace`
+#   * Dimension filters         -> static `dimensions[]` and `dimensionNameRequirements`
+#   * Collection interval       -> per-metric `period`/`length` (and the `-scraping-interval` flag in extraArgs)
+#   * Resource tags             -> `searchTags[]`, `exportedTagsOnMetrics` and static `customTags[]`
+#   * Custom metric definitions -> customNamespace[] or static jobs with a custom `namespace`
+# Extra accounts and regions are set in this config, not as extra Deployments. YACE scrapes every role x every region.
+# Refer to https://github.com/prometheus-community/yet-another-cloudwatch-exporter/blob/master/docs/configuration.md
+# Type: string
+# Mandatory: no
+# Default: a minimal, empty discovery configuration
+config: |-
+  # This is the default configuration for yace-exporter (Yet Another CloudWatch Exporter)
+  apiVersion: v1alpha1
+  sts-region: us-east-1
+  discovery:
+    jobs: []
+  static: []
+
+# Allow define which Nodes the Pods are scheduled on.
+# Type: map[string]
+# Mandatory: no
+# Default: not set
+#
+nodeSelector: {}
+
+# Annotations is an unstructured key value map stored
+# with a resource that may be set by external tools to store and retrieve arbitrary metadata.
+# They are not queryable and should be preserved when modifying objects.
+# More info: https://kubernetes.io/docs/user-guide/annotations
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+annotations: {}
+#  annotation-key: annotation-value
+
+# Map of string keys and values that can be used to organize and categorize (scope and select) objects.
+# May match selectors of replication controllers and services.
+# More info: https://kubernetes.io/docs/user-guide/labels
+# Type: map[string]string
+# Mandatory: no
+# Default: not set
+#
+labels: {}
+#  label-key: label-value
+
+# Tolerations allow the pods to schedule onto nodes with matching taints.
+# Type: object
+# Mandatory: no
+#
+tolerations: []
+
+# If specified, the pod's scheduling constraints
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# Type: object
+# Mandatory: no
+# Default: not set
+#
+affinity: {}
+
+# Service monitor for pulling metrics
+# Type: object
+# Mandatory: no
+#
+serviceMonitor:
+  # When set true then use a ServiceMonitor to configure scraping
+  install: true
+
+  # Set how frequently Prometheus should scrape
+  interval: 5m
+
+  # Set path to yace-exporter telemetry-path
+  telemetryPath: /metrics
+
+  # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
+  labels:
+    app.kubernetes.io/component: monitoring
+
+  # Set timeout for scrape
+  # timeout: 10s
+
+  # Set relabelings for the ServiceMonitor, use to apply to samples before scraping
+  # relabelings: []
+
+  # Set metricRelabelings for the ServiceMonitor, use to apply to samples for ingestion
+  # metricRelabelings: []
+
+# SecurityContext holds pod-level security attributes.
+# The parameters are required if a Pod Security Policy is enabled
+#  for Kubernetes cluster and required if a Security Context Constraints is enabled
+# for Openshift cluster.
+# Type: object
+# Mandatory: no
+#
+#securityContext:
+#  runAsUser: 65534  # run as nobody user instead of root
+#  fsGroup: 65534  # necessary to be able to read the EKS IAM token
+
+# PriorityClassName assigned to the Pods to prevent them from evicting.
+# Type: string
+# priorityClassName: "priorityClassName"

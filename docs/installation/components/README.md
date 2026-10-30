@@ -32,6 +32,7 @@ with the Qubership Monitoring Operator.
 ### Cloud Exporters
 
 * **[CloudWatch Exporter](exporters/cloudwatch-exporter.md)** - AWS CloudWatch metrics
+* **[Yace Exporter](exporters/yace-exporter.md)** - AWS CloudWatch metrics through the `GetMetricData` API
 * **[Promitor Agent](exporters/promitor-agent-scraper.md)** - Azure Monitor metrics
 * **[Stackdriver Exporter](exporters/stackdriver-exporter.md)** - Google Cloud metrics
 

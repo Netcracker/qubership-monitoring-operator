@@ -98,6 +98,11 @@ dependencies:
     condition: cloudwatchExporter.install
     version: ~0
     repository: "file://charts/cloudwatchExporter"
+  # AWS CloudWatch exporter (Yet Another CloudWatch Exporter)
+  - name: yaceExporter
+    condition: yaceExporter.install
+    version: ~0
+    repository: "file://charts/yaceExporter"
   # Azure Monitor exporter
   - name: promitorAgentScraper
     condition: promitorAgentScraper.install
