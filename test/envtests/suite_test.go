@@ -49,10 +49,10 @@ var _ = BeforeSuite(func() {
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "crds"),
-			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "grafana-operator", "crds"),
-			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-adapter-operator", "crds"),
-			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus-operator", "crds"),
-			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics-operator", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "grafana", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheusAdapter", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "prometheus", "crds"),
+			filepath.Join("..", "..", "charts", "qubership-monitoring-operator", "charts", "victoriametrics", "crds"),
 			filepath.Join("..", "..", "test", "envtests", "assets", "gatewayapi")},
 	}
 	cfg, err = testEnv.Start()

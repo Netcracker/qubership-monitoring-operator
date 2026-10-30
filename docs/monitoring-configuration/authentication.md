@@ -349,13 +349,13 @@ If we are talking about support authentication and authorization we have the fol
 | Component      | Authentication                  | Authorization                         |
 | -------------- | ------------------------------- | ------------------------------------- |
 | Grafana        | ✓ Support (Basic, LDAP, OAuth2) | ✓ Support (View, Editor, Admin roles) |
-| Prometheus     | ✓ Support (OAuth2)               | ✗ Not support                         |
-| Alertmanager   | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAgent        | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAlert        | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAuth         | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMAlertmanager | ✓ Support (OAuth2)               | ✗ Not support                         |
-| VMSingle       | ✓ Support (OAuth2)               | ✗ Not support                         |
+| Prometheus     | ✓ Support (OAuth2)              | ✗ Not support                         |
+| Alertmanager   | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAgent        | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAlert        | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAuth         | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMAlertmanager | ✓ Support (OAuth2)              | ✗ Not support                         |
+| VMSingle       | ✓ Support (OAuth2)              | ✗ Not support                         |
 
 Details about each component see below.
 
@@ -487,7 +487,7 @@ data:
 ```
 
 **Note:** You can change Secret data using UI (ex. Kubernetes Dashboard). But also you can
-edit it using CLI tools such as `kubectl` if secrets edit in UI is not available.
+edit it using command-line tools such as `kubectl` if secrets edit in UI is not available.
 
 For example:
 
@@ -582,4 +582,3 @@ To support OAuth2 using `oauth2-proxy`. It uses configuration from the common se
 How to configure `auth` section see at:
 
 * [Enable authentication for UIs: Common](#common)
-

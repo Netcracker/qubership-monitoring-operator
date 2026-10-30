@@ -44,17 +44,27 @@ spec:
       volumes:
         - name: robot-storage
           emptyDir: {}
+        # Robot result artifacts use this volume; 100Mi is an unmeasured starting cap.
+        - name: robot-output
+          emptyDir:
+            sizeLimit: 100Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       affinity: {}
       tolerations: {{- toYaml .Values.integrationTests.tolerations | nindent 8 }}
       nodeSelector: {{- toYaml .Values.integrationTests.nodeSelector | nindent 8 }}
       affinity: {{- toYaml .Values.integrationTests.affinity | nindent 8 }}
-      securityContext: {{- toYaml .Values.integrationTests.securityContext | nindent 8 }}
+      securityContext:
+        {{- include "integrationTests.securityContext" . | nindent 8 }}
       containers:
         - name: {{ .Values.integrationTests.name }}
           image: {{ template "integrationTests.image" . }}
           imagePullPolicy: Always
           resources:
             {{ include "integrationTests.resources" . }}
+          securityContext:
+            {{- include "integrationTests.containerSecurityContext" . | nindent 12 }}
           env:
             - name: NAMESPACE
               valueFrom:
@@ -73,11 +83,11 @@ spec:
               {{- if and .Values.grafana.ingress .Values.grafana.ingress.host }}
               value: {{ .Values.grafana.ingress.host | quote }}
               {{- else if and .Values.grafana.ingress .Values.grafana.ingress.rules }}
-              value: {{ (index .Values.grafana.ingress.rules 0).host }}
+              value: {{ (index .Values.grafana.ingress.rules 0).host | quote }}
               {{- else if and .Values.grafana.httpRoute.install .Values.grafana.httpRoute.hostnames }}
               value: {{ .Values.grafana.httpRoute.hostnames | first | quote }}
               {{- else }}
-              value: grafana-{{ .Release.Namespace }}.{{ .Values.CLOUD_PUBLIC_HOST}}
+              value: {{ printf "grafana-%s.%s" .Release.Namespace .Values.CLOUD_PUBLIC_HOST | quote }}
               {{- end }}
             {{- else }}
             - name: GRAFANA
@@ -160,4 +170,8 @@ spec:
           volumeMounts:
             - name: robot-storage
               mountPath: /opt/robot/target
+            - name: robot-output
+              mountPath: /opt/robot/output
+            - name: tmp
+              mountPath: /tmp
 {{- end }}

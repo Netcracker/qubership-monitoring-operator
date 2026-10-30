@@ -2,6 +2,7 @@ package grafana_operator
 
 import (
 	"context"
+	"reflect"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -153,7 +154,11 @@ func (r *GrafanaOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitori
 }
 
 func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaOperatorDeployment(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := grafanaOperatorDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
@@ -193,6 +198,7 @@ func (r *GrafanaOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitorin
 		e.Spec.Template.Labels, m.Spec.Template.Labels, e.Spec.Selector)
 	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+	e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
@@ -226,9 +232,20 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 			return err
 		}
 
-		checkObj.SetLabels(m.GetLabels())
-		checkObj.Spec = m.Spec
-
+		// Only update when Spec or labels actually changed to avoid rewriting large
+		// dashboard CRs on every PlatformMonitoring reconcile (#447).
+		needsUpdate := false
+		if !reflect.DeepEqual(checkObj.Spec, m.Spec) {
+			checkObj.Spec = m.Spec
+			needsUpdate = true
+		}
+		if !reflect.DeepEqual(checkObj.GetLabels(), m.GetLabels()) {
+			checkObj.SetLabels(m.GetLabels())
+			needsUpdate = true
+		}
+		if !needsUpdate {
+			return nil
+		}
 		return r.UpdateResource(checkObj)
 	})
 }
@@ -265,19 +282,16 @@ func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitorin
 }
 
 func (r *GrafanaOperatorReconciler) deleteGrafanaOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := grafanaOperatorDeployment(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.GrafanaOperatorComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

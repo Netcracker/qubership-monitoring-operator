@@ -22,6 +22,17 @@ ${RETRY_INTERVAL}           3s
 
 *** Keywords ***
 Initialize Grafana Library
+    ${needs_resolve}=  Set Variable  ${False}
+    IF  not $grafana_host
+        ${needs_resolve}=  Set Variable  ${True}
+    ELSE IF  '*' in $grafana_host
+        ${needs_resolve}=  Set Variable  ${True}
+    END
+    IF  ${needs_resolve}
+        ${grafana_host}=  Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+        ...  Resolve Ingress Host  ${grafana_host}  ${namespace}-grafana  ${namespace}
+        Set Suite Variable  ${grafana_host}
+    END
     ${username}  ${password}=  Get Grafana Credentials From Secret
     Import Library   %{ROBOT_HOME}/lib/GrafanaApiLib.py
     ...              url=${grafana_host}

@@ -299,7 +299,8 @@ func runningEtcdPod(pods []corev1.Pod) (corev1.Pod, error) {
 func certPathsFromPod(pod corev1.Pod, peerKey string, caCrt string, peerCrt string) (string, string, string) {
 	for _, container := range pod.Spec.Containers {
 		if container.Name == "etcd" {
-			return certPathsFromArgs(container.Command, peerKey, caCrt, peerCrt)
+			peerKey, caCrt, peerCrt = certPathsFromArgs(container.Command, peerKey, caCrt, peerCrt)
+			return certPathsFromArgs(container.Args, peerKey, caCrt, peerCrt)
 		}
 	}
 	return peerKey, caCrt, peerCrt
@@ -385,8 +386,22 @@ func createOrUpdateSecret(ctx context.Context, clientset kubernetes.Interface, s
 		}
 		return fmt.Errorf("failed to check secret existence: %w", err)
 	}
-	secret.ResourceVersion = existing.ResourceVersion
-	if _, err := clientset.CoreV1().Secrets(secret.Namespace).Update(ctx, secret, metav1.UpdateOptions{}); err != nil {
+	existing.Data = secret.Data
+	existing.StringData = secret.StringData
+	existing.Type = secret.Type
+	if existing.Labels == nil {
+		existing.Labels = make(map[string]string)
+	}
+	for key, value := range secret.Labels {
+		existing.Labels[key] = value
+	}
+	if existing.Annotations == nil {
+		existing.Annotations = make(map[string]string)
+	}
+	for key, value := range secret.Annotations {
+		existing.Annotations[key] = value
+	}
+	if _, err := clientset.CoreV1().Secrets(secret.Namespace).Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
 		return fmt.Errorf("failed to update secret: %w", err)
 	}
 	log.Info("Secret updated", "secret", secret.Name)
@@ -426,7 +441,7 @@ func certVerify(keyData string, caData string, crtData string) error {
 		return fmt.Errorf("failed to get etcd certificates content, empty certificate data")
 	}
 
-	peerKeyBeginIndex := strings.Index(keyData, "-----BEGIN PRIVATE KEY-----")
+	peerKeyBeginIndex := strings.Index(keyData, "-----BEGIN PRIVATE KEY-----") // gitleaks:allow -- PEM marker only.
 	if peerKeyBeginIndex == -1 {
 		peerKeyBeginIndex = strings.Index(keyData, "-----BEGIN RSA PRIVATE KEY-----")
 	}

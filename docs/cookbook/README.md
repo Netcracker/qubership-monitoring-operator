@@ -21,7 +21,7 @@ In Monitoring stack, we are using the following main tools to collect, analyze, 
 
 Prometheus's main features are:
 
-* A multi-dimensional data model with time series data identified by metric name and key/value pairs.
+* A multi-dimensional data model with time series data identified by metric name and key-value pairs.
 * PromQL, a flexible query language to leverage this dimensionality.
 * No reliance on distributed storage; single server nodes are autonomous.
 * Time series collection happens through a pull model over HTTP.
@@ -39,6 +39,6 @@ The important links are described in the following table.
 | Prometheus Official Documentation          | [https://prometheus.io/docs/introduction/overview/](https://prometheus.io/docs/introduction/overview/)                                                                                                             |
 | Prometheus-operator Official Documentation | [https://github.com/prometheus-operator/prometheus-operator/tree/master/Documentation](https://github.com/prometheus-operator/prometheus-operator/tree/master/Documentation)                                       |
 | Grafana Official Documentation             | [https://grafana.com/docs/grafana/latest/](https://grafana.com/docs/grafana/latest/)                                                                                                                               |
-| Grafana-operator Official Documentation    | [https://github.com/grafana/grafana-operator/tree/v4.10.1/documentation](https://github.com/grafana/grafana-operator/tree/v4.10.1/documentation)                                                   |
+| Grafana-operator Official Documentation    | [https://github.com/grafana/grafana-operator/tree/v4.10.1/documentation](https://github.com/grafana/grafana-operator/tree/v4.10.1/documentation)                                                                   |
 | OpenMetrics / OpenTelemetry specification  | [https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/README.md](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/README.md) |
 <!-- markdownlint-enable line-length -->

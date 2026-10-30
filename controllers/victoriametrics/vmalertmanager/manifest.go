@@ -59,7 +59,7 @@ func vmAlertManagerClusterRole(cr *monv1.PlatformMonitoring, hasPsp, hasScc bool
 		})
 	}
 
-	utils.SetLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRole, utils.BaseOnlyLabelInput(clusterRole.GetName(), utils.VmAlertManagerComponentName), cr.GetNamespace())
 
 	return &clusterRole, nil
 }
@@ -81,7 +81,7 @@ func vmAlertManagerClusterRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.Clu
 		sub.Name = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
 	}
 
-	utils.SetLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), nil)
+	utils.SetClusterScopedLabelsForResource(&clusterRoleBinding, utils.BaseOnlyLabelInput(clusterRoleBinding.GetName(), utils.VmAlertManagerComponentName), cr.GetNamespace())
 
 	return &clusterRoleBinding, nil
 }
@@ -137,21 +137,6 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 	if cr.Spec.Victoriametrics != nil && cr.Spec.Victoriametrics.VmAlertManager.IsInstall() {
 		vmalertmgr.Spec.Retention = cr.Spec.Victoriametrics.VmAlertManager.Retention
 		vmalertmgr.Spec.Image.Repository, vmalertmgr.Spec.Image.Tag = utils.SplitImage(cr.Spec.Victoriametrics.VmAlertManager.Image)
-
-		if r != nil {
-			// Set security context
-			if cr.Spec.Victoriametrics.VmAlertManager.SecurityContext != nil {
-				if vmalertmgr.Spec.SecurityContext == nil {
-					vmalertmgr.Spec.SecurityContext = &vmetricsv1b1.SecurityContext{}
-				}
-				if cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.RunAsUser != nil {
-					vmalertmgr.Spec.SecurityContext.RunAsUser = cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.RunAsUser
-				}
-				if cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.FSGroup != nil {
-					vmalertmgr.Spec.SecurityContext.FSGroup = cr.Spec.Victoriametrics.VmAlertManager.SecurityContext.FSGroup
-				}
-			}
-		}
 
 		// Set resources for vmAlertManager
 		vmalertmgr.Spec.ServiceAccountName = cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName
@@ -209,7 +194,7 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 			vmalertmgr.Spec.Secrets = append(vmalertmgr.Spec.Secrets, victoriametrics.GetVmalertmanagerTLSSecretName(cr.Spec.Victoriametrics.VmAlertManager))
 
 			if cr.Spec.Victoriametrics.VmAlertManager.WebConfig == nil || cr.Spec.Victoriametrics.VmAlertManager.WebConfig.TLSServerConfig == nil {
-				vmalertmgr.Spec.WebConfig = &vmetricsv1b1.AlertmanagerWebConfig{
+				vmalertmgr.Spec.WebConfig = &vmetricsv1b1.VMAlertmanagerWebConfig{
 					TLSServerConfig: &vmetricsv1b1.TLSServerConfig{
 						Certs: vmetricsv1b1.Certs{
 							CertSecretRef: &corev1.SecretKeySelector{
@@ -229,31 +214,29 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 				}
 			}
 
-			vmalertmgr.Spec.EmbeddedProbes = &vmetricsv1b1.EmbeddedProbes{
-				LivenessProbe: &corev1.Probe{
-					TimeoutSeconds:   5,
-					PeriodSeconds:    5,
-					SuccessThreshold: 1,
-					FailureThreshold: 10,
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path:   "/-/healthy",
-							Port:   intstr.FromString("web"),
-							Scheme: "HTTPS",
-						},
+			vmalertmgr.Spec.LivenessProbe = &corev1.Probe{
+				TimeoutSeconds:   5,
+				PeriodSeconds:    5,
+				SuccessThreshold: 1,
+				FailureThreshold: 10,
+				ProbeHandler: corev1.ProbeHandler{
+					HTTPGet: &corev1.HTTPGetAction{
+						Path:   "/-/healthy",
+						Port:   intstr.FromString("web"),
+						Scheme: "HTTPS",
 					},
 				},
-				ReadinessProbe: &corev1.Probe{
-					TimeoutSeconds:   5,
-					PeriodSeconds:    5,
-					SuccessThreshold: 1,
-					FailureThreshold: 10,
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path:   "/-/healthy",
-							Port:   intstr.FromString("web"),
-							Scheme: "HTTPS",
-						},
+			}
+			vmalertmgr.Spec.ReadinessProbe = &corev1.Probe{
+				TimeoutSeconds:   5,
+				PeriodSeconds:    5,
+				SuccessThreshold: 1,
+				FailureThreshold: 10,
+				ProbeHandler: corev1.ProbeHandler{
+					HTTPGet: &corev1.HTTPGetAction{
+						Path:   "/-/healthy",
+						Port:   intstr.FromString("web"),
+						Scheme: "HTTPS",
 					},
 				},
 			}
@@ -270,14 +253,7 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 		// Set additional volumeMounts for each vmAlertManager container. The current container names are:
 		// `vmalertmanager`, `config-reloader`
 		if cr.Spec.Victoriametrics.VmAlertManager.VolumeMounts != nil {
-			for it := range vmalertmgr.Spec.Containers {
-				c := &vmalertmgr.Spec.Containers[it]
-
-				// Set additional volumeMounts only for vmAlertManager container
-				if c.Name == utils.VmAlertManagerComponentName {
-					copy(c.VolumeMounts, cr.Spec.Victoriametrics.VmAlertManager.VolumeMounts)
-				}
-			}
+			vmalertmgr.Spec.VolumeMounts = cr.Spec.Victoriametrics.VmAlertManager.VolumeMounts
 		}
 		// Set nodeSelector for vmAlertManager
 		if cr.Spec.Victoriametrics.VmAlertManager.NodeSelector != nil {
@@ -339,6 +315,25 @@ func vmAlertManager(r *VmAlertManagerReconciler, cr *monv1.PlatformMonitoring) (
 
 		if len(strings.TrimSpace(cr.Spec.Victoriametrics.VmAlertManager.PriorityClassName)) > 0 {
 			vmalertmgr.Spec.PriorityClassName = cr.Spec.Victoriametrics.VmAlertManager.PriorityClassName
+		}
+
+		isOpenShift, err := platformIsOpenShift(r)
+		if err != nil {
+			return nil, err
+		}
+		vmalertmgr.Spec.SecurityContext, err = victoriametrics.HardenedSecurityContextFromPlatformSpec(
+			isOpenShift, cr.Spec.Victoriametrics.VmAlertManager.SecurityContext)
+		if err != nil {
+			return nil, err
+		}
+		vmalertmgr.Spec.Volumes, err = victoriametrics.EnsureTmpVolume(vmalertmgr.Spec.Volumes)
+		if err != nil {
+			return nil, err
+		}
+		vmalertmgr.Spec.VolumeMounts = victoriametrics.EnsureTmpVolumeMount(vmalertmgr.Spec.VolumeMounts)
+		vmalertmgr.Spec.Containers, err = victoriametrics.HardenContainers(vmalertmgr.Spec.Containers)
+		if err != nil {
+			return nil, err
 		}
 	}
 

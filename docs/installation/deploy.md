@@ -2,14 +2,16 @@
 
 This guide covers the deployment process for the Qubership Monitoring Operator using Helm.
 
-!!! warning "Legacy Kubernetes Support"
-    If you want to deploy the `monitoring-operator` into **Kubernetes v1.15** or lower or **OpenShift v3.11** or lower, you must work with _v1beta1_ CRDs manually. For more information see [Maintenance Guide: Work with legacy CRDs](../maintenance.md#work-with-legacy-crds).
+!!! warning "Supported cluster versions"
+    The chart requires Kubernetes 1.25+ or OpenShift 4.12+.
 
 ## Overview
 
-This chart installs Monitoring Operator which can create/configure/manage Prometheus/VictoriaMetrics and related components in Kubernetes/OpenShift.
+This chart installs Monitoring Operator which can create/configure/manage Prometheus/VictoriaMetrics
+and related components in Kubernetes/OpenShift.
 
-The default installation includes VictoriaMetrics Operator, AlertManager, Exporters, and configuration for scraping the Kubernetes/OpenShift infrastructure.
+The default installation includes VictoriaMetrics Operator, AlertManager, Exporters, and configuration
+for scraping the Kubernetes/OpenShift infrastructure.
 
 ## Quick Start
 
@@ -54,6 +56,7 @@ NAMESPACE: <monitoring>
 Ingress `host` will be set as `<component>-{{ .Values.NAMESPACE }}.{{ .Values.CLOUD_PUBLIC_URL }}`.
 
 Examples:
+
 - grafana-monitoring.public_url.com
 - victoriametrics-monitoring.public_url.com
 - alertmanager-monitoring.public_url.com
@@ -97,13 +100,15 @@ VmAgent, VmAlertManager, VmAlert, and VmAuth.
 
 Supported `httpRoute` fields:
 
-| Field | Description |
-| ----- | ----------- |
-| `install` | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`. |
-| `hostnames` | Overrides generated hostnames. If omitted, the component ingress host is used. |
-| `parentRefs` | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
-| `rules[].matches` | Raw Gateway API HTTPRoute match blocks. |
-| `rules[].filters` | Raw Gateway API HTTPRoute filter blocks. |
+<!-- markdownlint-disable line-length -->
+| Field             | Description                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `install`         | Enables HTTPRoute reconciliation for the component. If omitted, it is treated as `false`.                                           |
+| `hostnames`       | Overrides generated hostnames. If omitted, the component ingress host is used.                                                      |
+| `parentRefs`      | Replaces (does not merge with) `gatewayApi.parentRefs` for this component. All parentRefs in one route must use the same API group. |
+| `rules[].matches` | Raw Gateway API HTTPRoute match blocks.                                                                                             |
+| `rules[].filters` | Raw Gateway API HTTPRoute filter blocks.                                                                                            |
+<!-- markdownlint-enable line-length -->
 
 `backendRefs` are managed by the operator and cannot be configured through `httpRoute.rules`.
 When custom `rules` are set, the operator injects the component backend service and port into each rule,
@@ -155,8 +160,8 @@ victoriametrics:
 ### Customizing Ingress Routing and TLS Rules
 
 You can define custom ingress routing rules for individual components using the `ingress.rules` parameter.
-Refer the ingress description in
-(official documentation)[https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules].
+Refer to the ingress description in the
+[official Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
 For example:
 
 ```yaml
@@ -177,9 +182,12 @@ grafana:
 ```
 
 #### Configuring an Empty Host
-It is also possible to configure an empty host value by specifying an empty string for either the `ingress.host` parameter or within `ingress.rules[].host`:
+
+It is also possible to configure an empty host value by specifying an empty string for either
+the `ingress.host` parameter or within `ingress.rules[].host`:
 
 **Option 1:**
+
 ```yaml
 grafana:
   ingress:
@@ -188,6 +196,7 @@ grafana:
 ```
 
 **Option 2:**
+
 ```yaml
 grafana:
   ingress:
@@ -197,6 +206,7 @@ grafana:
 ```
 
 #### Specifying Multiple TLS Secrets
+
 To configure different TLS secrets for multiple hosts, use the `tls` parameter as shown below:
 
 ```yaml
@@ -305,6 +315,70 @@ helm install monitoring-operator charts/monitoring-operator \
   --namespace monitoring-dev \
   --create-namespace \
   --values development-values.yaml
+```
+
+### Namespaced guest beside cluster-wide monitoring
+
+A second Helm release can run in another namespace beside a privileged host.
+Host and guest are the same monitoring-operator product. The deployment team
+supplies the namespaces the host operators watch.
+
+Set `global.namespaceScope: true` on the guest so its VictoriaMetrics Operator
+and Grafana Operator watch only the release namespace. The etcd certificate
+job's cluster-scoped RBAC and SCC names must be unique. The core
+`monitoring-operator` already watches its Pod namespace. Managed-workload
+discovery stays at chart defaults.
+
+`namespaceScope` does **not** flip `privilegedRights`. Leave
+`privilegedRights: true` so the guest still gets ClusterRoles under unique
+names. `privilegedRights: false` is Role-only RBAC and does not, by itself,
+give the etcd job a unique ClusterRole name.
+
+The host stays privileged. Set the same comma-separated namespace list, with
+no spaces, on both host values:
+
+- `victoriametrics.vmOperator.extraEnvs`, name `WATCH_NAMESPACE`
+- `grafana.operator.watchNamespaces`
+
+Name each namespace the host operators watch. Omit the guest namespace and
+every namespace labeled `openshift.io/cluster-monitoring=true`. The list is
+not every namespace except the guest. When a namespace is added or removed,
+update the list and upgrade the host release. The host keeps its ClusterRoles.
+This does not create a Role or RoleBinding in each listed namespace.
+VictoriaMetrics Operator v0.73.1 selects VM scrape, rule, and alert-routing
+inputs from every namespace on `WATCH_NAMESPACE`. Workload namespace selectors
+do not narrow that list. The example list and the maintenance rules are in
+[the host allow-list](../examples/deploy-parameters/namespaced-guest/README.md#host-namespace-allow-list).
+
+Leave `WATCH_NAMESPACE` empty and the host VictoriaMetrics Operator watches
+every namespace, including the guest. It reconciles guest VM custom resources,
+and reconciliation denials for guest Deployments and StatefulSets stay in its
+logs until the guest release is removed.
+
+Always `--skip-crds` on the guest (CRDs stay with the host; see
+[namespaced-guest/README.md](../examples/deploy-parameters/namespaced-guest/README.md)).
+Small host/guest content differences are acceptable; a material CRD conflict
+is handled manually when it arises. If the host node-exporter already binds
+hostPort `9900`, set `nodeExporter.port` to another value (the example uses
+`9901`).
+
+Example values:
+[host-values.yaml](../examples/deploy-parameters/namespaced-guest/host-values.yaml)
+and
+[values.yaml](../examples/deploy-parameters/namespaced-guest/values.yaml).
+
+```bash
+kubectl create namespace monitoring-test
+
+helm upgrade --install monitoring-operator charts/qubership-monitoring-operator \
+  --namespace monitoring \
+  --skip-crds \
+  --values docs/examples/deploy-parameters/namespaced-guest/host-values.yaml
+
+helm install monitoring-operator-guest charts/qubership-monitoring-operator \
+  --namespace monitoring-test \
+  --skip-crds \
+  --values docs/examples/deploy-parameters/namespaced-guest/values.yaml
 ```
 
 ### Cloud-Specific Deployments
@@ -416,7 +490,8 @@ helm uninstall monitoring-operator
 ```
 
 !!! warning "CRD Cleanup Required"
-    This command removes all Kubernetes components associated with the chart but **does not remove CRDs**. Deleting CRDs causes the deletion of all resources of their type, including resources from other applications.
+    This command removes all Kubernetes components associated with the chart but **does not remove CRDs**.
+    Deleting CRDs causes the deletion of all resources of their type, including resources from other applications.
 
 ### Manual CRD Cleanup
 

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,6 +48,10 @@ func TestTruncLabel(t *testing.T) {
 	})
 	t.Run("trailing hyphens trimmed", func(t *testing.T) {
 		assert.Equal(t, "foo", TruncLabel("foo---"))
+	})
+	t.Run("trailing label separators trimmed after truncation", func(t *testing.T) {
+		label := "platform-monitoring-jaeger-" + strings.Repeat("a", 35) + ".query"
+		assert.Equal(t, "platform-monitoring-jaeger-"+strings.Repeat("a", 35), TruncLabel(label))
 	})
 }
 
@@ -161,6 +166,17 @@ func TestSetLabelsForResource(t *testing.T) {
 		assert.Equal(t, "go", labels["app.kubernetes.io/technology"])
 		assert.Equal(t, "customVal", labels["custom"])
 	})
+}
+
+func TestSetClusterScopedLabelsForResource(t *testing.T) {
+	obj := &objWithLabels{ObjectMeta: metav1.ObjectMeta{
+		Name:   "monitoring-grafana-operator",
+		Labels: map[string]string{InstallationNamespaceLabelKey: "other"},
+	}}
+	SetClusterScopedLabelsForResource(obj, BaseOnlyLabelInput(obj.Name, "grafana-operator"), "monitoring")
+
+	assert.Equal(t, "monitoring", obj.Labels[InstallationNamespaceLabelKey])
+	assert.Equal(t, OperatorDeploymentName, obj.Labels["app.kubernetes.io/managed-by-operator"])
 }
 
 func TestSetLabelsForWorkload(t *testing.T) {

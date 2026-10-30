@@ -1,0 +1,4 @@
+name: troubleshoot-monitoring
+version: 1.2.0
+description: Diagnose failures of Qubership Monitoring Operator and infrastructure metrics collection from a pasted problem description and logs, with no live system access.
+author: Qubership
