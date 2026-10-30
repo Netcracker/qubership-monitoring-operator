@@ -1,120 +1,123 @@
-# The charts
+# Charts
 
 Read the root `AGENTS.md` first. This file covers the traps specific to the chart tree.
 
 ## The parent chart is a fraction of the chart
 
 The largest components are vendored subchart directories, each with its own values file, templates, and lifecycle
-hooks, merged under the parent key of the same name. The parent values file does not even mention the biggest
-components. Agents concluded three separate times that a knob was invented, that a dependency condition was dead,
-and that a pre-delete hook did not exist — all from grepping the parent alone.
+hooks, merged under the parent key of the same name. The parent `values.yaml` does not mention the biggest
+components. Agents have concluded that a knob was invented, that a dependency condition was dead, and that a
+pre-delete hook did not exist, all from searching the parent chart alone.
 
-Search the whole chart tree. A dependency `condition:` resolves against coalesced parent-plus-subchart values, so
-absence from the parent values file never means "not a knob".
-
-Two mechanics worth knowing before you reason about a toggle:
-
-- A `condition:` holding several comma-separated paths is **not** an OR. Helm stops at the first path that exists in
-  the coalesced values, so a second path is unreachable while the first ships with a default.
-- A subchart is enabled by an exact key-path match against its `condition:`. A differently-cased or differently
-  punctuated block in the parent values is a dead knob that renders without error.
+Search the whole chart tree. A dependency `condition:` resolves against the coalesced parent and subchart values, so
+a key missing from the parent `values.yaml` can still be a working knob. Helm enables a subchart by an exact key-path
+match against its `condition:`. A block in the parent values with different casing or punctuation is a dead knob
+that renders without error.
 
 ## A render is a conditional projection, not an inventory
 
-Never conclude "this resource does not exist" from a render. Four independent mechanisms shrink the output:
+Do not conclude that a resource does not exist from a render. Four mechanisms shrink the output:
 
-- **Cluster capabilities.** Many templates and several subchart helpers branch on `Capabilities.APIVersions.Has`,
-  so every OpenShift security-constraint object and every pod-security-policy object disappears unless you pass the
-  capability explicitly. Audits of platform-specific behavior must set it.
-- **`lookup`.** Credential templates branch on a cluster read that returns nil offline, so a client-side render
-  always takes the "does not exist yet" branch. An object present in the render may never be created by a real
-  install, and vice versa. Confirm ownership on a cluster through the release annotations and field managers.
-- **Sibling guards.** At least one CR block is nested inside an unrelated component's guard, so setting it alone
-  renders nothing.
-- **Defaults already on.** A zero diff after enabling a toggle usually means the default was already true.
+- **Cluster capabilities.** Many templates branch on `.Capabilities.APIVersions.Has`, so OpenShift security context
+  constraints and similar platform objects disappear unless you pass the API version with `--api-versions`. Audits of
+  platform-specific behavior must set it.
+- **`lookup`.** `grafana-admin-credentials-secret.yaml` branches on a cluster read that returns nil offline, so a
+  client-side render always takes the "does not exist yet" branch. A real install may differ in either direction.
+  Confirm ownership on a cluster through the release annotations and field managers.
+- **Sibling guards.** Some CR blocks are nested inside another component's guard, so setting them alone renders
+  nothing.
+- **Defaults already on.** A zero diff after you enable a toggle usually means the default was already `true`.
 
-Local rendering also evaluates no cluster state, so it cannot reveal a conflict over a cluster-scoped name already
-owned by another release. Use a server-side dry run for that.
+A local render evaluates no cluster state, so it cannot reveal a conflict over a cluster-scoped name that another
+release already owns. Use a server-side dry run for that.
 
-## Values are not validated, in either direction
+## Values are not validated
 
-No values schema sets `additionalProperties: false`, and several top-level keys are absent from the schema
-entirely. Misspelled keys render clean, lint clean, and do nothing — including a misspelling in the *disable*
-direction, which leaves the component on. Verify an override by diffing the render against the unset baseline,
-never by an exit code.
+`values.schema.json` never sets `additionalProperties: false`, and several top-level keys are missing from it.
+Misspelled keys render cleanly, lint cleanly, and do nothing, including a misspelling meant to disable a component,
+which leaves it on. Check an override by diffing the render against the unset baseline, not by an exit code.
 
-Two shipped artifacts demonstrate the failure mode: the resource profiles are single-line files written in dotted
-key form, which Helm expands only for `--set` and never for `-f`, so all of them render byte-identical to the
-default; and at least one example overlay sets a key spelled differently from the condition that reads it.
+The files under `resource-profiles/` show the failure mode. Each one is a single line in dotted form, such as
+`global.profile: large`. Helm expands dotted keys only for `--set`, never for `-f`, so `-f resource-profiles/large.yaml`
+renders byte-identical to the default. Use `--set global.profile=large`.
 
-The same concept is also spelled differently across sibling subcharts — the nested toggle that gates a monitor
-object is `.enabled` in about half of them and `.install` in the rest. Grep the specific subchart's template for
-the condition before setting anything nested.
+The nested toggle that gates a service monitor is `serviceMonitor.enabled` in some subcharts and
+`serviceMonitor.install` in others. Search the
+specific subchart's template for the condition before you set anything nested.
 
-Numeric values pass through Helm's `default`, which treats zero as unset, so an explicit scale-to-zero silently
+Numeric values pass through Helm's `default`, which treats zero as unset, so an explicit scale to zero silently
 becomes one replica.
 
 ## What the chart renders is not what the operator receives
 
-The chart renders CR fields the CRD does not declare, because a Go struct tag excludes them from serialization
-while the template still emits them. What happens then depends on the apply path: a server-side strict apply
-rejects the whole object and fails the release, while a client-side apply prunes the field in silence. Either way
-the operator sees the zero value.
+The chart renders CR fields that the CRD does not declare, because a Go struct tag excludes them from
+serialization. See `api/v1/AGENTS.md`. A server-side strict apply rejects the whole object and fails the release,
+while a client-side apply prunes the field silently. Either way, the operator sees the zero value.
 
-Beyond that, a defaulting pass rewrites component enable flags in memory before reconciliation and only the status
-subresource is persisted — so the stored CR shows what the user asked for, not what the operator does.
+The defaulting pass also rewrites component enable flags in memory before reconciliation, and only the status
+subresource is persisted. The stored CR shows what the user asked for, not what the operator does.
 
-Before believing a values key works, check the CRD for the property and the Go field's tag. `helm template` showing
-a field proves nothing.
+Before you believe a values key works, check the CRD for the property and the Go field's tag. A field in the
+`helm template` output proves nothing.
 
 ## Installing, upgrading, and removing
 
-`--wait` covers only the chart's own objects. Nearly everything that matters is created afterwards by the
-operator, so a successful upgrade or rollback exit code says nothing about convergence — gate on the custom
-resource's status conditions and the managed workloads instead.
+`--wait` covers only the chart's own objects. The operator creates most of the stack afterward, so a successful
+upgrade or rollback exit code says nothing about convergence. Wait on the custom resource's status conditions and
+the managed workloads instead.
 
-Lifecycle hooks are the main source of grief:
+The chart has four lifecycle hooks. Each hook `Job` uses the `before-hook-creation,hook-failed` delete policy, so a
+reinstall replaces it and Helm deletes a failed one. The supporting `ServiceAccount`, `Role`, and binding objects use
+`before-hook-creation,hook-succeeded`, so they remain only after a failure, until the next hook run replaces them. You
+do not need to delete hook resources by hand before you reinstall. Because Helm deletes a failed `Job`, read its pod
+logs while the hook runs.
 
-- The post-install and post-upgrade hook assumes a control-plane topology a development cluster does not have. It
-  can stall for the whole timeout and leave the release `failed` while every workload is fine. Expect to pass
-  `--no-hooks` on upgrades as well as installs.
-- Pre-delete hooks act on the whole namespace rather than on release-owned objects, so an uninstall destroys
-  matching custom resources somebody else created by hand. Never uninstall in a namespace holding anything you
-  care about, and read the hook pod logs — Helm's own "kept due to resource policy" summary does not reflect what
-  the hooks did.
-- Hook resources are retained across uninstall and must be deleted by hand before reinstalling; a failed hook can
-  leave the release neither installed nor removable except with `--no-hooks`.
+- **`monitoring-grafana-cleanup-hook`** (`pre-delete`, weight `-10`) scales the operator to zero, then deletes Grafana
+  dashboards, data sources, and `Grafana` objects in the release namespace that carry
+  `app.kubernetes.io/managed-by-operator=monitoring-operator`, plus two dashboards by name.
+- **The VictoriaMetrics cleanup hook** (`pre-delete`, weight `-5`) scales the operator to zero, then deletes every
+  `VMSingle` (orphaning its dependents), `VMUser`, `VMAuth`, `VMAlert`, `VMAgent`, `VMAlertmanager`, and `VMCluster`
+  in the release namespace with `--all`.
+- **`monitoring-rbac-cleanup-hook`** (`post-delete`) deletes `ClusterRole` and `ClusterRoleBinding` objects that carry
+  the managed-by-operator label and `monitoring.netcracker.com/installation-namespace=<release namespace>`, plus this
+  installation's node-exporter SCC.
+- **The `etcdCertsJob` hook** (`post-install`, `post-upgrade`) copies etcd client certificates into the
+  `kube-etcd-client-certs` secret. It renders only when `global.privilegedRights` is `true` and `publicCloudName` is
+  empty.
 
-Rollback additionally trips over immutable fields changed between versions, and reports success while the stack
-never converges.
+A finished cleanup `Job` is removed after `victoriametrics.cleanup.hook.ttlSecondsAfterFinished` (default 180
+seconds), and a finished `etcdCertsJob` after `etcdCertsJob.ttlSecondsAfterFinished` (default 180 seconds).
 
-Several cluster-scoped names are hardcoded without a release or namespace prefix, so a second release in the same
-cluster collides — and the managed operators watch all namespaces by default, so the first release's operators
-reconcile and finalize the second one's resources. Side-by-side experiments are contaminated unless you isolate
-them deliberately.
+The VictoriaMetrics cleanup hook uses `--all`, not a label selector, so an uninstall also deletes VictoriaMetrics
+custom resources that someone created by hand in the release namespace. Do not uninstall in a namespace that holds
+VictoriaMetrics resources you want to keep.
+
+Do not skip these hooks with `--no-hooks` as a shortcut. The pre-delete hooks finalize managed custom resources while
+their operators and RBAC still exist, and the post-delete hook removes cluster RBAC afterward. Skipping them leaves
+that work undone. If a hook fails, read its logs and fix the cause.
+
+A rollback can also fail on immutable fields that changed between versions, and it can report success while the
+stack never converges.
 
 ## CRDs
 
-The same CRD is shipped in more than one chart and the copies have drifted by weeks in the past, so any schema
-comparison must state which copy it used. Files are named for the fully-qualified CRD, not the component, and a
-subchart's CRD directory is not restricted to that subchart.
+The same CRD ships in more than one chart, and the copies have drifted in the past, so state which copy a schema
+comparison used. CRD files are named for the fully qualified CRD, not the component, and a subchart's `crds/`
+directory can hold CRDs for other subcharts.
 
-The shipped CRDs are generator output post-processed by path-addressed YAML patches. Every field description is
-stripped to stay under the object-size limit, so cluster-side introspection teaches nothing about field meaning —
-read the Go types. The patches address absolute paths and no-op silently when an upstream path moves, and a
-deletion against a missing path exits zero, so the guard passes vacuously.
+The shipped CRDs are generator output post-processed by path-addressed `yq` expressions. See `api/v1/AGENTS.md`.
 
 ## Chart tooling
 
-The chart-lint step packages every vendored subchart into the source tree and neither the archives nor the lock
-file are ignored, so it leaves the working tree dirty beside directories that are already tracked. Clean up before
-reading a diff.
+The chart-lint step packages every vendored subchart into the source tree, and `.gitignore` covers neither the
+archives nor the lockfile. The step leaves the working tree dirty beside directories that are already tracked, so
+clean up before you read a diff.
 
-That step also copies the example profiles with a recursive glob that does not recurse in CI's shell and then
-selects them by filename suffix, so well under half of the documented profiles ever reach the linter. It runs
-without an install phase and with the chart-version gate switched off. A green chart job is not evidence that a
-profile, a rendered manifest, or a version bump was checked.
+The same workflow copies example profiles with `docs/examples/deploy-parameters/**/*.yaml`, which does not recurse in
+CI's shell, and `ct lint` then selects files by their `-values.yaml` suffix. Many documented profiles never reach the
+linter. The step runs with no install phase and with `--check-version-increment=false`. A green chart job is not
+evidence that a profile, a rendered manifest, or a version bump was checked.
 
-The locally installed Helm is likely a major version ahead of the one CI installs, and the majors differ on flags,
-on `lookup`, on hook handling, and on whether an unknown field is pruned or fails the release. Check the version
-before reasoning from documentation or from a local result.
+Compare your local Helm version with the version CI installs before you reason from a local result. Helm major
+versions differ in flags, in `lookup`, in hook handling, and in whether an unknown field is pruned or fails the
+release.
