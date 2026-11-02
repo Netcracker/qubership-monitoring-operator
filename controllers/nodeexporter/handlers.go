@@ -22,22 +22,7 @@ func (r *NodeExporterReconciler) handleServiceAccount(cr *monv1.PlatformMonitori
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *NodeExporterReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -51,25 +36,7 @@ func (r *NodeExporterReconciler) handleClusterRole(cr *monv1.PlatformMonitoring)
 	utils.SetLabelsForResource(m, in, nil)
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -83,22 +50,7 @@ func (r *NodeExporterReconciler) handleClusterRoleBinding(cr *monv1.PlatformMoni
 	utils.SetLabelsForResource(m, in, nil)
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.PlatformMonitoring) error {
@@ -126,14 +78,7 @@ func (r *NodeExporterReconciler) handleSecurityContextConstraints(cr *monv1.Plat
 			cr.GetName(),
 		)
 	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	utils.ApplySecurityContextConstraintsPolicy(e, m)
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return r.UpdateIfChanged(e, utils.SyncSecurityContextConstraints(e, m))
 }
 
 func isNodeExporterSCCOwnedBy(scc *secv1.SecurityContextConstraints, cr *monv1.PlatformMonitoring) bool {
@@ -179,30 +124,20 @@ func (r *NodeExporterReconciler) handleDaemonSet(cr *monv1.PlatformMonitoring) e
 		return err
 	}
 	e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	if utils.WorkloadNeedsSelectorReplace(e, m) {
-		if err := r.DeleteResource(e); err != nil {
-			return err
-		}
-		return r.CreateResource(cr, m)
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.Spec.Template.Spec = m.Spec.Template.Spec
+	return utils.CreateOrUpdateWorkload(r.ComponentReconciler, cr, m, e, syncDaemonSet)
+}
 
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+// syncDaemonSet copies the DaemonSet fields this controller manages.
+func syncDaemonSet(existing, desired *appsv1.DaemonSet) bool {
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		utils.SetLabelsIfChanged(&existing.Spec.Template, desired.Spec.Template.GetLabels()),
+		utils.SyncPodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.NodeSelector, desired.Spec.Template.Spec.NodeSelector),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.Tolerations, desired.Spec.Template.Spec.Tolerations),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.HostNetwork, desired.Spec.Template.Spec.HostNetwork),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.HostPID, desired.Spec.Template.Spec.HostPID),
+	)
 }
 
 func (r *NodeExporterReconciler) handleService(cr *monv1.PlatformMonitoring) error {
@@ -215,25 +150,7 @@ func (r *NodeExporterReconciler) handleService(cr *monv1.PlatformMonitoring) err
 	m.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.NodeExporterComponentName)}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *NodeExporterReconciler) handleServiceMonitor(cr *monv1.PlatformMonitoring) error {
@@ -244,27 +161,7 @@ func (r *NodeExporterReconciler) handleServiceMonitor(cr *monv1.PlatformMonitori
 	}
 
 	e := &promv1.ServiceMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.Endpoints = m.Spec.Endpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncServiceMonitor)
 }
 
 func (r *NodeExporterReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {

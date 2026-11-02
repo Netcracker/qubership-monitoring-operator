@@ -58,11 +58,6 @@ type grafanaDataStorage struct {
 	VolumeName  string                              `json:"volumeName,omitempty"`
 }
 
-// TODO(#377): spec.grafana.config is not propagated to the Grafana CR spec.config. Once it is,
-// merge user-provided keys after the operator defaults so they can override them, restore the
-// opt-out gate for operator-managed config sections, and derive server.root_url from
-// spec.grafana.ingress.host as an overridable default.
-
 // grafanaOperatorSubject returns the service account subject that grafana-operator presents in
 // its projected JWT. It must track the ServiceAccount name set by grafanaOperatorServiceAccount.
 func grafanaOperatorSubject(operatorNamespace string) string {
@@ -149,6 +144,18 @@ func grafanaName(cr *monv1.PlatformMonitoring) string {
 		return cr.Spec.Grafana.Name
 	}
 	return utils.GrafanaComponentName
+}
+
+// grafanaServiceName returns the name of the Service that Grafana Operator creates for the Grafana
+// resource: "<name>-service", which is utils.GrafanaServiceName for the default name.
+func grafanaServiceName(cr *monv1.PlatformMonitoring) string {
+	return grafanaName(cr) + "-service"
+}
+
+// grafanaDeploymentName returns the name of the Deployment that Grafana Operator creates for the
+// named Grafana resource.
+func grafanaDeploymentName(name string) string {
+	return name + "-deployment"
 }
 
 // grafanaNamespace returns the configured Grafana namespace or the PlatformMonitoring namespace.
@@ -450,10 +457,6 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources, isO
 		// TODO(#434): Grafana Operator v5 moved dashboard selection to immutable
 		// GrafanaDashboard instance selectors.
 
-		// TODO(#376): cr.Spec.Auth OAuth fields (LoginURL, TokenURL, UserInfoURL, TLSConfig) are not
-		// applied to the Grafana CR spec.config["auth.generic_oauth"]. The TLS secrets (CASecret,
-		// CertSecret, KeySecret) additionally need volume mounts.
-
 		// Preserve configured IDs while enforcing the hardening settings above.
 		if err := utils.ValidateSecurityContextSpec(cr.Spec.Grafana.SecurityContext); err != nil {
 			return nil, err
@@ -618,7 +621,17 @@ func grafana(cr *monv1.PlatformMonitoring, sources grafanaCredentialSources, isO
 					authSection := ensureGrafanaConfigSection(&graf, "auth.generic_oauth")
 					authSection["client_secret"] = "$__file{" + oauthSecretMountPath + "/GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}"
 				}
+
+				if hasGrafanaOAuthConfig(cr.Spec.Auth) {
+					configureGrafanaGenericOAuth(&graf, podSpec, container, cr.Spec.Auth)
+				}
 			}
+		}
+
+		// Operator defaults first, then spec.grafana.config, so user values win.
+		applyGrafanaRootURL(&graf, cr.Spec.Grafana.Ingress)
+		if err := applyGrafanaUserConfig(&graf, cr.Spec.Grafana.Config); err != nil {
+			return nil, err
 		}
 
 		// Set labels on Grafana resource
@@ -1037,7 +1050,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 								PathType: string(pathType),
 								Backend: monv1.IngressPathBackend{
 									Service: monv1.IngressPathBackendService{
-										Name: utils.GrafanaServiceName,
+										Name: grafanaServiceName(cr),
 										Port: monv1.ServiceBackendPort{
 											Number: utils.GrafanaServicePort,
 										},
@@ -1089,7 +1102,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 				Host: ing.Host,
 				IngressRuleValue: networkingv1.IngressRuleValue{
 					HTTP: &networkingv1.HTTPIngressRuleValue{
-						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(pathType)},
+						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(grafanaServiceName(cr), pathType)},
 					},
 				},
 			})
@@ -1099,7 +1112,7 @@ func grafanaIngressV1(cr *monv1.PlatformMonitoring) (*networkingv1.Ingress, erro
 			rules = append(rules, networkingv1.IngressRule{
 				IngressRuleValue: networkingv1.IngressRuleValue{
 					HTTP: &networkingv1.HTTPIngressRuleValue{
-						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(pathType)},
+						Paths: []networkingv1.HTTPIngressPath{defaultGrafanaPath(grafanaServiceName(cr), pathType)},
 					},
 				},
 			})
@@ -1200,6 +1213,9 @@ func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error)
 	podMonitor.SetName(cr.GetNamespace() + "-" + "grafana-pod-monitor")
 	podMonitor.SetNamespace(cr.GetNamespace())
 
+	// Grafana Operator labels Grafana pods with app=<Grafana resource name>.
+	podMonitor.Spec.Selector.MatchLabels = map[string]string{"app": grafanaName(cr)}
+
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.PodMonitor != nil && cr.Spec.Grafana.PodMonitor.IsInstall() {
 		cr.Spec.Grafana.PodMonitor.OverridePodMonitor(&podMonitor)
 	}
@@ -1216,13 +1232,13 @@ func grafanaPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error)
 	return &podMonitor, nil
 }
 
-func defaultGrafanaPath(pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
+func defaultGrafanaPath(serviceName string, pathType networkingv1.PathType) networkingv1.HTTPIngressPath {
 	return networkingv1.HTTPIngressPath{
 		Path:     "/",
 		PathType: &pathType,
 		Backend: networkingv1.IngressBackend{
 			Service: &networkingv1.IngressServiceBackend{
-				Name: utils.GrafanaServiceName,
+				Name: serviceName,
 				Port: networkingv1.ServiceBackendPort{
 					Number: utils.GrafanaServicePort,
 				},
