@@ -151,7 +151,7 @@ func (r *GrafanaReconciler) handleGrafana(cr *monv1.PlatformMonitoring) error {
 		r.Log.Error(err, "Failed adding Grafana extra-vars resource versions")
 		return err
 	}
-	if err = r.addAdminPasswordChecksum(cr, m, existingAnnotations, !grafanaExists); err != nil {
+	if err = r.addAdminPasswordChecksum(cr, m, existingAnnotations); err != nil {
 		return err
 	}
 	if !grafanaExists {

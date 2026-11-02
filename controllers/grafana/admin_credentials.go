@@ -5,19 +5,19 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	goerrors "errors"
 	"fmt"
-	"maps"
+	"net/url"
 	"strings"
-	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
-	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -37,11 +37,17 @@ const (
 	grafanaContainerName = "grafana"
 )
 
-// Grafana pod readiness polling for the admin password reset. Variables so tests can shorten them.
-var (
-	grafanaPodReadyTimeout = 5 * time.Minute
-	grafanaPodPollInterval = 5 * time.Second
-)
+// ErrAdminPasswordSyncPending is returned when the admin password must be reset but no Grafana pod
+// is ready yet. The reconcile is requeued instead of failing.
+var ErrAdminPasswordSyncPending = goerrors.New("grafana admin password sync is pending")
+
+// IsPending reports whether err only means that Grafana is not ready yet for a pending step.
+func IsPending(err error) bool {
+	return goerrors.Is(err, ErrDatasourceMigrationPending) || goerrors.Is(err, ErrAdminPasswordSyncPending)
+}
+
+// executorFactory creates a remote command executor; tests replace remotecommand.NewSPDYExecutor.
+type executorFactory func(config *rest.Config, method string, url *url.URL) (remotecommand.Executor, error)
 
 // adminPasswordChecksum returns the SHA-256 hex digest of the admin password, or "" when the
 // Secret has no password. Only the password is hashed: Grafana CLI can reset the password in an
@@ -74,13 +80,10 @@ func (r *GrafanaReconciler) readAdminPasswordChecksum(cr *monv1.PlatformMonitori
 
 // addAdminPasswordChecksum sets the admin password checksum on the desired pod template. When the
 // Secret has no password, it keeps the checksum from the existing pod template to avoid a restart.
-// On creation, it also marks the password as synced: Grafana creates the admin user from the
-// mounted Secret on first start, so no reset is needed.
 func (r *GrafanaReconciler) addAdminPasswordChecksum(
 	cr *monv1.PlatformMonitoring,
 	manifest *grafv1.Grafana,
 	existingAnnotations map[string]string,
-	creating bool,
 ) error {
 	checksum, err := r.readAdminPasswordChecksum(cr)
 	if err != nil {
@@ -97,15 +100,6 @@ func (r *GrafanaReconciler) addAdminPasswordChecksum(
 		template.Annotations = make(map[string]string)
 	}
 	template.Annotations[adminSecretChecksumAnnotation] = checksum
-	if creating {
-		// Copy first: the manifest may share its annotation map with the PlatformMonitoring spec.
-		annotations := maps.Clone(manifest.GetAnnotations())
-		if annotations == nil {
-			annotations = make(map[string]string, 1)
-		}
-		annotations[adminPasswordSyncedAnnotation] = checksum
-		manifest.SetAnnotations(annotations)
-	}
 	return nil
 }
 
@@ -113,6 +107,10 @@ func (r *GrafanaReconciler) addAdminPasswordChecksum(
 // database when it differs from the last synced password. Grafana applies admin_password only
 // when it creates the admin user, so a changed Secret alone does not change the password of an
 // existing database, for example one on a persistent volume.
+//
+// A newly created Grafana resource is not treated as synced: it can adopt an existing database,
+// for example the PVC retained by the v4 to v5 migration, so the first ready pod gets one reset.
+// When no Grafana pod is ready yet, it returns an error wrapping ErrAdminPasswordSyncPending.
 func (r *GrafanaReconciler) syncGrafanaAdminPassword(cr *monv1.PlatformMonitoring) error {
 	checksum, err := r.readAdminPasswordChecksum(cr)
 	if err != nil || checksum == "" {
@@ -165,7 +163,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		return nil
 	}
 
-	podName, err := r.waitForReadyGrafanaPod(namespace, grafanaName(cr))
+	podName, err := r.findReadyGrafanaPod(namespace, grafanaName(cr))
 	if err != nil {
 		return err
 	}
@@ -178,11 +176,7 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 		"--config", "/etc/grafana/grafana.ini",
 		"admin", "reset-admin-password", "--password-from-stdin",
 	}
-	runCommand := r.runPodCommand
-	if runCommand == nil {
-		runCommand = r.execInPod
-	}
-	stdout, stderr, err := runCommand(namespace, podName, grafanaContainerName, command, password+"\n")
+	stdout, stderr, err := r.execInPod(namespace, podName, grafanaContainerName, command, password+"\n")
 	if err != nil {
 		return fmt.Errorf("grafana cli reset-admin-password failed in pod %s: %w; stdout: %s; stderr: %s",
 			podName, err, stdout, stderr)
@@ -190,9 +184,6 @@ func (r *GrafanaReconciler) resetGrafanaCredentials(cr *monv1.PlatformMonitoring
 	r.Log.Info("Grafana admin password reset", "pod", podName)
 	return nil
 }
-
-// podCommandRunner runs a command in a pod container with the given stdin and returns its output.
-type podCommandRunner func(namespace, pod, container string, command []string, stdin string) (string, string, error)
 
 // execInPod runs a command in a pod container through the pods/exec subresource.
 func (r *GrafanaReconciler) execInPod(namespace, pod, container string, command []string, stdin string) (string, string, error) {
@@ -210,7 +201,11 @@ func (r *GrafanaReconciler) execInPod(namespace, pod, container string, command 
 			Stderr:    true,
 		}, scheme.ParameterCodec)
 
-	executor, err := remotecommand.NewSPDYExecutor(r.config, "POST", req.URL())
+	newExecutor := r.newExecutor
+	if newExecutor == nil {
+		newExecutor = remotecommand.NewSPDYExecutor
+	}
+	executor, err := newExecutor(r.config, "POST", req.URL())
 	if err != nil {
 		return "", "", fmt.Errorf("cannot create exec client for pod %s: %w", pod, err)
 	}
@@ -223,27 +218,36 @@ func (r *GrafanaReconciler) execInPod(namespace, pod, container string, command 
 	return stdout.String(), stderr.String(), err
 }
 
-// waitForReadyGrafanaPod returns the name of a ready, non-terminating Grafana pod, polling until
-// grafanaPodReadyTimeout expires.
-func (r *GrafanaReconciler) waitForReadyGrafanaPod(namespace, name string) (string, error) {
-	selector := "app.kubernetes.io/name=" + utils.TruncLabel(name)
-	deadline := time.Now().Add(grafanaPodReadyTimeout)
-	for {
-		pods, err := r.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
-		if err != nil {
-			return "", fmt.Errorf("cannot list Grafana pods: %w", err)
+// findReadyGrafanaPod returns a ready, non-terminating pod of the Grafana Deployment. It selects
+// pods with the Deployment's own selector, so user-defined pod labels cannot break the lookup.
+// When the Deployment or a ready pod does not exist yet, it returns an error wrapping
+// ErrAdminPasswordSyncPending.
+func (r *GrafanaReconciler) findReadyGrafanaPod(namespace, name string) (string, error) {
+	deploymentName := grafanaDeploymentName(name)
+	deployment, err := r.KubeClient.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return "", fmt.Errorf("%w: Deployment %s/%s not found", ErrAdminPasswordSyncPending, namespace, deploymentName)
 		}
-		for i := range pods.Items {
-			if pods.Items[i].DeletionTimestamp == nil && isPodReady(&pods.Items[i]) {
-				return pods.Items[i].Name, nil
-			}
-		}
-		if time.Now().After(deadline) {
-			return "", fmt.Errorf("no ready Grafana pod with label %s in namespace %s after %s",
-				selector, namespace, grafanaPodReadyTimeout)
-		}
-		time.Sleep(grafanaPodPollInterval)
+		return "", fmt.Errorf("cannot get Grafana Deployment %s/%s: %w", namespace, deploymentName, err)
 	}
+	selector, err := metav1.LabelSelectorAsSelector(deployment.Spec.Selector)
+	if err != nil {
+		return "", fmt.Errorf("invalid selector in Grafana Deployment %s/%s: %w", namespace, deploymentName, err)
+	}
+	if selector.Empty() {
+		return "", fmt.Errorf("grafana Deployment %s/%s has an empty selector", namespace, deploymentName)
+	}
+	pods, err := r.KubeClient.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector.String()})
+	if err != nil {
+		return "", fmt.Errorf("cannot list Grafana pods: %w", err)
+	}
+	for i := range pods.Items {
+		if pods.Items[i].DeletionTimestamp == nil && isPodReady(&pods.Items[i]) {
+			return pods.Items[i].Name, nil
+		}
+	}
+	return "", fmt.Errorf("%w: no ready pod of Deployment %s/%s", ErrAdminPasswordSyncPending, namespace, deploymentName)
 }
 
 func isPodReady(pod *corev1.Pod) bool {

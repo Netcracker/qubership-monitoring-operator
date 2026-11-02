@@ -37,17 +37,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func TestIsGrafanaDatasourceMigrationPending(t *testing.T) {
+func TestIsGrafanaPendingForDatasourceMigration(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, isGrafanaDatasourceMigrationPending(
+	assert.True(t, isGrafanaPending(
 		fmt.Errorf("wrap: %w", grafana.ErrDatasourceMigrationPending)))
 }
 
-func TestIsGrafanaDatasourceMigrationPendingFalseForOrdinaryError(t *testing.T) {
+func TestIsGrafanaPendingForAdminPasswordSync(t *testing.T) {
 	t.Parallel()
 
-	assert.False(t, isGrafanaDatasourceMigrationPending(
+	assert.True(t, isGrafanaPending(
+		fmt.Errorf("wrap: %w", grafana.ErrAdminPasswordSyncPending)))
+}
+
+func TestIsGrafanaPendingFalseForOrdinaryError(t *testing.T) {
+	t.Parallel()
+
+	assert.False(t, isGrafanaPending(
 		fmt.Errorf("listing Grafana datasources for migration: boom")))
 }
 
