@@ -12,3 +12,4 @@ subsets:
   - ports:
       - name: "https-metrics"
         port: 10259
+        protocol: TCP
