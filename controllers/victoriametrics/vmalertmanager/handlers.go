@@ -19,23 +19,7 @@ func (r *VmAlertManagerReconciler) handleServiceAccount(cr *monv1.PlatformMonito
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmAlertManagerReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -46,25 +30,7 @@ func (r *VmAlertManagerReconciler) handleClusterRole(cr *monv1.PlatformMonitorin
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *VmAlertManagerReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -75,23 +41,7 @@ func (r *VmAlertManagerReconciler) handleClusterRoleBinding(cr *monv1.PlatformMo
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmAlertManagerReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
@@ -102,25 +52,7 @@ func (r *VmAlertManagerReconciler) handleRole(cr *monv1.PlatformMonitoring) erro
 	}
 
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncRole)
 }
 
 func (r *VmAlertManagerReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -131,23 +63,7 @@ func (r *VmAlertManagerReconciler) handleRoleBinding(cr *monv1.PlatformMonitorin
 	}
 
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmAlertManagerReconciler) handleVmAlertManager(cr *monv1.PlatformMonitoring) error {
@@ -157,33 +73,16 @@ func (r *VmAlertManagerReconciler) handleVmAlertManager(cr *monv1.PlatformMonito
 		return err
 	}
 	e := &vmetricsv1b1.VMAlertmanager{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &vmetricsv1b1.VMAlertmanager{ObjectMeta: metav1.ObjectMeta{
-				Name:      utils.VmAlertManagerComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &vmetricsv1b1.VMAlertmanager{ObjectMeta: metav1.ObjectMeta{
+		Name:      utils.VmAlertManagerComponentName,
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, func(existing, desired *vmetricsv1b1.VMAlertmanager) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec, desired.Spec),
+		)
+	})
 }
 
 func (r *VmAlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) error {
@@ -194,32 +93,11 @@ func (r *VmAlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) er
 	}
 
 	e := &corev1.Secret{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
-				Name:      "vmalertmanager-vmalertmanager-config",
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
+		Name:      "vmalertmanager-vmalertmanager-config",
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, utils.SyncLabels)
 }
 
 func (r *VmAlertManagerReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -229,35 +107,11 @@ func (r *VmAlertManagerReconciler) handleIngressV1(cr *monv1.PlatformMonitoring)
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{
-				Name:      cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{
+		Name:      cr.GetNamespace() + "-" + utils.VmAlertManagerComponentName,
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, utils.SyncIngress)
 }
 
 func (r *VmAlertManagerReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
