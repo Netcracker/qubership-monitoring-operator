@@ -225,17 +225,17 @@
                 },
                 "automountServiceAccountToken": {
                     "type": "boolean",
-                    "description": "Whether the service account token should be automatically mounted into the pod.",
-                    "default": true
+                    "description": "Whether the Kubernetes API token is mounted into the pod. IRSA does not need it.",
+                    "default": false
                 },
                 "install": {
                     "type": "boolean",
-                    "description": "Whether a ServiceAccount should be created.",
+                    "description": "Whether the chart creates the ServiceAccount. Set to false to reuse an existing one by name.",
                     "default": true
                 },
                 "name": {
                     "type": "string",
-                    "description": "Name of the ServiceAccount to use.",
+                    "description": "Name of the ServiceAccount the pod runs as, created or existing. Defaults to the exporter name.",
                     "default": "yace-exporter"
                 }
             },

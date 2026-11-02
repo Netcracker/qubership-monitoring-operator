@@ -166,11 +166,13 @@ aws:
 # Mandatory: no
 #
 serviceAccount:
-  # Specifies whether a ServiceAccount should be created
+  # Specifies whether the chart creates the ServiceAccount.
+  # Set to false to reuse an existing ServiceAccount, for example one that already carries an IRSA role.
+  # The pod always runs as the ServiceAccount named below.
   install: true
 
-  # The name of the ServiceAccount to use.
-  # If not set and create is true, a name is generated using the fullname template
+  # The name of the ServiceAccount the pod runs as, whether the chart creates it or not.
+  # Defaults to the exporter name (`name`) when empty.
   name: yace-exporter
 
   # Will add the provided map to the annotations for the created serviceAccount.
@@ -182,8 +184,10 @@ serviceAccount:
   #
   # annotations:
 
-  # Specifies whether to automount API credentials for the ServiceAccount.
-  automountServiceAccountToken: true
+  # Specifies whether to mount the Kubernetes API token into the pod.
+  # YACE does not call the Kubernetes API, so the token is off by default.
+  # IRSA keeps working: the EKS Pod Identity webhook injects its own projected `aws-iam-token` volume.
+  automountServiceAccountToken: false
 
 # Allow creating ClusterRole and ClusterRoleBinding.
 # YACE does not use the Kubernetes API: config comes from the mounted ConfigMap

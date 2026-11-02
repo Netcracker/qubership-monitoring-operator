@@ -119,10 +119,8 @@ spec:
       {{- end }}
       securityContext:
         {{- include "yace-exporter.securityContext" . | nindent 8 }}
-      {{- if .Values.serviceAccount.install }}
-      serviceAccount: {{ .Values.serviceAccount.name }}
-      serviceAccountName: {{ .Values.serviceAccount.name }}
-      {{- end }}
+      serviceAccountName: {{ include "yace-exporter.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken | default false }}
       volumes:
       - configMap:
           defaultMode: 420

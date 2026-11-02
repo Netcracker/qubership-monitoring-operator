@@ -42,6 +42,14 @@ The namespace keeps cluster-scoped object names unique across releases.
   {{- printf "%s-%s" (include "monitoring.namespace" .) .Values.name -}}
 {{- end -}}
 
+{{/*
+Name of the ServiceAccount that the pod runs as.
+serviceAccount.install only controls whether the chart creates it; an existing account is reused by name.
+*/}}
+{{- define "yace-exporter.serviceAccountName" -}}
+  {{- .Values.serviceAccount.name | default .Values.name -}}
+{{- end -}}
+
 {{- define "yace-exporter.instance" -}}
   {{- printf "%s-%s" (include "monitoring.namespace" .) .Values.name | nospace | trunc 63 | trimSuffix "-" }}
 {{- end -}}
