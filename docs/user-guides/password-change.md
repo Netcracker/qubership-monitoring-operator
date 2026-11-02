@@ -163,8 +163,7 @@ Following message confirms the secret was edited successfully.
 secret/grafana-admin-credentials edited
 ```
 
-The Secret is in the Grafana namespace: the release namespace by default, or `grafana.namespace` when it is set. With
-a custom `grafana.name`, the Secret is named `<grafana-name>-admin-credentials`.
+With a custom `grafana.name`, the Secret is named `<grafana-name>-admin-credentials`.
 
 ### What happens after the Secret is updated
 
@@ -174,10 +173,14 @@ operator:
 
 1. Writes the new password checksum to the `checksum/admin-secret` pod template annotation of the Grafana custom
    resource. Grafana Operator restarts the Grafana pod.
-2. Waits up to 5 minutes for a ready Grafana pod.
+2. Finds a ready pod of the `<grafana-name>-deployment` Deployment. Until one is ready, PlatformMonitoring stays
+   `In progress`, and the operator retries every 10 seconds without reconciling the Grafana datasources.
 3. Runs `grafana cli admin reset-admin-password` with the password from the Secret in that pod.
 4. Records the synced password checksum in the `monitoring.netcracker.com/grafana-admin-password-checksum` annotation
    of the Grafana custom resource. If the reset fails, the operator retries it on the next reconciliation.
+
+The operator also runs the reset once for a newly created Grafana custom resource, because it can use an existing
+database, for example the volume kept from a Grafana Operator v4 installation.
 
 The reset is required when Grafana keeps its database on a persistent volume or in an external database. Only the
 password is synced: changing `GF_SECURITY_ADMIN_USER` does not rename an existing admin user.
@@ -193,7 +196,7 @@ Grafana admin password reset
 To check the new password, run:
 
 ```bash
-kubectl port-forward -n <monitoring-namespace> svc/grafana-service 3000:3000
+kubectl port-forward -n <monitoring-namespace> svc/<grafana-name>-service 3000:3000
 curl -u <admin-user>:<new-password> http://localhost:3000/api/org
 ```
 

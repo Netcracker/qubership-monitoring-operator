@@ -14,11 +14,12 @@ themselves.
   read-only from the `grafana-oauth-client-secret` Secret.
 - `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` is not sensitive and stays an environment variable.
 
-Grafana creates the admin user from the mounted Secret only on first start. When `GF_SECURITY_ADMIN_PASSWORD` changes
-later, Monitoring Operator writes the password checksum to the `checksum/admin-secret` pod template annotation, which
-restarts Grafana, and runs `grafana cli admin reset-admin-password` in a ready Grafana pod. This keeps the password in
-an existing database, for example one on a persistent volume, in sync with the Secret. Changing `GF_SECURITY_ADMIN_USER`
-does not rename an existing admin user. For details, see the
+Grafana creates the admin user from the mounted Secret only on first start. Monitoring Operator therefore runs
+`grafana cli admin reset-admin-password` in a ready Grafana pod once for a new Grafana custom resource and again
+whenever `GF_SECURITY_ADMIN_PASSWORD` changes. A changed password also updates the `checksum/admin-secret` pod template
+annotation, which restarts Grafana. This keeps the password in an existing database, for example one on a persistent
+volume, in sync with the Secret. Changing `GF_SECURITY_ADMIN_USER` does not rename an existing admin user. For details,
+see the
 [password change guide](../../../user-guides/password-change.md#grafana-admin-password-change).
 
 <!-- markdownlint-disable line-length -->
@@ -26,8 +27,8 @@ does not rename an existing admin user. For details, see the
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | install                    | Allows to disable deploy Grafana. If Grafana was not deployed during the deployment using helm, it can be deployed using the change custom resource PlatformMonitoring.                                                | bool                                                                                                                                            |
 | paused                     | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                                            |
-| name                       | Name of the Grafana custom resource. The admin credentials Secret is named `<name>-admin-credentials`.                                                                                                                 | string                                                                                                                                          |
-| namespace                  | Namespace of the Grafana custom resource and pods. The admin credentials and OAuth client Secrets must be in it.                                                                                                       | string                                                                                                                                          |
+| name                       | Name of the Grafana custom resource. The admin credentials Secret is `<name>-admin-credentials`, the Service is `<name>-service`.                                                                                      | string                                                                                                                                          |
+| namespace                  | Namespace of the Grafana custom resource. Only the PlatformMonitoring namespace is supported: the operator watches only it.                                                                                            | string                                                                                                                                          |
 | image                      | A Docker image to be used for the grafana deployment.                                                                                                                                                                  | string                                                                                                                                          |
 | ingress                    | Allows to create Ingress for Grafana UI using monitoring-operator.                                                                                                                                                     | [v1.Ingress](#ingress)                                                                                                                          |
 | httpRoute                  | HTTPRoute allows to create Gateway API HTTPRoute for the Grafana UI.                                                                                                                                                   | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                                        |
