@@ -13,16 +13,18 @@
 #
 install: true
 
-# Custom Grafana CR name.
-# The admin credentials Secret name follows this value: {name}-admin-credentials.
+# Name of the Grafana custom resource.
+# Grafana Operator names the Grafana Service {name}-service and the Deployment {name}-deployment.
+# The admin credentials Secret is named {name}-admin-credentials.
 # Type: string
 # Mandatory: no
 # Default: grafana
 #
 # name: grafana
 
-# Namespace where the Grafana CR and Grafana pod run.
-# The admin credentials Secret and OAuth client Secret must be in the same namespace.
+# Namespace of the Grafana custom resource and pods.
+# Only the release namespace is supported: Monitoring Operator watches only that namespace,
+# so rendering fails for any other value.
 # Type: string
 # Mandatory: no
 # Default: release namespace
@@ -277,7 +279,7 @@ extraVars:
   GF_AUTH_ANONYMOUS_HIDE_VERSION: true
   GF_SERVER_ENFORCE_DOMAIN: false
   # GF_RENDERING_SERVER_URL: http://grafana-image-renderer:8081/render
-  # GF_RENDERING_CALLBACK_URL: http://grafana-service:3000/
+  # GF_RENDERING_CALLBACK_URL: http://{name}-service:3000/
   # GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: true
   # GF_LOG_LEVEL: trace
   # GF_SECURITY_CONTENT_SECURITY_POLICY_TEMPLATE:
