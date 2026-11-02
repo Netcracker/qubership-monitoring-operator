@@ -37,6 +37,25 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+func TestRequestsForGrafanaExtraVarsSameNamespace(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, monv1.AddToScheme(scheme))
+	reconciler := &PlatformMonitoringReconciler{Client: clientfake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&monv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Name: "pm", Namespace: "monitoring"},
+		},
+		&monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "other", Namespace: "other"}},
+	).Build()}
+
+	requests := reconciler.requestsForPlatformMonitorings(context.Background(), &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars-secret", Namespace: "monitoring"},
+	})
+
+	assert.Equal(t, []reconcile.Request{{NamespacedName: types.NamespacedName{
+		Name: "pm", Namespace: "monitoring",
+	}}}, requests)
+}
+
 func TestIsGrafanaDatasourceMigrationPending(t *testing.T) {
 	t.Parallel()
 
@@ -334,7 +353,7 @@ func TestReconcileStatusWrites(t *testing.T) {
 			)
 
 			require.NoError(t, err)
-			assert.Equal(t, 60*time.Second, result.RequeueAfter)
+			assert.Equal(t, time.Hour, result.RequeueAfter)
 			assert.Equal(t, tt.wantUpdates, countingClient.statusWriter.updates)
 
 			stored := &monv1.PlatformMonitoring{}
@@ -465,7 +484,7 @@ func TestReconcileStatusRecoversFromPriorFailure(t *testing.T) {
 	)
 
 	require.NoError(t, err)
-	assert.Equal(t, 60*time.Second, result.RequeueAfter)
+	assert.Equal(t, time.Hour, result.RequeueAfter)
 	assert.Equal(t, 1, countingClient.statusWriter.updates)
 
 	stored := &monv1.PlatformMonitoring{}
