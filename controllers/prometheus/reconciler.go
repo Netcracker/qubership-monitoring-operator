@@ -1,16 +1,10 @@
 package prometheus
 
 import (
-	"context"
-	"fmt"
-
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -38,10 +32,6 @@ func NewPrometheusReconciler(c client.Client, s *runtime.Scheme, dc discovery.Di
 // Returns true if need to requeue, false otherwise.
 func (r *PrometheusReconciler) Run(cr *monv1.PlatformMonitoring) error {
 	r.Log.Info("Reconciling component")
-
-	if err := r.removePrometheusPVC(cr); err != nil {
-		return err
-	}
 
 	if cr.Spec.Prometheus != nil && cr.Spec.Prometheus.IsInstall() {
 		if !cr.Spec.Prometheus.Paused {
@@ -125,40 +115,6 @@ func (r *PrometheusReconciler) Run(cr *monv1.PlatformMonitoring) error {
 		r.Log.Info("Uninstalling component if exists")
 		r.uninstall(cr)
 		r.Log.Info("Component reconciled")
-	}
-	return nil
-}
-
-// removePrometheusPVC deletes PVC for Prometheus pod if it isn't needed anymore.
-func (r *PrometheusReconciler) removePrometheusPVC(cr *monv1.PlatformMonitoring) error {
-	if cr.Spec.Prometheus == nil || !cr.Spec.Prometheus.IsInstall() || cr.Spec.Prometheus.Storage == nil {
-		// We can use hardcoded value for now because prometheus-operator < v0.40.0
-		// doesn't allow setting metadata for PVC template.
-		// See https://github.com/prometheus-operator/prometheus-operator/issues/3093
-		// ToDo: Implement deleting PVC by special value when prometheus-operator will be upgraded to v0.40.0+
-		pvcName := "prometheus-k8s-db-prometheus-k8s-0"
-
-		// Find PVC resource
-		pvc := &corev1.PersistentVolumeClaim{}
-		err := r.Client.Get(
-			context.TODO(),
-			types.NamespacedName{Name: pvcName, Namespace: cr.GetNamespace()},
-			pvc,
-		)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				return nil
-			}
-
-			return err
-		}
-		// Delete PVC
-		r.Log.Info(fmt.Sprintf("delete Prometheus PVC with name %q as it is not needed anymore", pvc.GetName()))
-		err = r.Client.Delete(context.TODO(), pvc)
-		if err != nil {
-			r.Log.Error(err, fmt.Sprintf("can not delete PVC %q", pvc.GetName()))
-			return err
-		}
 	}
 	return nil
 }
