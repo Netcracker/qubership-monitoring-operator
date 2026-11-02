@@ -119,13 +119,19 @@ type fakeExecutor struct {
 	stdin  string
 	stdout string
 	err    error
+	// stall blocks the stream until its context ends, like an exec that never completes.
+	stall bool
 }
 
 func (e *fakeExecutor) Stream(options remotecommand.StreamOptions) error {
 	return e.StreamWithContext(context.Background(), options)
 }
 
-func (e *fakeExecutor) StreamWithContext(_ context.Context, options remotecommand.StreamOptions) error {
+func (e *fakeExecutor) StreamWithContext(ctx context.Context, options remotecommand.StreamOptions) error {
+	if e.stall {
+		<-ctx.Done()
+		return ctx.Err()
+	}
 	stdin, err := io.ReadAll(options.Stdin)
 	if err != nil {
 		return err
@@ -339,6 +345,22 @@ func TestSyncGrafanaAdminPasswordKeepsChecksumWhenResetFails(t *testing.T) {
 	assert.NotContains(t, err.Error(), "new-password")
 	assert.Equal(t, "old", getGrafana(t, r, "grafana").GetAnnotations()[adminPasswordSyncedAnnotation],
 		"a failed reset must be retried on the next reconcile")
+}
+
+func TestSyncGrafanaAdminPasswordKeepsChecksumWhenExecStalls(t *testing.T) {
+	cr := adminCredentialsCR(nil)
+	r := newAdminCredentialsReconciler(t,
+		newExecClientset(t, grafanaDeployment("grafana"), readyPod("grafana-ready", true)),
+		adminSecret(testNamespace, "grafana", "new-password"), existingGrafana(t, cr, "old"))
+	useFakeExecutor(r, &fakeExecutor{stall: true})
+	r.execTimeout = 50 * time.Millisecond
+
+	err := r.syncGrafanaAdminPassword(cr)
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.False(t, IsPending(err))
+	assert.ErrorContains(t, err, "exec in pod grafana-ready timed out after 50ms")
+	assert.Equal(t, "old", getGrafana(t, r, "grafana").GetAnnotations()[adminPasswordSyncedAnnotation],
+		"a timed-out reset must be retried on the next reconcile")
 }
 
 func TestSyncGrafanaAdminPasswordReturnsGrafanaReadError(t *testing.T) {
