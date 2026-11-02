@@ -27,6 +27,7 @@ exporter, the resources the operator creates for it, and the scrape configuratio
 ## Cloud Providers
 
 * [CloudWatch Exporter](cloudwatch-exporter.md): Amazon CloudWatch metrics.
+* [YACE Exporter](yace-exporter.md): Amazon CloudWatch metrics with tag-based auto-discovery.
 * [Promitor Agent Scraper](promitor-agent-scraper.md): Azure Monitor metrics.
 * [Stackdriver Exporter](stackdriver-exporter.md): Google Cloud Operations metrics.
 

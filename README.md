@@ -49,6 +49,8 @@ interface for comprehensive observability.
 
 - **Graphite**: graphite-remote-adapter for Graphite integration
 - **Load Balancing**: promxy for high availability and federation
+- **Model Context Protocol**: optional Grafana and VictoriaMetrics MCP servers for querying and troubleshooting the
+  monitoring stack from MCP-compatible AI agents
 
 ## Architecture
 
@@ -129,7 +131,6 @@ cd qubership-monitoring-operator
 # Run this before installing or upgrading the operator. Server-side apply creates new CRDs, updates existing CRDs, and
 # avoids the last-applied-configuration annotation size limit.
 kubectl apply --server-side --force-conflicts -f charts/qubership-monitoring-crds/crds/
-
 ```
 
 Ordinary `helm upgrade` does not upgrade CRDs. Alternatively, an Argo CD Application pointed to the CRD Helm chart
@@ -248,6 +249,7 @@ see [etcd metrics](docs/metrics-collection/metrics/etcd-metrics.md).
 - All optional exporters (blackbox, cert, JSON, etc.)
 - Prometheus Adapter for HPA
 - Integrations (Graphite, Promxy)
+- Grafana and VictoriaMetrics MCP servers
 
 ### 3. Verify Installation
 
@@ -281,6 +283,14 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 - **[Installation Guide][installation-guide]** - Detailed installation instructions
 - **[Configuration Guide][configuration-guide]** - Complete configuration options
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+
+### MCP Integration
+
+- **[Monitoring with MCP](docs/mcp/mcp-monitoring.md)** - Recommendations, architecture, security, and usage examples
+- **[Grafana MCP](docs/mcp/mcp-grafana.md)** - Installation and configuration of `mcp-grafana`
+- **[VictoriaMetrics MCP](docs/mcp/mcp-victoriametrics.md)** - Installation and configuration of `mcp-victoriametrics`
+- **[Grafana MCP Helm Parameters](docs/installation/components/grafana-stack/mcp.md)** - Helm values reference
+- **[VictoriaMetrics MCP Helm Parameters](docs/installation/components/victoriametrics-stack/mcp.md)** - Helm values reference
 
 ### API Reference
 

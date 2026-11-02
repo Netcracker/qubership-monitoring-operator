@@ -15,3 +15,4 @@ described below, and `PlatformMonitoring` configures each of them through its ow
 * [VMAlertManager](vmalertmanager.md): routes and delivers alerts.
 * [VMAuth](vmauth.md): authentication proxy in front of the stack.
 * [VMUser](vmuser.md): credentials and access rules for VMAuth.
+* [VictoriaMetrics MCP](mcp.md): in-cluster MCP server for querying VictoriaMetrics.

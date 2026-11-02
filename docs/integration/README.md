@@ -48,6 +48,12 @@ The sections below describe integration details for the certain monitoring syste
 
 * [IBM Netcool](ibm-netcool.md)
 
+## Model Context Protocol
+
+* [Monitoring with MCP](../mcp/mcp-monitoring.md)
+* [Grafana MCP](../mcp/mcp-grafana.md)
+* [VictoriaMetrics MCP](../mcp/mcp-victoriametrics.md)
+
 ## Enabling/disabling specific monitoring components
 
 We have access not to all components in public clouds. For example in AWS/GKE/Azure we have no access to ETCD metrics.

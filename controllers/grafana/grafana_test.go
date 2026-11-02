@@ -189,6 +189,7 @@ func TestGrafanaPodTemplateAnnotationsHandlesMissingTemplate(t *testing.T) {
 func TestHandleGrafanaCreatesResourceWithoutExtraVarsResources(t *testing.T) {
 	testScheme := runtime.NewScheme()
 	assert.NoError(t, monv1.AddToScheme(testScheme))
+	assert.NoError(t, corev1.AddToScheme(testScheme))
 	assert.NoError(t, grafv1.AddToScheme(testScheme))
 	controllerClient := fake.NewClientBuilder().WithScheme(testScheme).Build()
 	reconciler := &GrafanaReconciler{

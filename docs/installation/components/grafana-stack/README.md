@@ -8,3 +8,4 @@ The Grafana operator reconciles Grafana itself and the dashboards, data sources,
 ships with.
 
 * [Grafana](grafana.md): deployment, data sources, plugins, and access configuration.
+* [Grafana MCP](mcp.md): in-cluster MCP server for Grafana.

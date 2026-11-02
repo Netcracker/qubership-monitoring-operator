@@ -163,6 +163,7 @@ nav:
               - SSL Exporter: installation/components/exporters/ssl-exporter.md
               - Stackdriver Exporter: installation/components/exporters/stackdriver-exporter.md
               - Version Exporter: installation/components/exporters/version-exporter.md
+              - YACE Exporter: installation/components/exporters/yace-exporter.md
           - VictoriaMetrics Stack:
               - installation/components/victoriametrics-stack/README.md
               - VictoriaMetrics Integration: installation/components/victoriametrics-stack/victoriametrics.md
@@ -173,6 +174,7 @@ nav:
               - VMAlertManager: installation/components/victoriametrics-stack/vmalertmanager.md
               - VMAuth: installation/components/victoriametrics-stack/vmauth.md
               - VMUser: installation/components/victoriametrics-stack/vmuser.md
+              - VictoriaMetrics MCP: installation/components/victoriametrics-stack/mcp.md
           - Prometheus Stack:
               - installation/components/prometheus-stack/README.md
               - Prometheus: installation/components/prometheus-stack/prometheus.md
@@ -182,6 +184,7 @@ nav:
           - Grafana Stack:
               - installation/components/grafana-stack/README.md
               - Grafana: installation/components/grafana-stack/grafana.md
+              - Grafana MCP: installation/components/grafana-stack/mcp.md
           - Graphite Remote Adapter: installation/components/graphite-remote-adapter.md
           - Promxy: installation/components/promxy.md
           - Pushgateway: installation/components/pushgateway.md
@@ -215,6 +218,7 @@ nav:
           - Configurations Streamer Resend API: examples/components/configurations-streamer/resend_examples.md
           - Monitoring Pack: examples/deploy-parameters/monitoring-pack/README.md
           - Namespaced Guest Installation: examples/deploy-parameters/namespaced-guest/README.md
+          - YACE Exporter Config: examples/components/yace-exporter-config/README.md
           - Custom Resources:
               - examples/custom-resources/README.md
               - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
@@ -317,6 +321,10 @@ nav:
       - Azure Monitor: integration/azure-monitor.md
       - Google Cloud: integration/google-cloud.md
       - IBM Netcool: integration/ibm-netcool.md
+      - Model Context Protocol:
+          - Monitoring with MCP: mcp/mcp-monitoring.md
+          - Grafana MCP: mcp/mcp-grafana.md
+          - VictoriaMetrics MCP: mcp/mcp-victoriametrics.md
 
   # Operations - "The system is running, I want to maintain it"
   - Operations:
