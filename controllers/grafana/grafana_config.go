@@ -34,7 +34,7 @@ var grafanaReservedConfigKeys = map[string]map[string]bool{
 }
 
 // grafanaRootURL returns the Grafana root_url for the given protocol and host.
-func grafanaRootURL(protocol string, host string) string {
+func grafanaRootURL(protocol, host string) string {
 	if protocol == "" {
 		protocol = "http"
 	}
