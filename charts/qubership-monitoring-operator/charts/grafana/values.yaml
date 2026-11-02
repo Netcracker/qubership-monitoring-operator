@@ -13,6 +13,24 @@
 #
 install: true
 
+# Name of the Grafana custom resource.
+# Grafana Operator names the Grafana Service {name}-service and the Deployment {name}-deployment.
+# The admin credentials Secret is named {name}-admin-credentials.
+# Type: string
+# Mandatory: no
+# Default: grafana
+#
+# name: grafana
+
+# Namespace of the Grafana custom resource and pods.
+# Only the release namespace is supported: Monitoring Operator watches only that namespace,
+# so rendering fails for any other value.
+# Type: string
+# Mandatory: no
+# Default: release namespace
+#
+# namespace: monitoring
+
 # A docker image to use for grafana-operator deployment
 # Type: string
 # Mandatory: no
@@ -194,7 +212,8 @@ config:
 # Set to "" to auto-generate a random value on first install; subsequent helm upgrades will
 # preserve the generated value.
 # Backward compatibility: if config.security.admin_user / config.security.admin_password are set,
-# they override these values when rendering the secret (single source of truth remains the secret).
+# they override these values when rendering the secret. Monitoring Operator applies later password
+# changes to the Grafana database.
 # Type: object
 # Mandatory: no
 #
@@ -260,7 +279,7 @@ extraVars:
   GF_AUTH_ANONYMOUS_HIDE_VERSION: true
   GF_SERVER_ENFORCE_DOMAIN: false
   # GF_RENDERING_SERVER_URL: http://grafana-image-renderer:8081/render
-  # GF_RENDERING_CALLBACK_URL: http://grafana-service:3000/
+  # GF_RENDERING_CALLBACK_URL: http://{name}-service:3000/
   # GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: true
   # GF_LOG_LEVEL: trace
   # GF_SECURITY_CONTENT_SECURITY_POLICY_TEMPLATE:

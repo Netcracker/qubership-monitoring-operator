@@ -56,17 +56,24 @@ func TestRequestsForGrafanaExtraVarsSameNamespace(t *testing.T) {
 	}}}, requests)
 }
 
-func TestIsGrafanaDatasourceMigrationPending(t *testing.T) {
+func TestIsGrafanaPendingForDatasourceMigration(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, isGrafanaDatasourceMigrationPending(
+	assert.True(t, isGrafanaPending(
 		fmt.Errorf("wrap: %w", grafana.ErrDatasourceMigrationPending)))
 }
 
-func TestIsGrafanaDatasourceMigrationPendingFalseForOrdinaryError(t *testing.T) {
+func TestIsGrafanaPendingForAdminPasswordSync(t *testing.T) {
 	t.Parallel()
 
-	assert.False(t, isGrafanaDatasourceMigrationPending(
+	assert.True(t, isGrafanaPending(
+		fmt.Errorf("wrap: %w", grafana.ErrAdminPasswordSyncPending)))
+}
+
+func TestIsGrafanaPendingFalseForOrdinaryError(t *testing.T) {
+	t.Parallel()
+
+	assert.False(t, isGrafanaPending(
 		fmt.Errorf("listing Grafana datasources for migration: boom")))
 }
 
@@ -103,6 +110,50 @@ func TestRequestsForGrafanaExtraVarsReturnsNoRequestsWhenListFails(t *testing.T)
 	})
 
 	assert.Empty(t, requests)
+}
+
+func TestRequestsForGrafanaSecretMapsOwnerlessAdminSecret(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, monv1.AddToScheme(scheme))
+	reconciler := &PlatformMonitoringReconciler{Client: clientfake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: "monitoring"}},
+		&monv1.PlatformMonitoring{
+			ObjectMeta: metav1.ObjectMeta{Name: "custom", Namespace: "monitoring"},
+			Spec:       monv1.PlatformMonitoringSpec{Grafana: &monv1.Grafana{Name: "custom-grafana"}},
+		},
+		&monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "other", Namespace: "other"}},
+	).Build()}
+	request := func(name string) reconcile.Request {
+		return reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: "monitoring"}}
+	}
+
+	tests := []struct {
+		name   string
+		secret string
+		want   []reconcile.Request
+	}{
+		{name: "default admin Secret", secret: "grafana-admin-credentials", want: []reconcile.Request{request("default")}},
+		{name: "custom admin Secret", secret: "custom-grafana-admin-credentials", want: []reconcile.Request{request("custom")}},
+		{name: "extra-vars Secret", secret: "grafana-extra-vars-secret",
+			want: []reconcile.Request{request("custom"), request("default")}},
+		{name: "unrelated admin Secret", secret: "unknown-admin-credentials", want: []reconcile.Request{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Helm creates the admin Secret without an owner reference.
+			requests := reconciler.requestsForGrafanaSecret(context.Background(), &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{Name: tt.secret, Namespace: "monitoring"},
+			})
+			assert.ElementsMatch(t, tt.want, requests)
+		})
+	}
+}
+
+func TestIsGrafanaSecretCandidate(t *testing.T) {
+	assert.True(t, isGrafanaSecretCandidate(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-extra-vars-secret"}}))
+	assert.True(t, isGrafanaSecretCandidate(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-admin-credentials"}}))
+	assert.True(t, isGrafanaSecretCandidate(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "custom-admin-credentials"}}))
+	assert.False(t, isGrafanaSecretCandidate(&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "grafana-tls"}}))
 }
 
 func TestGrafanaExtraVarsResourcePredicates(t *testing.T) {
