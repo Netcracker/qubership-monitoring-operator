@@ -15,8 +15,9 @@ Read that function before you conclude which components are active from a chart 
 
 `Victoriametrics.VmCluster` and `Victoriametrics.VmReplicas` carry `json:"-"`, with the real tag commented out beside
 them. The generated CRD has no such property, but the chart still renders `vmCluster` when
-`victoriametrics.vmCluster.install` is `true`. A client-side apply prunes the field, a server-side strict apply
-rejects the object, and the decoded spec always holds the zero value.
+`victoriametrics.vmCluster.install` is `true`. The default `kubectl apply` uses `--validate=strict`, so the API
+server rejects the object. The field is dropped only under a lower validation level: `--validate=warn` drops it with
+a warning, and `--validate=ignore` (or `false`) drops it silently. Either way, the decoded spec holds the zero value.
 
 A Go-constructed CR in a test bypasses the API server's structural-schema pruning, just as a chart render does, so
 either can "prove" a code path that no real cluster can reach. Check the generated CRD for the property and the Go
@@ -41,7 +42,9 @@ object-size limit, and then patches the CRD with path-addressed `yq` expressions
 - `kubectl explain` returns no description for any field. Read these Go types or the generated
   `docs/api/platform-monitoring.md` instead.
 - The `yq` patches address absolute paths. A `del(...)` on a moved path does nothing and exits 0, and an assignment
-  to a missing path creates a new node. Nothing verifies that a patch landed.
+  to a missing path creates a new node. `yq` does not report either case, but `tools/verify-helm-crds.sh`, which
+  the chart CI job runs, asserts the result of each current compatibility patch. Add a matching check there when
+  you add a patch.
 - The same CRD ships in more than one chart, and the copies have drifted in the past. State which copy you used.
 
 Do not hand-edit the CRD. Regenerate it, and expect the committed file to differ from raw `controller-gen` output by

@@ -51,8 +51,11 @@ becomes one replica.
 ## What the chart renders is not what the operator receives
 
 The chart renders CR fields that the CRD does not declare, because a Go struct tag excludes them from
-serialization. See `api/v1/AGENTS.md`. A server-side strict apply rejects the whole object and fails the release,
-while a client-side apply prunes the field silently. Either way, the operator sees the zero value.
+serialization. See `api/v1/AGENTS.md`. The result depends on the field validation level, not on the apply mode.
+Under strict validation, which is the `kubectl apply` default (`--validate=strict`), the API server rejects the
+whole object. With `--validate=warn`, kubectl reports the unknown field and the API server drops it. With
+`--validate=ignore` (or `false`), the field is dropped silently. If the object is accepted, the operator sees the
+zero value.
 
 The defaulting pass also rewrites component enable flags in memory before reconciliation, and only the status
 subresource is persisted. The stored CR shows what the user asked for, not what the operator does.
@@ -67,10 +70,14 @@ upgrade or rollback exit code says nothing about convergence. Wait on the custom
 the managed workloads instead.
 
 The chart has four lifecycle hooks. Each hook `Job` uses the `before-hook-creation,hook-failed` delete policy, so a
-reinstall replaces it and Helm deletes a failed one. The supporting `ServiceAccount`, `Role`, and binding objects use
-`before-hook-creation,hook-succeeded`, so they remain only after a failure, until the next hook run replaces them. You
-do not need to delete hook resources by hand before you reinstall. Because Helm deletes a failed `Job`, read its pod
-logs while the hook runs.
+reinstall replaces it and Helm deletes a failed one. Because Helm deletes a failed `Job`, read its pod logs while
+the hook runs.
+
+The three cleanup hooks also have their own `ServiceAccount`, `Role`, and binding objects, which are hook resources
+with the `before-hook-creation,hook-succeeded` policy. They remain only after a failure, until the next hook run
+replaces them, so you do not need to delete them by hand before you reinstall. The `etcdCertsJob` hook is different:
+its `ServiceAccount`, `Role`, `ClusterRole`, and bindings have no hook annotations. They are ordinary release objects,
+shared with the `etcdCertsJob` `CronJob`, and they stay in place on purpose after a successful install or upgrade.
 
 - **`monitoring-grafana-cleanup-hook`** (`pre-delete`, weight `-10`) scales the operator to zero, then deletes Grafana
   dashboards, data sources, and `Grafana` objects in the release namespace that carry
@@ -114,10 +121,14 @@ archives nor the lockfile. The step leaves the working tree dirty beside directo
 clean up before you read a diff.
 
 The same workflow copies example profiles with `docs/examples/deploy-parameters/**/*.yaml`, which does not recurse in
-CI's shell, and `ct lint` then selects files by their `-values.yaml` suffix. Many documented profiles never reach the
-linter. The step runs with no install phase and with `--check-version-increment=false`. A green chart job is not
-evidence that a profile, a rendered manifest, or a version bump was checked.
+CI's shell, and `ct lint` then selects files by their `-values.yaml` suffix. Many documented profiles never reach
+`ct lint`. It runs with no cluster install and with `--check-version-increment=false`, so a green `ct lint` step is
+not evidence that a given profile installs or that the chart version was bumped.
+
+The chart job does render and assert manifests in separate steps. `tools/verify-helm-crds.sh` checks the CRDs,
+the `PlatformMonitoring` compatibility patches, RBAC delegation, and a render of the `namespaced-guest` example
+values. `tools/verify-grafana-offline-settings.sh` and `make test-hardening` render the chart and assert on the
+output. Read those scripts to see what they cover before you call a render unchecked.
 
 Compare your local Helm version with the version CI installs before you reason from a local result. Helm major
-versions differ in flags, in `lookup`, in hook handling, and in whether an unknown field is pruned or fails the
-release.
+versions differ in flags, in `lookup`, in hook handling, and in how they apply field validation.
