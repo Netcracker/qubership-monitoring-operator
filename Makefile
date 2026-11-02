@@ -85,7 +85,7 @@ PYTHON?=python3
 # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced
 PROMETHEUS_OPERATOR_VERSION?=0.94.1
 # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced
-VICTORIAMETRICS_OPERATOR_VERSION?=0.73.1
+VICTORIAMETRICS_OPERATOR_VERSION?=0.75.0
 GRAFANA_OPERATOR_VERSION?=5.24.0
 LOCALBIN ?= $(CURDIR)/bin
 CONTROLLER_GEN_VERSION ?= 0.21.0

@@ -129,6 +129,10 @@ By default, the following components are installed:
 - No ingress configured by default
 - No integrations enabled
 
+Grafana gets `server.root_url` only when you configure a Grafana ingress host, and Generic OAuth settings only when
+you set the `auth` endpoint URLs. Values in `grafana.config` override these operator defaults. For details, see the
+[Grafana configuration](components/grafana-stack/grafana.md#grafana-configuration) section.
+
 For detailed information about components, see [Components](components/).
 
 ## Installation Steps

@@ -29,6 +29,7 @@ affect to resource usage.
 * [prometheus-adapter](#prometheus-adapter)
 * [graphite-remote-adapter](#graphite-remote-adapter)
 * [cloudwatch-exporter](#cloudwatch-exporter)
+* [yace-exporter](#yace-exporter)
 * [blackbox-exporter](#blackbox-exporter)
 * [stackdriver-exporter](#stackdriver-exporter)
 * [pushgateway](#pushgateway)
@@ -1763,6 +1764,62 @@ You can override `resources` parameter for cloudwatch-exporter:
 
 ```yaml
 cloudwatchExporter:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+```
+
+### yace-exporter
+
+The `yace-exporter` (Yet Another CloudWatch Exporter) collects Amazon CloudWatch metrics through the `GetMetricData`
+API. Count of metrics (points, samples), accounts and regions affects on resource usage for `yace-exporter` deployment.
+
+<table>
+  <tr>
+    <th rowspan="2" colspan="2"></th>
+    <th colspan="3">Profiles</th>
+  </tr>
+  <tr>
+    <td><strong>Small</strong></td>
+    <td><strong>Medium</strong></td>
+    <td><strong>Large</strong></td>
+  </tr>
+  <tr>
+    <th rowspan="2">CPU</th>
+    <td><strong>requests</strong></td>
+    <td>50m</td>
+    <td>100m</td>
+    <td>150m</td>
+  </tr>
+  <tr>
+    <td><strong>limits</strong></td>
+    <td>70m</td>
+    <td>150m</td>
+    <td>250m</td>
+  </tr>
+  <tr>
+    <th rowspan="2">RAM</th>
+    <td><strong>requests</strong></td>
+    <td>100Mi</td>
+    <td>150Mi</td>
+    <td>200Mi</td>
+  </tr>
+  <tr>
+    <td><strong>limits</strong></td>
+    <td>150Mi</td>
+    <td>250Mi</td>
+    <td>300Mi</td>
+  </tr>
+</table>
+
+You can override `resources` parameter for yace-exporter:
+
+```yaml
+yaceExporter:
   resources:
     requests:
       cpu: 100m

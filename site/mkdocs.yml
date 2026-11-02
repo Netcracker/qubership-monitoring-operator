@@ -165,6 +165,7 @@ nav:
               - Promitor Agent Scraper: installation/components/exporters/promitor-agent-scraper.md
               - Stackdriver Exporter: installation/components/exporters/stackdriver-exporter.md
               - Version Exporter: installation/components/exporters/version-exporter.md
+              - YACE Exporter: installation/components/exporters/yace-exporter.md
           - VictoriaMetrics Stack:
               - Overview: installation/components/victoriametrics-stack/victoriametrics.md
               - VMAgent: installation/components/victoriametrics-stack/vmagent.md
@@ -174,6 +175,7 @@ nav:
               - VMAUTH: installation/components/victoriametrics-stack/vmauth.md
               - VMUser: installation/components/victoriametrics-stack/vmuser.md
               - VM Operator: installation/components/victoriametrics-stack/vm-operator.md
+              - VictoriaMetrics MCP: installation/components/victoriametrics-stack/mcp.md
           - Prometheus Stack:
               - Prometheus: installation/components/prometheus-stack/prometheus.md
               - Prometheus Adapter: installation/components/prometheus-stack/prometheus-adapter.md
@@ -181,6 +183,7 @@ nav:
               - AlertManager: installation/components/prometheus-stack/alertmanager.md
           - Grafana Stack:
               - Grafana: installation/components/grafana-stack/grafana.md
+              - Grafana MCP: installation/components/grafana-stack/mcp.md
 
   # Architecture & Components - "I want to understand how the system works"
   - Architecture & Components:
@@ -283,6 +286,7 @@ nav:
           - Overview: examples/README.md
           - Component Configurations:
               - CloudWatch Exporter: examples/components/cloudwatch-exporter-config/README.md
+              - YACE Exporter: examples/components/yace-exporter-config/README.md
           - Custom Resources:
               - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
               - Grafana Dashboards: examples/custom-resources/grafana-dashboard/README.md
@@ -300,6 +304,10 @@ nav:
           - Google Cloud: integration/google-cloud.md
       - Other Systems:
           - IBM Netcool: integration/ibm-netcool.md
+      - Model Context Protocol:
+          - Monitoring with MCP: mcp/mcp-monitoring.md
+          - Grafana MCP: mcp/mcp-grafana.md
+          - VictoriaMetrics MCP: mcp/mcp-victoriametrics.md
       - Integration Examples:
           - Custom Endpoints: examples/custom-resources/custom-endpoint/README.md
 
