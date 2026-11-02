@@ -129,6 +129,16 @@ monitoringOperator:
   #
   leaderElect: false
 
+  # Seconds between successful PlatformMonitoring repair reconciles.
+  # Source watches (PM spec/metadata and owned children) enqueue immediately.
+  # 0 disables the periodic repair (no hot loop). Default 3600 (1h) covers
+  # inputs that are not watched (cross-namespace Jaeger/ClickHouse, Nodes).
+  # Type: integer
+  # Mandatory: no
+  # Default: 3600
+  #
+  reconciliationInterval: 3600
+
   clusterRole:
     install: true
     name: ""
@@ -1857,6 +1867,12 @@ cloudEventsExporter:
 
 # Exporter to request metrics from AWS CloudWatch about different AWS Managed Services
 cloudwatchExporter:
+  # Disable by default
+  install: false
+
+# Exporter to request metrics from AWS CloudWatch using the GetMetricData API, with tag-based
+# auto-discovery, cross-account roles and static jobs (Yet Another CloudWatch Exporter)
+yaceExporter:
   # Disable by default
   install: false
 

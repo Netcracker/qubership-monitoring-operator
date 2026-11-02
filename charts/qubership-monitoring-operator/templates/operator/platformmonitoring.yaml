@@ -1201,8 +1201,14 @@ spec:
   {{- end }}
   {{- if .Values.grafana }}
   {{- if .Values.grafana.install }}
+  {{- if and .Values.grafana.namespace (ne .Values.grafana.namespace .Release.Namespace) }}
+  {{- fail (printf "grafana.namespace must be the release namespace %q: Monitoring Operator watches only that namespace" .Release.Namespace) }}
+  {{- end }}
   grafana:
     install: {{ .Values.grafana.install }}
+    {{- if .Values.grafana.name }}
+    name: {{ .Values.grafana.name }}
+    {{- end }}
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
     disableDefaultAdminSecret: {{ .Values.grafana.disableDefaultAdminSecret }}
     {{- else }}

@@ -16,8 +16,77 @@ spec:
       served: true
       storage: true
       schema:
+        # A subset of the upstream schema: only the fields with defaults, so
+        # that stored objects are defaulted the way a real cluster does it.
         openAPIV3Schema:
           type: object
           x-kubernetes-preserve-unknown-fields: true
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+              properties:
+                parentRefs:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    properties:
+                      group:
+                        type: string
+                        default: gateway.networking.k8s.io
+                      kind:
+                        type: string
+                        default: Gateway
+                rules:
+                  type: array
+                  default:
+                    - matches:
+                        - path:
+                            type: PathPrefix
+                            value: /
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    properties:
+                      matches:
+                        type: array
+                        default:
+                          - path:
+                              type: PathPrefix
+                              value: /
+                        items:
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
+                          properties:
+                            path:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              default:
+                                type: PathPrefix
+                                value: /
+                              properties:
+                                type:
+                                  type: string
+                                  default: PathPrefix
+                                value:
+                                  type: string
+                                  default: /
+                      backendRefs:
+                        type: array
+                        items:
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
+                          properties:
+                            group:
+                              type: string
+                              default: ""
+                            kind:
+                              type: string
+                              default: Service
+                            weight:
+                              type: integer
+                              format: int32
+                              default: 1
       subresources:
         status: {}

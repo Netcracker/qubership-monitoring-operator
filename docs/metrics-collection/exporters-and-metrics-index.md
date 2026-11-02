@@ -66,6 +66,7 @@ available to collect from some tools.
 ### Public Cloud Exporters
 
 * AWS - Cloudwatch-exporter
+* AWS - Yace-exporter
 * Azure - Promitor
 * Google Cloud - Stackdriver-exporter
 

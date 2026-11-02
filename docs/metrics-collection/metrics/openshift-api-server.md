@@ -1,3 +1,9 @@
+---
+# The raw metric dump exceeds the Zensical search index limit for a single section.
+search:
+  exclude: true
+---
+
 This document describes the metrics list and how to collect them from Openshift API server.
 
 # Metrics

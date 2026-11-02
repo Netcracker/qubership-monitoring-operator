@@ -56,7 +56,7 @@ metadata:
     {{- $_ := set $extraVars "GF_RENDERING_SERVER_URL" "http://grafana-image-renderer:8081/render" }}
   {{- end }}
   {{- if not (get $extraVars "GF_RENDERING_CALLBACK_URL") }}
-    {{- $_ := set $extraVars "GF_RENDERING_CALLBACK_URL" "http://grafana-service:3000/" }}
+    {{- $_ := set $extraVars "GF_RENDERING_CALLBACK_URL" (printf "http://%s-service:3000/" (.Values.name | default "grafana")) }}
   {{- end }}
 {{- end }}
 data:

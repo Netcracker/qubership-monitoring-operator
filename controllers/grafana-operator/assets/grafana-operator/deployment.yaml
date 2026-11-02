@@ -58,6 +58,7 @@ spec:
       volumes:
         - name: kubeauth-token-volume
           projected:
+            defaultMode: 420
             sources:
               - serviceAccountToken:
                   audience: operator.grafana.com
