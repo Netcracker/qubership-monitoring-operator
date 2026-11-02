@@ -151,6 +151,20 @@ Check Deployment State
     ...  Deployment Is Rolled Out And Pods Are Running  ${name}
     RETURN  ${flag}
 
+Get Pods Matching Deployment Selector
+    [Arguments]  ${pods}  ${deployment}
+    ${selector}=  Set Variable  ${deployment.spec.selector.match_labels}
+    ${matched_pods}=  Create List
+    FOR  ${pod}  IN  @{pods}
+        ${pod_labels}=  Set Variable  ${pod.metadata.labels}
+        ${matches}=  Run Keyword And Return Status
+        ...  Dictionary Should Contain Sub Dictionary  ${pod_labels}  ${selector}
+        IF  ${matches}
+            Append To List  ${matched_pods}  ${pod}
+        END
+    END
+    RETURN  ${matched_pods}
+
 Check Stateful Set State With Prerequisite
     [Arguments]  ${name}  ${name-in-cr}  ${parentservice}=${None}
     ${status_check_object}=  Check That In CR Service Is Presented  ${name-in-cr}  ${parentservice}
@@ -168,11 +182,17 @@ Check Stateful Set State
 # updated and available, the same conditions `kubectl rollout status` waits for. Checking pods before
 # that point races with the rolling update: the old pod is still Running while it terminates.
 # These keywords re-read the workload and the pod list on every call so that they can be retried.
+# Pods are matched by the Deployment selector, not by name, because a name mask such as
+# grafana-operator also matches the grafana-operator-converter pods.
 Deployment Is Rolled Out And Pods Are Running
     [Arguments]  ${name}
     ${deployment}=  Get Deployment Entity  ${name}  ${namespace}
     Rollout Is Complete  ${deployment}
-    ${flag}=  Check Workload Pods Are Running  ${name}  ${deployment.spec.replicas}
+    ${pods_in_namespace}=  Get Pods  ${namespace}
+    ${pods}=  Get Pods Matching Deployment Selector  ${pods_in_namespace}  ${deployment}
+    ${pods}=  Exclude Terminating Pods  ${pods}
+    Check Pod's List Is Equals  ${pods}  ${deployment.spec.replicas}
+    ${flag}=  Check Status Of Pods  ${pods}
     RETURN  ${flag}
 
 Stateful Set Is Rolled Out And Pods Are Running
