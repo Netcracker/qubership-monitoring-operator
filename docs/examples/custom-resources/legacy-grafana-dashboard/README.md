@@ -73,6 +73,6 @@ kubectl delete grafanadashboards.grafana.integreatly.org legacy-simple-dashboard
 
 * [Grafana converter](../../../installation/components/grafana-stack/grafana-converter.md)
 * [qubership-grafana-operator-converter](https://github.com/Netcracker/qubership-grafana-operator-converter)
-* [Grafana Operator dashboard API](https://grafana.github.io/grafana-operator/docs/dashboards/)
+* [Grafana Operator dashboard API](https://grafana.github.io/grafana-operator/docs/api/#grafanadashboardspec)
 
 [converter]: ../../../installation/components/grafana-stack/grafana-converter.md

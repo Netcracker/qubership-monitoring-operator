@@ -870,10 +870,18 @@ if "${yq_binary}" eval -e '[.rules[].resources[] | select(. == "configmaps")] | 
     exit 1
 fi
 helm template monitoring "${chart_dir}" \
-    --set grafanaConverter.grafana.converter.resolveGzipConfigMapRef=true \
-    | "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
-    >"${converter_rbac_manifest}"
+    --set grafanaConverter.grafana.converter.resolveGzipConfigMapRef=true |
+    "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
+        >"${converter_rbac_manifest}"
 verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[0].resources.limits |
+    (has(\"memory\") and has(\"ephemeral-storage\"))" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter container has no memory or ephemeral-storage limit." >&2
+    exit 1
+fi
 if ! "${yq_binary}" eval-all -e \
     "select(.kind == \"Deployment\" and ${converter_selector}) |
     .spec.template.spec.containers[] |

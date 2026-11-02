@@ -104,3 +104,22 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return container resources. User values win per key; every unset request and limit gets a default so the converter
+always runs with bounded CPU, memory, and ephemeral storage.
+*/}}
+{{- define "grafana-operator-converter.resources" -}}
+{{- $resources := deepCopy (.Values.resources | default (dict)) -}}
+{{- $requests := get $resources "requests" | default (dict) -}}
+{{- $limits := get $resources "limits" | default (dict) -}}
+{{- $_ := set $requests "cpu" (get $requests "cpu" | default "50m") -}}
+{{- $_ := set $requests "memory" (get $requests "memory" | default "64Mi") -}}
+{{- $_ := set $requests "ephemeral-storage" (get $requests "ephemeral-storage" | default "16Mi") -}}
+{{- $_ := set $limits "cpu" (get $limits "cpu" | default "200m") -}}
+{{- $_ := set $limits "memory" (get $limits "memory" | default "256Mi") -}}
+{{- $_ := set $limits "ephemeral-storage" (get $limits "ephemeral-storage" | default "256Mi") -}}
+{{- $_ := set $resources "requests" $requests -}}
+{{- $_ := set $resources "limits" $limits -}}
+{{- toYaml $resources -}}
+{{- end -}}

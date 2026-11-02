@@ -80,7 +80,9 @@ securityContext:
   readOnlyRootFilesystem: true
   runAsNonRoot: true
 
-# -- grafana operator container resources
+# -- Converter container resources. Each request or limit you leave unset keeps its default:
+# requests cpu 50m, memory 64Mi, ephemeral-storage 16Mi; limits cpu 200m, memory 256Mi, ephemeral-storage 256Mi.
+# The ephemeral-storage limit also covers the dashboards emptyDir.
 resources: {}
 
 # -- pod priority class name

@@ -88,10 +88,8 @@ spec:
             httpGet:
               path: /ready
               port: 8081
-          {{- with .Values.resources }}
           resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- include "grafana-operator-converter.resources" . | nindent 12 }}
       volumes:
         - name: dashboards-dir
           emptyDir: {}
