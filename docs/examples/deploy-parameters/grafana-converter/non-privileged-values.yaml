@@ -1,0 +1,14 @@
+# Grafana converter in non-privileged mode.
+# The converter watches only the listed namespaces and gets a Role and RoleBinding in each one.
+# Without watchNamespaces, it watches only the release namespace.
+# List the release namespace too if it contains legacy dashboards.
+
+global:
+  privilegedRights: false
+
+grafana:
+  install: true
+
+grafanaConverter:
+  install: true
+  watchNamespaces: monitoring,product-a,product-b

@@ -184,6 +184,7 @@ nav:
           - Grafana Stack:
               - Grafana: installation/components/grafana-stack/grafana.md
               - Grafana MCP: installation/components/grafana-stack/mcp.md
+              - Grafana Converter: installation/components/grafana-stack/grafana-converter.md
 
   # Architecture & Components - "I want to understand how the system works"
   - Architecture & Components:
@@ -286,11 +287,13 @@ nav:
           - Overview: examples/README.md
           - Component Configurations:
               - CloudWatch Exporter: examples/components/cloudwatch-exporter-config/README.md
+              - Grafana Converter: examples/deploy-parameters/grafana-converter/README.md
               - YACE Exporter: examples/components/yace-exporter-config/README.md
           - Custom Resources:
               - AlertManager Config: examples/custom-resources/alertmanagerconfig/README.md
               - Grafana Dashboards: examples/custom-resources/grafana-dashboard/README.md
               - Grafana DataSources: examples/custom-resources/grafana-datasource/README.md
+              - Legacy Grafana Dashboards: examples/custom-resources/legacy-grafana-dashboard/README.md
               - Pod Monitors: examples/custom-resources/pod-monitor/README.md
               - Prometheus Rules: examples/custom-resources/prometheus-rule/README.md
               - Service Monitors: examples/custom-resources/service-monitor/README.md

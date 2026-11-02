@@ -1,0 +1,30 @@
+# Grafana converter in privileged mode.
+# The converter watches every namespace and gets a ClusterRole.
+# The dashboard selectors limit which legacy dashboards are converted. Remove them to convert every legacy dashboard.
+
+global:
+  privilegedRights: true
+
+grafana:
+  install: true
+  # Convert only legacy dashboards with this label.
+  dashboardLabelSelector:
+    - matchLabels:
+        app.kubernetes.io/component: monitoring
+  # Convert only legacy dashboards in namespaces with this label. Applies to the cluster-wide watch only.
+  # Helm merges this with the default selector, which excludes namespaces labeled openshift.io/cluster-monitoring=true.
+  dashboardNamespaceSelector:
+    matchLabels:
+      monitoring: enabled
+
+grafanaConverter:
+  install: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  serviceMonitor:
+    enabled: true
