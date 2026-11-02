@@ -619,6 +619,7 @@ rules:
     resources:
       - vlagents
       - vlclusters
+      - vldistributed
       - vlogs
       - vlsingles
       - vmagents
@@ -632,6 +633,7 @@ rules:
       - vmdistributed/finalizers
       - vmsingles
       - vmusers
+      - vtagents
       - vtclusters
       - vtsingles
     verbs:
@@ -651,6 +653,8 @@ rules:
       - vlclusters/finalizers
       - vlclusters/status
       - vlclusters/status
+      - vldistributed/finalizers
+      - vldistributed/status
       - vlogs/finalizers
       - vlogs/status
       - vlsingles/finalizers
@@ -691,6 +695,8 @@ rules:
       - vmstaticscrapes/status
       - vmusers/finalizers
       - vmusers/status
+      - vtagents/finalizers
+      - vtagents/status
       - vtclusters/finalizers
       - vtclusters/status
       - vtsingles/finalizers
