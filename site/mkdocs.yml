@@ -174,6 +174,7 @@ nav:
               - VMAUTH: installation/components/victoriametrics-stack/vmauth.md
               - VMUser: installation/components/victoriametrics-stack/vmuser.md
               - VM Operator: installation/components/victoriametrics-stack/vm-operator.md
+              - VictoriaMetrics MCP: installation/components/victoriametrics-stack/mcp.md
           - Prometheus Stack:
               - Prometheus: installation/components/prometheus-stack/prometheus.md
               - Prometheus Adapter: installation/components/prometheus-stack/prometheus-adapter.md
@@ -181,6 +182,7 @@ nav:
               - AlertManager: installation/components/prometheus-stack/alertmanager.md
           - Grafana Stack:
               - Grafana: installation/components/grafana-stack/grafana.md
+              - Grafana MCP: installation/components/grafana-stack/mcp.md
 
   # Architecture & Components - "I want to understand how the system works"
   - Architecture & Components:
@@ -300,6 +302,10 @@ nav:
           - Google Cloud: integration/google-cloud.md
       - Other Systems:
           - IBM Netcool: integration/ibm-netcool.md
+      - Model Context Protocol:
+          - Monitoring with MCP: mcp/mcp-monitoring.md
+          - Grafana MCP: mcp/mcp-grafana.md
+          - VictoriaMetrics MCP: mcp/mcp-victoriametrics.md
       - Integration Examples:
           - Custom Endpoints: examples/custom-resources/custom-endpoint/README.md
 
