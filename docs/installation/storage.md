@@ -206,6 +206,64 @@ grafana:
       - ReadWriteOnce
 ```
 
+### Common PVC Annotations
+
+Use `pvc.metadata.annotations` to add the same annotations, such as `argocd.argoproj.io/sync-options: Prune=false`,
+to the PVCs of the components listed below. For example:
+
+```yaml
+pvc:
+  metadata:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false
+```
+
+The chart merges these annotations into the PVC metadata of the following components:
+
+| Component      | Component-specific parameter                                                      |
+| -------------- | --------------------------------------------------------------------------------- |
+| Prometheus     | `prometheus.storage.volumeClaimTemplate.metadata.annotations`                     |
+| VMSingle       | `victoriametrics.vmSingle.storageMetadata.annotations`                            |
+| VMAlertManager | `victoriametrics.vmAlertManager.storage.volumeClaimTemplate.metadata.annotations` |
+| Grafana        | `grafana.dataStorage.annotations`                                                 |
+
+Rules:
+
+- A component-specific annotation overrides a common annotation with the same key.
+- The chart adds annotations only to components with persistent storage configured: `storage.volumeClaimTemplate` for
+  Prometheus and VMAlertManager, `storage` for VMSingle, and `dataStorage` for Grafana. The parameter never enables
+  storage on its own.
+- Pushgateway and VMCluster do not use this parameter.
+- Annotation values must be strings. Quote values such as `"true"` in YAML, and use `--set-string` on the command line:
+
+  ```bash
+  helm upgrade ... --set-string 'pvc.metadata.annotations.argocd\.argoproj\.io/sync-options=Prune=false'
+  ```
+
+Limitations:
+
+- Operators create these PVCs, not Helm. VMSingle and Grafana PVCs have an owner chain that leads to the
+  PlatformMonitoring resource. Prometheus and VMAlertManager PVCs come from StatefulSet `volumeClaimTemplates` and
+  carry labels with the custom resource name, not the Argo CD Application name. Argo CD therefore does not prune
+  these PVCs with either `annotation` or `label` resource tracking. The annotations keep PVC metadata consistent and
+  serve external tools that read them.
+- Prometheus creates PVCs from StatefulSet `volumeClaimTemplates`. Kubernetes does not update an existing PVC when the
+  template changes, so an upgrade does not annotate Prometheus PVCs that already exist. Changing the template also
+  makes the operator recreate the Prometheus StatefulSet, which restarts Prometheus. Prometheus PVCs are named
+  `prometheus-k8s-db-prometheus-k8s-<N>`, one per replica. List them with `kubectl get pvc -n <namespace>` and
+  annotate each one manually:
+
+  ```bash
+  kubectl annotate pvc --overwrite -n <namespace> prometheus-k8s-db-prometheus-k8s-0 \
+    argocd.argoproj.io/sync-options=Prune=false
+  ```
+
+- VMAlertManager PVCs keep annotation keys that you remove from the parameter. Remove them with
+  `kubectl annotate pvc -n <namespace> <pvc-name> <key>-`.
+- The annotations do not stop the operator from deleting the Prometheus PVC when you set `prometheus.install: false`
+  or remove Prometheus storage. They also do not stop Kubernetes garbage collection from deleting PVCs whose owner
+  chain leads to the PlatformMonitoring resource (VMSingle, Grafana) when that resource is deleted.
+
 ## Storage Examples
 
 ### Complete Production Setup
