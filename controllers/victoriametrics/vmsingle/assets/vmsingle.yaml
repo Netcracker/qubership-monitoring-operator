@@ -13,7 +13,7 @@ spec:
     search.maxPointsPerTimeseries: "150000"
   replicaCount: 1
   resources: {}
-  removePvcAfterDelete: true
+  removePvcAfterDelete: false
   retentionPeriod: "14"
   securityContext:
     runAsUser: 2000

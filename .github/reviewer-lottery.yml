@@ -1,0 +1,9 @@
+---
+
+groups:
+  - name: rotating
+    reviewers: 1
+    usernames:
+      - NikolaiKuziaevQubership
+      - dmitriikazanin
+      - bagwan-shoaib

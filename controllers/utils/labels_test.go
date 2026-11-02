@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,6 +48,10 @@ func TestTruncLabel(t *testing.T) {
 	})
 	t.Run("trailing hyphens trimmed", func(t *testing.T) {
 		assert.Equal(t, "foo", TruncLabel("foo---"))
+	})
+	t.Run("trailing label separators trimmed after truncation", func(t *testing.T) {
+		label := "platform-monitoring-jaeger-" + strings.Repeat("a", 35) + ".query"
+		assert.Equal(t, "platform-monitoring-jaeger-"+strings.Repeat("a", 35), TruncLabel(label))
 	})
 }
 

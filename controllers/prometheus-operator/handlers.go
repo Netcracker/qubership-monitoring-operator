@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *PrometheusOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) error {
@@ -18,25 +19,7 @@ func (r *PrometheusOperatorReconciler) handleRole(cr *monv1.PlatformMonitoring) 
 	}
 
 	e := &rbacv1.Role{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncRole)
 }
 
 func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -47,23 +30,7 @@ func (r *PrometheusOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMo
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -74,23 +41,7 @@ func (r *PrometheusOperatorReconciler) handleRoleBinding(cr *monv1.PlatformMonit
 	}
 
 	e := &rbacv1.RoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *PrometheusOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -101,25 +52,7 @@ func (r *PrometheusOperatorReconciler) handleClusterRole(cr *monv1.PlatformMonit
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -130,64 +63,33 @@ func (r *PrometheusOperatorReconciler) handleClusterRoleBinding(cr *monv1.Platfo
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *PrometheusOperatorReconciler) handleDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusOperatorDeployment(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := prometheusOperatorDeployment(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
 	}
 	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	if utils.WorkloadNeedsSelectorReplace(e, m) {
-		if err := r.DeleteResource(e); err != nil {
-			return err
-		}
-		return r.CreateResource(cr, m)
-	}
+	return utils.CreateOrUpdateWorkload(r.ComponentReconciler, cr, m, e, syncDeployment)
+}
 
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Selector = m.Spec.Selector
-	e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-	e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
-	e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-	e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-	e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-	e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-	e.Spec.Template.Spec.Tolerations = m.Spec.Template.Spec.Tolerations
-	e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+// syncDeployment copies the Deployment fields this controller manages.
+func syncDeployment(existing, desired *appsv1.Deployment) bool {
+	return utils.AnyChanged(
+		utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+		utils.SetIfChanged(&existing.Spec.Selector, desired.Spec.Selector),
+		utils.SetLabelsIfChanged(&existing.Spec.Template, desired.Spec.Template.GetLabels()),
+		utils.SyncPodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.NodeSelector, desired.Spec.Template.Spec.NodeSelector),
+		utils.SetIfChanged(&existing.Spec.Template.Spec.Tolerations, desired.Spec.Template.Spec.Tolerations),
+	)
 }
 
 func (r *PrometheusOperatorReconciler) handleService(cr *monv1.PlatformMonitoring) error {
@@ -200,25 +102,7 @@ func (r *PrometheusOperatorReconciler) handleService(cr *monv1.PlatformMonitorin
 	m.Spec.Selector = map[string]string{"app.kubernetes.io/name": utils.TruncLabel(utils.PrometheusOperatorComponentName)}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -229,27 +113,7 @@ func (r *PrometheusOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonito
 	}
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncPodMonitor)
 }
 
 func (r *PrometheusOperatorReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -350,19 +214,16 @@ func (r *PrometheusOperatorReconciler) deleteClusterRoleBinding(cr *monv1.Platfo
 }
 
 func (r *PrometheusOperatorReconciler) deletePrometheusOperatorDeployment(cr *monv1.PlatformMonitoring) error {
-	m, err := prometheusOperatorDeployment(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Deployment manifest")
-		return err
-	}
-	e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: utils.PrometheusOperatorComponentName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

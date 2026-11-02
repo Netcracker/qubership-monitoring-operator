@@ -118,7 +118,7 @@ func grafanaOperatorRoleBinding(cr *monv1.PlatformMonitoring) (*rbacv1.RoleBindi
 	return &roleBinding, nil
 }
 
-func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment, error) {
+func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (*appsv1.Deployment, error) {
 	d := appsv1.Deployment{}
 	if err := yaml.NewYAMLOrJSONDecoder(utils.MustAssetReader(assets, utils.GrafanaOperatorDeploymentAsset), 100).Decode(&d); err != nil {
 		return nil, err
@@ -127,6 +127,17 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 	d.SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"})
 	d.SetName(utils.GrafanaOperatorComponentName)
 	d.SetNamespace(cr.GetNamespace())
+	d.Spec.Template.Spec.SecurityContext = utils.HardenedPodSecurityContext(isOpenShift)
+	volumes, err := utils.EnsureTmpVolume(d.Spec.Template.Spec.Volumes, "16Mi")
+	if err != nil {
+		return nil, err
+	}
+	d.Spec.Template.Spec.Volumes = volumes
+	for i := range d.Spec.Template.Spec.Containers {
+		container := &d.Spec.Template.Spec.Containers[i]
+		container.SecurityContext = utils.HardenedContainerSecurityContext()
+		container.VolumeMounts = utils.EnsureTmpVolumeMount(container.VolumeMounts)
+	}
 
 	if cr.Spec.Grafana != nil {
 		// Set correct images and any parameters to containers spec
@@ -243,11 +254,11 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring) (*appsv1.Deployment
 				break
 			}
 		}
-		// Set pod-level security context
+		// Preserve configured IDs while enforcing the hardening settings above.
+		if err := utils.ValidateSecurityContextSpec(cr.Spec.Grafana.Operator.SecurityContext); err != nil {
+			return nil, err
+		}
 		if cr.Spec.Grafana.Operator.SecurityContext != nil {
-			if d.Spec.Template.Spec.SecurityContext == nil {
-				d.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{}
-			}
 			if cr.Spec.Grafana.Operator.SecurityContext.RunAsUser != nil {
 				d.Spec.Template.Spec.SecurityContext.RunAsUser = cr.Spec.Grafana.Operator.SecurityContext.RunAsUser
 			}

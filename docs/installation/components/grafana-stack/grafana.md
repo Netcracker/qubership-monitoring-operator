@@ -4,28 +4,48 @@
 
 ### grafana
 
+Grafana reads its sensitive settings from Secrets mounted into the pod rather than from environment variables. The
+generated `grafana.ini` holds only `$__file{...}` references, so the rendered ConfigMap never contains the values
+themselves.
+
+- `security.admin_user` and `security.admin_password` read `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD`
+  from `/etc/grafana-admin`, mounted read-only from the `<grafana-name>-admin-credentials` Secret.
+- `auth.generic_oauth.client_secret` reads `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` from `/etc/grafana-oauth`, mounted
+  read-only from the `grafana-oauth-client-secret` Secret.
+- `GF_AUTH_GENERIC_OAUTH_CLIENT_ID` is not sensitive and stays an environment variable.
+
+Grafana creates the admin user from the mounted Secret only on first start. Monitoring Operator therefore runs
+`grafana cli admin reset-admin-password` in a ready Grafana pod once for a new Grafana custom resource and again
+whenever `GF_SECURITY_ADMIN_PASSWORD` changes. A changed password also updates the `checksum/admin-secret` pod template
+annotation, which restarts Grafana. This keeps the password in an existing database, for example one on a persistent
+volume, in sync with the Secret. Changing `GF_SECURITY_ADMIN_USER` does not rename an existing admin user. For details,
+see the
+[password change guide](../../../user-guides/password-change.md#grafana-admin-password-change).
+
 <!-- markdownlint-disable line-length -->
-| Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                                                |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| install                    | Allows to disable deploy Grafana. If Grafana was not deployed during the deployment using helm, it can be deployed using the change custom resource PlatformMonitoring.                                                | bool                                                                                                                                                  |
-| paused                     | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                                                  |
-| image                      | A Docker image to be used for the grafana deployment.                                                                                                                                                                  | string                                                                                                                                                |
-| ingress                    | Allows to create Ingress for Grafana UI using monitoring-operator.                                                                                                                                                     | [v1.Ingress](#ingress)                                                                                                                                |
-| httpRoute                  | HTTPRoute allows to create Gateway API HTTPRoute for the Grafana UI.                                                                                                                                                    | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                                                        |
-| resources                  | The resources that describe the compute resource requests and limits for single pods.                                                                                                                                  | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core)                          |
-| securityContext            | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)                             |
+| Field                      | Description                                                                                                                                                                                                            | Scheme                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| install                    | Allows to disable deploy Grafana. If Grafana was not deployed during the deployment using helm, it can be deployed using the change custom resource PlatformMonitoring.                                                | bool                                                                                                                                            |
+| paused                     | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                                            |
+| name                       | Name of the Grafana custom resource. The admin credentials Secret is `<name>-admin-credentials`, the Service is `<name>-service`.                                                                                      | string                                                                                                                                          |
+| namespace                  | Namespace of the Grafana custom resource. Only the PlatformMonitoring namespace is supported: the operator watches only it.                                                                                            | string                                                                                                                                          |
+| image                      | A Docker image to be used for the grafana deployment.                                                                                                                                                                  | string                                                                                                                                          |
+| ingress                    | Allows to create Ingress for Grafana UI using monitoring-operator.                                                                                                                                                     | [v1.Ingress](#ingress)                                                                                                                          |
+| httpRoute                  | HTTPRoute allows to create Gateway API HTTPRoute for the Grafana UI.                                                                                                                                                   | [HTTPRouteSpec](https://gateway-api.sigs.k8s.io/reference/api-spec/main/spec/#httproute)                                                        |
+| resources                  | The resources that describe the compute resource requests and limits for single pods.                                                                                                                                  | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core)                    |
+| securityContext            | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podsecuritycontext-v1-core)                       |
 | dataStorage                | Allows set a means to configure the grafana data storage.                                                                                                                                                              | [grafv1alpha1.GrafanaDataStorage](https://github.com/grafana/grafana-operator/blob/v4/documentation/deploy_grafana.md#configuring-data-storage) |
-| extraVars                  | Allows set extra system environment variables for grafana.                                                                                                                                                             | map[string]string                                                                                                                                     |
-| grafanaHomeDashboard       | Allows set custom home dashboard for grafana. Dependence: `extraVars: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json`                           | bool                                                                                                                                                  |
-| backupDaemonDashboard      | Enables Backup Daemon Dashboard installation.                                                                                                                                                                          | bool                                                                                                                                                  |
-| dashboardLabelSelector     | Allows to query over a set of resources according to labels.<br/>The result of matchLabels and matchExpressions are ANDed.<br/>An empty label selector matches all objects. A null label selector matches no objects.  | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)                                 |
-| dashboardNamespaceSelector | Allows to query over a set of resources in namespaces that fits label selector.                                                                                                                                        | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta)                                   |
-| podMonitor                 | Pod monitor for self monitoring.                                                                                                                                                                                       | *[Monitor](#monitor)                                                                                                                                  |
-| config                     | Allows set configuration for grafana. The properties used to generate grafana.ini.                                                                                                                                     | [grafv1alpha1.GrafanaConfig](https://github.com/grafana/grafana-operator/blob/v4/documentation/deploy_grafana.md#config-reconciliation)  |
-| affinity                                            | If specified, the pod's scheduling constraints                                                                                                                                                                                      | *v1.Affinity                                                                                                                   |
-| annotations                | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value" | map[string]string                                                                                                                                     |
-| labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                       | map[string]string                                                                                                                                     |
-| priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                   | string                                                                                                                                                |
+| extraVars                  | Allows set extra system environment variables for grafana.                                                                                                                                                             | map[string]string                                                                                                                               |
+| grafanaHomeDashboard       | Allows set custom home dashboard for grafana. Dependence: `extraVars: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json`                           | bool                                                                                                                                            |
+| backupDaemonDashboard      | Enables Backup Daemon Dashboard installation.                                                                                                                                                                          | bool                                                                                                                                            |
+| dashboardLabelSelector     | Allows to query over a set of resources according to labels.<br/>The result of matchLabels and matchExpressions are ANDed.<br/>An empty label selector matches all objects. A null label selector matches no objects.  | []*[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)                           |
+| dashboardNamespaceSelector | Allows to query over a set of resources in namespaces that fits label selector.                                                                                                                                        | *[metav1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta)                             |
+| podMonitor                 | Pod monitor for self monitoring.                                                                                                                                                                                       | *[Monitor](#monitor)                                                                                                                            |
+| config                     | grafana.ini sections and keys. Values override operator defaults. See [Grafana configuration](#grafana-configuration).                                                                                                 | map[string]map[string]string or scalar values                                                                                                   |
+| affinity                   | If specified, the pod's scheduling constraints                                                                                                                                                                         | *v1.Affinity                                                                                                                                    |
+| annotations                | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value" | map[string]string                                                                                                                               |
+| labels                     | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                       | map[string]string                                                                                                                               |
+| priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                   | string                                                                                                                                          |
 <!-- markdownlint-enable line-length -->
 
 Grafana Operator v5 does not consume `dashboardLabelSelector` or `dashboardNamespaceSelector` directly. When Grafana
@@ -111,6 +131,74 @@ grafana:
   priorityClassName: priority-class
 ```
 
+#### Grafana configuration
+
+The operator converts `grafana.config` (`spec.grafana.config`) into `spec.config` of the Grafana custom resource,
+which grafana-operator renders as `grafana.ini`. Each top-level key is a `grafana.ini` section, and each section holds
+string, number, or boolean values. Numbers and booleans are written as strings. A `null` value leaves the key unset.
+Nested objects, arrays, or a section that is not an object fail Grafana reconciliation with an error that names the key.
+
+The operator writes its own defaults first and applies `grafana.config` last, so your values override them. The
+operator sets these defaults:
+
+- `server.root_url` is `http://<host>/` when `grafana.ingress.install` is `true` and `grafana.ingress.host` is set.
+  The scheme is `https` when `grafana.ingress.tls` or `grafana.ingress.tlsSecretName` is set.
+- `auth.generic_oauth` keys come from `auth`, as described in [Generic OAuth](#generic-oauth).
+
+The operator ignores these keys in `grafana.config`:
+
+- `security.admin_user` and `security.admin_password`. Helm writes them into the admin credentials Secret, and Grafana
+  reads that Secret through `$__file{...}` references.
+- The whole `auth.jwt` section. grafana-operator uses it to authenticate to the Grafana API.
+
+#### Generic OAuth
+
+When `auth` (`spec.auth`) sets at least one of `loginUrl`, `tokenUrl`, or `userInfoUrl`, the operator enables the
+[Grafana Generic OAuth provider][grafana-generic-oauth] in `auth.generic_oauth`:
+
+<!-- markdownlint-disable line-length -->
+| `spec.auth` field              | `auth.generic_oauth` key    | Notes                                                         |
+| ------------------------------ | --------------------------- | ------------------------------------------------------------- |
+| `loginUrl`                     | `auth_url`                  | IdP authorization endpoint                                    |
+| `tokenUrl`                     | `token_url`                 | IdP token endpoint                                            |
+| `userInfoUrl`                  | `api_url`                   | IdP user info endpoint                                        |
+| _(always set)_                 | `enabled` = `true`          | Enables Generic OAuth                                         |
+| _(always set)_                 | `scopes` = `openid profile` | Override with `grafana.config.auth.generic_oauth.scopes`      |
+| `clientSecret` (Helm only)     | `client_secret`             | Set only when the `grafana-oauth-client-secret` Secret exists |
+| `tlsConfig.insecureSkipVerify` | `tls_skip_verify_insecure`  | No Secret is mounted                                          |
+| `tlsConfig.caSecret`           | `tls_client_ca`             | File path `/etc/grafana-tls/<secret-name>/<key>`              |
+| `tlsConfig.certSecret`         | `tls_client_cert`           | File path `/etc/grafana-tls/<secret-name>/<key>`              |
+| `tlsConfig.keySecret`          | `tls_client_key`            | File path `/etc/grafana-tls/<secret-name>/<key>`              |
+<!-- markdownlint-enable line-length -->
+
+The operator mounts each referenced TLS Secret read-only at `/etc/grafana-tls/<secret-name>/`. A Secret referenced
+by several fields, such as `certSecret` and `keySecret`, is mounted once. A selector without both `name` and `key` is
+skipped. The TLS Secrets must exist in the Grafana namespace before Grafana starts, because the pod does not start
+while a mounted Secret is missing.
+
+Example:
+
+```yaml
+auth:
+  loginUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/auth
+  tokenUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/token
+  userInfoUrl: https://keycloak.example.com/realms/master/protocol/openid-connect/userinfo
+  tlsConfig:
+    insecureSkipVerify: false
+    caSecret:
+      name: idp-ca-cert
+      key: ca.crt
+    certSecret:
+      name: idp-client-cert
+      key: tls.crt
+    keySecret:
+      name: idp-client-cert
+      key: tls.key
+```
+
+<!-- markdownlint-disable-next-line line-length -->
+[grafana-generic-oauth]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-access/configure-authentication/generic-oauth/
+
 #### Automatic internet access
 
 The chart disables Grafana's automatic suggested-plugin preinstallation and selected background update, analytics,
@@ -147,10 +235,10 @@ still initiate external requests. Use a NetworkPolicy or an equivalent firewall 
 | paused             | Set paused to reconciliation.                                                                                                                                                                                          | bool                                                                                                                         |
 | leaderElect        | Enable leader election for the grafana-operator Deployment. By default - `false`. Set `true` when replicas > 1.                                                                                                        | bool                                                                                                                         |
 | initContainerImage | A Docker image to be used into initContainer in the Grafana deployment.                                                                                                                                                | string                                                                                                                       |
-| resources          | The resources that describe the compute resource requests and limits for single Pods.                                                                                                                                  | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core) |
-| securityContext    | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)    |
+| resources          | The resources that describe the compute resource requests and limits for single Pods.                                                                                                                                  | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core) |
+| securityContext    | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                     | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podsecuritycontext-v1-core)    |
 | podMonitor         | Pod monitor for self monitoring.                                                                                                                                                                                       | *[Monitor](#monitor)                                                                                                         |
-| affinity                                            | If specified, the pod's scheduling constraints                                                                                                                                                                                      | *v1.Affinity                                                                                                                   |
+| affinity           | If specified, the pod's scheduling constraints                                                                                                                                                                         | *v1.Affinity                                                                                                                 |
 | annotations        | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value" | map[string]string                                                                                                            |
 | labels             | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                       | map[string]string                                                                                                            |
 | priorityClassName  | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                   | string                                                                                                                       |
@@ -184,14 +272,13 @@ grafana:
     priorityClassName: priority-class
 ```
 
-
 #### grafana-image-renderer
 
 <!-- markdownlint-disable line-length -->
 **Warning**: The grafana-image-renderer requires two extra environment variables in Grafana:
 
-* GF_RENDERING_SERVER_URL - `http://<image-renderer-address>:<port>/render`
-* GF_RENDERING_CALLBACK_URL - `http://<grafana-adderss>:<port>/`
+- GF_RENDERING_SERVER_URL - `http://<image-renderer-address>:<port>/render`
+- GF_RENDERING_CALLBACK_URL - `http://<grafana-adderss>:<port>/`
 
 These variables have been set by default for local renderer and Grafana services. You don't have to override them. You
 need change them in case if youare yousing external renderer.
@@ -205,15 +292,15 @@ than default value(developers of plugin suggest 16GB ram).
 | install           | Allows to enable deploy Grafana image renderer.                                                                                                                                                                                                                                 | *bool                                                                                                                        |
 | image             | A Docker image to use for grafana-image-renderer deployment.                                                                                                                                                                                                                    | string                                                                                                                       |
 | name              | This name is used as the name of the microservice deployment and in labels.                                                                                                                                                                                                     | []string                                                                                                                     |
-| securityContext   | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                                                                              | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podsecuritycontext-v1-core)    |
+| securityContext   | SecurityContext holds pod-level security attributes. Default for Kubernetes, `securityContext:{ runAsUser: 2000, fsGroup: 2000 }`.                                                                                                                                              | [*v1.PodSecurityContext](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podsecuritycontext-v1-core)    |
 | annotations       | Map of string keys and values stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. Specified just as map[string]string. For example: "annotations-key: annotation-value"                                                          | map[string]string                                                                                                            |
 | labels            | Map of string keys and values that can be used to organize and categorize (scope and select) objects. Specified just as map[string]string. For example: "label-key: label-value"                                                                                                | map[string]string                                                                                                            |
-| resources         | The resources that describe the compute resource requests and limits for single Pods.                                                                                                                                                                                           | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core) |
+| resources         | The resources that describe the compute resource requests and limits for single Pods.                                                                                                                                                                                           | [v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core) |
 | tolerations       | Tolerations allow the pods to schedule onto nodes with matching taints.                                                                                                                                                                                                         | []v1.Toleration                                                                                                              |
 | port              | Port for grafana-image-renderer service.                                                                                                                                                                                                                                        | integer                                                                                                                      |
 | extraEnvs         | Allow to set extra system environment variables for grafana-image-renderer. More information about env  variables in [Configuration guide](https://grafana.com/docs/grafana/v9.0/setup-grafana/image-rendering/?src=your_stories_page---------------------------#configuration) | map[string]string                                                                                                            |
 | nodeSelector      | Defines which nodes the pods are scheduled on. Specified just as map[string]string. For example: \"type: compute\"                                                                                                                                                              | map[string]string                                                                                                            |
-| affinity                   | If specified, the pod's scheduling constraints                                                                                                                                                                         | *v1.Affinity                                                                                                                 |
+| affinity          | If specified, the pod's scheduling constraints                                                                                                                                                                                                                                  | *v1.Affinity                                                                                                                 |
 | priorityClassName | PriorityClassName assigned to the Pods to prevent them from evicting.                                                                                                                                                                                                           | string                                                                                                                       |
 <!-- markdownlint-enable line-length -->
 

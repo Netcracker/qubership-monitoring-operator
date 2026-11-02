@@ -4,38 +4,36 @@
 Return resources for monitoring-operator by HWE profile.
 */}}
 {{- define "monitoring.operator.resources" -}}
-  {{- if .Values.monitoringOperator -}}
-    {{- if .Values.monitoringOperator.resources -}}
-      {{- toYaml .Values.monitoringOperator.resources | nindent 12 }}
-    {{- else if eq .Values.global.profile "small" -}}
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 70m
-              memory: 256Mi
-    {{- else if eq .Values.global.profile "medium" -}}
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
-    {{- else if eq .Values.global.profile "large" -}}
-            requests:
-              cpu: 70m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
-    {{- else -}}
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
-    {{- end -}}
+  {{- if .Values.monitoringOperator.resources -}}
+    {{- toYaml .Values.monitoringOperator.resources }}
+  {{- else if eq .Values.global.profile "small" -}}
+requests:
+  cpu: 50m
+  memory: 64Mi
+limits:
+  cpu: 70m
+  memory: 256Mi
+  {{- else if eq .Values.global.profile "medium" -}}
+requests:
+  cpu: 50m
+  memory: 64Mi
+limits:
+  cpu: 100m
+  memory: 256Mi
+  {{- else if eq .Values.global.profile "large" -}}
+requests:
+  cpu: 70m
+  memory: 64Mi
+limits:
+  cpu: 200m
+  memory: 256Mi
+  {{- else -}}
+requests:
+  cpu: 50m
+  memory: 64Mi
+limits:
+  cpu: 100m
+  memory: 256Mi
   {{- end -}}
 {{- end -}}
 
@@ -860,6 +858,43 @@ Return resources for certExporter deployment by HWE profile.
 Return resources for cloudwatchExporter by HWE profile.
 */}}
 {{- define "cloudwatchExporter.resources" -}}
+  {{- if .Values.resources -}}
+      {{- toYaml .Values.resources | nindent 12 }}
+  {{- else if eq .Values.global.profile "small" -}}
+            requests:
+              cpu: 50m
+              memory: 100Mi
+            limits:
+              cpu: 70m
+              memory: 150Mi
+  {{- else if eq .Values.global.profile "medium" -}}
+            requests:
+              cpu: 100m
+              memory: 150Mi
+            limits:
+              cpu: 150m
+              memory: 250Mi
+  {{- else if eq .Values.global.profile "large" -}}
+            requests:
+              cpu: 150m
+              memory: 200Mi
+            limits:
+              cpu: 250m
+              memory: 300Mi
+  {{- else -}}
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Return resources for yaceExporter by HWE profile.
+*/}}
+{{- define "yaceExporter.resources" -}}
   {{- if .Values.resources -}}
       {{- toYaml .Values.resources | nindent 12 }}
   {{- else if eq .Values.global.profile "small" -}}

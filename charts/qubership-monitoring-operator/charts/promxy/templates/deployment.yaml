@@ -38,6 +38,9 @@ spec:
           secret:
             secretName: {{ .Values.name }}-config
             defaultMode: 420
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName | quote }}
       {{- end }}
@@ -62,10 +65,14 @@ spec:
               value: '1'
           resources:
             {{ include "promxy.resources" $ }}
+          securityContext:
+            {{- include "promxy.containerSecurityContext" . | nindent 12 }}
           volumeMounts:
             - name: promxy-config
               readOnly: true
               mountPath: /etc/promxy/
+            - name: tmp
+              mountPath: /tmp
           livenessProbe:
             httpGet:
               path: /-/healthy
@@ -95,16 +102,20 @@ spec:
             - '--webhook-url=http://localhost:{{ .Values.port }}/-/reload'
           resources:
             {{ include "promxy.configmapReload.resources" $ }}
+          securityContext:
+            {{- include "promxy.containerSecurityContext" . | nindent 12 }}
           volumeMounts:
             - name: promxy-config
               readOnly: true
               mountPath: /etc/promxy/
+            - name: tmp
+              mountPath: /tmp
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
       {{- end }}
       securityContext:
-        {{ include "promxy.securityContext" . }}
+        {{- include "promxy.securityContext" . | nindent 8 }}
       {{- if .Values.tolerations }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}

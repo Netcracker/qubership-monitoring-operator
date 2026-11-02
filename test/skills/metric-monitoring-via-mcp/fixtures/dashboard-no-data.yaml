@@ -1,0 +1,114 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: monitoring-skill-eval-no-data
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: monitoring
+    skill-eval: dashboard-no-data
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-3
+spec:
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  json: |
+    {
+      "id": null,
+      "uid": "monitoring-skill-eval-no-data",
+      "title": "Skill Eval / Missing Data",
+      "tags": ["self-monitor", "skill-eval"],
+      "editable": false,
+      "timezone": "browser",
+      "schemaVersion": 41,
+      "version": 1,
+      "refresh": "30s",
+      "time": {
+        "from": "now-15m",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Missing targets",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "up{job=\"$job\"}",
+              "legendFormat": "{{job}} / {{instance}}",
+              "range": true,
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "label": "Datasource",
+            "type": "datasource",
+            "query": "prometheus",
+            "refresh": 1,
+            "current": {
+              "text": "Platform Monitoring Prometheus"
+            },
+            "options": []
+          },
+          {
+            "name": "job",
+            "label": "Job",
+            "type": "custom",
+            "query": "skill-eval-nonexistent",
+            "current": {
+              "text": "skill-eval-nonexistent",
+              "value": "skill-eval-nonexistent"
+            },
+            "options": [
+              {
+                "selected": true,
+                "text": "skill-eval-nonexistent",
+                "value": "skill-eval-nonexistent"
+              }
+            ]
+          }
+        ]
+      },
+      "annotations": {
+        "list": []
+      },
+      "links": []
+    }

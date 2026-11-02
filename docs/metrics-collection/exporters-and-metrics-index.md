@@ -8,7 +8,7 @@ available to collect from some tools.
 * Java
   * Micrometer
   * JMX exporter
-* Golang
+* Go
 * Python
 * Nginx
 
@@ -22,7 +22,7 @@ available to collect from some tools.
 * ArangoDB
 * Cassandra
 * ClickHouse
-* ElasticSearch
+* Elasticsearch
 * Greenplum
 * MongoDB
 * PostgreSQL
@@ -66,6 +66,7 @@ available to collect from some tools.
 ### Public Cloud Exporters
 
 * AWS - Cloudwatch-exporter
+* AWS - Yace-exporter
 * Azure - Promitor
 * Google Cloud - Stackdriver-exporter
 

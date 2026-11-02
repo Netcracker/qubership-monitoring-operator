@@ -1,6 +1,6 @@
 # Based on python:3.13.2-alpine3.21
 ARG BUILDPLATFORM
-FROM --platform=$BUILDPLATFORM ghcr.io/netcracker/qubership-docker-integration-tests:0.5.8@sha256:011dcece3e8a624c99983456f401e3080e71ad6faf82fe89bd27a0591f00d4bd
+FROM --platform=$BUILDPLATFORM ghcr.io/netcracker/qubership-docker-integration-tests:0.6.4@sha256:846e5f8f93fc850a64e261b0a9df7a1091aafbd8617d51f0fd9a6b6adca3464a
 
 # ROBOT_HOME is defined in the base image.
 ENV ROBOT_OUTPUT=${ROBOT_HOME}/output \

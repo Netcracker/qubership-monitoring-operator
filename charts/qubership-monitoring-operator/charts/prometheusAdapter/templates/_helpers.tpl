@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.operator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.11.4" -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter-operator:0.12.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -26,7 +26,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-prometheus-adapter-operator versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:0.11.4" -}}
+    {{- print "ghcr.io/netcracker/qubership-prometheus-adapter:0.12.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -70,14 +70,14 @@ Return securityContext for prometheus-adapter.
 Return securityContext for prometheus-adapter-operator.
 */}}
 {{- define "prometheusAdapter.operator.securityContext" -}}
-  {{- if .Values.operator.securityContext -}}
-    {{- toYaml .Values.operator.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.operator.securityContext "id" 2000) -}}
+{{- end -}}
+
+{{/*
+Return the enforced container security context for prometheus-adapter-operator.
+*/}}
+{{- define "prometheusAdapter.operator.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" dict) -}}
 {{- end -}}
 
 {{/*

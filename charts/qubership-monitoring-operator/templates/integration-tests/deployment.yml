@@ -44,17 +44,27 @@ spec:
       volumes:
         - name: robot-storage
           emptyDir: {}
+        # Robot result artifacts use this volume; 100Mi is an unmeasured starting cap.
+        - name: robot-output
+          emptyDir:
+            sizeLimit: 100Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       affinity: {}
       tolerations: {{- toYaml .Values.integrationTests.tolerations | nindent 8 }}
       nodeSelector: {{- toYaml .Values.integrationTests.nodeSelector | nindent 8 }}
       affinity: {{- toYaml .Values.integrationTests.affinity | nindent 8 }}
-      securityContext: {{- toYaml .Values.integrationTests.securityContext | nindent 8 }}
+      securityContext:
+        {{- include "integrationTests.securityContext" . | nindent 8 }}
       containers:
         - name: {{ .Values.integrationTests.name }}
           image: {{ template "integrationTests.image" . }}
           imagePullPolicy: Always
           resources:
             {{ include "integrationTests.resources" . }}
+          securityContext:
+            {{- include "integrationTests.containerSecurityContext" . | nindent 12 }}
           env:
             - name: NAMESPACE
               valueFrom:
@@ -105,6 +115,8 @@ spec:
               value: {{ if .Values.certExporter }}{{ default "false" .Values.certExporter.install | quote }}{{ else }}"false"{{ end }}
             - name: CLOUDWATCH-EXPORTER
               value: {{ if .Values.cloudwatchExporter }}{{ default "false" .Values.cloudwatchExporter.install | quote }}{{ else }}"false"{{ end }}
+            - name: YACE-EXPORTER
+              value: {{ if .Values.yaceExporter }}{{ default "false" .Values.yaceExporter.install | quote }}{{ else }}"false"{{ end }}
             - name: GRAPHITE-REMOTE-ADAPTER
               value: {{ if .Values.graphite_remote_adapter }}{{ default "false" .Values.graphite_remote_adapter.install | quote }}{{ else }}"false"{{ end }}
             - name: NETWORK-LATENCY-EXPORTER
@@ -160,4 +172,8 @@ spec:
           volumeMounts:
             - name: robot-storage
               mountPath: /opt/robot/target
+            - name: robot-output
+              mountPath: /opt/robot/output
+            - name: tmp
+              mountPath: /tmp
 {{- end }}

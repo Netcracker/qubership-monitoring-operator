@@ -6,6 +6,7 @@ metadata:
     {{- include "monitoring.labels" (dict "ctx" . "name" "platformmonitoring") | nindent 4 }}
     app.kubernetes.io/processed-by-operator: monitoring-operator
 spec:
+  {{- $pvcAnnotations := ((.Values.pvc).metadata).annotations }}
   {{- if .Values.publicCloudName }}
   publicCloudName: {{ .Values.publicCloudName }}
   {{- end }}
@@ -130,6 +131,7 @@ spec:
       {{- toYaml .Values.prometheus.externalLabels | nindent 6 }}
     externalUrl:
       {{- toYaml .Values.prometheus.externalUrl | nindent 6 }}
+    {{- if .Values.prometheus.remoteWrite }}
     remoteWrite:
       {{- range .Values.prometheus.remoteWrite }}
       {{- if .url }}
@@ -203,6 +205,9 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+    {{- else }}
+    remoteWrite: []
+    {{- end }}
     remoteRead:
       {{- toYaml .Values.prometheus.remoteRead | nindent 6 }}
     secrets:
@@ -230,8 +235,12 @@ spec:
       {{- toYaml .Values.prometheus.annotations | nindent 6 }}
     {{- end }}
     {{- if .Values.prometheus.storage }}
+    {{- $storage := .Values.prometheus.storage }}
+    {{- if and $pvcAnnotations $storage.volumeClaimTemplate }}
+    {{- $storage = mergeOverwrite (dict "volumeClaimTemplate" (dict "metadata" (dict "annotations" (deepCopy $pvcAnnotations)))) (deepCopy $storage) }}
+    {{- end }}
     storage:
-      {{- toYaml .Values.prometheus.storage | nindent 6 }}
+      {{- toYaml $storage | nindent 6 }}
     {{- end }}
     {{- if .Values.prometheus.affinity }}
     affinity:
@@ -382,9 +391,15 @@ spec:
       {{- end }}
       {{- if .Values.victoriametrics.vmOperator.extraEnvs }}
       {{- range .Values.victoriametrics.vmOperator.extraEnvs }}
+      {{- if or (ne .name "WATCH_NAMESPACE") (not $.Values.global.namespaceScope) }}
         - name: {{ .name }}
           value: {{ .value | quote }}
       {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.global.namespaceScope }}
+        - name: WATCH_NAMESPACE
+          value: {{ .Release.Namespace | quote }}
       {{- end }}
       image: {{ template "vm.operator.image" . }}
       resources:
@@ -472,9 +487,13 @@ spec:
       storage:
         {{- toYaml .Values.victoriametrics.vmSingle.storage | nindent 8 }}
       {{- end }}
-      {{- if .Values.victoriametrics.vmSingle.storageMetadata }}
+      {{- $storageMetadata := .Values.victoriametrics.vmSingle.storageMetadata }}
+      {{- if and $pvcAnnotations .Values.victoriametrics.vmSingle.storage }}
+      {{- $storageMetadata = mergeOverwrite (dict "annotations" (deepCopy $pvcAnnotations)) (deepCopy ($storageMetadata | default dict)) }}
+      {{- end }}
+      {{- if $storageMetadata }}
       storageMetadata:
-        {{- toYaml .Values.victoriametrics.vmSingle.storageMetadata | nindent 8 }}
+        {{- toYaml $storageMetadata | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmSingle.extraArgs }}
       extraArgs:
@@ -737,8 +756,12 @@ spec:
         {{- toYaml .Values.victoriametrics.vmAlertManager.annotations | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAlertManager.storage }}
+      {{- $storage := .Values.victoriametrics.vmAlertManager.storage }}
+      {{- if and $pvcAnnotations $storage.volumeClaimTemplate }}
+      {{- $storage = mergeOverwrite (dict "volumeClaimTemplate" (dict "metadata" (dict "annotations" (deepCopy $pvcAnnotations)))) (deepCopy $storage) }}
+      {{- end }}
       storage:
-        {{- toYaml .Values.victoriametrics.vmAlertManager.storage | nindent 8 }}
+        {{- toYaml $storage | nindent 8 }}
       {{- end }}
       {{- if .Values.victoriametrics.vmAlertManager.volumes }}
       volumes:
@@ -1190,9 +1213,15 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .Values.grafana }}
-  {{- if or .Values.grafana.install .Values.grafana.operator.install }}
+  {{- if .Values.grafana.install }}
+  {{- if and .Values.grafana.namespace (ne .Values.grafana.namespace .Release.Namespace) }}
+  {{- fail (printf "grafana.namespace must be the release namespace %q: Monitoring Operator watches only that namespace" .Release.Namespace) }}
+  {{- end }}
   grafana:
     install: {{ .Values.grafana.install }}
+    {{- if .Values.grafana.name }}
+    name: {{ .Values.grafana.name }}
+    {{- end }}
     {{- if hasKey .Values.grafana "disableDefaultAdminSecret" }}
     disableDefaultAdminSecret: {{ .Values.grafana.disableDefaultAdminSecret }}
     {{- else }}
@@ -1212,8 +1241,12 @@ spec:
     config:
       {{- toYaml .Values.grafana.config | nindent 6 }}
     {{- if .Values.grafana.dataStorage }}
+    {{- $dataStorage := .Values.grafana.dataStorage }}
+    {{- if $pvcAnnotations }}
+    {{- $dataStorage = mergeOverwrite (dict "annotations" (deepCopy $pvcAnnotations)) (deepCopy $dataStorage) }}
+    {{- end }}
     dataStorage:
-      {{- toYaml .Values.grafana.dataStorage | nindent 6 }}
+      {{- toYaml $dataStorage | nindent 6 }}
     {{- end }}
     {{- if .Values.grafana.priorityClassName }}
     priorityClassName: {{ .Values.grafana.priorityClassName }}
@@ -1271,8 +1304,8 @@ spec:
     operator:
       image: {{ template "grafana.operator.image" . }}
       initContainerImage: {{ template "grafana.initContainer.image" . }}
-      {{- if .Values.grafana.operator.namespaceScope }}
-      namespaceScope: {{ .Values.grafana.operator.namespaceScope }}
+      {{- if or .Values.global.namespaceScope .Values.grafana.operator.namespaceScope }}
+      namespaceScope: true
       {{- else if .Values.grafana.operator.watchNamespaceSelector }}
       watchNamespaceSelector: {{ .Values.grafana.operator.watchNamespaceSelector }}
       {{- else if .Values.grafana.operator.watchNamespaces }}

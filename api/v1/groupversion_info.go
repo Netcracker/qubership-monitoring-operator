@@ -12,18 +12,20 @@ import (
 )
 
 var (
-	// SchemeGroupVersion is group version used to register these objects
-	SchemeGroupVersion = schema.GroupVersion{Group: "monitoring.netcracker.com", Version: "v1"}
+	// GroupVersion is group version used to register these objects
+	GroupVersion = schema.GroupVersion{Group: "monitoring.netcracker.com", Version: "v1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
-	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
+	schemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 
 	// AddToScheme adds the types in this group-version to the given scheme.
-	AddToScheme = SchemeBuilder.AddToScheme
+	AddToScheme = schemeBuilder.AddToScheme
+
+	objectTypes = []runtime.Object{}
 )
 
 func addKnownTypes(scheme *runtime.Scheme) error {
-	scheme.AddKnownTypes(SchemeGroupVersion, &PlatformMonitoring{}, &PlatformMonitoringList{})
-	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
+	scheme.AddKnownTypes(GroupVersion, objectTypes...)
+	metav1.AddToGroupVersion(scheme, GroupVersion)
 	return nil
 }

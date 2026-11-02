@@ -1,0 +1,23 @@
+# Guest overlay beside an existing cluster-wide monitoring install.
+# Pair with host-values.yaml on the host release, and:
+#   helm install ... --skip-crds -n <guest-ns> -f this file
+#
+# Required guest inputs only. Everything else stays chart default.
+# global.namespaceScope confines guest VictoriaMetrics Operator and Grafana
+# Operator to the release namespace. Managed-workload discovery stays at chart
+# defaults.
+
+global:
+  namespaceScope: true
+
+etcdCertsJob:
+  # Cluster-scoped resources must not collide with the host release. These
+  # values apply to ClusterRole, ClusterRoleBinding, and OpenShift SCC names.
+  rbac:
+    name: monitoring-test-etcd-certs-to-secret-scc
+    clusterRoleName: monitoring-test-etcd-certs-to-secret-clusterrole
+    clusterRoleBindingName: monitoring-test-etcd-certs-to-secret-clusterrb
+
+nodeExporter:
+  # Host node-exporter already binds hostPort 9900.
+  port: 9901

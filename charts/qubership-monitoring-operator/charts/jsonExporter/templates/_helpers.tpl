@@ -11,7 +11,7 @@ Image can be found from:
     {{- printf "%s" .Values.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-community/json_exporter */ -}}
-    {{- print "docker.io/prometheuscommunity/json-exporter:v0.7.0" -}}
+    {{- print "docker.io/prometheuscommunity/json-exporter:v0.8.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -19,12 +19,10 @@ Image can be found from:
 Return securityContext for json-exporter.
 */}}
 {{- define "jsonExporter.securityContext" -}}
-  {{- if .Values.securityContext -}}
-    {{- toYaml .Values.securityContext | nindent 8 }}
-  {{- else if not (.Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints") -}}
-        runAsUser: 2000
-        fsGroup: 2000
-  {{- else -}}
-        {}
-  {{- end -}}
+{{- include "monitoring.security.podContext" (dict "root" . "configured" .Values.securityContext "id" 2000) -}}
+{{- end -}}
+
+{{/* Return the enforced container security context. */}}
+{{- define "jsonExporter.containerSecurityContext" -}}
+{{- include "monitoring.security.containerContext" (dict "configured" .Values.containerSecurityContext) -}}
 {{- end -}}

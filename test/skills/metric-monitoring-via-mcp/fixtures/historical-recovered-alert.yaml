@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-skill-eval-historical-alert
+  namespace: monitoring
+  labels:
+    skill-eval: historical-recovered-alert
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-11
+spec:
+  groups:
+    - name: monitoring-skill-historical-alert-eval
+      interval: 10s
+      rules:
+        - record: skill_eval_periodic_incident
+          expr: vector((time() % 300) < bool 90)
+          labels:
+            skill_eval: "true"
+            scenario: historical-recovery
+        - alert: SkillEvalRecoveredIncident
+          expr: skill_eval_periodic_incident > 0
+          for: 20s
+          labels:
+            severity: warning
+            skill_eval: "true"
+          annotations:
+            summary: Synthetic incident that recovers during each five-minute cycle
+            description: The condition is true for the first 90 seconds of each cycle.

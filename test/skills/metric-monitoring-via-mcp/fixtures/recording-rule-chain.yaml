@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-skill-eval-recording-chain
+  namespace: monitoring
+  labels:
+    skill-eval: recording-rule-chain
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-1
+spec:
+  groups:
+    - name: monitoring-skill-chain-eval
+      interval: 30s
+      rules:
+        - record: skill_eval:up:sum_by_job
+          expr: sum by (job) (up)
+          labels:
+            skill_eval: "true"
+        - record: skill_eval:up:double_by_job
+          expr: skill_eval:up:sum_by_job * 2
+          labels:
+            skill_eval: "true"

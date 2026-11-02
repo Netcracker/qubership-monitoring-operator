@@ -2,6 +2,11 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Platform type. Set to KUBERNETES to pin hardened workloads to UID/GID 1000.
+# When empty, the chart detects OpenShift through its SCC API and otherwise
+# treats the platform as Kubernetes.
+PAAS_PLATFORM: ""
+
 # Deploy an Grafana instance
 # Type: objects
 # Mandatory: no
@@ -12,6 +17,24 @@
 # Default: true
 #
 install: true
+
+# Name of the Grafana custom resource.
+# Grafana Operator names the Grafana Service {name}-service and the Deployment {name}-deployment.
+# The admin credentials Secret is named {name}-admin-credentials.
+# Type: string
+# Mandatory: no
+# Default: grafana
+#
+# name: grafana
+
+# Namespace of the Grafana custom resource and pods.
+# Only the release namespace is supported: Monitoring Operator watches only that namespace,
+# so rendering fails for any other value.
+# Type: string
+# Mandatory: no
+# Default: release namespace
+#
+# namespace: monitoring
 
 # A docker image to use for grafana-operator deployment
 # Type: string
@@ -194,7 +217,8 @@ config:
 # Set to "" to auto-generate a random value on first install; subsequent helm upgrades will
 # preserve the generated value.
 # Backward compatibility: if config.security.admin_user / config.security.admin_password are set,
-# they override these values when rendering the secret (single source of truth remains the secret).
+# they override these values when rendering the secret. Monitoring Operator applies later password
+# changes to the Grafana database.
 # Type: object
 # Mandatory: no
 #
@@ -260,7 +284,7 @@ extraVars:
   GF_AUTH_ANONYMOUS_HIDE_VERSION: true
   GF_SERVER_ENFORCE_DOMAIN: false
   # GF_RENDERING_SERVER_URL: http://grafana-image-renderer:8081/render
-  # GF_RENDERING_CALLBACK_URL: http://grafana-service:3000/
+  # GF_RENDERING_CALLBACK_URL: http://{name}-service:3000/
   # GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: true
   # GF_LOG_LEVEL: trace
   # GF_SECURITY_CONTENT_SECURITY_POLICY_TEMPLATE:
@@ -273,7 +297,9 @@ extraVars:
 # Default: {}
 #
 extraVarsSecret: {}
-# GF_AUTH_GENERIC_OAUTH_CLIENT_ID and GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET will be populated from OAuth2 proxy secret.
+# GF_AUTH_GENERIC_OAUTH_CLIENT_ID can be populated from grafana-extra-vars-secret.
+# GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET is mounted from dedicated Secret
+# (grafana-oauth-client-secret) and read via $__file in grafana config.
 
 ## Allows set custom home dashboard for grafana.
 ## GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana-configmaps/grafana-home-dashboard/grafana-home-dashboard.json
@@ -294,7 +320,7 @@ backupDaemonDashboard: true
 ## The result of matchLabels and matchExpressions are ANDed.
 ## An empty label selector matches all objects. A null label selector matches no objects.
 ## The parameter is an array of labelSelector objects
-## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta
+## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta
 # Type: []object
 #
 dashboardLabelSelector: [{}]
@@ -303,7 +329,7 @@ dashboardLabelSelector: [{}]
 ## The result of matchLabels and matchExpressions are ANDed.
 ## An empty label selector matches all objects. A null label selector matches no objects.
 ## The parameter is labelSelector object type
-## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta
+## https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#labelselector-v1-meta
 # Type: object
 #
 dashboardNamespaceSelector:
@@ -366,7 +392,7 @@ tolerations: []
 nodeSelector: {}
 
 # If specified, the pod's scheduling constraints
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 # Type: object
 # Mandatory: no
 # Default: not set
@@ -540,7 +566,7 @@ operator:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -661,7 +687,7 @@ imageRenderer:
   nodeSelector: {}
 
   # If specified, the pod's scheduling constraints
-  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+  # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   # Type: object
   # Mandatory: no
   # Default: not set
@@ -712,6 +738,7 @@ imageRenderer:
   # extra environment variables
   extraEnvs:
     LOG_LEVEL: info
+    BROWSER_FLAGS: --ignore-certificate-errors --disable-dev-shm-usage --disable-accelerated-2d-canvas --window-size=1280x758
     RENDERING_ARGS: --no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--disable-gpu,--window-size=1280x758
     IGNORE_HTTPS_ERRORS: true
     # RENDERING_MODE: clustered
@@ -726,3 +753,227 @@ imageRenderer:
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
   # priorityClassName: "priorityClassName"
+
+# Deploy mcp-grafana server together with Grafana.
+# Type: object
+# Mandatory: no
+#
+mcp:
+  # Enable mcp-grafana deployment.
+  # Type: boolean
+  # Mandatory: no
+  #
+  install: false
+
+  # Name of mcp-grafana resources.
+  # Type: string
+  # Mandatory: no
+  #
+  name: mcp-grafana
+
+  # Container image for mcp-grafana.
+  # Type: object
+  # Mandatory: no
+  #
+  image:
+    registry: docker.io
+    repository: grafana/mcp-grafana
+    tag: 0.17.2
+    pullPolicy: IfNotPresent
+  # Deprecated. Use image.pullPolicy.
+  imagePullPolicy: ""
+  imagePullSecrets: []
+
+  replicas: 1
+
+  # Root Grafana URL reachable from the MCP pod.
+  # Defaults to http://grafana-service.<namespace>.svc:3000 when empty.
+  grafanaUrl: ""
+
+  # Preferred way to pass Grafana service account token.
+  existingSecret:
+    name: ""
+    key: token
+
+  # Optional inline token. If set, Helm creates a Secret.
+  serviceAccountToken: ""
+  tokenSecret:
+    name: ""
+    key: token
+
+  # Optional basic auth. Prefer service account token.
+  basicAuth:
+    username: ""
+    # Optional inline password. Helm stores it in a generated Secret and the
+    # Deployment refers to that Secret instead of containing the password.
+    password: ""
+    # Use an existing Secret instead of password for production environments.
+    passwordSecret:
+      name: ""
+      key: password
+
+  orgId: ""
+  debug: false
+  disableWrite: true
+  # Keep the default toolset focused on monitoring troubleshooting.
+  # Set to [] to use the upstream default tool categories.
+  enabledTools:
+    - search
+    - datasource
+    - dashboard
+    - prometheus
+    - loki
+    - alerting
+  disabledCategories: []
+  metrics:
+    enabled: false
+  # MCP transport: streamable-http or sse.
+  transport: streamable-http
+  # Path for streamable-http transport. Ignored for sse transport.
+  endpointPath: /
+  # Additional allowed Host header values. localhost:<targetPort>, the Pod IP,
+  # and enabled HTTPRoute/Ingress hosts are included automatically. Add Service
+  # DNS names explicitly only when clients connect through the Kubernetes Service.
+  allowedHosts: []
+  allowedOrigins: []
+
+  tls:
+    caFile: ""
+    skipVerify: false
+
+  extraArgs: []
+  command: []
+  extraEnv: {}
+  envValueFrom: {}
+  envFrom: []
+
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+    externalIPs: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    externalName: ""
+    nodePort: ""
+    extraPorts: []
+    sessionAffinity: ""
+    sessionAffinityConfig: {}
+
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    labels: {}
+    automountServiceAccountToken: false
+
+  serviceMonitor:
+    install: false
+    labels: {}
+    annotations: {}
+    path: /metrics
+    namespaceSelector: {}
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    relabelings: []
+
+  httpRoute:
+    install: false
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    # Hostnames the route matches. Each one is added to the mcp-grafana Host
+    # allowlist. Leave empty only when allowedHosts lists the Gateway host,
+    # because mcp-grafana rejects requests with an unknown Host header.
+    hostnames: []
+    parentRefs: []
+    rules: []
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+    timeouts: {}
+    filters: []
+    additionalRules: []
+    httpsRedirect: false
+    annotations: {}
+    labels: {}
+
+  ingress:
+    install: false
+    className: ""
+    annotations: {}
+    labels: {}
+    tls: []
+    hosts: []
+      # - host: mcp-grafana.example.com
+      #   paths:
+      #     - path: /
+      #       pathType: Prefix
+
+  # Compute resource requests and limits for the MCP container.
+  # Type: object
+  # Mandatory: no
+  #
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  securityContext: {}
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+  # mcp-grafana does not need Kubernetes API credentials.
+  automountServiceAccountToken: false
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      httpHeaders:
+        - name: Host
+          value: 'localhost:{{ .Values.mcp.service.targetPort | default .Values.mcp.service.port }}'
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+      httpHeaders:
+        - name: Host
+          value: 'localhost:{{ .Values.mcp.service.targetPort | default .Values.mcp.service.port }}'
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  startupProbe: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  runtimeClassName: ""
+  schedulerName: ""
+  terminationGracePeriodSeconds: ""
+  hostAliases: []
+  dnsPolicy: ""
+  dnsConfig: {}
+  lifecycle: {}
+  initContainers: []
+  extraInitContainers: []
+  extraContainers: []
+  volumes: []
+  volumeMounts: []
+  # Extra labels for the Deployment and its pods. The app key is reserved for the
+  # selector and is ignored here.
+  labels: {}
+  annotations: {}
+  podAnnotations: {}
+  # Extra pod labels. The app key is reserved for the selector and is ignored here.
+  podLabels: {}

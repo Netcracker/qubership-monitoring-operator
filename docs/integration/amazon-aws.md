@@ -70,7 +70,7 @@ AWS CLI Reference at [https://awscli.amazonaws.com/v2/documentation/api/latest/r
 | ElastiCache                                 | AWS/Elasticache     | [https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheMetrics.Redis.html](https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/CacheMetrics.Redis.html)                                                         |
 | Elastic Compute Cloud (EC2)                 | AWS/EC2             | [https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html)                                               |
 | Elastic File System                         | AWS/EFS             | [https://docs.aws.amazon.com/efs/latest/ug/efs-metrics.html](https://docs.aws.amazon.com/efs/latest/ug/efs-metrics.html)                                                                                                           |
-| ElasticSearch                               | AWS/ES              | [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html) |
+| Elasticsearch                               | AWS/ES              | [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-cloudwatchmetrics.html) |
 | Kinesis Data Stream                         | AWS/Kinesis         | [https://docs.aws.amazon.com/streams/latest/dev/monitoring-with-cloudwatch.html](https://docs.aws.amazon.com/streams/latest/dev/monitoring-with-cloudwatch.html)                                                                   |
 | Network Firewall                            | AWS/NetworkFirewall | [https://docs.aws.amazon.com/network-firewall/latest/developerguide/monitoring-cloudwatch.html](https://docs.aws.amazon.com/network-firewall/latest/developerguide/monitoring-cloudwatch.html)                                     |
 | NAT Gateway                                 | AWS/NATGateway      | [https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway-cloudwatch.html](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway-cloudwatch.html)                                                               |
@@ -122,7 +122,7 @@ Examples of cloudwatch-exporter configuration for some managed services:
         aws_statistics: [Average]
         period_seconds: 86400
     ```
-  
+
 The configuration must contain metrics (with statistics, dimensions, and so on) that you want to see in Prometheus.
 The official AWS documentation has information about each metric, the most useful statistics for it, and the possible sets
 of dimensions.
@@ -215,10 +215,12 @@ IAM permissions are required, so you can create a policy like the following
 
 _Step 2.2._ (**Optional**) The `tag:GetResources` IAM permission is also required to use the aws_tag_select feature.
 
-**Important**: The `tag:GetResources` permission is required to access Resource Groups and Tagging endpoints, like
-`tagging.<region>.amazonaws.com`, which doesn't work with VPC. So the aws_tag_select feature does not work with VPC.
+**Important**: The `tag:GetResources` permission is required to access the Resource Groups and Tagging
+endpoint `tagging.<region>.amazonaws.com`. Inside a VPC without internet egress, create the
+`com.amazonaws.<region>.tagging` interface VPC endpoint so that the `aws_tag_select` feature and tag-based
+discovery can reach the Tagging API.
 For the full list of endpoints available in VPC, refer to the official documentation at
-[https://docs.aws.amazon.com/vpc/latest/privatelink/integrated-services-vpce-list.html](https://docs.aws.amazon.com/vpc/latest/privatelink/integrated-services-vpce-list.html).
+[https://docs.aws.amazon.com/vpc/latest/privatelink/aws-services-privatelink-support.html](https://docs.aws.amazon.com/vpc/latest/privatelink/aws-services-privatelink-support.html).
 If required, use the following policy (for example, named `CloudWatchExporterMonitoringTags`):
 
 ```json
@@ -376,10 +378,12 @@ Role in JSON:
 }
 ```
 
-**Important**: The `tag:GetResources` permission is required to access to Resource Groups and Tagging endpoints, like
-`tagging.<region>.amazonaws.com`, which doesn't work with VPC. So the aws_tag_select feature does not work with VPC.
+**Important**: The `tag:GetResources` permission is required to access the Resource Groups and Tagging
+endpoint `tagging.<region>.amazonaws.com`. Inside a VPC without internet egress, create the
+`com.amazonaws.<region>.tagging` interface VPC endpoint so that the `aws_tag_select` feature can reach the
+Tagging API.
 For the full list of endpoints available in VPC, see
-[https://docs.aws.amazon.com/vpc/latest/privatelink/integrated-services-vpce-list.html](https://docs.aws.amazon.com/vpc/latest/privatelink/integrated-services-vpce-list.html).
+[https://docs.aws.amazon.com/vpc/latest/privatelink/aws-services-privatelink-support.html](https://docs.aws.amazon.com/vpc/latest/privatelink/aws-services-privatelink-support.html).
 
 The `tag:GetResources` IAM permission is also required to use the `aws_tag_select` feature:
 
@@ -406,7 +410,7 @@ To create a user:
 
 1. Open IAM, and select Users.
 2. Click `Add Users`.
-3. Enter the user name and do not forget to set `Access key - Programmatic access` to generate the access key.
+3. Enter the username and do not forget to set `Access key - Programmatic access` to generate the access key.
 4. Select the earlier created group or permissions.
 5. Create the user and save the `Access Key ID` and `Secret Access Key`.
 
@@ -459,7 +463,7 @@ For the lists of full metrics, refer to [CloudWatch Metrics](#cloudwatch-metrics
 
 ```yaml
 cloudwatchExporter:
-  serviceMonitor: 
+  serviceMonitor:
    interval: 2m
   config:
     period_seconds: 120
@@ -529,6 +533,317 @@ aws_kafka_bytes_in_per_sec_average
 In general, you can just find metrics which start from `aws_` in the Prometheus UI and check that they
 exist.
 
+### CloudWatch Metrics with YACE (Yet Another CloudWatch Exporter)
+
+Besides the `cloudwatch-exporter`, the monitoring stack can collect AWS CloudWatch metrics with the
+`yace-exporter` (Yet Another CloudWatch Exporter). YACE uses the CloudWatch `GetMetricData` API, which queries up to
+500 metrics in a single call. That reduces the number of API calls, and with it the risk of throttling, compared to the
+`cloudwatch-exporter`. YACE also supports tag-based auto-discovery of resources, multi-account scraping through assumed
+IAM roles, and static jobs for custom namespaces. For more information, refer to
+[https://github.com/prometheus-community/yet-another-cloudwatch-exporter](https://github.com/prometheus-community/yet-another-cloudwatch-exporter).
+
+**Note**: `yace-exporter` and `cloudwatch-exporter` are independent. Enable them separately or at the same time. Both
+are disabled by default, so leave the one you do not need disabled.
+
+#### How to Configure yace-exporter
+
+The configuration uses the YACE `v1alpha1` schema and is provided through the `yaceExporter.config` parameter.
+The main sections are:
+
+* `discovery.jobs[]` - auto-discovery jobs. Each job selects a service by `type`, for example `AWS/RDS`, one or more
+  `regions`, optional `roles` to assume, `searchTags` to filter resources by tags, and a list of `metrics`.
+  Discovery requires `tag:GetResources`.
+* `static[]` - explicit jobs that target a specific `namespace` and a fixed set of dimension **values**.
+* `customNamespace[]` - `ListMetrics` jobs that filter by dimension **names** only. This is the closest match to the
+  classic `cloudwatch-exporter` configuration, and it does not require `tag:GetResources`.
+
+Multiple AWS accounts and CloudWatch regions are set on the job through `roles` and `regions`, not as extra
+deployments. For more information, refer to
+[Multiple Accounts and Multiple Regions](#multiple-accounts-and-multiple-regions).
+
+The `cloudwatch-exporter` configuration options map to YACE as follows:
+
+<!-- markdownlint-disable line-length -->
+| Capability                | YACE configuration                                                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| AWS Region                | Job `regions: [ ... ]` in `discovery.jobs[]`, `static[]`, and `customNamespace[]`. `sts-region` is one STS endpoint, not a region list.  |
+| IAM Role / IRSA           | Home identity: `serviceAccount.annotations` with `eks.amazonaws.com/role-arn`, or `yaceExporter.aws`. Extra accounts: `roles[].roleArn`. |
+| AWS Account               | Extra accounts: `roles[].roleArn` with optional `externalId` on the job. Omit `roles` to scrape only the home account.                   |
+| Metrics configuration     | `metrics[]` with `name`, `statistics`, `period`, and `length`.                                                                           |
+| Namespace filters         | Discovery `type`, or `namespace` in `static[]` and `customNamespace[]`.                                                                  |
+| Dimension filters         | Static `dimensions[]` for values and `dimensionNameRequirements` for names.                                                              |
+| Collection interval       | Per-metric `period` and `length`, plus the `-scraping-interval` flag set through `yaceExporter.extraArgs`.                               |
+| Resource tags             | `searchTags[]`, `exportedTagsOnMetrics`, and static `customTags[]` in discovery jobs.                                                    |
+| Custom metric definitions | `customNamespace[]`, or static jobs with a custom `namespace`.                                                                           |
+<!-- markdownlint-enable line-length -->
+
+#### Credentials and Permissions for yace-exporter
+
+`yace-exporter` requires the following IAM permissions to run discovery and static jobs:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "tag:GetResources",
+                "cloudwatch:GetMetricData",
+                "cloudwatch:GetMetricStatistics",
+                "cloudwatch:ListMetrics"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+As with the `cloudwatch-exporter`, the recommended way to grant these permissions is an IAM Role for Service Accounts
+(IRSA). Follow the same steps as for the [cloudwatch-exporter](#using-an-iam-role-recommended), but use the
+`yace-exporter` service account name and the `yaceExporter.serviceAccount.annotations` parameter:
+
+```yaml
+yaceExporter:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::$account_id:role/$iam_role
+      eks.amazonaws.com/sts-regional-endpoints: "true"
+```
+
+In cross-account setups, the IRSA role only needs permission to call `sts:AssumeRole` on the per-account roles listed
+under `roles[].roleArn`, and each of those roles must grant the CloudWatch and tagging permissions above.
+
+If you cannot use IRSA, provide static credentials through `yaceExporter.aws.aws_access_key_id` and
+`yaceExporter.aws.aws_secret_access_key`, or reference a pre-created Secret with `yaceExporter.aws.secret.name`.
+That Secret must contain the `access_key`, `secret_key`, and optionally `security_token` fields.
+
+#### Deploy yace-exporter in AWS
+
+To deploy Monitoring with `yace-exporter`, add the following parameters to the deployment. Replace the IAM role ARN and
+`us-east-1` with your values, and remove any discovery job for a service you do not use. Do **not** set `roles` for
+same-account collection, because YACE uses the IRSA identity directly.
+
+```yaml
+yaceExporter:
+  install: true
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::1234567890:role/yace-exporter-oidc
+      eks.amazonaws.com/sts-regional-endpoints: "true"
+  config: |-
+    apiVersion: v1alpha1
+    sts-region: us-east-1
+    discovery:
+      exportedTagsOnMetrics:
+        AWS/RDS:
+          - Name
+      jobs:
+        - type: AWS/RDS
+          regions:
+            - us-east-1
+          period: 300
+          length: 600
+          metrics:
+            - name: CPUUtilization
+              statistics: [Average, Maximum]
+            - name: DatabaseConnections
+              statistics: [Average]
+            - name: FreeStorageSpace
+              statistics: [Average, Minimum]
+            - name: DiskQueueDepth
+              statistics: [Average]
+```
+
+Ready-to-use examples:
+
+* Deploy parameters for RDS, EBS, S3, ApplicationELB, and EFS:
+  [yace-simple-values.yaml](../examples/deploy-parameters/yace-exporter/yace-simple-values.yaml)
+* Standalone YACE configuration to paste into `yaceExporter.config`:
+  [config.yaml](../examples/components/yace-exporter-config/config.yaml)
+* CloudWatch Exporter translation with `customNamespace` and no `tag:GetResources`:
+  [yace-from-cloudwatch-exporter-values.yaml](../examples/deploy-parameters/yace-exporter/yace-from-cloudwatch-exporter-values.yaml)
+* Multiple accounts and multiple regions:
+  [multi-account-multi-region.yaml](../examples/components/yace-exporter-config/multi-account-multi-region.yaml)
+
+#### Multiple Accounts and Multiple Regions
+
+The chart creates **one** `Deployment` and **one** AWS identity for the pod, either IRSA through
+`yaceExporter.serviceAccount.annotations` or access keys through `yaceExporter.aws`. Extra AWS accounts and extra
+regions are **not** extra deployments. Set them in `yaceExporter.config`.
+
+<!-- markdownlint-disable line-length -->
+| What you need            | Where to set it                                                                                   | Notes                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Home monitoring identity | `serviceAccount.annotations` for IRSA, or `aws.aws_access_key_id` and `aws.aws_secret_access_key` | One identity only. It must be allowed to call `sts:AssumeRole` on each target role.                             |
+| Extra AWS accounts       | `roles[].roleArn` with optional `externalId` on the job                                           | Works in `discovery.jobs[]`, `static[]`, and `customNamespace[]`. Omit `roles` to scrape only the home account. |
+| Extra CloudWatch regions | `regions: [ ... ]` on the job                                                                     | CloudWatch is regional. There is no "all regions" flag.                                                         |
+| STS endpoint             | Top-level `sts-region`                                                                            | A **single** region, not a list. The pod must reach `sts.<sts-region>.amazonaws.com`.                           |
+<!-- markdownlint-enable line-length -->
+
+YACE scrapes **every `roleArn` in every region** listed on a job. Metrics carry the `account_id` and `region` labels.
+
+The following example collects the same metrics from two accounts in two regions, which gives four scrapes:
+
+```yaml
+yaceExporter:
+  install: true
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<monitoring-account>:role/<irsa-role>
+      eks.amazonaws.com/sts-regional-endpoints: "true"
+  config: |-
+    apiVersion: v1alpha1
+    sts-region: us-east-1
+    customNamespace:
+      - name: rds-all
+        namespace: AWS/RDS
+        regions:
+          - us-east-1
+          - eu-central-1
+        roles:
+          - roleArn: "arn:aws:iam::111111111111:role/yace-cloudwatch"
+          - roleArn: "arn:aws:iam::222222222222:role/yace-cloudwatch"
+            # externalId: "shared-external-identifier"
+        dimensionNameRequirements: [DBInstanceIdentifier]
+        period: 120
+        length: 180
+        delay: 60
+        metrics:
+          - name: CPUUtilization
+            statistics: [Average]
+          - name: DatabaseConnections
+            statistics: [Maximum, Sum]
+```
+
+On clusters without IRSA, keep the same `config` and set the home credentials with `yaceExporter.aws` instead of
+`serviceAccount.annotations`.
+
+When account A runs only in `us-east-1` and account B only in `eu-central-1`, use two jobs so that YACE does not call
+CloudWatch in empty regions:
+
+```yaml
+customNamespace:
+  - name: rds-account-a
+    namespace: AWS/RDS
+    regions: [us-east-1]
+    roles:
+      - roleArn: "arn:aws:iam::111111111111:role/yace-cloudwatch"
+    dimensionNameRequirements: [DBInstanceIdentifier]
+    period: 120
+    length: 180
+    delay: 60
+    metrics:
+      - name: CPUUtilization
+        statistics: [Average]
+  - name: rds-account-b
+    namespace: AWS/RDS
+    regions: [eu-central-1]
+    roles:
+      - roleArn: "arn:aws:iam::222222222222:role/yace-cloudwatch"
+    dimensionNameRequirements: [DBInstanceIdentifier]
+    period: 120
+    length: 180
+    delay: 60
+    metrics:
+      - name: CPUUtilization
+        statistics: [Average]
+```
+
+The same `roles` and `regions` fields apply to `discovery.jobs[]`, which needs `tag:GetResources` in each account, and
+to `static[]`.
+
+Do **not** put the IRSA role or IAM user of the pod itself in `roles[]`, unless that principal is allowed to assume
+itself. For a single account, omit `roles`.
+
+IAM requirements:
+
+* The home identity needs `sts:AssumeRole` on each target role ARN.
+* Each target role needs `cloudwatch:GetMetricData`, `cloudwatch:GetMetricStatistics`, `cloudwatch:ListMetrics`, and
+  `tag:GetResources` when you use discovery jobs. The trust policy of the role must allow the home identity.
+
+A full copy of these examples is in
+[multi-account-multi-region.yaml](../examples/components/yace-exporter-config/multi-account-multi-region.yaml).
+
+#### Cross-Account Collection and VPC Requirements
+
+For how to list extra accounts and regions, refer to
+[Multiple Accounts and Multiple Regions](#multiple-accounts-and-multiple-regions). This section covers the STS and VPC
+requirements that apply whenever YACE assumes roles.
+
+`yace-exporter` assumes each listed IAM role, then scrapes CloudWatch with the temporary credentials. The following
+example covers two accounts in one region:
+
+```yaml
+yaceExporter:
+  config: |-
+    apiVersion: v1alpha1
+    sts-region: us-east-1
+    discovery:
+      jobs:
+        - type: AWS/ECS
+          regions:
+            - us-east-1
+          roles:
+            - roleArn: "arn:aws:iam::111111111111:role/yace-exporter"   # account A
+            - roleArn: "arn:aws:iam::222222222222:role/yace-exporter"   # account B
+              externalId: "shared-external-identifier"                  # optional
+          metrics:
+            - name: MemoryReservation
+              statistics: [Average]
+              period: 600
+              length: 600
+```
+
+In this mode the exporter runs in the monitoring account, calls `sts:AssumeRole` for each target account, and uses the
+temporary credentials to call the CloudWatch and Tagging APIs. That puts AWS STS on the scrape path, which has two
+consequences inside a VPC. The same applies to the classic `cloudwatch-exporter` whenever it obtains credentials
+through STS, for example through IRSA.
+
+* **STS must be reachable.** In a private subnet without internet egress, the pod must reach STS, otherwise
+  `AssumeRole` fails and no metrics are collected from the other accounts. Provide either a NAT egress path or the
+  `com.amazonaws.<region>.sts` interface VPC endpoint.
+* **STS must use the regional endpoint.** The global endpoint `sts.amazonaws.com` does not resolve to the VPC
+  endpoint. Set `sts-region: <region>` in the YACE configuration, and on EKS with IRSA also add the
+  `eks.amazonaws.com/sts-regional-endpoints: "true"` annotation to the service account through
+  `yaceExporter.serviceAccount.annotations`.
+
+Per-account or additional CloudWatch endpoints are not needed. CloudWatch (`monitoring`) and the Resource Groups
+Tagging API are regional service endpoints, so `yace-exporter` calls the same regional endpoints for every assumed
+account and only the temporary credentials differ. A fully private deployment needs the following interface VPC
+endpoints:
+
+<!-- markdownlint-disable line-length -->
+| Endpoint                            | Required for                                                                                                         |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `com.amazonaws.<region>.monitoring` | CloudWatch `GetMetricData` and `ListMetrics`. Always required.                                                       |
+| `com.amazonaws.<region>.sts`        | `AssumeRole`. Required for cross-account collection and for IRSA.                                                    |
+| `com.amazonaws.<region>.tagging`    | Resource Groups Tagging `GetResources`. Required for discovery jobs, but not for `static` or `customNamespace` jobs. |
+<!-- markdownlint-enable line-length -->
+
+On the IAM side, which is not a networking setting, the trust policy of the role in each target account must allow the
+monitoring-account principal, that is the `yace-exporter` IRSA role or IAM user, to call `sts:AssumeRole`.
+
+#### Expected Generated Kubernetes Resources
+
+When `yaceExporter.install` is set to `true`, the chart renders the following resources. Names default to
+`yace-exporter`.
+
+* `Deployment/yace-exporter` runs YACE with `-listen-address=0.0.0.0:5000` and `-config.file=/config/config.yml`, and
+  probes `/healthz` for liveness and readiness.
+* `ConfigMap/yace-exporter` holds `config.yml` rendered from `yaceExporter.config`.
+* `Service/yace-exporter` is a `ClusterIP` service that exposes port `5000`.
+* `ServiceAccount/yace-exporter` is created when `serviceAccount.install` is `true`, and it carries the IRSA
+  annotation.
+* `Secret/yace-exporter` is created only when static credentials are provided and `aws.secret.name` is not set.
+* `ServiceMonitor/yace-exporter` is created when the Prometheus Operator CRDs are available and
+  `serviceMonitor.install` is `true`.
+* `ClusterRole` and `ClusterRoleBinding` are not created by default. YACE does not call the Kubernetes API, because
+  its configuration is the mounted ConfigMap and its credentials are environment variables. Set
+  `yaceExporter.rbac.createClusterRole` and `yaceExporter.rbac.createClusterRoleBinding` to `true`, together with
+  `global.privilegedRights`, only when you need those objects for something else.
+
 ## Send Metrics in AWS CloudWatch
 
 TBD
@@ -570,7 +885,8 @@ Read installation guide [cloudwatch-exporter section](../installation/components
 
 ### EFS
 
-AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json) required following Cloudwatch-exporter configuration:
+AWS [EFS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/efs.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -618,7 +934,8 @@ metrics:
 
 ### EBS
 
-AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json) required following Cloudwatch-exporter configuration:
+AWS [EBS dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/ebs.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -658,7 +975,8 @@ metrics:
 
 ### S3
 
-AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json) required following Cloudwatch-exporter configuration:
+AWS [S3 dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/s3.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -678,8 +996,8 @@ metrics:
 
 ### Classic ELB
 
-AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json) required following Cloudwatch-exporter
-configuration:
+AWS [classic ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/classic-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -723,8 +1041,8 @@ metrics:
 
 ### Application ELB
 
-AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json) required following
-Cloudwatch-exporter configuration:
+AWS [application ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/application-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -788,8 +1106,8 @@ metrics:
 
 ### Network ELB
 
-AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json) required following Cloudwatch-exporter
-configuration:
+AWS [network ELB dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/network-elb.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -865,8 +1183,8 @@ metrics:
 
 ### RabbitMQ
 
-AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json) required following Cloudwatch-exporter
-configuration:
+AWS [RabbitMQ dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/rabbitmq.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -946,8 +1264,8 @@ metrics:
 
 ### Cassandra
 
-AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json) required following Cloudwatch-exporter
-configuration:
+AWS [Cassandra dashboard](../examples/components/cloudwatch-exporter-config/grafana-dashboards-for-amazon-aws/cassandra.json)
+required following Cloudwatch-exporter configuration:
 
 ```yaml
 region: us-east-1
@@ -1122,8 +1440,8 @@ Metrics ingested into a workspace are stored for 150 days, and are then automati
 
 #### Set up IAM Roles for Service Accounts
 
-**Warning**: Before creating an IAM role for Kubernetes, do not forget to configure the OIDC provider for EKS. For more information,
-see IAM Roles for Service Accounts at
+**Warning**: Before creating an IAM role for Kubernetes, do not forget to configure the OIDC provider for EKS.
+For more information, see IAM Roles for Service Accounts at
 [https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
 in the Amazon EKS Security Guide.
 
@@ -1204,7 +1522,7 @@ In deployment parameters for Monitoring, specify the following set:
 prometheus:
   ...
   serviceAccount:
-    annotations: 
+    annotations:
       eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
   remoteWrite:
     - url: https://aps-workspaces.<AWS_REGION>.amazonaws.com/workspaces/<WORKSPACE_ID>/api/v1/remote_write
@@ -1274,7 +1592,7 @@ Add the following parameters:
   prometheus:
     ...
     serviceAccounts:
-      annotations: 
+      annotations:
         eks.amazonaws.com/sts-regional-endpoints: true
   ```
 
@@ -1309,7 +1627,7 @@ prometheus:
         - name: AWS_STS_REGIONAL_ENDPOINTS
           value: regional
   serviceAccounts:
-    annotations: 
+    annotations:
       eks.amazonaws.com/sts-regional-endpoints: true
       eks.amazonaws.com/role-arn: <IAM_PROXY_PROMETHEUS_ROLE_ARN>
   remoteWrite:
@@ -1347,7 +1665,7 @@ apply external labels on all instances of a high-availability group, so that
 Amazon Managed Service for Prometheus can identify them. Also, set the
 `replicaExternalLabelName` and `externalLabels` parameters for Monitoring deployment.
 
-For example, in the following yaml, `cluster` is added to `externalLabel` to identify a Prometheus
+For example, in the following YAML, `cluster` is added to `externalLabel` to identify a Prometheus
 instance agent as part of a high-availability group, and `replicaExternalLabels` identifies
 each replica in the group.
 

@@ -3,9 +3,12 @@ package grafana
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
+	"syscall"
 	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -26,6 +29,10 @@ type grafanaDatasourceSummary struct {
 	UID  string `json:"uid"`
 }
 
+// ErrDatasourceMigrationPending is returned when a v4→v5 datasource UID
+// cannot be read yet because Grafana is still starting.
+var ErrDatasourceMigrationPending = errors.New("Grafana datasource UID migration is pending")
+
 var (
 	legacyGrafanaGVK = schema.GroupVersionKind{
 		Group:   "integreatly.org",
@@ -38,6 +45,9 @@ var (
 		Kind:    "GrafanaDataSource",
 	}
 )
+
+// legacyCombinedDatasourceName is the v4 GrafanaDataSource that held Prometheus, Jaeger, and ClickHouse together.
+const legacyCombinedDatasourceName = "platform-monitoring-prometheus"
 
 func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 	ctx context.Context,
@@ -54,8 +64,37 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 		}
 		return fmt.Errorf("checking legacy Grafana datasource: %w", err)
 	}
+	return r.adoptDatasourceUIDFromGrafana(ctx, platformMonitoring, datasource)
+}
 
-	grafanaManifest, err := grafana(platformMonitoring)
+// adoptDiscoveredDatasourceUID copies the UID of a Grafana datasource with the same display name
+// when the v4 datasource custom resource still exists.
+// spec.uid is immutable and cannot be added after create, so this runs only before the v5 resource is created.
+func (r *GrafanaReconciler) adoptDiscoveredDatasourceUID(
+	ctx context.Context,
+	platformMonitoring *monv1.PlatformMonitoring,
+	datasource *grafv1.GrafanaDatasource,
+) error {
+	legacyDatasource := &unstructured.Unstructured{}
+	legacyDatasource.SetGroupVersionKind(legacyGrafanaDatasourceGVK)
+	legacyDatasource.SetName(legacyCombinedDatasourceName)
+	legacyDatasource.SetNamespace(datasource.Namespace)
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(legacyDatasource), legacyDatasource); err != nil {
+		if meta.IsNoMatchError(err) || apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("checking legacy Grafana datasource: %w", err)
+	}
+	return r.adoptDatasourceUIDFromGrafana(ctx, platformMonitoring, datasource)
+}
+
+func (r *GrafanaReconciler) adoptDatasourceUIDFromGrafana(
+	ctx context.Context,
+	platformMonitoring *monv1.PlatformMonitoring,
+	datasource *grafv1.GrafanaDatasource,
+) error {
+	// Only the object key is used here, so the credential sources do not matter.
+	grafanaManifest, err := grafana(platformMonitoring, grafanaCredentialSources{}, false)
 	if err != nil {
 		return err
 	}
@@ -63,6 +102,11 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 	currentGrafana := &grafv1.Grafana{}
 	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(grafanaManifest), currentGrafana); err != nil {
 		return fmt.Errorf("getting Grafana instance for datasource migration: %w", err)
+	}
+
+	if strings.TrimSpace(currentGrafana.Status.AdminURL) == "" {
+		r.Log.Info("Grafana admin URL is not ready; delaying datasource UID migration")
+		return fmt.Errorf("%w: Grafana admin URL is empty", ErrDatasourceMigrationPending)
 	}
 
 	credentials := &corev1.Secret{}
@@ -86,9 +130,19 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 
 	response, err := (&http.Client{Timeout: 10 * time.Second}).Do(request)
 	if err != nil {
+		if isTemporaryGrafanaAdminAPIError(err) {
+			r.Log.Info("Grafana admin API is not reachable; delaying datasource UID migration", "error", err)
+			return fmt.Errorf("%w: listing Grafana datasources for migration: %v", ErrDatasourceMigrationPending, err)
+		}
 		return fmt.Errorf("listing Grafana datasources for migration: %w", err)
 	}
 	defer response.Body.Close()
+	if response.StatusCode >= 500 {
+		r.Log.Info("Grafana admin API is not ready; delaying datasource UID migration",
+			"statusCode", response.StatusCode)
+		return fmt.Errorf("%w: listing Grafana datasources for migration returned HTTP %d",
+			ErrDatasourceMigrationPending, response.StatusCode)
+	}
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("listing Grafana datasources for migration returned HTTP %d", response.StatusCode)
 	}
@@ -107,6 +161,24 @@ func (r *GrafanaReconciler) adoptExistingDatasourceUID(
 	r.Log.Info("Preserving existing Grafana datasource UID",
 		"name", datasource.Spec.Datasource.Name, "uid", uid)
 	return nil
+}
+
+func isTemporaryGrafanaAdminAPIError(err error) bool {
+	var networkError net.Error
+	if errors.As(err, &networkError) && networkError.Timeout() {
+		return true
+	}
+
+	var temporaryError interface{ Temporary() bool }
+	if errors.As(err, &temporaryError) && temporaryError.Temporary() {
+		return true
+	}
+
+	return errors.Is(err, syscall.ECONNREFUSED) ||
+		errors.Is(err, syscall.ECONNRESET) ||
+		errors.Is(err, syscall.ECONNABORTED) ||
+		errors.Is(err, syscall.EHOSTUNREACH) ||
+		errors.Is(err, syscall.ENETUNREACH)
 }
 
 func findDatasourceUID(datasources []grafanaDatasourceSummary, name string) (string, bool) {

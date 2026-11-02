@@ -163,6 +163,8 @@ grafanaDashboard: true
 # Mandatory: no
 #
 # securityContext:
+# The chart adds net.ipv4.ping_group_range=0 2147483647 unless this sysctl is configured explicitly.
+# This allows non-root ICMP probes without granting CAP_NET_RAW.
 # The UID to run the entrypoint of the container process.
 # Defaults to user specified in image metadata if unspecified.
 # Type: integer
@@ -217,7 +219,7 @@ labels: {}
 #  label-key: label-value
 
 # If specified, the pod's scheduling constraints
-# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core
+# More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
 # Type: object
 # Mandatory: no
 # Default: not set

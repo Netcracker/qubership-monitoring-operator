@@ -11,7 +11,7 @@ Dashboards shows Cluster version operator specific metrics
 
 ### Cluster version overview
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Operator status | Shows cluster version operator status | Default:<br/>Mode: absolute<br/>Level 1: 1<br/><br/> |  |
@@ -19,30 +19,30 @@ Dashboards shows Cluster version operator specific metrics
 | Updated version | Shows version from which current was updated |  |  |
 | Initial version of cluster | Shows initial version of the cluster |  |  |
 | Payload | Shows statistics about applied, pending and errors |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Cluster version capability
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Cluster capabilities | Shows currently enabled cluster capabilities | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Cluster operators
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | Cluster operators status | Shows cluster operators status by  reason |  |  |
 | Available  cluster operators | Available  cluster operators by reason |  |  |
 | Degraded  cluster operators | Degraded cluster operators by reason |  |  |
 | Upgradeable  cluster operators | Shows cluster operators which can be upgraded by reason |  |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->
 
 ### Go stats
 
-<!-- markdownlint-disable line-length -->
+<!-- markdownlint-disable line-length table-column-style no-space-in-emphasis -->
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | CPU usage | Shows the CPU usage by cluster version operator | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
@@ -50,4 +50,4 @@ Dashboards shows Cluster version operator specific metrics
 | Resident memory | Show the resident memory usage by cluster version operator | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Allocated memory | Shows the allocated  memory  by cluster version operator | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 | Allocations per second | Shows the memory allocations per second by  cluster version operator | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
-<!-- markdownlint-enable line-length -->
+<!-- markdownlint-enable line-length table-column-style no-space-in-emphasis -->

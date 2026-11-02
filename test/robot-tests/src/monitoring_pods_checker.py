@@ -1,8 +1,13 @@
+import re
+import sys
 import time
 from os import environ
-import re
+from pathlib import Path
 
 from PlatformLibrary import PlatformLibrary
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'lib'))
+from CheckJsonObject import describe_incomplete_rollout  # noqa: E402
 
 namespace = environ.get('NAMESPACE')
 operator = environ.get('OPERATOR')
@@ -12,21 +17,31 @@ timeout = 300
 
 
 def check_deployments_are_ready(service, label):
-    deployments_count = k8s_lib.get_deployment_entities_count_for_service(namespace, service, label)
-    ready_deployments_count = k8s_lib.get_active_deployment_entities_count_for_service(namespace, service, label)
-    if deployments_count == ready_deployments_count and deployments_count != 0:
-        return 1
-    else:
+    """Return 1 when every Deployment labeled ``label=service`` has finished rolling out, else 0.
+
+    ``PlatformLibrary`` counts a Deployment as active as soon as it has no unavailable replicas, which
+    is true in the middle of a rolling update while the old pod is still terminating. Waiting for the
+    rollout to complete keeps the Robot pod checks from seeing that transient extra pod.
+    """
+    deployments = [deployment for deployment in k8s_lib.get_deployment_entities(namespace)
+                   if (deployment.spec.template.metadata.labels or {}).get(label, '') == service]
+    if not deployments:
+        print(f'No deployment with label {label}={service} found in {namespace}')
         return 0
+    for deployment in deployments:
+        reason = describe_incomplete_rollout(deployment)
+        if reason:
+            print(reason)
+            return 0
+    return 1
 
 
-def check_statefulsets_are_ready(service, label):
-    statefulsets_count = k8s_lib.get_stateful_set_replicas_count(service, namespace)
-    ready_statefulsets_count = k8s_lib.get_stateful_set_ready_replicas_count(service, namespace)
-    if statefulsets_count == ready_statefulsets_count and statefulsets_count != 0:
-        return 1
-    else:
+def check_statefulsets_are_ready(service):
+    reason = describe_incomplete_rollout(k8s_lib.get_stateful_set(service, namespace))
+    if reason:
+        print(reason)
         return 0
+    return 1
 
 
 def check_vmagent_targets():
@@ -86,7 +101,7 @@ if __name__ == '__main__':
                 if kind == 'deployment':
                     service_is_ready = check_deployments_are_ready(service, label)
                 elif kind == 'statefulset':
-                    service_is_ready = check_statefulsets_are_ready(service, label)
+                    service_is_ready = check_statefulsets_are_ready(service)
                 else:
                     service_is_ready = 0
                 enabled_services[service]['ready'] = service_is_ready
@@ -115,7 +130,10 @@ if __name__ == '__main__':
                 time.sleep(30)
                 print('Starting robot tests...')
                 exit(0)
-            print(f'VmAgent does not have required amount of targets yet, retrying in {vmagent_check_interval} seconds...')
+            print(
+                f'VmAgent does not have required amount of targets yet, '
+                f'retrying in {vmagent_check_interval} seconds...'
+            )
             time.sleep(vmagent_check_interval)
         print(f'VmAgent does not have required amount of targets after {timeout} seconds')
         exit(1)

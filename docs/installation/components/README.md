@@ -1,14 +1,17 @@
 # Component Configuration
 
-This section contains detailed configuration documentation for all monitoring components that can be deployed with the Qubership Monitoring Operator.
+This section contains detailed configuration documentation for all monitoring components that can be deployed
+with the Qubership Monitoring Operator.
 
 ## Component Categories
 
 ### Core Monitoring Stack
 
 * **[AlertManager](prometheus-stack/alertmanager.md)** - Alert routing, grouping, and notification management
-* **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform 
+* **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform
+* **[Grafana MCP](grafana-stack/mcp.md)** - MCP server for Grafana tools
 * **[VictoriaMetrics](victoriametrics-stack/victoriametrics.md)** - Time series database and storage
+* **[VictoriaMetrics MCP](victoriametrics-stack/mcp.md)** - MCP server for VictoriaMetrics tools
 
 ### Prometheus Stack
 
@@ -31,6 +34,7 @@ This section contains detailed configuration documentation for all monitoring co
 ### Cloud Exporters
 
 * **[CloudWatch Exporter](exporters/cloudwatch-exporter.md)** - AWS CloudWatch metrics
+* **[Yace Exporter](exporters/yace-exporter.md)** - AWS CloudWatch metrics through the `GetMetricData` API
 * **[Promitor Agent](exporters/promitor-agent-scraper.md)** - Azure Monitor metrics
 * **[Stackdriver Exporter](exporters/stackdriver-exporter.md)** - Google Cloud metrics
 
@@ -53,12 +57,15 @@ This section contains detailed configuration documentation for all monitoring co
 ## Common Configuration Patterns
 
 ### Authentication
-<!-- Most components support authentication configuration via the global `auth` section. See [Authentication](../monitoring-configuration/authentication.md) for details. -->
+<!-- Most components support authentication configuration via the global `auth` section.
+See [Authentication](../monitoring-configuration/authentication.md) for details. -->
 
 ### TLS Configuration
-<!-- Components can be configured with TLS certificates for secure communication. See [TLS Configuration](../monitoring-configuration/tls.md). -->
+<!-- Components can be configured with TLS certificates for secure communication.
+See [TLS Configuration](../monitoring-configuration/tls.md). -->
 
 ### Resource Management
+
 All components support resource requests and limits configuration:
 
 ```yaml
@@ -72,6 +79,7 @@ resources:
 ```
 
 ### Ingress Configuration
+
 Web-based components (Grafana, AlertManager, VictoriaMetrics) can be exposed via ingress:
 
 ```yaml
@@ -83,6 +91,7 @@ ingress:
 ```
 
 ### Security Context
+
 Components can run with specific security contexts:
 
 ```yaml
@@ -96,4 +105,4 @@ securityContext:
 
 1. Review component-specific configuration files above
 2. See [Examples](../../examples/) for complete configuration examples
-3. Check [Configuration Best Practices](../../user-guides/best-practices.md) 
+3. Check [Configuration Best Practices](../../user-guides/best-practices.md)

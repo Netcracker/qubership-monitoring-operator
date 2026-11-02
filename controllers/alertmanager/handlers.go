@@ -2,10 +2,12 @@ package alertmanager
 
 import (
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
+	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *AlertManagerReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -16,22 +18,7 @@ func (r *AlertManagerReconciler) handleServiceAccount(cr *monv1.PlatformMonitori
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *AlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) error {
@@ -42,49 +29,27 @@ func (r *AlertManagerReconciler) handleSecret(cr *monv1.PlatformMonitoring) erro
 	}
 
 	e := &corev1.Secret{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *AlertManagerReconciler) handleAlertmanager(cr *monv1.PlatformMonitoring) error {
-	m, err := alertmanager(cr)
+	isOpenShift, err := r.IsOpenShift()
+	if err != nil {
+		return err
+	}
+	m, err := alertmanager(cr, isOpenShift)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Alertmanager manifest")
 		return err
 	}
 
 	e := &promv1.Alertmanager{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, func(existing, desired *promv1.Alertmanager) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec, desired.Spec),
+		)
+	})
 }
 
 func (r *AlertManagerReconciler) handleService(cr *monv1.PlatformMonitoring) error {
@@ -95,24 +60,7 @@ func (r *AlertManagerReconciler) handleService(cr *monv1.PlatformMonitoring) err
 	}
 
 	e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.Ports = m.Spec.Ports
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncService)
 }
 
 func (r *AlertManagerReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -122,26 +70,7 @@ func (r *AlertManagerReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) e
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncIngress)
 }
 
 func (r *AlertManagerReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -152,26 +81,7 @@ func (r *AlertManagerReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) 
 	}
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncPodMonitor)
 }
 
 func (r *AlertManagerReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -214,19 +124,16 @@ func (r *AlertManagerReconciler) deleteSecret(cr *monv1.PlatformMonitoring) erro
 }
 
 func (r *AlertManagerReconciler) deleteAlertmanager(cr *monv1.PlatformMonitoring) error {
-	m, err := alertmanager(cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Alertmanager manifest")
-		return err
-	}
-	e := &promv1.Alertmanager{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &promv1.Alertmanager{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
 	return nil

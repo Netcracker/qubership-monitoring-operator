@@ -7,7 +7,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 A comprehensive Kubernetes operator that simplifies the deployment and management of production-ready monitoring stacks.
-Built to handle complex monitoring environments with minimal operational overhead while providing maximum flexibility and scalability.
+Built to handle complex monitoring environments with minimal operational overhead while providing maximum
+flexibility and scalability.
 
 ## What is Qubership Monitoring Operator?
 
@@ -48,6 +49,8 @@ interface for comprehensive observability.
 
 - **Graphite**: graphite-remote-adapter for Graphite integration
 - **Load Balancing**: promxy for high availability and federation
+- **Model Context Protocol**: optional Grafana and VictoriaMetrics MCP servers for querying and troubleshooting the
+  monitoring stack from MCP-compatible AI agents
 
 ## Architecture
 
@@ -112,6 +115,11 @@ graph TB
 
 ### 1. Install or upgrade required CRDs
 
+Before upgrading from Prometheus Operator 0.93 to 0.94, check existing `ScrapeConfig` resources and update values that
+the new CRD rejects. Follow the
+[ScrapeConfig migration steps](docs/user-guides/manual-create-crds.md#prometheus-operator-094-scrapeconfig-upgrade)
+before applying the CRDs.
+
 **Install from source:**
 
 ```bash
@@ -123,8 +131,8 @@ cd qubership-monitoring-operator
 # Run this before installing or upgrading the operator. Server-side apply creates new CRDs, updates existing CRDs, and
 # avoids the last-applied-configuration annotation size limit.
 kubectl apply --server-side --force-conflicts -f charts/qubership-monitoring-crds/crds/
-
 ```
+
 Ordinary `helm upgrade` does not upgrade CRDs. Alternatively, an Argo CD Application pointed to the CRD Helm chart
 can apply the complete CRD set. Before transferring existing Helm-managed CRDs to Argo CD, run the one-time
 `kubectl apply --server-side --force-conflicts` command above so Argo CD does not encounter field-ownership conflicts.
@@ -158,6 +166,10 @@ ignoreDifferences:
 With `ServerSideApply=true`, Argo CD applies CRDs in the same manner as the `kubectl apply --server-side` command
 above. When the operator chart is deployed as a separate Application, set `source.helm.skipCrds: true` so that the CRD
 and operator Applications do not compete for CRD ownership.
+
+The Grafana Operator v4-to-v5 upgrade does not preserve every existing configuration behavior. Before upgrading,
+review the [Grafana v5 upgrade limitations](docs/user-guides/grafana-v5-upgrade.md) and confirm that the existing
+`PlatformMonitoring` configuration uses the supported profile.
 
 When upgrading from a release that contains Grafana Operator v4 CRDs, including `v0.88.0`, stage the first v5 upgrade
 without pruning:
@@ -211,6 +223,9 @@ helm install monitoring-operator charts/qubership-monitoring-operator \
 With `global.privilegedRights=false`, the managed Grafana and VictoriaMetrics operators use namespace-scoped watches
 and `Role` resources. The chart does not create operator-managed `ClusterRole` or `ClusterRoleBinding` resources for
 those operators.
+The chart also skips the `etcd-certs-to-secret` job, which needs cluster-wide access to read the etcd certificates.
+To collect etcd metrics in this mode, create the `kube-etcd-client-certs` secret in the monitoring namespace yourself;
+see [etcd metrics](docs/metrics-collection/metrics/etcd-metrics.md).
 
 **What gets installed automatically:**
 
@@ -234,6 +249,7 @@ those operators.
 - All optional exporters (blackbox, cert, JSON, etc.)
 - Prometheus Adapter for HPA
 - Integrations (Graphite, Promxy)
+- Grafana and VictoriaMetrics MCP servers
 
 ### 3. Verify Installation
 
@@ -264,29 +280,48 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:3000
 
 ### Quick Guides
 
-- **[Installation Guide](https://netcracker.github.io/qubership-monitoring-operator/installation/)** - Detailed installation instructions
-- **[Configuration Guide](https://netcracker.github.io/qubership-monitoring-operator/configuration/)** - Complete configuration options
+- **[Installation Guide][installation-guide]** - Detailed installation instructions
+- **[Configuration Guide][configuration-guide]** - Complete configuration options
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+
+### MCP Integration
+
+- **[Monitoring with MCP](docs/mcp/mcp-monitoring.md)** - Recommendations, architecture, security, and usage examples
+- **[Grafana MCP](docs/mcp/mcp-grafana.md)** - Installation and configuration of `mcp-grafana`
+- **[VictoriaMetrics MCP](docs/mcp/mcp-victoriametrics.md)** - Installation and configuration of `mcp-victoriametrics`
+- **[Grafana MCP Helm Parameters](docs/installation/components/grafana-stack/mcp.md)** - Helm values reference
+- **[VictoriaMetrics MCP Helm Parameters](docs/installation/components/victoriametrics-stack/mcp.md)** - Helm values reference
 
 ### API Reference
 
-- **[PlatformMonitoring](https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/)** - Main custom resource reference
-- **[PrometheusAdapter](https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/)** - HPA metrics adapter configuration
+- **[PlatformMonitoring][platformmonitoring-api]** - Main custom resource reference
+- **[PrometheusAdapter][prometheusadapter-api]** - HPA metrics adapter configuration
 
 ### Default Monitoring
 
-- **[Metrics](https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/)** - Out-of-the-box metrics collection
-- **[Alerts](https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/)** - Pre-configured alerting rules
-- **[Dashboards](https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/)** - Built-in Grafana dashboards
+- **[Metrics][default-metrics]** - Out-of-the-box metrics collection
+- **[Alerts][default-alerts]** - Pre-configured alerting rules
+- **[Dashboards][default-dashboards]** - Built-in Grafana dashboards
 
 ### Examples
 
-- **[Service Monitoring](https://netcracker.github.io/qubership-monitoring-operator/examples/)** - Monitor your applications
-- **[Cloud Watch Integration](https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/)** - Cloud provider integrations
+- **[Service Monitoring][service-monitoring-examples]** - Monitor your applications
+- **[Cloud Watch Integration][cloudwatch-exporter-example]** - Cloud provider integrations
 
 ### Architecture Overview
 
-- **[Architecture Overview](https://netcracker.github.io/qubership-monitoring-operator/architecture/)** - Detailed system architecture
+- **[Architecture Overview][architecture-overview]** - Detailed system architecture
+
+[architecture-overview]: https://netcracker.github.io/qubership-monitoring-operator/architecture/
+[cloudwatch-exporter-example]: https://netcracker.github.io/qubership-monitoring-operator/examples/components/cloudwatch-exporter-config/
+[configuration-guide]: https://netcracker.github.io/qubership-monitoring-operator/configuration/
+[default-alerts]: https://netcracker.github.io/qubership-monitoring-operator/defaults/alerts/
+[default-dashboards]: https://netcracker.github.io/qubership-monitoring-operator/defaults/dashboards/overall-platform-health/
+[default-metrics]: https://netcracker.github.io/qubership-monitoring-operator/defaults/metrics/
+[installation-guide]: https://netcracker.github.io/qubership-monitoring-operator/installation/
+[platformmonitoring-api]: https://netcracker.github.io/qubership-monitoring-operator/api/platform-monitoring/
+[prometheusadapter-api]: https://netcracker.github.io/qubership-monitoring-operator/api/prometheus-adapter/
+[service-monitoring-examples]: https://netcracker.github.io/qubership-monitoring-operator/examples/
 
 ## Contributing
 

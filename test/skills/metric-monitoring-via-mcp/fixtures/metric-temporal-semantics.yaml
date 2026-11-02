@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitoring-skill-eval-metric-temporal
+  namespace: monitoring
+  labels:
+    skill-eval: metric-temporal-semantics
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-8
+spec:
+  groups:
+    - name: monitoring-skill-metric-temporal-eval
+      interval: 10s
+      rules:
+        - record: skill_eval_sawtooth_counter_total
+          expr: vector(time() % 60)
+          labels:
+            skill_eval: "true"
+            scenario: periodic-reset
+        - record: skill_eval_intermittent_counter_total
+          expr: vector(time() % 60) and (vector(time() % 30) >= 10)
+          labels:
+            skill_eval: "true"
+            scenario: periodic-gap

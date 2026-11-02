@@ -1,0 +1,48 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaAlertRuleGroup
+metadata:
+  name: monitoring-skill-eval-grafana-alert
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: monitoring
+    skill-eval: grafana-managed-alert
+  annotations:
+    skill-eval.qubership.org/purpose: work-with-monitoring-eval-13
+spec:
+  folderUID: general
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring
+  interval: 30s
+  name: monitoring-skill-grafana-alert-eval
+  rules:
+    - uid: skill-eval-grafana-alert
+      title: SkillEvalGrafanaManagedAlert
+      condition: A
+      data:
+        - refId: A
+          datasourceUid: __expr__
+          relativeTimeRange:
+            from: 0
+            to: 0
+          model:
+            datasource:
+              type: __expr__
+              uid: __expr__
+            expression: "1"
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: A
+            type: math
+      execErrState: Error
+      for: 30s
+      noDataState: NoData
+      isPaused: false
+      labels:
+        severity: warning
+        skill_eval: "true"
+        evaluator: grafana
+      annotations:
+        summary: Synthetic Grafana-managed alert
+        description: A Grafana expression deliberately evaluates to one.

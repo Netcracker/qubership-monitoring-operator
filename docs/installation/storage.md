@@ -1,13 +1,16 @@
 # Storage Configuration
 
-To maintain data across deployments and version upgrades, the data must be persisted to some volume other than `emptyDir`, allowing it to be reused by Pods after an upgrade.
+To maintain data across deployments and version upgrades, the data must be persisted to some volume
+other than `emptyDir`, allowing it to be reused by Pods after an upgrade.
 
 !!! note "Version Requirement"
     Ability to specify storage was added since version `0.4.0`
 
 ## Overview
 
-Kubernetes supports several kinds of storage volumes. The Monitoring Operator uses Prometheus/VictoriaMetrics Operator to control the Prometheus/VictoriaMetrics deployment. The Prometheus/VictoriaMetrics Operator works with `PersistentVolumeClaims`, which supports the underlying `PersistentVolume` to be provisioned when requested.
+Kubernetes supports several kinds of storage volumes. The Monitoring Operator uses Prometheus/VictoriaMetrics Operator
+to control the Prometheus/VictoriaMetrics deployment. The Prometheus/VictoriaMetrics Operator works
+with `PersistentVolumeClaims`, which supports the underlying `PersistentVolume` to be provisioned when requested.
 
 This document assumes a basic understanding of `PersistentVolumes`, `PersistentVolumeClaims`, and their provisioning.
 
@@ -15,7 +18,8 @@ This document assumes a basic understanding of `PersistentVolumes`, `PersistentV
 
 ### Dynamic Provisioning (Recommended)
 
-Automatic provisioning of storage requires an already existing `StorageClass`. For best results, use volumes that have high I/O throughput.
+Automatic provisioning of storage requires an already existing `StorageClass`.
+For best results, use volumes that have high I/O throughput.
 
 #### Prometheus Storage
 
@@ -52,7 +56,9 @@ victoriametrics:
 
 ### Manual Storage Provisioning
 
-The monitoring deploy parameters allow you to support arbitrary storage through a PersistentVolumeClaim. The easiest way to use a volume that cannot be automatically provisioned is to use a label selector alongside a manually created PersistentVolume.
+The monitoring deploy parameters allow you to support arbitrary storage through a PersistentVolumeClaim.
+The easiest way to use a volume that cannot be automatically provisioned is to use a label selector
+alongside a manually created PersistentVolume.
 
 #### Prometheus Manual Storage
 
@@ -123,6 +129,7 @@ When using `hostPath` with non-default users (specified with `securityContext`),
 - mkdir /prometheus/wal: permission denied ([Issue #12176](https://github.com/helm/charts/issues/12176))
 
 **Root Cause**: The Prometheus Docker image:
+
 1. Creates a directory for Prometheus data under `root`
 2. Changes ownership to user `nobody` (uid:gid = 65534:65534)
 3. Runs under user `nobody`
@@ -141,9 +148,11 @@ chown -R 2001:2001 /mnt/data/prometheus
 
 ### Disabling Default StorageClasses
 
-To manually provision volumes (Kubernetes 1.6.0+), you may need to disable the default StorageClass that is automatically created for certain Cloud Providers.
+To manually provision volumes (Kubernetes 1.6.0+), you may need to disable the default StorageClass
+that is automatically created for certain Cloud Providers.
 
-The default StorageClass behavior overrides manual storage provisioning, preventing PersistentVolumeClaims from automatically binding to manually created PersistentVolumes.
+The default StorageClass behavior overrides manual storage provisioning, preventing PersistentVolumeClaims
+from automatically binding to manually created PersistentVolumes.
 
 **Example**: Disable default StorageClass on minikube:
 
@@ -172,14 +181,17 @@ provisioner: k8s.io/minikube-hostpath
 ### Cloud-Specific Recommendations
 
 #### AWS
+
 - **Prometheus**: Use gp3/io1 EBS volumes
 - **VictoriaMetrics**: gp2/gp3 for cost-effective storage
 
 #### Azure
+
 - **Prometheus**: Premium SSD for production workloads
 - **VictoriaMetrics**: Standard SSD for balanced performance
 
 #### GCP
+
 - **Prometheus**: SSD persistent disks
 - **VictoriaMetrics**: Standard persistent disks acceptable
 
@@ -193,6 +205,64 @@ grafana:
     accessModes:
       - ReadWriteOnce
 ```
+
+### Common PVC Annotations
+
+Use `pvc.metadata.annotations` to add the same annotations, such as `argocd.argoproj.io/sync-options: Prune=false`,
+to the PVCs of the components listed below. For example:
+
+```yaml
+pvc:
+  metadata:
+    annotations:
+      argocd.argoproj.io/sync-options: Prune=false
+```
+
+The chart merges these annotations into the PVC metadata of the following components:
+
+| Component      | Component-specific parameter                                                      |
+| -------------- | --------------------------------------------------------------------------------- |
+| Prometheus     | `prometheus.storage.volumeClaimTemplate.metadata.annotations`                     |
+| VMSingle       | `victoriametrics.vmSingle.storageMetadata.annotations`                            |
+| VMAlertManager | `victoriametrics.vmAlertManager.storage.volumeClaimTemplate.metadata.annotations` |
+| Grafana        | `grafana.dataStorage.annotations`                                                 |
+
+Rules:
+
+- A component-specific annotation overrides a common annotation with the same key.
+- The chart adds annotations only to components with persistent storage configured: `storage.volumeClaimTemplate` for
+  Prometheus and VMAlertManager, `storage` for VMSingle, and `dataStorage` for Grafana. The parameter never enables
+  storage on its own.
+- Pushgateway and VMCluster do not use this parameter.
+- Annotation values must be strings. Quote values such as `"true"` in YAML, and use `--set-string` on the command line:
+
+  ```bash
+  helm upgrade ... --set-string 'pvc.metadata.annotations.argocd\.argoproj\.io/sync-options=Prune=false'
+  ```
+
+Limitations:
+
+- Operators create these PVCs, not Helm. VMSingle and Grafana PVCs have an owner chain that leads to the
+  PlatformMonitoring resource. Prometheus and VMAlertManager PVCs come from StatefulSet `volumeClaimTemplates` and
+  carry labels with the custom resource name, not the Argo CD Application name. Argo CD therefore does not prune
+  these PVCs with either `annotation` or `label` resource tracking. The annotations keep PVC metadata consistent and
+  serve external tools that read them.
+- Prometheus creates PVCs from StatefulSet `volumeClaimTemplates`. Kubernetes does not update an existing PVC when the
+  template changes, so an upgrade does not annotate Prometheus PVCs that already exist. Changing the template also
+  makes the operator recreate the Prometheus StatefulSet, which restarts Prometheus. Prometheus PVCs are named
+  `prometheus-k8s-db-prometheus-k8s-<N>`, one per replica. List them with `kubectl get pvc -n <namespace>` and
+  annotate each one manually:
+
+  ```bash
+  kubectl annotate pvc --overwrite -n <namespace> prometheus-k8s-db-prometheus-k8s-0 \
+    argocd.argoproj.io/sync-options=Prune=false
+  ```
+
+- VMAlertManager PVCs keep annotation keys that you remove from the parameter. Remove them with
+  `kubectl annotate pvc -n <namespace> <pvc-name> <key>-`.
+- The annotations do not stop the operator from deleting the Prometheus PVC when you set `prometheus.install: false`
+  or remove Prometheus storage. They also do not stop Kubernetes garbage collection from deleting PVCs whose owner
+  chain leads to the PlatformMonitoring resource (VMSingle, Grafana) when that resource is deleted.
 
 ## Storage Examples
 
@@ -264,4 +334,5 @@ victoriametrics:
 
 - **[Prerequisites](prerequisites.md)** - Hardware and storage requirements
 - **[Basic Components](basic-components.md)** - Component resource requirements
-- **[VictoriaMetrics Configuration](components/victoriametrics-stack/victoriametrics.md)** - VictoriaMetrics-specific storage options
+- **[VictoriaMetrics Configuration](components/victoriametrics-stack/victoriametrics.md)** - VictoriaMetrics-specific
+  storage options

@@ -3,6 +3,7 @@ package v1
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,8 +17,8 @@ import (
 var (
 	// Root folder of the project
 	_, b, _, _                               = runtime.Caller(0)
-	RootDir                                  = filepath.Join(filepath.Dir(b), "../../..")
-	PlatformMonitoringCustomResourceManifest = filepath.Join(RootDir, "qubership-monitoring-operator",
+	RootDir                                  = filepath.Join(filepath.Dir(b), "../..")
+	PlatformMonitoringCustomResourceManifest = filepath.Join(RootDir,
 		"charts", "qubership-monitoring-operator", "crds", "monitoring.netcracker.com_platformmonitorings.yaml")
 )
 
@@ -32,6 +33,15 @@ func TestPlatformMonitoringCRDManifest(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.NotNil(t, cr, "Custom resource manifest should not be empty")
+}
+
+func TestPlatformMonitoringStatusObservedGenerationJSON(t *testing.T) {
+	status := PlatformMonitoringStatus{ObservedGeneration: 7}
+
+	data, err := json.Marshal(status)
+
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{"conditions":null,"observedGeneration":7}`, string(data))
 }
 
 func TestPlatformMonitoringAlertmanagerConfigCompatibility(t *testing.T) {

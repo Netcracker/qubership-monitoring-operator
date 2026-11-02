@@ -1,6 +1,8 @@
 package vmsingle
 
 import (
+	"context"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
 	vmetricsv1b1 "github.com/VictoriaMetrics/operator/api/operator/v1beta1"
@@ -9,6 +11,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (r *VmSingleReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -19,23 +22,7 @@ func (r *VmSingleReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) 
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 func (r *VmSingleReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
 	m, err := vmSingleClusterRole(cr, r.hasPodSecurityPolicyAPI(), r.hasSecurityContextConstraintsAPI())
@@ -45,25 +32,7 @@ func (r *VmSingleReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) err
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *VmSingleReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -74,23 +43,7 @@ func (r *VmSingleReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitori
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *VmSingleReconciler) handleVmSingle(cr *monv1.PlatformMonitoring) error {
@@ -100,33 +53,16 @@ func (r *VmSingleReconciler) handleVmSingle(cr *monv1.PlatformMonitoring) error 
 		return err
 	}
 	e := &vmetricsv1b1.VMSingle{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &vmetricsv1b1.VMSingle{ObjectMeta: metav1.ObjectMeta{
-				Name:      utils.VmSingleComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &vmetricsv1b1.VMSingle{ObjectMeta: metav1.ObjectMeta{
+		Name:      utils.VmSingleComponentName,
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, func(existing, desired *vmetricsv1b1.VMSingle) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec, desired.Spec),
+		)
+	})
 }
 
 func (r *VmSingleReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -136,35 +72,11 @@ func (r *VmSingleReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			e = &networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{
-				Name:      cr.GetNamespace() + "-" + utils.VmSingleComponentName,
-				Namespace: cr.GetNamespace(),
-			}}
-			if err = r.GetResource(e); err == nil {
-				if err = r.DeleteResource(e); err != nil {
-					return err
-				}
-			}
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	legacy := &networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{
+		Name:      cr.GetNamespace() + "-" + utils.VmSingleComponentName,
+		Namespace: cr.GetNamespace(),
+	}}
+	return utils.CreateOrUpdateReplacingLegacy(r.ComponentReconciler, cr, m, e, legacy, utils.SyncIngress)
 }
 
 func (r *VmSingleReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -225,21 +137,23 @@ func (r *VmSingleReconciler) deleteClusterRoleBinding(cr *monv1.PlatformMonitori
 }
 
 func (r *VmSingleReconciler) deleteVmSingle(cr *monv1.PlatformMonitoring) error {
-	m, err := vmSingle(r, cr)
-	if err != nil {
-		r.Log.Error(err, "Failed creating vmSingle manifest")
-		return err
-	}
-	e := &vmetricsv1b1.VMSingle{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
+	// Deletion targets are addressed by their stable name and namespace so that uninstall does not
+	// depend on platform discovery or on validation of the desired state.
+	e := &vmetricsv1b1.VMSingle{ObjectMeta: metav1.ObjectMeta{Name: utils.ManagedCustomResourceName, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	if err = r.DeleteResource(e); err != nil {
+	if err := r.Client.Delete(
+		context.TODO(),
+		e,
+		client.PropagationPolicy(metav1.DeletePropagationOrphan),
+	); err != nil {
 		return err
 	}
+	r.Log.Info("Successful deleting", utils.ResourceKey, e.GetObjectKind().GroupVersionKind().Kind)
 	return nil
 }
 

@@ -10,18 +10,35 @@ priority: 0
 users: []
 groups: []
 readOnlyRootFilesystem: true
-requiredDropCapabilities: []
+allowPrivilegeEscalation: false
+defaultAllowPrivilegeEscalation: false
+requiredDropCapabilities:
+- ALL
 defaultAddCapabilities: []
 allowedCapabilities: []
+# Explicitly configured non-root IDs must stay admissible, so the UID and group strategies do not
+# bind to the namespace range. Pods without configured IDs are admitted by the more restrictive
+# restricted-v2 SCC first, which assigns IDs from the namespace range.
 runAsUser:
-  type: RunAsAny
+  type: MustRunAsNonRoot
 seLinuxContext:
+  type: MustRunAs
+fsGroup:
   type: RunAsAny
+supplementalGroups:
+  type: RunAsAny
+seccompProfiles:
+- runtime/default
 allowPrivilegedContainer: false
-allowHostDirVolumePlugin: true
+allowHostDirVolumePlugin: false
 allowHostNetwork: false
 allowHostPID: false
 allowHostPorts: false
 allowHostIPC: false
 volumes:
-- '*'
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
