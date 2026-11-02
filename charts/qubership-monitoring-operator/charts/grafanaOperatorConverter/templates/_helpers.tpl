@@ -7,9 +7,13 @@ Expand the name of the chart.
 
 {{/*
 Build the normalized namespace list used by both RBAC and the controller.
+global.namespaceScope wins over watchNamespaces, as it does for the Grafana operator, so a namespaced guest
+release never watches namespaces that belong to the host release.
 */}}
 {{- define "grafana-operator-converter.watchNamespaces" -}}
-{{- if .Values.watchNamespaces -}}
+{{- if .Values.global.namespaceScope -}}
+{{- include "grafana-operator-converter.namespace" . -}}
+{{- else if .Values.watchNamespaces -}}
 {{- $namespaces := list -}}
 {{- range splitList "," .Values.watchNamespaces -}}
 {{- $namespace := trim . -}}

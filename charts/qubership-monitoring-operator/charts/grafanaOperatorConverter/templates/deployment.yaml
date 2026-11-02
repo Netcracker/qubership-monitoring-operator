@@ -18,15 +18,20 @@ metadata:
     {{- end }}
 spec:
   replicas: 1
+  # Recreate stops the old pod first, so two converters never write the same dashboards during a rollout.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "grafana-operator-converter.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        # Restart the converter when its Helm-managed parameters change.
+        checksum/config: {{ toYaml .Values.grafana.converter | sha256sum }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "grafana-operator-converter.selectorLabels" . | nindent 8 }}
         {{- with .Values.additionalLabels }}

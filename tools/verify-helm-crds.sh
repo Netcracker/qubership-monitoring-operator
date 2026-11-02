@@ -864,11 +864,21 @@ if "${yq_binary}" eval -r '.rules[].verbs[]' "${converter_rbac_manifest}" | grep
     echo "The Grafana converter ClusterRole contains a wildcard verb." >&2
     exit 1
 fi
+if "${yq_binary}" eval -e '[.rules[].resources[] | select(. == "configmaps")] | length > 0' \
+    "${converter_rbac_manifest}" >/dev/null 2>&1; then
+    echo "The default Grafana converter RBAC grants ConfigMap access without resolveGzipConfigMapRef." >&2
+    exit 1
+fi
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.grafana.converter.resolveGzipConfigMapRef=true \
+    | "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
+    >"${converter_rbac_manifest}"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
 if ! "${yq_binary}" eval-all -e \
     "select(.kind == \"Deployment\" and ${converter_selector}) |
     .spec.template.spec.containers[] |
     select(.name == \"qubership-grafana-operator-converter\") |
-    .image == \"ghcr.io/netcracker/qubership-grafana-operator-converter:main@sha256:02f2f3cb32a5db2aaaebdfb9d29a4a7d972c8c2e3a3064697279b1cf52e33eec\"" \
+    .image == \"ghcr.io/netcracker/qubership-grafana-operator-converter:main@sha256:b36881b193ea33906d35d9eccd3a61fe2f7c1788d255da5727361a1e2c0e3ade\"" \
     "${converter_manifest}" >/dev/null; then
     echo "The default Grafana converter deployment does not use the pinned image." >&2
     exit 1
@@ -1035,6 +1045,29 @@ verify_openshift_monitoring_exclusion() {
     done
 }
 
+# verify_converter_watch_scope checks that the Grafana converter watches exactly one namespace and
+# that its RBAC is a namespaced Role in that namespace, never a ClusterRole.
+verify_converter_watch_scope() {
+    local manifest="$1"
+    local namespace="$2"
+    local side="$3"
+    local selector='.metadata.labels."app.kubernetes.io/name" == "qubership-grafana-operator-converter"'
+
+    if ! "${yq_binary}" eval-all -e \
+        "select(.kind == \"Deployment\" and ${selector}) |
+        [.spec.template.spec.containers[0].env[] | select(.name == \"WATCH_NAMESPACE\") | .value] |
+        (length == 1 and .[0] == \"${namespace}\")" \
+        "${manifest}" >/dev/null; then
+        echo "${side} Grafana converter WATCH_NAMESPACE is not ${namespace}." >&2
+        exit 1
+    fi
+    verify_rendered_resource_count "${manifest}" \
+        ".kind == \"ClusterRole\" and ${selector}" 0 "${side} Grafana converter ClusterRoles"
+    verify_rendered_resource_count "${manifest}" \
+        ".kind == \"Role\" and .metadata.namespace == \"${namespace}\" and ${selector}" 1 \
+        "${side} Grafana converter Roles in ${namespace}"
+}
+
 verify_namespaced_guest_watch_scope() {
     local host_manifest="${temporary_dir}/namespaced-host.yaml"
     local guest_manifest="${temporary_dir}/namespaced-guest.yaml"
@@ -1073,6 +1106,7 @@ verify_namespaced_guest_watch_scope() {
         echo "Host Grafana Operator watchNamespaces is not ${host_watch}." >&2
         exit 1
     fi
+    verify_converter_watch_scope "${host_manifest}" "${host_watch}" "Host"
 
     if ! "${yq_binary}" eval-all -e \
         'select(.kind == "PlatformMonitoring") |
@@ -1128,6 +1162,7 @@ verify_namespaced_guest_watch_scope() {
         echo "Guest Grafana Operator is not limited to its release namespace." >&2
         exit 1
     fi
+    verify_converter_watch_scope "${guest_manifest}" "monitoring-test" "Guest"
 }
 
 verify_namespaced_guest_watch_scope

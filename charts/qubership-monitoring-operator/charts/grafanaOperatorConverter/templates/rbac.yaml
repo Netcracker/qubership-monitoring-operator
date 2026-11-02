@@ -20,6 +20,16 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
+  {{- if and $.Values.grafana.converter.dashboard $.Values.grafana.converter.resolveGzipConfigMapRef }}
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  {{- end }}
   {{- if $.Values.grafana.converter.dashboard }}
   - apiGroups:
       - integreatly.org

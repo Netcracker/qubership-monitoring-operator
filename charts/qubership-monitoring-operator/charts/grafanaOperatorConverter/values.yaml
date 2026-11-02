@@ -1,6 +1,8 @@
 # Parent chart security mode. The monitoring chart overrides this global value.
 global:
   privilegedRights: true
+  # Namespaced guest mode. When true, the converter watches only its release namespace.
+  namespaceScope: false
 
 # -- Use the operator namespace for watches and RBAC when `watchNamespaces` is empty.
 namespaceScope: false
@@ -32,7 +34,7 @@ image:
   # -- The image pull policy to use in grafana operator container
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion.
-  tag: "main@sha256:02f2f3cb32a5db2aaaebdfb9d29a4a7d972c8c2e3a3064697279b1cf52e33eec"
+  tag: "main@sha256:b36881b193ea33906d35d9eccd3a61fe2f7c1788d255da5727361a1e2c0e3ade"
 
 # -- image pull secrets
 imagePullSecrets: []
@@ -124,10 +126,22 @@ grafana:
     dashboard: true
     # -- Legacy dashboards to convert, as a list of Kubernetes label selectors. Unset converts every legacy dashboard.
     # A dashboard matches when any one selector matches.
+    # While Grafana is installed, Monitoring Operator replaces this value with grafana.dashboardLabelSelector from
+    # PlatformMonitoring. Set the selector there instead.
     dashboardLabelSelector:
     # -- Namespace label selector for legacy dashboards. Unset does not filter by namespace labels. An empty selector
-    # matches every namespace.
+    # matches every namespace. Applies only to a cluster-wide watch.
+    # While Grafana is installed, Monitoring Operator replaces this value with grafana.dashboardNamespaceSelector from
+    # PlatformMonitoring. Set the selector there instead.
     dashboardNamespaceSelector:
+    # -- Delete a converted dashboard when its legacy source is deleted, through a Kubernetes owner reference.
+    # The default keeps the converted dashboard.
+    deleteTargetOnSourceDeletion: false
+    # -- Convert legacy dashboards whose content is in a ConfigMap referenced by spec.gzipConfigMapRef.
+    # Grants the converter get, list, and watch on ConfigMaps in every watched namespace.
+    resolveGzipConfigMapRef: false
+    # -- Maximum decompressed size of dashboard content read through gzipConfigMapRef.
+    gzipConfigMapMaxDecompressedSize: 32Mi
     # The monitoring CRD bundle retains only the legacy GrafanaDashboard CRD. Enable the other converters only when
     # their corresponding integreatly.org CRDs are installed separately.
     datasource: false
