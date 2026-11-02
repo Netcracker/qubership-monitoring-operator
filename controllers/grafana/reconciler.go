@@ -1,6 +1,8 @@
 package grafana
 
 import (
+	"time"
+
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/gateway"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -16,6 +18,8 @@ type GrafanaReconciler struct {
 	config     *rest.Config
 	// newExecutor overrides remotecommand.NewSPDYExecutor in tests.
 	newExecutor executorFactory
+	// execTimeout overrides defaultExecTimeout in tests.
+	execTimeout time.Duration
 	*utils.ComponentReconciler
 }
 

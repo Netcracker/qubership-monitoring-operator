@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
@@ -35,6 +36,10 @@ const (
 	adminPasswordSyncedAnnotation = "monitoring.netcracker.com/grafana-admin-password-checksum"
 
 	grafanaContainerName = "grafana"
+
+	// defaultExecTimeout bounds a password-reset exec, so a stalled stream cannot block the
+	// reconcile worker. The checksum is not recorded on timeout, so the reset is retried.
+	defaultExecTimeout = 2 * time.Minute
 )
 
 // ErrAdminPasswordSyncPending is returned when the admin password must be reset but no Grafana pod
@@ -209,12 +214,21 @@ func (r *GrafanaReconciler) execInPod(namespace, pod, container string, command 
 	if err != nil {
 		return "", "", fmt.Errorf("cannot create exec client for pod %s: %w", pod, err)
 	}
+	timeout := r.execTimeout
+	if timeout <= 0 {
+		timeout = defaultExecTimeout
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	var stdout, stderr bytes.Buffer
-	err = executor.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
+	err = executor.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdin:  strings.NewReader(stdin),
 		Stdout: &stdout,
 		Stderr: &stderr,
 	})
+	if err != nil && goerrors.Is(ctx.Err(), context.DeadlineExceeded) {
+		err = fmt.Errorf("exec in pod %s timed out after %s: %w", pod, timeout, ctx.Err())
+	}
 	return stdout.String(), stderr.String(), err
 }
 

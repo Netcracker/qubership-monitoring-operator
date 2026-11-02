@@ -389,6 +389,11 @@ func (r *GrafanaReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error
 
 // getGrafanaAdminSecretName returns the name of the admin credentials secret for Grafana.
 // The secret name pattern is: {grafana-name}-admin-credentials
+// AdminSecretName returns the name of the Secret that holds the Grafana admin credentials of cr.
+func AdminSecretName(cr *monv1.PlatformMonitoring) string {
+	return getGrafanaAdminSecretName(cr)
+}
+
 func getGrafanaAdminSecretName(cr *monv1.PlatformMonitoring) string {
 	grafanaName := utils.GrafanaComponentName // default name from asset
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.Name != "" {

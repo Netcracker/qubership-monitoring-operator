@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -77,6 +78,7 @@ const (
 	prometheusDeprecationMessage = "Managed Prometheus is deprecated and will be removed in the next release. " +
 		"Migrate to VictoriaMetrics."
 	grafanaPendingRequeueAfter = 10 * time.Second
+	grafanaAdminSecretSuffix   = "-admin-credentials"
 )
 
 // +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings,verbs=get;list;watch;create;update;patch;delete
@@ -365,8 +367,11 @@ func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(platformMonitoringPredicate())).
 		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
 			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap))).
-		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
-			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret)))
+		// The admin credentials Secret is created by Helm without an owner reference, so Owns does
+		// not see it. Watching it lets a password change reach the Grafana database without
+		// waiting for the periodic repair, which can be disabled.
+		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForGrafanaSecret),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaSecretCandidate)))
 	if watchBasedReconcileEnabled() {
 		var err error
 		if b, err = r.addWatchBasedSources(b); err != nil {
@@ -384,9 +389,36 @@ func isGrafanaExtraVarsSecret(object client.Object) bool {
 	return object.GetName() == "grafana-extra-vars-secret"
 }
 
+// isGrafanaSecretCandidate keeps the extra-vars Secret and every Secret named like a Grafana admin
+// credentials Secret; requestsForGrafanaSecret then matches the exact name per PlatformMonitoring.
+func isGrafanaSecretCandidate(object client.Object) bool {
+	return isGrafanaExtraVarsSecret(object) || strings.HasSuffix(object.GetName(), grafanaAdminSecretSuffix)
+}
+
+// requestsForGrafanaSecret enqueues the PlatformMonitoring resources that use the Secret as their
+// Grafana extra-vars Secret or as their Grafana admin credentials Secret.
+func (r *PlatformMonitoringReconciler) requestsForGrafanaSecret(
+	ctx context.Context,
+	object client.Object,
+) []reconcile.Request {
+	return r.requestsForGrafanaNamespace(ctx, object, func(platformMonitoring *qubershiporgv1.PlatformMonitoring) bool {
+		return isGrafanaExtraVarsSecret(object) || object.GetName() == grafana.AdminSecretName(platformMonitoring)
+	})
+}
+
 func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
 	ctx context.Context,
 	object client.Object,
+) []reconcile.Request {
+	return r.requestsForGrafanaNamespace(ctx, object, nil)
+}
+
+// requestsForGrafanaNamespace enqueues the PlatformMonitoring resources whose Grafana runs in the
+// namespace of object and, when matches is set, for which matches returns true.
+func (r *PlatformMonitoringReconciler) requestsForGrafanaNamespace(
+	ctx context.Context,
+	object client.Object,
+	matches func(*qubershiporgv1.PlatformMonitoring) bool,
 ) []reconcile.Request {
 	platformMonitorings := &qubershiporgv1.PlatformMonitoringList{}
 	if err := r.List(ctx, platformMonitorings); err != nil {
@@ -401,7 +433,7 @@ func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
 		if platformMonitoring.Spec.Grafana != nil && platformMonitoring.Spec.Grafana.Namespace != "" {
 			grafanaNamespace = platformMonitoring.Spec.Grafana.Namespace
 		}
-		if grafanaNamespace == object.GetNamespace() {
+		if grafanaNamespace == object.GetNamespace() && (matches == nil || matches(platformMonitoring)) {
 			requests = append(requests, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(platformMonitoring)})
 		}
 	}
