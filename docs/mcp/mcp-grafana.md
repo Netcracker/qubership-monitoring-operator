@@ -596,28 +596,65 @@ For `uvx` usage:
 }
 ```
 
-For a separately running HTTP MCP server, configure `url` in
-`claude_desktop_config.json` instead of `command`. For Helm installation, use
-the external HTTPRoute or Ingress URL:
+Claude Desktop starts only `stdio` servers from `claude_desktop_config.json`. The file has no setting that connects
+Claude Desktop directly to an HTTP MCP server. To use a separately running HTTP MCP server, choose one of these options:
+
+- Run the [`mcp-remote`](https://github.com/geelen/mcp-remote) bridge as the `stdio` command. Claude Desktop starts the
+  bridge on your workstation, and the bridge forwards MCP requests to the HTTP endpoint. Any URL that your workstation
+  can reach works, including loopback, port-forwarded, VPN-only, and private-network URLs.
+- Add the endpoint as a custom connector in Claude. Claude connects to custom connectors from Anthropic's cloud, not from
+  your workstation, so the endpoint must be reachable from the public internet. Loopback, port-forwarded, and
+  private-network URLs do not work. Protect a public endpoint as described in
+  [Protect MCP Endpoint](#protect-mcp-endpoint). Custom connectors can authenticate with OAuth or with fixed request
+  headers. See [Get started with custom connectors using remote MCP][claude-custom-connectors].
+
+For Helm installation, point `mcp-remote` at the external HTTPRoute or Ingress URL:
 
 ```json
 {
   "mcpServers": {
     "grafana": {
-      "url": "https://mcp-grafana.example.com/"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp-grafana.example.com/"]
     }
   }
 }
 ```
 
-For Docker installation running on the same workstation, use the local HTTP MCP
-endpoint:
+`mcp-remote` runs on Node.js, which uses its own CA bundle instead of the system trust store by default. If a private CA
+signs the gateway certificate, set `NODE_EXTRA_CA_CERTS` in `env` to the path of the CA file.
+
+If the gateway requires a bearer token, pass it with the `mcp-remote` `--header` option and keep the token in `env`:
 
 ```json
 {
   "mcpServers": {
     "grafana": {
-      "url": "http://localhost:8000/"
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp-grafana.example.com/",
+        "--header",
+        "Authorization: Bearer ${AUTH_TOKEN}"
+      ],
+      "env": {
+        "AUTH_TOKEN": "<gateway-token>"
+      }
+    }
+  }
+}
+```
+
+For Docker installation running on the same workstation, use the local HTTP MCP endpoint. For a plain `http://` URL, add
+the `--allow-http` option:
+
+```json
+{
+  "mcpServers": {
+    "grafana": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/", "--allow-http"]
     }
   }
 }
@@ -830,3 +867,8 @@ longer needed.
 - [Upstream standalone `grafana-mcp` Helm chart](https://github.com/grafana-community/helm-charts/tree/main/charts/grafana-mcp)
 - [Grafana service account documentation](https://grafana.com/docs/grafana/latest/administration/service-accounts/)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
+- [`mcp-remote` stdio-to-HTTP bridge](https://github.com/geelen/mcp-remote)
+- [Connect to local MCP servers in Claude Desktop](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
+- [Claude custom connectors using remote MCP][claude-custom-connectors]
+
+[claude-custom-connectors]: https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp

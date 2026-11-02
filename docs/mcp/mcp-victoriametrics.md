@@ -525,28 +525,64 @@ For local binary usage in `stdio` mode, add the server command to
 }
 ```
 
-For a separately running HTTP MCP server, configure `url` in
-`claude_desktop_config.json` instead of `command`. For Helm installation, use
-the external HTTPRoute or Ingress URL:
+Claude Desktop starts only `stdio` servers from `claude_desktop_config.json`. The file has no setting that connects
+Claude Desktop directly to an HTTP MCP server. To use a separately running HTTP MCP server, choose one of these options:
+
+- Run the [`mcp-remote`](https://github.com/geelen/mcp-remote) bridge as the `stdio` command. Claude Desktop starts the
+  bridge on your workstation, and the bridge forwards MCP requests to the HTTP endpoint. Any URL that your workstation
+  can reach works, including loopback, port-forwarded, VPN-only, and private-network URLs.
+- Add the endpoint as a custom connector in Claude. Claude connects to custom connectors from Anthropic's cloud, not from
+  your workstation, so the endpoint must be reachable from the public internet. Loopback, port-forwarded, and
+  private-network URLs do not work. Custom connectors can authenticate with OAuth or with fixed request
+  headers. See [Get started with custom connectors using remote MCP][claude-custom-connectors].
+
+For Helm installation, point `mcp-remote` at the external HTTPRoute or Ingress URL:
 
 ```json
 {
   "mcpServers": {
     "victoriametrics": {
-      "url": "https://mcp-vm.example.com/mcp"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp-vm.example.com/mcp"]
     }
   }
 }
 ```
 
-For Docker installation running on the same workstation, use the local HTTP MCP
-endpoint:
+`mcp-remote` runs on Node.js, which uses its own CA bundle instead of the system trust store by default. If a private CA
+signs the gateway certificate, set `NODE_EXTRA_CA_CERTS` in `env` to the path of the CA file.
+
+If the gateway requires a bearer token, pass it with the `mcp-remote` `--header` option and keep the token in `env`:
 
 ```json
 {
   "mcpServers": {
     "victoriametrics": {
-      "url": "http://localhost:8080/mcp"
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp-vm.example.com/mcp",
+        "--header",
+        "Authorization: Bearer ${AUTH_TOKEN}"
+      ],
+      "env": {
+        "AUTH_TOKEN": "<gateway-token>"
+      }
+    }
+  }
+}
+```
+
+For Docker installation running on the same workstation, use the local HTTP MCP endpoint. For a plain `http://` URL, add
+the `--allow-http` option:
+
+```json
+{
+  "mcpServers": {
+    "victoriametrics": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8080/mcp", "--allow-http"]
     }
   }
 }
@@ -555,7 +591,7 @@ endpoint:
 For temporary local debugging of the Helm installation without HTTPRoute or
 Ingress, you can also use
 `kubectl port-forward svc/mcp-victoriametrics -n monitoring 8080:8080`
-and set `url` in `claude_desktop_config.json` to `http://localhost:8080/mcp`.
+and use `http://localhost:8080/mcp` as the `mcp-remote` URL in the Docker example above.
 
 ### Claude Code
 
@@ -697,3 +733,8 @@ source directory as well.
 - [VictoriaMetrics MCP Server GitHub repository](https://github.com/VictoriaMetrics/mcp-victoriametrics)
 - [VictoriaMetrics MCP Server releases](https://github.com/VictoriaMetrics/mcp-victoriametrics/releases)
 - [Upstream standalone VictoriaMetrics MCP Helm chart](https://docs.victoriametrics.com/helm/victoria-metrics-mcp/)
+- [`mcp-remote` stdio-to-HTTP bridge](https://github.com/geelen/mcp-remote)
+- [Connect to local MCP servers in Claude Desktop](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
+- [Claude custom connectors using remote MCP][claude-custom-connectors]
+
+[claude-custom-connectors]: https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp
