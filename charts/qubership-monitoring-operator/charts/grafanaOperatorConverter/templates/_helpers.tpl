@@ -8,10 +8,12 @@ Expand the name of the chart.
 {{/*
 Build the normalized namespace list used by both RBAC and the controller.
 global.namespaceScope wins over watchNamespaces, as it does for the Grafana operator, so a namespaced guest
-release never watches namespaces that belong to the host release.
+release never watches namespaces that belong to the host release. The parent chart sets both global values; the
+defaults apply only when the subchart is rendered on its own.
 */}}
 {{- define "grafana-operator-converter.watchNamespaces" -}}
-{{- if .Values.global.namespaceScope -}}
+{{- $global := .Values.global | default dict -}}
+{{- if dig "namespaceScope" false $global -}}
 {{- include "grafana-operator-converter.namespace" . -}}
 {{- else if .Values.watchNamespaces -}}
 {{- $namespaces := list -}}
@@ -25,7 +27,7 @@ release never watches namespaces that belong to the host release.
 {{- fail "watchNamespaces must contain at least one non-empty namespace" -}}
 {{- end -}}
 {{- join "," (sortAlpha (uniq $namespaces)) -}}
-{{- else if or .Values.namespaceScope (not .Values.global.privilegedRights) -}}
+{{- else if or .Values.namespaceScope (not (dig "privilegedRights" true $global)) -}}
 {{- include "grafana-operator-converter.namespace" . -}}
 {{- end -}}
 {{- end -}}
@@ -65,6 +67,20 @@ Allow the release namespace to be overridden
 */}}
 {{- define "grafana-operator-converter.namespace" -}}
 {{ .Values.namespaceOverride | default .Release.Namespace }}
+{{- end -}}
+
+{{/*
+Find a converter image in various places.
+Image can be found from:
+* .Values.image from values file
+* or default value
+*/}}
+{{- define "grafana-operator-converter.image" -}}
+  {{- if .Values.image -}}
+    {{- printf "%s" .Values.image -}}
+  {{- else -}}
+    {{- print "ghcr.io/netcracker/qubership-grafana-operator-converter:main@sha256:b36881b193ea33906d35d9eccd3a61fe2f7c1788d255da5727361a1e2c0e3ade" -}}
+  {{- end -}}
 {{- end -}}
 
 {{/*
@@ -122,4 +138,116 @@ always runs with bounded CPU, memory, and ephemeral storage.
 {{- $_ := set $resources "requests" $requests -}}
 {{- $_ := set $resources "limits" $limits -}}
 {{- toYaml $resources -}}
+{{- end -}}
+
+{{/*
+Return the RBAC namespaces for a namespace-scoped converter, or an empty list for a cluster-wide one.
+*/}}
+{{- define "grafana-operator-converter.roleNamespaces" -}}
+{{- $watchNamespaces := include "grafana-operator-converter.watchNamespaces" . -}}
+{{- if $watchNamespaces -}}
+{{- toJson (splitList "," $watchNamespaces) -}}
+{{- else -}}
+{{- toJson (list) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the converter rules shared by the ClusterRole and the namespaced Roles. Pass a dict with "root" and
+"clusterScoped"; only a cluster-wide watch needs to read namespaces.
+*/}}
+{{- define "grafana-operator-converter.rules" -}}
+{{- $converter := .root.Values.grafana.converter -}}
+{{- if and $converter.dashboard $converter.resolveGzipConfigMapRef }}
+- apiGroups:
+    - ""
+  resources:
+    - configmaps
+  verbs:
+    - get
+    - list
+    - watch
+{{- end }}
+{{- if $converter.dashboard }}
+- apiGroups:
+    - integreatly.org
+  resources:
+    - grafanadashboards
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - grafana.integreatly.org
+  resources:
+    - grafanadashboards
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - update
+    - watch
+{{- if .clusterScoped }}
+- apiGroups:
+    - ""
+  resources:
+    - namespaces
+  verbs:
+    - get
+    - list
+    - watch
+{{- end }}
+{{- end }}
+{{- if $converter.datasource }}
+- apiGroups:
+    - integreatly.org
+  resources:
+    - grafanadatasources
+  verbs:
+    - list
+    - watch
+- apiGroups:
+    - grafana.integreatly.org
+  resources:
+    - grafanadatasources
+  verbs:
+    - create
+    - get
+    - update
+{{- end }}
+{{- if $converter.folder }}
+- apiGroups:
+    - integreatly.org
+  resources:
+    - grafanafolders
+  verbs:
+    - list
+    - watch
+- apiGroups:
+    - grafana.integreatly.org
+  resources:
+    - grafanafolders
+  verbs:
+    - create
+    - get
+    - update
+{{- end }}
+{{- if $converter.notification }}
+- apiGroups:
+    - integreatly.org
+  resources:
+    - grafananotificationchannels
+  verbs:
+    - list
+    - watch
+- apiGroups:
+    - grafana.integreatly.org
+  resources:
+    - grafanacontactpoints
+  verbs:
+    - create
+    - get
+    - update
+{{- end }}
 {{- end -}}

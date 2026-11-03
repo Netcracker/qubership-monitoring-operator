@@ -1,0 +1,17 @@
+{{- if .Values.grafana.converter.enable }}
+{{- range include "grafana-operator-converter.roleNamespaces" . | fromJsonArray }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "grafana-operator-converter.fullname" $ }}
+  namespace: {{ . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" $ | nindent 4 }}
+    {{- with $.Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+  {{- include "grafana-operator-converter.rules" (dict "root" $ "clusterScoped" false) | nindent 2 }}
+{{- end }}
+{{- end }}

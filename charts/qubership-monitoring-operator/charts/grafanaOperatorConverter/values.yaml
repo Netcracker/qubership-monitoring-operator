@@ -1,9 +1,3 @@
-# Parent chart security mode. The monitoring chart overrides this global value.
-global:
-  privilegedRights: true
-  # Namespaced guest mode. When true, the converter watches only its release namespace.
-  namespaceScope: false
-
 # -- Use the operator namespace for watches and RBAC when `watchNamespaces` is empty.
 namespaceScope: false
 
@@ -28,13 +22,11 @@ env: []
   # - name: MY_VAR
   #   value: "myvalue"
 
-image:
-  # -- grafana operator converter image repository
-  repository: ghcr.io/netcracker/qubership-grafana-operator-converter
-  # -- The image pull policy to use in grafana operator container
-  pullPolicy: IfNotPresent
-  # -- Overrides the image tag whose default is the chart appVersion.
-  tag: "main@sha256:b36881b193ea33906d35d9eccd3a61fe2f7c1788d255da5727361a1e2c0e3ade"
+# -- Converter image. The default, set in the chart helpers, pins a multi-architecture image by digest.
+# image: ghcr.io/netcracker/qubership-grafana-operator-converter:main
+
+# -- Image pull policy for the converter container
+imagePullPolicy: IfNotPresent
 
 # -- image pull secrets
 imagePullSecrets: []
