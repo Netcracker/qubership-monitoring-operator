@@ -125,7 +125,7 @@ Image can be found from:
     {{- printf "%s" .Values.prometheus.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/prometheus */ -}}
-    {{- print "docker.io/prom/prometheus:v3.15.0" -}}
+    {{- print "docker.io/prom/prometheus:v3.15.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -384,7 +384,7 @@ Image can be found from:
     {{- printf "%s" .Values.pushgateway.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/pushgateway */ -}}
-    {{- print "docker.io/prom/pushgateway:v1.11.4" -}}
+    {{- print "docker.io/prom/pushgateway:v1.11.5" -}}
   {{- end -}}
 {{- end -}}
 
