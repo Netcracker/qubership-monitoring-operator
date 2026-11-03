@@ -12,7 +12,10 @@ subsets:
   - ports:
       - name: "https-metrics"
         port: 10250
+        protocol: TCP
       - name: "http-metrics"
         port: 10255
+        protocol: TCP
       - name: "cadvisor"
         port: 4194
+        protocol: TCP

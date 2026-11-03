@@ -18,8 +18,7 @@ package controllers
 
 import (
 	"context"
-	goerrors "errors"
-	"strconv"
+	"strings"
 	"time"
 
 	qubershiporgv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -53,7 +52,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -68,6 +66,9 @@ type PlatformMonitoringReconciler struct {
 	Config *rest.Config
 	// Client to discovery cluster API
 	DiscoveryClient discovery.DiscoveryInterface
+	// startupKinds is the discovery snapshot for one addWatchBasedSources call.
+	// It is nil outside that call, so hasKind queries discovery directly.
+	startupKinds map[string]map[string]struct{}
 }
 
 const (
@@ -76,7 +77,8 @@ const (
 	prometheusDeprecationReason  = "PrometheusDeprecated"
 	prometheusDeprecationMessage = "Managed Prometheus is deprecated and will be removed in the next release. " +
 		"Migrate to VictoriaMetrics."
-	grafanaDatasourceMigrationRequeueAfter = 10 * time.Second
+	grafanaPendingRequeueAfter = 10 * time.Second
+	grafanaAdminSecretSuffix   = "-admin-credentials"
 )
 
 // +kubebuilder:rbac:groups=monitoring.netcracker.com,resources=platformmonitorings,verbs=get;list;watch;create;update;patch;delete
@@ -108,7 +110,7 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 	}
 	managedPrometheusEnabled := managedPrometheusExplicitlyEnabled(customResourceInstance)
 	customResourceInstance.FillEmptyWithDefaults()
-	rInterval, intervalErr := strconv.ParseInt(utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL"), 10, 64)
+	successResult, intervalErr := successfulReconcileResult()
 
 	r.Log.Info("Reconciliation started")
 	_, cycleCondition := r.getCondition(customResourceInstance, "ReconcileCycleStatus")
@@ -280,9 +282,9 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 
 	gReconciler := grafana.NewGrafanaReconciler(r.Client, r.Scheme, r.DiscoveryClient, r.Config)
 	err = gReconciler.Run(customResourceInstance)
-	grafanaDatasourceMigrationErr := err
-	grafanaDatasourceMigrationPending := isGrafanaDatasourceMigrationPending(err)
-	if grafanaDatasourceMigrationPending {
+	grafanaPendingErr := err
+	grafanaPending := isGrafanaPending(err)
+	if grafanaPending {
 		r.removeStatus(customResourceInstance, "ReconcileGrafanaStatus")
 	} else if err != nil {
 		r.Log.Error(err, "Reconciliation of grafana custom resources failed")
@@ -329,22 +331,26 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	if grafanaDatasourceMigrationPending {
+	if grafanaPending {
 		r.prepareStatusForUpdate(customResourceInstance, "In progress", "False",
 			"ReconcileCycleStatus", "Monitoring service reconcile cycle in progress")
 		customResourceInstance.Status.ObservedGeneration = customResourceInstance.Generation
-		r.Log.Info("Grafana datasource UID migration is pending; requeue", "error", grafanaDatasourceMigrationErr)
+		r.Log.Info("Grafana reconciliation is pending; requeue", "error", grafanaPendingErr)
 		if !apiequality.Semantic.DeepEqual(statusBeforeReconcile, &customResourceInstance.Status) {
 			if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
 				r.Log.Error(err, "Update status failed")
 			}
 		}
-		return reconcile.Result{RequeueAfter: grafanaDatasourceMigrationRequeueAfter}, nil
+		return reconcile.Result{RequeueAfter: grafanaPendingRequeueAfter}, nil
 	}
 
 	r.prepareStatusForUpdate(customResourceInstance, "Successful", "True", "ReconcileCycleStatus", "Monitoring service reconcile cycle succeeded")
 	customResourceInstance.Status.ObservedGeneration = customResourceInstance.Generation
-	r.Log.Info("Reconciliation finished successful, next reconciliation after " + utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL") + " seconds")
+	if successResult.RequeueAfter == 0 {
+		r.Log.Info("Reconciliation finished successful; waiting for watch events (no periodic requeue)")
+	} else {
+		r.Log.Info("Reconciliation finished successful, next reconciliation after " + utils.GetEnvWithDefaultValue("RECONCILIATION_INTERVAL") + " seconds")
+	}
 
 	if !apiequality.Semantic.DeepEqual(statusBeforeReconcile, &customResourceInstance.Status) {
 		if err = r.Client.Status().Update(context, customResourceInstance); err != nil {
@@ -352,18 +358,27 @@ func (r *PlatformMonitoringReconciler) Reconcile(context context.Context, reques
 		}
 	}
 
-	return reconcile.Result{RequeueAfter: time.Duration(rInterval) * time.Second}, nil
+	return successResult, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PlatformMonitoringReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(ignoreDeletionPredicate())).
+	b := ctrl.NewControllerManagedBy(mgr).
+		For(&qubershiporgv1.PlatformMonitoring{}, builder.WithPredicates(platformMonitoringPredicate())).
 		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
 			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsConfigMap))).
-		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForPlatformMonitorings),
-			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaExtraVarsSecret))).
-		Complete(r)
+		// The admin credentials Secret is created by Helm without an owner reference, so Owns does
+		// not see it. Watching it lets a password change reach the Grafana database without
+		// waiting for the periodic repair, which can be disabled.
+		Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.requestsForGrafanaSecret),
+			builder.WithPredicates(predicate.NewPredicateFuncs(isGrafanaSecretCandidate)))
+	if watchBasedReconcileEnabled() {
+		var err error
+		if b, err = r.addWatchBasedSources(b); err != nil {
+			return err
+		}
+	}
+	return b.Complete(r)
 }
 
 func isGrafanaExtraVarsConfigMap(object client.Object) bool {
@@ -374,9 +389,36 @@ func isGrafanaExtraVarsSecret(object client.Object) bool {
 	return object.GetName() == "grafana-extra-vars-secret"
 }
 
+// isGrafanaSecretCandidate keeps the extra-vars Secret and every Secret named like a Grafana admin
+// credentials Secret; requestsForGrafanaSecret then matches the exact name per PlatformMonitoring.
+func isGrafanaSecretCandidate(object client.Object) bool {
+	return isGrafanaExtraVarsSecret(object) || strings.HasSuffix(object.GetName(), grafanaAdminSecretSuffix)
+}
+
+// requestsForGrafanaSecret enqueues the PlatformMonitoring resources that use the Secret as their
+// Grafana extra-vars Secret or as their Grafana admin credentials Secret.
+func (r *PlatformMonitoringReconciler) requestsForGrafanaSecret(
+	ctx context.Context,
+	object client.Object,
+) []reconcile.Request {
+	return r.requestsForGrafanaNamespace(ctx, object, func(platformMonitoring *qubershiporgv1.PlatformMonitoring) bool {
+		return isGrafanaExtraVarsSecret(object) || object.GetName() == grafana.AdminSecretName(platformMonitoring)
+	})
+}
+
 func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
 	ctx context.Context,
 	object client.Object,
+) []reconcile.Request {
+	return r.requestsForGrafanaNamespace(ctx, object, nil)
+}
+
+// requestsForGrafanaNamespace enqueues the PlatformMonitoring resources whose Grafana runs in the
+// namespace of object and, when matches is set, for which matches returns true.
+func (r *PlatformMonitoringReconciler) requestsForGrafanaNamespace(
+	ctx context.Context,
+	object client.Object,
+	matches func(*qubershiporgv1.PlatformMonitoring) bool,
 ) []reconcile.Request {
 	platformMonitorings := &qubershiporgv1.PlatformMonitoringList{}
 	if err := r.List(ctx, platformMonitorings); err != nil {
@@ -391,24 +433,11 @@ func (r *PlatformMonitoringReconciler) requestsForPlatformMonitorings(
 		if platformMonitoring.Spec.Grafana != nil && platformMonitoring.Spec.Grafana.Namespace != "" {
 			grafanaNamespace = platformMonitoring.Spec.Grafana.Namespace
 		}
-		if grafanaNamespace == object.GetNamespace() {
+		if grafanaNamespace == object.GetNamespace() && (matches == nil || matches(platformMonitoring)) {
 			requests = append(requests, reconcile.Request{NamespacedName: client.ObjectKeyFromObject(platformMonitoring)})
 		}
 	}
 	return requests
-}
-
-func ignoreDeletionPredicate() predicate.Predicate {
-	return predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			// Ignore updates to CR status in which case metadata.Generation does not change
-			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			// Evaluates to false if the object has been confirmed deleted.
-			return !e.DeleteStateUnknown
-		},
-	}
 }
 
 func hasFailedComponentCondition(conditions []qubershiporgv1.PlatformMonitoringCondition) bool {
@@ -420,8 +449,9 @@ func hasFailedComponentCondition(conditions []qubershiporgv1.PlatformMonitoringC
 	return false
 }
 
-func isGrafanaDatasourceMigrationPending(err error) bool {
-	return goerrors.Is(err, grafana.ErrDatasourceMigrationPending)
+// isGrafanaPending reports whether the Grafana reconcile waits for Grafana to become ready.
+func isGrafanaPending(err error) bool {
+	return grafana.IsPending(err)
 }
 
 // getCondition retrieves condition of custom resource instance by given reason.

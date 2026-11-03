@@ -1896,6 +1896,24 @@
                 }
             }
         },
+        "pvc": {
+            "type": "object",
+            "description": "Settings shared by the PersistentVolumeClaims of components with persistent storage.",
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations to add to PersistentVolumeClaims. Component-specific PVC annotations override these values.",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "role": {
             "type": "object",
             "properties": {
@@ -1925,6 +1943,15 @@
         "versionExporter": {
             "type": "object",
             "description": "Exporter to discover all versions for all applications from ConfigMap",
+            "properties": {
+                "install": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "yaceExporter": {
+            "type": "object",
+            "description": "Yet Another CloudWatch Exporter (YACE) to request metrics from AWS CloudWatch with tag-based discovery",
             "properties": {
                 "install": {
                     "type": "boolean"

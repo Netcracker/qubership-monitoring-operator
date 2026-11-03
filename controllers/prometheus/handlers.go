@@ -19,22 +19,7 @@ func (r *PrometheusReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring
 	}
 
 	e := &corev1.ServiceAccount{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *PrometheusReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) error {
@@ -45,25 +30,7 @@ func (r *PrometheusReconciler) handleClusterRole(cr *monv1.PlatformMonitoring) e
 	}
 
 	e := &rbacv1.ClusterRole{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetName(m.GetName())
-	e.Rules = m.Rules
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncClusterRole)
 }
 
 func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonitoring) error {
@@ -74,22 +41,7 @@ func (r *PrometheusReconciler) handleClusterRoleBinding(cr *monv1.PlatformMonito
 	}
 
 	e := &rbacv1.ClusterRoleBinding{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncLabels)
 }
 
 func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) error {
@@ -103,24 +55,12 @@ func (r *PrometheusReconciler) handlePrometheus(cr *monv1.PlatformMonitoring) er
 		return err
 	}
 	e := &promv1.Prometheus{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec = m.Spec
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, func(existing, desired *promv1.Prometheus) bool {
+		return utils.AnyChanged(
+			utils.SetLabelsIfChanged(existing, desired.GetLabels()),
+			utils.SetIfChanged(&existing.Spec, desired.Spec),
+		)
+	})
 }
 
 func (r *PrometheusReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) error {
@@ -130,26 +70,7 @@ func (r *PrometheusReconciler) handleIngressV1(cr *monv1.PlatformMonitoring) err
 		return err
 	}
 	e := &networkingv1.Ingress{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.SetAnnotations(m.GetAnnotations())
-	e.Spec.Rules = m.Spec.Rules
-	e.Spec.TLS = m.Spec.TLS
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncIngress)
 }
 
 func (r *PrometheusReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -160,27 +81,7 @@ func (r *PrometheusReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) er
 	}
 
 	e := &promv1.PodMonitor{ObjectMeta: m.ObjectMeta}
-	if err = r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			if err = r.CreateResource(cr, m); err != nil {
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-
-	//Set parameters
-	e.SetLabels(m.GetLabels())
-	e.Spec.JobLabel = m.Spec.JobLabel
-	e.Spec.PodMetricsEndpoints = m.Spec.PodMetricsEndpoints
-	e.Spec.NamespaceSelector = m.Spec.NamespaceSelector
-	e.Spec.Selector = m.Spec.Selector
-
-	if err = r.UpdateResource(e); err != nil {
-		return err
-	}
-	return nil
+	return utils.CreateOrUpdate(r.ComponentReconciler, cr, m, e, utils.SyncPodMonitor)
 }
 
 func (r *PrometheusReconciler) deleteServiceAccount(cr *monv1.PlatformMonitoring) error {

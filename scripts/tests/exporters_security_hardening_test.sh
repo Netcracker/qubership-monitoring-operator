@@ -20,6 +20,7 @@ exporter_args=(
     --set sslExporter.install=true
     --set stackdriverExporter.install=true
     --set versionExporter.install=true
+    --set yaceExporter.install=true
     --set grafana.operator.install=false
 )
 
@@ -115,6 +116,7 @@ relative_manifests=(
     sslExporter/templates/daemonset.yaml
     stackdriverExporter/templates/deployment.yaml
     versionExporter/templates/deployment.yaml
+    yaceExporter/templates/deployment.yaml
 )
 
 for relative_manifest in "${relative_manifests[@]}"; do

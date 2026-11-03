@@ -76,6 +76,23 @@ roleBinding:
 #
 publicCloudName: ""
 
+# Settings shared by the PersistentVolumeClaims of all components that have persistent storage configured:
+# Prometheus, VMSingle, VMAlertManager, and Grafana. Pushgateway and VMCluster are not covered.
+# Type: object
+# Mandatory: no
+#
+pvc:
+  metadata:
+    # Annotations to add to PersistentVolumeClaims. Component-specific PVC annotations override these values.
+    # Values must be strings, so quote them in YAML and use `--set-string` on the command line.
+    # Type: map[string]string
+    # Mandatory: no
+    # Example:
+    # annotations:
+    #   argocd.argoproj.io/sync-options: Prune=false
+    #
+    annotations: {}
+
 # Gateway API settings shared by all components.
 # Type: object
 # Mandatory: no
@@ -128,6 +145,16 @@ monitoringOperator:
   # Default: false
   #
   leaderElect: false
+
+  # Seconds between successful PlatformMonitoring repair reconciles.
+  # Source watches (PM spec/metadata and owned children) enqueue immediately.
+  # 0 disables the periodic repair (no hot loop). Default 3600 (1h) covers
+  # inputs that are not watched (cross-namespace Jaeger/ClickHouse, Nodes).
+  # Type: integer
+  # Mandatory: no
+  # Default: 3600
+  #
+  reconciliationInterval: 3600
 
   clusterRole:
     install: true
@@ -1857,6 +1884,12 @@ cloudEventsExporter:
 
 # Exporter to request metrics from AWS CloudWatch about different AWS Managed Services
 cloudwatchExporter:
+  # Disable by default
+  install: false
+
+# Exporter to request metrics from AWS CloudWatch using the GetMetricData API, with tag-based
+# auto-discovery, cross-account roles and static jobs (Yet Another CloudWatch Exporter)
+yaceExporter:
   # Disable by default
   install: false
 
