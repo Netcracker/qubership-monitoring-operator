@@ -1,4 +1,3 @@
-{{- if .Values.config.enable }}
 {{- $config := .Values.config }}
 {{- range include "grafana-operator-converter.roleNamespaces" . | fromJsonArray }}
 ---
@@ -14,7 +13,7 @@ metadata:
     {{- end }}
 {{- /* Keep these rules in sync with clusterrole.yaml, except for the namespaces rule. */}}
 rules:
-  {{- if and $config.dashboard $config.resolveGzipConfigMapRef }}
+  {{- if and $config.dashboard.enabled $config.dashboard.gzipConfigMapRef.enabled }}
   - apiGroups:
       - ""
     resources:
@@ -24,7 +23,7 @@ rules:
       - list
       - watch
   {{- end }}
-  {{- if $config.dashboard }}
+  {{- if $config.dashboard.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -45,7 +44,7 @@ rules:
       - update
       - watch
   {{- end }}
-  {{- if $config.datasource }}
+  {{- if $config.datasource.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -62,7 +61,7 @@ rules:
       - get
       - update
   {{- end }}
-  {{- if $config.folder }}
+  {{- if $config.folder.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -79,7 +78,7 @@ rules:
       - get
       - update
   {{- end }}
-  {{- if $config.notification }}
+  {{- if $config.notification.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -96,5 +95,4 @@ rules:
       - get
       - update
   {{- end }}
-{{- end }}
 {{- end }}

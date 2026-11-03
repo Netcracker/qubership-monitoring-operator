@@ -1,4 +1,22 @@
-{{- if .Values.config.enable }}
+{{- $config := .Values.config }}
+{{- $dashboard := $config.dashboard }}
+{{- if not (or $dashboard.enabled $config.datasource.enabled $config.folder.enabled $config.notification.enabled) }}
+{{- fail "Enable at least one converter in config, or set grafanaConverter.install to false in the parent chart." }}
+{{- end }}
+{{- /* The converter reads flat keys and rejects unknown ones. */}}
+{{- $parameters := dict
+  "enable" true
+  "dashboard" $dashboard.enabled
+  "datasource" $config.datasource.enabled
+  "folder" $config.folder.enabled
+  "notification" $config.notification.enabled
+  "instanceSelector" $config.instanceSelector
+  "dashboardLabelSelector" $dashboard.labelSelector
+  "dashboardNamespaceSelector" $dashboard.namespaceSelector
+  "deleteTargetOnSourceDeletion" $dashboard.deleteTargetOnSourceDeletion
+  "resolveGzipConfigMapRef" $dashboard.gzipConfigMapRef.enabled
+  "gzipConfigMapMaxDecompressedSize" $dashboard.gzipConfigMapRef.maxDecompressedSize
+}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,5 +24,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   parameters.yaml: |-
-    {{- toYaml .Values.config | nindent 4 }}
-{{- end }}
+    {{- toYaml $parameters | nindent 4 }}

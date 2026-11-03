@@ -62,7 +62,7 @@ status:
 
 * Edit the legacy dashboard, and the converter updates the converted dashboard.
 * Delete the legacy dashboard, and the converted dashboard stays. Delete it manually, or enable
-  `grafanaConverter.config.deleteTargetOnSourceDeletion` to delete it together with the legacy dashboard.
+  `grafanaConverter.config.dashboard.deleteTargetOnSourceDeletion` to delete it together with the legacy dashboard.
 
 ```bash
 kubectl delete -n <namespace> -f legacy-dashboard.yaml

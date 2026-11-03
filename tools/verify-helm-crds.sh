@@ -870,7 +870,7 @@ if "${yq_binary}" eval -e '[.rules[].resources[] | select(. == "configmaps")] | 
     exit 1
 fi
 helm template monitoring "${chart_dir}" \
-    --set grafanaConverter.config.resolveGzipConfigMapRef=true |
+    --set grafanaConverter.config.dashboard.gzipConfigMapRef.enabled=true |
     "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
         >"${converter_rbac_manifest}"
 verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
@@ -905,7 +905,7 @@ if ! "${yq_binary}" eval-all -e \
     .data."parameters.yaml" | from_yaml |
     select(.dashboard == true) | select(.datasource == false) |
     select(.folder == false) | select(.notification == false) |
-    select(.dashboardLabelSelector == null) |
+    select((.dashboardLabelSelector | to_json(0)) == "[]") |
     select((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}]}")' \
     "${converter_manifest}" >/dev/null; then
     echo "The Grafana converter does not default to dashboard-only migration outside OpenShift monitoring namespaces." >&2
@@ -945,12 +945,37 @@ if ! "${yq_binary}" eval-all -e \
 fi
 
 helm template monitoring "${chart_dir}" \
-    --set grafanaConverter.config.dashboard=false \
+    --set grafanaConverter.config.dashboard.enabled=false \
+    --set grafanaConverter.config.datasource.enabled=true \
     >"${converter_manifest}"
 "${yq_binary}" eval-all \
     "select(.kind == \"ClusterRole\" and ${converter_selector})" \
     "${converter_manifest}" >"${converter_rbac_manifest}"
 verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
+
+converter_config_error="${temporary_dir}/grafana-converter-config-error.txt"
+if helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.config.dashboard.enabled=false \
+    >"${converter_manifest}" 2>"${converter_config_error}"; then
+    echo "The chart renders the Grafana converter with every converter disabled." >&2
+    exit 1
+fi
+if ! grep -Fq "Enable at least one converter in config" "${converter_config_error}"; then
+    echo "The chart does not explain why it rejects a Grafana converter with every converter disabled." >&2
+    cat "${converter_config_error}" >&2
+    exit 1
+fi
+if helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.config.dashboard.labelSelectors=true \
+    >"${converter_manifest}" 2>"${converter_config_error}"; then
+    echo "The chart accepts an unknown Grafana converter parameter." >&2
+    exit 1
+fi
+if ! grep -Fq "additional properties 'labelSelectors' not allowed" "${converter_config_error}"; then
+    echo "The chart does not name the unknown Grafana converter parameter." >&2
+    cat "${converter_config_error}" >&2
+    exit 1
+fi
 
 helm template monitoring "${chart_dir}" \
     --set global.privilegedRights=false \

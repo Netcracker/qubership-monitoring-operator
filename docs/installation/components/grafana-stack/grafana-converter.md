@@ -56,20 +56,21 @@ Helm values:
 ```yaml
 grafanaConverter:
   config:
-    dashboardLabelSelector:
-      - matchLabels:
-          app.kubernetes.io/component: monitoring
-    dashboardNamespaceSelector:
-      matchLabels:
-        monitoring: enabled
+    dashboard:
+      labelSelector:
+        - matchLabels:
+            app.kubernetes.io/component: monitoring
+      namespaceSelector:
+        matchLabels:
+          monitoring: enabled
 ```
 
 Helm writes the selectors to the `grafana-resources-converter` ConfigMap, and a change restarts the converter. The
 converter does not read `grafana.dashboardLabelSelector` or `grafana.dashboardNamespaceSelector` from
 `PlatformMonitoring`. If you set those for Grafana, set the same values here.
 
-A dashboard matches when any one label selector matches. `dashboardNamespaceSelector` applies only when the converter
-watches all namespaces. Helm merges your `dashboardNamespaceSelector` with the default one, so the
+A dashboard matches when any one label selector matches. `namespaceSelector` applies only when the converter watches
+all namespaces. Helm merges your `namespaceSelector` with the default one, so the
 `openshift.io/cluster-monitoring` exclusion stays unless you set `matchExpressions: []`. When a legacy dashboard stops
 matching, the converter deletes its converted dashboard and leaves the legacy one in place.
 
@@ -97,9 +98,15 @@ Parameters are set under `grafanaConverter` in the monitoring Helm values.
 | nodeSelector, tolerations, affinity, priorityClassName | Pod scheduling settings.                                                                                                                                                            | object            |
 | env                                                    | Extra environment variables. `WATCH_NAMESPACE` and `WATCH_NAMESPACE_SELECTOR` are reserved and fail the render.                                                                     | []object          |
 | serviceMonitor.enabled                                 | Creates a ServiceMonitor for converter metrics. Default: `false`.                                                                                                                   | bool              |
-| config.deleteTargetOnSourceDeletion                    | Deletes a converted dashboard when its legacy dashboard is deleted, through a Kubernetes owner reference. Default: `false`.                                                         | bool              |
-| config.resolveGzipConfigMapRef                         | Converts legacy dashboards whose content is in a ConfigMap referenced by `spec.gzipConfigMapRef`. Grants read access to ConfigMaps. Default: `false`.                               | bool              |
-| config.gzipConfigMapMaxDecompressedSize                | Maximum decompressed size of content read through `gzipConfigMapRef`. Default: `32Mi`.                                                                                              | string            |
+| config.instanceSelector                                | Labels of the Grafana instance that receives every converted resource.                                                                                                              | object            |
+| config.dashboard.enabled                               | Converts legacy dashboards. Default: `true`.                                                                                                                                        | bool              |
+| config.dashboard.labelSelector                         | Legacy dashboards to convert, as a list of label selectors. See [Dashboard selection](#dashboard-selection).                                                                        | []object          |
+| config.dashboard.namespaceSelector                     | Namespace label selector for legacy dashboards. See [Dashboard selection](#dashboard-selection).                                                                                    | object            |
+| config.dashboard.deleteTargetOnSourceDeletion          | Deletes a converted dashboard when its legacy dashboard is deleted, through a Kubernetes owner reference. Default: `false`.                                                         | bool              |
+| config.dashboard.gzipConfigMapRef.enabled              | Converts legacy dashboards whose content is in a ConfigMap referenced by `spec.gzipConfigMapRef`. Grants read access to ConfigMaps. Default: `false`.                               | bool              |
+| config.dashboard.gzipConfigMapRef.maxDecompressedSize  | Maximum decompressed size of content read through `gzipConfigMapRef`. Default: `32Mi`.                                                                                              | string            |
+| config.datasource.enabled, config.folder.enabled       | Converts legacy data sources or folders. Needs the matching legacy CRD, which the chart does not install. Default: `false`.                                                         | bool              |
+| config.notification.enabled                            | Converts legacy notification channels to contact points. Needs the legacy CRD, which the chart does not install. Default: `false`.                                                  | bool              |
 <!-- markdownlint-enable line-length -->
 
 `watchNamespaceSelector` is rejected. The converter cannot change its namespace list at runtime; use
@@ -107,6 +114,9 @@ Parameters are set under `grafanaConverter` in the monitoring Helm values.
 
 The converter runs one replica with the `Recreate` update strategy, so two converters never write the same dashboards
 during a rollout. A change to `grafanaConverter.config` restarts the pod.
+
+Enable at least one converter under `grafanaConverter.config`. To run none, set `grafanaConverter.install: false`.
+The chart rejects unknown keys under `grafanaConverter.config`.
 
 ## Examples
 
@@ -139,8 +149,8 @@ The command prints `True` when Grafana has loaded the dashboard.
 | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | A legacy dashboard has no converted dashboard               | The namespace is in the watch scope, the dashboard matches the selectors, and the converter logs show no conversion error.   |
 | The converter logs report a conflict                        | A v1beta1 dashboard with the same name exists without the `app.kubernetes.io/managed-by-operator` label. Rename one of them. |
-| A dashboard with `gzipConfigMapRef` is reported as an error | Enable `grafanaConverter.config.resolveGzipConfigMapRef`.                                                                    |
+| A dashboard with `gzipConfigMapRef` is reported as an error | Enable `grafanaConverter.config.dashboard.gzipConfigMapRef.enabled`.                                                         |
 | The converted dashboard exists but is not in Grafana        | The Grafana instance has the labels from `instanceSelector`, and the dashboard's `DashboardSynchronized` condition.          |
-| Selector changes have no effect                             | Set them in `grafanaConverter.config`, not in `grafana`.                                                                     |
+| Selector changes have no effect                             | Set them in `grafanaConverter.config.dashboard`, not in `grafana`.                                                           |
 
 [datasource-migration]: ../../../examples/custom-resources/grafana-datasource/README.md#migrate-v4-resources

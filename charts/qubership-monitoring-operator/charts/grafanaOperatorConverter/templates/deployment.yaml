@@ -70,10 +70,8 @@ spec:
           volumeMounts:
             - name: dashboards-dir
               mountPath: /tmp/dashboards
-            {{- if .Values.config.enable }}
             - name: grafana-converter-parameters
               mountPath: /opt/grafana-converter
-            {{- end }}
           ports:
             - containerPort: {{ .Values.metricsService.metricsPort }}
               name: metrics
@@ -91,12 +89,10 @@ spec:
       volumes:
         - name: dashboards-dir
           emptyDir: {}
-        {{- if .Values.config.enable }}
         - name: grafana-converter-parameters
           configMap:
             name: grafana-resources-converter
             defaultMode: 420
-        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

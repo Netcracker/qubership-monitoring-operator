@@ -1,4 +1,4 @@
-{{- if and .Values.config.enable (not (include "grafana-operator-converter.watchNamespaces" .)) }}
+{{- if not (include "grafana-operator-converter.watchNamespaces" .) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -10,7 +10,7 @@ metadata:
     {{- end }}
 {{- /* Keep these rules in sync with role.yaml. Only a cluster-wide watch reads namespaces. */}}
 rules:
-  {{- if and .Values.config.dashboard .Values.config.resolveGzipConfigMapRef }}
+  {{- if and .Values.config.dashboard.enabled .Values.config.dashboard.gzipConfigMapRef.enabled }}
   - apiGroups:
       - ""
     resources:
@@ -20,7 +20,7 @@ rules:
       - list
       - watch
   {{- end }}
-  {{- if .Values.config.dashboard }}
+  {{- if .Values.config.dashboard.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -49,7 +49,7 @@ rules:
       - list
       - watch
   {{- end }}
-  {{- if .Values.config.datasource }}
+  {{- if .Values.config.datasource.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -66,7 +66,7 @@ rules:
       - get
       - update
   {{- end }}
-  {{- if .Values.config.folder }}
+  {{- if .Values.config.folder.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
@@ -83,7 +83,7 @@ rules:
       - get
       - update
   {{- end }}
-  {{- if .Values.config.notification }}
+  {{- if .Values.config.notification.enabled }}
   - apiGroups:
       - integreatly.org
     resources:
