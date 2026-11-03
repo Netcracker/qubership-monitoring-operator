@@ -1,3 +1,7 @@
+---
+icon: lucide/settings
+---
+
 # Configuration
 
 This section describes all the configurations and extension points that are provided by Monitoring.
@@ -163,7 +167,7 @@ In the above example, the metrics are collected with the following settings:
 The following schema illustrates how prometheus-operator discovers ServiceMonitor, processes it, and applies
 the configuration to Prometheus:
 
-![ServiceMonitor](images/prometheus-k8s_service-monitor.png)
+![ServiceMonitor](../images/prometheus-k8s_service-monitor.png)
 
 For more information about all available fields in `ServiceMonitor`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#servicemonitor).
@@ -423,7 +427,7 @@ In the above example, the metrics are collected with the following settings:
 The following schema illustrates how prometheus-operator discovers PodMonitor, processes it, and applies
 the configuration to Prometheus:
 
-![PodMonitor](images/prometheus_k8s_pod-monitor.png)
+![PodMonitor](../images/prometheus_k8s_pod-monitor.png)
 
 For more information about all available fields in `PodMonitor`, refer to the official documentation at
 [https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor](https://github.com/prometheus-operator/prometheus-operator/blob/v0.79.2/Documentation/api.md#podmonitor).

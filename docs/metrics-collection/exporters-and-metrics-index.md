@@ -1,3 +1,7 @@
+---
+icon: lucide/table-of-contents
+---
+
 This document describes all exporters from which the Monitoring stack can collect metrics or juts a list of metrics
 available to collect from some tools.
 
