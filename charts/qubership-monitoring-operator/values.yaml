@@ -22,8 +22,8 @@ global:
   #
   privilegedRights: true
 
-  # When true, this release's VictoriaMetrics Operator and Grafana Operator
-  # watch only the release namespace.
+  # When true, this release's VictoriaMetrics Operator, Grafana Operator, and
+  # Grafana converter watch only the release namespace.
   # Does not flip privilegedRights and does not confine managed-workload
   # discovery (VMAgent, VMAlert, VMAlertmanager, VMAuth, kube-state-metrics,
   # Prometheus). Default: false.
@@ -32,8 +32,9 @@ global:
   #   * helm --skip-crds (CRDs stay with the host)
   #   * a different nodeExporter.port if the host already binds hostPort 9900
   #   * the same comma-separated namespace list on the host values
-  #     victoriametrics.vmOperator.extraEnvs name WATCH_NAMESPACE and
-  #     grafana.operator.watchNamespaces, omitting this guest namespace and
+  #     victoriametrics.vmOperator.extraEnvs name WATCH_NAMESPACE,
+  #     grafana.operator.watchNamespaces, and grafanaConverter.watchNamespaces,
+  #     omitting this guest namespace and
   #     every namespace labeled openshift.io/cluster-monitoring=true
   #
   # Type: boolean.
@@ -1912,6 +1913,17 @@ stackdriver_exporter:
 goldpingerExporter:
   # Disable by default
   install: false
+
+# Converter to migrate Grafana resources from v1alpha1 to v1beta1 APIs
+grafanaConverter:
+  nameOverride: qubership-grafana-operator-converter
+  # Install by default as a migration helper for Grafana Operator v5
+  install: true
+  # Restrict watches and RBAC to the release namespace. This is enabled automatically when
+  # global.privilegedRights is false and watchNamespaces is empty.
+  namespaceScope: false
+  # Comma-separated namespaces to watch. An empty value watches all namespaces when privileged rights are enabled.
+  watchNamespaces: ""
 
 # Exporter to check SSL certificates
 sslExporter:

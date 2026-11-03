@@ -22,6 +22,8 @@ the chart-default selectors.
 |Core operator|Pod-derived `WATCH_NAMESPACE`|Already namespaced|
 |Host Helm|`victoriametrics.vmOperator.extraEnvs` `WATCH_NAMESPACE`|Namespaces the host VM Operator watches. v0.73.1 selects VM inputs from every name on this list|
 |Host Helm|`grafana.operator.watchNamespaces`|The same list for the privileged host Grafana Operator|
+|Host Helm|`grafanaConverter.watchNamespaces`|The same list for the host Grafana converter|
+|Guest Helm|`global.namespaceScope: true`|Guest Grafana converter watches only `.Release.Namespace`|
 |Guest Helm|`--skip-crds`|Host owns shared CRDs|
 
 Leader election stays at the default `false`. The example allow-list is
@@ -36,13 +38,16 @@ spaces, in both of these values:
 
 - `victoriametrics.vmOperator.extraEnvs`, name `WATCH_NAMESPACE`
 - `grafana.operator.watchNamespaces`
+- `grafanaConverter.watchNamespaces`
 
 You own the list. Name each namespace the host operators watch. The chart
 does not turn the list into every namespace except the guest. Omit the guest
 namespace and every namespace labeled `openshift.io/cluster-monitoring=true`,
 including `openshift-monitoring`. When a namespace is added or removed, edit
-the list and upgrade the host release. The host keeps its ClusterRoles. This
-mode does not create a Role or RoleBinding in each listed namespace.
+the list and upgrade the host release. The host VM and Grafana operators keep
+their ClusterRoles and get no Role or RoleBinding in the listed namespaces. The
+Grafana converter is the exception: it gets a Role and RoleBinding in each
+listed namespace instead of a ClusterRole.
 
 The example list is `monitoring`, the host namespace in the install commands
 below.
@@ -92,7 +97,7 @@ helm install monitoring-operator-guest charts/qubership-monitoring-operator \
 
 |Setting|File|Why|
 |-------|----|---|
-|`WATCH_NAMESPACE` and `grafana.operator.watchNamespaces`|host|Host operators watch the deployment-owned namespace list and omit the guest and OpenShift platform-monitoring namespaces|
-|`global.namespaceScope: true`|guest|Guest VM and Grafana operators watch only the release namespace|
+|`WATCH_NAMESPACE`, `grafana.operator.watchNamespaces`, and `grafanaConverter.watchNamespaces`|host|Host operators and the converter watch the deployment-owned namespace list and omit the guest and OpenShift platform-monitoring namespaces|
+|`global.namespaceScope: true`|guest|Guest VM operator, Grafana operator, and Grafana converter watch only the release namespace|
 |`etcdCertsJob.rbac.*Name`|guest|Avoid collisions with the host etcd certificate ClusterRole, ClusterRoleBinding, and OpenShift SCC|
 |`nodeExporter.port: 9901`|guest|Avoid hostPort 9900 collision with the host node-exporter|

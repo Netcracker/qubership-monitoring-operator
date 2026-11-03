@@ -1,0 +1,95 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "config": {
+            "type": "object",
+            "description": "Converter parameters. The chart writes them to the grafana-resources-converter ConfigMap.",
+            "additionalProperties": false,
+            "properties": {
+                "instanceSelector": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "description": "Labels of the Grafana instance that receives every converted resource."
+                },
+                "dashboard": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Convert legacy GrafanaDashboard resources."
+                        },
+                        "labelSelector": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "object"
+                            },
+                            "description": "Legacy dashboards to convert, as a list of label selectors. Empty converts every legacy dashboard."
+                        },
+                        "namespaceSelector": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "description": "Namespace label selector for legacy dashboards. Applies only to a cluster-wide watch."
+                        },
+                        "deleteTargetOnSourceDeletion": {
+                            "type": "boolean",
+                            "description": "Delete a converted dashboard when its legacy source is deleted."
+                        },
+                        "gzipConfigMapRef": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "description": "Convert legacy dashboards whose content is in a ConfigMap referenced by spec.gzipConfigMapRef."
+                                },
+                                "maxDecompressedSize": {
+                                    "type": "string",
+                                    "description": "Maximum decompressed size of dashboard content read through gzipConfigMapRef."
+                                }
+                            }
+                        }
+                    }
+                },
+                "datasource": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Convert legacy GrafanaDataSource resources."
+                        }
+                    }
+                },
+                "folder": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Convert legacy GrafanaFolder resources."
+                        }
+                    }
+                },
+                "notification": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Convert legacy GrafanaNotificationChannel resources to GrafanaContactPoint resources."
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

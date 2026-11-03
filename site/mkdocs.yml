@@ -185,6 +185,7 @@ nav:
               - installation/components/grafana-stack/README.md
               - Grafana: installation/components/grafana-stack/grafana.md
               - Grafana MCP: installation/components/grafana-stack/mcp.md
+              - Grafana Converter: installation/components/grafana-stack/grafana-converter.md
           - Graphite Remote Adapter: installation/components/graphite-remote-adapter.md
           - Promxy: installation/components/promxy.md
           - Pushgateway: installation/components/pushgateway.md
@@ -216,6 +217,7 @@ nav:
           - examples/README.md
           - CloudWatch Exporter Config: examples/components/cloudwatch-exporter-config/README.md
           - Configurations Streamer Resend API: examples/components/configurations-streamer/resend_examples.md
+          - Grafana Converter: examples/deploy-parameters/grafana-converter/README.md
           - Monitoring Pack: examples/deploy-parameters/monitoring-pack/README.md
           - Namespaced Guest Installation: examples/deploy-parameters/namespaced-guest/README.md
           - YACE Exporter Config: examples/components/yace-exporter-config/README.md
@@ -225,6 +227,7 @@ nav:
               - Custom Endpoint: examples/custom-resources/custom-endpoint/README.md
               - Grafana Dashboard: examples/custom-resources/grafana-dashboard/README.md
               - Grafana DataSource: examples/custom-resources/grafana-datasource/README.md
+              - Legacy Grafana Dashboard: examples/custom-resources/legacy-grafana-dashboard/README.md
               - Pod Monitor: examples/custom-resources/pod-monitor/README.md
               - Prometheus Rule: examples/custom-resources/prometheus-rule/README.md
               - Service Monitor: examples/custom-resources/service-monitor/README.md

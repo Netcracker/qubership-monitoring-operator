@@ -1,0 +1,103 @@
+{{- if not (include "grafana-operator-converter.watchNamespaces" .) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "grafana-operator-converter.fullname" . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" . | nindent 4 }}
+    {{- with .Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- /* Keep these rules in sync with role.yaml. Only a cluster-wide watch reads namespaces. */}}
+rules:
+  {{- if and .Values.config.dashboard.enabled .Values.config.dashboard.gzipConfigMapRef.enabled }}
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  {{- end }}
+  {{- if .Values.config.dashboard.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  {{- end }}
+  {{- if .Values.config.datasource.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if .Values.config.folder.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if .Values.config.notification.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafananotificationchannels
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanacontactpoints
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+{{- end }}
