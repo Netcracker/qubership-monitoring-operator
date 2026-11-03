@@ -1,3 +1,7 @@
+---
+icon: lucide/plug
+---
+
 This document describes the integration capabilities with various third party monitoring systems.
 
 # Overview
@@ -43,6 +47,12 @@ The sections below describe integration details for the certain monitoring syste
 ## Vendor observability solutions
 
 * [IBM Netcool](ibm-netcool.md)
+
+## Model Context Protocol
+
+* [Monitoring with MCP](../mcp/mcp-monitoring.md)
+* [Grafana MCP](../mcp/mcp-grafana.md)
+* [VictoriaMetrics MCP](../mcp/mcp-victoriametrics.md)
 
 ## Enabling/disabling specific monitoring components
 

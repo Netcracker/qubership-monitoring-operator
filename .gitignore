@@ -48,3 +48,4 @@ venv/
 site/docs/
 site/public/
 site/.cache/
+site/.venv/
