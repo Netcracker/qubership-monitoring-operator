@@ -14,7 +14,7 @@ defaults apply only when the subchart is rendered on its own.
 {{- define "grafana-operator-converter.watchNamespaces" -}}
 {{- $global := .Values.global | default dict -}}
 {{- if dig "namespaceScope" false $global -}}
-{{- include "grafana-operator-converter.namespace" . -}}
+{{- .Release.Namespace -}}
 {{- else if .Values.watchNamespaces -}}
 {{- $namespaces := list -}}
 {{- range splitList "," .Values.watchNamespaces -}}
@@ -28,7 +28,7 @@ defaults apply only when the subchart is rendered on its own.
 {{- end -}}
 {{- join "," (sortAlpha (uniq $namespaces)) -}}
 {{- else if or .Values.namespaceScope (not (dig "privilegedRights" true $global)) -}}
-{{- include "grafana-operator-converter.namespace" . -}}
+{{- .Release.Namespace -}}
 {{- end -}}
 {{- end -}}
 
@@ -61,13 +61,6 @@ Create names for resources that append a suffix to the full name.
 {{- $baseName := include "grafana-operator-converter.fullname" . | trunc 47 | trimSuffix "-" -}}
 {{- printf "%s-leader-election" $baseName -}}
 {{- end }}
-
-{{/*
-Allow the release namespace to be overridden
-*/}}
-{{- define "grafana-operator-converter.namespace" -}}
-{{ .Values.namespaceOverride | default .Release.Namespace }}
-{{- end -}}
 
 {{/*
 Find a converter image in various places.
@@ -157,7 +150,7 @@ Return the converter rules shared by the ClusterRole and the namespaced Roles. P
 "clusterScoped"; only a cluster-wide watch needs to read namespaces.
 */}}
 {{- define "grafana-operator-converter.rules" -}}
-{{- $converter := .root.Values.grafana.converter -}}
+{{- $converter := .root.Values.config -}}
 {{- if and $converter.dashboard $converter.resolveGzipConfigMapRef }}
 - apiGroups:
     - ""

@@ -10,7 +10,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "grafana-operator-converter.fullname" . }}
-  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "grafana-operator-converter.labels" . | nindent 4 }}
     {{- with .Values.additionalLabels }}
@@ -28,7 +28,7 @@ spec:
     metadata:
       annotations:
         # Restart the converter when its Helm-managed parameters change.
-        checksum/config: {{ toYaml .Values.grafana.converter | sha256sum }}
+        checksum/config: {{ toYaml .Values.config | sha256sum }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -70,11 +70,9 @@ spec:
           volumeMounts:
             - name: dashboards-dir
               mountPath: /tmp/dashboards
-            {{- if .Values.grafana.converter }}
-            {{- if .Values.grafana.converter.enable }}
+            {{- if .Values.config.enable }}
             - name: grafana-converter-parameters
               mountPath: /opt/grafana-converter
-            {{- end }}
             {{- end }}
           ports:
             - containerPort: {{ .Values.metricsService.metricsPort }}
@@ -93,13 +91,11 @@ spec:
       volumes:
         - name: dashboards-dir
           emptyDir: {}
-        {{- if .Values.grafana.converter }}
-        {{- if .Values.grafana.converter.enable }}
+        {{- if .Values.config.enable }}
         - name: grafana-converter-parameters
           configMap:
             name: grafana-resources-converter
             defaultMode: 420
-        {{- end }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

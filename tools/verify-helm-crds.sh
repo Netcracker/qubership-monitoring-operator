@@ -870,7 +870,7 @@ if "${yq_binary}" eval -e '[.rules[].resources[] | select(. == "configmaps")] | 
     exit 1
 fi
 helm template monitoring "${chart_dir}" \
-    --set grafanaConverter.grafana.converter.resolveGzipConfigMapRef=true |
+    --set grafanaConverter.config.resolveGzipConfigMapRef=true |
     "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
         >"${converter_rbac_manifest}"
 verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
@@ -905,9 +905,24 @@ if ! "${yq_binary}" eval-all -e \
     .data."parameters.yaml" | from_yaml |
     select(.dashboard == true) | select(.datasource == false) |
     select(.folder == false) | select(.notification == false) |
-    select(.dashboardLabelSelector == null) | select(.dashboardNamespaceSelector == null)' \
+    select(.dashboardLabelSelector == null) |
+    select((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}]}")' \
     "${converter_manifest}" >/dev/null; then
-    echo "The Grafana converter does not default to dashboard-only migration." >&2
+    echo "The Grafana converter does not default to dashboard-only migration outside OpenShift monitoring namespaces." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --values docs/examples/deploy-parameters/grafana-converter/privileged-values.yaml \
+    >"${converter_manifest}"
+# The converter starts with the selectors that Helm renders, so they must be in the ConfigMap.
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
+    .data."parameters.yaml" | from_yaml |
+    (((.dashboardLabelSelector | to_json(0)) == "[{\"matchLabels\":{\"app.kubernetes.io/component\":\"monitoring\"}}]") and
+    ((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}],\"matchLabels\":{\"monitoring\":\"enabled\"}}"))' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter ConfigMap does not contain the selectors from the privileged example values." >&2
     exit 1
 fi
 
@@ -930,7 +945,7 @@ if ! "${yq_binary}" eval-all -e \
 fi
 
 helm template monitoring "${chart_dir}" \
-    --set grafanaConverter.grafana.converter.dashboard=false \
+    --set grafanaConverter.config.dashboard=false \
     >"${converter_manifest}"
 "${yq_binary}" eval-all \
     "select(.kind == \"ClusterRole\" and ${converter_selector})" \
@@ -985,40 +1000,6 @@ helm template monitoring "${chart_dir}" \
 verify_rendered_resource_count "${converter_manifest}" \
     "${converter_selector}" 0 "Grafana converter resources when disabled"
 
-converter_namespace_error="${temporary_dir}/grafana-converter-namespace-error.txt"
-if helm template monitoring "${chart_dir}" \
-    --namespace monitoring \
-    --set grafanaConverter.namespaceOverride=converter-system \
-    >"${converter_manifest}" 2>"${converter_namespace_error}"; then
-    echo "The chart accepts grafanaConverter.namespaceOverride set to another namespace." >&2
-    exit 1
-fi
-if ! grep -Fq \
-    "grafanaConverter.namespaceOverride must be empty or the release namespace" \
-    "${converter_namespace_error}"; then
-    echo "A rejected grafanaConverter.namespaceOverride does not report the release-namespace contract." >&2
-    cat "${converter_namespace_error}" >&2
-    exit 1
-fi
-
-helm template monitoring "${chart_dir}" \
-    --namespace monitoring \
-    --set grafanaConverter.namespaceOverride=monitoring \
-    >"${converter_manifest}"
-if ! "${yq_binary}" eval-all -e \
-    'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
-    .metadata.namespace == "monitoring"' \
-    "${converter_manifest}" >/dev/null; then
-    echo "The Grafana converter leaves the release namespace when namespaceOverride matches it." >&2
-    exit 1
-fi
-
-helm template monitoring "${chart_dir}" \
-    --namespace monitoring \
-    --set grafanaConverter.install=false \
-    --set grafanaConverter.namespaceOverride=converter-system \
-    >"${converter_manifest}"
-
 helm template monitoring-operator-production-long "${chart_dir}/charts/grafanaOperatorConverter" \
     --namespace monitoring \
     --set global.privilegedRights=false \
@@ -1044,16 +1025,15 @@ fi
 
 helm template monitoring "${chart_dir}/charts/grafanaOperatorConverter" \
     --namespace monitoring \
-    --set namespaceOverride=converter-ns \
     --set serviceMonitor.enabled=true \
     >"${converter_manifest}"
 if ! "${yq_binary}" eval -e \
     'select(.kind == "ServiceMonitor" and
-    .metadata.namespace == "converter-ns" and
-    .spec.namespaceSelector.matchNames[0] == "converter-ns" and
+    .metadata.namespace == "monitoring" and
+    .spec.namespaceSelector.matchNames[0] == "monitoring" and
     (.spec.namespaceSelector.matchNames | length) == 1)' \
     "${converter_manifest}" >/dev/null; then
-    echo "The Grafana converter ServiceMonitor does not select its override namespace." >&2
+    echo "The Grafana converter ServiceMonitor does not select the release namespace." >&2
     exit 1
 fi
 

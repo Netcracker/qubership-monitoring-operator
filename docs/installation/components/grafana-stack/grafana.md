@@ -48,10 +48,9 @@ see the
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                   | string                                                                                                                                          |
 <!-- markdownlint-enable line-length -->
 
-Grafana Operator v5 does not consume `dashboardLabelSelector` or `dashboardNamespaceSelector` directly. These
-selectors choose which legacy `integreatly.org/v1alpha1` dashboards the
-[Grafana converter](grafana-converter.md#dashboard-selection) converts. They do not filter native
-`grafana.integreatly.org/v1beta1` dashboards.
+Grafana Operator v5 does not use `dashboardLabelSelector` or `dashboardNamespaceSelector`. To choose which legacy
+`integreatly.org/v1alpha1` dashboards are converted, set the
+[Grafana converter selectors](grafana-converter.md#dashboard-selection).
 
 Example:
 

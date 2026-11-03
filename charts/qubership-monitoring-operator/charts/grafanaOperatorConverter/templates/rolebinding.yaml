@@ -1,4 +1,4 @@
-{{- if .Values.grafana.converter.enable }}
+{{- if .Values.config.enable }}
 {{- range include "grafana-operator-converter.roleNamespaces" . | fromJsonArray }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,7 +14,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "grafana-operator-converter.serviceAccountName" $ }}
-    namespace: {{ include "grafana-operator-converter.namespace" $ }}
+    namespace: {{ $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "grafana-operator-converter.fullname" $ }}

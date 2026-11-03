@@ -3,7 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "grafana-operator-converter.leaderElectionName" . }}
-  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "grafana-operator-converter.labels" . | nindent 4 }}
     {{- with .Values.additionalLabels }}

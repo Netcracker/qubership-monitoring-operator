@@ -1,14 +1,10 @@
-{{- if .Values.grafana.converter }}
-{{- if .Values.grafana.converter.enable }}
+{{- if .Values.config.enable }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-resources-converter
-  namespace: {{ include "grafana-operator-converter.namespace" . }}
-  annotations:
-    monitoring.netcracker.com/grafana-converter-deployment: {{ include "grafana-operator-converter.fullname" . | quote }}
+  namespace: {{ .Release.Namespace }}
 data:
   parameters.yaml: |-
-    {{- toYaml .Values.grafana.converter | nindent 4 }}
-{{- end }}
+    {{- toYaml .Values.config | nindent 4 }}
 {{- end }}

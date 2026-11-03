@@ -18,9 +18,9 @@ The following settings and behaviors are not supported by the current Grafana Op
   [issue #376](https://github.com/Netcracker/qubership-monitoring-operator/issues/376).
 - `spec.grafana.config` is not propagated to Grafana. Follow
   [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377).
-- `dashboardLabelSelector` and `dashboardNamespaceSelector` select only the legacy dashboards that the
-  [Grafana converter](../installation/components/grafana-stack/grafana-converter.md#dashboard-selection) converts.
-  They do not filter native `grafana.integreatly.org/v1beta1` dashboards.
+- `dashboardLabelSelector` and `dashboardNamespaceSelector` have no effect. To choose which legacy dashboards are
+  converted, set the
+  [Grafana converter selectors](../installation/components/grafana-stack/grafana-converter.md#dashboard-selection).
 
 These fields can remain stored in a `PlatformMonitoring` resource without affecting the generated Grafana v5
 resources. The absence of a validation error does not mean that the setting is supported.

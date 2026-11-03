@@ -1,4 +1,4 @@
-{{- if .Values.grafana.converter.enable }}
+{{- if .Values.config.enable }}
 {{- range include "grafana-operator-converter.roleNamespaces" . | fromJsonArray }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

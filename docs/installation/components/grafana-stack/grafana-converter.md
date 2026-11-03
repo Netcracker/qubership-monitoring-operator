@@ -50,24 +50,23 @@ guest namespace.
 ## Dashboard selection
 
 The chart defaults convert every legacy dashboard in the watched namespaces, except in namespaces labeled
-`openshift.io/cluster-monitoring=true`. To convert only some of them, set the Grafana dashboard selectors in the
-monitoring Helm values:
+`openshift.io/cluster-monitoring=true`. To convert only some of them, set the converter selectors in the monitoring
+Helm values:
 
 ```yaml
-grafana:
-  dashboardLabelSelector:
-    - matchLabels:
-        app.kubernetes.io/component: monitoring
-  dashboardNamespaceSelector:
-    matchLabels:
-      monitoring: enabled
+grafanaConverter:
+  config:
+    dashboardLabelSelector:
+      - matchLabels:
+          app.kubernetes.io/component: monitoring
+    dashboardNamespaceSelector:
+      matchLabels:
+        monitoring: enabled
 ```
 
-Monitoring Operator copies `dashboardLabelSelector` and `dashboardNamespaceSelector` from `PlatformMonitoring` into
-the `grafana-resources-converter` ConfigMap and restarts the converter when the selectors change. This happens only
-while Grafana is installed and not paused. A Helm upgrade can rewrite the ConfigMap, and the next reconciliation
-restores the selectors. Do not set the selectors under `grafanaConverter.grafana.converter`, because Monitoring
-Operator replaces them.
+Helm writes the selectors to the `grafana-resources-converter` ConfigMap, and a change restarts the converter. The
+converter does not read `grafana.dashboardLabelSelector` or `grafana.dashboardNamespaceSelector` from
+`PlatformMonitoring`. If you set those for Grafana, set the same values here.
 
 A dashboard matches when any one label selector matches. `dashboardNamespaceSelector` applies only when the converter
 watches all namespaces. Helm merges your `dashboardNamespaceSelector` with the default one, so the
@@ -87,7 +86,6 @@ Parameters are set under `grafanaConverter` in the monitoring Helm values.
 | install                                                | Installs the converter. Default: `true`.                                                                                                                                            | bool              |
 | watchNamespaces                                        | Comma-separated namespaces to watch. Empty watches all namespaces in privileged mode and the release namespace otherwise.                                                           | string            |
 | namespaceScope                                         | Watches only the release namespace when `watchNamespaces` is empty. Default: `false`.                                                                                               | bool              |
-| namespaceOverride                                      | Must be empty or the release namespace. Any other value fails the render, because Monitoring Operator updates the converter in the release namespace.                               | string            |
 | image                                                  | Converter image. The default pins a multi-architecture image by digest.                                                                                                             | string            |
 | imagePullPolicy                                        | Image pull policy. Default: `IfNotPresent`.                                                                                                                                         | string            |
 | imagePullSecrets                                       | Image pull secrets for the converter pod.                                                                                                                                           | []object          |
@@ -99,16 +97,16 @@ Parameters are set under `grafanaConverter` in the monitoring Helm values.
 | nodeSelector, tolerations, affinity, priorityClassName | Pod scheduling settings.                                                                                                                                                            | object            |
 | env                                                    | Extra environment variables. `WATCH_NAMESPACE` and `WATCH_NAMESPACE_SELECTOR` are reserved and fail the render.                                                                     | []object          |
 | serviceMonitor.enabled                                 | Creates a ServiceMonitor for converter metrics. Default: `false`.                                                                                                                   | bool              |
-| grafana.converter.deleteTargetOnSourceDeletion         | Deletes a converted dashboard when its legacy dashboard is deleted, through a Kubernetes owner reference. Default: `false`.                                                         | bool              |
-| grafana.converter.resolveGzipConfigMapRef              | Converts legacy dashboards whose content is in a ConfigMap referenced by `spec.gzipConfigMapRef`. Grants read access to ConfigMaps. Default: `false`.                               | bool              |
-| grafana.converter.gzipConfigMapMaxDecompressedSize     | Maximum decompressed size of content read through `gzipConfigMapRef`. Default: `32Mi`.                                                                                              | string            |
+| config.deleteTargetOnSourceDeletion                    | Deletes a converted dashboard when its legacy dashboard is deleted, through a Kubernetes owner reference. Default: `false`.                                                         | bool              |
+| config.resolveGzipConfigMapRef                         | Converts legacy dashboards whose content is in a ConfigMap referenced by `spec.gzipConfigMapRef`. Grants read access to ConfigMaps. Default: `false`.                               | bool              |
+| config.gzipConfigMapMaxDecompressedSize                | Maximum decompressed size of content read through `gzipConfigMapRef`. Default: `32Mi`.                                                                                              | string            |
 <!-- markdownlint-enable line-length -->
 
 `watchNamespaceSelector` is rejected. The converter cannot change its namespace list at runtime; use
 `watchNamespaces`.
 
 The converter runs one replica with the `Recreate` update strategy, so two converters never write the same dashboards
-during a rollout. A change to `grafanaConverter.grafana.converter` restarts the pod.
+during a rollout. A change to `grafanaConverter.config` restarts the pod.
 
 ## Examples
 
@@ -141,8 +139,8 @@ The command prints `True` when Grafana has loaded the dashboard.
 | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | A legacy dashboard has no converted dashboard               | The namespace is in the watch scope, the dashboard matches the selectors, and the converter logs show no conversion error.   |
 | The converter logs report a conflict                        | A v1beta1 dashboard with the same name exists without the `app.kubernetes.io/managed-by-operator` label. Rename one of them. |
-| A dashboard with `gzipConfigMapRef` is reported as an error | Enable `grafanaConverter.grafana.converter.resolveGzipConfigMapRef`.                                                         |
+| A dashboard with `gzipConfigMapRef` is reported as an error | Enable `grafanaConverter.config.resolveGzipConfigMapRef`.                                                                    |
 | The converted dashboard exists but is not in Grafana        | The Grafana instance has the labels from `instanceSelector`, and the dashboard's `DashboardSynchronized` condition.          |
-| Selector changes have no effect                             | Set them in `grafana.dashboardLabelSelector` and `grafana.dashboardNamespaceSelector`, and check that Grafana is not paused. |
+| Selector changes have no effect                             | Set them in `grafanaConverter.config`, not in `grafana`.                                                                     |
 
 [datasource-migration]: ../../../examples/custom-resources/grafana-datasource/README.md#migrate-v4-resources

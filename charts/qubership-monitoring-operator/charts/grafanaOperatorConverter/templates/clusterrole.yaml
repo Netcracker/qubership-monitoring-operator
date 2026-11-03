@@ -1,4 +1,4 @@
-{{- if and .Values.grafana.converter.enable (not (include "grafana-operator-converter.watchNamespaces" .)) }}
+{{- if and .Values.config.enable (not (include "grafana-operator-converter.watchNamespaces" .)) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

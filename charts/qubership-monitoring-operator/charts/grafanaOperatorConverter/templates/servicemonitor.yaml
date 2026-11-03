@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "grafana-operator-converter.fullname" . }}
-  namespace: {{ include "grafana-operator-converter.namespace" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "grafana-operator-converter.labels" . | nindent 4 }}
     {{- with .Values.additionalLabels }}
@@ -16,7 +16,7 @@ spec:
   jobLabel: {{ .Release.Name }}
   namespaceSelector:
     matchNames:
-      - {{ include "grafana-operator-converter.namespace" . }}
+      - {{ .Release.Namespace }}
   selector:
     matchLabels:
       {{- include "grafana-operator-converter.selectorLabels" . | nindent 6 }}

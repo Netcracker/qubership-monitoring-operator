@@ -37,9 +37,6 @@ nameOverride: ""
 # -- Overrides the fully qualified app name.
 fullnameOverride: ""
 
-# -- Overrides the namespace name.
-namespaceOverride: ""
-
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
@@ -109,39 +106,38 @@ serviceMonitor:
   relabelings: []
 
 
-# Creates Grafana resources
-# from group integreatly.org version v1alpha1 to group grafana.integreatly.org v1beta1
+# Converter parameters, written to the grafana-resources-converter ConfigMap. The converter converts resources
+# from group integreatly.org version v1alpha1 to group grafana.integreatly.org v1beta1.
 # Type: object
 # Mandatory: no
 #
-grafana:
-  converter:
-    enable: true
-    dashboard: true
-    # -- Legacy dashboards to convert, as a list of Kubernetes label selectors. Unset converts every legacy dashboard.
-    # A dashboard matches when any one selector matches.
-    # While Grafana is installed, Monitoring Operator replaces this value with grafana.dashboardLabelSelector from
-    # PlatformMonitoring. Set the selector there instead.
-    dashboardLabelSelector:
-    # -- Namespace label selector for legacy dashboards. Unset does not filter by namespace labels. An empty selector
-    # matches every namespace. Applies only to a cluster-wide watch.
-    # While Grafana is installed, Monitoring Operator replaces this value with grafana.dashboardNamespaceSelector from
-    # PlatformMonitoring. Set the selector there instead.
-    dashboardNamespaceSelector:
-    # -- Delete a converted dashboard when its legacy source is deleted, through a Kubernetes owner reference.
-    # The default keeps the converted dashboard.
-    deleteTargetOnSourceDeletion: false
-    # -- Convert legacy dashboards whose content is in a ConfigMap referenced by spec.gzipConfigMapRef.
-    # Grants the converter get, list, and watch on ConfigMaps in every watched namespace.
-    resolveGzipConfigMapRef: false
-    # -- Maximum decompressed size of dashboard content read through gzipConfigMapRef.
-    gzipConfigMapMaxDecompressedSize: 32Mi
-    # The monitoring CRD bundle retains only the legacy GrafanaDashboard CRD. Enable the other converters only when
-    # their corresponding integreatly.org CRDs are installed separately.
-    datasource: false
-    folder: false
-    notification: false
-    instanceSelector:
-      matchLabels:
-        app.kubernetes.io/component: grafana
-        app.kubernetes.io/part-of: monitoring
+config:
+  enable: true
+  dashboard: true
+  # -- Legacy dashboards to convert, as a list of Kubernetes label selectors. Unset converts every legacy dashboard.
+  # A dashboard matches when any one selector matches.
+  dashboardLabelSelector:
+  # -- Namespace label selector for legacy dashboards. Unset or empty matches every namespace. Applies only to a
+  # cluster-wide watch. The default skips OpenShift cluster monitoring namespaces, like the Grafana default.
+  dashboardNamespaceSelector:
+    matchExpressions:
+      - key: openshift.io/cluster-monitoring
+        operator: NotIn
+        values: ["true"]
+  # -- Delete a converted dashboard when its legacy source is deleted, through a Kubernetes owner reference.
+  # The default keeps the converted dashboard.
+  deleteTargetOnSourceDeletion: false
+  # -- Convert legacy dashboards whose content is in a ConfigMap referenced by spec.gzipConfigMapRef.
+  # Grants the converter get, list, and watch on ConfigMaps in every watched namespace.
+  resolveGzipConfigMapRef: false
+  # -- Maximum decompressed size of dashboard content read through gzipConfigMapRef.
+  gzipConfigMapMaxDecompressedSize: 32Mi
+  # The monitoring CRD bundle retains only the legacy GrafanaDashboard CRD. Enable the other converters only when
+  # their corresponding integreatly.org CRDs are installed separately.
+  datasource: false
+  folder: false
+  notification: false
+  instanceSelector:
+    matchLabels:
+      app.kubernetes.io/component: grafana
+      app.kubernetes.io/part-of: monitoring

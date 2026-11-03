@@ -1,7 +1,6 @@
 package grafana
 
 import (
-	"context"
 	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -58,9 +57,6 @@ func (r *GrafanaReconciler) Run(cr *monv1.PlatformMonitoring) error {
 		return nil
 	}
 
-	if err := r.syncGrafanaConverterSelectors(context.Background(), cr); err != nil {
-		return err
-	}
 	// Reconcile resources with creation and update
 	if err := r.handleGrafana(cr); err != nil {
 		return err
