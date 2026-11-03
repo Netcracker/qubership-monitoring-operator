@@ -912,6 +912,24 @@ if ! "${yq_binary}" eval-all -e \
 fi
 
 helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.serviceMonitor.enabled=true \
+    --set 'grafanaConverter.serviceMonitor.relabelings[0].action=keep' \
+    --set 'grafanaConverter.serviceMonitor.relabelings[0].regex=converter' \
+    --set 'grafanaConverter.serviceMonitor.metricRelabelings[0].action=drop' \
+    --set 'grafanaConverter.serviceMonitor.metricRelabelings[0].regex=debug_.*' \
+    >"${converter_manifest}"
+# yq does not compare lists by value, so compare the rules as compact JSON.
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ServiceMonitor" and '"${converter_selector}"') | .spec.endpoints |
+    ((length == 1) and (.[0].port == "metrics") and
+    ((.[0].relabelings | to_json(0)) == "[{\"action\":\"keep\",\"regex\":\"converter\"}]") and
+    ((.[0].metricRelabelings | to_json(0)) == "[{\"action\":\"drop\",\"regex\":\"debug_.*\"}]"))' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter ServiceMonitor does not keep its relabeling rules in the metrics endpoint." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
     --set grafanaConverter.grafana.converter.dashboard=false \
     >"${converter_manifest}"
 "${yq_binary}" eval-all \
