@@ -1,4 +1,5 @@
 {{- if .Values.config.enable }}
+{{- $config := .Values.config }}
 {{- range include "grafana-operator-converter.roleNamespaces" . | fromJsonArray }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11,7 +12,89 @@ metadata:
     {{- with $.Values.additionalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+{{- /* Keep these rules in sync with clusterrole.yaml, except for the namespaces rule. */}}
 rules:
-  {{- include "grafana-operator-converter.rules" (dict "root" $ "clusterScoped" false) | nindent 2 }}
+  {{- if and $config.dashboard $config.resolveGzipConfigMapRef }}
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  {{- end }}
+  {{- if $config.dashboard }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  {{- end }}
+  {{- if $config.datasource }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $config.folder }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $config.notification }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafananotificationchannels
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanacontactpoints
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
 {{- end }}
 {{- end }}
