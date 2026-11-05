@@ -110,7 +110,7 @@ Image can be found from:
     {{- printf "%s" .Values.alertManager.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/alertmanager */ -}}
-    {{- print "docker.io/prom/alertmanager:v0.34.1" -}}
+    {{- print "docker.io/prom/alertmanager:v0.34.2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -232,7 +232,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAlertManager.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/alertmanager */ -}}
-    {{- print "docker.io/prom/alertmanager:v0.34.1" -}}
+    {{- print "docker.io/prom/alertmanager:v0.34.2" -}}
   {{- end -}}
 {{- end -}}
 
