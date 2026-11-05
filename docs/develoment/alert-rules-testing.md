@@ -1,3 +1,7 @@
+---
+icon: lucide/flask-conical
+---
+
 # Alert Rules Unit Testing with vmalert-tool
 
 A practical guide to writing unit tests for Prometheus/VictoriaMetrics alert

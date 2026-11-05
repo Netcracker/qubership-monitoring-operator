@@ -2,7 +2,8 @@
 # Pair with: helm upgrade ... -n <host-ns> -f this file
 #
 # The host stays privileged. Set the same comma-separated namespace list on
-# WATCH_NAMESPACE and grafana.operator.watchNamespaces. The deployment owns
+# WATCH_NAMESPACE, grafana.operator.watchNamespaces, and
+# grafanaConverter.watchNamespaces. The deployment owns
 # that list: name each namespace the host operators watch. Omit the guest
 # namespace and every namespace labeled openshift.io/cluster-monitoring=true.
 # VictoriaMetrics Operator v0.73.1 selects VM inputs from every namespace on
@@ -19,3 +20,6 @@ victoriametrics:
 grafana:
   operator:
     watchNamespaces: monitoring
+
+grafanaConverter:
+  watchNamespaces: monitoring

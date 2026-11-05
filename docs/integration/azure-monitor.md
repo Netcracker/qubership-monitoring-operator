@@ -1,3 +1,7 @@
+---
+icon: lucide/cloud
+---
+
 This document provides information about various integration options with Azure Monitor tools
 and managed services.
 
@@ -19,11 +23,9 @@ Integration between Azure monitor and Monitoring Stack should be
 configured **before** deploying Monitoring, and it is required to set correct deployment parameters to enable
 necessary features.
 
-
 ## Integration with Azure Monitor
 
 _Analysis is in progress._
-
 
 ## Promitor Agent Scraper
 
@@ -80,11 +82,9 @@ parameter, you should set `secrets.createSecret` to `false`, set the name of the
 `secrets.secretName`, and set the name of the field that contains the application secret as
 `secrets.appKeySecret`.
 
-
 #### Managed Identity Authentication Mode
 
 _Analysis is in progress._
-
 
 ### Metric Declaration for Promitor Agent Scraper
 
@@ -296,5 +296,6 @@ It requires Azure Authentication that must be configured the same as promitor-ag
 
 ### How to Configure Resource Discovery Groups
 
-The explaining how to configure resource groups can be found
-[here](https://docs.promitor.io/v2.9/resource-discovery/declaring-resource-discovery-groups/).
+To configure resource groups, see
+[Declaring resource discovery groups](https://docs.promitor.io/v2.9/resource-discovery/declaring-resource-discovery-groups/)
+in the Promitor documentation.

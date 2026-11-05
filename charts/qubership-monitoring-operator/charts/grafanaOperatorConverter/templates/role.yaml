@@ -1,0 +1,98 @@
+{{- $config := .Values.config }}
+{{- range include "grafana-operator-converter.roleNamespaces" . | fromJsonArray }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "grafana-operator-converter.fullname" $ }}
+  namespace: {{ . }}
+  labels:
+    {{- include "grafana-operator-converter.labels" $ | nindent 4 }}
+    {{- with $.Values.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- /* Keep these rules in sync with clusterrole.yaml, except for the namespaces rule. */}}
+rules:
+  {{- if and $config.dashboard.enabled $config.dashboard.gzipConfigMapRef.enabled }}
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  {{- end }}
+  {{- if $config.dashboard.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  {{- end }}
+  {{- if $config.datasource.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanadatasources
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $config.folder.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanafolders
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+  {{- if $config.notification.enabled }}
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafananotificationchannels
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - grafana.integreatly.org
+    resources:
+      - grafanacontactpoints
+    verbs:
+      - create
+      - get
+      - update
+  {{- end }}
+{{- end }}

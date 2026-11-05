@@ -1,3 +1,7 @@
+---
+icon: lucide/scale
+---
+
 This document describes how to configure Monitoring to collect metrics (user metrics or all metrics) from a specific
 list of namespaces.
 

@@ -1,3 +1,7 @@
+---
+icon: lucide/sliders-horizontal
+---
+
 # Component Configuration
 
 This section contains detailed configuration documentation for all monitoring components that can be deployed
@@ -10,6 +14,7 @@ with the Qubership Monitoring Operator.
 * **[AlertManager](prometheus-stack/alertmanager.md)** - Alert routing, grouping, and notification management
 * **[Grafana](grafana-stack/grafana.md)** - Visualization and dashboard platform
 * **[Grafana MCP](grafana-stack/mcp.md)** - MCP server for Grafana tools
+* **[Grafana Converter](grafana-stack/grafana-converter.md)** - Converts legacy Grafana dashboards to the v5 API
 * **[VictoriaMetrics](victoriametrics-stack/victoriametrics.md)** - Time series database and storage
 * **[VictoriaMetrics MCP](victoriametrics-stack/mcp.md)** - MCP server for VictoriaMetrics tools
 
@@ -58,11 +63,11 @@ with the Qubership Monitoring Operator.
 
 ### Authentication
 <!-- Most components support authentication configuration via the global `auth` section.
-See [Authentication](../monitoring-configuration/authentication.md) for details. -->
+See [Authentication](../../monitoring-configuration/authentication.md) for details. -->
 
 ### TLS Configuration
 <!-- Components can be configured with TLS certificates for secure communication.
-See [TLS Configuration](../monitoring-configuration/tls.md). -->
+See [TLS Configuration](../../monitoring-configuration/tls.md). -->
 
 ### Resource Management
 

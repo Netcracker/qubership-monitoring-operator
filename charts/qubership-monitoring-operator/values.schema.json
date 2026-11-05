@@ -292,6 +292,24 @@
                 }
             }
         },
+        "grafanaConverter": {
+            "type": "object",
+            "description": "Converter to migrate Grafana resources from v1alpha1 to v1beta1 APIs",
+            "properties": {
+                "install": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "namespaceScope": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "watchNamespaces": {
+                    "type": "string",
+                    "default": ""
+                }
+            }
+        },
         "grafanaDashboards": {
             "type": "object",
             "properties": {
@@ -1893,6 +1911,24 @@
                         "type":"object"
                     },
                     "description": "Volumes allows configuration of additional volumes on the output StatefulSet definition. Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core"
+                }
+            }
+        },
+        "pvc": {
+            "type": "object",
+            "description": "Settings shared by the PersistentVolumeClaims of components with persistent storage.",
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "description": "Annotations to add to PersistentVolumeClaims. Component-specific PVC annotations override these values.",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         },

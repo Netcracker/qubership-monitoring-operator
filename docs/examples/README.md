@@ -1,3 +1,7 @@
+---
+icon: lucide/puzzle
+---
+
 # Examples
 
 ## Which example see at the first time
@@ -39,6 +43,7 @@ The Grafana Operator automatically import all found datasources _in current name
 * [PrometheusRule](custom-resources/prometheus-rule/README.md)
 * [GrafanaDashboard](custom-resources/grafana-dashboard/README.md)
 * [GrafanaDatasource](custom-resources/grafana-datasource/README.md)
+* [Legacy GrafanaDashboard](custom-resources/legacy-grafana-dashboard/README.md)
 
 ## Complex examples
 

@@ -22,6 +22,8 @@ other_namespace_rbac_cleanup_command="${temporary_dir}/other-namespace-rbac-clea
 openshift_rendered_manifest="${temporary_dir}/openshift-manifest.yaml"
 openshift_rbac_cleanup_role_manifest="${temporary_dir}/openshift-rbac-cleanup-clusterrole.yaml"
 openshift_rbac_cleanup_command="${temporary_dir}/openshift-rbac-cleanup-command.sh"
+converter_manifest="${temporary_dir}/grafana-converter.yaml"
+converter_rbac_manifest="${temporary_dir}/grafana-converter-rbac.yaml"
 root_crd_dir="${chart_dir}/crds"
 prometheus_crd_dir="${chart_dir}/charts/prometheus/crds"
 victoriametrics_crd_dir="${chart_dir}/charts/victoriametrics/crds"
@@ -269,17 +271,17 @@ helm template monitoring "${chart_dir}" \
     >"${rendered_manifest}"
 
 expected_images=(
-    "docker.io/grafana/grafana:13.2.4"
+    "docker.io/grafana/grafana:13.3.0"
     "docker.io/prom/alertmanager:v0.34.1"
-    "docker.io/prom/prometheus:v3.15.0"
+    "docker.io/prom/prometheus:v3.15.1"
     "docker.io/victoriametrics/operator:v0.75.1"
-    "docker.io/victoriametrics/victoria-metrics:v1.154.1"
-    "docker.io/victoriametrics/vmagent:v1.154.1"
-    "docker.io/victoriametrics/vmalert:v1.154.1"
-    "docker.io/victoriametrics/vmauth:v1.154.1"
+    "docker.io/victoriametrics/victoria-metrics:v1.155.0"
+    "docker.io/victoriametrics/vmagent:v1.155.0"
+    "docker.io/victoriametrics/vmalert:v1.155.0"
+    "docker.io/victoriametrics/vmauth:v1.155.0"
     "quay.io/grafana-operator/grafana-operator:v5.24.0"
-    "quay.io/prometheus-operator/prometheus-config-reloader:v0.94.1"
-    "quay.io/prometheus-operator/prometheus-operator:v0.94.1"
+    "quay.io/prometheus-operator/prometheus-config-reloader:v0.94.2"
+    "quay.io/prometheus-operator/prometheus-operator:v0.94.2"
 )
 
 for expected_image in "${expected_images[@]}"; do
@@ -334,6 +336,22 @@ verify_rbac_resource() {
         ".rules[] | select(.apiGroups | any_c(. == \"${api_group}\")) | select(.resources | any_c(. == \"${resource}\")) | select(.verbs | any_c(. == \"${verb}\"))" \
         "${manifest}" >/dev/null; then
         echo "${manifest} does not grant ${verb} on ${api_group}/${resource}." >&2
+        exit 1
+    fi
+}
+
+verify_rbac_resource_absent() {
+    local manifest="$1"
+    local api_group="$2"
+    local resource="$3"
+    local matches
+    local match_count
+
+    matches="[select(.rules != null) | .rules[] | select(.apiGroups | any_c(. == \"${api_group}\")) |
+        select(.resources | any_c(. == \"${resource}\"))]"
+    match_count="$("${yq_binary}" eval-all "${matches} | length" "${manifest}")"
+    if [[ "${match_count}" != "0" ]]; then
+        echo "${manifest} unexpectedly grants permissions on ${api_group}/${resource}." >&2
         exit 1
     fi
 }
@@ -821,6 +839,229 @@ if ! "${yq_binary}" eval -e \
     exit 1
 fi
 
+converter_selector='.metadata.labels."app.kubernetes.io/name" == "qubership-grafana-operator-converter"'
+
+helm template monitoring "${chart_dir}" >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"ClusterRole\" and ${converter_selector}" 1 "Grafana converter ClusterRoles"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"ClusterRoleBinding\" and ${converter_selector}" 1 "Grafana converter ClusterRoleBindings"
+"${yq_binary}" eval-all \
+    "select(.kind == \"ClusterRole\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" grafana.integreatly.org grafanadashboards \
+    "create,delete,get,list,update,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" namespaces "get,list,watch"
+if ! "${yq_binary}" eval -e \
+    '[.rules[].resources[] | select(. == "grafanadatasources" or . == "grafanafolders" or
+    . == "grafananotificationchannels" or . == "grafanacontactpoints")] | length == 0' \
+    "${converter_rbac_manifest}" >/dev/null; then
+    echo "The default Grafana converter RBAC enables a converter without its bundled legacy CRD." >&2
+    exit 1
+fi
+if "${yq_binary}" eval -r '.rules[].verbs[]' "${converter_rbac_manifest}" | grep -Fxq '*'; then
+    echo "The Grafana converter ClusterRole contains a wildcard verb." >&2
+    exit 1
+fi
+if "${yq_binary}" eval -e '[.rules[].resources[] | select(. == "configmaps")] | length > 0' \
+    "${converter_rbac_manifest}" >/dev/null 2>&1; then
+    echo "The default Grafana converter RBAC grants ConfigMap access without resolveGzipConfigMapRef." >&2
+    exit 1
+fi
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.config.dashboard.gzipConfigMapRef.enabled=true |
+    "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
+        >"${converter_rbac_manifest}"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[0].resources.limits |
+    (has(\"memory\") and has(\"ephemeral-storage\"))" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter container has no memory or ephemeral-storage limit." >&2
+    exit 1
+fi
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] |
+    select(.name == \"qubership-grafana-operator-converter\") |
+    .image == \"ghcr.io/netcracker/qubership-grafana-operator-converter:main@sha256:b36881b193ea33906d35d9eccd3a61fe2f7c1788d255da5727361a1e2c0e3ade\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The default Grafana converter deployment does not use the pinned image." >&2
+    exit 1
+fi
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] |
+    select(.name == \"qubership-grafana-operator-converter\") |
+    .env[] | select(.name == \"WATCH_NAMESPACE\") | .value == \"\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The default Grafana converter deployment does not watch all namespaces." >&2
+    exit 1
+fi
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
+    .data."parameters.yaml" | from_yaml |
+    select(.dashboard == true) | select(.datasource == false) |
+    select(.folder == false) | select(.notification == false) |
+    select((.dashboardLabelSelector | to_json(0)) == "[]") |
+    select((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}]}")' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter does not default to dashboard-only migration outside OpenShift monitoring namespaces." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --values docs/examples/deploy-parameters/grafana-converter/privileged-values.yaml \
+    >"${converter_manifest}"
+# The converter starts with the selectors that Helm renders, so they must be in the ConfigMap.
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
+    .data."parameters.yaml" | from_yaml |
+    (((.dashboardLabelSelector | to_json(0)) == "[{\"matchLabels\":{\"app.kubernetes.io/component\":\"monitoring\"}}]") and
+    ((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}],\"matchLabels\":{\"monitoring\":\"enabled\"}}"))' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter ConfigMap does not contain the selectors from the privileged example values." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.serviceMonitor.enabled=true \
+    --set 'grafanaConverter.serviceMonitor.relabelings[0].action=keep' \
+    --set 'grafanaConverter.serviceMonitor.relabelings[0].regex=converter' \
+    --set 'grafanaConverter.serviceMonitor.metricRelabelings[0].action=drop' \
+    --set 'grafanaConverter.serviceMonitor.metricRelabelings[0].regex=debug_.*' \
+    >"${converter_manifest}"
+# yq does not compare lists by value, so compare the rules as compact JSON.
+if ! "${yq_binary}" eval-all -e \
+    'select(.kind == "ServiceMonitor" and '"${converter_selector}"') | .spec.endpoints |
+    ((length == 1) and (.[0].port == "metrics") and
+    ((.[0].relabelings | to_json(0)) == "[{\"action\":\"keep\",\"regex\":\"converter\"}]") and
+    ((.[0].metricRelabelings | to_json(0)) == "[{\"action\":\"drop\",\"regex\":\"debug_.*\"}]"))' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter ServiceMonitor does not keep its relabeling rules in the metrics endpoint." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.config.dashboard.enabled=false \
+    --set grafanaConverter.config.datasource.enabled=true \
+    >"${converter_manifest}"
+"${yq_binary}" eval-all \
+    "select(.kind == \"ClusterRole\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
+
+converter_config_error="${temporary_dir}/grafana-converter-config-error.txt"
+if helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.config.dashboard.enabled=false \
+    >"${converter_manifest}" 2>"${converter_config_error}"; then
+    echo "The chart renders the Grafana converter with every converter disabled." >&2
+    exit 1
+fi
+if ! grep -Fq "Enable at least one converter in config" "${converter_config_error}"; then
+    echo "The chart does not explain why it rejects a Grafana converter with every converter disabled." >&2
+    cat "${converter_config_error}" >&2
+    exit 1
+fi
+if helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.config.dashboard.labelSelectors=true \
+    >"${converter_manifest}" 2>"${converter_config_error}"; then
+    echo "The chart accepts an unknown Grafana converter parameter." >&2
+    exit 1
+fi
+if ! grep -Fq "additional properties 'labelSelectors' not allowed" "${converter_config_error}"; then
+    echo "The chart does not name the unknown Grafana converter parameter." >&2
+    cat "${converter_config_error}" >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set global.privilegedRights=false \
+    >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"ClusterRole\" and ${converter_selector}" 0 "non-privileged Grafana converter ClusterRoles"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"Role\" and ${converter_selector} and .metadata.namespace == \"default\"" \
+    1 "non-privileged Grafana converter Roles"
+"${yq_binary}" eval-all \
+    "select(.kind == \"Role\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] | .env[] |
+    select(.name == \"WATCH_NAMESPACE\") | .value == \"default\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The non-privileged Grafana converter does not watch the release namespace." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set global.privilegedRights=false \
+    --set-string 'grafanaConverter.watchNamespaces=monitoring\,tenant-a' \
+    >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"Role\" and ${converter_selector}" 2 "multi-namespace Grafana converter Roles"
+verify_rendered_resource_count "${converter_manifest}" \
+    ".kind == \"RoleBinding\" and ${converter_selector}" 2 "multi-namespace Grafana converter RoleBindings"
+"${yq_binary}" eval-all \
+    "select(.kind == \"Role\" and ${converter_selector})" \
+    "${converter_manifest}" >"${converter_rbac_manifest}"
+verify_rbac_resource_absent "${converter_rbac_manifest}" "" namespaces
+if ! "${yq_binary}" eval-all -e \
+    "select(.kind == \"Deployment\" and ${converter_selector}) |
+    .spec.template.spec.containers[] | .env[] |
+    select(.name == \"WATCH_NAMESPACE\") | .value == \"monitoring,tenant-a\"" \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter does not pass the normalized namespace list to WATCH_NAMESPACE." >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}" \
+    --set grafanaConverter.install=false \
+    >"${converter_manifest}"
+verify_rendered_resource_count "${converter_manifest}" \
+    "${converter_selector}" 0 "Grafana converter resources when disabled"
+
+helm template monitoring-operator-production-long "${chart_dir}/charts/grafanaOperatorConverter" \
+    --namespace monitoring \
+    --set global.privilegedRights=false \
+    --set leaderElect=true \
+    >"${converter_manifest}"
+if ! "${yq_binary}" eval-all -e \
+    '[select(.metadata.name != null and (.metadata.name | length) > 63)] | length == 0' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter renders a resource name longer than 63 characters." >&2
+    exit 1
+fi
+duplicate_converter_rbac="$(
+    "${yq_binary}" eval -r \
+        'select(.kind == "Role" or .kind == "RoleBinding") |
+        [.kind, .metadata.namespace, .metadata.name] | @tsv' \
+        "${converter_manifest}" | sort | uniq -d
+)"
+if [[ -n "${duplicate_converter_rbac}" ]]; then
+    echo "The Grafana converter renders duplicate namespaced RBAC identities:" >&2
+    echo "${duplicate_converter_rbac}" >&2
+    exit 1
+fi
+
+helm template monitoring "${chart_dir}/charts/grafanaOperatorConverter" \
+    --namespace monitoring \
+    --set serviceMonitor.enabled=true \
+    >"${converter_manifest}"
+if ! "${yq_binary}" eval -e \
+    'select(.kind == "ServiceMonitor" and
+    .metadata.namespace == "monitoring" and
+    .spec.namespaceSelector.matchNames[0] == "monitoring" and
+    (.spec.namespaceSelector.matchNames | length) == 1)' \
+    "${converter_manifest}" >/dev/null; then
+    echo "The Grafana converter ServiceMonitor does not select the release namespace." >&2
+    exit 1
+fi
+
 verify_openshift_monitoring_exclusion() {
     local asset="$1"
     shift
@@ -833,6 +1074,29 @@ verify_openshift_monitoring_exclusion() {
             exit 1
         fi
     done
+}
+
+# verify_converter_watch_scope checks that the Grafana converter watches exactly one namespace and
+# that its RBAC is a namespaced Role in that namespace, never a ClusterRole.
+verify_converter_watch_scope() {
+    local manifest="$1"
+    local namespace="$2"
+    local side="$3"
+    local selector='.metadata.labels."app.kubernetes.io/name" == "qubership-grafana-operator-converter"'
+
+    if ! "${yq_binary}" eval-all -e \
+        "select(.kind == \"Deployment\" and ${selector}) |
+        [.spec.template.spec.containers[0].env[] | select(.name == \"WATCH_NAMESPACE\") | .value] |
+        (length == 1 and .[0] == \"${namespace}\")" \
+        "${manifest}" >/dev/null; then
+        echo "${side} Grafana converter WATCH_NAMESPACE is not ${namespace}." >&2
+        exit 1
+    fi
+    verify_rendered_resource_count "${manifest}" \
+        ".kind == \"ClusterRole\" and ${selector}" 0 "${side} Grafana converter ClusterRoles"
+    verify_rendered_resource_count "${manifest}" \
+        ".kind == \"Role\" and .metadata.namespace == \"${namespace}\" and ${selector}" 1 \
+        "${side} Grafana converter Roles in ${namespace}"
 }
 
 verify_namespaced_guest_watch_scope() {
@@ -873,6 +1137,7 @@ verify_namespaced_guest_watch_scope() {
         echo "Host Grafana Operator watchNamespaces is not ${host_watch}." >&2
         exit 1
     fi
+    verify_converter_watch_scope "${host_manifest}" "${host_watch}" "Host"
 
     if ! "${yq_binary}" eval-all -e \
         'select(.kind == "PlatformMonitoring") |
@@ -928,6 +1193,7 @@ verify_namespaced_guest_watch_scope() {
         echo "Guest Grafana Operator is not limited to its release namespace." >&2
         exit 1
     fi
+    verify_converter_watch_scope "${guest_manifest}" "monitoring-test" "Guest"
 }
 
 verify_namespaced_guest_watch_scope

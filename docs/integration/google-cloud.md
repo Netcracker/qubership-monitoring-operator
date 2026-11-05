@@ -1,3 +1,7 @@
+---
+icon: lucide/cloud
+---
+
 This document provides information about various integration options with Google Cloud Operations
 tools and managed services.
 

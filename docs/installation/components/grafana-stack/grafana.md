@@ -48,6 +48,10 @@ see the
 | priorityClassName          | PriorityClassName assigned to the Pods to prevent them from evicting                                                                                                                                                   | string                                                                                                                                          |
 <!-- markdownlint-enable line-length -->
 
+Grafana Operator v5 does not use `dashboardLabelSelector` or `dashboardNamespaceSelector`. To choose which legacy
+`integreatly.org/v1alpha1` dashboards are converted, set the
+[Grafana converter selectors](grafana-converter.md#dashboard-selection).
+
 Example:
 
 ```yaml

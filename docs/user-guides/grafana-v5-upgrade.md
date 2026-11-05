@@ -4,9 +4,8 @@ The first upgrade from a release that uses Grafana Operator v4, including Qubers
 does not preserve every existing configuration behavior. Some fields remain accepted by the `PlatformMonitoring` API
 but are not applied to the Grafana Operator v5 resources. Check the configuration against this page before upgrading.
 
-> **Dependency:** Legacy dashboard compatibility requires the dashboard-only converter integration tracked in
-> [PR #322](https://github.com/Netcracker/qubership-monitoring-operator/pull/322). Use this upgrade profile only with
-> a target release that contains that integration.
+Legacy dashboards keep working through the bundled
+[Grafana converter](../installation/components/grafana-stack/grafana-converter.md), which is installed by default.
 
 ## Compatibility Boundary
 
@@ -19,8 +18,9 @@ The following settings and behaviors are not supported by the current Grafana Op
   [issue #376](https://github.com/Netcracker/qubership-monitoring-operator/issues/376).
 - `spec.grafana.config` is not propagated to Grafana. Follow
   [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377).
-- `dashboardLabelSelector` and `dashboardNamespaceSelector` are not propagated. Follow
-  [issue #434](https://github.com/Netcracker/qubership-monitoring-operator/issues/434).
+- `dashboardLabelSelector` and `dashboardNamespaceSelector` have no effect. To choose which legacy dashboards are
+  converted, set the
+  [Grafana converter selectors](../installation/components/grafana-stack/grafana-converter.md#dashboard-selection).
 
 These fields can remain stored in a `PlatformMonitoring` resource without affecting the generated Grafana v5
 resources. The absence of a validation error does not mean that the setting is supported.
@@ -47,8 +47,9 @@ The current upgrade path is intended for installations that:
   `grafana.integreatly.org/v1beta1` `GrafanaDatasource` before removing the legacy resources.
 
 Legacy `integreatly.org/v1alpha1` `GrafanaDashboard` resources remain supported through the
-[Grafana operator converter](https://github.com/Netcracker/qubership-grafana-operator-converter). Do not remove the
-legacy dashboard CRD while products still publish those resources.
+[Grafana converter](../installation/components/grafana-stack/grafana-converter.md). Do not remove the legacy dashboard
+CRD while products still publish those resources. In non-privileged installs, list every product namespace with legacy
+dashboards in `grafanaConverter.watchNamespaces`.
 
 The Monitoring Operator integration enables dashboard conversion only. Datasource, folder, and notification
 conversion remain follow-up work in
@@ -65,8 +66,8 @@ datasource conversion while following the manual migration procedure in this gui
    must remain stable.
 4. Apply the complete CRD bundle from the target release with server-side apply before upgrading the operator.
    Ordinary `helm upgrade` does not update installed CRDs.
-5. Confirm that the target release contains the converter integration and that `grafanaConverter.install` remains
-   enabled.
+5. Confirm that `grafanaConverter.install` remains enabled. In non-privileged installs, set
+   `grafanaConverter.watchNamespaces` to every namespace that holds legacy dashboards.
 
 ### Argo CD staged upgrade
 
