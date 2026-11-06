@@ -274,7 +274,7 @@ expected_images=(
     "docker.io/grafana/grafana:13.3.0"
     "docker.io/prom/alertmanager:v0.34.1"
     "docker.io/prom/prometheus:v3.15.1"
-    "docker.io/victoriametrics/operator:v0.75.0"
+    "docker.io/victoriametrics/operator:v0.75.1"
     "docker.io/victoriametrics/victoria-metrics:v1.155.0"
     "docker.io/victoriametrics/vmagent:v1.155.0"
     "docker.io/victoriametrics/vmalert:v1.155.0"
@@ -833,9 +833,9 @@ verify_rendered_resource_count "${rendered_manifest}" \
     4 "post-delete cluster RBAC cleanup resources when VM CR deletion is disabled"
 
 if ! "${yq_binary}" eval -e \
-    '.spec.template.spec.containers[] | select(.name == "victoriametrics-operator") | .image == "victoriametrics/operator:v0.75.0"' \
+    '.spec.template.spec.containers[] | select(.name == "victoriametrics-operator") | .image == "victoriametrics/operator:v0.75.1"' \
     "${victoriametrics_deployment}" >/dev/null; then
-    echo "The VictoriaMetrics operator asset does not use v0.75.0." >&2
+    echo "The VictoriaMetrics operator asset does not use v0.75.1." >&2
     exit 1
 fi
 
