@@ -11,13 +11,6 @@ Legacy dashboards keep working through the bundled
 
 The following settings and behaviors are not supported by the current Grafana Operator v5 integration:
 
-- Runtime changes to the Grafana admin credentials Secret are not synchronized to an existing Grafana database.
-  Initial credentials are still used when the database is initialized. Follow
-  [issue #375](https://github.com/Netcracker/qubership-monitoring-operator/issues/375).
-- `spec.auth`, including OAuth endpoints and TLS settings, is not propagated to Grafana. Follow
-  [issue #376](https://github.com/Netcracker/qubership-monitoring-operator/issues/376).
-- `spec.grafana.config` is not propagated to Grafana. Follow
-  [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377).
 - `dashboardLabelSelector` and `dashboardNamespaceSelector` have no effect. To choose which legacy dashboards are
   converted, set the
   [Grafana converter selectors](../installation/components/grafana-stack/grafana-converter.md#dashboard-selection).
@@ -27,13 +20,21 @@ resources. The absence of a validation error does not mean that the setting is s
 
 ## Grafana settings applied on v5
 
+The operator resets the Grafana admin password in an existing Grafana database when the password in the admin
+credentials Secret changes.
+
+`spec.auth`, including the OAuth endpoints and TLS settings, is applied to Grafana.
+
+`spec.grafana.config` is applied to `grafana.ini`. Each section must be an object of scalar values. The operator
+keeps its own values for the `auth.jwt` section and for `security.admin_user` and `security.admin_password`.
+
 `spec.grafana.serviceAccount` labels and annotations are copied onto the Grafana ServiceAccount. When both maps are
 empty, that ServiceAccount metadata is left unset.
 
 The `grafana-ldap-config` Secret is mounted read-only at `/etc/grafana-secrets/grafana-ldap-config`. The mount does
-not enable LDAP. The chart's default `ldap.toml` is empty, and Grafana still ignores `spec.grafana.config`, so LDAP
-login stays off. Follow [issue #377](https://github.com/Netcracker/qubership-monitoring-operator/issues/377) for
-Grafana config.
+not enable LDAP. The chart's default `ldap.toml` is empty, so LDAP login stays off until you provide the LDAP
+configuration and, in `spec.grafana.config`, enable `auth.ldap` and set its `config_file` to
+`/etc/grafana-secrets/grafana-ldap-config/ldap.toml`.
 
 ## Supported Upgrade Profile
 
@@ -41,7 +42,6 @@ The current upgrade path is intended for installations that:
 
 - do not depend on the settings listed above;
 - use the default Grafana dashboard selection;
-- do not rotate the managed Grafana admin credentials after its database has been initialized;
 - keep `grafanaConverter.install=true` until legacy dashboard conversion is verified;
 - migrate every legacy `integreatly.org/v1alpha1` `GrafanaDataSource` to a
   `grafana.integreatly.org/v1beta1` `GrafanaDatasource` before removing the legacy resources.
@@ -85,6 +85,53 @@ pruning:
 
 Do not delete the CRD Application or enable pruning before the migration checks pass. Keep the legacy
 GrafanaDashboard CRD while products continue to publish legacy dashboard resources.
+
+## Grafana 13
+
+An upgrade from `v0.88.x` changes three components in one step: Grafana Operator v4 to v5, Grafana 12 to 13, and the
+Grafana image renderer 3 to 5.
+
+### Roll back
+
+On its first start, Grafana 13 moves short URLs and user preferences to unified storage. Grafana 12 reads them from
+the legacy tables and does not see later changes. `helm rollback` alone does not restore the previous state: also
+restore the Grafana database backup from [Before Upgrading](#before-upgrading).
+
+### Image renderer authentication
+
+Grafana 13 authenticates the image renderer with JSON Web Tokens (JWTs) by default and rejects an empty token and the
+default token `-` in that mode. The chart does not set a shared token, so when `grafana.imageRenderer.install` is
+`true`, it sets `GF_FEATURE_TOGGLES_renderAuthJWT=false` to keep the previous authentication.
+
+To use JWT authentication, set the same token on both sides:
+
+```yaml
+grafana:
+  extraVarsSecret:
+    GF_FEATURE_TOGGLES_renderAuthJWT: "true"
+    GF_RENDERING_RENDERER_TOKEN: <token>
+  imageRenderer:
+    install: true
+    extraEnvs:
+      AUTH_TOKEN: <token>
+```
+
+### Settings removed in Grafana 13
+
+Check your own data sources and Grafana settings for the following changes:
+
+- Elasticsearch and Zipkin are no longer core data sources. Install the corresponding plugins to keep using them.
+- The core Prometheus data source no longer supports Azure and SigV4 authentication.
+- The `[marketplace]` configuration section is renamed to `[plugins_marketplace]`. Rename the section in
+  `spec.grafana.config`, and replace `GF_MARKETPLACE_*` variables in `extraVars` with `GF_PLUGINS_MARKETPLACE_*`.
+- The `grafana_api_dashboard_get_milliseconds` and `grafana_api_dashboard_save_milliseconds` metrics are removed.
+  The Grafana Overview dashboard uses `grafana_http_request_duration_seconds` for the dashboard API instead.
+
+### Default image for a hand-written custom resource
+
+The chart always sets `spec.grafana.image`. A `PlatformMonitoring` resource written by hand without
+`spec.grafana.image` gets the operator fallback `grafana/grafana:11.6.5`, which is a downgrade after the Grafana 13
+migration. Set `spec.grafana.image` explicitly in such resources.
 
 ## After Upgrading
 

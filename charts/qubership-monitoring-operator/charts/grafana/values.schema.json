@@ -262,7 +262,7 @@
         },
         "image": {
             "type": "string",
-            "description": "Grafana image to deploy.\nDefault: docker.io/grafana/grafana:11.6.5"
+            "description": "Grafana image to deploy.\nDefault: docker.io/grafana/grafana:13.3.1"
         },
         "imageRenderer": {
             "type": "object",
@@ -300,7 +300,7 @@
                 },
                 "image": {
                     "type": "string",
-                    "description": "Grafana image renderer image to deploy.\nDefault: docker.io/grafana/grafana-image-renderer:3.12.9"
+                    "description": "Grafana image renderer image to deploy.\nDefault: docker.io/grafana/grafana-image-renderer:v5.12.11"
                 },
                 "install": {
                     "type": "boolean",

@@ -58,7 +58,7 @@ Example:
 grafana:
   install: true
   paused: false
-  image: grafana/grafana:11.6.5
+  image: grafana/grafana:13.3.1
   ingress:
     ...
   resources:
