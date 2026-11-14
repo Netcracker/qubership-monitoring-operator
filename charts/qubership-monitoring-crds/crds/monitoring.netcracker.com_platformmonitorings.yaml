@@ -8788,6 +8788,12 @@ spec:
                                   x-kubernetes-map-type: atomic
                               type: object
                             clientAuthType:
+                              enum:
+                                - NoClientCert
+                                - RequestClientCert
+                                - RequireAnyClientCert
+                                - VerifyClientCertIfGiven
+                                - RequireAndVerifyClientCert
                               type: string
                             clientCAFile:
                               type: string

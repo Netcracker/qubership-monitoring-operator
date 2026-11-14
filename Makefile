@@ -94,7 +94,7 @@ DOCKERFILE=cmd/operator/Dockerfile
 CRD_UPDATE_TOOL=tools/crd-update/crd-update.py
 PYTHON?=python3
 # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced
-PROMETHEUS_OPERATOR_VERSION?=0.94.2
+PROMETHEUS_OPERATOR_VERSION?=0.95.1
 # renovate: datasource=github-releases depName=VictoriaMetrics/operator versioning=semver-coerced
 VICTORIAMETRICS_OPERATOR_VERSION?=0.75.0
 GRAFANA_OPERATOR_VERSION?=5.24.0

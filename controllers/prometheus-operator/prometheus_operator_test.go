@@ -1,6 +1,7 @@
 package prometheus_operator
 
 import (
+	"slices"
 	"testing"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
@@ -219,4 +220,17 @@ func assertPrometheusOperatorHardening(t *testing.T, deployment *appsv1.Deployme
 		}
 	}
 	assert.Equal(t, 1, tmpVolumes)
+}
+
+func TestPrometheusOperatorClusterRoleAllowsAlertmanagerConfigStatusUpdates(t *testing.T) {
+	role, err := prometheusOperatorClusterRole(&monv1.PlatformMonitoring{})
+	require.NoError(t, err)
+	for _, rule := range role.Rules {
+		if slices.Contains(rule.APIGroups, "monitoring.coreos.com") && slices.Contains(rule.Resources, "alertmanagerconfigs/status") {
+			assert.Contains(t, rule.Verbs, "update")
+			assert.Contains(t, rule.Verbs, "patch")
+			return
+		}
+	}
+	t.Fatal("ClusterRole has no monitoring.coreos.com/alertmanagerconfigs/status rule")
 }
