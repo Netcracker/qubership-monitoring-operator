@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
-    operator.prometheus.io/version: 0.94.2
+    controller-gen.kubebuilder.io/version: v0.23.0
+    operator.prometheus.io/version: 0.95.1
   name: thanosrulers.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -3413,17 +3413,20 @@ spec:
                                     message:
                                       type: string
                                     reason:
+                                      minLength: 1
                                       type: string
                                     status:
                                       enum:
                                       - DataLoss
                                       - Degraded
                                       - Inaccessible
+                                      minLength: 1
                                       type: string
                                   required:
                                   - reason
                                   - status
                                   type: object
+                                maxItems: 16
                                 type: array
                                 x-kubernetes-list-map-keys:
                                 - status
@@ -4526,6 +4529,12 @@ spec:
                             x-kubernetes-map-type: atomic
                         type: object
                       clientAuthType:
+                        enum:
+                        - NoClientCert
+                        - RequestClientCert
+                        - RequireAnyClientCert
+                        - VerifyClientCertIfGiven
+                        - RequireAndVerifyClientCert
                         type: string
                       clientCAFile:
                         type: string
