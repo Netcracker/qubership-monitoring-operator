@@ -69,6 +69,8 @@ jobs:
       pipeline_branch: '51e6fa605dd96153f66ed87e676f99ac8fdab094' # v1.18.1 renovate: depName=Netcracker/qubership-test-pipelines
       repository_name: '${{ github.repository_owner }}/qubership-monitoring-operator'
       kind-layout: 'single-node'
+      # The CRC action cannot install qemu-kvm on Ubuntu 26.04, which ubuntu-latest now uses.
+      runner_type: ubuntu-24.04
       enable-owner-references-permission-enforcement: true
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}

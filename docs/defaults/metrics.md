@@ -230,8 +230,6 @@ icon: lucide/list
 | grafana_alerting_schedule_periodic_duration_seconds | histogram | The time taken to run the scheduler. |
 | grafana_alerting_scheduler_behind_seconds | gauge | The total number of seconds the scheduler is behind. |
 | grafana_api_admin_user_created | counter | API admin user created counter |
-| grafana_api_dashboard_get_milliseconds | summary | summary for dashboard get duration |
-| grafana_api_dashboard_save_milliseconds | summary | summary for dashboard save duration |
 | grafana_api_dashboard_search_milliseconds | summary | summary for dashboard search duration |
 | grafana_api_dashboard_snapshot_create | counter | dashboard snapshots created |
 | grafana_api_dashboard_snapshot_external | counter | external dashboard snapshots created |

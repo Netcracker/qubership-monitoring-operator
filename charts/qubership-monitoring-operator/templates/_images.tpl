@@ -46,7 +46,7 @@ Image can be found from:
     {{- printf "%s" .Values.grafana.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=grafana/grafana */ -}}
-    {{- print "docker.io/grafana/grafana:13.3.0" -}}
+    {{- print "docker.io/grafana/grafana:13.3.1" -}}
   {{- end -}}
 {{- end -}}
 
