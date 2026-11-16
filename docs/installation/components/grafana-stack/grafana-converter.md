@@ -191,6 +191,23 @@ A legacy dashboard with a name longer than 243 characters gets no `-converted` c
 exceeds the Kubernetes limit of 253 characters, so the command deletes its only copy. Before you run the command,
 republish that dashboard under a shorter name and wait for its `-converted` copy.
 
+When the dashboard JSON sets no `uid`, Grafana Operator uses the `metadata.uid` of the converted dashboard as the
+dashboard UID in Grafana. The `-converted` replacement is a new resource, so it creates a second dashboard in Grafana,
+and deleting the old copy removes the UID that existing links use. To keep that UID, do this before the cleanup:
+
+1. Read the UID from the old copy:
+
+   ```bash
+   kubectl get grafanadashboards.grafana.integreatly.org <name> -n <namespace> -o jsonpath='{.status.uid}'
+   ```
+
+2. Set that value as `uid` in the dashboard JSON of the legacy dashboard: in `spec.json`, in `spec.gzipJson`, or in the
+   ConfigMap that the dashboard references.
+3. Check that `status.uid` of the `<name>-converted` dashboard has the same value.
+
+A dashboard that is loaded from `spec.url` or `spec.grafanaCom` keeps its UID only when the JSON at that source sets
+`uid`.
+
 ## Troubleshooting
 
 | Symptom                                                     | Check                                                                                                                        |
