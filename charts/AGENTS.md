@@ -81,7 +81,9 @@ shared with the `etcdCertsJob` `CronJob`, and they stay in place on purpose afte
 
 - **`monitoring-grafana-cleanup-hook`** (`pre-delete`, weight `-10`) scales the operator to zero, then deletes Grafana
   dashboards, data sources, and `Grafana` objects in the release namespace that carry
-  `app.kubernetes.io/managed-by-operator=monitoring-operator`, plus two dashboards by name.
+  `app.kubernetes.io/managed-by-operator=monitoring-operator`, plus two dashboards by name. It also scales the Grafana
+  converter to zero, deletes the built-in legacy `integreatly.org` dashboards, and then deletes every converter copy
+  in the release namespace, including copies of product dashboards, while Grafana Operator can still finalize them.
 - **The VictoriaMetrics cleanup hook** (`pre-delete`, weight `-5`) scales the operator to zero, then deletes every
   `VMSingle` (orphaning its dependents), `VMUser`, `VMAuth`, `VMAlert`, `VMAgent`, `VMAlertmanager`, and `VMCluster`
   in the release namespace with `--all`.

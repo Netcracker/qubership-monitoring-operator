@@ -317,6 +317,16 @@ rules:
       - grafanadatasources
     verbs:
       - get
+  # Built-in dashboards are created as legacy GrafanaDashboard resources for the Grafana converter
+  - apiGroups:
+      - integreatly.org
+    resources:
+      - grafanadashboards
+    verbs:
+      - create
+      - delete
+      - get
+      - update
 
   # grafana.integreatly.org
   # This is needed for managing Grafana custom resources

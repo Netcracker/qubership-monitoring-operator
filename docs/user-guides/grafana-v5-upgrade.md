@@ -6,6 +6,9 @@ but are not applied to the Grafana Operator v5 resources. Check the configuratio
 
 Legacy dashboards keep working through the bundled
 [Grafana converter](../installation/components/grafana-stack/grafana-converter.md), which is installed by default.
+The built-in dashboards take the same path: the operator and the chart keep publishing them as
+`integreatly.org/v1alpha1` `GrafanaDashboard` resources, and the converter creates a `<name>-converted` v1beta1
+dashboard for each one. Grafana recreates the built-in dashboards during the upgrade.
 
 ## Compatibility Boundary
 
@@ -42,7 +45,8 @@ The current upgrade path is intended for installations that:
 - do not depend on the settings listed above;
 - use the default Grafana dashboard selection;
 - do not rotate the managed Grafana admin credentials after its database has been initialized;
-- keep `grafanaConverter.install=true` until legacy dashboard conversion is verified;
+- keep `grafanaConverter.install=true`, with the release namespace in the converter watch scope; without the
+  converter, Grafana has no built-in dashboards;
 - migrate every legacy `integreatly.org/v1alpha1` `GrafanaDataSource` to a
   `grafana.integreatly.org/v1beta1` `GrafanaDatasource` before removing the legacy resources.
 

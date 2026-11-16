@@ -26,6 +26,8 @@ import (
 	netv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -477,18 +479,15 @@ var _ = Describe("Reconcile", func() {
 			"ha-services",
 		}
 		for _, name := range dashboardList {
-			dashboard := grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: cr.GetNamespace(),
-			},
-			}
+			// Built-in dashboards are legacy GrafanaDashboard resources; the Grafana converter creates the v1beta1 copies.
+			dashboard := unstructured.Unstructured{}
+			dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "integreatly.org", Version: "v1alpha1", Kind: "GrafanaDashboard"})
 			err = k8sClient.Get(context.TODO(), client.ObjectKey{
-				Namespace: dashboard.Namespace,
-				Name:      dashboard.Name,
+				Namespace: cr.GetNamespace(),
+				Name:      name,
 			}, &dashboard)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(dashboard).NotTo(BeNil())
-			logf.Log.Info("Getting GrafanaDashboard successful", "name", dashboard.Name)
+			logf.Log.Info("Getting GrafanaDashboard successful", "name", dashboard.GetName())
 		}
 
 		// Get ServiceAccount

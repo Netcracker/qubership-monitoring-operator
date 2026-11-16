@@ -11,9 +11,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/util/retry"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 func (r *GrafanaOperatorReconciler) handleServiceAccount(cr *monv1.PlatformMonitoring) error {
@@ -107,29 +110,51 @@ func (r *GrafanaOperatorReconciler) handleGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	// Retry on conflict: the grafana-operator (and other actors) write status/finalizers
-	// on GrafanaDashboard objects concurrently, so a Get-mutate-Update window can race.
+	if err := r.deleteOwnedV1beta1Dashboard(cr, m.GetName()); err != nil {
+		return err
+	}
+	// Retry on conflict: other actors can write the dashboard between Get and Update.
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used.
-		// Required for Grafana Operator v5 migration from integreatly.org/v1alpha1.
-		checkObj := &grafv1.GrafanaDashboard{}
-		checkObj.SetName(m.GetName())
-		checkObj.SetNamespace(m.GetNamespace())
-		checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
-		if err := r.GetResource(checkObj); err != nil {
-			if errors.IsNotFound(err) {
-				return r.CreateResource(cr, m)
+		e := &unstructured.Unstructured{}
+		e.SetGroupVersionKind(legacyGrafanaDashboardGVK)
+		if err := r.Client.Get(context.TODO(), client.ObjectKeyFromObject(m), e); err != nil {
+			if !errors.IsNotFound(err) {
+				return err
 			}
-			return err
+			if err := controllerutil.SetControllerReference(cr, m, r.Scheme); err != nil {
+				return err
+			}
+			return r.Client.Create(context.TODO(), m)
 		}
 
 		// Only update when Spec or labels actually changed to avoid rewriting large
 		// dashboard CRs on every PlatformMonitoring reconcile (#447).
-		return r.UpdateIfChanged(checkObj, utils.AnyChanged(
-			utils.SetIfChanged(&checkObj.Spec, m.Spec),
-			utils.SetLabelsIfChanged(checkObj, m.GetLabels()),
-		))
+		if !utils.AnyChanged(
+			utils.SetUnstructuredFieldIfChanged(e.Object, "spec", m.Object["spec"]),
+			utils.SetLabelsIfChanged(e, m.GetLabels()),
+		) {
+			return nil
+		}
+		return r.Client.Update(context.TODO(), e)
 	})
+}
+
+// deleteOwnedV1beta1Dashboard deletes the grafana.integreatly.org/v1beta1 dashboard named name
+// when cr controls it. Earlier builds created built-in dashboards in that API directly. The
+// Grafana converter now creates the v1beta1 copy, and a dashboard without the cr owner
+// reference is left in place.
+func (r *GrafanaOperatorReconciler) deleteOwnedV1beta1Dashboard(cr *monv1.PlatformMonitoring, name string) error {
+	e := &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) || meta.IsNoMatchError(err) {
+			return nil
+		}
+		return err
+	}
+	if !metav1.IsControlledBy(e, cr) {
+		return nil
+	}
+	return client.IgnoreNotFound(r.DeleteResource(e))
 }
 
 func (r *GrafanaOperatorReconciler) handlePodMonitor(cr *monv1.PlatformMonitoring) error {
@@ -165,26 +190,11 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 		r.Log.Error(err, "Failed creating GrafanaDashboard manifest")
 		return err
 	}
-	// Check if resource exists first
-	// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used
-	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
-	checkObj := &grafv1.GrafanaDashboard{}
-	checkObj.SetName(m.GetName())
-	checkObj.SetNamespace(m.GetNamespace())
-	checkObj.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
-	if err = r.GetResource(checkObj); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
+	// A missing legacy CRD means there is no legacy dashboard to delete.
+	if err = r.Client.Delete(context.TODO(), m); err != nil && !errors.IsNotFound(err) && !meta.IsNoMatchError(err) {
 		return err
 	}
-	// Use the manifest object (which has correct type) for deletion
-	// The manifest object already has GVK set correctly
-	if err = r.Client.Delete(context.TODO(), m); err != nil {
-		return err
-	}
-	r.Log.Info("Successful deleting", "resource", "GrafanaDashboard", "name", m.GetName())
-	return nil
+	return r.deleteOwnedV1beta1Dashboard(cr, m.GetName())
 }
 
 func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {

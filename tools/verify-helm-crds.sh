@@ -581,6 +581,8 @@ for grafana_cleanup_resource in grafanadashboards grafanadatasources grafanas; d
     verify_exact_rbac_verbs "${grafana_cleanup_role_manifest}" grafana.integreatly.org \
         "${grafana_cleanup_resource}" "delete,deletecollection,get,list,watch"
 done
+verify_exact_rbac_verbs "${grafana_cleanup_role_manifest}" integreatly.org grafanadashboards \
+    "delete,deletecollection,get,list,watch"
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "Job" and .metadata.name == "monitoring-grafana-cleanup-hook" and
     .metadata.annotations."helm.sh/hook" == "pre-delete" and
@@ -719,7 +721,7 @@ verify_text_contains "${openshift_rbac_cleanup_command}" \
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "GrafanaDashboard" and
     (.metadata.name == "backup-daemon" or .metadata.name == "kafka-java-clients") and
-    .metadata.annotations."helm.sh/resource-policy" == "keep" and .spec.resyncPeriod == "10m"' \
+    .metadata.annotations."helm.sh/resource-policy" == "keep" and .apiVersion == "integreatly.org/v1alpha1"' \
     2 "retained Helm-owned Grafana dashboards"
 
 helm template monitoring "${chart_dir}" \
@@ -735,13 +737,13 @@ helm template monitoring "${chart_dir}" \
     --set versionExporter.install=true \
     >"${rendered_manifest}"
 verify_rendered_resource_count "${rendered_manifest}" \
-    '.apiVersion == "grafana.integreatly.org/v1beta1" and
+    '.apiVersion == "integreatly.org/v1alpha1" and
     .kind == "GrafanaDashboard"' \
-    12 "optional Grafana dashboards"
+    12 "optional legacy Grafana dashboards"
 verify_rendered_resource_count "${rendered_manifest}" \
     '.apiVersion == "grafana.integreatly.org/v1beta1" and
-    .kind == "GrafanaDashboard" and .spec.instanceSelector == null' \
-    0 "optional Grafana dashboards without an instance selector"
+    .kind == "GrafanaDashboard"' \
+    0 "optional Grafana dashboards that bypass the Grafana converter"
 
 "${yq_binary}" eval-all \
     'select(.kind == "Job" and .metadata.name == "monitoring-grafana-cleanup-hook") |
@@ -765,6 +767,9 @@ for user_owned_grafana_resource in \
 done
 for required_grafana_cleanup_token in \
     grafanadashboards.grafana.integreatly.org \
+    "grafanadashboards.integreatly.org --selector=app.kubernetes.io/managed-by-operator=monitoring-operator" \
+    "grafanadashboards.grafana.integreatly.org --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter" \
+    app.kubernetes.io/name=qubership-grafana-operator-converter \
     grafanadatasources.grafana.integreatly.org \
     grafanas.grafana.integreatly.org \
     app.kubernetes.io/managed-by-operator=monitoring-operator \

@@ -11,7 +11,9 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	fakediscovery "k8s.io/client-go/discovery/fake"
@@ -19,6 +21,7 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const testDashboardAsset = "home-dashboard.yaml"
@@ -50,7 +53,15 @@ func newGrafanaDashboardTestReconciler(t *testing.T, objs ...client.Object) *Gra
 	}
 }
 
-func TestHandleGrafanaDashboardCreate(t *testing.T) {
+func getLegacyDashboard(t *testing.T, c client.Client, key client.ObjectKey) *unstructured.Unstructured {
+	t.Helper()
+	got := &unstructured.Unstructured{}
+	got.SetGroupVersionKind(legacyGrafanaDashboardGVK)
+	require.NoError(t, c.Get(t.Context(), key, got))
+	return got
+}
+
+func TestHandleGrafanaDashboardCreatesLegacyDashboard(t *testing.T) {
 	cr := testPlatformMonitoring()
 	desired, err := grafanaDashboard(cr, testDashboardAsset)
 	require.NoError(t, err)
@@ -58,24 +69,22 @@ func TestHandleGrafanaDashboardCreate(t *testing.T) {
 	r := newGrafanaDashboardTestReconciler(t, cr)
 	require.NoError(t, r.handleGrafanaDashboard(testDashboardAsset, cr))
 
-	got := &grafv1.GrafanaDashboard{}
-	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
-	assert.Equal(t, desired.Name, got.Name)
-	assert.Equal(t, desired.Spec.ResyncPeriod, got.Spec.ResyncPeriod)
+	got := getLegacyDashboard(t, r.Client, client.ObjectKeyFromObject(desired))
+	assert.Equal(t, desired.Object["spec"], got.Object["spec"])
+	assert.True(t, metav1.IsControlledBy(got, cr), "the legacy dashboard must be owned by PlatformMonitoring")
 }
 
 func TestHandleGrafanaDashboardSkipsNoOpUpdate(t *testing.T) {
 	cr := testPlatformMonitoring()
 	desired, err := grafanaDashboard(cr, testDashboardAsset)
 	require.NoError(t, err)
-	desired.ResourceVersion = "1"
+	desired.SetResourceVersion("1")
 
 	r := newGrafanaDashboardTestReconciler(t, cr, desired.DeepCopy())
 	require.NoError(t, r.handleGrafanaDashboard(testDashboardAsset, cr))
 
-	got := &grafv1.GrafanaDashboard{}
-	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
-	assert.Equal(t, "1", got.ResourceVersion, "no-op reconcile must not bump resourceVersion")
+	got := getLegacyDashboard(t, r.Client, client.ObjectKeyFromObject(desired))
+	assert.Equal(t, "1", got.GetResourceVersion(), "no-op reconcile must not bump resourceVersion")
 }
 
 func TestHandleGrafanaDashboardUpdatesChangedSpec(t *testing.T) {
@@ -84,16 +93,15 @@ func TestHandleGrafanaDashboardUpdatesChangedSpec(t *testing.T) {
 	require.NoError(t, err)
 
 	stale := desired.DeepCopy()
-	stale.ResourceVersion = "1"
-	stale.Spec.ResyncPeriod = metav1.Duration{Duration: desired.Spec.ResyncPeriod.Duration * 2}
+	stale.SetResourceVersion("1")
+	require.NoError(t, unstructured.SetNestedField(stale.Object, "{}", "spec", "json"))
 
 	r := newGrafanaDashboardTestReconciler(t, cr, stale)
 	require.NoError(t, r.handleGrafanaDashboard(testDashboardAsset, cr))
 
-	got := &grafv1.GrafanaDashboard{}
-	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
-	assert.Equal(t, desired.Spec.ResyncPeriod, got.Spec.ResyncPeriod)
-	assert.NotEqual(t, "1", got.ResourceVersion, "spec change must trigger Update")
+	got := getLegacyDashboard(t, r.Client, client.ObjectKeyFromObject(desired))
+	assert.Equal(t, desired.Object["spec"], got.Object["spec"])
+	assert.NotEqual(t, "1", got.GetResourceVersion(), "spec change must trigger Update")
 }
 
 func TestHandleGrafanaDashboardUpdatesChangedLabels(t *testing.T) {
@@ -102,21 +110,54 @@ func TestHandleGrafanaDashboardUpdatesChangedLabels(t *testing.T) {
 	require.NoError(t, err)
 
 	stale := desired.DeepCopy()
-	stale.ResourceVersion = "1"
+	stale.SetResourceVersion("1")
 	labels := stale.GetLabels()
-	if labels == nil {
-		labels = map[string]string{}
-	}
 	labels["test.example.com/stale"] = "true"
 	stale.SetLabels(labels)
 
 	r := newGrafanaDashboardTestReconciler(t, cr, stale)
 	require.NoError(t, r.handleGrafanaDashboard(testDashboardAsset, cr))
 
-	got := &grafv1.GrafanaDashboard{}
-	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got))
+	got := getLegacyDashboard(t, r.Client, client.ObjectKeyFromObject(desired))
 	assert.Equal(t, desired.GetLabels(), got.GetLabels())
-	assert.NotEqual(t, "1", got.ResourceVersion, "label change must trigger Update")
+	assert.NotEqual(t, "1", got.GetResourceVersion(), "label change must trigger Update")
+}
+
+func TestHandleGrafanaDashboardReplacesOnlyOwnedV1beta1Dashboard(t *testing.T) {
+	for name, owned := range map[string]bool{"owned by PlatformMonitoring": true, "owned by someone else": false} {
+		t.Run(name, func(t *testing.T) {
+			cr := testPlatformMonitoring()
+			desired, err := grafanaDashboard(cr, testDashboardAsset)
+			require.NoError(t, err)
+			native := &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{Name: desired.GetName(), Namespace: desired.GetNamespace()}}
+			r := newGrafanaDashboardTestReconciler(t, cr)
+			if owned {
+				require.NoError(t, controllerutil.SetControllerReference(cr, native, r.Scheme))
+			}
+			require.NoError(t, r.Client.Create(t.Context(), native))
+
+			require.NoError(t, r.handleGrafanaDashboard(testDashboardAsset, cr))
+
+			getLegacyDashboard(t, r.Client, client.ObjectKeyFromObject(desired))
+			err = r.Client.Get(t.Context(), client.ObjectKeyFromObject(native), &grafv1.GrafanaDashboard{})
+			assert.Equal(t, owned, apierrors.IsNotFound(err), "Get v1beta1 dashboard error = %v", err)
+		})
+	}
+}
+
+func TestDeleteGrafanaDashboardDeletesLegacyDashboard(t *testing.T) {
+	cr := testPlatformMonitoring()
+	desired, err := grafanaDashboard(cr, testDashboardAsset)
+	require.NoError(t, err)
+
+	r := newGrafanaDashboardTestReconciler(t, cr, desired.DeepCopy())
+	require.NoError(t, r.deleteGrafanaDashboard(testDashboardAsset, cr))
+	require.NoError(t, r.deleteGrafanaDashboard(testDashboardAsset, cr), "deleting an absent dashboard must succeed")
+
+	got := &unstructured.Unstructured{}
+	got.SetGroupVersionKind(legacyGrafanaDashboardGVK)
+	err = r.Client.Get(t.Context(), client.ObjectKeyFromObject(desired), got)
+	assert.True(t, apierrors.IsNotFound(err), "Get legacy dashboard error = %v", err)
 }
 
 func newGrafanaOperatorWorkloadTestReconciler(t *testing.T, objs ...client.Object) *GrafanaOperatorReconciler {

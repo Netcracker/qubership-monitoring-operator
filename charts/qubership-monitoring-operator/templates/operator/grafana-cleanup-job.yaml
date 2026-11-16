@@ -50,7 +50,27 @@ spec:
             - >
               set -eu;
               kubectl scale deployment --replicas=0 --selector app.kubernetes.io/component=qubership-monitoring-operator;
+              {{- if .Values.grafanaConverter.install }}
+              kubectl scale deployment --replicas=0
+              --selector app.kubernetes.io/name={{ .Values.grafanaConverter.nameOverride | default "grafanaConverter" }},app.kubernetes.io/instance={{ .Release.Name }}
+              || echo "Grafana converter scale-down failed; continuing";
+              {{- end }}
               sleep {{ get $cleanupHook "timeout" | default "10" }};
+              kubectl delete grafanadashboards.integreatly.org
+              --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,app.kubernetes.io/component=grafana-operator
+              --ignore-not-found=true --wait=true
+              --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }}
+              || echo "Legacy GrafanaDashboard cleanup failed; continuing";
+              {{- if .Values.commonDashboards.install }}
+              kubectl delete grafanadashboards.integreatly.org backup-daemon kafka-java-clients
+              --ignore-not-found=true --wait=true
+              --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }}
+              || echo "Legacy common GrafanaDashboard cleanup failed; continuing";
+              {{- end }}
+              kubectl delete grafanadashboards.grafana.integreatly.org
+              --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter
+              --ignore-not-found=true --wait=true
+              --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
               kubectl delete grafanadashboards.grafana.integreatly.org
               --selector=app.kubernetes.io/managed-by-operator=monitoring-operator,app.kubernetes.io/component=grafana-operator
               --ignore-not-found=true --wait=true

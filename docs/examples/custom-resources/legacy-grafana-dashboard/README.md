@@ -23,10 +23,10 @@ kubectl apply -n <namespace> -f legacy-dashboard.yaml
 
 ## Check the converted dashboard
 
-The converter creates a v1beta1 dashboard with the same name in the same namespace:
+The converter creates a v1beta1 dashboard named `<legacy dashboard name>-converted` in the same namespace:
 
 ```bash
-kubectl get grafanadashboards.grafana.integreatly.org legacy-simple-dashboard -n <namespace> -o yaml
+kubectl get grafanadashboards.grafana.integreatly.org legacy-simple-dashboard-converted -n <namespace> -o yaml
 ```
 
 The converted dashboard looks like this, with the dashboard JSON shortened:
@@ -35,7 +35,7 @@ The converted dashboard looks like this, with the dashboard JSON shortened:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: legacy-simple-dashboard
+  name: legacy-simple-dashboard-converted
   namespace: <namespace>
   labels:
     app.kubernetes.io/component: monitoring
