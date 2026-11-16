@@ -183,8 +183,13 @@ kubectl get grafanadashboards.grafana.integreatly.org -n <namespace> -o name \
   | grep -v -- '-converted$' | xargs -r kubectl delete -n <namespace>
 ```
 
-The filter keeps names that end with `-converted`. A copy that an earlier build made for a legacy dashboard that is
-itself named `<name>-converted` also keeps its name, so delete it by name.
+The filter keeps names that end with `-converted`. An earlier build can also have made such a copy for a legacy
+dashboard that is itself named `<name>-converted`. If a legacy dashboard `<name>` exists, the converter reuses that copy
+as the copy of `<name>`, so do not delete it. Delete it by name only when no legacy dashboard `<name>` exists.
+
+A legacy dashboard with a name longer than 243 characters gets no `-converted` copy, because the converted name
+exceeds the Kubernetes limit of 253 characters, so the command deletes its only copy. Before you run the command,
+republish that dashboard under a shorter name and wait for its `-converted` copy.
 
 ## Troubleshooting
 
