@@ -103,18 +103,9 @@ Grafana 13 authenticates the image renderer with JSON Web Tokens (JWTs) by defau
 default token `-` in that mode. The chart does not set a shared token, so when `grafana.imageRenderer.install` is
 `true`, it sets `GF_FEATURE_TOGGLES_renderAuthJWT=false` to keep the previous authentication.
 
-To use JWT authentication, set the same token on both sides:
-
-```yaml
-grafana:
-  extraVarsSecret:
-    GF_FEATURE_TOGGLES_renderAuthJWT: "true"
-    GF_RENDERING_RENDERER_TOKEN: <token>
-  imageRenderer:
-    install: true
-    extraEnvs:
-      AUTH_TOKEN: <token>
-```
+The chart passes `grafana.imageRenderer.extraEnvs` to the renderer Deployment as plain values, so it cannot keep
+a shared renderer token in a Secret. Keep the default authentication until the chart can read the renderer token
+from a Secret.
 
 ### Settings removed in Grafana 13
 
