@@ -183,6 +183,9 @@ kubectl get grafanadashboards.grafana.integreatly.org -n <namespace> -o name \
   | grep -v -- '-converted$' | xargs -r kubectl delete -n <namespace>
 ```
 
+The filter keeps names that end with `-converted`. A copy that an earlier build made for a legacy dashboard that is
+itself named `<name>-converted` also keeps its name, so delete it by name.
+
 ## Troubleshooting
 
 | Symptom                                                     | Check                                                                                                                        |
