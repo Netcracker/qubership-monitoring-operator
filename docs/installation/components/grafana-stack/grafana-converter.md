@@ -12,8 +12,9 @@ The Monitoring Operator and its chart also publish the built-in dashboards as le
 they reach Grafana through the converter. With `grafanaConverter.install=false`, or with the release namespace outside
 the converter watch scope, Grafana has no built-in dashboards.
 
-Uninstalling the release deletes every converted dashboard in the release namespace, because Grafana is removed with
-it. Converted dashboards in other namespaces stay.
+Disabling a built-in dashboard deletes its legacy dashboard and its converted dashboard. Uninstalling the release
+deletes the converted built-in dashboards, which carry `app.kubernetes.io/processed-by-operator=grafana-operator`.
+Converted product dashboards stay.
 
 ## What the converter does
 

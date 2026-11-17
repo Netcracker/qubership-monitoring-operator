@@ -124,23 +124,62 @@ func TestHandleGrafanaDashboardUpdatesChangedLabels(t *testing.T) {
 }
 
 func TestHandleGrafanaDashboardReplacesOnlyOwnedV1beta1Dashboard(t *testing.T) {
-	for name, owned := range map[string]bool{"owned by PlatformMonitoring": true, "owned by someone else": false} {
+	foreignOwner := testPlatformMonitoring()
+	foreignOwner.Name = "other-platformmonitoring"
+	foreignOwner.UID = types.UID("other-platform-monitoring-uid")
+
+	for name, owner := range map[string]*monv1.PlatformMonitoring{
+		"controlled by this PlatformMonitoring": testPlatformMonitoring(),
+		"controlled by another object":          foreignOwner,
+		"without an owner":                      nil,
+	} {
 		t.Run(name, func(t *testing.T) {
 			cr := testPlatformMonitoring()
 			desired, err := grafanaDashboard(cr, testDashboardAsset)
 			require.NoError(t, err)
 			native := &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{Name: desired.GetName(), Namespace: desired.GetNamespace()}}
 			r := newGrafanaDashboardTestReconciler(t, cr)
-			if owned {
-				require.NoError(t, controllerutil.SetControllerReference(cr, native, r.Scheme))
+			if owner != nil {
+				require.NoError(t, controllerutil.SetControllerReference(owner, native, r.Scheme))
 			}
 			require.NoError(t, r.Client.Create(t.Context(), native))
 
 			require.NoError(t, r.handleGrafanaDashboard(testDashboardAsset, cr))
 
 			getLegacyDashboard(t, r.Client, client.ObjectKeyFromObject(desired))
-			err = r.Client.Get(t.Context(), client.ObjectKeyFromObject(native), &grafv1.GrafanaDashboard{})
-			assert.Equal(t, owned, apierrors.IsNotFound(err), "Get v1beta1 dashboard error = %v", err)
+			got := &grafv1.GrafanaDashboard{}
+			err = r.Client.Get(t.Context(), client.ObjectKeyFromObject(native), got)
+			if owner != nil && owner.UID == cr.UID {
+				assert.True(t, apierrors.IsNotFound(err), "Get v1beta1 dashboard error = %v", err)
+				return
+			}
+			require.NoError(t, err, "a v1beta1 dashboard that this PlatformMonitoring does not control must stay")
+			assert.Equal(t, native.GetOwnerReferences(), got.GetOwnerReferences())
+		})
+	}
+}
+
+func TestDeleteGrafanaDashboardDeletesOnlyBuiltInConvertedCopy(t *testing.T) {
+	for name, builtIn := range map[string]bool{"built-in copy": true, "copy without the built-in label": false} {
+		t.Run(name, func(t *testing.T) {
+			cr := testPlatformMonitoring()
+			desired, err := grafanaDashboard(cr, testDashboardAsset)
+			require.NoError(t, err)
+			labels := map[string]string{converterManagedByLabelKey: converterManagedByLabelValue}
+			if builtIn {
+				labels[builtInDashboardLabelKey] = builtInDashboardLabelValue
+			}
+			converted := &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{
+				Name:      desired.GetName() + convertedDashboardNameSuffix,
+				Namespace: desired.GetNamespace(),
+				Labels:    labels,
+			}}
+			r := newGrafanaDashboardTestReconciler(t, cr, desired.DeepCopy(), converted)
+
+			require.NoError(t, r.deleteGrafanaDashboard(testDashboardAsset, cr))
+
+			err = r.Client.Get(t.Context(), client.ObjectKeyFromObject(converted), &grafv1.GrafanaDashboard{})
+			assert.Equal(t, builtIn, apierrors.IsNotFound(err), "Get converted dashboard error = %v", err)
 		})
 	}
 }

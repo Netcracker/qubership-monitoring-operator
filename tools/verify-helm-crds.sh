@@ -768,7 +768,7 @@ done
 for required_grafana_cleanup_token in \
     grafanadashboards.grafana.integreatly.org \
     "grafanadashboards.integreatly.org --selector=app.kubernetes.io/managed-by-operator=monitoring-operator" \
-    "grafanadashboards.grafana.integreatly.org --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter" \
+    "grafanadashboards.grafana.integreatly.org --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter,app.kubernetes.io/processed-by-operator=grafana-operator" \
     app.kubernetes.io/name=qubership-grafana-operator-converter \
     grafanadatasources.grafana.integreatly.org \
     grafanas.grafana.integreatly.org \

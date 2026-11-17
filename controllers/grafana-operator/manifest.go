@@ -329,6 +329,17 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (
 // turns these resources into grafana.integreatly.org/v1beta1 dashboards.
 var legacyGrafanaDashboardGVK = schema.GroupVersionKind{Group: "integreatly.org", Version: "v1alpha1", Kind: "GrafanaDashboard"}
 
+const (
+	// convertedDashboardNameSuffix is appended by the Grafana converter to the name of its copy.
+	convertedDashboardNameSuffix = "-converted"
+	// The Grafana converter labels its copies with converterManagedByLabelKey.
+	converterManagedByLabelKey   = "app.kubernetes.io/managed-by-operator"
+	converterManagedByLabelValue = "grafana-operator-converter"
+	// builtInDashboardLabelKey marks built-in dashboards. The converter copies it to the v1beta1 copy.
+	builtInDashboardLabelKey   = "app.kubernetes.io/processed-by-operator"
+	builtInDashboardLabelValue = "grafana-operator"
+)
+
 // grafanaDashboard builds a built-in dashboard as a legacy GrafanaDashboard, the same form
 // that products publish. The Grafana converter creates the v1beta1 dashboard from it and
 // sets the Grafana instance selector there.
@@ -352,7 +363,7 @@ func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*unstructu
 	utils.SetLabelsForResource(dashboard, utils.LabelInput{
 		Name:            dashboard.GetName(),
 		Component:       utils.GrafanaOperatorComponentName,
-		ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "grafana-operator"},
+		ComponentLabels: map[string]string{builtInDashboardLabelKey: builtInDashboardLabelValue},
 	}, nil)
 
 	return dashboard, nil

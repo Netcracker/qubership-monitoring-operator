@@ -194,7 +194,30 @@ func (r *GrafanaOperatorReconciler) deleteGrafanaDashboard(fileName string, cr *
 	if err = r.Client.Delete(context.TODO(), m); err != nil && !errors.IsNotFound(err) && !meta.IsNoMatchError(err) {
 		return err
 	}
-	return r.deleteOwnedV1beta1Dashboard(cr, m.GetName())
+	if err = r.deleteOwnedV1beta1Dashboard(cr, m.GetName()); err != nil {
+		return err
+	}
+	return r.deleteConvertedDashboard(cr, m.GetName())
+}
+
+// deleteConvertedDashboard deletes the Grafana converter copy of the built-in dashboard named
+// name. The converter keeps the copy after its legacy source is deleted unless
+// deleteTargetOnSourceDeletion is enabled, so a disabled dashboard would stay in Grafana.
+// The converter copies the source labels, and a copy without the built-in labels is left in place.
+func (r *GrafanaOperatorReconciler) deleteConvertedDashboard(cr *monv1.PlatformMonitoring, name string) error {
+	e := &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{Name: name + convertedDashboardNameSuffix, Namespace: cr.GetNamespace()}}
+	if err := r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) || meta.IsNoMatchError(err) {
+			return nil
+		}
+		return err
+	}
+	labels := e.GetLabels()
+	if labels[converterManagedByLabelKey] != converterManagedByLabelValue ||
+		labels[builtInDashboardLabelKey] != builtInDashboardLabelValue {
+		return nil
+	}
+	return client.IgnoreNotFound(r.DeleteResource(e))
 }
 
 func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {

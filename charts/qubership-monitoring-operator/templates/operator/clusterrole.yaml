@@ -498,7 +498,8 @@ rules:
       - grafanadatasources
     verbs:
       - get
-  # Built-in dashboards are created as legacy GrafanaDashboard resources for the Grafana converter
+  # Built-in dashboards are created as legacy GrafanaDashboard resources for the Grafana converter.
+  # list and watch let the operator repair them as owned children.
   - apiGroups:
       - integreatly.org
     resources:
@@ -507,7 +508,9 @@ rules:
       - create
       - delete
       - get
+      - list
       - update
+      - watch
 
   # grafana.integreatly.org
   # This is needed for managing Grafana custom resources

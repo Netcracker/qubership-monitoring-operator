@@ -68,7 +68,7 @@ spec:
               || echo "Legacy common GrafanaDashboard cleanup failed; continuing";
               {{- end }}
               kubectl delete grafanadashboards.grafana.integreatly.org
-              --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter
+              --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter,app.kubernetes.io/processed-by-operator=grafana-operator
               --ignore-not-found=true --wait=true
               --timeout={{ get $cleanupHook "deleteTimeout" | default "5m" }};
               kubectl delete grafanadashboards.grafana.integreatly.org
