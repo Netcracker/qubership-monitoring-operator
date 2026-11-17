@@ -193,10 +193,10 @@ republish that dashboard under a shorter name and wait for its `-converted` copy
 
 When the dashboard JSON sets no `uid`, Grafana Operator uses the `metadata.uid` of the converted dashboard as the
 dashboard UID in Grafana. The `-converted` replacement is a new resource, so it creates a second dashboard in Grafana,
-and deleting the old copy removes the UID that existing links use. To keep that UID, do this before the cleanup:
+and deleting the old copy removes the UID that existing links use. The upgraded converter can also delete an old
+copy on startup, so do steps 1 and 2 before you upgrade the converter:
 
-1. Read the UID from `metadata.uid` of the old copy. Do not use `status.uid`, which changes when the converter
-   reuses the copy for another legacy dashboard:
+1. Read the UID from `metadata.uid` of the old copy:
 
    ```bash
    kubectl get grafanadashboards.grafana.integreatly.org <name> -n <namespace> -o jsonpath='{.metadata.uid}'
@@ -204,7 +204,7 @@ and deleting the old copy removes the UID that existing links use. To keep that 
 
 2. Set that value as `uid` in the dashboard JSON of the legacy dashboard: in `spec.json`, in `spec.gzipJson`, or in the
    ConfigMap that the dashboard references.
-3. Check that `status.uid` of the `<name>-converted` dashboard has the same value.
+3. After the upgrade, check that `status.uid` of the `<name>-converted` dashboard has the value from step 1.
 
 A dashboard that is loaded from `spec.url` or `spec.grafanaCom` keeps its UID only when the JSON at that source sets
 `uid`.
