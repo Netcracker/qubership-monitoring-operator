@@ -202,8 +202,8 @@ copy on startup, so do steps 1 and 2 before you upgrade the converter:
    kubectl get grafanadashboards.grafana.integreatly.org <name> -n <namespace> -o jsonpath='{.metadata.uid}'
    ```
 
-2. Set that value as `uid` in the dashboard JSON of the legacy dashboard: in `spec.json`, in `spec.gzipJson`, or in the
-   ConfigMap that the dashboard references.
+2. Set that value as `uid` in the dashboard JSON of the legacy dashboard: in `spec.json`, in `spec.gzipJson`, in the
+   dashboard object that `spec.jsonnet` renders, or in the ConfigMap that the dashboard references.
 3. After the upgrade, check that `status.uid` of the `<name>-converted` dashboard has the value from step 1.
 
 A dashboard that is loaded from `spec.url` or `spec.grafanaCom` keeps its UID only when the JSON at that source sets
