@@ -2,6 +2,10 @@ name: Validate Renovate Config
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - '**'
     paths:
       - renovate.json
       - .github/workflows/renovate-config-lint.yaml
