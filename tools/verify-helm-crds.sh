@@ -924,7 +924,7 @@ helm template monitoring "${chart_dir}" \
 if ! "${yq_binary}" eval-all -e \
     'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
     .data."parameters.yaml" | from_yaml |
-    (((.dashboardLabelSelector | to_json(0)) == "[{\"matchLabels\":{\"app.kubernetes.io/component\":\"monitoring\"}}]") and
+    (((.dashboardLabelSelector | to_json(0)) == "[{\"matchLabels\":{\"app.kubernetes.io/component\":\"monitoring\"}},{\"matchLabels\":{\"app.kubernetes.io/processed-by-operator\":\"grafana-operator\"}}]") and
     ((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}],\"matchLabels\":{\"monitoring\":\"enabled\"}}"))' \
     "${converter_manifest}" >/dev/null; then
     echo "The Grafana converter ConfigMap does not contain the selectors from the privileged example values." >&2
