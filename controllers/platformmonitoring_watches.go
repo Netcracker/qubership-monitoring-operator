@@ -241,6 +241,14 @@ func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) 
 	legacyDashboard.SetAPIVersion(legacyGrafanaGroupVersion)
 	legacyDashboard.SetKind("GrafanaDashboard")
 	b = r.ownIfServed(b, legacyGrafanaGroupVersion, "GrafanaDashboard", legacyDashboard)
+	if r.hasKind(legacyGrafanaGroupVersion, "GrafanaDashboard") {
+		// Helm-managed legacy dashboards have no PlatformMonitoring owner, so Owns misses their deletion.
+		builtInDashboard := &unstructured.Unstructured{}
+		builtInDashboard.SetAPIVersion(legacyGrafanaGroupVersion)
+		builtInDashboard.SetKind("GrafanaDashboard")
+		b = b.Watches(builtInDashboard, handler.EnqueueRequestsFromMapFunc(r.mapToPlatformMonitoringsInNamespace),
+			builder.WithPredicates(builtInLegacyDashboardDeletedPredicate()))
+	}
 
 	promGV := promv1.SchemeGroupVersion.String()
 	b = r.ownIfServed(b, promGV, "Prometheus", &promv1.Prometheus{})
@@ -313,6 +321,13 @@ func (r *PlatformMonitoringReconciler) mapSecurityContextConstraintsToPlatformMo
 		return r.listAllPlatformMonitoringRequests(ctx)
 	}
 	return nil
+}
+
+func (r *PlatformMonitoringReconciler) mapToPlatformMonitoringsInNamespace(ctx context.Context, obj client.Object) []reconcile.Request {
+	if obj == nil {
+		return nil
+	}
+	return r.requestsForPlatformMonitoringsInNamespace(ctx, obj.GetNamespace())
 }
 
 func (r *PlatformMonitoringReconciler) requestsForPlatformMonitoringsInNamespace(ctx context.Context, namespace string) []reconcile.Request {
