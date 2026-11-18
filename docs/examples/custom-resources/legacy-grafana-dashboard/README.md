@@ -66,7 +66,7 @@ status:
 
 ```bash
 kubectl delete -n <namespace> -f legacy-dashboard.yaml
-kubectl delete grafanadashboards.grafana.integreatly.org legacy-simple-dashboard -n <namespace>
+kubectl delete grafanadashboards.grafana.integreatly.org legacy-simple-dashboard-converted -n <namespace>
 ```
 
 ## Links

@@ -277,6 +277,12 @@ func TestBuiltInLegacyDashboardDeletedPredicate(t *testing.T) {
 	if p.Update(event.UpdateEvent{ObjectOld: builtIn, ObjectNew: builtIn}) {
 		t.Fatal("updating a built-in legacy dashboard must not enqueue")
 	}
+	if p.Generic(event.GenericEvent{Object: builtIn}) {
+		t.Fatal("a generic event for a built-in legacy dashboard must not enqueue")
+	}
+	if p.Delete(event.DeleteEvent{}) {
+		t.Fatal("a deletion without an object must not enqueue")
+	}
 }
 
 func TestMapToPlatformMonitoringsInNamespace(t *testing.T) {
@@ -297,6 +303,9 @@ func TestMapToPlatformMonitoringsInNamespace(t *testing.T) {
 	reqs := r.mapToPlatformMonitoringsInNamespace(t.Context(), dashboard)
 	if len(reqs) != 1 || reqs[0].Name != "pm" || reqs[0].Namespace != "monitoring" {
 		t.Fatalf("got %#v, want the PlatformMonitoring in the dashboard namespace", reqs)
+	}
+	if reqs := r.mapToPlatformMonitoringsInNamespace(t.Context(), nil); len(reqs) != 0 {
+		t.Fatalf("a nil object must not enqueue, got %#v", reqs)
 	}
 }
 
