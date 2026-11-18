@@ -178,16 +178,27 @@ func TestRunDeletesOrphanedConvertedDashboards(t *testing.T) {
 	assert.True(t, apierrors.IsNotFound(err), "Get orphaned copy error = %v", err)
 }
 
-func TestRunLogsOrphanedCopyCleanupError(t *testing.T) {
+func TestRunRetriesFailedOrphanedCopyDeletion(t *testing.T) {
 	cr := testPlatformMonitoring()
 	cr.Spec.Grafana = nil
+	orphan := builtInCopy(cr, "version-exporter")
+	failDelete := true
 	r := newInterceptedDashboardReconciler(t, interceptor.Funcs{
-		List: func(context.Context, client.WithWatch, client.ObjectList, ...client.ListOption) error {
-			return errInjected
+		Delete: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
+			if failDelete && obj.GetName() == orphan.GetName() {
+				return errInjected
+			}
+			return c.Delete(ctx, obj, opts...)
 		},
-	}, cr)
+	}, cr, orphan)
 	r.Dc = newGrafanaOperatorWorkloadTestReconciler(t).Dc
 
-	// A failed cleanup is logged and does not fail the component.
+	// A failed deletion fails the component, so the controller retries the reconcile.
+	require.ErrorIs(t, r.Run(cr), errInjected)
+	require.NoError(t, r.Client.Get(t.Context(), client.ObjectKeyFromObject(orphan), &grafv1.GrafanaDashboard{}))
+
+	failDelete = false
 	require.NoError(t, r.Run(cr))
+	err := r.Client.Get(t.Context(), client.ObjectKeyFromObject(orphan), &grafv1.GrafanaDashboard{})
+	assert.True(t, apierrors.IsNotFound(err), "Get orphaned copy error = %v", err)
 }
