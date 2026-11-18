@@ -1,5 +1,7 @@
 # Grafana converter disabled.
-# Use this only when no product publishes legacy integreatly.org/v1alpha1 GrafanaDashboard resources.
+# Built-in dashboards reach Grafana through the converter, so Grafana has none with this file.
+# Use it only when you need no built-in dashboards and no product publishes legacy integreatly.org/v1alpha1
+# GrafanaDashboard resources.
 # Converted dashboards that already exist stay in the cluster.
 
 grafanaConverter:

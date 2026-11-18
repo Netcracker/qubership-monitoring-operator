@@ -1,7 +1,7 @@
 # Grafana converter in non-privileged mode.
 # The converter watches only the listed namespaces and gets a Role and RoleBinding in each one.
 # Without watchNamespaces, it watches only the release namespace.
-# List the release namespace too if it contains legacy dashboards.
+# Always list the release namespace: built-in dashboards live there.
 
 global:
   privilegedRights: false
