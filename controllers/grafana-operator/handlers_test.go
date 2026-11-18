@@ -177,7 +177,9 @@ func TestDeleteOrphanedConvertedDashboardsDeletesOnlyBuiltInCopiesWithoutSource(
 	withSource := newCopy("with-source"+convertedDashboardNameSuffix, builtInLabels)
 	product := newCopy("product"+convertedDashboardNameSuffix, map[string]string{converterManagedByLabelKey: converterManagedByLabelValue})
 	unsuffixed := newCopy("unsuffixed", builtInLabels)
-	r := newGrafanaDashboardTestReconciler(t, cr, source, orphan, withSource, product, unsuffixed)
+	notConverterManaged := newCopy("not-converter-managed"+convertedDashboardNameSuffix,
+		map[string]string{builtInDashboardLabelKey: builtInDashboardLabelValue})
+	r := newGrafanaDashboardTestReconciler(t, cr, source, orphan, withSource, product, unsuffixed, notConverterManaged)
 
 	require.NoError(t, r.deleteOrphanedConvertedDashboards(cr))
 
@@ -189,6 +191,7 @@ func TestDeleteOrphanedConvertedDashboardsDeletesOnlyBuiltInCopiesWithoutSource(
 		{withSource, false},
 		{product, false},
 		{unsuffixed, false},
+		{notConverterManaged, false},
 	} {
 		err := r.Client.Get(t.Context(), client.ObjectKeyFromObject(tc.copy), &grafv1.GrafanaDashboard{})
 		assert.Equal(t, tc.deleted, apierrors.IsNotFound(err), "%s: Get error = %v", tc.copy.GetName(), err)
@@ -196,13 +199,23 @@ func TestDeleteOrphanedConvertedDashboardsDeletesOnlyBuiltInCopiesWithoutSource(
 }
 
 func TestDeleteGrafanaDashboardDeletesOnlyBuiltInConvertedCopy(t *testing.T) {
-	for name, builtIn := range map[string]bool{"built-in copy": true, "copy without the built-in label": false} {
+	for name, tc := range map[string]struct {
+		converterManaged bool
+		builtIn          bool
+	}{
+		"built-in copy":                                 {converterManaged: true, builtIn: true},
+		"copy without the built-in label":               {converterManaged: true, builtIn: false},
+		"built-in dashboard not owned by the converter": {converterManaged: false, builtIn: true},
+	} {
 		t.Run(name, func(t *testing.T) {
 			cr := testPlatformMonitoring()
 			desired, err := grafanaDashboard(cr, testDashboardAsset)
 			require.NoError(t, err)
-			labels := map[string]string{converterManagedByLabelKey: converterManagedByLabelValue}
-			if builtIn {
+			labels := map[string]string{}
+			if tc.converterManaged {
+				labels[converterManagedByLabelKey] = converterManagedByLabelValue
+			}
+			if tc.builtIn {
 				labels[builtInDashboardLabelKey] = builtInDashboardLabelValue
 			}
 			converted := &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{
@@ -215,7 +228,8 @@ func TestDeleteGrafanaDashboardDeletesOnlyBuiltInConvertedCopy(t *testing.T) {
 			require.NoError(t, r.deleteGrafanaDashboard(testDashboardAsset, cr))
 
 			err = r.Client.Get(t.Context(), client.ObjectKeyFromObject(converted), &grafv1.GrafanaDashboard{})
-			assert.Equal(t, builtIn, apierrors.IsNotFound(err), "Get converted dashboard error = %v", err)
+			deleted := tc.converterManaged && tc.builtIn
+			assert.Equal(t, deleted, apierrors.IsNotFound(err), "Get converted dashboard error = %v", err)
 		})
 	}
 }

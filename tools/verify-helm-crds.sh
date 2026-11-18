@@ -356,6 +356,9 @@ verify_rbac_resource_absent() {
     fi
 }
 
+# Read-only RBAC verbs, as verify_exact_rbac_verbs expects them.
+readonly read_only_verbs="get,list,watch"
+
 verify_exact_rbac_verbs() {
     local manifest="$1"
     local api_group="$2"
@@ -467,8 +470,8 @@ verify_exact_rbac_verbs "${victoriametrics_role}" policy poddisruptionbudgets/fi
     "create,delete,get,list,patch,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_role}" autoscaling horizontalpodautoscalers \
     "create,delete,get,list,update,watch"
-verify_exact_rbac_verbs "${victoriametrics_role}" discovery.k8s.io endpointslices "get,list,watch"
-verify_exact_rbac_verbs "${victoriametrics_role}" apps replicasets "get,list,watch"
+verify_exact_rbac_verbs "${victoriametrics_role}" discovery.k8s.io endpointslices "${read_only_verbs}"
+verify_exact_rbac_verbs "${victoriametrics_role}" apps replicasets "${read_only_verbs}"
 verify_exact_rbac_verbs "${victoriametrics_role}" apps daemonsets/status \
     "create,delete,get,list,patch,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_role}" apps deployments/status \
@@ -491,7 +494,7 @@ for vm_rbac in "${victoriametrics_cluster_role}" "${victoriametrics_role}" \
 done
 for prometheus_resource in alertmanagerconfigs podmonitors probes prometheusrules scrapeconfigs servicemonitors; do
     verify_exact_rbac_verbs "${victoriametrics_role}" monitoring.coreos.com "${prometheus_resource}" \
-        "get,list,watch"
+        "${read_only_verbs}"
 done
 for prometheus_finalizer in alertmanagerconfigs/finalizers podmonitors/finalizers probes/finalizers \
     prometheusrules/finalizers servicemonitors/finalizers thanosrulers/finalizers; do
@@ -854,10 +857,10 @@ verify_rendered_resource_count "${converter_manifest}" \
 "${yq_binary}" eval-all \
     "select(.kind == \"ClusterRole\" and ${converter_selector})" \
     "${converter_manifest}" >"${converter_rbac_manifest}"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "${read_only_verbs}"
 verify_exact_rbac_verbs "${converter_rbac_manifest}" grafana.integreatly.org grafanadashboards \
     "create,delete,get,list,update,watch"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" "" namespaces "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" namespaces "${read_only_verbs}"
 if ! "${yq_binary}" eval -e \
     '[.rules[].resources[] | select(. == "grafanadatasources" or . == "grafanafolders" or
     . == "grafananotificationchannels" or . == "grafanacontactpoints")] | length == 0' \
@@ -878,7 +881,7 @@ helm template monitoring "${chart_dir}" \
     --set grafanaConverter.config.dashboard.gzipConfigMapRef.enabled=true |
     "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
         >"${converter_rbac_manifest}"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "${read_only_verbs}"
 if ! "${yq_binary}" eval-all -e \
     "select(.kind == \"Deployment\" and ${converter_selector}) |
     .spec.template.spec.containers[0].resources.limits |
