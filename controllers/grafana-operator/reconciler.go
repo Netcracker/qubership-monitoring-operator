@@ -221,6 +221,9 @@ func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 		r.Log.Info("Remove all grafana dashboards")
 		r.uninstallGrafanaDashboards(cr)
 	}
+	if err := r.deleteOrphanedConvertedDashboards(cr); err != nil {
+		r.Log.Error(err, "Can not delete converted dashboards without a legacy source")
+	}
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Operator.Paused {
 			err := r.handleServiceAccount(cr)

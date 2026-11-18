@@ -2,6 +2,7 @@ package grafana_operator
 
 import (
 	"context"
+	"strings"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -14,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -218,6 +220,51 @@ func (r *GrafanaOperatorReconciler) deleteConvertedDashboard(cr *monv1.PlatformM
 		return nil
 	}
 	return client.IgnoreNotFound(r.DeleteResource(e))
+}
+
+// deleteOrphanedConvertedDashboards deletes converter copies of built-in dashboards whose legacy
+// source no longer exists in the cr namespace. Helm deletes the source of a chart-templated
+// dashboard when its exporter is disabled, and the converter keeps the copy unless
+// deleteTargetOnSourceDeletion is enabled. Helm does not trigger a reconcile, so a copy is
+// deleted on the next reconcile. Copies of product dashboards lack the built-in label and stay.
+func (r *GrafanaOperatorReconciler) deleteOrphanedConvertedDashboards(cr *monv1.PlatformMonitoring) error {
+	copies := &grafv1.GrafanaDashboardList{}
+	if err := r.Client.List(context.TODO(), copies, client.InNamespace(cr.GetNamespace()), client.MatchingLabels{
+		converterManagedByLabelKey: converterManagedByLabelValue,
+		builtInDashboardLabelKey:   builtInDashboardLabelValue,
+	}); err != nil {
+		if meta.IsNoMatchError(err) {
+			return nil
+		}
+		return err
+	}
+	var errs []error
+	for i := range copies.Items {
+		c := &copies.Items[i]
+		sourceName, ok := strings.CutSuffix(c.GetName(), convertedDashboardNameSuffix)
+		if !ok {
+			continue
+		}
+		source := &unstructured.Unstructured{}
+		source.SetGroupVersionKind(legacyGrafanaDashboardGVK)
+		err := r.Client.Get(context.TODO(), client.ObjectKey{Namespace: c.GetNamespace(), Name: sourceName}, source)
+		if err == nil {
+			continue
+		}
+		if !errors.IsNotFound(err) {
+			// Without the legacy API, the copy cannot be matched to a source, so it stays.
+			if meta.IsNoMatchError(err) {
+				return nil
+			}
+			errs = append(errs, err)
+			continue
+		}
+		r.Log.Info("Deleting converted dashboard without a legacy source", "name", c.GetName())
+		if err := r.DeleteResource(c); client.IgnoreNotFound(err) != nil {
+			errs = append(errs, err)
+		}
+	}
+	return utilerrors.NewAggregate(errs)
 }
 
 func (r *GrafanaOperatorReconciler) deletePodMonitor(cr *monv1.PlatformMonitoring) error {

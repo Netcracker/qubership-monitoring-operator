@@ -159,6 +159,42 @@ func TestHandleGrafanaDashboardReplacesOnlyOwnedV1beta1Dashboard(t *testing.T) {
 	}
 }
 
+func TestDeleteOrphanedConvertedDashboardsDeletesOnlyBuiltInCopiesWithoutSource(t *testing.T) {
+	cr := testPlatformMonitoring()
+	builtInLabels := map[string]string{
+		converterManagedByLabelKey: converterManagedByLabelValue,
+		builtInDashboardLabelKey:   builtInDashboardLabelValue,
+	}
+	newCopy := func(name string, labels map[string]string) *grafv1.GrafanaDashboard {
+		return &grafv1.GrafanaDashboard{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: cr.GetNamespace(), Labels: labels}}
+	}
+	source := &unstructured.Unstructured{}
+	source.SetGroupVersionKind(legacyGrafanaDashboardGVK)
+	source.SetName("with-source")
+	source.SetNamespace(cr.GetNamespace())
+
+	orphan := newCopy("version-exporter"+convertedDashboardNameSuffix, builtInLabels)
+	withSource := newCopy("with-source"+convertedDashboardNameSuffix, builtInLabels)
+	product := newCopy("product"+convertedDashboardNameSuffix, map[string]string{converterManagedByLabelKey: converterManagedByLabelValue})
+	unsuffixed := newCopy("unsuffixed", builtInLabels)
+	r := newGrafanaDashboardTestReconciler(t, cr, source, orphan, withSource, product, unsuffixed)
+
+	require.NoError(t, r.deleteOrphanedConvertedDashboards(cr))
+
+	for _, tc := range []struct {
+		copy    *grafv1.GrafanaDashboard
+		deleted bool
+	}{
+		{orphan, true},
+		{withSource, false},
+		{product, false},
+		{unsuffixed, false},
+	} {
+		err := r.Client.Get(t.Context(), client.ObjectKeyFromObject(tc.copy), &grafv1.GrafanaDashboard{})
+		assert.Equal(t, tc.deleted, apierrors.IsNotFound(err), "%s: Get error = %v", tc.copy.GetName(), err)
+	}
+}
+
 func TestDeleteGrafanaDashboardDeletesOnlyBuiltInConvertedCopy(t *testing.T) {
 	for name, builtIn := range map[string]bool{"built-in copy": true, "copy without the built-in label": false} {
 		t.Run(name, func(t *testing.T) {

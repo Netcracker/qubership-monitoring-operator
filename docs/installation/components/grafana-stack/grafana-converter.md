@@ -12,9 +12,11 @@ The Monitoring Operator and its chart also publish the built-in dashboards as le
 they reach Grafana through the converter. With `grafanaConverter.install=false`, or with the release namespace outside
 the converter watch scope, Grafana has no built-in dashboards.
 
-Disabling a built-in dashboard deletes its legacy dashboard and its converted dashboard. Uninstalling the release
-deletes the converted built-in dashboards, which carry `app.kubernetes.io/processed-by-operator=grafana-operator`.
-Converted product dashboards stay.
+Disabling a built-in dashboard deletes its legacy dashboard and its converted dashboard. When you disable an exporter
+or its dashboard, Helm deletes the legacy dashboard at once, and the operator deletes the converted dashboard on its
+next reconcile. With `monitoringOperator.reconciliationInterval=0`, the converted dashboard stays until another event
+triggers a reconcile. Uninstalling the release deletes the converted built-in dashboards, which carry
+`app.kubernetes.io/processed-by-operator=grafana-operator`. Converted product dashboards stay.
 
 ## What the converter does
 
