@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: "CLA Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
-        uses: Netcracker/qubership-workflow-hub/actions/cla-assistant@cf536587a99a23b3614aa4db4bdbf13cf36059b6 # v2.8.3
+        uses: Netcracker/qubership-workflow-hub/actions/cla-assistant@b72b7f047fdb44ac85035f87b4d15d1cbdf2cb15 # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_ACCESS_TOKEN }}
