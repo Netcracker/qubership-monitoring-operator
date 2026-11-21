@@ -12,11 +12,15 @@ grafanaConverter:
   install: true
   config:
     dashboard:
-      # Convert only legacy dashboards with this label.
+      # Convert only legacy dashboards that match one of these selectors.
       labelSelector:
         - matchLabels:
             app.kubernetes.io/component: monitoring
+        # Built-in dashboards carry this label. Keep this selector, or Grafana has no built-in dashboards.
+        - matchLabels:
+            app.kubernetes.io/processed-by-operator: grafana-operator
       # Convert only legacy dashboards in namespaces with this label. Applies to the cluster-wide watch only.
+      # Label the release namespace too: built-in dashboards live there.
       # Helm merges this with the default selector, which excludes namespaces labeled
       # openshift.io/cluster-monitoring=true.
       namespaceSelector:

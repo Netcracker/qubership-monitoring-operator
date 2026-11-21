@@ -3,7 +3,6 @@ package grafana_operator
 import (
 	"strings"
 	"testing"
-	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
@@ -14,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/utils/ptr"
 )
 
@@ -173,7 +173,9 @@ func TestGrafanaOperatorManifests(t *testing.T) {
 				t.Fatal(err)
 			}
 			assert.NotNil(t, m, "GrafanaDashboard manifest should not be empty")
-			assert.Equal(t, 10*time.Minute, m.Spec.ResyncPeriod.Duration)
+			assert.Equal(t, legacyGrafanaDashboardGVK, m.GroupVersionKind())
+			dashboardJSON, _, _ := unstructured.NestedString(m.Object, "spec", "json")
+			assert.NotEmpty(t, dashboardJSON, "GrafanaDashboard %s must carry spec.json", mResource)
 		}
 	})
 	crWithLabels := &monv1.PlatformMonitoring{

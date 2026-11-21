@@ -108,6 +108,7 @@ func setupWithManager(t *testing.T, cfg *rest.Config, dc *fakediscovery.FakeDisc
 func TestAddWatchBasedSourcesDiscoversOnce(t *testing.T) {
 	dc := newFakeDiscovery(
 		apiResourceList(grafv1.SchemeGroupVersion.String(), "Grafana", "GrafanaDashboard", "GrafanaDatasource"),
+		apiResourceList(legacyGrafanaGroupVersion, "GrafanaDashboard"),
 		apiResourceList(promv1.SchemeGroupVersion.String(), "Prometheus", "Alertmanager", "PrometheusRule", "ServiceMonitor", "PodMonitor"),
 		apiResourceList(vmetricsv1b1.SchemeGroupVersion.String(), "VMSingle", "VMAgent", "VMAuth", "VMAlert", "VMAlertmanager", "VMCluster", "VMUser"),
 		apiResourceList(networkingv1.SchemeGroupVersion.String(), "Ingress"),

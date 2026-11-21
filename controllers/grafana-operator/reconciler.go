@@ -221,6 +221,11 @@ func (r *GrafanaOperatorReconciler) Run(cr *monv1.PlatformMonitoring) error {
 		r.Log.Info("Remove all grafana dashboards")
 		r.uninstallGrafanaDashboards(cr)
 	}
+	// A failure fails the component, so the reconcile is retried even with periodic reconciliation disabled.
+	if err := r.deleteOrphanedConvertedDashboards(cr); err != nil {
+		r.Log.Error(err, "Can not delete converted dashboards without a legacy source")
+		dashboardErrs = append(dashboardErrs, err)
+	}
 	if cr.Spec.Grafana != nil && cr.Spec.Grafana.IsInstall() {
 		if !cr.Spec.Grafana.Operator.Paused {
 			err := r.handleServiceAccount(cr)
