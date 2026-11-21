@@ -345,7 +345,7 @@ kubectl get networkpolicy -n monitoring
 3. Verify time range settings
 
 ```bash
-kubectl exec -it <grafana-pod> -n monitoring -- grafana-cli admin data-source list
+kubectl get grafanadatasources.grafana.integreatly.org -n monitoring
 ```
 
 ## Automated Health Check Script
