@@ -46,7 +46,7 @@ Image can be found from:
     {{- printf "%s" .Values.grafana.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=grafana/grafana */ -}}
-    {{- print "docker.io/grafana/grafana:13.3.0" -}}
+    {{- print "docker.io/grafana/grafana:13.3.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -80,7 +80,7 @@ Image can be found from:
     {{- printf "%s" .Values.prometheus.operator.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced */ -}}
-    {{- print "quay.io/prometheus-operator/prometheus-operator:v0.94.2" -}}
+    {{- print "quay.io/prometheus-operator/prometheus-operator:v0.95.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -95,7 +95,7 @@ Image can be found from:
     {{- printf "%s" .Values.prometheus.configReloaderImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=prometheus-operator/prometheus-operator versioning=semver-coerced */ -}}
-    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.94.2" -}}
+    {{- print "quay.io/prometheus-operator/prometheus-config-reloader:v0.95.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -110,7 +110,7 @@ Image can be found from:
     {{- printf "%s" .Values.alertManager.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/alertmanager */ -}}
-    {{- print "docker.io/prom/alertmanager:v0.34.1" -}}
+    {{- print "docker.io/prom/alertmanager:v0.34.2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -232,7 +232,7 @@ Image can be found from:
     {{- printf "%s" .Values.victoriametrics.vmAlertManager.image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=prom/alertmanager */ -}}
-    {{- print "docker.io/prom/alertmanager:v0.34.1" -}}
+    {{- print "docker.io/prom/alertmanager:v0.34.2" -}}
   {{- end -}}
 {{- end -}}
 

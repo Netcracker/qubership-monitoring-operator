@@ -51,7 +51,7 @@ jobs:
           echo "**Dry-run**: $DRY_RUN"
 
       - name: Run Container Package Cleanup Action
-        uses: Netcracker/qubership-workflow-hub/actions/container-package-cleanup@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
+        uses: Netcracker/qubership-workflow-hub/actions/container-package-cleanup@b72b7f047fdb44ac85035f87b4d15d1cbdf2cb15 # v3.0.0
         with:
           threshold-days: ${{ github.event.inputs.threshold-days || 7 }}
           included-tags: ${{ github.event.inputs.included-tags || '*' }}

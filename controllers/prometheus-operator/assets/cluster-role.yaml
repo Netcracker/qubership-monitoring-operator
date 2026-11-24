@@ -48,6 +48,7 @@ rules:
       - alertmanagers/status
       - alertmanagers/finalizers
       - alertmanagerconfigs
+      - alertmanagerconfigs/status
       - prometheuses
       - prometheuses/finalizers
       - prometheuses/status
