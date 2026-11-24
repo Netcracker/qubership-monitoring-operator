@@ -356,6 +356,9 @@ verify_rbac_resource_absent() {
     fi
 }
 
+# Read-only RBAC verbs, as verify_exact_rbac_verbs expects them.
+readonly read_only_verbs="get,list,watch"
+
 verify_exact_rbac_verbs() {
     local manifest="$1"
     local api_group="$2"
@@ -467,8 +470,8 @@ verify_exact_rbac_verbs "${victoriametrics_role}" policy poddisruptionbudgets/fi
     "create,delete,get,list,patch,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_role}" autoscaling horizontalpodautoscalers \
     "create,delete,get,list,update,watch"
-verify_exact_rbac_verbs "${victoriametrics_role}" discovery.k8s.io endpointslices "get,list,watch"
-verify_exact_rbac_verbs "${victoriametrics_role}" apps replicasets "get,list,watch"
+verify_exact_rbac_verbs "${victoriametrics_role}" discovery.k8s.io endpointslices "${read_only_verbs}"
+verify_exact_rbac_verbs "${victoriametrics_role}" apps replicasets "${read_only_verbs}"
 verify_exact_rbac_verbs "${victoriametrics_role}" apps daemonsets/status \
     "create,delete,get,list,patch,update,watch"
 verify_exact_rbac_verbs "${victoriametrics_role}" apps deployments/status \
@@ -491,7 +494,7 @@ for vm_rbac in "${victoriametrics_cluster_role}" "${victoriametrics_role}" \
 done
 for prometheus_resource in alertmanagerconfigs podmonitors probes prometheusrules scrapeconfigs servicemonitors; do
     verify_exact_rbac_verbs "${victoriametrics_role}" monitoring.coreos.com "${prometheus_resource}" \
-        "get,list,watch"
+        "${read_only_verbs}"
 done
 for prometheus_finalizer in alertmanagerconfigs/finalizers podmonitors/finalizers probes/finalizers \
     prometheusrules/finalizers servicemonitors/finalizers thanosrulers/finalizers; do
@@ -581,6 +584,8 @@ for grafana_cleanup_resource in grafanadashboards grafanadatasources grafanas; d
     verify_exact_rbac_verbs "${grafana_cleanup_role_manifest}" grafana.integreatly.org \
         "${grafana_cleanup_resource}" "delete,deletecollection,get,list,watch"
 done
+verify_exact_rbac_verbs "${grafana_cleanup_role_manifest}" integreatly.org grafanadashboards \
+    "delete,deletecollection,get,list,watch"
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "Job" and .metadata.name == "monitoring-grafana-cleanup-hook" and
     .metadata.annotations."helm.sh/hook" == "pre-delete" and
@@ -719,7 +724,7 @@ verify_text_contains "${openshift_rbac_cleanup_command}" \
 verify_rendered_resource_count "${rendered_manifest}" \
     '.kind == "GrafanaDashboard" and
     (.metadata.name == "backup-daemon" or .metadata.name == "kafka-java-clients") and
-    .metadata.annotations."helm.sh/resource-policy" == "keep" and .spec.resyncPeriod == "10m"' \
+    .metadata.annotations."helm.sh/resource-policy" == "keep" and .apiVersion == "integreatly.org/v1alpha1"' \
     2 "retained Helm-owned Grafana dashboards"
 
 helm template monitoring "${chart_dir}" \
@@ -735,13 +740,13 @@ helm template monitoring "${chart_dir}" \
     --set versionExporter.install=true \
     >"${rendered_manifest}"
 verify_rendered_resource_count "${rendered_manifest}" \
-    '.apiVersion == "grafana.integreatly.org/v1beta1" and
+    '.apiVersion == "integreatly.org/v1alpha1" and
     .kind == "GrafanaDashboard"' \
-    12 "optional Grafana dashboards"
+    12 "optional legacy Grafana dashboards"
 verify_rendered_resource_count "${rendered_manifest}" \
     '.apiVersion == "grafana.integreatly.org/v1beta1" and
-    .kind == "GrafanaDashboard" and .spec.instanceSelector == null' \
-    0 "optional Grafana dashboards without an instance selector"
+    .kind == "GrafanaDashboard"' \
+    0 "optional Grafana dashboards that bypass the Grafana converter"
 
 "${yq_binary}" eval-all \
     'select(.kind == "Job" and .metadata.name == "monitoring-grafana-cleanup-hook") |
@@ -765,6 +770,9 @@ for user_owned_grafana_resource in \
 done
 for required_grafana_cleanup_token in \
     grafanadashboards.grafana.integreatly.org \
+    "grafanadashboards.integreatly.org --selector=app.kubernetes.io/managed-by-operator=monitoring-operator" \
+    "grafanadashboards.grafana.integreatly.org --selector=app.kubernetes.io/managed-by-operator=grafana-operator-converter,app.kubernetes.io/processed-by-operator=grafana-operator" \
+    app.kubernetes.io/name=qubership-grafana-operator-converter \
     grafanadatasources.grafana.integreatly.org \
     grafanas.grafana.integreatly.org \
     app.kubernetes.io/managed-by-operator=monitoring-operator \
@@ -849,10 +857,10 @@ verify_rendered_resource_count "${converter_manifest}" \
 "${yq_binary}" eval-all \
     "select(.kind == \"ClusterRole\" and ${converter_selector})" \
     "${converter_manifest}" >"${converter_rbac_manifest}"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" integreatly.org grafanadashboards "${read_only_verbs}"
 verify_exact_rbac_verbs "${converter_rbac_manifest}" grafana.integreatly.org grafanadashboards \
     "create,delete,get,list,update,watch"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" "" namespaces "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" namespaces "${read_only_verbs}"
 if ! "${yq_binary}" eval -e \
     '[.rules[].resources[] | select(. == "grafanadatasources" or . == "grafanafolders" or
     . == "grafananotificationchannels" or . == "grafanacontactpoints")] | length == 0' \
@@ -873,7 +881,7 @@ helm template monitoring "${chart_dir}" \
     --set grafanaConverter.config.dashboard.gzipConfigMapRef.enabled=true |
     "${yq_binary}" eval-all "select(.kind == \"ClusterRole\" and ${converter_selector})" - \
         >"${converter_rbac_manifest}"
-verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "get,list,watch"
+verify_exact_rbac_verbs "${converter_rbac_manifest}" "" configmaps "${read_only_verbs}"
 if ! "${yq_binary}" eval-all -e \
     "select(.kind == \"Deployment\" and ${converter_selector}) |
     .spec.template.spec.containers[0].resources.limits |
@@ -919,7 +927,7 @@ helm template monitoring "${chart_dir}" \
 if ! "${yq_binary}" eval-all -e \
     'select(.kind == "ConfigMap" and .metadata.name == "grafana-resources-converter") |
     .data."parameters.yaml" | from_yaml |
-    (((.dashboardLabelSelector | to_json(0)) == "[{\"matchLabels\":{\"app.kubernetes.io/component\":\"monitoring\"}}]") and
+    (((.dashboardLabelSelector | to_json(0)) == "[{\"matchLabels\":{\"app.kubernetes.io/component\":\"monitoring\"}},{\"matchLabels\":{\"app.kubernetes.io/processed-by-operator\":\"grafana-operator\"}}]") and
     ((.dashboardNamespaceSelector | to_json(0)) == "{\"matchExpressions\":[{\"key\":\"openshift.io/cluster-monitoring\",\"operator\":\"NotIn\",\"values\":[\"true\"]}],\"matchLabels\":{\"monitoring\":\"enabled\"}}"))' \
     "${converter_manifest}" >/dev/null; then
     echo "The Grafana converter ConfigMap does not contain the selectors from the privileged example values." >&2

@@ -14,6 +14,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	ktesting "k8s.io/client-go/testing"
@@ -244,6 +245,67 @@ func TestJaegerServicePredicate(t *testing.T) {
 	}
 	if p.Create(event.CreateEvent{Object: other}) {
 		t.Fatal("unrelated Service must not enqueue")
+	}
+}
+
+func TestBuiltInLegacyDashboardDeletedPredicate(t *testing.T) {
+	p := builtInLegacyDashboardDeletedPredicate()
+	dashboard := func(labels map[string]string) *unstructured.Unstructured {
+		u := &unstructured.Unstructured{}
+		u.SetAPIVersion(legacyGrafanaGroupVersion)
+		u.SetKind("GrafanaDashboard")
+		u.SetName("version-exporter")
+		u.SetNamespace("monitoring")
+		u.SetLabels(labels)
+		return u
+	}
+	builtIn := dashboard(map[string]string{builtInDashboardLabelKey: builtInDashboardLabelValue})
+	product := dashboard(map[string]string{"app.kubernetes.io/name": "product"})
+
+	if !p.Delete(event.DeleteEvent{Object: builtIn}) {
+		t.Fatal("deleting a built-in legacy dashboard must enqueue")
+	}
+	if !p.Delete(event.DeleteEvent{Object: builtIn, DeleteStateUnknown: true}) {
+		t.Fatal("a missed deletion of a built-in legacy dashboard must enqueue")
+	}
+	if p.Delete(event.DeleteEvent{Object: product}) {
+		t.Fatal("deleting a product legacy dashboard must not enqueue")
+	}
+	if p.Create(event.CreateEvent{Object: builtIn}) {
+		t.Fatal("creating a built-in legacy dashboard must not enqueue")
+	}
+	if p.Update(event.UpdateEvent{ObjectOld: builtIn, ObjectNew: builtIn}) {
+		t.Fatal("updating a built-in legacy dashboard must not enqueue")
+	}
+	if p.Generic(event.GenericEvent{Object: builtIn}) {
+		t.Fatal("a generic event for a built-in legacy dashboard must not enqueue")
+	}
+	if p.Delete(event.DeleteEvent{}) {
+		t.Fatal("a deletion without an object must not enqueue")
+	}
+}
+
+func TestMapToPlatformMonitoringsInNamespace(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := monv1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	pm := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "pm", Namespace: "monitoring"}}
+	other := &monv1.PlatformMonitoring{ObjectMeta: metav1.ObjectMeta{Name: "other", Namespace: "other"}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(pm, other).Build()
+	r := &PlatformMonitoringReconciler{Client: c, Log: log.Log}
+
+	dashboard := &unstructured.Unstructured{}
+	dashboard.SetAPIVersion(legacyGrafanaGroupVersion)
+	dashboard.SetKind("GrafanaDashboard")
+	dashboard.SetName("version-exporter")
+	dashboard.SetNamespace("monitoring")
+	reqs := r.mapToPlatformMonitoringsInNamespace(t.Context(), dashboard)
+	if len(reqs) != 1 || reqs[0].Name != "pm" || reqs[0].Namespace != "monitoring" {
+		t.Fatalf("got %#v, want the PlatformMonitoring in the dashboard namespace", reqs)
+	}
+	if reqs := r.mapToPlatformMonitoringsInNamespace(t.Context(), nil); len(reqs) != 0 {
+		t.Fatalf("a nil object must not enqueue, got %#v", reqs)
 	}
 }
 

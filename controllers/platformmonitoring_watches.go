@@ -36,6 +36,9 @@ const (
 	gatewayAPIGroup        = "gateway.networking.k8s.io"
 	httpRouteKind          = "HTTPRoute"
 	httpRouteVersion       = "v1"
+	// legacyGrafanaGroupVersion serves the Grafana Operator v4 dashboards that the operator
+	// publishes for the Grafana converter.
+	legacyGrafanaGroupVersion = "integreatly.org/v1alpha1"
 
 	nodeExporterSCCOwnerNameAnnotation      = "monitoring.netcracker.com/platform-monitoring-name"
 	nodeExporterSCCOwnerNamespaceAnnotation = "monitoring.netcracker.com/platform-monitoring-namespace"
@@ -203,6 +206,7 @@ func (r *PlatformMonitoringReconciler) ownHTTPRouteIfServed(b *builder.Builder) 
 func watchedGroupVersions() []string {
 	return []string{
 		grafv1.SchemeGroupVersion.String(),
+		legacyGrafanaGroupVersion,
 		promv1.SchemeGroupVersion.String(),
 		vmetricsv1b1.SchemeGroupVersion.String(),
 		networkingv1.SchemeGroupVersion.String(),
@@ -233,6 +237,18 @@ func (r *PlatformMonitoringReconciler) addWatchBasedSources(b *builder.Builder) 
 	b = r.ownIfServed(b, grafGV, "Grafana", &grafv1.Grafana{})
 	b = r.ownIfServed(b, grafGV, "GrafanaDashboard", &grafv1.GrafanaDashboard{})
 	b = r.ownIfServed(b, grafGV, "GrafanaDatasource", &grafv1.GrafanaDatasource{})
+	legacyDashboard := &unstructured.Unstructured{}
+	legacyDashboard.SetAPIVersion(legacyGrafanaGroupVersion)
+	legacyDashboard.SetKind("GrafanaDashboard")
+	b = r.ownIfServed(b, legacyGrafanaGroupVersion, "GrafanaDashboard", legacyDashboard)
+	if r.hasKind(legacyGrafanaGroupVersion, "GrafanaDashboard") {
+		// Helm-managed legacy dashboards have no PlatformMonitoring owner, so Owns misses their deletion.
+		builtInDashboard := &unstructured.Unstructured{}
+		builtInDashboard.SetAPIVersion(legacyGrafanaGroupVersion)
+		builtInDashboard.SetKind("GrafanaDashboard")
+		b = b.Watches(builtInDashboard, handler.EnqueueRequestsFromMapFunc(r.mapToPlatformMonitoringsInNamespace),
+			builder.WithPredicates(builtInLegacyDashboardDeletedPredicate()))
+	}
 
 	promGV := promv1.SchemeGroupVersion.String()
 	b = r.ownIfServed(b, promGV, "Prometheus", &promv1.Prometheus{})
@@ -305,6 +321,13 @@ func (r *PlatformMonitoringReconciler) mapSecurityContextConstraintsToPlatformMo
 		return r.listAllPlatformMonitoringRequests(ctx)
 	}
 	return nil
+}
+
+func (r *PlatformMonitoringReconciler) mapToPlatformMonitoringsInNamespace(ctx context.Context, obj client.Object) []reconcile.Request {
+	if obj == nil {
+		return nil
+	}
+	return r.requestsForPlatformMonitoringsInNamespace(ctx, obj.GetNamespace())
 }
 
 func (r *PlatformMonitoringReconciler) requestsForPlatformMonitoringsInNamespace(ctx context.Context, namespace string) []reconcile.Request {

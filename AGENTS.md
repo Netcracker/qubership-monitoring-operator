@@ -121,6 +121,11 @@ Privileged installs map `ClusterRole`, `ClusterRoleBinding`, and `SecurityContex
 the cache namespace. OpenShift Route, Nodes, and Jaeger Services outside that namespace stay on the repair requeue
 (`RECONCILIATION_INTERVAL`, default 3600 seconds; `0` disables it).
 
+The deletion of a legacy `integreatly.org/v1alpha1` `GrafanaDashboard` with
+`app.kubernetes.io/processed-by-operator=grafana-operator` maps to the `PlatformMonitoring` in its namespace, even
+without an owner. Helm deletes such a dashboard when an exporter is disabled, and the reconcile then deletes its
+orphaned converter copy.
+
 ### External schemes
 
 `main.go` registers schemes for managed third-party resources. Reconcilers use discovery to detect optional APIs such

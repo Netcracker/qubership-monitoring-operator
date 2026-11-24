@@ -8,11 +8,23 @@ The chart installs the converter by default as the `grafanaConverter` subchart, 
 [qubership-grafana-operator-converter](https://github.com/Netcracker/qubership-grafana-operator-converter). Keep it
 installed while any product still publishes legacy dashboards.
 
+The Monitoring Operator and its chart also publish the built-in dashboards as legacy `GrafanaDashboard` resources, so
+they reach Grafana through the converter. With `grafanaConverter.install=false`, or with the release namespace outside
+the converter watch scope, Grafana has no built-in dashboards.
+
+Disabling a built-in dashboard deletes its legacy dashboard and its converted dashboard. When you disable an exporter
+or its dashboard, Helm deletes the legacy dashboard, and that deletion triggers a reconcile in which the operator
+deletes the converted dashboard. This also works with `monitoringOperator.reconciliationInterval=0`.
+Uninstalling the release deletes the converted built-in dashboards, which carry
+`app.kubernetes.io/processed-by-operator=grafana-operator`. Converted product dashboards stay.
+
 ## What the converter does
 
 * It converts dashboards only. Datasource, folder, and notification conversion stay disabled; migrate legacy
   datasources manually as described in the [Grafana datasource migration guide][datasource-migration].
-* The converted dashboard has the same name and namespace as the legacy dashboard. It copies the dashboard content
+* The converted dashboard is named `<legacy dashboard name>-converted` and is created in the namespace of the legacy
+  dashboard. The suffix keeps it from colliding with a v1beta1 dashboard that has the name of the legacy dashboard. It
+  copies the dashboard content
   (`json`, `gzipJson`, `url`, `jsonnet`, or `configMapRef`), plugins, and datasources, and maps `customFolderName` to
   `folderTitle`.
 * The converted dashboard selects the monitoring Grafana instance through
@@ -137,18 +149,76 @@ kubectl get grafanadashboards.grafana.integreatly.org -A \
 Check one converted dashboard:
 
 ```bash
-kubectl get grafanadashboards.grafana.integreatly.org <name> -n <namespace> \
+kubectl get grafanadashboards.grafana.integreatly.org <legacy-name>-converted -n <namespace> \
   -o jsonpath='{.status.conditions[?(@.type=="DashboardSynchronized")].status}'
 ```
 
 The command prints `True` when Grafana has loaded the dashboard.
+
+## Replace a converted dashboard with a v1beta1 dashboard
+
+When the dashboard JSON sets `uid`, a v1beta1 dashboard that you publish yourself and the converted copy write the
+same dashboard in Grafana. Remove the copy as part of the migration:
+
+1. Publish the v1beta1 dashboard.
+2. Delete the legacy dashboard. While it exists, the converter recreates the copy.
+3. Delete the `<legacy dashboard name>-converted` dashboard.
+
+Grafana Operator can remove the dashboard from Grafana when the copy is deleted. It restores the dashboard on the
+next synchronization of the v1beta1 dashboard that remains.
+
+To delete every converted dashboard at once, select them by label:
+
+```bash
+kubectl delete grafanadashboards.grafana.integreatly.org -A \
+  -l app.kubernetes.io/managed-by-operator=grafana-operator-converter
+```
+
+The converter recreates the copies whose legacy dashboards still exist.
+
+A build that predates the suffix named converted dashboards like their legacy dashboards. The converter does not
+update or delete those copies, so each one diverges from its `-converted` replacement while both write the same
+dashboard in Grafana. After an upgrade from such a build, delete them in every namespace that holds legacy dashboards:
+
+```bash
+kubectl get grafanadashboards.grafana.integreatly.org -n <namespace> -o name \
+  -l app.kubernetes.io/managed-by-operator=grafana-operator-converter \
+  | grep -v -- '-converted$' | xargs -r kubectl delete -n <namespace>
+```
+
+The filter keeps names that end with `-converted`. An earlier build can also have made such a copy for a legacy
+dashboard that is itself named `<name>-converted`. If a legacy dashboard `<name>` exists, the converter reuses that copy
+as the copy of `<name>`, so do not delete it. Delete it by name only when no legacy dashboard `<name>` exists.
+
+A legacy dashboard with a name longer than 243 characters gets no `-converted` copy, because the converted name
+exceeds the Kubernetes limit of 253 characters, so the command deletes its only copy. Before you run the command,
+republish that dashboard under a shorter name and wait for its `-converted` copy.
+
+When the dashboard JSON sets no `uid`, Grafana Operator uses the `metadata.uid` of the converted dashboard as the
+dashboard UID in Grafana. The `-converted` replacement is a new resource, so it creates a second dashboard in Grafana,
+and deleting the old copy removes the UID that existing links use. The upgraded converter can also delete an old
+copy on startup, so do steps 1 and 2 before you upgrade the converter:
+
+1. Read the UID from `metadata.uid` of the old copy:
+
+   ```bash
+   kubectl get grafanadashboards.grafana.integreatly.org <name> -n <namespace> -o jsonpath='{.metadata.uid}'
+   ```
+
+2. Set that value as `uid` in the dashboard JSON of the legacy dashboard: in `spec.json`, in `spec.gzipJson`, in the
+   dashboard object that `spec.jsonnet` renders, or in the ConfigMap that the dashboard references.
+3. After the upgrade, check that `status.uid` of the `<name>-converted` dashboard has the value from step 1.
+
+A dashboard that is loaded from `spec.url` or `spec.grafanaCom` keeps its UID only when the JSON at that source sets
+`uid`.
 
 ## Troubleshooting
 
 | Symptom                                                     | Check                                                                                                                        |
 | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | A legacy dashboard has no converted dashboard               | The namespace is in the watch scope, the dashboard matches the selectors, and the converter logs show no conversion error.   |
-| The converter logs report a conflict                        | A v1beta1 dashboard with the same name exists without the `app.kubernetes.io/managed-by-operator` label. Rename one of them. |
+| Grafana has no built-in dashboards                          | The converter is installed, and the release namespace is in its watch scope and matches `namespaceSelector`.                 |
+| The converter logs report a conflict                        | A `<legacy name>-converted` v1beta1 dashboard exists without the `app.kubernetes.io/managed-by-operator` label. Rename it.   |
 | A dashboard with `gzipConfigMapRef` is reported as an error | Enable `grafanaConverter.config.dashboard.gzipConfigMapRef.enabled`.                                                         |
 | The converted dashboard exists but is not in Grafana        | The Grafana instance has the labels from `instanceSelector`, and the dashboard's `DashboardSynchronized` condition.          |
 | Selector changes have no effect                             | Set them in `grafanaConverter.config.dashboard`, not in `grafana`.                                                           |

@@ -4,16 +4,15 @@ import (
 	"embed"
 	"fmt"
 	"strings"
-	"time"
 
 	monv1 "github.com/Netcracker/qubership-monitoring-operator/api/v1"
 	"github.com/Netcracker/qubership-monitoring-operator/controllers/utils"
-	grafv1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -326,8 +325,26 @@ func grafanaOperatorDeployment(cr *monv1.PlatformMonitoring, isOpenShift bool) (
 	return &d, nil
 }
 
-func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.GrafanaDashboard, error) {
-	dashboard := grafv1.GrafanaDashboard{}
+// legacyGrafanaDashboardGVK is the dashboard API of Grafana Operator v4. The Grafana converter
+// turns these resources into grafana.integreatly.org/v1beta1 dashboards.
+var legacyGrafanaDashboardGVK = schema.GroupVersionKind{Group: "integreatly.org", Version: "v1alpha1", Kind: "GrafanaDashboard"}
+
+const (
+	// convertedDashboardNameSuffix is appended by the Grafana converter to the name of its copy.
+	convertedDashboardNameSuffix = "-converted"
+	// The Grafana converter labels its copies with converterManagedByLabelKey.
+	converterManagedByLabelKey   = "app.kubernetes.io/managed-by-operator"
+	converterManagedByLabelValue = "grafana-operator-converter"
+	// builtInDashboardLabelKey marks built-in dashboards. The converter copies it to the v1beta1 copy.
+	builtInDashboardLabelKey   = "app.kubernetes.io/processed-by-operator"
+	builtInDashboardLabelValue = "grafana-operator"
+)
+
+// grafanaDashboard builds a built-in dashboard as a legacy GrafanaDashboard, the same form
+// that products publish. The Grafana converter creates the v1beta1 dashboard from it and
+// sets the Grafana instance selector there.
+func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*unstructured.Unstructured, error) {
+	dashboard := &unstructured.Unstructured{}
 	fullPath := utils.BasePath + utils.DashboardsFolder + fileName
 	crParams := cr.ToParams()
 	// Add a map contains human-readable UIDs for Grafana dashboards to the current Custom Resource
@@ -336,80 +353,20 @@ func grafanaDashboard(cr *monv1.PlatformMonitoring, fileName string) (*grafv1.Gr
 	if err != nil {
 		return nil, err
 	}
-	if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), 100).Decode(&dashboard); err != nil {
+	if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), 100).Decode(&dashboard.Object); err != nil {
 		return nil, err
 	}
-	// Set parameters
-	// Explicitly set GVK to ensure correct API group (grafana.integreatly.org/v1beta1) is used
-	// This is required for Grafana Operator v5 migration from integreatly.org/v1alpha1
-	dashboard.SetGroupVersionKind(schema.GroupVersionKind{Group: "grafana.integreatly.org", Version: "v1beta1", Kind: "GrafanaDashboard"})
+	dashboard.SetGroupVersionKind(legacyGrafanaDashboardGVK)
 	dashboard.SetNamespace(cr.GetNamespace())
-	dashboard.Spec.ResyncPeriod = metav1.Duration{Duration: 10 * time.Minute}
 
 	// Set labels (CR: base + processed-by-operator per spec)
-	utils.SetLabelsForResource(&dashboard, utils.LabelInput{
+	utils.SetLabelsForResource(dashboard, utils.LabelInput{
 		Name:            dashboard.GetName(),
 		Component:       utils.GrafanaOperatorComponentName,
-		ComponentLabels: map[string]string{"app.kubernetes.io/processed-by-operator": "grafana-operator"},
+		ComponentLabels: map[string]string{builtInDashboardLabelKey: builtInDashboardLabelValue},
 	}, nil)
 
-	// Configure instanceSelector dynamically based on Grafana labels
-	// In grafana-operator v5, instanceSelector is optional - if not specified, dashboard applies to all Grafana instances in namespace
-	// If instanceSelector is already set in dashboard YAML, we can override it with labels from Grafana resource
-	// This allows using custom labels set via cr.Spec.Grafana.Labels for instanceSelector matching
-	if cr.Spec.Grafana != nil {
-		// Build instanceSelector matchLabels from Grafana labels
-		// Use default labels if custom labels are not set
-		instanceLabels := make(map[string]string)
-
-		// Get component label - use custom if set, otherwise default
-		if cr.Spec.Grafana.Labels != nil && cr.Spec.Grafana.Labels["app.kubernetes.io/component"] != "" {
-			instanceLabels["app.kubernetes.io/component"] = cr.Spec.Grafana.Labels["app.kubernetes.io/component"]
-		} else {
-			instanceLabels["app.kubernetes.io/component"] = "grafana"
-		}
-
-		// Get part-of label - use custom if set, otherwise default
-		if cr.Spec.Grafana.Labels != nil && cr.Spec.Grafana.Labels["app.kubernetes.io/part-of"] != "" {
-			instanceLabels["app.kubernetes.io/part-of"] = cr.Spec.Grafana.Labels["app.kubernetes.io/part-of"]
-		} else {
-			instanceLabels["app.kubernetes.io/part-of"] = "monitoring"
-		}
-
-		// Add any other custom labels that might be useful for instanceSelector
-		// Users can set custom labels like "dashboards: custom" and use them in instanceSelector
-		if cr.Spec.Grafana.Labels != nil {
-			for k, v := range cr.Spec.Grafana.Labels {
-				// Skip standard labels that are already set above
-				if k != "app.kubernetes.io/component" && k != "app.kubernetes.io/part-of" &&
-					k != "app.kubernetes.io/instance" && k != "app.kubernetes.io/version" &&
-					k != "app.kubernetes.io/name" && k != "app.kubernetes.io/managed-by" {
-					instanceLabels[k] = v
-				}
-			}
-		}
-
-		// Configure instanceSelector for dashboard
-		// In v5, if instanceSelector is not set, dashboard applies to ALL Grafana instances in namespace
-		// We only update instanceSelector if it was already set in dashboard YAML (vanilla v5 behavior)
-		// This preserves the ability to have dashboards apply to all Grafana instances by omitting instanceSelector
-		if dashboard.Spec.InstanceSelector != nil {
-			// Update matchLabels from Grafana resource
-			// Note: matchExpressions (if present in YAML) are preserved and combined with matchLabels via AND logic
-			// This allows combining labels from Grafana resource with expressions from dashboard YAML
-			// Example: matchLabels from Grafana + matchExpressions from YAML = both conditions must be met
-			// If you need to use only matchLabels from Grafana, ensure matchExpressions is not set in dashboard YAML
-			dashboard.Spec.InstanceSelector.MatchLabels = make(map[string]string)
-			// Set labels from Grafana resource
-			for k, v := range instanceLabels {
-				dashboard.Spec.InstanceSelector.MatchLabels[k] = v
-			}
-			// matchExpressions are preserved if they exist in YAML (not modified)
-		}
-		// If instanceSelector is nil, dashboard will apply to all Grafana instances in namespace (vanilla v5 behavior)
-	}
-
-	return &dashboard, nil
+	return dashboard, nil
 }
 
 func grafanaOperatorPodMonitor(cr *monv1.PlatformMonitoring) (*promv1.PodMonitor, error) {

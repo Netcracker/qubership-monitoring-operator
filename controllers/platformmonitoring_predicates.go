@@ -37,6 +37,28 @@ func platformMonitoringPredicate() predicate.Predicate {
 	}
 }
 
+// builtInDashboardLabelKey and builtInDashboardLabelValue mark the built-in and chart-templated
+// legacy GrafanaDashboards, and the Grafana converter copies them to its v1beta1 copies.
+const (
+	builtInDashboardLabelKey   = "app.kubernetes.io/processed-by-operator"
+	builtInDashboardLabelValue = "grafana-operator"
+)
+
+// builtInLegacyDashboardDeletedPredicate passes only the deletion of a legacy GrafanaDashboard
+// with the built-in label. Helm deletes a chart-templated dashboard when its exporter or the
+// dashboard is disabled, and the resulting reconcile deletes the converter copy that remains.
+// A product dashboard lacks the label, so its deletion enqueues nothing.
+func builtInLegacyDashboardDeletedPredicate() predicate.Predicate {
+	return predicate.Funcs{
+		CreateFunc:  func(event.CreateEvent) bool { return false },
+		UpdateFunc:  func(event.UpdateEvent) bool { return false },
+		GenericFunc: func(event.GenericEvent) bool { return false },
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return e.Object != nil && e.Object.GetLabels()[builtInDashboardLabelKey] == builtInDashboardLabelValue
+		},
+	}
+}
+
 // ownedChildPredicate enqueues an owned child on create, confirmed delete, a
 // generation or label change, or a body change while generation stays 0.
 // Status, resourceVersion, and managedFields do not enqueue.
