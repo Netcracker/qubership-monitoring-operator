@@ -2,8 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.22.0
-    operator.prometheus.io/version: 0.94.2
+    controller-gen.kubebuilder.io/version: v0.23.0
+    operator.prometheus.io/version: 0.95.1
   name: alertmanagers.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -508,6 +508,12 @@ spec:
                         x-kubernetes-list-type: atomic
                     type: object
                 type: object
+              alertmanagerConfigFileSystemMode:
+                enum:
+                - AllowAll
+                - FromAlertmanagerConfigMatcherStrategy
+                - DenyAll
+                type: string
               alertmanagerConfigMatcherStrategy:
                 properties:
                   type:
@@ -1184,7 +1190,26 @@ spec:
                           apiURL:
                             pattern: ^(http|https)://.+$
                             type: string
+                          botToken:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                default: ""
+                                type: string
+                              optional:
+                                type: boolean
+                            required:
+                            - key
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          botTokenFile:
+                            minLength: 1
+                            type: string
                         type: object
+                        x-kubernetes-validations:
+                        - message: botToken and botTokenFile are mutually exclusive.
+                          rule: '!has(self.botToken) || !has(self.botTokenFile)'
                       victorops:
                         properties:
                           apiKey:
@@ -1449,6 +1474,12 @@ spec:
                             x-kubernetes-map-type: atomic
                         type: object
                       clientAuthType:
+                        enum:
+                        - NoClientCert
+                        - RequestClientCert
+                        - RequireAnyClientCert
+                        - VerifyClientCertIfGiven
+                        - RequireAndVerifyClientCert
                         type: string
                       clientCAFile:
                         type: string
@@ -3547,17 +3578,20 @@ spec:
                                     message:
                                       type: string
                                     reason:
+                                      minLength: 1
                                       type: string
                                     status:
                                       enum:
                                       - DataLoss
                                       - Degraded
                                       - Inaccessible
+                                      minLength: 1
                                       type: string
                                   required:
                                   - reason
                                   - status
                                   type: object
+                                maxItems: 16
                                 type: array
                                 x-kubernetes-list-map-keys:
                                 - status
@@ -4655,6 +4689,12 @@ spec:
                             x-kubernetes-map-type: atomic
                         type: object
                       clientAuthType:
+                        enum:
+                        - NoClientCert
+                        - RequestClientCert
+                        - RequireAnyClientCert
+                        - VerifyClientCertIfGiven
+                        - RequireAndVerifyClientCert
                         type: string
                       clientCAFile:
                         type: string
