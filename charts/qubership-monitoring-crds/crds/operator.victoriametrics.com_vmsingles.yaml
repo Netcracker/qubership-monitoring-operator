@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   name: vmsingles.operator.victoriametrics.com
   annotations:
-    operator.victoriametrics.com/version: 0.75.1
+    operator.victoriametrics.com/version: 0.75.2
 spec:
   group: operator.victoriametrics.com
   names:
