@@ -193,13 +193,15 @@ nodeSelector: {}
 #
 affinity:
   podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
           matchExpressions:
-            - key: app.kubernetes.io/name
-              operator: In
-              values:
-                - prometheus-adapter
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - prometheus-adapter
         topologyKey: kubernetes.io/hostname
 
 # Tolerations allow the pods to schedule onto nodes with matching taints.
